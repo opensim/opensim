@@ -261,7 +261,7 @@ namespace OpenSim.Data.NHibernate
                 }
 
                 if (inventory.Count > 0)
-                    p.RestoreInventoryItems(inventory);
+                    p.Inventory.RestoreInventoryItems(inventory);
             }
             foreach (SceneObjectGroup g in SOG.Values)
             {

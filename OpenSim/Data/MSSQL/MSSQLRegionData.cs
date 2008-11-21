@@ -718,7 +718,7 @@ VALUES
                 //m_log.DebugFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID);
             }
 
-            prim.RestoreInventoryItems(inventory);
+            prim.Inventory.RestoreInventoryItems(inventory);
 
             // XXX A nasty little hack to recover the folder id for the prim (which is currently stored in
             // every item).  This data should really be stored in the prim table itself.

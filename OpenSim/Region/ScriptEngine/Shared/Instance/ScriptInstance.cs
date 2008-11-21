@@ -696,8 +696,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             Stop(0);
             SceneObjectPart part=m_Engine.World.GetSceneObjectPart(m_LocalID);
-            part.GetInventoryItem(m_ItemID).PermsMask = 0;
-            part.GetInventoryItem(m_ItemID).PermsGranter = UUID.Zero;
+            part.Inventory.GetInventoryItem(m_ItemID).PermsMask = 0;
+            part.Inventory.GetInventoryItem(m_ItemID).PermsGranter = UUID.Zero;
             AsyncCommandManager.RemoveScript(m_Engine, m_LocalID, m_ItemID);
             m_EventQueue.Clear();
             m_Script.ResetVars();
@@ -721,8 +721,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             m_Script.ResetVars();
             SceneObjectPart part=m_Engine.World.GetSceneObjectPart(m_LocalID);
-            part.GetInventoryItem(m_ItemID).PermsMask = 0;
-            part.GetInventoryItem(m_ItemID).PermsGranter = UUID.Zero;
+            part.Inventory.GetInventoryItem(m_ItemID).PermsMask = 0;
+            part.Inventory.GetInventoryItem(m_ItemID).PermsGranter = UUID.Zero;
             AsyncCommandManager.RemoveScript(m_Engine, m_LocalID, m_ItemID);
 
             m_EventQueue.Clear();

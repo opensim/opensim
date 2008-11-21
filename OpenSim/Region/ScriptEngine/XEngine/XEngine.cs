@@ -366,7 +366,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                     localID);
                          
                             TaskInventoryItem item =
-                                    part.GetInventoryItem(itemID);
+                                    part.Inventory.GetInventoryItem(itemID);
 
                             ScenePresence presence = 
                                     m_Scene.GetScenePresence(
@@ -464,7 +464,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return false;
             }     
 
-            TaskInventoryItem item = part.GetInventoryItem(itemID);
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
             if (item == null)
                 return false;
 

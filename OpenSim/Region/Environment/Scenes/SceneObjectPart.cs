@@ -28,20 +28,20 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
 using System.Xml;
 using System.Xml.Serialization;
-
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
-
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
-{
+{       
     #region Enumerations
 
     [Flags]
@@ -92,8 +92,10 @@ namespace OpenSim.Region.Environment.Scenes
     #endregion Enumerations
 
     [Serializable]
-    public partial class SceneObjectPart : IScriptHost, ISerializable
+    public class SceneObjectPart : IScriptHost, ISerializable
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         #region Fields
 
         [XmlIgnore]
@@ -140,6 +142,12 @@ namespace OpenSim.Region.Environment.Scenes
         public uint AttachmentPoint = (byte)0;
         [XmlIgnore]
         public PhysicsVector RotationAxis = new PhysicsVector(1f,1f,1f);
+        
+        /// <summary>
+        /// This part's inventory
+        /// </summary>
+        [XmlIgnore]
+        public readonly SceneObjectPartInventory Inventory;
 
         [XmlIgnore]
         public bool Undoing = false;
@@ -218,6 +226,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_TextureAnimation = new byte[0];
             m_particleSystem = new byte[0];
             Rezzed = DateTime.Now;
+            
+            Inventory = new SceneObjectPartInventory(this);
         }
 
         /// <summary>
@@ -266,6 +276,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             TrimPermissions();
             //m_undo = new UndoStack<UndoState>(ParentGroup.GetSceneMaxUndo());
+            
+            Inventory = new SceneObjectPartInventory(this);
         }
 
         protected SceneObjectPart(SerializationInfo info, StreamingContext context)
@@ -285,6 +297,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             //System.Console.WriteLine("SceneObjectPart Deserialize END");
             Rezzed = DateTime.Now;
+            
+            Inventory = new SceneObjectPartInventory(this);
         }
 
         #endregion Constructors
@@ -332,16 +346,22 @@ namespace OpenSim.Region.Environment.Scenes
             set { } // Don't allow assignment, or legacy prims wil b0rk
         }
 
+        /// <value>
+        /// Access should be via Inventory directly - this property temporarily remains for xml serialization purposes
+        /// </value>
         public uint InventorySerial
         {
-            get { return m_inventorySerial; }
-            set { m_inventorySerial = value; }
+            get { return Inventory.Serial; }
+            set { Inventory.Serial = value; }
         }
 
+        /// <value>
+        /// Access should be via Inventory directly - this property temporarily remains for xml serialization purposes
+        /// </value>        
         public TaskInventoryDictionary TaskInventory
         {
-            get { return m_taskInventory; }
-            set { m_taskInventory = value; }
+            get { return Inventory.Items; }
+            set { Inventory.Items = value; }
         }
 
         public uint ObjectFlags
@@ -1239,7 +1259,7 @@ if (m_shape != null) {
             dupe._category = _category;
             dupe.m_rezzed = m_rezzed;
 
-            dupe.TaskInventory = (TaskInventoryDictionary)dupe.TaskInventory.Clone();
+            dupe.Inventory.Items = (TaskInventoryDictionary)dupe.Inventory.Items.Clone();
 
             if (userExposed)
                 dupe.ResetIDs(linkNum);
@@ -1412,7 +1432,7 @@ if (m_shape != null) {
                 throw new ArgumentNullException("info");
             }
 
-            info.AddValue("m_inventoryFileName", GetInventoryFileName());
+            info.AddValue("m_inventoryFileName", Inventory.GetInventoryFileName());
             info.AddValue("m_folderID", UUID);
             info.AddValue("PhysActor", PhysActor);
 
@@ -1452,7 +1472,7 @@ if (m_shape != null) {
             info.AddValue("m_updateFlag", m_updateFlag);
             info.AddValue("CreatorID", _creatorID.Guid);
 
-            info.AddValue("m_inventorySerial", m_inventorySerial);
+            info.AddValue("m_inventorySerial", Inventory.Serial);
             info.AddValue("m_uuid", m_uuid.Guid);
             info.AddValue("m_localID", m_localId);
             info.AddValue("m_name", m_name);
@@ -1929,8 +1949,7 @@ if (m_shape != null) {
             UUID = UUID.Random();
             LinkNum = linkNum;
             LocalId = 0;
-
-            ResetInventoryIDs();
+            Inventory.ResetInventoryIDs();
         }
 
         /// <summary>
@@ -2993,7 +3012,7 @@ if (m_shape != null) {
                         if (god)
                         {
                             _baseMask = ApplyMask(_baseMask, set, mask);
-                            ApplyGodPermissions(_baseMask);
+                            Inventory.ApplyGodPermissions(_baseMask);
                         }
 
                         break;
@@ -3394,9 +3413,19 @@ if (m_shape != null) {
                     RotationalVelocity, state, FromAssetID,
                     OwnerID, (int)AttachmentPoint);
         }
-    }
+                
+        public void AddScriptLPS(int count)
+        {
+            m_parentGroup.AddScriptLPS(count);
+        }
+        
+        public void ApplyNextOwnerPermissions()
+        {
+            _baseMask &= _nextOwnerMask;
+            _ownerMask &= _nextOwnerMask;
+            _everyoneMask &= _nextOwnerMask;
+
+            Inventory.ApplyNextOwnerPermissions();
+        }        
+    }        
 }
-
-
-
-

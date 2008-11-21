@@ -50,7 +50,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.ForceInventoryPersistence();
+                    part.Inventory.ForceInventoryPersistence();
                 }
             }
         }
@@ -66,8 +66,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.CreateScriptInstances(startParam, postOnRez, engine,
-                            stateSource);
+                    part.Inventory.CreateScriptInstances(startParam, postOnRez, engine, stateSource);
                 }
             }
         }
@@ -81,7 +80,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.RemoveScriptInstances();
+                    part.Inventory.RemoveScriptInstances();
                 }
             }
         }
@@ -96,7 +95,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-                return part.GetInventoryFileName(remoteClient, localID);
+                return part.Inventory.GetInventoryFileName(remoteClient, localID);
             }
             else
             {
@@ -118,7 +117,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-                part.RequestInventoryFile(client, xferManager);
+                part.Inventory.RequestInventoryFile(client, xferManager);
             }
             else
             {
@@ -191,7 +190,7 @@ namespace OpenSim.Region.Environment.Scenes
                     addFromAllowedDrop = remoteClient.AgentId != part.OwnerID;
                 }
 
-                part.AddInventoryItem(taskItem, addFromAllowedDrop);
+                part.Inventory.AddInventoryItem(taskItem, addFromAllowedDrop);
 
                 return true;
             }
@@ -217,7 +216,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(primID);
             if (part != null)
             {
-                return part.GetInventoryItem(itemID);
+                return part.Inventory.GetInventoryItem(itemID);
             }
             else
             {
@@ -241,7 +240,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(item.ParentPartID);
             if (part != null)
             {
-                part.UpdateInventoryItem(item);
+                part.Inventory.UpdateInventoryItem(item);
 
                 return true;
             }
@@ -261,7 +260,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-                int type = part.RemoveInventoryItem(itemID);
+                int type = part.Inventory.RemoveInventoryItem(itemID);
 
                 return type;
             }
@@ -280,7 +279,7 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 ownerMask &= part.OwnerMask;
-                perms &= part.MaskEffectivePermissions();
+                perms &= part.Inventory.MaskEffectivePermissions();
             }
 
             if ((ownerMask & (uint)PermissionMask.Modify) == 0)
@@ -303,7 +302,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void ApplyNextOwnerPermissions()
         {
             foreach (SceneObjectPart part in m_parts.Values)
-                part.ApplyNextOwnerPermissions();
+                part.Inventory.ApplyNextOwnerPermissions();
         }
 
         public string GetStateSnapshot()
@@ -313,13 +312,13 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (SceneObjectPart part in m_parts.Values)
             {
-                foreach (string a in part.GetScriptAssemblies())
+                foreach (string a in part.Inventory.GetScriptAssemblies())
                 {
                     if (a != "" && !assemblies.Contains(a))
                         assemblies.Add(a);
                 }
 
-                foreach (KeyValuePair<UUID, string> s in part.GetScriptStates())
+                foreach (KeyValuePair<UUID, string> s in part.Inventory.GetScriptStates())
                 {
                     states[s.Key] = s.Value;
                 }

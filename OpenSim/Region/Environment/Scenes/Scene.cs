@@ -4277,8 +4277,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     foreach (SceneObjectPart child in partList)
                     {
-                        child.ChangeInventoryOwner(remoteClient.AgentId);
-                        child.ApplyNextOwnerPermissions();
+                        child.Inventory.ChangeInventoryOwner(remoteClient.AgentId);
+                        child.Inventory.ApplyNextOwnerPermissions();
                     }
                 }
 
@@ -4355,13 +4355,13 @@ namespace OpenSim.Region.Environment.Scenes
                 break;
 
             case 3: // Sell contents
-                List<UUID> invList = part.GetInventoryList();
+                List<UUID> invList = part.Inventory.GetInventoryList();
 
                 bool okToSell = true;
 
                 foreach (UUID invID in invList)
                 {
-                    TaskInventoryItem item = part.GetInventoryItem(invID);
+                    TaskInventoryItem item = part.Inventory.GetInventoryItem(invID);
                     if ((item.CurrentPermissions &
                             (uint)PermissionMask.Transfer) == 0)
                     {

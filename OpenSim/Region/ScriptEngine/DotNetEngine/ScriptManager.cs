@@ -570,15 +570,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         #endregion
 
-
         public void ResetScript(uint localID, UUID itemID)
         {
             InstanceData id = GetScript(localID, itemID);
             string script = id.Source;
             StopScript(localID, itemID);
             SceneObjectPart part = World.GetSceneObjectPart(localID);
-            part.GetInventoryItem(itemID).PermsMask = 0;
-            part.GetInventoryItem(itemID).PermsGranter = UUID.Zero;
+            part.Inventory.GetInventoryItem(itemID).PermsMask = 0;
+            part.Inventory.GetInventoryItem(itemID).PermsGranter = UUID.Zero;
             StartScript(localID, itemID, script, id.StartParam, false);
         }
 

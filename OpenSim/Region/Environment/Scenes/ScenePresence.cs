@@ -2558,7 +2558,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (gobj != null)
                     {
-                        if (gobj.RootPart.ContainsScripts())
+                        if (gobj.RootPart.Inventory.ContainsScripts())
                             return true;
                     }
                 }

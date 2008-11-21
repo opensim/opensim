@@ -255,8 +255,8 @@ namespace OpenSim.Data.Tests
             sop.GroupPosition = groupos;
             sop.RotationOffset = rotoff;
             sop.CreatorID = creator;            
-            sop.InventorySerial = iserial;
-            sop.TaskInventory = dic;
+            sop.Inventory.Serial = iserial;
+            sop.Inventory.Items = dic;
             sop.ObjectFlags = objf;
             sop.Name = name;
             sop.Material = material;
@@ -287,8 +287,8 @@ namespace OpenSim.Data.Tests
             Assert.That(rotoff,Is.EqualTo(sop.RotationOffset));
             Assert.That(uuid,Is.EqualTo(sop.UUID));
             Assert.That(creator,Is.EqualTo(sop.CreatorID));
-            Assert.That(iserial,Is.EqualTo(sop.InventorySerial));
-            Assert.That(dic,Is.EqualTo(sop.TaskInventory));
+            Assert.That(iserial,Is.EqualTo(sop.Inventory.Serial));
+            Assert.That(dic,Is.EqualTo(sop.Inventory.Items));
             Assert.That(objf,Is.EqualTo(sop.ObjectFlags));
             Assert.That(name,Is.EqualTo(sop.Name));
             Assert.That(material,Is.EqualTo(sop.Material));
@@ -337,7 +337,7 @@ namespace OpenSim.Data.Tests
             Assert.That(uuid,Is.EqualTo(p.UUID));
             Assert.That(creator,Is.EqualTo(p.CreatorID));
             //Assert.That(iserial,Is.EqualTo(p.InventorySerial));
-            Assert.That(dic,Is.EqualTo(p.TaskInventory));
+            Assert.That(dic,Is.EqualTo(p.Inventory.Items));
             //Assert.That(objf,Is.EqualTo(p.ObjectFlags));
             Assert.That(name,Is.EqualTo(p.Name));
             Assert.That(material,Is.EqualTo(p.Material));
@@ -415,7 +415,7 @@ namespace OpenSim.Data.Tests
             sog2.RootPart.GroupPosition = groupos;
             sog2.RootPart.RotationOffset = rotoff;
             sog2.RootPart.CreatorID = creator;            
-            sog2.RootPart.TaskInventory = dic;
+            sog2.RootPart.Inventory.Items = dic;
             sog2.RootPart.Name = name;
             sog2.RootPart.Material = material;
             sog2.RootPart.ScriptAccessPin = pin;
@@ -449,7 +449,7 @@ namespace OpenSim.Data.Tests
             Assert.That(name,Is.EqualTo(p.Name));
             Assert.That(rotoff,Is.EqualTo(p.RotationOffset));
             Assert.That(creator,Is.EqualTo(p.CreatorID));
-            Assert.That(dic,Is.EqualTo(p.TaskInventory));
+            Assert.That(dic,Is.EqualTo(p.Inventory.Items));
             Assert.That(name,Is.EqualTo(p.Name));
             Assert.That(material,Is.EqualTo(p.Material));
             Assert.That(pin,Is.EqualTo(p.ScriptAccessPin));
@@ -534,7 +534,7 @@ namespace OpenSim.Data.Tests
             // TODO: seriously??? this is the way we need to loop to get this?
 
             List<TaskInventoryItem> list = new List<TaskInventoryItem>();
-            foreach (UUID uuid in sog.RootPart.GetInventoryList())
+            foreach (UUID uuid in sog.RootPart.Inventory.GetInventoryList())
             {
                 list.Add(sog.GetInventoryItem(sog.RootPart.LocalId, uuid));
             }

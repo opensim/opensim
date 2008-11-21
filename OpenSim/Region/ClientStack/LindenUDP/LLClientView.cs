@@ -4998,7 +4998,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                                     break;
 
-                                TaskInventoryItem ti = part.GetInventoryItem(itemID);
+                                TaskInventoryItem ti = part.Inventory.GetInventoryItem(itemID);
                                 if (ti == null)
                                     break;
 

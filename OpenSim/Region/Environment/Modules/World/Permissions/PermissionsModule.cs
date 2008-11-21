@@ -796,7 +796,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                     return false;
 
-                TaskInventoryItem ti = part.GetInventoryItem(notecard);
+                TaskInventoryItem ti = part.Inventory.GetInventoryItem(notecard);
 
                 if (ti == null)
                     return false;
@@ -1188,7 +1188,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                     return false;
 
-                TaskInventoryItem ti = part.GetInventoryItem(script);
+                TaskInventoryItem ti = part.Inventory.GetInventoryItem(script);
 
                 if (ti == null)
                     return false;
@@ -1266,7 +1266,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                     return false;
 
-                TaskInventoryItem ti = part.GetInventoryItem(notecard);
+                TaskInventoryItem ti = part.Inventory.GetInventoryItem(notecard);
 
                 if (ti == null)
                     return false;

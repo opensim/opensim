@@ -1032,7 +1032,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             taskItem.PermsMask = 0;
             taskItem.AssetID = asset.FullID;
 
-            m_host.AddInventoryItem(taskItem, false);
+            m_host.Inventory.AddInventoryItem(taskItem, false);
         }
     }
 }

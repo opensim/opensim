@@ -3320,7 +3320,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (item.Name == name)
                 {
-                    m_host.RemoveInventoryItem(item.ItemID);
+                    m_host.Inventory.RemoveInventoryItem(item.ItemID);
                     return;
                 }
             }

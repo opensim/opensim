@@ -1044,7 +1044,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-//                    part.RemoveScriptInstances();
+//                    part.Inventory.RemoveScriptInstances();
 
                     List<ScenePresence> avatars = Scene.GetScenePresences();
                     for (int i = 0; i < avatars.Count; i++)
@@ -1251,7 +1251,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
 
-                        backup_group.ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
+                        backup_group.ForEachPart(delegate(SceneObjectPart part) { part.Inventory.ProcessInventoryBackup(datastore); });
 
                         backup_group = null;
                     }
@@ -2828,7 +2828,7 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
                     part.SetGroup(GroupID, client);
-                    part.ChangeInventoryGroup(GroupID);
+                    part.Inventory.ChangeInventoryGroup(GroupID);
                 }
 
                 HasGroupChanged = true;

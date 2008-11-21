@@ -280,7 +280,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (isScriptRunning)
             {
-                part.RemoveScriptInstance(item.ItemID);
+                part.Inventory.RemoveScriptInstance(item.ItemID);
             }
             // Update item with new asset
             item.AssetID = asset.FullID;
@@ -292,7 +292,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // Needs to determine which engine was running it and use that
                 //
-                part.CreateScriptInstance(item.ItemID, 0, false, DefaultScriptEngine, 0);
+                part.Inventory.CreateScriptInstance(item.ItemID, 0, false, DefaultScriptEngine, 0);
             }
             else
             {
@@ -945,7 +945,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private InventoryItemBase CreateAgentInventoryItemFromTask(UUID destAgent, SceneObjectPart part, UUID itemId)
         {
-            TaskInventoryItem taskItem = part.GetInventoryItem(itemId);
+            TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
 
             if (null == taskItem)
             {
@@ -995,7 +995,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (!ExternalChecks.ExternalChecksBypassPermissions())
             {
                 if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                    part.RemoveInventoryItem(itemId);
+                    part.Inventory.RemoveInventoryItem(itemId);
             }
 
             return agentItem;
@@ -1040,7 +1040,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
-            TaskInventoryItem taskItem = part.GetInventoryItem(itemId);
+            TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
 
             if (null == taskItem)
             {
@@ -1104,7 +1104,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemId"></param>
         public void MoveTaskInventoryItem(UUID destId, SceneObjectPart part, UUID itemId)
         {
-            TaskInventoryItem srcTaskItem = part.GetInventoryItem(itemId);
+            TaskInventoryItem srcTaskItem = part.Inventory.GetInventoryItem(itemId);
 
             if (srcTaskItem == null)
             {
@@ -1184,10 +1184,10 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.InvType = srcTaskItem.InvType;
             destTaskItem.Type = srcTaskItem.Type;
 
-            destPart.AddInventoryItem(destTaskItem, part.OwnerID != destPart.OwnerID);
+            destPart.Inventory.AddInventoryItem(destTaskItem, part.OwnerID != destPart.OwnerID);
 
             if ((srcTaskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                part.RemoveInventoryItem(itemId);
+                part.Inventory.RemoveInventoryItem(itemId);
 
             ScenePresence avatar;
 
@@ -1254,7 +1254,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (part != null)
             {
-                TaskInventoryItem currentItem = part.GetInventoryItem(itemID);
+                TaskInventoryItem currentItem = part.Inventory.GetInventoryItem(itemID);
                 bool allowInventoryDrop = (part.GetEffectiveObjectFlags()
                                            & (uint)PrimFlags.AllowInventoryDrop) != 0;
 
@@ -1314,7 +1314,7 @@ namespace OpenSim.Region.Environment.Scenes
                         agentTransactions.HandleTaskItemUpdateFromTransaction(
                             remoteClient, part, transactionID, currentItem);
                     }
-                    if (part.UpdateInventoryItem(itemInfo))
+                    if (part.Inventory.UpdateInventoryItem(itemInfo))
                         part.GetProperties(remoteClient);
                 }
             }
@@ -1364,7 +1364,7 @@ namespace OpenSim.Region.Environment.Scenes
                             part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
                             // TODO: switch to posting on_rez here when scripts
                             // have state in inventory
-                            part.CreateScriptInstance(copyID, 0, false, DefaultScriptEngine, 0);
+                            part.Inventory.CreateScriptInstance(copyID, 0, false, DefaultScriptEngine, 0);
 
                             //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
                             //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
@@ -1430,10 +1430,10 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.PermsMask = 0;
                 taskItem.AssetID = asset.FullID;
 
-                part.AddInventoryItem(taskItem, false);
+                part.Inventory.AddInventoryItem(taskItem, false);
                 part.GetProperties(remoteClient);
 
-                part.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
+                part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
             }
         }
 
@@ -1445,7 +1445,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void RezScript(UUID srcId, SceneObjectPart srcPart, UUID destId, int pin, int running, int start_param)
         {
-            TaskInventoryItem srcTaskItem = srcPart.GetInventoryItem(srcId);
+            TaskInventoryItem srcTaskItem = srcPart.Inventory.GetInventoryItem(srcId);
 
             if (srcTaskItem == null)
             {
@@ -1525,11 +1525,11 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.InvType = srcTaskItem.InvType;
             destTaskItem.Type = srcTaskItem.Type;
 
-            destPart.AddInventoryItemExclusive(destTaskItem, false);
+            destPart.Inventory.AddInventoryItemExclusive(destTaskItem, false);
 
             if (running > 0)
             {
-                destPart.CreateScriptInstance(destTaskItem, 0, false, DefaultScriptEngine, 0);
+                destPart.Inventory.CreateScriptInstance(destTaskItem, 0, false, DefaultScriptEngine, 0);
             }
 
             ScenePresence avatar;
@@ -2064,7 +2064,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 {
                                     part.LastOwnerID = part.OwnerID;
                                     part.OwnerID = item.Owner;
-                                    part.ChangeInventoryOwner(item.Owner);
+                                    part.Inventory.ChangeInventoryOwner(item.Owner);
                                 }
                                 else if (((item.CurrentPermissions & 8) != 0) && (!attachment)) // Slam!
                                 {
@@ -2178,7 +2178,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             part.LastOwnerID = part.OwnerID;
                             part.OwnerID = item.OwnerID;
-                            part.ChangeInventoryOwner(item.OwnerID);
+                            part.Inventory.ChangeInventoryOwner(item.OwnerID);
                         }
                         else if ((item.CurrentPermissions & 8) != 0) // Slam!
                         {
@@ -2200,7 +2200,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (!ExternalChecks.ExternalChecksBypassPermissions())
                     {
                         if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                            sourcePart.RemoveInventoryItem(item.ItemID);
+                            sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
                     }
                     return rootPart.ParentGroup;
                 }
@@ -2368,7 +2368,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (part != null && part.ParentGroup != null)
                 {
                     part.ParentGroup.SetOwnerId(ownerID);
-                    part.ChangeInventoryOwner(ownerID);
+                    part.Inventory.ChangeInventoryOwner(ownerID);
                     part.ParentGroup.SetGroup(groupID, remoteClient);
                 }
             }

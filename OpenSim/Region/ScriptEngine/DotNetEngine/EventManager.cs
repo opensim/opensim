@@ -268,7 +268,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                     localID);
 
                             TaskInventoryItem item =
-                                    part.GetInventoryItem(itemID);
+                                    part.Inventory.GetInventoryItem(itemID);
 
                             ScenePresence presence =
                                     myScriptEngine.World.GetScenePresence(

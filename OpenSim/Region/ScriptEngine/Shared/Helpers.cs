@@ -141,7 +141,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             foreach (SceneObjectPart p in part.ParentGroup.Children.Values)
             {
-                if (p.ContainsScripts())
+                if (p.Inventory.ContainsScripts())
                 {
                     Type |= 0x08; // Scripted
                     break;

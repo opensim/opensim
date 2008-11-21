@@ -267,7 +267,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             
             m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
             
-            if (part.UpdateInventoryItem(item))
+            if (part.Inventory.UpdateInventoryItem(item))
                 part.GetProperties(remoteClient);                 
         }              
                     
