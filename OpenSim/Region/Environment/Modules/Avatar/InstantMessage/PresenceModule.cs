@@ -130,11 +130,19 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 return;
 
             m_RootAgents.Remove(client.AgentId);
+
+            NotifyMessageServerOfAgentLeaving(client.AgentId, scene.RegionInfo.RegionName);
         }
 
         public void OnSetRootAgentScene(UUID agentID, Scene scene)
         {
+            if (m_RootAgents.ContainsKey(agentID))
+            {
+                if (m_RootAgents[agentID] == scene)
+                    return;
+            }
             m_RootAgents[agentID] = scene;
+            NotifyMessageServerOfAgentLocation(agentID, scene.RegionInfo.RegionName);
         }
 
         private void NotifyMessageServerOfStartup(Scene scene)
@@ -166,6 +174,40 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
             {
                 m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region shutdown for region {0}", scene.RegionInfo.RegionName);
+            }
+        }
+
+        private void NotifyMessageServerOfAgentLocation(UUID agentID, string region)
+        {
+            Hashtable xmlrpcdata = new Hashtable();
+            xmlrpcdata["AgentID"] = agentID.ToString();
+            xmlrpcdata["RegionName"] = region;
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(xmlrpcdata);
+            XmlRpcRequest LocationRequest = new XmlRpcRequest("agent_location", SendParams);
+            XmlRpcResponse resp = LocationRequest.Send(m_Scenes[0].CommsManager.NetworkServersInfo.MessagingURL, 5000);
+
+            Hashtable responseData = (Hashtable)resp.Value;
+            if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+            {
+                m_log.ErrorFormat("[PRESENCE] Failed to notify message server of agent location for {0}", agentID.ToString());
+            }
+        }
+
+        private void NotifyMessageServerOfAgentLeaving(UUID agentID, string region)
+        {
+            Hashtable xmlrpcdata = new Hashtable();
+            xmlrpcdata["AgentID"] = agentID.ToString();
+            xmlrpcdata["RegionName"] = region;
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(xmlrpcdata);
+            XmlRpcRequest LeavingRequest = new XmlRpcRequest("agent_leaving", SendParams);
+            XmlRpcResponse resp = LeavingRequest.Send(m_Scenes[0].CommsManager.NetworkServersInfo.MessagingURL, 5000);
+
+            Hashtable responseData = (Hashtable)resp.Value;
+            if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+            {
+                m_log.ErrorFormat("[PRESENCE] Failed to notify message server of agent leaving for {0}", agentID.ToString());
             }
         }
     }
