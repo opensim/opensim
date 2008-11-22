@@ -46,6 +46,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private bool m_Enabled = false;
         private bool m_Gridmode = false;
         private List<Scene> m_Scenes = new List<Scene>();
 
@@ -64,12 +65,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             if (cnf != null)
                 m_Gridmode = cnf.GetBoolean("gridmode", false);
 
+            m_Enabled = true;
+
             lock (m_Scenes)
             {
                 if (m_Scenes.Count == 0)
                 {
                 }
 
+                if (m_Gridmode)
+                    NotifyMessageServerOfStartup(scene);
                 scene.RegisterModuleInterface<IPresenceModule>(this);
                 m_Scenes.Add(scene);
             }
@@ -81,6 +86,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         public void Close()
         {
+            if (!m_Gridmode || !m_Enabled)
+                return;
+
+            foreach (Scene scene in m_Scenes)
+                NotifyMessageServerOfShutdown(scene);
         }
 
         public string Name
@@ -95,6 +105,38 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         public void RequestBulkPresenceData(UUID[] users)
         {
+        }
+
+        private void NotifyMessageServerOfStartup(Scene scene)
+        {
+            Hashtable xmlrpcdata = new Hashtable();
+            xmlrpcdata["RegionName"] = scene.RegionInfo.RegionName;
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(xmlrpcdata);
+            XmlRpcRequest UpRequest = new XmlRpcRequest("region_startup", SendParams);
+            XmlRpcResponse resp = UpRequest.Send(scene.CommsManager.NetworkServersInfo.MessagingURL, 5000);
+
+            Hashtable responseData = (Hashtable)resp.Value;
+            if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+            {
+                m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region startup for region {0}", scene.RegionInfo.RegionName);
+            }
+        }
+
+        private void NotifyMessageServerOfShutdown(Scene scene)
+        {
+            Hashtable xmlrpcdata = new Hashtable();
+            xmlrpcdata["RegionName"] = scene.RegionInfo.RegionName;
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(xmlrpcdata);
+            XmlRpcRequest DownRequest = new XmlRpcRequest("region_shutdown", SendParams);
+            XmlRpcResponse resp = DownRequest.Send(scene.CommsManager.NetworkServersInfo.MessagingURL, 5000);
+
+            Hashtable responseData = (Hashtable)resp.Value;
+            if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+            {
+                m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region shutdown for region {0}", scene.RegionInfo.RegionName);
+            }
         }
     }
 }
