@@ -301,6 +301,11 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             get { return 0; }
         }
 
+        public bool IsGroupMember(UUID groupID)
+        {
+            return false;
+        }
+
         public ulong GetGroupPowers(UUID groupID)
         {
             return 0;

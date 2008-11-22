@@ -317,8 +317,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_activeGroupPowers; }
         }
 
+        public bool IsGroupMember(UUID groupID)
+        {
+            return m_groupPowers.ContainsKey(groupID);
+        }
+
         public ulong GetGroupPowers(UUID groupID)
         {
+            if (groupID == m_activeGroupID)
+                return m_activeGroupPowers;
+
             if (m_groupPowers.ContainsKey(groupID))
                 return m_groupPowers[groupID];
             return 0;
@@ -750,6 +758,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientPingTimer.Enabled = true;
 
             m_scene.AddNewClient(this, true);
+
+            RefreshGroupMembership();
         }
 
         /// <summary>
@@ -7129,10 +7139,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendGroupMembership(GroupMembershipData[] GroupMembership)
         {
+            m_groupPowers.Clear();
+
             AgentGroupDataUpdatePacket Groupupdate = new AgentGroupDataUpdatePacket();
             AgentGroupDataUpdatePacket.GroupDataBlock[] Groups = new AgentGroupDataUpdatePacket.GroupDataBlock[GroupMembership.Length];
             for (int i = 0; i < GroupMembership.Length; i++)
             {
+                m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
+
                 AgentGroupDataUpdatePacket.GroupDataBlock Group = new AgentGroupDataUpdatePacket.GroupDataBlock();
                 Group.AcceptNotices = GroupMembership[i].AcceptNotices;
                 Group.Contribution = GroupMembership[i].Contribution;
@@ -7850,5 +7864,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #endregion
+
+        private void RefreshGroupMembership()
+        {
+            if (m_GroupsModule != null)
+            {
+                GroupMembershipData[] GroupMembership =
+                        m_GroupsModule.GetMembershipData(AgentId);
+
+                m_groupPowers.Clear();
+
+                for (int i = 0; i < GroupMembership.Length; i++)
+                {
+                    m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
+                }
+            }
+        }
     }
 }
