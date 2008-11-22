@@ -32,19 +32,49 @@ using System.Reflection;
 using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using System.Threading;
 
 namespace OpenSim.Grid.UserServer
 {
+    public enum NotificationRequest : int
+    {
+        Login = 0,
+        Logout = 1,
+        Shutdown = 2
+    }
+
+    public struct PresenceNotification
+    {
+        public NotificationRequest request;
+        public UUID agentID;
+        public UUID sessionID;
+        public UUID RegionID;
+        public ulong regionhandle;
+        public float positionX;
+        public float positionY;
+        public float positionZ;
+        public string firstname;
+        public string lastname;
+    };
+
     public class MessageServersConnector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public Dictionary<string, MessageServerInfo> MessageServers;
 
+        private BlockingQueue<PresenceNotification> m_NotifyQueue =
+                new BlockingQueue<PresenceNotification>();
+
+        Thread m_NotifyThread;
+
         public MessageServersConnector()
         {
             MessageServers = new Dictionary<string, MessageServerInfo>();
+            m_NotifyThread = new Thread(new ThreadStart(NotifyQueueRunner));
+            m_NotifyThread.Start();
         }
 
         public void RegisterMessageServer(string URI, MessageServerInfo serverData)
@@ -159,6 +189,26 @@ namespace OpenSim.Grid.UserServer
                                                 ulong regionhandle, float positionX, float positionY,
                                                 float positionZ, string firstname, string lastname)
         {
+            PresenceNotification notification = new PresenceNotification();
+
+            notification.request = NotificationRequest.Login;
+            notification.agentID = agentID;
+            notification.sessionID = sessionID;
+            notification.RegionID = RegionID;
+            notification.regionhandle = regionhandle;
+            notification.positionX = positionX;
+            notification.positionY = positionY;
+            notification.positionZ = positionZ;
+            notification.firstname = firstname;
+            notification.lastname = lastname;
+
+            m_NotifyQueue.Enqueue(notification);
+        }
+
+        private void TellMessageServersAboutUserInternal(UUID agentID, UUID sessionID, UUID RegionID,
+                                                ulong regionhandle, float positionX, float positionY,
+                                                float positionZ, string firstname, string lastname)
+        {
             // Loop over registered Message Servers (AND THERE WILL BE MORE THEN ONE :D)
             lock (MessageServers)
             {
@@ -179,7 +229,7 @@ namespace OpenSim.Grid.UserServer
             }
         }
 
-        public void TellMessageServersAboutUserLogoff(UUID agentID)
+        private void TellMessageServersAboutUserLogoffInternal(UUID agentID)
         {
             lock (MessageServers)
             {
@@ -196,6 +246,16 @@ namespace OpenSim.Grid.UserServer
                     NotifyMessageServerAboutUserLogoff(serv,agentID);
                 }
             }
+        }
+
+        public void TellMessageServersAboutUserLogoff(UUID agentID)
+        {
+            PresenceNotification notification = new PresenceNotification();
+
+            notification.request = NotificationRequest.Logout;
+            notification.agentID = agentID;
+
+            m_NotifyQueue.Enqueue(notification);
         }
 
         private void NotifyMessageServerAboutUserLogoff(MessageServerInfo serv, UUID agentID)
@@ -251,6 +311,31 @@ namespace OpenSim.Grid.UserServer
                 m_log.Warn("[MSGCONNECTOR]: Unable to notify Message Server about login.  Presence might be borked for this user");
             }
 
+        }
+
+        private void NotifyQueueRunner()
+        {
+            while (true)
+            {
+                PresenceNotification presence = m_NotifyQueue.Dequeue();
+
+                if (presence.request == NotificationRequest.Shutdown)
+                    return;
+
+                if (presence.request == NotificationRequest.Login)
+                {
+                    TellMessageServersAboutUserInternal(presence.agentID,
+                            presence.sessionID, presence.RegionID,
+                            presence.regionhandle, presence.positionX,
+                            presence.positionY, presence.positionZ,
+                            presence.firstname, presence.lastname);
+                }
+
+                if (presence.request == NotificationRequest.Logout)
+                {
+                    TellMessageServersAboutUserLogoffInternal(presence.agentID);
+                }
+            }
         }
     }
 }
