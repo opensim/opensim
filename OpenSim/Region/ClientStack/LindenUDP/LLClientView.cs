@@ -4045,7 +4045,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
                 case PacketType.ImprovedInstantMessage:
                     ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
-                    Console.WriteLine(msgpack.ToString());
                     string IMfromName = Util.FieldToString(msgpack.MessageBlock.FromAgentName);
                     string IMmessage = Utils.BytesToString(msgpack.MessageBlock.Message);
                     handlerInstantMessage = OnInstantMessage;
