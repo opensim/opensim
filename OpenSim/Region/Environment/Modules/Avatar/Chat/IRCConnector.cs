@@ -57,7 +57,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         private const  int  WD_INTERVAL = 1000;     // base watchdog interval
         private static int  PING_PERIOD = 15;       // WD intervals per PING
         private static int  ICCD_PERIOD = 10;       // WD intervals between Connects
-        private static int  L_TIMEOUT   = 10;       // Login time out interval
+        private static int  L_TIMEOUT   = 25;       // Login time out interval
 
         private static int _idk_        = 0;        // core connector identifier
         private static int _pdk_        = 0;        // ping interval counter
