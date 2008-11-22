@@ -1179,7 +1179,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
 
                 // Vector3 oldPos = group.AbsolutePosition;
-                if (group.IsAttachment || (group.RootPrim.Shape.PCode == 9 && group.RootPrim.Shape.State != 0))
+                if (group.IsAttachment || (group.RootPart.Shape.PCode == 9 && group.RootPart.Shape.State != 0))
                 {
                     group.UpdateGroupPosition(pos);
                 }
