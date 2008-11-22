@@ -502,6 +502,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                         }
 
                     }
+                    else
+                    {
+                        m_log.WarnFormat("[GRID INSTANT MESSAGE]: Unable to find region {0}", upd.Handle);
+                        result(false);
+                    }
                 }
                 else
                 {
@@ -510,6 +515,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             }
             else
             {
+                m_log.WarnFormat("[GRID INSTANT MESSAGE]: Unable to find user {0}", toAgentID);
                 result(false);
             }
 
