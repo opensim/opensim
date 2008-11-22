@@ -1179,13 +1179,13 @@ namespace OpenSim.Region.Environment.Scenes
             {
 
                 // Vector3 oldPos = group.AbsolutePosition;
-                if (group.IsAttachment)
+                if (group.IsAttachment || (group.RootPrim.Shape.PCode == 9 && group.RootPrim.Shape.State != 0))
                 {
                     group.UpdateGroupPosition(pos);
                 }
                 else
                 {
-                    if ((m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId) && m_parentScene.Permissions.CanObjectEntry(group.UUID, false, pos)) || group.IsAttachment)
+                    if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId) && m_parentScene.Permissions.CanObjectEntry(group.UUID, false, pos))
                     {
                         group.UpdateGroupPosition(pos);
                     }
