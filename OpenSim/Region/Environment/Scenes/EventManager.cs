@@ -98,6 +98,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public delegate void OnPermissionErrorDelegate(UUID user, string reason);
 
+        public delegate void OnSetRootAgentSceneDelegate(UUID agentID);
+
+        public event OnSetRootAgentSceneDelegate OnSetRootAgentScene;
+
         public event ObjectGrabDelegate OnObjectGrab;
         public event ObjectDeGrabDelegate OnObjectDeGrab;
         public event ScriptResetDelegate OnScriptReset;
@@ -389,6 +393,8 @@ namespace OpenSim.Region.Environment.Scenes
         private GetScriptRunning handlerGetScriptRunning = null;
 
         private SunLindenHour handlerSunGetLindenHour = null;
+        private OnSetRootAgentSceneDelegate handlerSetRootAgentScene = null;
+
 
         public void TriggerGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
         {
@@ -911,6 +917,13 @@ namespace OpenSim.Region.Environment.Scenes
             handlerCollidingEnd = OnScriptCollidingEnd;
             if (handlerCollidingEnd != null)
                 handlerCollidingEnd(localId, colliders);
+        }
+
+        public void TriggerSetRootAgentScene(UUID agentID)
+        {
+            handlerSetRootAgentScene = OnSetRootAgentScene;
+            if (handlerSetRootAgentScene != null)
+                handlerSetRootAgentScene(agentID);
         }
     }
 }

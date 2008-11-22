@@ -75,7 +75,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
                 if (m_Gridmode)
                     NotifyMessageServerOfStartup(scene);
+
                 scene.RegisterModuleInterface<IPresenceModule>(this);
+
+                scene.EventManager.OnNewClient += OnNewClient;
+                scene.EventManager.OnSetRootAgentScene += OnSetRootAgentScene;
+
                 m_Scenes.Add(scene);
             }
         }
@@ -104,6 +109,19 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         }
 
         public void RequestBulkPresenceData(UUID[] users)
+        {
+        }
+
+        public void OnNewClient(IClientAPI client)
+        {
+            client.OnConnectionClosed += OnConnectionClosed;
+        }
+
+        public void OnConnectionClosed(IClientAPI client)
+        {
+        }
+
+        public void OnSetRootAgentScene(UUID agentID)
         {
         }
 
