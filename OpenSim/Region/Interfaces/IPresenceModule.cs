@@ -31,8 +31,14 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Interfaces
 {
-    public delegate void PresenceChange(UUID userID, bool online);
-    public delegate void BulkPresenceData(UUID[] userID, bool[] online);
+    public struct PresenceInfo
+    {
+        public UUID userID;
+        public UUID regionID;
+    }
+
+    public delegate void PresenceChange(PresenceInfo info);
+    public delegate void BulkPresenceData(PresenceInfo[] info);
 
     public interface IPresenceModule
     {
