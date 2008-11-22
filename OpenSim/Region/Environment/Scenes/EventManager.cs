@@ -98,7 +98,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public delegate void OnPermissionErrorDelegate(UUID user, string reason);
 
-        public delegate void OnSetRootAgentSceneDelegate(UUID agentID);
+        public delegate void OnSetRootAgentSceneDelegate(UUID agentID, Scene scene);
 
         public event OnSetRootAgentSceneDelegate OnSetRootAgentScene;
 
@@ -919,11 +919,11 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerCollidingEnd(localId, colliders);
         }
 
-        public void TriggerSetRootAgentScene(UUID agentID)
+        public void TriggerSetRootAgentScene(UUID agentID, Scene scene)
         {
             handlerSetRootAgentScene = OnSetRootAgentScene;
             if (handlerSetRootAgentScene != null)
-                handlerSetRootAgentScene(agentID);
+                handlerSetRootAgentScene(agentID, scene);
         }
     }
 }

@@ -4215,7 +4215,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             inv.SetRootAgentScene(agentID, this);
 
-            EventManager.TriggerSetRootAgentScene(agentID);
+            EventManager.TriggerSetRootAgentScene(agentID, this);
         }
 
         public bool NeedSceneCacheClear(UUID agentID)

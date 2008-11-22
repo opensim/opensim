@@ -50,6 +50,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         private bool m_Gridmode = false;
         private List<Scene> m_Scenes = new List<Scene>();
 
+        private Dictionary<UUID, Scene> m_RootAgents =
+                new Dictionary<UUID, Scene>();
+
         public event PresenceChange OnPresenceChange;
         public event BulkPresenceData OnBulkPresenceData;
 
@@ -69,10 +72,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
             lock (m_Scenes)
             {
-                if (m_Scenes.Count == 0)
-                {
-                }
-
                 if (m_Gridmode)
                     NotifyMessageServerOfStartup(scene);
 
@@ -119,10 +118,23 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         public void OnConnectionClosed(IClientAPI client)
         {
+            if (!(client.Scene is Scene))
+                return;
+
+            if (!(m_RootAgents.ContainsKey(client.AgentId)))
+                return;
+
+            Scene scene = (Scene)client.Scene;
+
+            if (m_RootAgents[client.AgentId] != scene)
+                return;
+
+            m_RootAgents.Remove(client.AgentId);
         }
 
-        public void OnSetRootAgentScene(UUID agentID)
+        public void OnSetRootAgentScene(UUID agentID, Scene scene)
         {
+            m_RootAgents[agentID] = scene;
         }
 
         private void NotifyMessageServerOfStartup(Scene scene)
