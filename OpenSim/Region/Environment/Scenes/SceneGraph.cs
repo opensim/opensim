@@ -1185,7 +1185,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId) || group.IsAttachment)
+                    if ((m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId) && m_parentScene.Permissions.CanObjectEntry(group.UUID, false, pos)) || group.IsAttachment)
                     {
                         group.UpdateGroupPosition(pos);
                     }

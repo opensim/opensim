@@ -936,7 +936,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return permission;
         }
 
-        private bool CanObjectEntry(UUID objectID, Vector3 newPoint, Scene scene)
+        private bool CanObjectEntry(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -946,7 +946,17 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return true;
             }
 
+            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
+
             ILandObject land = m_scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
+
+            if(!enteringRegion)
+            {
+                ILandObject fromland = m_scene.LandChannel.GetLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y);
+
+                if (fromland == land) // Not entering
+                    return true;
+            }
 
             if (land == null)
             {
@@ -971,7 +981,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return false;
             }
 
-            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
 
             if (GenericParcelPermission(task.OwnerID, newPoint))
             {

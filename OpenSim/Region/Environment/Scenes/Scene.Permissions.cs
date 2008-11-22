@@ -403,7 +403,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region OBJECT ENTRY
-        public delegate bool CanObjectEntryHandler(UUID objectID, Vector3 newPoint, Scene scene);
+        public delegate bool CanObjectEntryHandler(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene);
         private List<CanObjectEntryHandler> CanObjectEntryCheckFunctions = new List<CanObjectEntryHandler>();
 
         public void AddObjectEntryHandler(CanObjectEntryHandler delegateFunc)
@@ -418,11 +418,11 @@ namespace OpenSim.Region.Environment.Scenes
                 CanObjectEntryCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool CanObjectEntry(UUID objectID, Vector3 newPoint)
+        public bool CanObjectEntry(UUID objectID, bool enteringRegion, Vector3 newPoint)
         {
             foreach (CanObjectEntryHandler check in CanObjectEntryCheckFunctions)
             {
-                if (check(objectID, newPoint, m_scene) == false)
+                if (check(objectID, enteringRegion, newPoint, m_scene) == false)
                 {
                     return false;
                 }

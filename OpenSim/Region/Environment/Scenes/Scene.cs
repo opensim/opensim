@@ -2157,12 +2157,14 @@ namespace OpenSim.Region.Environment.Scenes
             if (XMLMethod == 0)
             {
                 SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);
+
                 AddRestoredSceneObject(sceneObject, true, false);
 
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
                 if (RootPrim != null)
                 {
-                    if (m_regInfo.EstateSettings.IsBanned(RootPrim.OwnerID))
+                    if (m_regInfo.EstateSettings.IsBanned(RootPrim.OwnerID) ||
+                        Permissions.CanObjectEntry(RootPrim.UUID, true, RootPrim.AbsolutePosition))
                     {
                         SceneObjectGroup grp = RootPrim.ParentGroup;
                         if (grp != null)
