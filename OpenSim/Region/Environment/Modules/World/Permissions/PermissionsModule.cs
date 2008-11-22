@@ -950,7 +950,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             ILandObject land = m_scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
 
-            if(!enteringRegion)
+            if (!enteringRegion)
             {
                 ILandObject fromland = m_scene.LandChannel.GetLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y);
 

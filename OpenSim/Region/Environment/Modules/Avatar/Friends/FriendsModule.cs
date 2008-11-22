@@ -133,7 +133,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
         public void PostInitialise()
         {
-            if(m_scenes.Count > 0)
+            if (m_scenes.Count > 0)
             {
                 m_TransferModule = m_initialScene.RequestModuleInterface<IMessageTransferModule>();
             }
