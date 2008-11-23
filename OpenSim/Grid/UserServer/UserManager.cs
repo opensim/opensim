@@ -790,6 +790,10 @@ namespace OpenSim.Grid.UserServer
                         userProfile.LastLogin = userAgent.LogoutTime;
 
                         CommitAgent(ref userProfile);
+
+                        handlerLogOffUser = OnLogOffUser;
+                        if (handlerLogOffUser != null)
+                            handlerLogOffUser(agentID);
                     }
                 }
             }

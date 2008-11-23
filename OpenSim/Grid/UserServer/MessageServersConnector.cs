@@ -259,12 +259,41 @@ namespace OpenSim.Grid.UserServer
             }
         }
 
+        private void TellMessageServersAboutRegionShutdownInternal(UUID regionID)
+        {
+            lock (MessageServers)
+            {
+                if (MessageServers.Count > 0)
+                {
+                    m_log.Info("[MSGCONNECTOR]: Sending region down notice to registered message servers");
+                }
+                else
+                {
+//                    m_log.Debug("[MSGCONNECTOR]: No Message Servers registered, ignoring");
+                }
+                foreach (MessageServerInfo serv in MessageServers.Values)
+                {
+                    NotifyMessageServerAboutRegionShutdown(serv,regionID);
+                }
+            }
+        }
+
         public void TellMessageServersAboutUserLogoff(UUID agentID)
         {
             PresenceNotification notification = new PresenceNotification();
 
             notification.request = NotificationRequest.Logout;
             notification.agentID = agentID;
+
+            m_NotifyQueue.Enqueue(notification);
+        }
+
+        public void TellMessageServersAboutRegionShutdown(UUID regionID)
+        {
+            PresenceNotification notification = new PresenceNotification();
+
+            notification.request = NotificationRequest.Shutdown;
+            notification.RegionID = regionID;
 
             m_NotifyQueue.Enqueue(notification);
         }
@@ -287,6 +316,26 @@ namespace OpenSim.Grid.UserServer
                 m_log.Warn("[MSGCONNECTOR]: Unable to notify Message Server about log out.  Other users might still think this user is online");
             }
             m_log.Info("[LOGOUT]: Notified : " + serv.URI + " about user logout");
+        }
+
+        private void NotifyMessageServerAboutRegionShutdown(MessageServerInfo serv, UUID regionID)
+        {
+            Hashtable reqparams = new Hashtable();
+            reqparams["sendkey"] = serv.sendkey;
+            reqparams["regionid"] = regionID.ToString();
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(reqparams);
+
+            XmlRpcRequest GridReq = new XmlRpcRequest("process_region_shutdown", SendParams);
+            try
+            {
+                GridReq.Send(serv.URI, 6000);
+            }
+            catch (WebException)
+            {
+                m_log.Warn("[MSGCONNECTOR]: Unable to notify Message Server about region shutdown.");
+            }
+            m_log.Info("[REGION UPDOWN]: Notified : " + serv.URI + " about region state change");
         }
 
         private void NotifyMessageServerAboutUser(MessageServerInfo serv,
@@ -331,7 +380,9 @@ namespace OpenSim.Grid.UserServer
                 PresenceNotification presence = m_NotifyQueue.Dequeue();
 
                 if (presence.request == NotificationRequest.Shutdown)
-                    return;
+                {
+                    TellMessageServersAboutRegionShutdownInternal(presence.RegionID);
+                }
 
                 if (presence.request == NotificationRequest.Login)
                 {

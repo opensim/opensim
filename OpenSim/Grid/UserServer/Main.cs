@@ -464,12 +464,30 @@ namespace OpenSim.Grid.UserServer
 
         public void HandleRegionStartup(UUID regionID)
         {
+            // This might seem strange, that we send this back to the
+            // server it came from. But there is method to the madness.
+            // There can be multiple user servers on the same database,
+            // and each can have multiple messaging servers. So, we send
+            // it to all known user servers, who send it to all known
+            // message servers. That way, we should be able to finally
+            // update presence to all regions and thereby all friends
+            //
             m_userManager.HandleRegionStartup(regionID);
+            m_messagesService.TellMessageServersAboutRegionShutdown(regionID);
         }
 
         public void HandleRegionShutdown(UUID regionID)
         {
+            // This might seem strange, that we send this back to the
+            // server it came from. But there is method to the madness.
+            // There can be multiple user servers on the same database,
+            // and each can have multiple messaging servers. So, we send
+            // it to all known user servers, who send it to all known
+            // message servers. That way, we should be able to finally
+            // update presence to all regions and thereby all friends
+            //
             m_userManager.HandleRegionShutdown(regionID);
+            m_messagesService.TellMessageServersAboutRegionShutdown(regionID);
         }
     }
 }

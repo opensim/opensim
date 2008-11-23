@@ -90,6 +90,7 @@ namespace OpenSim.Grid.MessagingServer
                 m_httpServer.AddXmlRPCHandler("get_presence_info_bulk", msgsvc.GetPresenceInfoBulk);
                 m_httpServer.AddXmlRPCHandler("region_startup", msgsvc.RegionStartup);
                 m_httpServer.AddXmlRPCHandler("region_shutdown", msgsvc.RegionShutdown);
+                m_httpServer.AddXmlRPCHandler("process_region_shutdown", msgsvc.ProcessRegionShutdown);
                 m_httpServer.AddXmlRPCHandler("agent_location", msgsvc.AgentLocation);
                 m_httpServer.AddXmlRPCHandler("agent_leaving", msgsvc.AgentLeaving);
 

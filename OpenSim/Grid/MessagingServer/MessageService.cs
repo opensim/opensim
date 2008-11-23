@@ -666,5 +666,35 @@ namespace OpenSim.Grid.MessagingServer
             response.Value = result;
             return response;
         }
+
+        public XmlRpcResponse ProcessRegionShutdown(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable result = new Hashtable();
+            result["success"] = "FALSE";
+
+            UUID regionID;
+            if (UUID.TryParse((string)requestData["regionid"], out regionID))
+            {
+                m_log.DebugFormat("[PRESENCE] Processing region restart for {0}", regionID);
+                result["success"] = "TRUE";
+
+                foreach (UserPresenceData up in m_presences.Values)
+                {
+                    if(up.regionData.UUID == regionID)
+                    {
+                        if (up.OnlineYN)
+                        {
+                            m_log.DebugFormat("[PRESENCE] Logging off {0} because the region they were in has gone", up.agentData.AgentID);
+                            ProcessLogOff(up.agentData.AgentID);
+                        }
+                    }
+                }
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = result;
+            return response;
+        }
     }
 }
