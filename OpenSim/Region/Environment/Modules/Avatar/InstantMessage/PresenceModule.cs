@@ -114,10 +114,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         public void OnNewClient(IClientAPI client)
         {
             client.OnConnectionClosed += OnConnectionClosed;
+            client.OnLogout += OnConnectionClosed;
         }
 
         public void OnConnectionClosed(IClientAPI client)
         {
+            if (!(client.Scene is Scene))
+                return;
+
             if (!(m_RootAgents.ContainsKey(client.AgentId)))
                 return;
 
@@ -128,7 +132,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
             m_RootAgents.Remove(client.AgentId);
 
-            NotifyMessageServerOfAgentLeaving(client.AgentId, scene.RegionInfo.RegionName);
+            NotifyMessageServerOfAgentLeaving(client.AgentId, scene.RegionInfo.RegionID, scene.RegionInfo.RegionHandle);
         }
 
         public void OnSetRootAgentScene(UUID agentID, Scene scene)
@@ -139,13 +143,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                     return;
             }
             m_RootAgents[agentID] = scene;
-            NotifyMessageServerOfAgentLocation(agentID, scene.RegionInfo.RegionName);
+            NotifyMessageServerOfAgentLocation(agentID, scene.RegionInfo.RegionID, scene.RegionInfo.RegionHandle);
         }
 
         private void NotifyMessageServerOfStartup(Scene scene)
         {
             Hashtable xmlrpcdata = new Hashtable();
-            xmlrpcdata["RegionName"] = scene.RegionInfo.RegionName;
+            xmlrpcdata["RegionUUID"] = scene.RegionInfo.RegionID.ToString();
             ArrayList SendParams = new ArrayList();
             SendParams.Add(xmlrpcdata);
             try
@@ -154,7 +158,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 XmlRpcResponse resp = UpRequest.Send(scene.CommsManager.NetworkServersInfo.MessagingURL, 5000);
 
                 Hashtable responseData = (Hashtable)resp.Value;
-                if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+                if (responseData == null || (!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
                 {
                     m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region startup for region {0}", scene.RegionInfo.RegionName);
                 }
@@ -168,7 +172,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         private void NotifyMessageServerOfShutdown(Scene scene)
         {
             Hashtable xmlrpcdata = new Hashtable();
-            xmlrpcdata["RegionName"] = scene.RegionInfo.RegionName;
+            xmlrpcdata["RegionUUID"] = scene.RegionInfo.RegionID.ToString();
             ArrayList SendParams = new ArrayList();
             SendParams.Add(xmlrpcdata);
             try
@@ -188,11 +192,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             }
         }
 
-        private void NotifyMessageServerOfAgentLocation(UUID agentID, string region)
+        private void NotifyMessageServerOfAgentLocation(UUID agentID, UUID region, ulong regionHandle)
         {
             Hashtable xmlrpcdata = new Hashtable();
             xmlrpcdata["AgentID"] = agentID.ToString();
-            xmlrpcdata["RegionName"] = region;
+            xmlrpcdata["RegionUUID"] = region.ToString();
+            xmlrpcdata["RegionHandle"] = regionHandle.ToString();
             ArrayList SendParams = new ArrayList();
             SendParams.Add(xmlrpcdata);
             try
@@ -212,11 +217,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             }
         }
 
-        private void NotifyMessageServerOfAgentLeaving(UUID agentID, string region)
+        private void NotifyMessageServerOfAgentLeaving(UUID agentID, UUID region, ulong regionHandle)
         {
             Hashtable xmlrpcdata = new Hashtable();
             xmlrpcdata["AgentID"] = agentID.ToString();
-            xmlrpcdata["RegionName"] = region;
+            xmlrpcdata["RegionUUID"] = region.ToString();
+            xmlrpcdata["RegionHandle"] = regionHandle.ToString();
             ArrayList SendParams = new ArrayList();
             SendParams.Add(xmlrpcdata);
             try

@@ -177,6 +177,8 @@ namespace OpenSim.Framework
         void UpdateUserAppearance(UUID user, AvatarAppearance appearance);
 
         void ResetAttachments(UUID userID);
+
+        void LogoutUsers(UUID regionID);
     }
 
     public class UserDataInitialiser : PluginInitialiserBase

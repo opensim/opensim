@@ -308,6 +308,10 @@ namespace OpenSim.Data.NHibernate
         {
         }
 
+        public override void LogoutUsers(UUID regionID)
+        {
+        }
+
         public override string Name {
             get { return "NHibernate"; }
         }

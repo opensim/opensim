@@ -57,7 +57,13 @@ namespace OpenSim.Grid.UserServer
         public float positionZ;
         public string firstname;
         public string lastname;
-    };
+    }
+
+    public delegate void AgentLocationDelegate(UUID agentID, UUID regionID, ulong regionHandle);
+    public delegate void AgentLeavingDelegate(UUID agentID, UUID regionID, ulong regionHandle);
+    public delegate void RegionStartupDelegate(UUID regionID);
+    public delegate void RegionShutdownDelegate(UUID regionID);
+
 
     public class MessageServersConnector
     {
@@ -69,6 +75,11 @@ namespace OpenSim.Grid.UserServer
                 new BlockingQueue<PresenceNotification>();
 
         Thread m_NotifyThread;
+
+        public event AgentLocationDelegate OnAgentLocation;
+        public event AgentLeavingDelegate OnAgentLeaving;
+        public event RegionStartupDelegate OnRegionStartup;
+        public event RegionShutdownDelegate OnRegionShutdown;
 
         public MessageServersConnector()
         {
@@ -336,6 +347,86 @@ namespace OpenSim.Grid.UserServer
                     TellMessageServersAboutUserLogoffInternal(presence.agentID);
                 }
             }
+        }
+
+        public XmlRpcResponse RegionStartup(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable result = new Hashtable();
+
+            UUID regionID;
+            if (UUID.TryParse((string)requestData["RegionUUID"], out regionID))
+            {
+                if (OnRegionStartup != null)
+                    OnRegionStartup(regionID);
+
+                result["responsestring"] = "TRUE";
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = result;
+            return response;
+        }
+
+        public XmlRpcResponse RegionShutdown(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable result = new Hashtable();
+
+            UUID regionID;
+            if (UUID.TryParse((string)requestData["RegionUUID"], out regionID))
+            {
+                if (OnRegionShutdown != null)
+                    OnRegionShutdown(regionID);
+
+                result["responsestring"] = "TRUE";
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = result;
+            return response;
+        }
+
+        public XmlRpcResponse AgentLocation(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable result = new Hashtable();
+
+            UUID agentID;
+            UUID regionID;
+            ulong regionHandle;
+            if (UUID.TryParse((string)requestData["AgentID"], out agentID) && UUID.TryParse((string)requestData["RegionUUID"], out regionID) && ulong.TryParse((string)requestData["RegionHandle"], out regionHandle))
+            {
+                if (OnAgentLocation != null)
+                    OnAgentLocation(agentID, regionID, regionHandle);
+
+                result["responsestring"] = "TRUE";
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = result;
+            return response;
+        }
+
+        public XmlRpcResponse AgentLeaving(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable result = new Hashtable();
+
+            UUID agentID;
+            UUID regionID;
+            ulong regionHandle;
+            if (UUID.TryParse((string)requestData["AgentID"], out agentID) && UUID.TryParse((string)requestData["RegionUUID"], out regionID) && ulong.TryParse((string)requestData["RegionHandle"], out regionHandle))
+            {
+                if (OnAgentLeaving != null)
+                    OnAgentLeaving(agentID, regionID, regionHandle);
+
+                result["responsestring"] = "TRUE";
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = result;
+            return response;
         }
     }
 }

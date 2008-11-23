@@ -110,6 +110,11 @@ namespace OpenSim.Grid.UserServer
             m_loginService.OnUserLoggedInAtLocation += NotifyMessageServersUserLoggedInToLocation;
             m_userManager.OnLogOffUser += NotifyMessageServersUserLoggOff;
 
+            m_messagesService.OnAgentLocation += HandleAgentLocation;
+            m_messagesService.OnAgentLeaving += HandleAgentLeaving;
+            m_messagesService.OnRegionStartup += HandleRegionStartup;
+            m_messagesService.OnRegionShutdown += HandleRegionShutdown;
+
             m_log.Info("[REGION]: Starting HTTP process");
 
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
@@ -147,6 +152,10 @@ namespace OpenSim.Grid.UserServer
             m_httpServer.AddXmlRPCHandler("get_agent_by_uuid", m_userManager.XmlRPCGetAgentMethodUUID);
             m_httpServer.AddXmlRPCHandler("check_auth_session", m_userManager.XmlRPCCheckAuthSession);
             m_httpServer.AddXmlRPCHandler("set_login_params", m_loginService.XmlRPCSetLoginParams);
+            m_httpServer.AddXmlRPCHandler("region_startup", m_messagesService.RegionStartup);
+            m_httpServer.AddXmlRPCHandler("region_shutdown", m_messagesService.RegionShutdown);
+            m_httpServer.AddXmlRPCHandler("agent_location", m_messagesService.AgentLocation);
+            m_httpServer.AddXmlRPCHandler("agent_leaving", m_messagesService.AgentLeaving);
             // Message Server ---> User Server
             m_httpServer.AddXmlRPCHandler("register_messageserver", m_messagesService.XmlRPCRegisterMessageServer);
             m_httpServer.AddXmlRPCHandler("agent_change_region", m_messagesService.XmlRPCUserMovedtoRegion);
@@ -441,6 +450,26 @@ namespace OpenSim.Grid.UserServer
         {
             m_messagesService.TellMessageServersAboutUser(agentID, sessionID, RegionID, regionhandle, positionX,
                                                           positionY, positionZ, firstname, lastname);
+        }
+
+        public void HandleAgentLocation(UUID agentID, UUID regionID, ulong regionHandle)
+        {
+            m_userManager.HandleAgentLocation(agentID, regionID, regionHandle);
+        }
+
+        public void HandleAgentLeaving(UUID agentID, UUID regionID, ulong regionHandle)
+        {
+            m_userManager.HandleAgentLeaving(agentID, regionID, regionHandle);
+        }
+
+        public void HandleRegionStartup(UUID regionID)
+        {
+            m_userManager.HandleRegionStartup(regionID);
+        }
+
+        public void HandleRegionShutdown(UUID regionID)
+        {
+            m_userManager.HandleRegionShutdown(regionID);
         }
     }
 }

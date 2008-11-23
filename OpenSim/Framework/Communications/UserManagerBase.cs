@@ -87,6 +87,14 @@ namespace OpenSim.Framework.Communications
             return null;
         }
         
+        public void LogoutUsers(UUID regionID)
+        {
+            foreach (IUserDataPlugin plugin in _plugins)
+            {
+                plugin.LogoutUsers(regionID);
+            }
+        }
+        
         public void ResetAttachments(UUID userID)
         {
             foreach (IUserDataPlugin plugin in _plugins)

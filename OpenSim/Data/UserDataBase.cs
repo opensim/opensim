@@ -75,6 +75,8 @@ namespace OpenSim.Data
         // }
         public abstract void ResetAttachments(UUID userID);
 
+        public abstract void LogoutUsers(UUID regionID);
+
         public abstract string Version {get;}
         public abstract string Name {get;}
         public abstract void Initialise(string connect);

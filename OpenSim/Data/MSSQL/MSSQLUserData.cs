@@ -732,6 +732,10 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        override public void LogoutUsers(UUID regionID)
+        {
+        }
+
         #endregion
 
         #region Other public methods

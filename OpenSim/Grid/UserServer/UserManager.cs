@@ -758,5 +758,52 @@ namespace OpenSim.Grid.UserServer
         {
             throw new Exception("The method or operation is not implemented.");
         }
+
+        public void HandleAgentLocation(UUID agentID, UUID regionID, ulong regionHandle)
+        {
+            UserProfileData userProfile = GetUserProfile(agentID);
+            if (userProfile != null)
+            {
+                userProfile.CurrentAgent.Region = regionID;
+                userProfile.CurrentAgent.Handle = regionHandle;
+                CommitAgent(ref userProfile);
+            }
+        }
+
+        public void HandleAgentLeaving(UUID agentID, UUID regionID, ulong regionHandle)
+        {
+            UserProfileData userProfile = GetUserProfile(agentID);
+            if (userProfile != null)
+            {
+                if (userProfile.CurrentAgent.Region == regionID)
+                {
+                    UserAgentData userAgent = userProfile.CurrentAgent;
+                    if (userAgent != null && userAgent.AgentOnline)
+                    {
+                        userAgent.AgentOnline = false;
+                        userAgent.LogoutTime = Util.UnixTimeSinceEpoch();
+                        if (regionID != UUID.Zero)
+                        {
+                            userAgent.Region = regionID;
+                        }
+                        userAgent.Handle = regionHandle;
+                        userProfile.LastLogin = userAgent.LogoutTime;
+
+                        CommitAgent(ref userProfile);
+                    }
+                }
+            }
+        }
+
+        public void HandleRegionStartup(UUID regionID)
+        {
+            LogoutUsers(regionID);
+        }
+
+        public void HandleRegionShutdown(UUID regionID)
+        {
+            LogoutUsers(regionID);
+        }   
+
     }
 }

@@ -1037,5 +1037,9 @@ namespace OpenSim.Data.SQLite
         override public void ResetAttachments(UUID userID)
         {
         }
+
+        override public void LogoutUsers(UUID regionID)
+        {
+        }
     }
 }

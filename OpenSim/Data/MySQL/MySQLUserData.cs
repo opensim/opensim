@@ -891,5 +891,31 @@ namespace OpenSim.Data.MySQL
                 dbm.Release();
             }
         }
+
+        public override void LogoutUsers(UUID regionID)
+        {
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["?regionID"] = regionID.ToString();
+
+            MySQLSuperManager dbm = GetLockedConnection("LogoutUsers");
+
+            try
+            {
+               dbm.Manager.ExecuteParameterizedSql(
+                        "update " + m_agentsTableName + " SET agentOnline = 0 " +
+                        "where currentRegion = ?regionID",
+                        param);
+            }
+            catch (Exception e)
+            {
+                dbm.Manager.Reconnect();
+                m_log.Error(e.ToString());
+                return;
+            }
+            finally
+            {
+                dbm.Release();
+            }
+        }
     }
 }

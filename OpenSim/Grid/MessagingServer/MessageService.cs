@@ -558,24 +558,30 @@ namespace OpenSim.Grid.MessagingServer
 
         public bool deregisterWithUserServer()
         {
-            Hashtable UserParams = new Hashtable();
+            Hashtable request = new Hashtable();
+
+            return SendToUserServer(request, "deregister_messageserver");
+        }
+
+        public bool SendToUserServer(Hashtable request, string method)
+        {
             // Login / Authentication
 
             if (m_cfg.HttpSSL)
             {
-                UserParams["uri"] = "https://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
+                request["uri"] = "https://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
             }
             else
             {
-                UserParams["uri"] = "http://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
+                request["uri"] = "http://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
             }
 
-            UserParams["recvkey"] = m_cfg.UserRecvKey;
-            UserParams["sendkey"] = m_cfg.UserRecvKey;
+            request["recvkey"] = m_cfg.UserRecvKey;
+            request["sendkey"] = m_cfg.UserRecvKey;
 
             // Package into an XMLRPC Request
             ArrayList SendParams = new ArrayList();
-            SendParams.Add(UserParams);
+            SendParams.Add(request);
 
             bool success = true;
             string[] servers = m_cfg.UserServerURL.Split(' ');
@@ -585,7 +591,7 @@ namespace OpenSim.Grid.MessagingServer
             {
                 try
                 {
-                    XmlRpcRequest UserReq = new XmlRpcRequest("deregister_messageserver", SendParams);
+                    XmlRpcRequest UserReq = new XmlRpcRequest(method, SendParams);
                     XmlRpcResponse UserResp = UserReq.Send(m_cfg.UserServerURL, 16000);
                     // Process Response
                     Hashtable UserRespData = (Hashtable)UserResp.Value;
@@ -603,5 +609,62 @@ namespace OpenSim.Grid.MessagingServer
         }
 
         #endregion
+
+        public XmlRpcResponse RegionStartup(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable result = new Hashtable();
+            result["success"] = "FALSE";
+
+            if(SendToUserServer(requestData, "region_startup"))
+                result["success"] = "TRUE";
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = result;
+            return response;
+        }
+
+        public XmlRpcResponse RegionShutdown(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable result = new Hashtable();
+            result["success"] = "FALSE";
+
+            if(SendToUserServer(requestData, "region_shutdown"))
+                result["success"] = "TRUE";
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = result;
+            return response;
+        }
+
+        public XmlRpcResponse AgentLocation(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable result = new Hashtable();
+            result["success"] = "FALSE";
+
+            if(SendToUserServer(requestData, "agent_location"))
+                result["success"] = "TRUE";
+
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = result;
+            return response;
+        }
+
+        public XmlRpcResponse AgentLeaving(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable result = new Hashtable();
+            result["success"] = "FALSE";
+
+            if(SendToUserServer(requestData, "agent_leaving"))
+                result["success"] = "TRUE";
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = result;
+            return response;
+        }
     }
 }
