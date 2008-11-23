@@ -141,6 +141,14 @@ namespace OpenSim.Data.MySQL
             Migration m = new Migration(m_connection, assem, "RegionStore");
             m.Update();
 
+            PrepareConnection();
+        }
+
+        public void Dispose() {}
+
+        private void PrepareConnection()
+        {
+            GetWaitTimeout();
 
             MySqlCommand primSelectCmd = new MySqlCommand(m_primSelect, m_connection);
             m_primDataAdapter = new MySqlDataAdapter(primSelectCmd);
@@ -203,8 +211,6 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public void Dispose() {}
-
         /// <summary>
         /// Get the wait_timeout value for our connection
         /// </summary>
@@ -254,6 +260,8 @@ namespace OpenSim.Data.MySQL
                     m_connection.Close();
                     m_connection = new MySqlConnection(m_connectionString);
                     m_connection.Open();
+
+                    PrepareConnection();
                 }
             }
 
@@ -308,22 +316,40 @@ namespace OpenSim.Data.MySQL
         /// <param name="regionUUID">The region UUID</param>
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
-            lock (m_dataSet)
+            int tries = 3;
+            while (tries > 0)
             {
-                foreach (SceneObjectPart prim in obj.Children.Values)
+                tries--;
+
+                try
                 {
-                    if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
-                        && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) == 0)
+                    lock (m_dataSet)
                     {
-                        //m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
-                        addPrim(prim, obj.UUID, regionUUID);
-                    }
-                    else
-                    {
-                        // m_log.Info("[DATASTORE]: Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
+                        foreach (SceneObjectPart prim in obj.Children.Values)
+                        {
+                            if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
+                                && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) == 0)
+                            {
+                                //m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
+                                addPrim(prim, obj.UUID, regionUUID);
+                            }
+                            else
+                            {
+                                // m_log.Info("[DATASTORE]: Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
+                            }
+                        }
+                        Commit();
+                        return;
                     }
                 }
-                Commit();
+                catch(MySqlException)
+                {
+                    m_connection.Close();
+                    m_connection = new MySqlConnection(m_connectionString);
+                    m_connection.Open();
+
+                    PrepareConnection();
+                }
             }
         }
 

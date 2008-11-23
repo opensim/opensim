@@ -33,6 +33,7 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Communications.Cache;
 using BlockingQueue = OpenSim.Framework.BlockingQueue<OpenSim.Region.Environment.Interfaces.ITextureSender>;
 
 namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
@@ -161,6 +162,27 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         public void TextureRequest(Object sender, TextureRequestArgs e)
         {
             IClientAPI client = (IClientAPI) sender;
+
+            if (e.Priority == 1016001f) // Preview
+            {
+                if (client.Scene is Scene)
+                {
+                    Scene scene = (Scene)client.Scene;
+                    
+                    CachedUserInfo profile = scene.CommsManager.UserProfileCacheService.GetUserDetails(client.AgentId);
+                    if (profile == null) // Deny unknown user
+                        return;
+
+                    if (profile.RootFolder == null) // Deny no inventory
+                        return;
+
+                    if (profile.UserProfile.GodLevel < 200 && profile.RootFolder.FindAsset(e.RequestedAssetID) == null) // Deny if not owned
+                        return;
+
+                    m_log.Debug("Texture preview");
+                }
+            }
+
             UserTextureDownloadService textureService;
 
             if (TryGetUserTextureService(client, out textureService))

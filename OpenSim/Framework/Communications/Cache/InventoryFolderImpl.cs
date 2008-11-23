@@ -138,6 +138,33 @@ namespace OpenSim.Framework.Communications.Cache
             return null;
         }
 
+        public InventoryItemBase FindAsset(UUID assetID)
+        {
+            lock (Items)
+            {
+                foreach (InventoryItemBase item in Items.Values)
+                {
+                    if (item.AssetID == assetID)
+                        return item;
+                }
+            }
+
+            lock (SubFolders)
+            {
+                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                {
+                    InventoryItemBase item = folder.FindAsset(assetID);
+
+                    if (item != null)
+                    {
+                        return item;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Deletes an item if it exists in this folder or any children
         /// </summary>
