@@ -1222,6 +1222,7 @@ namespace OpenSim.Region.Environment.Scenes
                             if ((DateTime.Now - RootPart.Rezzed).TotalMinutes >
                                     parcel.landData.OtherCleanTime)
                             {
+                                DetachFromBackup();
                                 m_log.InfoFormat("[SCENE] Returning object {0} due to parcel auto return", RootPart.UUID.ToString());
                                 m_scene.AddReturn(OwnerID, Name, AbsolutePosition, "parcel auto return");
                                 m_scene.DeRezObject(null, RootPart.LocalId,
