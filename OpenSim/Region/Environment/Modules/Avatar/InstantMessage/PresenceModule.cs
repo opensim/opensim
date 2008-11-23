@@ -118,9 +118,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         public void OnConnectionClosed(IClientAPI client)
         {
-            if (!(client.Scene is Scene))
-                return;
-
             if (!(m_RootAgents.ContainsKey(client.AgentId)))
                 return;
 
@@ -151,11 +148,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             xmlrpcdata["RegionName"] = scene.RegionInfo.RegionName;
             ArrayList SendParams = new ArrayList();
             SendParams.Add(xmlrpcdata);
-            XmlRpcRequest UpRequest = new XmlRpcRequest("region_startup", SendParams);
-            XmlRpcResponse resp = UpRequest.Send(scene.CommsManager.NetworkServersInfo.MessagingURL, 5000);
+            try
+            {
+                XmlRpcRequest UpRequest = new XmlRpcRequest("region_startup", SendParams);
+                XmlRpcResponse resp = UpRequest.Send(scene.CommsManager.NetworkServersInfo.MessagingURL, 5000);
 
-            Hashtable responseData = (Hashtable)resp.Value;
-            if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+                Hashtable responseData = (Hashtable)resp.Value;
+                if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+                {
+                    m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region startup for region {0}", scene.RegionInfo.RegionName);
+                }
+            }
+            catch (System.Net.WebException)
             {
                 m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region startup for region {0}", scene.RegionInfo.RegionName);
             }
@@ -167,11 +171,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             xmlrpcdata["RegionName"] = scene.RegionInfo.RegionName;
             ArrayList SendParams = new ArrayList();
             SendParams.Add(xmlrpcdata);
-            XmlRpcRequest DownRequest = new XmlRpcRequest("region_shutdown", SendParams);
-            XmlRpcResponse resp = DownRequest.Send(scene.CommsManager.NetworkServersInfo.MessagingURL, 5000);
+            try
+            {
+                XmlRpcRequest DownRequest = new XmlRpcRequest("region_shutdown", SendParams);
+                XmlRpcResponse resp = DownRequest.Send(scene.CommsManager.NetworkServersInfo.MessagingURL, 5000);
 
-            Hashtable responseData = (Hashtable)resp.Value;
-            if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+                Hashtable responseData = (Hashtable)resp.Value;
+                if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+                {
+                    m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region shutdown for region {0}", scene.RegionInfo.RegionName);
+                }
+            }
+            catch (System.Net.WebException)
             {
                 m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region shutdown for region {0}", scene.RegionInfo.RegionName);
             }
@@ -184,11 +195,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             xmlrpcdata["RegionName"] = region;
             ArrayList SendParams = new ArrayList();
             SendParams.Add(xmlrpcdata);
-            XmlRpcRequest LocationRequest = new XmlRpcRequest("agent_location", SendParams);
-            XmlRpcResponse resp = LocationRequest.Send(m_Scenes[0].CommsManager.NetworkServersInfo.MessagingURL, 5000);
+            try
+            {
+                XmlRpcRequest LocationRequest = new XmlRpcRequest("agent_location", SendParams);
+                XmlRpcResponse resp = LocationRequest.Send(m_Scenes[0].CommsManager.NetworkServersInfo.MessagingURL, 5000);
 
-            Hashtable responseData = (Hashtable)resp.Value;
-            if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+                Hashtable responseData = (Hashtable)resp.Value;
+                if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+                {
+                    m_log.ErrorFormat("[PRESENCE] Failed to notify message server of agent location for {0}", agentID.ToString());
+                }
+            }
+            catch (System.Net.WebException)
             {
                 m_log.ErrorFormat("[PRESENCE] Failed to notify message server of agent location for {0}", agentID.ToString());
             }
@@ -201,11 +219,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             xmlrpcdata["RegionName"] = region;
             ArrayList SendParams = new ArrayList();
             SendParams.Add(xmlrpcdata);
-            XmlRpcRequest LeavingRequest = new XmlRpcRequest("agent_leaving", SendParams);
-            XmlRpcResponse resp = LeavingRequest.Send(m_Scenes[0].CommsManager.NetworkServersInfo.MessagingURL, 5000);
+            try
+            {
+                XmlRpcRequest LeavingRequest = new XmlRpcRequest("agent_leaving", SendParams);
+                XmlRpcResponse resp = LeavingRequest.Send(m_Scenes[0].CommsManager.NetworkServersInfo.MessagingURL, 5000);
 
-            Hashtable responseData = (Hashtable)resp.Value;
-            if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+                Hashtable responseData = (Hashtable)resp.Value;
+                if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
+                {
+                    m_log.ErrorFormat("[PRESENCE] Failed to notify message server of agent leaving for {0}", agentID.ToString());
+                }
+            }
+            catch (System.Net.WebException)
             {
                 m_log.ErrorFormat("[PRESENCE] Failed to notify message server of agent leaving for {0}", agentID.ToString());
             }
