@@ -530,7 +530,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             // get seed capagentData.firstname = FirstName;agentData.lastname = LastName;
             if (homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID) == null && !GridMode)
             {
-                homeScene.CommsManager.AddUser(agentData.firstname, agentData.lastname, CreateRandomStr(7), homeScene.RegionInfo.RegionLocX, homeScene.RegionInfo.RegionLocY, agentData.AgentID);
+                homeScene.CommsManager.AddUser(agentData.firstname, agentData.lastname, CreateRandomStr(7), "", homeScene.RegionInfo.RegionLocX, homeScene.RegionInfo.RegionLocY, agentData.AgentID);
                 UserProfileData userProfile2 = homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID);
                 if (userProfile2 != null)
                 {

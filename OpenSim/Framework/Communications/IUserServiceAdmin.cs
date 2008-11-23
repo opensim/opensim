@@ -30,15 +30,31 @@ using OpenMetaverse;
 namespace OpenSim.Framework.Communications
 {
     public interface IUserServiceAdmin
-    {  
+    {
         /// <summary>
         /// Add a new user profile
         /// </summary>
-        /// <param name="user"></param>
-        UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY);
+        /// <param name="firstName">The first name.</param>
+        /// <param name="lastName">The last name.</param>
+        /// <param name="pass">password of avatar</param>
+        /// <param name="email">email of user</param>
+        /// <param name="regX">region X.</param>
+        /// <param name="regY">region Y.</param>
+        /// <returns></returns>
+        UUID AddUserProfile(string firstName, string lastName, string pass, string email, uint regX, uint regY);
 
-        // Adds one for allowing setting of the UUID from modules..   SHOULD ONLY BE USED in very special circumstances!
-        UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY, UUID setUUID);
+        /// <summary>
+        /// Adds one for allowing setting of the UUID from modules..   SHOULD ONLY BE USED in very special circumstances!
+        /// </summary>
+        /// <param name="firstName">The first name.</param>
+        /// <param name="lastName">The last name.</param>
+        /// <param name="pass">password of avatar</param>
+        /// <param name="email">email of user</param>
+        /// <param name="regX">region X.</param>
+        /// <param name="regY">region Y.</param>
+        /// <param name="setUUID">The set UUID.</param>
+        /// <returns></returns>
+        UUID AddUserProfile(string firstName, string lastName, string pass, string email, uint regX, uint regY, UUID setUUID);
 
         /// <summary>
         /// Reset a user password

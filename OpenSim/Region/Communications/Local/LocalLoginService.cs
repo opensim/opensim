@@ -94,7 +94,7 @@ namespace OpenSim.Region.Communications.Local
                 //no current user account so make one
                 m_log.Info("[LOGIN]: No user account found so creating a new one.");
 
-                m_userManager.AddUserProfile(firstname, lastname, "test", defaultHomeX, defaultHomeY);
+                m_userManager.AddUserProfile(firstname, lastname, "test", "", defaultHomeX, defaultHomeY);
 
                 profile = m_userManager.GetUserProfile(firstname, lastname);
                 if (profile != null)

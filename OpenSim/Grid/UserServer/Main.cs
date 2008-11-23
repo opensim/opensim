@@ -162,62 +162,12 @@ namespace OpenSim.Grid.UserServer
             m_httpServer.AddXmlRPCHandler("update_user_profile", m_userManager.XmlRpcResponseXmlRPCUpdateUserProfile);
         }
 
-        public void do_create(string what)
+        public void do_create(string[] args)
         {
-            switch (what)
+            switch (args[0])
             {
                 case "user":
-                    string tempfirstname = m_console.CmdPrompt("First name");
-                    string templastname = m_console.CmdPrompt("Last name");
-                    //tempMD5Passwd = m_console.PasswdPrompt("Password");
-                    string tempMD5Passwd = m_console.CmdPrompt("Password");
-                    uint regX = Convert.ToUInt32(m_console.CmdPrompt("Start Region X"));
-                    uint regY = Convert.ToUInt32(m_console.CmdPrompt("Start Region Y"));
-
-                    if (null != m_userManager.GetUserProfile(tempfirstname, templastname))
-                    {
-                        m_log.ErrorFormat(
-                            "[USERS]: A user with the name {0} {1} already exists!", tempfirstname, templastname);
-
-                        break;
-                    }
-
-                    tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
-
-                    UUID userID = new UUID();
-
-                    try
-                    {
-                        userID = m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
-                    }
-                    catch (Exception ex)
-                    {
-                        m_log.ErrorFormat("[USERS]: Error creating user: {0}", ex.ToString());
-                    }
-
-                    try
-                    {
-                        if (!m_interServiceInventoryService.CreateNewUserInventory(userID))
-                        {
-                            throw new Exception(
-                                String.Format(
-                                    "The inventory creation request for user {0} did not succeed."
-                                    + "  Please contact your inventory service provider for more information.",
-                                    userID));
-                        }
-                    }
-                    catch (WebException)
-                    {
-                        m_log.ErrorFormat(
-                            "[USERS]: Could not contact the inventory service at {0} to create an inventory for {1}",
-                            Cfg.InventoryUrl + "CreateInventory/", userID);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat("[USERS]: Error creating inventory for user: {0}", e);
-                    }
-
-                    m_lastCreatedUser = userID;
+                    CreateUser(args);
                     break;
             }
         }
@@ -244,8 +194,87 @@ namespace OpenSim.Grid.UserServer
                 
                     break;
             }
-        }   
-        
+        }
+
+        /// <summary>
+        /// Create a new user
+        /// </summary>
+        /// <param name="cmdparams">string array with parameters: firstname, lastname, password, locationX, locationY, email</param>
+        protected void CreateUser(string[] cmdparams)
+        {
+            string firstName;
+            string lastName;
+            string password;
+            string email;
+            uint regX = 1000;
+            uint regY = 1000;
+
+            if (cmdparams.Length < 2)
+                firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
+            else firstName = cmdparams[1];
+
+            if (cmdparams.Length < 3)
+                lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
+            else lastName = cmdparams[2];
+
+            if (cmdparams.Length < 4)
+                password = MainConsole.Instance.PasswdPrompt("Password");
+            else password = cmdparams[3];
+
+            if (cmdparams.Length < 5)
+                regX = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region X", regX.ToString()));
+            else regX = Convert.ToUInt32(cmdparams[4]);
+
+            if (cmdparams.Length < 6)
+                regY = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region Y", regY.ToString()));
+            else regY = Convert.ToUInt32(cmdparams[5]);
+
+            if (cmdparams.Length < 7)
+                email = MainConsole.Instance.CmdPrompt("Email", "");
+            else email = cmdparams[6];
+
+            if (null == m_userManager.GetUserProfile(firstName, lastName))
+            {
+                password = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
+
+                UUID userID = new UUID();
+
+                try
+                {
+                    userID = m_userManager.AddUserProfile(firstName, lastName, password, email, regX, regY);
+                }
+                catch (Exception ex)
+                {
+                    m_log.ErrorFormat("[USERS]: Error creating user: {0}", ex.ToString());
+                }
+
+                try
+                {
+                    if (!m_interServiceInventoryService.CreateNewUserInventory(userID))
+                    {
+                        throw new Exception(
+                            String.Format("The inventory creation request for user {0} did not succeed."
+                                + "  Please contact your inventory service provider for more information.", userID));
+                    }
+                }
+                catch (WebException)
+                {
+                    m_log.ErrorFormat("[USERS]: Could not contact the inventory service at {0} to create an inventory for {1}",
+                        Cfg.InventoryUrl + "CreateInventory/", userID);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[USERS]: Error creating inventory for user: {0}", e);
+                }
+
+                m_lastCreatedUser = userID;
+            }
+            else
+            {
+                m_log.ErrorFormat("[USERS]: A user with the name {0} {1} already exists!", firstName, lastName);
+            }
+        }
+
         /// <summary>
         /// Reset a user password.
         /// </summary>
@@ -277,7 +306,7 @@ namespace OpenSim.Grid.UserServer
             switch (cmd)
             {
                 case "create":
-                    do_create(cmdparams[0]);
+                    do_create(cmdparams);
                     break;
                 
                 case "reset":

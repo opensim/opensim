@@ -54,6 +54,7 @@ namespace OpenSim.Framework.Communications
         /// Adds a new user server plugin - user servers will be requested in the order they were loaded.
         /// </summary>
         /// <param name="provider">The filename to the user server plugin DLL</param>
+        /// <param name="connect"></param>
         public void AddPlugin(string provider, string connect)
         {
             PluginLoader<IUserDataPlugin> loader =
@@ -580,15 +581,32 @@ namespace OpenSim.Framework.Communications
         #endregion
 
         /// <summary>
-        ///
+        /// Add a new user profile
         /// </summary>
-        /// <param name="user"></param>
-        public UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
+        /// <param name="firstName">first name.</param>
+        /// <param name="lastName">last name.</param>
+        /// <param name="pass">password</param>
+        /// <param name="email">email.</param>
+        /// <param name="regX">location X.</param>
+        /// <param name="regY">location Y.</param>
+        /// <returns></returns>
+        public UUID AddUserProfile(string firstName, string lastName, string pass, string email, uint regX, uint regY)
         {
-            return AddUserProfile(firstName, lastName, pass, regX, regY, UUID.Random());
+            return AddUserProfile(firstName, lastName, pass, email, regX, regY, UUID.Random());
         }
 
-        public UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY, UUID SetUUID)
+        /// <summary>
+        /// Adds the user profile.
+        /// </summary>
+        /// <param name="firstName">first name.</param>
+        /// <param name="lastName">last name.</param>
+        /// <param name="pass">password</param>
+        /// <param name="email">email.</param>
+        /// <param name="regX">location X.</param>
+        /// <param name="regY">location Y.</param>
+        /// <param name="SetUUID">UUID of avatar.</param>
+        /// <returns></returns>
+        public UUID AddUserProfile(string firstName, string lastName, string pass, string email, uint regX, uint regY, UUID SetUUID)
         {
             UserProfileData user = new UserProfileData();
             user.HomeLocation = new Vector3(128, 128, 100);
@@ -601,6 +619,7 @@ namespace OpenSim.Framework.Communications
             user.HomeLookAt = new Vector3(100, 100, 100);
             user.HomeRegionX = regX;
             user.HomeRegionY = regY;
+            user.Email = email;
 
             foreach (IUserDataPlugin plugin in _plugins)
             {

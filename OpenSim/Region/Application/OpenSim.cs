@@ -516,7 +516,14 @@ namespace OpenSim
             switch (args[0])
             {
                 case "user":
-                    CreateUser(args);
+                    if (ConfigurationSettings.Standalone)
+                    {
+                        CreateUser(args);
+                    }
+                    else
+                    {
+                        m_console.Notice("Create user is not available in grid mode, use the user-server.");
+                    }
                     break;
             }
         }
@@ -537,7 +544,14 @@ namespace OpenSim
                     switch (args[1])
                     {
                         case "password":
-                            ResetUserPassword(args);
+                            if (ConfigurationSettings.Standalone)
+                            {
+                                ResetUserPassword(args);
+                            }
+                            else
+                            {
+                                m_console.Notice("Reset user password is not available in grid mode, use the user-server.");
+                            }
                             break;
                     }
                 
@@ -734,12 +748,13 @@ namespace OpenSim
         /// <summary>
         /// Create a new user
         /// </summary>
-        /// <param name="cmdparams"></param>
+        /// <param name="cmdparams">string array with parameters: firstname, lastname, password, locationX, locationY, email</param>
         protected void CreateUser(string[] cmdparams)
         {
             string firstName;
             string lastName;
             string password;
+            string email;
             uint regX = 1000;
             uint regY = 1000;
 
@@ -751,7 +766,7 @@ namespace OpenSim
                 lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
             else lastName = cmdparams[2];
 
-            if ( cmdparams.Length < 4 )
+            if (cmdparams.Length < 4)
                 password = MainConsole.Instance.PasswdPrompt("Password");
             else password = cmdparams[3];
 
@@ -763,9 +778,13 @@ namespace OpenSim
                 regY = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region Y", regY.ToString()));
             else regY = Convert.ToUInt32(cmdparams[5]);
 
+            if (cmdparams.Length < 7)
+                email = MainConsole.Instance.CmdPrompt("Email", "");
+            else email = cmdparams[6];
+
             if (null == m_commsManager.UserService.GetUserProfile(firstName, lastName))
             {
-                CreateUser(firstName, lastName, password, regX, regY);
+                CreateUser(firstName, lastName, password, email, regX, regY);
             }
             else
             {

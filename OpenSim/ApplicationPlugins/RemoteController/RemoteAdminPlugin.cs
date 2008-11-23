@@ -93,6 +93,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod, false);
                     m_httpd.AddXmlRPCHandler("admin_load_heightmap", XmlRpcLoadHeightmapMethod, false);
                     m_httpd.AddXmlRPCHandler("admin_create_user", XmlRpcCreateUserMethod, false);
+                    //This handler creates a user with a email, 
+                    m_httpd.AddXmlRPCHandler("admin_create_user_email", XmlRpcCreateUserMethodEmail, false);
                     m_httpd.AddXmlRPCHandler("admin_exists_user", XmlRpcUserExistsMethod, false);
                     m_httpd.AddXmlRPCHandler("admin_update_user", XmlRpcUpdateUserAccountMethod, false);
                     m_httpd.AddXmlRPCHandler("admin_load_xml", XmlRpcLoadXMLMethod, false);
@@ -472,7 +474,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         m_log.InfoFormat("master avatar does not exist, creating it");
                         // ...or create new user
-                        userID = m_app.CreateUser(masterFirst, masterLast, masterPassword, region.RegionLocX, region.RegionLocY);
+                        userID = m_app.CreateUser(masterFirst, masterLast, masterPassword, "", region.RegionLocX, region.RegionLocY);
                         if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
                                                                                    masterFirst, masterLast));
                     }
@@ -647,7 +649,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 // check completeness
                 checkStringParameters(request, new string[] { "password", "user_firstname",
-                                                              "user_lastname", "user_password" });
+                                                              "user_lastname", "user_password", });
                 checkIntegerParams(request, new string[] { "start_region_x", "start_region_y" });
 
                 // check password
@@ -658,6 +660,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 string firstname = (string) requestData["user_firstname"];
                 string lastname  = (string) requestData["user_lastname"];
                 string passwd    = (string) requestData["user_password"];
+                string email     = ""; //Empty string for email
                 uint   regX      = Convert.ToUInt32((Int32)requestData["start_region_x"]);
                 uint   regY      = Convert.ToUInt32((Int32)requestData["start_region_y"]);
 
@@ -665,7 +668,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (null != userProfile)
                     throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
 
-                UUID userID = m_app.CreateUser(firstname, lastname, passwd, regX, regY);
+                UUID userID = m_app.CreateUser(firstname, lastname, passwd, email, regX, regY);
 
                 if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
                                                                              firstname, lastname));
@@ -692,6 +695,101 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
+        /// <summary>
+        /// Create a new user account.
+        /// <summary>
+        /// <param name="request">incoming XML RPC request</param>
+        /// <remarks>
+        /// XmlRpcCreateUserMethod takes the following XMLRPC
+        /// parameters
+        /// <list type="table">
+        /// <listheader><term>parameter name</term><description>description</description></listheader>
+        /// <item><term>password</term>
+        ///       <description>admin password as set in OpenSim.ini</description></item>
+        /// <item><term>user_firstname</term>
+        ///       <description>avatar's first name</description></item>
+        /// <item><term>user_lastname</term>
+        ///       <description>avatar's last name</description></item>
+        /// <item><term>user_password</term>
+        ///       <description>avatar's password</description></item>
+        /// <item><term>start_region_x</term>
+        ///       <description>avatar's start region coordinates, X value</description></item>
+        /// <item><term>start_region_y</term>
+        ///       <description>avatar's start region coordinates, Y value</description></item>
+        /// <item><term>user_email</term>
+        ///       <description>email of avatar</description></item>
+        /// </list>
+        ///
+        /// XmlRpcCreateUserMethod returns
+        /// <list type="table">
+        /// <listheader><term>name</term><description>description</description></listheader>
+        /// <item><term>success</term>
+        ///       <description>true or false</description></item>
+        /// <item><term>error</term>
+        ///       <description>error message if success is false</description></item>
+        /// <item><term>avatar_uuid</term>
+        ///       <description>UUID of the newly created avatar
+        ///                    account; UUID.Zero if failed.
+        ///       </description></item>
+        /// </list>
+        /// </remarks>
+        public XmlRpcResponse XmlRpcCreateUserMethodEmail(XmlRpcRequest request)
+        {
+            m_log.Info("[RADMIN]: CreateUser: new request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                Hashtable requestData = (Hashtable)request.Params[0];
+
+                // check completeness
+                checkStringParameters(request, new string[] { "password", "user_firstname",
+                                                              "user_lastname", "user_password", "user_email" });
+                checkIntegerParams(request, new string[] { "start_region_x", "start_region_y" });
+
+                // check password
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                // do the job
+                string firstname = (string)requestData["user_firstname"];
+                string lastname = (string)requestData["user_lastname"];
+                string passwd = (string)requestData["user_password"];
+                string email = (string)requestData["user_email"];
+                uint regX = Convert.ToUInt32((Int32)requestData["start_region_x"]);
+                uint regY = Convert.ToUInt32((Int32)requestData["start_region_y"]);
+
+                UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+                if (null != userProfile)
+                    throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
+
+                UUID userID = m_app.CreateUser(firstname, lastname, passwd, email, regX, regY);
+
+                if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
+                                                                             firstname, lastname));
+
+                responseData["success"] = "true";
+                responseData["avatar_uuid"] = userID.ToString();
+
+                response.Value = responseData;
+
+                m_log.InfoFormat("[RADMIN]: CreateUser: User {0} {1} created, UUID {2}", firstname, lastname, userID);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[RADMIN] CreateUser: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] CreateUser: failed: {0}", e.ToString());
+
+                responseData["success"] = "false";
+                responseData["avatar_uuid"] = UUID.Zero.ToString();
+                responseData["error"] = e.Message;
+
+                response.Value = responseData;
+            }
+
+            return response;
+        }
 
         /// <summary>
         /// Check whether a certain user account exists.

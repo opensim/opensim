@@ -298,9 +298,9 @@ namespace OpenSim
             m_assetCache = new AssetCache(assetServer);
         }
 
-        public UUID CreateUser(string tempfirstname, string templastname, string tempPasswd, uint regX, uint regY)
+        public UUID CreateUser(string tempfirstname, string templastname, string tempPasswd, string email, uint regX, uint regY)
         {
-            return m_commsManager.AddUser(tempfirstname, templastname, tempPasswd, regX, regY);
+            return m_commsManager.AddUser(tempfirstname, templastname, tempPasswd, email, regX, regY);
         }
 
         /// <summary>

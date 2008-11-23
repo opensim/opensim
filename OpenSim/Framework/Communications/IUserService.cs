@@ -35,15 +35,15 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// Loads a user profile by name
         /// </summary>
-        /// <param name="fname">First name</param>
-        /// <param name="lname">Last name</param>
+        /// <param name="firstName">First name</param>
+        /// <param name="lastName">Last name</param>
         /// <returns>A user profile.  Returns null if no profile is found</returns>
         UserProfileData GetUserProfile(string firstName, string lastName);
 
         /// <summary>
         /// Loads a user profile from a database by UUID
         /// </summary>
-        /// <param name="uuid">The target UUID</param>
+        /// <param name="userId">The target UUID</param>
         /// <returns>A user profile.  Returns null if no user profile is found.</returns>
         UserProfileData GetUserProfile(UUID userId);
 
@@ -90,8 +90,8 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// Logs off a user on the user server
         /// </summary>
-        /// <param name="UserID">UUID of the user</param>
-        /// <param name="regionID">UUID of the Region</param>
+        /// <param name="userid">UUID of the user</param>
+        /// <param name="regionid">UUID of the Region</param>
         /// <param name="regionhandle">regionhandle</param>
         /// <param name="position">final position</param>
         /// <param name="lookat">final lookat</param>
@@ -100,8 +100,8 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// Logs off a user on the user server (deprecated as of 2008-08-27)
         /// </summary>
-        /// <param name="UserID">UUID of the user</param>
-        /// <param name="regionID">UUID of the Region</param>
+        /// <param name="userid">UUID of the user</param>
+        /// <param name="regionid">UUID of the Region</param>
         /// <param name="regionhandle">regionhandle</param>
         /// <param name="posx">final position x</param>
         /// <param name="posy">final position y</param>
@@ -118,7 +118,8 @@ namespace OpenSim.Framework.Communications
         ///  Updates the current region the User is in
         /// </summary>
         /// <param name="avatarid">User Region the Avatar is IN</param>
-        /// <param name="retionuuid">User Region the Avatar is IN</param>
+        /// <param name="regionuuid">User Region the Avatar is IN</param>
+        /// <param name="regionhandle">User region handle</param>
         void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle);
 
         /// <summary>
