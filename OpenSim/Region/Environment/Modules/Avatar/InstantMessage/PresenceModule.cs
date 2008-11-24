@@ -58,20 +58,25 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            IConfig cnf = config.Configs["Messaging"];
-            if (cnf != null && cnf.GetString(
-                    "PresenceModule", "PresenceModule") !=
-                    "PresenceModule")
-                return;
-
-            cnf = config.Configs["Startup"];
-            if (cnf != null)
-                m_Gridmode = cnf.GetBoolean("gridmode", false);
-
-            m_Enabled = true;
-
             lock (m_Scenes)
             {
+                // This is a shared module; Initialise will be called for every region on this server.
+                // Only check config once for the first region.
+                if (m_Scenes.Count == 0)
+                {
+                    IConfig cnf = config.Configs["Messaging"];
+                    if (cnf != null && cnf.GetString(
+                            "PresenceModule", "PresenceModule") !=
+                            "PresenceModule")
+                        return;
+
+                    cnf = config.Configs["Startup"];
+                    if (cnf != null)
+                        m_Gridmode = cnf.GetBoolean("gridmode", false);
+
+                    m_Enabled = true;
+                }
+
                 if (m_Gridmode)
                     NotifyMessageServerOfStartup(scene);
 
@@ -122,27 +127,36 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             if (!(client.Scene is Scene))
                 return;
 
-            if (!(m_RootAgents.ContainsKey(client.AgentId)))
-                return;
-
             Scene scene = (Scene)client.Scene;
 
-            if (m_RootAgents[client.AgentId] != scene)
-                return;
+            // OnConnectionClosed can be called from several threads at once (with different client, of course)
+            // Concurrent access to m_RootAgents is prone to failure on multi-core/-processor systems without
+            // correct locking).
+            lock (m_RootAgents)
+            {
+                Scene rootScene;
+                if (!(m_RootAgents.TryGetValue(client.AgentId, out rootScene)) || scene != rootScene)
+                    return;
 
-            m_RootAgents.Remove(client.AgentId);
-
+                m_RootAgents.Remove(client.AgentId);
+            }
             NotifyMessageServerOfAgentLeaving(client.AgentId, scene.RegionInfo.RegionID, scene.RegionInfo.RegionHandle);
         }
 
         public void OnSetRootAgentScene(UUID agentID, Scene scene)
         {
-            if (m_RootAgents.ContainsKey(agentID))
+            // OnSetRootAgentScene can be called from several threads at once (with different agentID).
+            // Concurrent access to m_RootAgents is prone to failure on multi-core/-processor systems without
+            // correct locking).
+            lock (m_RootAgents)
             {
-                if (m_RootAgents[agentID] == scene)
+                Scene rootScene;
+                if (m_RootAgents.TryGetValue(agentID, out rootScene) && scene == rootScene)
+                {
                     return;
+                }
+                m_RootAgents[agentID] = scene;
             }
-            m_RootAgents[agentID] = scene;
             NotifyMessageServerOfAgentLocation(agentID, scene.RegionInfo.RegionID, scene.RegionInfo.RegionHandle);
         }
 
