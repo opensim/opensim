@@ -117,11 +117,7 @@ namespace OpenSim.Region.Environment.Scenes
                 ScenePresences.Clear();
             }
 
-            //SceneObjects.Clear();
-            lock (Entities)
-            {
-                Entities.Clear();
-            }
+            Entities.Clear();
         }
 
         #region Update Methods
@@ -266,12 +262,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             sceneObject.AttachToScene(m_parentScene);
 
-            lock (Entities)
+            lock (sceneObject)
             {
                 if (!Entities.ContainsKey(sceneObject.UUID))
                 {
-                    //  QuadTree.AddSceneObject(sceneObject);
-                    Entities.Add(sceneObject.UUID, sceneObject);
+                    Entities.Add(sceneObject);
                     m_numPrim += sceneObject.Children.Count;
 
                     if (attachToBackup)
@@ -279,30 +274,26 @@ namespace OpenSim.Region.Environment.Scenes
 
                     return true;
                 }
-
-                return false;
             }
+
+            return false;
         }
 
         /// <summary>
         /// Delete an object from the scene
         /// </summary>
-        /// <param name="sceneObject"></param>
         /// <returns>true if the object was deleted, false if there was no object to delete</returns>
         protected internal bool DeleteSceneObject(UUID uuid, bool resultOfObjectLinked)
         {
-            lock (Entities)
+            if (Entities.ContainsKey(uuid))
             {
-                if (Entities.ContainsKey(uuid))
+                if (!resultOfObjectLinked)
                 {
-                    if (!resultOfObjectLinked)
-                    {
-                        m_numPrim -= ((SceneObjectGroup)Entities[uuid]).Children.Count;
-                    }
-                    Entities.Remove(uuid);
-
-                    return true;
+                    m_numPrim -= ((SceneObjectGroup) Entities[uuid]).Children.Count;
                 }
+                Entities.Remove(uuid);
+
+                return true;
             }
 
             return false;
@@ -615,10 +606,7 @@ namespace OpenSim.Region.Environment.Scenes
                 presence.AddToPhysicalScene();
             }
 
-            lock (Entities)
-            {
-                Entities[presence.UUID] = presence;
-            }
+            Entities[presence.UUID] = presence;
 
             lock (ScenePresences)
             {
@@ -631,16 +619,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected internal void RemoveScenePresence(UUID agentID)
         {
-            lock (Entities)
+            if (!Entities.Remove(agentID))
             {
-                if (!Entities.Remove(agentID))
-                {
-                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene Entities list", agentID);
-                }
-//                else
-//                {
-//                    m_log.InfoFormat("[SCENE] Removed scene presence {0} from entities list", agentID);
-//                }
+                m_log.WarnFormat(
+                    "[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene Entities list",
+                    agentID);
             }
 
             lock (ScenePresences)
@@ -1668,10 +1651,7 @@ namespace OpenSim.Region.Environment.Scenes
                     SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID, true);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
 
-                    lock (Entities)
-                    {
-                        Entities.Add(copy.UUID, copy);
-                    }
+                    Entities.Add(copy);
 
                     // Since we copy from a source group that is in selected
                     // state, but the copy is shown deselected in the viewer,
