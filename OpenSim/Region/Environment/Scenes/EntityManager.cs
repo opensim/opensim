@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public class EntityManager
+    public class EntityManager : IEnumerable<EntityBase>
     {
         private readonly Dictionary<UUID,EntityBase> m_eb_uuid = new Dictionary<UUID, EntityBase>();
         private readonly Dictionary<uint, EntityBase> m_eb_localID = new Dictionary<uint, EntityBase>();
@@ -106,7 +107,6 @@ namespace OpenSim.Region.Environment.Scenes
             return tmp;
         }
 
-        [Obsolete("Please used indexed access to this instead. Indexes can be accessed via EntitiesManager[index]. LocalID and UUID are supported.")]
         public List<EntityBase> GetEntities()
         {
             lock (m_lock)
@@ -143,6 +143,20 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 InsertOrReplace(value);
             }
+        }
+
+        /// <summary>
+        /// This could be optimised to work on the list 'live' rather than making a safe copy and iterating that.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerator<EntityBase> GetEnumerator()
+        {
+            return GetEntities().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
