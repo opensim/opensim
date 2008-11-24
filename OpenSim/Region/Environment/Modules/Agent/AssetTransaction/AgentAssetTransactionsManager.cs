@@ -35,6 +35,7 @@ using OpenSim.Region.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 {
+    /*
     public class AgentAssetTransactionsManager
     {
         //private static readonly ILog m_log
@@ -71,8 +72,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             {
                 if (!AgentTransactions.ContainsKey(userID))
                 {
-                    AgentAssetTransactions transactions
-                        = new AgentAssetTransactions(userID, this, m_dumpAssetsToFile);
+                    AgentAssetTransactions transactions = null;
+                        //= new AgentAssetTransactions(userID, this, m_dumpAssetsToFile);
                     AgentTransactions.Add(userID, transactions);
                 }
 
@@ -226,4 +227,5 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             transactions.HandleXfer(xferID, packetID, data);
         }
     }
+     */
 }

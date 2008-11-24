@@ -199,81 +199,21 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 m_asset.Name = name;
                 m_asset.Description = description;
                 m_asset.Type = type;
-                m_createItem = true;
-                
+
                 if (m_finished)
                 {
                     DoCreateItem();
                 }
-            }
-        }
-
-        public void RequestUpdateInventoryItem(IClientAPI remoteClient, UUID transactionID,
-                                               InventoryItemBase item)
-        {
-            if (TransactionID == transactionID)
-            {
-                CachedUserInfo userInfo =
-                    m_userTransactions.Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(
-                        remoteClient.AgentId);
-
-                if (userInfo != null)
-                {
-                    UUID assetID = UUID.Combine(transactionID, remoteClient.SecureSessionId);
-
-                    AssetBase asset
-                        = m_userTransactions.Manager.MyScene.CommsManager.AssetCache.GetAsset(
-                            assetID, (item.AssetType == (int) AssetType.Texture ? true : false));
-
-                    if (asset == null)
-                    {
-                        asset = m_userTransactions.GetTransactionAsset(transactionID);
-                    }
-
-                    if (asset != null && asset.FullID == assetID)
-                    {
-                        // Assets never get updated, new ones get created
-                        asset.FullID = UUID.Random();
-                        asset.Name = item.Name;
-                        asset.Description = item.Description;
-                        asset.Type = (sbyte) item.AssetType;
-                        item.AssetID = asset.FullID;
-
-                        m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
-                    }
-
-                    userInfo.UpdateItem(item);
-                }
                 else
                 {
-                    m_log.ErrorFormat(
-                        "[ASSET TRANSACTIONS]: Could not find user {0} for inventory item update", 
-                        remoteClient.AgentId);                    
-                }                    
+                    m_createItem = true; //set flag so the inventory item is created when upload is complete
+                }
             }
         }
-        
-        public void RequestUpdateTaskInventoryItem(
-            IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item)
-        {
-            m_log.DebugFormat(
-                "[ASSET TRANSACTIONS]: Updating task item {0} in {1} with asset in transaction {2}", 
-                item.Name, part.Name, transactionID);
-            
-            m_asset.Name = item.Name;
-            m_asset.Description = item.Description;
-            m_asset.Type = (sbyte) item.Type;
-            item.AssetID = m_asset.FullID;
-            
-            m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
-            
-            if (part.Inventory.UpdateInventoryItem(item))
-                part.GetProperties(remoteClient);                 
-        }              
+
                     
         private void DoCreateItem()
         {
-            //really need to fix this call, if lbsa71 saw this he would die.
             m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
             CachedUserInfo userInfo =
                 m_userTransactions.Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(

@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 {
@@ -38,17 +39,16 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
     /// </summary>
     public class AgentAssetTransactions
     {
-        //private static readonly log4net.ILog m_log
-        //   = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // Fields
         private bool m_dumpAssetsToFile;
-        public AgentAssetTransactionsManager Manager;
+        public AssetTransactionModule Manager;
         public UUID UserID;
         public Dictionary<UUID, AssetXferUploader> XferUploaders = new Dictionary<UUID, AssetXferUploader>();
 
         // Methods
-        public AgentAssetTransactions(UUID agentID, AgentAssetTransactionsManager manager, bool dumpAssetsToFile)
+        public AgentAssetTransactions(UUID agentID, AssetTransactionModule manager, bool dumpAssetsToFile)
         {
             UserID = agentID;
             Manager = manager;
@@ -97,24 +97,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                                                                         wearableType, nextOwnerMask);
             }
         }
-
-        public void RequestUpdateInventoryItem(IClientAPI remoteClient, UUID transactionID,
-                                               InventoryItemBase item)
-        {
-            if (XferUploaders.ContainsKey(transactionID))
-            {
-                XferUploaders[transactionID].RequestUpdateInventoryItem(remoteClient, transactionID, item);
-            }
-        }
         
-        public void RequestUpdateTaskInventoryItem(
-            IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item)
-        {      
-            if (XferUploaders.ContainsKey(transactionID))
-            {
-                XferUploaders[transactionID].RequestUpdateTaskInventoryItem(remoteClient, part, transactionID, item);
-            } 
-        }
+       
 
         /// <summary>
         /// Get an uploaded asset.  If the data is successfully retrieved, the transaction will be removed.
@@ -137,6 +121,112 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             }
 
             return null;
+        }
+
+        //private void CreateItemFromUpload(AssetBase asset, IClientAPI ourClient, UUID inventoryFolderID, uint nextPerms, uint wearableType)
+        //{
+        //    Manager.MyScene.CommsManager.AssetCache.AddAsset(asset);
+        //    CachedUserInfo userInfo = Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(
+        //            ourClient.AgentId);
+
+        //    if (userInfo != null)
+        //    {
+        //        InventoryItemBase item = new InventoryItemBase();
+        //        item.Owner = ourClient.AgentId;
+        //        item.Creator = ourClient.AgentId;
+        //        item.ID = UUID.Random();
+        //        item.AssetID = asset.FullID;
+        //        item.Description = asset.Description;
+        //        item.Name = asset.Name;
+        //        item.AssetType = asset.Type;
+        //        item.InvType = asset.Type;
+        //        item.Folder = inventoryFolderID;
+        //        item.BasePermissions = 0x7fffffff;
+        //        item.CurrentPermissions = 0x7fffffff;
+        //        item.EveryOnePermissions = 0;
+        //        item.NextPermissions = nextPerms;
+        //        item.Flags = wearableType;
+        //        item.CreationDate = Util.UnixTimeSinceEpoch();
+
+        //        userInfo.AddItem(item);
+        //        ourClient.SendInventoryItemCreateUpdate(item);
+        //    }
+        //    else
+        //    {
+        //        m_log.ErrorFormat(
+        //            "[ASSET TRANSACTIONS]: Could not find user {0} for inventory item creation",
+        //            ourClient.AgentId);
+        //    }
+        //}
+
+        public void RequestUpdateTaskInventoryItem(
+           IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item)
+        {
+            if (XferUploaders.ContainsKey(transactionID))
+            {
+                AssetBase asset = XferUploaders[transactionID].GetAssetData();
+                if (asset != null)
+                {
+                    m_log.DebugFormat(
+                        "[ASSET TRANSACTIONS]: Updating task item {0} in {1} with asset in transaction {2}",
+                        item.Name, part.Name, transactionID);
+
+                    asset.Name = item.Name;
+                    asset.Description = item.Description;
+                    asset.Type = (sbyte)item.Type;
+                    item.AssetID = asset.FullID;
+
+                    Manager.MyScene.CommsManager.AssetCache.AddAsset(asset);
+
+                    if (part.Inventory.UpdateInventoryItem(item))
+                        part.GetProperties(remoteClient);
+                }
+            }
+        }
+
+
+        public void RequestUpdateInventoryItem(IClientAPI remoteClient, UUID transactionID,
+                                               InventoryItemBase item)
+        {
+             if (XferUploaders.ContainsKey(transactionID))
+            {
+                CachedUserInfo userInfo = Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(
+                        remoteClient.AgentId);
+
+                if (userInfo != null)
+                {
+                    UUID assetID = UUID.Combine(transactionID, remoteClient.SecureSessionId);
+
+                    AssetBase asset
+                        = Manager.MyScene.CommsManager.AssetCache.GetAsset(
+                            assetID, (item.AssetType == (int)AssetType.Texture ? true : false));
+
+                    if (asset == null)
+                    {
+                        asset = GetTransactionAsset(transactionID);
+                    }
+
+                    if (asset != null && asset.FullID == assetID)
+                    {
+                        // Assets never get updated, new ones get created
+                        asset.FullID = UUID.Random();
+                        asset.Name = item.Name;
+                        asset.Description = item.Description;
+                        asset.Type = (sbyte)item.AssetType;
+                        item.AssetID = asset.FullID;
+
+                        Manager.MyScene.CommsManager.AssetCache.AddAsset(asset);
+                    }
+
+                    userInfo.UpdateItem(item);
+                }
+                else
+                {
+                   m_log.ErrorFormat(
+                        "[ASSET TRANSACTIONS]: Could not find user {0} for inventory item update",
+                       remoteClient.AgentId);
+                }
+            }
         }
     }
 }
