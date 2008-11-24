@@ -406,6 +406,7 @@ namespace OpenSim.Framework.Console
             catch (Exception e)
             {
                 m_log.ErrorFormat("[Console]: Command [{0}] failed with exception {1}", cmdline, e.ToString());
+                m_log.Error(e.StackTrace);
             }
         }
 
