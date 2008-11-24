@@ -303,6 +303,21 @@ namespace OpenSim
             return m_commsManager.AddUser(tempfirstname, templastname, tempPasswd, email, regX, regY);
         }
 
+        public void ProcessLogin(bool LoginEnabled)
+        {
+            if (LoginEnabled)
+            {
+                m_log.Info("[Login] Login are now enabled ");
+                m_commsManager.GridService.RegionLoginsEnabled = true;
+            }
+            else
+            {
+                m_log.Info("[Login] Login are now disabled ");
+                m_commsManager.GridService.RegionLoginsEnabled = false;  
+            }
+           
+        }
+
         /// <summary>
         /// Execute the region creation process.  This includes setting up scene infrastructure.
         /// </summary>

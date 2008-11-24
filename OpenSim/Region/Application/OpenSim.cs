@@ -310,6 +310,19 @@ namespace OpenSim
                     Create(cmdparams);
                     break;
 
+                case "login-enable":
+                    ProcessLogin(true);
+                    break;
+                case "login-disable":
+                    ProcessLogin(false);
+                    break;
+                case "login-status":
+                    if (m_commsManager.GridService.RegionLoginsEnabled == false)
+
+                        m_log.Info("[ Login ]  Login are disabled ");
+                    else
+                        m_log.Info("[ Login ]  Login are enabled");
+                    break;
                 case "create-region":
                     string regionsDir = ConfigSource.Source.Configs["Startup"].GetString("regionload_regionsdir", "Regions").Trim();
                     string regionFile = String.Format("{0}/{1}", regionsDir, cmdparams[1]);
@@ -659,6 +672,9 @@ namespace OpenSim
             m_console.Notice("config get section field - get a config value");
             m_console.Notice("config save - save OpenSim.ini");
             m_console.Notice("terrain help - show help for terrain commands.");
+            m_console.Notice("login-enable  - Allows login at sim level");
+            m_console.Notice("login-disable - Disable login at sim level");
+            m_console.Notice("login-status  - Show the actual login status");
 
             ShowPluginCommandsHelp(CombineParams(helpArgs, 0), m_console);
 
@@ -680,7 +696,7 @@ namespace OpenSim
                 case "assets":
                     m_assetCache.ShowState();
                     break;
-
+              
                 case "users":
                     IList agents;
                     if (showParams.Length > 1 && showParams[1] == "full")
