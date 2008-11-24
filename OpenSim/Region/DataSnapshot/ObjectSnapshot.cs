@@ -98,7 +98,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
             XmlNode parent = nodeFactory.CreateNode(XmlNodeType.Element, "objectdata", "");
             XmlNode node;
 
-            foreach (EntityBase entity in m_scene.Entities.Values)
+            foreach (EntityBase entity in m_scene.Entities)
             {
                 // only objects, not avatars
                 if (entity is SceneObjectGroup)

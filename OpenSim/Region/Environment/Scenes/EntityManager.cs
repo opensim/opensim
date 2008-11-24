@@ -71,21 +71,25 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void Remove(uint localID)
+        public bool Remove(uint localID)
         {
             lock(m_lock)
             {
-                m_eb_uuid.Remove(m_eb_localID[localID].UUID);
-                m_eb_localID.Remove(localID);
+                bool a = m_eb_uuid.Remove(m_eb_localID[localID].UUID);
+                bool b =  m_eb_localID.Remove(localID);
+
+                return a && b;
             }
         }
 
-        public void Remove(UUID id)
+        public bool Remove(UUID id)
         {
             lock(m_lock)
             {
-                m_eb_localID.Remove(m_eb_uuid[id].LocalId);
-                m_eb_uuid.Remove(id);
+                bool a = m_eb_localID.Remove(m_eb_uuid[id].LocalId);
+                bool b = m_eb_uuid.Remove(id);
+
+                return a && b;
             }
         }
 
@@ -142,6 +146,22 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 InsertOrReplace(value);
+            }
+        }
+
+        public bool TryGetValue(UUID key, out EntityBase obj)
+        {
+            lock(m_lock)
+            {
+                return m_eb_uuid.TryGetValue(key, out obj);
+            }
+        }
+
+        public bool TryGetValue(uint key, out EntityBase obj)
+        {
+            lock (m_lock)
+            {
+                return m_eb_localID.TryGetValue(key, out obj);
             }
         }
 

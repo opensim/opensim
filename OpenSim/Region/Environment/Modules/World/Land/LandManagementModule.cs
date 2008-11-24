@@ -666,7 +666,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             ResetAllLandPrimCounts();
             lock (m_scene.Entities)
             {
-                foreach (EntityBase obj in m_scene.Entities.Values)
+                foreach (EntityBase obj in m_scene.Entities)
                 {
                     if (obj != null)
                     {

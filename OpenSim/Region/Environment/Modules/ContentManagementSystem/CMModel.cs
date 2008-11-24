@@ -272,7 +272,12 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
             lock (scene)
             {
-                scene.Entities = ReplacementList;
+                scene.Entities.Clear();
+
+                foreach(KeyValuePair<UUID,EntityBase> kvp in ReplacementList)
+                {
+                    scene.Entities.Add(kvp.Value);
+                }
             }
 
             foreach (EntityBase ent in ReplacementList.Values)

@@ -59,7 +59,8 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal Dictionary<UUID, ScenePresence> ScenePresences = new Dictionary<UUID, ScenePresence>();
         // SceneObjects is not currently populated or used.
         //public Dictionary<UUID, SceneObjectGroup> SceneObjects;
-        protected internal Dictionary<UUID, EntityBase> Entities = new Dictionary<UUID, EntityBase>();
+        protected internal EntityManager Entities = new EntityManager();
+//        protected internal Dictionary<UUID, EntityBase> Entities = new Dictionary<UUID, EntityBase>();
         protected internal Dictionary<UUID, ScenePresence> RestorePresences = new Dictionary<UUID, ScenePresence>();
 
         protected internal BasicQuadTreeNode QuadTree;
@@ -972,10 +973,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         protected internal List<EntityBase> GetEntities()
         {
-            lock (Entities)
-            {
-                return new List<EntityBase>(Entities.Values);
-            }
+            return Entities.GetEntities();
         }
 
         protected internal Dictionary<uint, float> GetTopScripts()

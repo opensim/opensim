@@ -600,7 +600,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_pendingObjects = new Queue<SceneObjectGroup>();
 
-                    List<EntityBase> ents = new List<EntityBase>(m_scene.Entities.Values);
+                    List<EntityBase> ents = new List<EntityBase>(m_scene.Entities);
                     if (!m_isChildAgent) // Proximity sort makes no sense for
                     {                    // Child agents
                         ents.Sort(delegate(EntityBase a, EntityBase b)

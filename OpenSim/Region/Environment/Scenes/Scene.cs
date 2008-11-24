@@ -244,6 +244,7 @@ namespace OpenSim.Region.Environment.Scenes
         //            set { m_sceneGraph.SceneObjects = value; }
         //        }
 
+        /**
         /// <summary>
         /// The dictionary of all entities in this scene.  The contents of this dictionary may be changed at any time.
         /// If you wish to add or remove entities, please use the appropriate method for that entity rather than
@@ -256,6 +257,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_sceneGraph.Entities; }
             set { m_sceneGraph.Entities = value; }
+        }
+        */
+        public EntityManager Entities
+        {
+            get { return m_sceneGraph.Entities; }
         }
 
         public Dictionary<UUID, ScenePresence> m_restorePresences
@@ -605,7 +611,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.Info("Stopping all Scripts in Scene");
                     lock (Entities)
                     {
-                        foreach (EntityBase ent in Entities.Values)
+                        foreach (EntityBase ent in Entities)
                         {
                             if (ent is SceneObjectGroup)
                             {
@@ -619,7 +625,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.Info("Starting all Scripts in Scene");
                     lock (Entities)
                     {
-                        foreach (EntityBase ent in Entities.Values)
+                        foreach (EntityBase ent in Entities)
                         {
                             if (ent is SceneObjectGroup)
                             {
@@ -1857,7 +1863,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (Entities)
             {
-                ICollection<EntityBase> entities = new List<EntityBase>(Entities.Values);
+                ICollection<EntityBase> entities = new List<EntityBase>(Entities);
 
                 foreach (EntityBase e in entities)
                 {
