@@ -788,10 +788,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             EntityBase SensedObject;
-            lock (World.Entities)
-            {
-                World.Entities.TryGetValue(objecUUID, out SensedObject);
-            }
+            World.Entities.TryGetValue(objecUUID, out SensedObject);
 
             if (SensedObject == null)
                 return String.Empty;

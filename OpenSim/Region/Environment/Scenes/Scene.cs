@@ -244,21 +244,6 @@ namespace OpenSim.Region.Environment.Scenes
         //            set { m_sceneGraph.SceneObjects = value; }
         //        }
 
-        /**
-        /// <summary>
-        /// The dictionary of all entities in this scene.  The contents of this dictionary may be changed at any time.
-        /// If you wish to add or remove entities, please use the appropriate method for that entity rather than
-        /// editing this dictionary directly.
-        ///
-        /// If you want a list of entities where the list itself is guaranteed not to change, please use
-        /// GetEntities()
-        /// </summary>
-        public Dictionary<UUID, EntityBase> Entities
-        {
-            get { return m_sceneGraph.Entities; }
-            set { m_sceneGraph.Entities = value; }
-        }
-        */
         public EntityManager Entities
         {
             get { return m_sceneGraph.Entities; }
@@ -609,14 +594,11 @@ namespace OpenSim.Region.Environment.Scenes
                 if (ScriptEngine)
                 {
                     m_log.Info("Stopping all Scripts in Scene");
-                    lock (Entities)
+                    foreach (EntityBase ent in Entities)
                     {
-                        foreach (EntityBase ent in Entities)
+                        if (ent is SceneObjectGroup)
                         {
-                            if (ent is SceneObjectGroup)
-                            {
-                                ((SceneObjectGroup)ent).RemoveScriptInstances();
-                            }
+                            ((SceneObjectGroup) ent).RemoveScriptInstances();
                         }
                     }
                 }

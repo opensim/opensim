@@ -664,16 +664,13 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public void UpdateLandPrimCounts()
         {
             ResetAllLandPrimCounts();
-            lock (m_scene.Entities)
+            foreach (EntityBase obj in m_scene.Entities)
             {
-                foreach (EntityBase obj in m_scene.Entities)
+                if (obj != null)
                 {
-                    if (obj != null)
+                    if ((obj is SceneObjectGroup) && !obj.IsDeleted && !((SceneObjectGroup) obj).IsAttachment)
                     {
-                        if ((obj is SceneObjectGroup) && !((SceneObjectGroup)obj).IsDeleted && !((SceneObjectGroup)obj).IsAttachment)
-                        {
-                            m_scene.EventManager.TriggerParcelPrimCountAdd((SceneObjectGroup)obj);
-                        }
+                        m_scene.EventManager.TriggerParcelPrimCountAdd((SceneObjectGroup) obj);
                     }
                 }
             }
