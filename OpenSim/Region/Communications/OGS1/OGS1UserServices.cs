@@ -770,7 +770,15 @@ namespace OpenSim.Region.Communications.OGS1
                             {
                                 FriendRegionInfo info = new FriendRegionInfo();
                                 info.isOnline = (bool)respData["isOnline_" + i];
-                                if (info.isOnline) info.regionHandle = Convert.ToUInt64(respData["regionHandle_" + i]);
+                                if (info.isOnline)
+                                {
+                                    // TODO remove this after the next protocol update (say, r7800?)
+                                    info.regionHandle = Convert.ToUInt64(respData["regionHandle_" + i]);
+
+                                    // accept missing id
+                                    if(respData.ContainsKey("regionID_" + i))
+                                        UUID.TryParse((string)respData["regionID_" + i], out info.regionID);
+                                }
 
                                 result.Add(uuid, info);
                             }

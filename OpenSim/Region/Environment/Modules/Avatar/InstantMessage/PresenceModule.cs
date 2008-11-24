@@ -48,6 +48,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         private bool m_Enabled = false;
         private bool m_Gridmode = false;
+
+        // some default scene for doing things that aren't connected to a specific scene. Avoids locking.
+        private Scene m_initialScene;
+
         private List<Scene> m_Scenes = new List<Scene>();
 
         private Dictionary<UUID, Scene> m_RootAgents =
@@ -75,6 +79,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                         m_Gridmode = cnf.GetBoolean("gridmode", false);
 
                     m_Enabled = true;
+
+                    m_initialScene = scene;
                 }
 
                 if (m_Gridmode)
@@ -84,6 +90,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
                 scene.EventManager.OnNewClient += OnNewClient;
                 scene.EventManager.OnSetRootAgentScene += OnSetRootAgentScene;
+                //scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
 
                 m_Scenes.Add(scene);
             }
@@ -98,8 +105,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             if (!m_Gridmode || !m_Enabled)
                 return;
 
-            foreach (Scene scene in m_Scenes)
-                NotifyMessageServerOfShutdown(scene);
+            lock (m_Scenes)
+            {
+                foreach (Scene scene in m_Scenes)
+                    NotifyMessageServerOfShutdown(scene);
+            }
         }
 
         public string Name
@@ -114,6 +124,58 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         public void RequestBulkPresenceData(UUID[] users)
         {
+            if (OnBulkPresenceData != null)
+            {
+                PresenceInfo[] result = new PresenceInfo[users.Length];
+                if (m_Gridmode)
+                {
+                    // TODO process local info first and only do a server lookup if necessary.
+                    // TODO fix m_RootAgents contents. Currently, they won't work right in a
+                    // non standalone server. Consider two servers, with one sim each in a
+                    // 2x1 grid. Clients will never be closed, just the root moves from
+                    // server to server. But it stays in m_RootAgents on both servers.
+                    Dictionary<UUID, FriendRegionInfo> infos = m_initialScene.GetFriendRegionInfos(new List<UUID>(users));
+                    for (int i = 0; i < users.Length; ++i)
+                    {
+                        FriendRegionInfo info;
+                        if (infos.TryGetValue(users[i], out info) && info.isOnline)
+                        {
+                            UUID regionID = info.regionID;
+                            if (regionID == UUID.Zero)
+                            {
+                                // TODO this is the old messaging-server protocol; only the regionHandle is available.
+                                // Fetch region-info to get the id
+                                RegionInfo regionInfo = m_initialScene.RequestNeighbouringRegionInfo(info.regionHandle);
+                                regionID = regionInfo.RegionID;
+                            }
+                            result[i] = new PresenceInfo(users[i], regionID);
+                        }
+                        else result[i] = new PresenceInfo(users[i], UUID.Zero);
+                    }
+                }
+                else
+                {
+                    // in standalone mode, we have all the info locally available.
+                    lock (m_RootAgents)
+                    {
+                        for (int i = 0; i < users.Length; ++i)
+                        {
+                            Scene scene;
+                            if (m_RootAgents.TryGetValue(users[i], out scene))
+                            {
+                                result[i] = new PresenceInfo(users[i], scene.RegionInfo.RegionID);
+                            }
+                            else
+                            {
+                                result[i] = new PresenceInfo(users[i], UUID.Zero);
+                            }
+                        }
+                    }
+                }
+
+                // tell everyone
+                OnBulkPresenceData(result);
+            }
         }
 
         public void OnNewClient(IClientAPI client)
@@ -159,6 +221,25 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             }
             NotifyMessageServerOfAgentLocation(agentID, scene.RegionInfo.RegionID, scene.RegionInfo.RegionHandle);
         }
+
+// TODO not sure about that yet
+//        public void OnMakeChildAgent(ScenePresence agent)
+//        {
+//            // OnMakeChildAgent can be called from several threads at once (with different agent).
+//            // Concurrent access to m_RootAgents is prone to failure on multi-core/-processor systems without
+//            // correct locking).
+//            lock (m_RootAgents)
+//            {
+//                Scene rootScene;
+//                if (m_RootAgents.TryGetValue(agentID, out rootScene) && agent.Scene == rootScene)
+//                {
+//                    m_RootAgents[agentID] = scene;
+//                }
+//            }
+//            // don't notify the messaging-server; either this is just downgraded and another one will be upgraded
+//            // to root momentarily (which will notify the messaging-server), or possibly it will be closed in a moment,
+//            // which will update the messaging-server, too.
+//        }
 
         private void NotifyMessageServerOfStartup(Scene scene)
         {

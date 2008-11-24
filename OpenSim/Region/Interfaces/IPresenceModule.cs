@@ -35,6 +35,12 @@ namespace OpenSim.Region.Interfaces
     {
         public UUID userID;
         public UUID regionID;
+        
+        public PresenceInfo(UUID userID, UUID regionID)
+        {
+            this.userID = userID;
+            this.regionID = regionID;
+        }
     }
 
     public delegate void PresenceChange(PresenceInfo info);

@@ -25,11 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenMetaverse;
+
 namespace OpenSim.Framework
 {
     public class FriendRegionInfo
     {
         public bool isOnline;
         public ulong regionHandle;
+        public UUID regionID;
     }
 }
