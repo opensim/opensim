@@ -50,7 +50,7 @@ namespace OpenSim.Grid.UserServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private UserConfig Cfg;
+        protected UserConfig Cfg;
 
         public UserManager m_userManager;
         public UserLoginService m_loginService;
@@ -72,13 +72,13 @@ namespace OpenSim.Grid.UserServer
             userserver.Work();
         }
 
-        private OpenUser_Main()
+        protected OpenUser_Main()
         {
             m_console = new ConsoleBase("User", this);
             MainConsole.Instance = m_console;
         }
 
-        private void Work()
+        public void Work()
         {
             m_console.Notice("Enter help for a list of commands\n");
 
@@ -95,15 +95,16 @@ namespace OpenSim.Grid.UserServer
             m_stats = StatsManager.StartCollectingUserStats();
 
             m_log.Info("[REGION]: Establishing data connection");
-            m_userManager = new UserManager();
+
+            StartupUserManager();
+
             m_userManager.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
 
             m_gridInfoService = new GridInfoService();
 
             m_interServiceInventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
 
-            m_loginService = new UserLoginService(
-                m_userManager, m_interServiceInventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
+            StartupLoginService();
 
             m_messagesService = new MessageServersConnector();
 
@@ -120,6 +121,17 @@ namespace OpenSim.Grid.UserServer
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
             AddHttpHandlers();
             m_httpServer.Start();
+        }
+
+        protected virtual void StartupUserManager()
+        {
+            m_userManager = new UserManager();
+        }
+
+        protected virtual void StartupLoginService()
+        {
+            m_loginService = new UserLoginService(
+                m_userManager, m_interServiceInventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
         }
 
         protected void AddHttpHandlers()

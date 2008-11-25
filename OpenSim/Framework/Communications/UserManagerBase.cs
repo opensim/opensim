@@ -119,7 +119,7 @@ namespace OpenSim.Framework.Communications
         }
         
         // see IUserService
-        public UserProfileData GetUserProfile(UUID uuid)
+        public virtual UserProfileData GetUserProfile(UUID uuid)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {

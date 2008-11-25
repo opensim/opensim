@@ -46,7 +46,7 @@ namespace OpenSim.Grid.UserServer
 
     public class UserLoginService : LoginService
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IInterServiceInventoryServices m_inventoryService;
 

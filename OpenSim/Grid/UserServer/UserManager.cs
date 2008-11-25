@@ -42,7 +42,7 @@ namespace OpenSim.Grid.UserServer
 
     public class UserManager : UserManagerBase
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event logOffUser OnLogOffUser;
         private logOffUser handlerLogOffUser;
