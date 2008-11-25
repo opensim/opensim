@@ -147,7 +147,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// This part's inventory
         /// </summary>
         [XmlIgnore]
-        public readonly SceneObjectPartInventory Inventory;
+        public readonly IEntityInventory Inventory;
 
         [XmlIgnore]
         public bool Undoing = false;

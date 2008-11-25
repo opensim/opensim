@@ -38,7 +38,7 @@ using OpenSim.Region.Environment.Scenes.Scripting;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public class SceneObjectPartInventory
+    public class SceneObjectPartInventory : IEntityInventory
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
