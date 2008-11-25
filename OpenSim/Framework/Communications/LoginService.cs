@@ -117,7 +117,8 @@ namespace OpenSim.Framework.Communications
 
                 bool GoodXML = (requestData.Contains("first") && requestData.Contains("last") &&
                                 (requestData.Contains("passwd") || requestData.Contains("web_login_key")));
-                bool GoodLogin = false;
+                
+                bool GoodLogin;
 
                 string startLocationRequest = "last";
 
@@ -129,7 +130,12 @@ namespace OpenSim.Framework.Communications
 
                 if (GoodXML)
                 {
-                    firstname = (string) requestData["first"];
+                    if (requestData.Contains("start"))
+                    {
+                        startLocationRequest = (string)requestData["start"];
+                    }
+
+                    firstname = (string)requestData["first"];
                     lastname = (string) requestData["last"];
 
                     m_log.InfoFormat(
@@ -143,44 +149,12 @@ namespace OpenSim.Framework.Communications
                         clientVersion = (string)requestData["version"];
                     }
 
-                    if (requestData.Contains("start"))
-                    {
-                        startLocationRequest = (string)requestData["start"];
-                    }
-
                     m_log.DebugFormat(
                         "[LOGIN]: XMLRPC Client is {0}, start location is {1}", clientVersion, startLocationRequest);
 
-                    userProfile = GetTheUser(firstname, lastname);
-                    if (userProfile == null)
+                    if( !TryAuthenticateUser(request, firstname, lastname, out userProfile ) )
                     {
-                        m_log.Info("[LOGIN END]: XMLRPC Could not find a profile for " + firstname + " " + lastname);
-
                         return logResponse.CreateLoginFailedResponse();
-                    }
-
-                    if (requestData.Contains("passwd"))
-                    {
-                        string passwd = (string)requestData["passwd"];
-                        GoodLogin = AuthenticateUser(userProfile, passwd);
-                    }
-                    else if (requestData.Contains("web_login_key"))
-                    {
-                        UUID webloginkey;
-                        try
-                        {
-                            webloginkey = new UUID((string)requestData["web_login_key"]);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.InfoFormat(
-                                "[LOGIN END]: XMLRPC  Bad web_login_key: {0} for user {1} {2}, exception {3}",
-                                requestData["web_login_key"], firstname, lastname, e);
-
-                            return logResponse.CreateFailedResponse();
-                        }
-                        GoodLogin = AuthenticateUser(userProfile, webloginkey);
-
                     }
                 }
                 else
@@ -191,13 +165,7 @@ namespace OpenSim.Framework.Communications
                     return logResponse.CreateGridErrorResponse();
                 }
 
-                if (!GoodLogin)
-                {
-                    m_log.InfoFormat("[LOGIN END]: XMLRPC  User {0} {1} failed authentication", firstname, lastname);
-
-                    return logResponse.CreateLoginFailedResponse();
-                }
-                else if (userProfile.GodLevel < m_minLoginLevel)
+                if (userProfile.GodLevel < m_minLoginLevel)
                 {
                     return logResponse.CreateLoginBlockedResponse();
                 }
@@ -303,7 +271,8 @@ namespace OpenSim.Framework.Communications
                     }
                     catch (Exception e)
                     {
-                        m_log.Info("[LOGIN END]:  XMLRPC Login failed, " + e);
+                        m_log.Error("[LOGIN END]:  XMLRPC Login failed, " + e);
+                        m_log.Error(e.StackTrace);
                     }
                 }
 
@@ -314,6 +283,43 @@ namespace OpenSim.Framework.Communications
             {
                 m_loginMutex.ReleaseMutex();
             }
+        }
+
+        protected virtual bool TryAuthenticateUser(XmlRpcRequest request, string firstname, string lastname, out UserProfileData userProfile)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            bool GoodLogin = false;
+
+            userProfile = GetTheUser(firstname, lastname);
+            if (userProfile == null)
+            {
+                m_log.Info("[LOGIN END]: XMLRPC Could not find a profile for " + firstname + " " + lastname);
+            }
+            else
+            {
+                if (requestData.Contains("passwd"))
+                {
+                    string passwd = (string) requestData["passwd"];
+                    GoodLogin = AuthenticateUser(userProfile, passwd);
+                }
+                else if (requestData.Contains("web_login_key"))
+                {
+                    try
+                    {
+                        UUID webloginkey = new UUID((string) requestData["web_login_key"]);
+                        GoodLogin = AuthenticateUser(userProfile, webloginkey);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.InfoFormat(
+                            "[LOGIN END]: XMLRPC  Bad web_login_key: {0} for user {1} {2}, exception {3}",
+                            requestData["web_login_key"], firstname, lastname, e);
+                    }
+                }
+            }
+
+            return GoodLogin;
         }
 
         /// <summary>
