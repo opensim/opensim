@@ -76,11 +76,13 @@ namespace OpenSim
             configSource.AddSwitch("Startup", "gridmode");
             configSource.AddSwitch("Startup", "physics");
             configSource.AddSwitch("Startup", "useexecutepath");
+            configSource.AddSwitch("Startup", "hypergrid");
 
             configSource.AddConfig("StandAlone");
             configSource.AddConfig("Network");
 
             bool background = configSource.Configs["Startup"].GetBoolean("background", false);
+            bool hgrid = configSource.Configs["Startup"].GetBoolean("hypergrid", false);
 
             if (background)
             {
@@ -89,13 +91,19 @@ namespace OpenSim
             }
             else
             {
-                OpenSimBase sim = new OpenSim(configSource);
+                OpenSimBase sim = null;
+                if (hgrid)
+                    sim = new HGOpenSimNode(configSource);
+                else
+                    sim = new OpenSim(configSource);
+
                 sim.Startup();
 
                 while (true)
                 {
                     MainConsole.Instance.Prompt();
                 }
+
             }
         }
 
