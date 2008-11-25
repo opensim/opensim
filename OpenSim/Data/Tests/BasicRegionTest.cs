@@ -255,7 +255,7 @@ namespace OpenSim.Data.Tests
             sop.GroupPosition = groupos;
             sop.RotationOffset = rotoff;
             sop.CreatorID = creator;            
-            sop.Inventory.Serial = iserial;
+            sop.InventorySerial = iserial;
             sop.Inventory.Items = dic;
             sop.ObjectFlags = objf;
             sop.Name = name;
@@ -287,7 +287,7 @@ namespace OpenSim.Data.Tests
             Assert.That(rotoff,Is.EqualTo(sop.RotationOffset));
             Assert.That(uuid,Is.EqualTo(sop.UUID));
             Assert.That(creator,Is.EqualTo(sop.CreatorID));
-            Assert.That(iserial,Is.EqualTo(sop.Inventory.Serial));
+            Assert.That(iserial,Is.EqualTo(sop.InventorySerial));
             Assert.That(dic,Is.EqualTo(sop.Inventory.Items));
             Assert.That(objf,Is.EqualTo(sop.ObjectFlags));
             Assert.That(name,Is.EqualTo(sop.Name));

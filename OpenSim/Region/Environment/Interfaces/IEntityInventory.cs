@@ -48,11 +48,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <value>
         /// Inventory serial number
         /// </value>
-        uint Serial
-        {
-            get;
-            set; 
-        }
+//        uint Serial
+//        {
+//            get;
+//            set; 
+//        }
 
         /// <value>
         /// Raw inventory data

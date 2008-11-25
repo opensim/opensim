@@ -147,7 +147,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// This part's inventory
         /// </summary>
         [XmlIgnore]
-        public readonly IEntityInventory Inventory;
+        public IEntityInventory Inventory
+        {
+            get { return m_inventory; }
+        }       
+        protected SceneObjectPartInventory m_inventory;
 
         [XmlIgnore]
         public bool Undoing = false;
@@ -227,7 +231,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_particleSystem = new byte[0];
             Rezzed = DateTime.Now;
             
-            Inventory = new SceneObjectPartInventory(this);
+            m_inventory = new SceneObjectPartInventory(this);
         }
 
         /// <summary>
@@ -277,7 +281,7 @@ namespace OpenSim.Region.Environment.Scenes
             TrimPermissions();
             //m_undo = new UndoStack<UndoState>(ParentGroup.GetSceneMaxUndo());
             
-            Inventory = new SceneObjectPartInventory(this);
+            m_inventory = new SceneObjectPartInventory(this);
         }
 
         protected SceneObjectPart(SerializationInfo info, StreamingContext context)
@@ -298,7 +302,7 @@ namespace OpenSim.Region.Environment.Scenes
             //System.Console.WriteLine("SceneObjectPart Deserialize END");
             Rezzed = DateTime.Now;
             
-            Inventory = new SceneObjectPartInventory(this);
+            m_inventory = new SceneObjectPartInventory(this);
         }
 
         #endregion Constructors
@@ -351,8 +355,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </value>
         public uint InventorySerial
         {
-            get { return Inventory.Serial; }
-            set { Inventory.Serial = value; }
+            get { return m_inventory.Serial; }
+            set { m_inventory.Serial = value; }
         }
 
         /// <value>
@@ -1472,7 +1476,7 @@ if (m_shape != null) {
             info.AddValue("m_updateFlag", m_updateFlag);
             info.AddValue("CreatorID", _creatorID.Guid);
 
-            info.AddValue("m_inventorySerial", Inventory.Serial);
+            info.AddValue("m_inventorySerial", m_inventory.Serial);
             info.AddValue("m_uuid", m_uuid.Guid);
             info.AddValue("m_localID", m_localId);
             info.AddValue("m_name", m_name);
