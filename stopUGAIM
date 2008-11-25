@@ -1,0 +1,17 @@
+#!/bin/bash
+DELAY=5
+
+screen -S server -X msgwait 1
+sleep 1
+screen -S server -X eval "select MessagingServer" "stuff ^Mshutdown^M"
+sleep $DELAY
+screen -S server -X eval "select InventoryServer" "stuff ^Mshutdown^M"
+sleep $DELAY
+screen -S server -X eval "select AssetServer" "stuff ^Mshutdown^M"
+sleep $DELAY
+screen -S server -X eval "select GridServer" "stuff ^Mshutdown^M"
+sleep $DELAY
+screen -S server -X eval "select UserServer" "stuff ^Mshutdown^M"
+
+# just to be sure...
+screen -d -r -S server

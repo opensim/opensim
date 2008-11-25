@@ -1,0 +1,9 @@
+cd "`dirname $0`"/
+git svn info | sed -ne '/^Revision:/s@.* @@p' > bin/svn_revision
+cd bin
+rm -f OpenSim.log
+if [ $# -eq 0 ]; then
+  screen -S region -t RegionServer mono --debug OpenSim.exe
+else
+  mono --debug OpenSim.exe
+fi
