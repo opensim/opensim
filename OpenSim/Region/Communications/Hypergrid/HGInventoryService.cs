@@ -46,7 +46,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string _inventoryServerUrl;
-        private Uri m_Uri;
+        //private Uri m_Uri;
         private UserProfileCacheService m_userProfileCache;
         private bool m_gridmode = false;
 
@@ -61,7 +61,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         public HGInventoryService(string inventoryServerUrl, UserProfileCacheService userProfileCacheService, bool gridmode)
         {
             _inventoryServerUrl = HGNetworkServersInfo.ServerURI(inventoryServerUrl);
-            m_Uri = new Uri(_inventoryServerUrl);
+            //m_Uri = new Uri(_inventoryServerUrl);
             m_userProfileCache = userProfileCacheService;
             m_gridmode = gridmode;
         }

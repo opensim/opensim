@@ -527,10 +527,10 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         public bool InformRegionOfUser(RegionInfo regInfo, AgentCircuitData agentData)
         {
-            ulong regionHandle = regInfo.RegionHandle;
+            //ulong regionHandle = regInfo.RegionHandle;
             try
             {
-                regionHandle = Convert.ToUInt64(regInfo.regionSecret);
+                //regionHandle = Convert.ToUInt64(regInfo.regionSecret);
                 m_log.Info("[HGrid]: InformRegionOfUser: Remote hyperlinked region " + regInfo.regionSecret);
             }
             catch
@@ -883,7 +883,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             if (regInfo == null)
                 return false;
                 
-            ulong realHandle = regionHandle;
+            //ulong realHandle = regionHandle;
 
             CachedUserInfo uinfo = m_userProfileCache.GetUserDetails(agentData.AgentID);
             if ((uinfo == null) || !IsGoingHome(uinfo, regInfo))

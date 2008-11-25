@@ -52,7 +52,7 @@ namespace OpenSim.Region.Environment.Modules.Hypergrid
         private static bool enabled = false;
         
         Scene m_scene;
-        InventoryService m_inventoryService;
+        //InventoryService m_inventoryService;
         
         #region IRegionModule interface
 
@@ -73,7 +73,8 @@ namespace OpenSim.Region.Environment.Modules.Hypergrid
             if (enabled)
             {
                 m_log.Info("[HGStandaloneInvService]: Starting...");
-                m_inventoryService = new InventoryService(m_scene);
+                //m_inventoryService = new InventoryService(m_scene);
+                new InventoryService(m_scene);
             }
         }
 

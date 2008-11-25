@@ -53,7 +53,7 @@ namespace OpenSim.Region.Environment.Modules.Hypergrid
         private static bool enabled = false;
         
         Scene m_scene;
-        AssetService m_assetService;
+        //AssetService m_assetService;
         
         #region IRegionModule interface
 
@@ -75,7 +75,8 @@ namespace OpenSim.Region.Environment.Modules.Hypergrid
             {
                 m_log.Info("[HGStandaloneAssetService]: Starting...");
 
-                m_assetService = new AssetService(m_scene);
+                //m_assetService = new AssetService(m_scene);
+                new AssetService(m_scene);
             }
         }
 

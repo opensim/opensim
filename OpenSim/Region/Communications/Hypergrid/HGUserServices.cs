@@ -47,14 +47,14 @@ namespace OpenSim.Region.Communications.Hypergrid
     /// </summary>
     public class HGUserServices : IUserService, IAvatarService, IMessagingService
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private HGCommunicationsGridMode m_parent;
+        //private HGCommunicationsGridMode m_parent;
         private OGS1UserServices m_remoteUserServices;
 
         public HGUserServices(HGCommunicationsGridMode parent)
         {
-            m_parent = parent;
+            //m_parent = parent;
             m_remoteUserServices = new OGS1UserServices(parent);
         }
 
