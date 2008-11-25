@@ -54,6 +54,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         private List<Scene> m_Scenes = new List<Scene>();
 
+        // we currently are only interested in root-agents. If the root isn't here, we don't know the region the
+        // user is in, so we have to ask the messaging server anyway.
         private Dictionary<UUID, Scene> m_RootAgents =
                 new Dictionary<UUID, Scene>();
 
@@ -86,14 +88,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 if (m_Gridmode)
                     NotifyMessageServerOfStartup(scene);
 
-                scene.RegisterModuleInterface<IPresenceModule>(this);
-
-                scene.EventManager.OnNewClient += OnNewClient;
-                scene.EventManager.OnSetRootAgentScene += OnSetRootAgentScene;
-                //scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
-
                 m_Scenes.Add(scene);
             }
+
+            scene.RegisterModuleInterface<IPresenceModule>(this);
+
+            scene.EventManager.OnNewClient += OnNewClient;
+            scene.EventManager.OnSetRootAgentScene += OnSetRootAgentScene;
+            scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
         }
 
         public void PostInitialise()
@@ -104,6 +106,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         {
             if (!m_Gridmode || !m_Enabled)
                 return;
+
+            if (OnPresenceChange != null)
+            {
+                lock (m_RootAgents)
+                {
+                    // on shutdown, users are kicked, too
+                    foreach (KeyValuePair<UUID, Scene> pair in m_RootAgents)
+                    {
+                        OnPresenceChange(new PresenceInfo(pair.Key, UUID.Zero));
+                    }
+                }
+            }
 
             lock (m_Scenes)
             {
@@ -130,10 +144,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 if (m_Gridmode)
                 {
                     // TODO process local info first and only do a server lookup if necessary.
-                    // TODO fix m_RootAgents contents. Currently, they won't work right in a
-                    // non standalone server. Consider two servers, with one sim each in a
-                    // 2x1 grid. Clients will never be closed, just the root moves from
-                    // server to server. But it stays in m_RootAgents on both servers.
                     Dictionary<UUID, FriendRegionInfo> infos = m_initialScene.GetFriendRegionInfos(new List<UUID>(users));
                     for (int i = 0; i < users.Length; ++i)
                     {
@@ -178,22 +188,27 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             }
         }
 
+        // new client doesn't mean necessarily that user logged in, it just means it entered one of the
+        // the regions on this server
         public void OnNewClient(IClientAPI client)
         {
             client.OnConnectionClosed += OnConnectionClosed;
-            client.OnLogout += OnConnectionClosed;
+            client.OnLogout += OnLogout;
+
+            // KLUDGE: See handler for details.
+            client.OnEconomyDataRequest += OnEconomyDataRequest;
         }
 
+        // connection closed just means *one* client connection has been closed. It doesn't mean that the
+        // user has logged off; it might have just TPed away.
         public void OnConnectionClosed(IClientAPI client)
         {
+            // TODO: Have to think what we have to do here...
+            // Should we just remove the root from the list (if scene matches)?
             if (!(client.Scene is Scene))
                 return;
-
             Scene scene = (Scene)client.Scene;
 
-            // OnConnectionClosed can be called from several threads at once (with different client, of course)
-            // Concurrent access to m_RootAgents is prone to failure on multi-core/-processor systems without
-            // correct locking).
             lock (m_RootAgents)
             {
                 Scene rootScene;
@@ -202,7 +217,28 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
                 m_RootAgents.Remove(client.AgentId);
             }
+
+            // Should it have logged off, we'll do the logout part in OnLogout, even if no root is stored
+            // anymore. It logged off, after all...
+        }
+
+        // Triggered when the user logs off.
+        public void OnLogout(IClientAPI client)
+        {
+            m_log.DebugFormat("[PRESENCE]: Got OnLogout from {0}", client.Name);
+            if (!(client.Scene is Scene))
+                return;
+            Scene scene = (Scene)client.Scene;
+
+            // On logout, we really remove the client from rootAgents, even if the scene doesn't match
+            lock (m_RootAgents)
+            {
+                if (m_RootAgents.ContainsKey(client.AgentId)) m_RootAgents.Remove(client.AgentId);
+            }
+
+            // now inform the messaging server and anyone who is interested
             NotifyMessageServerOfAgentLeaving(client.AgentId, scene.RegionInfo.RegionID, scene.RegionInfo.RegionHandle);
+            if (OnPresenceChange != null) OnPresenceChange(new PresenceInfo(client.AgentId, UUID.Zero));
         }
 
         public void OnSetRootAgentScene(UUID agentID, Scene scene)
@@ -219,27 +255,59 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 }
                 m_RootAgents[agentID] = scene;
             }
+            // inform messaging server that agent changed the region
             NotifyMessageServerOfAgentLocation(agentID, scene.RegionInfo.RegionID, scene.RegionInfo.RegionHandle);
         }
 
-// TODO not sure about that yet
-//        public void OnMakeChildAgent(ScenePresence agent)
-//        {
-//            // OnMakeChildAgent can be called from several threads at once (with different agent).
-//            // Concurrent access to m_RootAgents is prone to failure on multi-core/-processor systems without
-//            // correct locking).
-//            lock (m_RootAgents)
-//            {
-//                Scene rootScene;
-//                if (m_RootAgents.TryGetValue(agentID, out rootScene) && agent.Scene == rootScene)
-//                {
-//                    m_RootAgents[agentID] = scene;
-//                }
-//            }
-//            // don't notify the messaging-server; either this is just downgraded and another one will be upgraded
-//            // to root momentarily (which will notify the messaging-server), or possibly it will be closed in a moment,
-//            // which will update the messaging-server, too.
-//        }
+        private void OnEconomyDataRequest(UUID agentID)
+        {
+            // KLUDGE: This is the only way I found to get a message (only) after login was completed and the
+            // client is connected enough to receive UDP packets.
+            // This packet seems to be sent only once, just after connection was established to the first
+            // region after login.
+            // We use it here to trigger a presence update; the old update-on-login was never be heard by
+            // the freshly logged in viewer, as it wasn't connected to the region at that time.
+            // TODO: Feel free to replace this by a better solution if you find one.
+
+            // get the agent. This should work every time, as we just got a packet from it
+            ScenePresence agent = null;
+            lock (m_Scenes)
+            {
+                foreach (Scene scene in m_Scenes)
+                {
+                    agent = scene.GetScenePresence(agentID);
+                    if (agent != null) break;
+                }
+            }
+
+            // just to be paranoid...
+            if (agent == null)
+            {
+                m_log.ErrorFormat("[PRESENCE]: Got a packet from agent {0} who can't be found anymore!?", agentID);
+                return;
+            }
+
+            // we are a bit premature here, but the next packet will switch this child agent to root.
+            if (OnPresenceChange != null) OnPresenceChange(new PresenceInfo(agentID, agent.Scene.RegionInfo.RegionID));
+        }
+
+        public void OnMakeChildAgent(ScenePresence agent)
+        {
+            // OnMakeChildAgent can be called from several threads at once (with different agent).
+            // Concurrent access to m_RootAgents is prone to failure on multi-core/-processor systems without
+            // correct locking).
+            lock (m_RootAgents)
+            {
+                Scene rootScene;
+                if (m_RootAgents.TryGetValue(agent.UUID, out rootScene) && agent.Scene == rootScene)
+                {
+                    m_RootAgents.Remove(agent.UUID);
+                }
+            }
+            // don't notify the messaging-server; either this agent just had been downgraded and another one will be upgraded
+            // to root momentarily (which will notify the messaging-server), or possibly it will be closed in a moment,
+            // which will update the messaging-server, too.
+        }
 
         private void NotifyMessageServerOfStartup(Scene scene)
         {
