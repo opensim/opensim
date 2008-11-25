@@ -66,6 +66,20 @@ namespace OpenSim.Framework
             return ret;
         }
 
+        public bool IsLocalUser(UserProfileData userData)
+        {
+            if (userData != null)
+            {
+                if (userData is ForeignUserProfileData)
+                    return IsLocalUser(((ForeignUserProfileData)userData).UserServerURI);
+                else
+                    return true;
+            }
+            else
+                // Something fishy; ignore it
+                return true;
+        }
+
         public static string ServerURI(string uri)
         {
             IPAddress ipaddr1 = null;

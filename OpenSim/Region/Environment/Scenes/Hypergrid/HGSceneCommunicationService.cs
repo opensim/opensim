@@ -118,7 +118,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                     CachedUserInfo uinfo = m_commsProvider.UserProfileCacheService.GetUserDetails(avatar.UUID);
                     if (uinfo != null)
                     {
-                        isHomeUser = HGNetworkServersInfo.Singleton.IsLocalUser(uinfo.UserProfile.UserAssetURI);
+                        isHomeUser = HGNetworkServersInfo.Singleton.IsLocalUser(uinfo.UserProfile);
                         realHandle = m_hg.FindRegionHandle(regionHandle);
                         Console.WriteLine("XXX ---- home user? " + isHomeUser + " --- hyperlink? " + isHyperLink + " --- real handle: " + realHandle.ToString());
                     }

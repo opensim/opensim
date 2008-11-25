@@ -81,15 +81,13 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
             return null;
         }
 
-        private bool IsHomeUser(UUID userID)
+        private bool IsLocalUser(UUID userID)
         {
             CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
 
             if (uinfo != null)
             {
-                //if ((uinfo.UserProfile.UserAssetURI == null) || (uinfo.UserProfile.UserAssetURI == "") ||
-                //    uinfo.UserProfile.UserAssetURI.Equals(m_scene.CommsManager.NetworkServersInfo.AssetURL))
-                if (HGNetworkServersInfo.Singleton.IsLocalUser(uinfo.UserProfile.UserAssetURI))
+                if (HGNetworkServersInfo.Singleton.IsLocalUser(uinfo.UserProfile))
                 {
                     m_log.Debug("[HGScene]: Home user " + uinfo.UserProfile.FirstName + " " + uinfo.UserProfile.SurName);
                     return true;
@@ -285,7 +283,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
 
         public void Get(UUID itemID, UUID ownerID)
         {
-            if (!IsInAssetMap(itemID) && !IsHomeUser(ownerID))
+            if (!IsInAssetMap(itemID) && !IsLocalUser(ownerID))
             {
                 // Get the item from the remote asset server onto the local AssetCache
                 // and place an entry in m_assetMap
@@ -328,7 +326,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
 
         public void Post(UUID itemID, UUID ownerID)
         {
-            if (!IsHomeUser(ownerID))
+            if (!IsLocalUser(ownerID))
             {
                 // Post the item from the local AssetCache ontp the remote asset server
                 // and place an entry in m_assetMap
