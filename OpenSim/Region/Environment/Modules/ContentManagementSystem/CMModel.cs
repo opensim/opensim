@@ -274,7 +274,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             {
                 scene.Entities.Clear();
 
-                foreach(KeyValuePair<UUID,EntityBase> kvp in ReplacementList)
+                foreach (KeyValuePair<UUID,EntityBase> kvp in ReplacementList)
                 {
                     scene.Entities.Add(kvp.Value);
                 }

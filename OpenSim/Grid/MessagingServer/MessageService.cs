@@ -616,7 +616,7 @@ namespace OpenSim.Grid.MessagingServer
             Hashtable result = new Hashtable();
             result["success"] = "FALSE";
 
-            if(SendToUserServer(requestData, "region_startup"))
+            if (SendToUserServer(requestData, "region_startup"))
                 result["success"] = "TRUE";
 
             XmlRpcResponse response = new XmlRpcResponse();
@@ -630,7 +630,7 @@ namespace OpenSim.Grid.MessagingServer
             Hashtable result = new Hashtable();
             result["success"] = "FALSE";
 
-            if(SendToUserServer(requestData, "region_shutdown"))
+            if (SendToUserServer(requestData, "region_shutdown"))
                 result["success"] = "TRUE";
 
             XmlRpcResponse response = new XmlRpcResponse();
@@ -644,7 +644,7 @@ namespace OpenSim.Grid.MessagingServer
             Hashtable result = new Hashtable();
             result["success"] = "FALSE";
 
-            if(SendToUserServer(requestData, "agent_location"))
+            if (SendToUserServer(requestData, "agent_location"))
                 result["success"] = "TRUE";
 
 
@@ -659,7 +659,7 @@ namespace OpenSim.Grid.MessagingServer
             Hashtable result = new Hashtable();
             result["success"] = "FALSE";
 
-            if(SendToUserServer(requestData, "agent_leaving"))
+            if (SendToUserServer(requestData, "agent_leaving"))
                 result["success"] = "TRUE";
 
             XmlRpcResponse response = new XmlRpcResponse();
@@ -681,7 +681,7 @@ namespace OpenSim.Grid.MessagingServer
 
                 foreach (UserPresenceData up in m_presences.Values)
                 {
-                    if(up.regionData.UUID == regionID)
+                    if (up.regionData.UUID == regionID)
                     {
                         if (up.OnlineYN)
                         {

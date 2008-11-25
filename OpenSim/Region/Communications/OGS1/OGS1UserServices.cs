@@ -776,7 +776,7 @@ namespace OpenSim.Region.Communications.OGS1
                                     info.regionHandle = Convert.ToUInt64(respData["regionHandle_" + i]);
 
                                     // accept missing id
-                                    if(respData.ContainsKey("regionID_" + i))
+                                    if (respData.ContainsKey("regionID_" + i))
                                         UUID.TryParse((string)respData["regionID_" + i], out info.regionID);
                                 }
 

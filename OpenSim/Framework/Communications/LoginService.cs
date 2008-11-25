@@ -152,7 +152,7 @@ namespace OpenSim.Framework.Communications
                     m_log.DebugFormat(
                         "[LOGIN]: XMLRPC Client is {0}, start location is {1}", clientVersion, startLocationRequest);
 
-                    if( !TryAuthenticateUser(request, firstname, lastname, out userProfile ) )
+                    if (!TryAuthenticateUser(request, firstname, lastname, out userProfile))
                     {
                         return logResponse.CreateLoginFailedResponse();
                     }
