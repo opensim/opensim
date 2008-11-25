@@ -69,7 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <value>
         /// Inventory serial number
         /// </value>
-        public uint Serial
+        protected internal uint Serial
         {
             get { return m_inventorySerial; }
             set { m_inventorySerial = value; }
@@ -78,7 +78,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <value>
         /// Raw inventory data
         /// </value>
-        public TaskInventoryDictionary Items
+        protected internal TaskInventoryDictionary Items
         {
             get { return m_items; }
             set { m_items = value; }

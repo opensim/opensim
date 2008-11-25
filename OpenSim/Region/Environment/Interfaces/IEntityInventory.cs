@@ -44,36 +44,21 @@ namespace OpenSim.Region.Environment.Scenes
     /// 
     /// This is not a finished 1.0 candidate interface 
     public interface IEntityInventory
-    {        
-        /// <value>
-        /// Inventory serial number
-        /// </value>
-//        uint Serial
-//        {
-//            get;
-//            set; 
-//        }
-
-        /// <value>
-        /// Raw inventory data
-        /// </value>
-        TaskInventoryDictionary Items
-        {
-            get;
-            set;
-        }
-
+    {
         /// <summary>
         /// Force the task inventory of this prim to persist at the next update sweep
         /// </summary>
         void ForceInventoryPersistence();
 
         /// <summary>
-        /// Reset UUIDs for all the items in the prim's inventory.  This involves either generating
+        /// Reset UUIDs for all the items in the prim's inventory.
+        /// </summary>
+        /// 
+        /// This involves either generating
         /// new ones or setting existing UUIDs to the correct parent UUIDs.
         ///
         /// If this method is called and there are inventory items, then we regard the inventory as having changed.
-        /// </summary>
+        /// 
         /// <param name="linkNum">Link number for the part</param>
         void ResetInventoryIDs();
 

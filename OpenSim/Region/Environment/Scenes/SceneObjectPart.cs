@@ -364,8 +364,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </value>        
         public TaskInventoryDictionary TaskInventory
         {
-            get { return Inventory.Items; }
-            set { Inventory.Items = value; }
+            get { return m_inventory.Items; }
+            set { m_inventory.Items = value; }
         }
 
         public uint ObjectFlags
@@ -1263,7 +1263,7 @@ if (m_shape != null) {
             dupe._category = _category;
             dupe.m_rezzed = m_rezzed;
 
-            dupe.Inventory.Items = (TaskInventoryDictionary)dupe.Inventory.Items.Clone();
+            dupe.m_inventory.Items = (TaskInventoryDictionary)dupe.m_inventory.Items.Clone();
 
             if (userExposed)
                 dupe.ResetIDs(linkNum);
