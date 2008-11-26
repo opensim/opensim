@@ -27,6 +27,7 @@
 
 using System;
 using System.Runtime.Remoting.Lifetime;
+using System.Security.Permissions;
 using System.Threading;
 using System.Reflection;
 using System.Collections;
@@ -40,16 +41,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
     {
         private Dictionary<string,MethodInfo> inits = new Dictionary<string,MethodInfo>();
 
-        //
-        // Never expire this object
-        //
+        // Object expires if we don't keep it alive
+        // sponsor will be added on object load
+        [SecurityPermissionAttribute(SecurityAction.Demand,
+                             Flags = SecurityPermissionFlag.Infrastructure)]
         public override Object InitializeLifetimeService()
         {
             ILease lease = (ILease)base.InitializeLifetimeService();
-
             if (lease.CurrentState == LeaseState.Initial)
             {
-                lease.InitialLeaseTime = TimeSpan.Zero;
+                lease.InitialLeaseTime = TimeSpan.FromMinutes(1);
+                lease.SponsorshipTimeout = TimeSpan.FromMinutes(2);
+                lease.RenewOnCallTime = TimeSpan.FromSeconds(2);
             }
             return lease;
         }

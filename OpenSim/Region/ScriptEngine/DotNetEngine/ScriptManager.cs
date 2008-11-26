@@ -28,6 +28,8 @@
 using System;
 using System.Reflection;
 using System.Globalization;
+using System.Runtime.Remoting;
+using System.Runtime.Remoting.Lifetime;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -39,6 +41,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using OpenSim.Region.ScriptEngine.Shared.Api.Runtime;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 
@@ -56,6 +59,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public Dictionary<string, IScriptApi> Apis;
         public Dictionary<KeyValuePair<int,int>, KeyValuePair<int,int>>
                 LineMap;
+        public ISponsor ScriptSponsor;
     }
 
     public class ScriptManager
@@ -164,6 +168,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 CompiledScript =
                         m_scriptEngine.m_AppDomainManager.LoadScript(
                         CompiledScriptFile, out id.AppDomain);
+                //Register the sponsor
+                ISponsor scriptSponsor = new ScriptSponsor();
+                ILease lease = (ILease)RemotingServices.GetLifetimeService(CompiledScript as MarshalByRefObject);
+                lease.Register(scriptSponsor);
+                id.ScriptSponsor = scriptSponsor;
 
                 id.LineMap = LSLCompiler.LineMap();
                 id.Script = CompiledScript;

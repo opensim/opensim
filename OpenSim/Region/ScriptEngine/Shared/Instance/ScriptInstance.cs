@@ -27,6 +27,8 @@
 
 using System;
 using System.IO;
+using System.Runtime.Remoting;
+using System.Runtime.Remoting.Lifetime;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
@@ -44,6 +46,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
+using OpenSim.Region.ScriptEngine.Shared.Api.Runtime;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 using OpenSim.Region.ScriptEngine.Interfaces;
@@ -80,6 +83,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private int m_ControlEventsInQueue = 0;
         private int m_LastControlLevel = 0;
         private bool m_CollisionInQueue = false;
+        private ISponsor m_ScriptSponsor;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 m_LineMap;
 
@@ -204,6 +208,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 m_Script = (IScript)dom.CreateInstanceAndUnwrap(
                     Path.GetFileNameWithoutExtension(assembly),
                     "SecondLife.Script");
+
+                // Add a sponsor to the script
+                ISponsor scriptSponsor = new ScriptSponsor();
+                ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as MarshalByRefObject);
+                lease.Register(scriptSponsor);
+                m_ScriptSponsor = scriptSponsor;
+
             }
             catch (Exception e)
             {

@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading;
 using Nini.Config;
@@ -64,7 +65,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// <summary>
     /// Contains all LSL ll-functions. This class will be in Default AppDomain.
     /// </summary>
-    public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
+    public class LSL_Api : ILSL_Api, IScriptApi
     {
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
@@ -98,17 +99,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
 
-        // Object never expires
-        public override Object InitializeLifetimeService()
-        {
-            ILease lease = (ILease)base.InitializeLifetimeService();
 
-            if (lease.CurrentState == LeaseState.Initial)
-            {
-                lease.InitialLeaseTime = TimeSpan.Zero;
-            }
-            return lease;
-        }
+
 
         protected void ScriptSleep(int delay)
         {
