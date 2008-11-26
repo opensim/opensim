@@ -241,11 +241,11 @@ namespace OpenSim.Data.Tests
             string sitname = "SitName";
             string touchname = "TouchName";
             int linknum = random.Next();
-            byte clickaction = (byte) random.Next(255);
+            byte clickaction = (byte) random.Next(127);
             PrimitiveBaseShape pbshap = new PrimitiveBaseShape();
             pbshap = PrimitiveBaseShape.Default;
             Vector3 scale = new Vector3(random.Next(),random.Next(),random.Next());
-            byte updatef = (byte) random.Next(255);
+            byte updatef = (byte) random.Next(127);
             
             SceneObjectPart sop = new SceneObjectPart();
             sop.RegionHandle = regionh;
@@ -402,11 +402,11 @@ namespace OpenSim.Data.Tests
             string sitname = RandomName();
             string touchname = RandomName();
             int linknum = random.Next();
-            byte clickaction = (byte) random.Next(255);
+            byte clickaction = (byte) random.Next(127);
             PrimitiveBaseShape pbshap = new PrimitiveBaseShape();
             pbshap = PrimitiveBaseShape.Default;
             Vector3 scale = new Vector3(random.Next(),random.Next(),random.Next());
-            byte updatef = (byte) random.Next(255);            
+            byte updatef = (byte) random.Next(127);            
             
             // Updates the region with new values
             SceneObjectGroup sog2 = FindSOG("Adam  West", region3);
@@ -611,7 +611,7 @@ namespace OpenSim.Data.Tests
             i.GroupOwned = groupown;
             int saleprice = random.Next();
             i.SalePrice = saleprice;
-            byte saletype = (byte) random.Next(255);
+            byte saletype = (byte) random.Next(127);
             i.SaleType = saletype;
             uint flags = (uint) random.Next();
             i.Flags = flags;
