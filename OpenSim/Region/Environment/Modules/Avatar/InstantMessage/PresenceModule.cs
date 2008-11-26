@@ -143,12 +143,32 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 PresenceInfo[] result = new PresenceInfo[users.Length];
                 if (m_Gridmode)
                 {
-                    // TODO process local info first and only do a server lookup if necessary.
-                    Dictionary<UUID, FriendRegionInfo> infos = m_initialScene.GetFriendRegionInfos(new List<UUID>(users));
-                    for (int i = 0; i < users.Length; ++i)
+                    // first check the local information
+                    List<UUID> uuids = new List<UUID>(); // the uuids to check remotely
+                    List<int> indices = new List<int>(); // just for performance.
+                    lock (m_RootAgents)
+                    {
+                        for (int i = 0; i < uuids.Count; ++i)
+                        {
+                            Scene scene;
+                            if (m_RootAgents.TryGetValue(users[i], out scene)) 
+                            {
+                                result[i] = new PresenceInfo(users[i], scene.RegionInfo.RegionID);
+                            }
+                            else
+                            {
+                                uuids.Add(users[i]);
+                                indices.Add(i);
+                            }
+                        }
+                    }
+
+                    // now we have filtered out all the local root agents. The rest we have to request info about
+                    Dictionary<UUID, FriendRegionInfo> infos = m_initialScene.GetFriendRegionInfos(uuids);
+                    for (int i = 0; i < uuids.Count; ++i)
                     {
                         FriendRegionInfo info;
-                        if (infos.TryGetValue(users[i], out info) && info.isOnline)
+                        if (infos.TryGetValue(uuids[i], out info) && info.isOnline)
                         {
                             UUID regionID = info.regionID;
                             if (regionID == UUID.Zero)
@@ -158,9 +178,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                                 RegionInfo regionInfo = m_initialScene.RequestNeighbouringRegionInfo(info.regionHandle);
                                 regionID = regionInfo.RegionID;
                             }
-                            result[i] = new PresenceInfo(users[i], regionID);
+                            result[indices[i]] = new PresenceInfo(uuids[i], regionID);
                         }
-                        else result[i] = new PresenceInfo(users[i], UUID.Zero);
+                        else result[indices[i]] = new PresenceInfo(uuids[i], UUID.Zero);
                     }
                 }
                 else
