@@ -307,7 +307,12 @@ namespace OpenSim.Data.MySQL
                 ExecuteNonQuery(cmd);
             }
         }
-
+        
+        /// <summary>
+        /// Remove all persisted items of the given prim.
+        /// The caller must acquire the necessrary synchronization locks and commit or rollback changes.
+        /// </summary>
+        /// <param name="uuid">the Item UUID</param>
         private void RemoveItems(UUID uuid)
         {
             lock (m_Connection)
@@ -403,6 +408,10 @@ namespace OpenSim.Data.MySQL
             return objects;
         }
 
+        /// <summary>
+        /// Load in a prim's persisted inventory.
+        /// </summary>
+        /// <param name="prim">The prim</param>        
         private void LoadItems(SceneObjectPart prim)
         {
             lock (m_Connection)

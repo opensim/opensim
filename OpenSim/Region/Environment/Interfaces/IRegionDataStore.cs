@@ -67,13 +67,38 @@ namespace OpenSim.Region.Environment.Interfaces
         /// <returns></returns>
         void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items);
 
+        /// <summary>
+        /// Load persisted objects from region storage.
+        /// </summary>
+        /// <param name="regionUUID">the Region UUID</param>
+        /// <returns>List of loaded groups</returns>        
         List<SceneObjectGroup> LoadObjects(UUID regionUUID);
 
+        /// <summary>
+        /// Store a terrain revision in region storage
+        /// </summary>
+        /// <param name="ter">HeightField data</param>
+        /// <param name="regionID">region UUID</param>      
         void StoreTerrain(double[,] terrain, UUID regionID);
+        
+        /// <summary>
+        /// Load the latest terrain revision from region storage
+        /// </summary>
+        /// <param name="regionID">the region UUID</param>
+        /// <returns>Heightfield data</returns>        
         double[,] LoadTerrain(UUID regionID);
 
         void StoreLandObject(ILandObject Parcel);
+        
+        /// <summary>
+        /// <list type="bullet">
+        /// <item>delete from land where UUID=globalID</item>
+        /// <item>delete from landaccesslist where LandUUID=globalID</item>
+        /// </list>
+        /// </summary>
+        /// <param name="globalID"></param>     
         void RemoveLandObject(UUID globalID);
+        
         List<LandData> LoadLandObjects(UUID regionUUID);
 
         void StoreRegionSettings(RegionSettings rs);
