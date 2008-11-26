@@ -676,14 +676,6 @@ namespace OpenSim.Data.Tests
         }
 
         [Test]
-        public void T051_RemoveObjectWrongRegion()
-        {
-            db.RemoveObject(prim1, UUID.Random());
-            SceneObjectGroup sog = FindSOG("object1", region1);
-            Assert.That(sog, Is.Not.Null);
-        }
-
-        [Test]
         public void T052_RemoveObject()
         {
             db.RemoveObject(prim1, region1);
