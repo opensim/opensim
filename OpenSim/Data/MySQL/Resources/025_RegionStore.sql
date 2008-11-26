@@ -1,0 +1,42 @@
+BEGIN;
+
+alter table prims change column `PositionX` `PositionX` float default NULL;
+alter table prims change column `PositionY` `PositionY` float default NULL;
+alter table prims change column `PositionZ` `PositionZ` float default NULL;
+alter table prims change column `GroupPositionX` `GroupPositionX` float default NULL;
+alter table prims change column `GroupPositionY` `GroupPositionY` float default NULL;
+alter table prims change column `GroupPositionZ` `GroupPositionZ` float default NULL;
+alter table prims change column `VelocityX` `VelocityX` float default NULL;
+alter table prims change column `VelocityY` `VelocityY` float default NULL;
+alter table prims change column `VelocityZ` `VelocityZ` float default NULL;
+alter table prims change column `AngularVelocityX` `AngularVelocityX` float default NULL;
+alter table prims change column `AngularVelocityY` `AngularVelocityY` float default NULL;
+alter table prims change column `AngularVelocityZ` `AngularVelocityZ` float default NULL;
+alter table prims change column `AccelerationX` `AccelerationX` float default NULL;
+alter table prims change column `AccelerationY` `AccelerationY` float default NULL;
+alter table prims change column `AccelerationZ` `AccelerationZ` float default NULL;
+alter table prims change column `RotationX` `RotationX` float default NULL;
+alter table prims change column `RotationY` `RotationY` float default NULL;
+alter table prims change column `RotationZ` `RotationZ` float default NULL;
+alter table prims change column `RotationW` `RotationW` float default NULL;
+alter table prims change column `SitTargetOffsetX` `SitTargetOffsetX` float default NULL;
+alter table prims change column `SitTargetOffsetY` `SitTargetOffsetY` float default NULL;
+alter table prims change column `SitTargetOffsetZ` `SitTargetOffsetZ` float default NULL;
+alter table prims change column `SitTargetOrientW` `SitTargetOrientW` float default NULL;
+alter table prims change column `SitTargetOrientX` `SitTargetOrientX` float default NULL;
+alter table prims change column `SitTargetOrientY` `SitTargetOrientY` float default NULL;
+alter table prims change column `SitTargetOrientZ` `SitTargetOrientZ` float default NULL;
+alter table prims change column `LoopedSoundGain` `LoopedSoundGain` float NOT NULL default '0';
+alter table prims change column `OmegaX` `OmegaX` float NOT NULL default '0';
+alter table prims change column `OmegaY` `OmegaY` float NOT NULL default '0';
+alter table prims change column `OmegaZ` `OmegaZ` float NOT NULL default '0';
+alter table prims change column `CameraEyeOffsetX` `CameraEyeOffsetX` float NOT NULL default '0';
+alter table prims change column `CameraEyeOffsetY` `CameraEyeOffsetY` float NOT NULL default '0';
+alter table prims change column `CameraEyeOffsetZ` `CameraEyeOffsetZ` float NOT NULL default '0';
+alter table prims change column `CameraAtOffsetX` `CameraAtOffsetX` float NOT NULL default '0';
+alter table prims change column `CameraAtOffsetY` `CameraAtOffsetY` float NOT NULL default '0';
+alter table prims change column `CameraAtOffsetZ` `CameraAtOffsetZ` float NOT NULL default '0';
+alter table prims change column `CollisionSoundVolume` `CollisionSoundVolume` float NOT NULL default '0';
+
+COMMIT;
+
