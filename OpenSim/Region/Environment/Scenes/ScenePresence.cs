@@ -1560,18 +1560,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// The movement animation is reserved for "main" animations
         /// that are mutually exclusive, e.g. flying and sitting.
         /// </summary>
-        protected void SetMovementAnimation(UUID animID)
-        {
-            if (m_animations.SetDefaultAnimation(animID, m_controllingClient.NextAnimationSequenceNumber))
-            {
-                SendAnimPack();
-            }
-        }
-
-        /// <summary>
-        /// The movement animation is reserved for "main" animations
-        /// that are mutually exclusive, e.g. flying and sitting.
-        /// </summary>
         protected void TrySetMovementAnimation(string anim)
         {
             //m_log.DebugFormat("Updating movement animation to {0}", anim);
@@ -2055,7 +2043,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Send animation information about this avatar to all clients.
         /// </summary>
         public void SendAnimPack()
         {
