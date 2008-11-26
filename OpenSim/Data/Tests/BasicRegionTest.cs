@@ -699,26 +699,26 @@ namespace OpenSim.Data.Tests
         public void T101_UpdateRegionInfo()
         {
             int agentlimit = random.Next();
-            double objectbonus = random.NextDouble();
+            double objectbonus = random.Next();
             int maturity = random.Next();
             UUID tertex1 = UUID.Random();
             UUID tertex2 = UUID.Random();
             UUID tertex3 = UUID.Random();
             UUID tertex4 = UUID.Random();
-            double elev1nw = random.NextDouble();
-            double elev2nw = random.NextDouble();
-            double elev1ne = random.NextDouble();
-            double elev2ne = random.NextDouble();
-            double elev1se = random.NextDouble();
-            double elev2se = random.NextDouble();
-            double elev1sw = random.NextDouble();
-            double elev2sw = random.NextDouble();
-            double waterh = random.NextDouble();
-            double terrainraise = random.NextDouble();
-            double terrainlower = random.NextDouble();
+            double elev1nw = random.Next();
+            double elev2nw = random.Next();
+            double elev1ne = random.Next();
+            double elev2ne = random.Next();
+            double elev1se = random.Next();
+            double elev2se = random.Next();
+            double elev1sw = random.Next();
+            double elev2sw = random.Next();
+            double waterh = random.Next();
+            double terrainraise = random.Next();
+            double terrainlower = random.Next();
             Vector3 sunvector = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
             UUID terimgid = UUID.Random();
-            double sunpos = random.NextDouble();
+            double sunpos = random.Next();
             UUID cov = UUID.Random();
 
             RegionSettings r1 = db.LoadRegionSettings(region1);
