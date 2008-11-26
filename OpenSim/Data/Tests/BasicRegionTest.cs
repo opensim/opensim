@@ -287,7 +287,8 @@ namespace OpenSim.Data.Tests
             Assert.That(rotoff,Is.EqualTo(sop.RotationOffset));
             Assert.That(uuid,Is.EqualTo(sop.UUID));
             Assert.That(creator,Is.EqualTo(sop.CreatorID));
-            Assert.That(iserial,Is.EqualTo(sop.InventorySerial));
+            // Modified in-class
+            // Assert.That(iserial,Is.EqualTo(sop.InventorySerial));
             Assert.That(dic,Is.EqualTo(sop.TaskInventory));
             Assert.That(objf,Is.EqualTo(sop.ObjectFlags));
             Assert.That(name,Is.EqualTo(sop.Name));
