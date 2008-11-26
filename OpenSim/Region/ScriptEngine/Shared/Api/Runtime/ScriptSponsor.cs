@@ -5,6 +5,7 @@ using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Runtime
 {
+    [Serializable]
     public class ScriptSponsor: ISponsor
     {
         // In theory: I execute, therefore I am.
