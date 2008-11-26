@@ -6,7 +6,7 @@ using System.Text;
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Runtime
 {
     [Serializable]
-    public class ScriptSponsor: ISponsor
+    public class ScriptSponsor : MarshalByRefObject, ISponsor
     {
         // In theory: I execute, therefore I am.
         // If GC collects this class then sponsorship will expire

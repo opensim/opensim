@@ -65,7 +65,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// <summary>
     /// Contains all LSL ll-functions. This class will be in Default AppDomain.
     /// </summary>
-    public class LSL_Api : ILSL_Api, IScriptApi
+    public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
