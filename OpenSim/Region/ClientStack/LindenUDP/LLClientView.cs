@@ -664,6 +664,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     info = packet.Type.ToString();
                 }
+                
                 Console.WriteLine(m_circuitCode + ":" + direction + ": " + info);
             }
         }
@@ -2236,6 +2237,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId)
         {
+            //m_log.DebugFormat("[CLIENT]: Sending animations to {0}", Name);
+            
             AvatarAnimationPacket ani = (AvatarAnimationPacket)PacketPool.Instance.GetPacket(PacketType.AvatarAnimation);
             // TODO: don't create new blocks if recycling an old packet
             ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[1];
@@ -2339,6 +2342,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             loc.Index = ib;
             loc.Header.Reliable = false;
             loc.Header.Zerocoded = true;
+            
             OutPacket(loc, ThrottleOutPacketType.Task);
         }
 

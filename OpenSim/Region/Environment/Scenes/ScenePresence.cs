@@ -402,12 +402,12 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 m_pos = value;
-                m_parentPosition=new Vector3(0, 0, 0);
+                m_parentPosition = new Vector3(0, 0, 0);
             }
         }
 
         /// <summary>
-        /// Current Velocity of the avatar.
+        /// Current velocity of the avatar.
         /// </summary>
         public override Vector3 Velocity
         {
@@ -424,6 +424,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
             set
             {
+                //m_log.DebugFormat("In {0} setting velocity of {1} to {2}", m_scene.RegionInfo.RegionName, Name, value);
+                
                 if (m_physicsActor != null)
                 {
                     try
@@ -777,7 +779,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             AddToPhysicalScene();
             m_physicsActor.Flying = isFlying;
-            SendAnimPack();
+            
+            // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
+            // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
+            // elsewhere anyway
+            //SendAnimPack();
 
             m_scene.SwapRootAgentCount(false);
             m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(m_uuid);
@@ -806,12 +812,14 @@ namespace OpenSim.Region.Environment.Scenes
 //                 "[SCENEPRESENCE]: Downgrading root agent {0}, {1} to a child agent in {2}",
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
 
-            Velocity = new Vector3(0, 0, 0);
+            // Don't zero out the velocity since this can cause problems when an avatar is making a region crossing,
+            // depending on the exact timing.  This shouldn't matter anyway since child agent positions are not updated.
+            //Velocity = new Vector3(0, 0, 0);
+            
             m_isChildAgent = true;
             m_scene.SwapRootAgentCount(true);
             RemoveFromPhysicalScene();
             m_scene.EventManager.TriggerOnMakeChildAgent(this);
-            //this.Pos = new Vector3(128, 128, 70);
         }
 
         /// <summary>
@@ -1045,11 +1053,13 @@ namespace OpenSim.Region.Environment.Scenes
                     bool oldflying = PhysicsActor.Flying;
 
                     PhysicsActor.Flying = ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+                    
                     if (PhysicsActor.Flying != oldflying)
                     {
                         update_movementflag = true;
                     }
                 }
+                
                 if (q != m_bodyRot)
                 {
                     m_bodyRot = q;
@@ -1071,6 +1081,7 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 // Why did I get this?
                             }
+                            
                             if ((m_movementflag & (uint) DCF) == 0)
                             {
                                 m_movementflag += (byte) (uint) DCF;
@@ -1088,6 +1099,7 @@ namespace OpenSim.Region.Environment.Scenes
                         i++;
                     }
                 }
+                
                 // Cause the avatar to stop flying if it's colliding
                 // with something with the down arrow pressed.
 
@@ -1109,6 +1121,10 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (update_movementflag || (update_rotation && DCFlagKeyPressed))
                 {
+//                    m_log.DebugFormat("{0} {1}", update_movementflag, (update_rotation && DCFlagKeyPressed));
+//                    m_log.DebugFormat(
+//                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);                    
+                    
                     AddNewMovement(agent_control_v3, q);
 
                     if (update_movementflag)
@@ -1563,6 +1579,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected void TrySetMovementAnimation(string anim)
         {
+            //m_log.DebugFormat("Updating movement animation to {0}", anim);
+            
             if (m_animations.TrySetDefaultAnimation(anim, m_controllingClient.NextAnimationSequenceNumber))
             {
                 SendAnimPack();
@@ -1638,9 +1656,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Update the movement animation of this avatar according to its current state
+        /// </summary>
         protected void UpdateMovementAnimations()
         {
-            TrySetMovementAnimation(GetMovementAnimation());
+            string animation = GetMovementAnimation();
+            TrySetMovementAnimation(animation);
         }
 
         /// <summary>
@@ -2040,6 +2062,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendAnimPack()
         {
+            //m_log.Debug("Sending animation pack");
+            
             if (m_isChildAgent)
                 return;
 

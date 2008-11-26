@@ -87,7 +87,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected Vector3 m_rotationalvelocity;
 
         /// <summary>
-        ///
+        /// Current velocity of the entity.
         /// </summary>
         public virtual Vector3 Velocity
         {
