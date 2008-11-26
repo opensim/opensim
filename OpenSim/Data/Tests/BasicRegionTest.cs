@@ -220,7 +220,7 @@ namespace OpenSim.Data.Tests
             uint localid = localID+1;
             localID = localID + 1;
             string name = "Adam  West";
-            byte material = (byte) random.Next(255);
+            byte material = (byte) random.Next(127);
             ulong regionh = (ulong)random.NextDouble() * (ulong)random.Next();
             int pin = random.Next();
             Byte[] partsys = new byte[8];
@@ -381,7 +381,7 @@ namespace OpenSim.Data.Tests
             TaskInventoryDictionary dic = new TaskInventoryDictionary();
             localID = localID + 1;
             string name = "West  Adam";
-            byte material = (byte) random.Next(255);
+            byte material = (byte) random.Next(127);
             ulong regionh = (ulong)random.NextDouble() * (ulong)random.Next();
             int pin = random.Next();
             Byte[] partsys = new byte[8];

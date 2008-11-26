@@ -22,6 +22,7 @@
     <File name="./LSL_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./OSSL_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./ScriptBase.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
+    <File name="./ScriptSponsor.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
   </Contents>
   <References>
     <ProjectReference type="Assembly" refto="../../../../../../bin/log4net.dll" localcopy="False" />

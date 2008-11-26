@@ -1078,38 +1078,38 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("EveryoneMask", prim.EveryoneMask);
             cmd.Parameters.AddWithValue("BaseMask", prim.BaseMask);
             // vectors
-            cmd.Parameters.AddWithValue("PositionX", prim.OffsetPosition.X);
-            cmd.Parameters.AddWithValue("PositionY", prim.OffsetPosition.Y);
-            cmd.Parameters.AddWithValue("PositionZ", prim.OffsetPosition.Z);
-            cmd.Parameters.AddWithValue("GroupPositionX", prim.GroupPosition.X);
-            cmd.Parameters.AddWithValue("GroupPositionY", prim.GroupPosition.Y);
-            cmd.Parameters.AddWithValue("GroupPositionZ", prim.GroupPosition.Z);
-            cmd.Parameters.AddWithValue("VelocityX", prim.Velocity.X);
-            cmd.Parameters.AddWithValue("VelocityY", prim.Velocity.Y);
-            cmd.Parameters.AddWithValue("VelocityZ", prim.Velocity.Z);
-            cmd.Parameters.AddWithValue("AngularVelocityX", prim.AngularVelocity.X);
-            cmd.Parameters.AddWithValue("AngularVelocityY", prim.AngularVelocity.Y);
-            cmd.Parameters.AddWithValue("AngularVelocityZ", prim.AngularVelocity.Z);
-            cmd.Parameters.AddWithValue("AccelerationX", prim.Acceleration.X);
-            cmd.Parameters.AddWithValue("AccelerationY", prim.Acceleration.Y);
-            cmd.Parameters.AddWithValue("AccelerationZ", prim.Acceleration.Z);
+            cmd.Parameters.AddWithValue("PositionX", (double)prim.OffsetPosition.X);
+            cmd.Parameters.AddWithValue("PositionY", (double)prim.OffsetPosition.Y);
+            cmd.Parameters.AddWithValue("PositionZ", (double)prim.OffsetPosition.Z);
+            cmd.Parameters.AddWithValue("GroupPositionX", (double)prim.GroupPosition.X);
+            cmd.Parameters.AddWithValue("GroupPositionY", (double)prim.GroupPosition.Y);
+            cmd.Parameters.AddWithValue("GroupPositionZ", (double)prim.GroupPosition.Z);
+            cmd.Parameters.AddWithValue("VelocityX", (double)prim.Velocity.X);
+            cmd.Parameters.AddWithValue("VelocityY", (double)prim.Velocity.Y);
+            cmd.Parameters.AddWithValue("VelocityZ", (double)prim.Velocity.Z);
+            cmd.Parameters.AddWithValue("AngularVelocityX", (double)prim.AngularVelocity.X);
+            cmd.Parameters.AddWithValue("AngularVelocityY", (double)prim.AngularVelocity.Y);
+            cmd.Parameters.AddWithValue("AngularVelocityZ", (double)prim.AngularVelocity.Z);
+            cmd.Parameters.AddWithValue("AccelerationX", (double)prim.Acceleration.X);
+            cmd.Parameters.AddWithValue("AccelerationY", (double)prim.Acceleration.Y);
+            cmd.Parameters.AddWithValue("AccelerationZ", (double)prim.Acceleration.Z);
             // quaternions
-            cmd.Parameters.AddWithValue("RotationX", prim.RotationOffset.X);
-            cmd.Parameters.AddWithValue("RotationY", prim.RotationOffset.Y);
-            cmd.Parameters.AddWithValue("RotationZ", prim.RotationOffset.Z);
-            cmd.Parameters.AddWithValue("RotationW", prim.RotationOffset.W);
+            cmd.Parameters.AddWithValue("RotationX", (double)prim.RotationOffset.X);
+            cmd.Parameters.AddWithValue("RotationY", (double)prim.RotationOffset.Y);
+            cmd.Parameters.AddWithValue("RotationZ", (double)prim.RotationOffset.Z);
+            cmd.Parameters.AddWithValue("RotationW", (double)prim.RotationOffset.W);
 
             // Sit target
             Vector3 sitTargetPos = prim.SitTargetPositionLL;
-            cmd.Parameters.AddWithValue("SitTargetOffsetX", sitTargetPos.X);
-            cmd.Parameters.AddWithValue("SitTargetOffsetY", sitTargetPos.Y);
-            cmd.Parameters.AddWithValue("SitTargetOffsetZ", sitTargetPos.Z);
+            cmd.Parameters.AddWithValue("SitTargetOffsetX", (double)sitTargetPos.X);
+            cmd.Parameters.AddWithValue("SitTargetOffsetY", (double)sitTargetPos.Y);
+            cmd.Parameters.AddWithValue("SitTargetOffsetZ", (double)sitTargetPos.Z);
 
             Quaternion sitTargetOrient = prim.SitTargetOrientationLL;
-            cmd.Parameters.AddWithValue("SitTargetOrientW", sitTargetOrient.W);
-            cmd.Parameters.AddWithValue("SitTargetOrientX", sitTargetOrient.X);
-            cmd.Parameters.AddWithValue("SitTargetOrientY", sitTargetOrient.Y);
-            cmd.Parameters.AddWithValue("SitTargetOrientZ", sitTargetOrient.Z);
+            cmd.Parameters.AddWithValue("SitTargetOrientW", (double)sitTargetOrient.W);
+            cmd.Parameters.AddWithValue("SitTargetOrientX", (double)sitTargetOrient.X);
+            cmd.Parameters.AddWithValue("SitTargetOrientY", (double)sitTargetOrient.Y);
+            cmd.Parameters.AddWithValue("SitTargetOrientZ", (double)sitTargetOrient.Z);
 
             cmd.Parameters.AddWithValue("PayPrice", prim.PayPrice[0]);
             cmd.Parameters.AddWithValue("PayButton1", prim.PayPrice[1]);
@@ -1131,17 +1131,17 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("TextureAnimation", prim.TextureAnimation);
             cmd.Parameters.AddWithValue("ParticleSystem", prim.ParticleSystem);
 
-            cmd.Parameters.AddWithValue("OmegaX", prim.RotationalVelocity.X);
-            cmd.Parameters.AddWithValue("OmegaY", prim.RotationalVelocity.Y);
-            cmd.Parameters.AddWithValue("OmegaZ", prim.RotationalVelocity.Z);
+            cmd.Parameters.AddWithValue("OmegaX", (double)prim.RotationalVelocity.X);
+            cmd.Parameters.AddWithValue("OmegaY", (double)prim.RotationalVelocity.Y);
+            cmd.Parameters.AddWithValue("OmegaZ", (double)prim.RotationalVelocity.Z);
 
-            cmd.Parameters.AddWithValue("CameraEyeOffsetX", prim.GetCameraEyeOffset().X);
-            cmd.Parameters.AddWithValue("CameraEyeOffsetY", prim.GetCameraEyeOffset().Y);
-            cmd.Parameters.AddWithValue("CameraEyeOffsetZ", prim.GetCameraEyeOffset().Z);
+            cmd.Parameters.AddWithValue("CameraEyeOffsetX", (double)prim.GetCameraEyeOffset().X);
+            cmd.Parameters.AddWithValue("CameraEyeOffsetY", (double)prim.GetCameraEyeOffset().Y);
+            cmd.Parameters.AddWithValue("CameraEyeOffsetZ", (double)prim.GetCameraEyeOffset().Z);
 
-            cmd.Parameters.AddWithValue("CameraAtOffsetX", prim.GetCameraAtOffset().X);
-            cmd.Parameters.AddWithValue("CameraAtOffsetY", prim.GetCameraAtOffset().Y);
-            cmd.Parameters.AddWithValue("CameraAtOffsetZ", prim.GetCameraAtOffset().Z);
+            cmd.Parameters.AddWithValue("CameraAtOffsetX", (double)prim.GetCameraAtOffset().X);
+            cmd.Parameters.AddWithValue("CameraAtOffsetY", (double)prim.GetCameraAtOffset().Y);
+            cmd.Parameters.AddWithValue("CameraAtOffsetZ", (double)prim.GetCameraAtOffset().Z);
 
             if (prim.GetForceMouselook())
                 cmd.Parameters.AddWithValue("ForceMouselook", 1);
@@ -1363,9 +1363,9 @@ byte[] textureEntry = (byte[]) row["Texture"];
             // shape is an enum
             cmd.Parameters.AddWithValue("Shape", 0);
             // vectors
-            cmd.Parameters.AddWithValue("ScaleX", s.Scale.X);
-            cmd.Parameters.AddWithValue("ScaleY", s.Scale.Y);
-            cmd.Parameters.AddWithValue("ScaleZ", s.Scale.Z);
+            cmd.Parameters.AddWithValue("ScaleX", (double)s.Scale.X);
+            cmd.Parameters.AddWithValue("ScaleY", (double)s.Scale.Y);
+            cmd.Parameters.AddWithValue("ScaleZ", (double)s.Scale.Z);
             // paths
             cmd.Parameters.AddWithValue("PCode", s.PCode);
             cmd.Parameters.AddWithValue("PathBegin", s.PathBegin);
