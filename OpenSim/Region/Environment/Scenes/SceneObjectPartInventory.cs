@@ -64,7 +64,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Tracks whether inventory has changed since the last persistent backup
         /// </summary>
-        protected bool HasInventoryChanged;
+        internal bool HasInventoryChanged;
         
         /// <value>
         /// Inventory serial number
@@ -81,7 +81,11 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal TaskInventoryDictionary Items
         {
             get { return m_items; }
-            set { m_items = value; }
+            set
+            {
+                m_items = value;
+                m_inventorySerial++;
+            }
         }
         
         /// <summary>

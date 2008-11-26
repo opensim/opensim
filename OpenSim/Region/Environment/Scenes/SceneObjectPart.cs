@@ -1263,10 +1263,18 @@ if (m_shape != null) {
             dupe._category = _category;
             dupe.m_rezzed = m_rezzed;
 
-            dupe.m_inventory.Items = (TaskInventoryDictionary)dupe.m_inventory.Items.Clone();
+            dupe.m_inventory = new SceneObjectPartInventory(dupe);
+            dupe.m_inventory.Items = (TaskInventoryDictionary)m_inventory.Items.Clone();
 
             if (userExposed)
+            {
                 dupe.ResetIDs(linkNum);
+                dupe.m_inventory.HasInventoryChanged = true;
+            }
+            else
+            {
+                dupe.m_inventory.HasInventoryChanged = m_inventory.HasInventoryChanged;
+            }
 
             // Move afterwards ResetIDs as it clears the localID
             dupe.LocalId = localID;

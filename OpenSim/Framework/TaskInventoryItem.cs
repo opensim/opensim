@@ -329,6 +329,7 @@ namespace OpenSim.Framework
         {
             _itemID = UUID.Random();
             _parentPartID = partID;
+            _parentID = partID;
         }
 
         public TaskInventoryItem()

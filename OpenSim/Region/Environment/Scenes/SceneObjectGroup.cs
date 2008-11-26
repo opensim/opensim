@@ -1336,6 +1336,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
 
+            dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
+
             if (userExposed)
                 dupe.m_rootPart.TrimPermissions();
 
@@ -1368,16 +1370,25 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.Values);
+            partList.Sort(delegate(SceneObjectPart p1, SceneObjectPart p2)
+                {
+                    return p1.LinkNum.CompareTo(p2.LinkNum);
+                }
+            );
+
             foreach (SceneObjectPart part in partList)
             {
                 if (part.UUID != m_rootPart.UUID)
                 {
-                    dupe.CopyPart(part, OwnerID, GroupID, userExposed);
+                    SceneObjectPart newPart =
+                            dupe.CopyPart(part, OwnerID, GroupID, userExposed);
+
+                    newPart.LinkNum = part.LinkNum;
 
                     if (userExposed)
                     {
-                        SetPartOwner(part, cAgentID, cGroupID);
-                        part.ScheduleFullUpdate();
+                        SetPartOwner(newPart, cAgentID, cGroupID);
+                        newPart.ScheduleFullUpdate();
                     }
                 }
             }
@@ -1507,7 +1518,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         /// <param name="cAgentID"></param>
         /// <param name="cGroupID"></param>
-        public void CopyPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
+        public SceneObjectPart CopyPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
             SceneObjectPart newPart = part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, m_parts.Count, userExposed);
             newPart.SetParent(this);
@@ -1519,6 +1530,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             SetPartAsNonRoot(newPart);
 
+            return newPart;
         }
 
         /// <summary>
