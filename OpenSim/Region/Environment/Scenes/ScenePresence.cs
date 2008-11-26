@@ -721,11 +721,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
         }
 
-        public void forceAvatarMovement(Vector3 position, Quaternion rotation)
-        {
-            AddNewMovement(position, rotation);
-        }
-
         #region Status Methods
 
         /// <summary>
@@ -1666,9 +1661,11 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Adds a new movement
+        /// Rotate the avatar to the given rotation and apply a movement in the given relative vector
         /// </summary>
-        protected void AddNewMovement(Vector3 vec, Quaternion rotation)
+        /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
+        /// <param name="rotation">The direction in which this avatar should now face.        
+        public void AddNewMovement(Vector3 vec, Quaternion rotation)
         {
             if (m_isChildAgent)
             {
