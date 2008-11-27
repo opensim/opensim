@@ -942,7 +942,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
 
         public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return false;
         }
 
     }
