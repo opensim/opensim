@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Timers;
@@ -51,6 +52,8 @@ namespace pCampBot
         public event AnEvent OnDisconnected;
 
         protected Timer m_action; // Action Timer
+        protected List<uint> objectIDs = new List<uint>();
+        
 
         protected Random somthing = new Random(Environment.TickCount);// We do stuff randomly here
 
@@ -130,9 +133,25 @@ namespace pCampBot
         public void startup()
         {
             client.Settings.LOGIN_SERVER = loginURI;
+            client.Settings.ALWAYS_DECODE_OBJECTS = false;
+            client.Settings.AVATAR_TRACKING = false;
+            client.Settings.OBJECT_TRACKING = false;
+            client.Settings.SEND_AGENT_THROTTLE = true;
+            client.Settings.SEND_PINGS = true;
+            client.Settings.STORE_LAND_PATCHES = false;
+            client.Settings.USE_TEXTURE_CACHE = false;
+            client.Settings.MULTIPLE_SIMS = true;
+            client.Throttle.Asset = 100000;
+            client.Throttle.Land = 100000;
+            client.Throttle.Task = 100000;
+            client.Throttle.Texture = 100000;
+            client.Throttle.Wind = 100000;
+            client.Throttle.Total = 400000;
             client.Network.OnConnected += new NetworkManager.ConnectedCallback(this.Network_OnConnected);
             client.Network.OnSimConnected += new NetworkManager.SimConnectedCallback(this.Network_OnConnected);
             client.Network.OnDisconnected += new NetworkManager.DisconnectedCallback(this.Network_OnDisconnected);
+            client.Objects.OnNewPrim += Objects_NewPrim;
+            client.Assets.OnImageReceived += Asset_TextureCallback;
             if (client.Network.Login(firstname, lastname, password, "pCampBot", "Your name"))
             {
                 if (OnConnected != null)
@@ -172,6 +191,39 @@ namespace pCampBot
             {
                 OnDisconnected(this, EventType.DISCONNECTED);
             }
+        }
+
+        public void Objects_NewPrim(Simulator simulator, Primitive prim, ulong regionHandle, ushort timeDilation)
+        {
+            if (prim != null)
+            {
+                if (prim.Textures != null)
+                {
+                    if (prim.Textures.DefaultTexture.TextureID != UUID.Zero)
+                    {
+                        client.Assets.RequestImage(prim.Textures.DefaultTexture.TextureID, ImageType.Normal);
+                    }
+                    for (int i = 0; i < prim.Textures.FaceTextures.Length; i++ )
+                    {
+                        if (prim.Textures.FaceTextures[i] != null)
+                        {
+                            if (prim.Textures.FaceTextures[i].TextureID != UUID.Zero)
+                            {
+                                client.Assets.RequestImage(prim.Textures.FaceTextures[i].TextureID, ImageType.Normal);
+                            }
+
+                        }
+                    }
+                }
+                if (prim.Sculpt.SculptTexture != UUID.Zero)
+                {
+                    client.Assets.RequestImage(prim.Sculpt.SculptTexture, ImageType.Normal);
+                }
+            }
+
+        }
+        public void Asset_TextureCallback(ImageDownload image, AssetTexture asset)
+        {
         }
 
         public string[] readexcuses()
