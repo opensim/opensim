@@ -85,8 +85,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         
         /// <summary>
         /// Test removing an uncrossed root agent from a scene.
-        /// </summary>        
-        [Test]
+        /// </summary> 
+        [Test]       
         public void TestRemoveRootAgent()
         {
             Scene scene = SceneTestUtils.SetupScene();

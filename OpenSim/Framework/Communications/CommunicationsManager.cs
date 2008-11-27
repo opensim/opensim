@@ -110,7 +110,6 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         protected IUserServiceAdmin m_userServiceAdmin;        
 
-
         public BaseHttpServer HttpServer
         {
             get { return m_httpServer; }

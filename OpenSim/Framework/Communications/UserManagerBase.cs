@@ -48,12 +48,24 @@ namespace OpenSim.Framework.Communications
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <value>
+        /// List of plugins to search for user data
+        /// </value>
         private List<IUserDataPlugin> _plugins = new List<IUserDataPlugin>();
+                
+        /// <summary>
+        /// Add a new user data plugin - plugins will be requested in the order they were added.
+        /// </summary>
+        /// <param name="plugin">The plugin that will provide user data</param>     
+        public void AddPlugin(IUserDataPlugin plugin)
+        {
+            _plugins.Add(plugin);
+        }
 
         /// <summary>
-        /// Adds a new user server plugin - user servers will be requested in the order they were loaded.
+        /// Add a new user data plugin - plugins will be requested in the order they were added.
         /// </summary>
-        /// <param name="provider">The filename to the user server plugin DLL</param>
+        /// <param name="provider">The filename to the user data plugin DLL</param>
         /// <param name="connect"></param>
         public void AddPlugin(string provider, string connect)
         {
@@ -65,7 +77,7 @@ namespace OpenSim.Framework.Communications
             loader.Add("/OpenSim/UserData", new PluginProviderFilter(provider));            
             loader.Load();
 
-            _plugins = loader.Plugins;
+            _plugins.AddRange(loader.Plugins);
         }
 
         #region Get UserProfile
@@ -637,7 +649,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to add user via " + plugin.Name + "(" + e.ToString() + ")");
+                    m_log.Error("[USERSTORAGE]: Unable to add user via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
 
@@ -696,8 +708,11 @@ namespace OpenSim.Framework.Communications
             return false;
         }
 
-        /// Appearance
-        /// TODO: stubs for now to get us to a compiling state gently
+        /// <summary>
+        /// Get avatar appearance information
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         public AvatarAppearance GetUserAppearance(UUID user)
         {
             foreach (IUserDataPlugin plugin in _plugins)
@@ -714,6 +729,11 @@ namespace OpenSim.Framework.Communications
             return null;
         }
 
+        /// <summary>
+        /// Update avatar appearance information
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="appearance"></param>
         public void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
             foreach (IUserDataPlugin plugin in _plugins)

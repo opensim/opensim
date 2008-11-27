@@ -48,20 +48,29 @@ namespace OpenSim.Framework.Communications
         #region Plugin methods
 
         /// <summary>
-        /// Adds a new user server plugin - plugins will be requested in the order they were loaded.
+        /// Add a new inventory data plugin - plugins will be requested in the order they were added.
         /// </summary>
-        /// <param name="provider">The filename to the user server plugin DLL</param>
+        /// <param name="plugin">The plugin that will provide data</param>     
+        public void AddPlugin(IInventoryDataPlugin plugin)
+        {
+            m_plugins.Add(plugin);
+        }
+        
+        /// <summary>
+        /// Adds a new inventory data plugin - plugins will be requested in the order they were loaded.
+        /// </summary>
+        /// <param name="provider">The filename of the inventory server plugin DLL</param>
         public void AddPlugin(string provider, string connect)
         {
             PluginLoader<IInventoryDataPlugin> loader =
-                new PluginLoader<IInventoryDataPlugin> (new InventoryDataInitialiser (connect));
+                new PluginLoader<IInventoryDataPlugin> (new InventoryDataInitialiser(connect));
 
             // loader will try to load all providers (MySQL, MSSQL, etc)
             // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add ("/OpenSim/InventoryData", new PluginProviderFilter (provider));
+            loader.Add ("/OpenSim/InventoryData", new PluginProviderFilter(provider));
             loader.Load();
 
-            m_plugins = loader.Plugins;
+            m_plugins.AddRange(loader.Plugins);
         }
 
         #endregion

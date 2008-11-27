@@ -51,7 +51,7 @@ namespace OpenSim.Framework
     public interface IPluginConstraint
     {
         string Message { get; }
-        bool Apply (string extpoint);
+        bool Apply(string extpoint);
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ namespace OpenSim.Framework
     /// </summary>
     public interface IPluginFilter
     {
-        bool Apply (PluginExtensionNode plugin);
+        bool Apply(PluginExtensionNode plugin);
     }
 
     /// <summary>
@@ -99,89 +99,90 @@ namespace OpenSim.Framework
             get { return (loaded.Count == 1)? loaded [0] : default (T); }
         }
 
-        public PluginLoader ()
+        public PluginLoader()
         {
             Initialiser = new PluginInitialiserBase();
-            initialise_plugin_dir_ (".");
+            initialise_plugin_dir_(".");
         }
 
-        public PluginLoader (PluginInitialiserBase init)
+        public PluginLoader(PluginInitialiserBase init)
         {
             Initialiser = init;
-            initialise_plugin_dir_ (".");
+            initialise_plugin_dir_(".");
         }
 
-        public PluginLoader (PluginInitialiserBase init, string dir)
+        public PluginLoader(PluginInitialiserBase init, string dir)
         {
             Initialiser = init;
-            initialise_plugin_dir_ (dir);
+            initialise_plugin_dir_(dir);
         }
 
-        public void Add (string extpoint)
+        public void Add(string extpoint)
         {
-            if (extpoints.Contains (extpoint))
+            if (extpoints.Contains(extpoint))
                 return;
 
-            extpoints.Add (extpoint);
+            extpoints.Add(extpoint);
         }
 
-        public void Add (string extpoint, IPluginConstraint cons)
+        public void Add(string extpoint, IPluginConstraint cons)
         {
-            Add (extpoint);
-            AddConstraint (extpoint, cons);
+            Add(extpoint);
+            AddConstraint(extpoint, cons);
         }
 
-        public void Add (string extpoint, IPluginFilter filter)
+        public void Add(string extpoint, IPluginFilter filter)
         {
-            Add (extpoint);
-            AddFilter (extpoint, filter);
+            Add(extpoint);
+            AddFilter(extpoint, filter);
         }
 
-        public void AddConstraint (string extpoint, IPluginConstraint cons)
+        public void AddConstraint(string extpoint, IPluginConstraint cons)
         {
-            constraints.Add (extpoint, cons);
+            constraints.Add(extpoint, cons);
         }
 
-        public void AddFilter (string extpoint, IPluginFilter filter)
+        public void AddFilter(string extpoint, IPluginFilter filter)
         {
-            filters.Add (extpoint, filter);
+            filters.Add(extpoint, filter);
         }
 
-        public void Load (string extpoint)
+        public void Load(string extpoint)
         {
-            Add (extpoint);
+            Add(extpoint);
             Load();
         }
 
-        public void Load ()
+        public void Load()
         {
             foreach (string ext in extpoints)
             {
                 log.Info("[PLUGINS]: Loading extension point " + ext);
 
-                if (constraints.ContainsKey (ext))
+                if (constraints.ContainsKey(ext))
                 {
-                    IPluginConstraint cons = constraints [ext];
-                    if (cons.Apply (ext))
-                        log.Error ("[PLUGINS]: " + ext + " failed constraint: " + cons.Message);
+                    IPluginConstraint cons = constraints[ext];
+                    if (cons.Apply(ext))
+                        log.Error("[PLUGINS]: " + ext + " failed constraint: " + cons.Message);
                 }
 
                 IPluginFilter filter = null;
 
-                if (filters.ContainsKey (ext))
-                    filter = filters [ext];
+                if (filters.ContainsKey(ext))
+                    filter = filters[ext];
 
                 List<T> loadedPlugins = new List<T>();
-                foreach (PluginExtensionNode node in AddinManager.GetExtensionNodes (ext))
+                foreach (PluginExtensionNode node in AddinManager.GetExtensionNodes(ext))
                 {
                     log.Info("[PLUGINS]: Trying plugin " + node.Path);
 
-                    if ((filter != null) && (filter.Apply (node) == false))
+                    if ((filter != null) && (filter.Apply(node) == false))
                         continue;
 
-                    T plugin = (T) node.CreateInstance();
+                    T plugin = (T)node.CreateInstance();
                     loadedPlugins.Add(plugin);
                 }
+                
                 // We do Initialise() in a second loop after CreateInstance
                 // So that modules who need init before others can do it
                 // Example: Script Engine Component System needs to load its components before RegionLoader starts
@@ -193,28 +194,28 @@ namespace OpenSim.Framework
             }
         }
 
-        public void Dispose ()
+        public void Dispose()
         {
             foreach (T plugin in Plugins)
-                plugin.Dispose ();
+                plugin.Dispose();
         }
 
-        private void initialise_plugin_dir_ (string dir)
+        private void initialise_plugin_dir_(string dir)
         {
             if (AddinManager.IsInitialized == true)
                 return;
 
-            log.Info("[PLUGINS]: Initializing");
+            log.Info("[PLUGINS]: Initializing addin manager");
 
             AddinManager.AddinLoadError += on_addinloaderror_;
             AddinManager.AddinLoaded += on_addinloaded_;
 
             clear_registry_();
 
-            suppress_console_output_ (true);
-            AddinManager.Initialize (dir);
-            AddinManager.Registry.Update (null);
-            suppress_console_output_ (false);
+            suppress_console_output_(true);
+            AddinManager.Initialize(dir);
+            AddinManager.Registry.Update(null);
+            suppress_console_output_(false);
         }
 
         private void on_addinloaded_(object sender, AddinEventArgs args)
@@ -233,7 +234,7 @@ namespace OpenSim.Framework
                         + args.Exception.StackTrace);
         }
 
-        private void clear_registry_ ()
+        private void clear_registry_()
         {
             // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0)
             // occasionally seems to corrupt its addin cache
@@ -259,7 +260,7 @@ namespace OpenSim.Framework
         }
 
         private static TextWriter prev_console_;
-        public void suppress_console_output_ (bool save)
+        public void suppress_console_output_(bool save)
         {
             if (save)
             {
@@ -295,15 +296,15 @@ namespace OpenSim.Framework
                     return typeobj;
 
                 if (type.Length == 0)
-                    throw new InvalidOperationException ("Type name not specified.");
+                    throw new InvalidOperationException("Type name not specified.");
 
-                return typeobj = Addin.GetType (type, true);
+                return typeobj = Addin.GetType(type, true);
             }
         }
 
-        public object CreateInstance ()
+        public object CreateInstance()
         {
-            return Activator.CreateInstance (TypeObject);
+            return Activator.CreateInstance(TypeObject);
         }
     }
 
@@ -315,13 +316,13 @@ namespace OpenSim.Framework
         private int min;
         private int max;
 
-        public PluginCountConstraint (int exact)
+        public PluginCountConstraint(int exact)
         {
             min = exact;
             max = exact;
         }
 
-        public PluginCountConstraint (int minimum, int maximum)
+        public PluginCountConstraint(int minimum, int maximum)
         {
             min = minimum;
             max = maximum;
@@ -338,10 +339,10 @@ namespace OpenSim.Framework
 
         public bool Apply (string extpoint)
         {
-            int count = AddinManager.GetExtensionNodes (extpoint).Count;
+            int count = AddinManager.GetExtensionNodes(extpoint).Count;
 
             if ((count < min) || (count > max))
-                throw new PluginConstraintViolatedException (Message);
+                throw new PluginConstraintViolatedException(Message);
 
             return true;
         }

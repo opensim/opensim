@@ -2789,8 +2789,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+            
             // rewrite session_id
             CachedUserInfo userinfo = CommsManager.UserProfileCacheService.GetUserDetails(agent.AgentID);
+            
             if (userinfo != null)
             {
                 userinfo.SessionID = agent.SessionID;
