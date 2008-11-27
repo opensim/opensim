@@ -3390,11 +3390,6 @@ if (m_shape != null) {
 
         #endregion Public Methods
 
-        private byte GetAttachPointEncoded()
-        {
-            return (byte)((AttachmentPoint % 16) * 16 + (AttachmentPoint / 16));
-        }
-
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
             if (ParentGroup == null || ParentGroup.IsDeleted)
@@ -3409,7 +3404,7 @@ if (m_shape != null) {
                     return;
 
                 lPos = ParentGroup.RootPart.AttachedPos;
-                state = GetAttachPointEncoded();
+                state = AttachmentPoint;
             }
             else
             {
