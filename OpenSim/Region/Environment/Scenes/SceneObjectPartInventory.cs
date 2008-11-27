@@ -784,6 +784,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.CurrentPermissions &= ~(uint)PermissionMask.Transfer;
                     if ((item.CurrentPermissions & ((uint)PermissionMask.Modify >> 13)) == 0)
                         item.CurrentPermissions &= ~(uint)PermissionMask.Modify;
+                    item.CurrentPermissions |= 8;
                 }
                 item.CurrentPermissions &= item.NextPermissions;
                 item.BasePermissions &= item.NextPermissions;
