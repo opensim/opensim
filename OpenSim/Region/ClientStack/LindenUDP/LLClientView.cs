@@ -3168,7 +3168,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bytes[i++] = (byte)((ID >> 8) % 256);
             bytes[i++] = (byte)((ID >> 16) % 256);
             bytes[i++] = (byte)((ID >> 24) % 256);
-            bytes[i++] = state;
+            bytes[i++] = (byte)(((state & 0xf0) >> 4) | ((state & 0x0f) << 4));
             bytes[i++] = 0;
 
             byte[] pb = position.GetBytes();
