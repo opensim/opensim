@@ -4270,7 +4270,7 @@ namespace OpenSim.Region.Environment.Scenes
                     foreach (SceneObjectPart child in partList)
                     {
                         child.Inventory.ChangeInventoryOwner(remoteClient.AgentId);
-                        child.Inventory.ApplyNextOwnerPermissions();
+                        child.ApplyNextOwnerPermissions();
                     }
                 }
 

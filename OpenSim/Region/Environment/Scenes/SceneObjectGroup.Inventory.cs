@@ -302,7 +302,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void ApplyNextOwnerPermissions()
         {
             foreach (SceneObjectPart part in m_parts.Values)
-                part.Inventory.ApplyNextOwnerPermissions();
+            {
+                part.ApplyNextOwnerPermissions();
+            }
         }
 
         public string GetStateSnapshot()

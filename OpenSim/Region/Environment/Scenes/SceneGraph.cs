@@ -423,10 +423,8 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         SceneObjectGroup group = (SceneObjectGroup)obj;
 
-                        if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
+                        if (group.OwnerID != remoteClient.AgentId)
                             group.SetGroup(GroupID, remoteClient);
-                        else
-                            remoteClient.SendAgentAlertMessage("You don't have permission to set the group", false);
                     }
                 }
             }
