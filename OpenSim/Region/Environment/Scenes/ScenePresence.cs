@@ -356,10 +356,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected PhysicsActor m_physicsActor;
 
+        /// <value>
+        /// The client controlling this presence
+        /// </value>
         public IClientAPI ControllingClient
         {
             get { return m_controllingClient; }
-            set { m_controllingClient = value; }
         }
 
         public IClientCore ClientView
