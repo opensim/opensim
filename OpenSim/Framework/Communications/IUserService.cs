@@ -115,14 +115,6 @@ namespace OpenSim.Framework.Communications
         List<FriendListItem> GetUserFriendList(UUID friendlistowner);
 
         /// <summary>
-        ///  Updates the current region the User is in
-        /// </summary>
-        /// <param name="avatarid">User Region the Avatar is IN</param>
-        /// <param name="regionuuid">User Region the Avatar is IN</param>
-        /// <param name="regionhandle">User region handle</param>
-        void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle);
-
-        /// <summary>
         /// Get's the User Appearance
        // AvatarAppearance GetUserAppearance(UUID user);
 

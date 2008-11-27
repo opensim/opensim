@@ -265,21 +265,6 @@ namespace OpenSim.Framework.Communications
             return null;
         }
 
-        public void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)
-        {
-            foreach (IUserDataPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.UpdateUserCurrentRegion(avatarid, regionuuid, regionhandle);
-                }
-                catch (Exception e)
-                {
-                    m_log.Info("[USERSTORAGE]: Unable to updateuser location via " + plugin.Name + "(" + e.ToString() + ")");
-                }
-            }
-        }
-
         /// <summary>
         /// Loads a user's friend list
         /// </summary>

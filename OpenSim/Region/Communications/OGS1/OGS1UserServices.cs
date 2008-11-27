@@ -285,58 +285,6 @@ namespace OpenSim.Region.Communications.OGS1
             return GetUserProfile(firstName + " " + lastName);
         }
 
-        public void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)
-        {
-            Hashtable param = new Hashtable();
-            param.Add("avatar_id", avatarid.ToString());
-            param.Add("region_uuid", regionuuid.ToString());
-            param.Add("region_handle", regionhandle.ToString());
-            IList parameters = new ArrayList();
-            parameters.Add(param);
-            XmlRpcRequest req = new XmlRpcRequest("update_user_current_region", parameters);
-
-            XmlRpcResponse resp;
-
-            try
-            {
-                resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
-            }
-            catch(WebException)
-            {
-                m_log.Warn("[OSG1 USER SERVICES]: Grid not responding. Retrying.");
-
-                try
-                {
-                    resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
-                }
-                catch (WebException)
-                {
-                    m_log.Warn("[OSG1 USER SERVICES]: Grid not responding. Failed.");
-                    return;
-                }
-            }
-
-            if (resp == null)
-            {
-                m_log.Warn("[OSG1 USER SERVICES]: Got no response, Grid server may not be updated.");
-                return;
-            }
-
-            Hashtable respData = (Hashtable)resp.Value;
-
-            if (respData == null || !respData.ContainsKey("returnString"))
-            {
-                m_log.Error("[OSG1 USER SERVICES]: Error updating user record, Grid server may not be updated.");
-            }
-            else
-            {
-                if ((string) respData["returnString"] != "TRUE")
-                {
-                    m_log.Error("[OSG1 USER SERVICES]: Error updating user record");
-                }
-            }
-        }
-
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();

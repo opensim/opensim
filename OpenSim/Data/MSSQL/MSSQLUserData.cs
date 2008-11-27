@@ -741,17 +741,6 @@ namespace OpenSim.Data.MSSQL
         #region Other public methods
 
         /// <summary>
-        /// STUB ! Update current region
-        /// </summary>
-        /// <param name="avatarid">avatar uuid</param>
-        /// <param name="regionuuid">region uuid</param>
-        /// <param name="regionhandle">region handle</param>
-        override public void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)
-        {
-            //m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
-        }
-
-        /// <summary>
         ///
         /// </summary>
         /// <param name="queryID"></param>

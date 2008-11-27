@@ -798,7 +798,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_pendingObjects = null;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
-            m_scene.CommsManager.UserService.UpdateUserCurrentRegion(UUID, m_scene.RegionInfo.RegionID, m_scene.RegionInfo.RegionHandle);
         }
 
         /// <summary>

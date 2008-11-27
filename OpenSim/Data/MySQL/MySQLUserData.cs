@@ -409,11 +409,6 @@ namespace OpenSim.Data.MySQL
 
         #endregion
 
-        public override void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)
-        {
-            //m_log.Info("[USER DB]: Stub UpdateUserCUrrentRegion called");
-        }
-
         public override List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query)
         {
             List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();

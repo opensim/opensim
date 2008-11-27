@@ -358,18 +358,6 @@ namespace OpenSim.Data.SQLite
         #endregion
 
         /// <summary>
-        /// STUB, Update the user's current region
-        /// </summary>
-        /// <param name="avatarid">UUID of the user</param>
-        /// <param name="regionuuid">UUID of the region</param>
-        /// <param name="regionhandle">region handle</param>
-        /// <remarks>DO NOTHING</remarks>
-        override public void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)
-        {
-            //m_log.Info("[USER DB]: Stub UpdateUserCUrrentRegion called");
-        }
-
-        /// <summary>
         ///
         /// </summary>
         /// <param name="queryID"></param>

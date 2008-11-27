@@ -92,14 +92,12 @@ namespace OpenSim.Framework
         /// <param name="user">UserProfile to add</param>
         void AddNewUserProfile(UserProfileData user);
 
-        /// <summary>
+        /// <summary></summary>
         ///  Updates an existing user profile
         /// </summary>
         /// <param name="user">UserProfile to update</param>
         bool UpdateUserProfile(UserProfileData user);
 
-
-        void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle);
         /// <summary>
         /// Adds a new agent to the database
         /// </summary>

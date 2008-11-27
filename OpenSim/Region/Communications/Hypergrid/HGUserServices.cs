@@ -120,11 +120,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             return GetUserProfile(firstName + " " + lastName);
         }
 
-        public void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)
-        {
-            m_remoteUserServices.UpdateUserCurrentRegion(avatarid, regionuuid, regionhandle);
-        }
-
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {
             return m_remoteUserServices.GenerateAgentPickerRequestResponse(queryID, query);
@@ -149,7 +144,6 @@ namespace OpenSim.Region.Communications.Hypergrid
         {
             return m_remoteUserServices.GetUserProfile(avatarID);
         }
-
 
         public void ClearUserAgent(UUID avatarID)
         {
