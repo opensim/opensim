@@ -25,26 +25,36 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections.Generic;
+using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Communications.Local;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {
-    public class TestCommunicationsManager : CommunicationsManager
+    public class TestInventoryDataPlugin : IInventoryDataPlugin
     {
-        public TestCommunicationsManager()
-            : base(null, null, null, false, null)
-        {
-            LocalUserServices lus = new LocalUserServices(null, 991, 992, null);
-            m_userService = lus;
-            m_userServiceAdmin = lus;
-            
-            LocalInventoryService lis = new LocalInventoryService();
-            m_interServiceInventoryService = lis;
-            AddInventoryService(lis);
-        }
+        public string Version { get { return "0"; } }
+        public string Name { get { return "TestInventoryDataPlugin"; } }
+
+        public void Initialise() {}
+        public void Initialise(string connect) {}
+        public void Dispose() {}
+
+        public List<InventoryFolderBase> getFolderHierarchy(UUID parentID) { return null; } 
+        public List<InventoryItemBase> getInventoryInFolder(UUID folderID) { return null; }
+        public List<InventoryFolderBase> getUserRootFolders(UUID user) { return null; }
+        public InventoryFolderBase getUserRootFolder(UUID user) { return null; }
+        public List<InventoryFolderBase> getInventoryFolders(UUID parentID) { return null; }
+        public InventoryItemBase getInventoryItem(UUID item) { return null; }
+        public InventoryFolderBase getInventoryFolder(UUID folder) { return null; }
+        public void addInventoryItem(InventoryItemBase item) {}
+        public void updateInventoryItem(InventoryItemBase item) {}
+        public void deleteInventoryItem(UUID item) {}
+        public void addInventoryFolder(InventoryFolderBase folder) {}
+        public void updateInventoryFolder(InventoryFolderBase folder) {}
+        public void moveInventoryFolder(InventoryFolderBase folder) {}
+        public void deleteInventoryFolder(UUID folder) {}
+        public List<InventoryItemBase> fetchActiveGestures(UUID avatarID) { return null; }          
     }
 }

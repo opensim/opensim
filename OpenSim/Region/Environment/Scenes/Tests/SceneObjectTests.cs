@@ -102,9 +102,11 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
             
             ((LocalUserServices)scene.CommsManager.UserService).AddPlugin(new TestUserDataPlugin());
-//            Assert.That(
-//                scene.CommsManager.AddUser("Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
-//                Is.EqualTo(agentId));  
+            ((LocalInventoryService)scene.CommsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());
+            
+            Assert.That(
+                scene.CommsManager.AddUser("Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
+                Is.EqualTo(agentId));  
             
             IClientAPI client = SceneTestUtils.AddRootAgent(scene, agentId);
             scene.DeRezObject(client, part.LocalId, UUID.Zero, 9, UUID.Zero);
@@ -116,8 +118,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
             Assert.That(retrievedPart2, Is.Null);
                                     
-//            CachedUserInfo userInfo = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentId);
-//            Assert.That(userInfo, Is.Not.Null);
+            CachedUserInfo userInfo = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentId);
+            Assert.That(userInfo, Is.Not.Null);
             
             // TODO: test that the object actually made it successfully into inventory
         }

@@ -39,7 +39,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
     public class TestUserDataPlugin : IUserDataPlugin
     {        
         public string Version { get { return "0"; } }
-
         public string Name { get { return "TestUserDataPlugin"; } }
 
         /// <summary>
@@ -53,7 +52,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         private Dictionary<UUID, UserProfileData> m_userProfilesByUuid = new Dictionary<UUID, UserProfileData>();
 
         public void Initialise() {}
-        
         public void Dispose() {}
         
         public void AddNewUserProfile(UserProfileData user) 
