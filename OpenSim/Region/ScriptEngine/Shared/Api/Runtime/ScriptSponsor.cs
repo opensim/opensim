@@ -14,5 +14,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Runtime
         {
             return TimeSpan.FromMinutes(2);
         }
+#if DEBUG
+        // For tracing GC while debugging
+        public static bool GCDummy = false;
+        ~ScriptSponsor()
+        {
+            GCDummy = true;
+        }
+#endif
     }
 }

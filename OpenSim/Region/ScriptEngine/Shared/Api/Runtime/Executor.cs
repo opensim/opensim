@@ -205,13 +205,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                 //
                 if ( !(tie.InnerException is EventAbortException) )
                 {
-                    throw tie;
+                    throw;
                 }
             }
-            catch (Exception e)
-            {
-                throw e;
-            }
+
         }
 
         protected void initEventFlags()

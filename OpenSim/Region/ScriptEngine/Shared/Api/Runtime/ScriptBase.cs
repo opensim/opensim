@@ -39,7 +39,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
     public partial class ScriptBaseClass : MarshalByRefObject, IScript
     {
-        private Dictionary<string,MethodInfo> inits = new Dictionary<string,MethodInfo>();
+        private Dictionary<string, MethodInfo> inits = new Dictionary<string, MethodInfo>();
 
         // Object expires if we don't keep it alive
         // sponsor will be added on object load
@@ -50,25 +50,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             ILease lease = (ILease)base.InitializeLifetimeService();
             if (lease.CurrentState == LeaseState.Initial)
             {
+                //lease.InitialLeaseTime = TimeSpan.Zero;
                 lease.InitialLeaseTime = TimeSpan.FromMinutes(1);
                 lease.SponsorshipTimeout = TimeSpan.FromMinutes(2);
                 lease.RenewOnCallTime = TimeSpan.FromSeconds(2);
             }
             return lease;
         }
+#if DEBUG
+        // For tracing GC while debugging
+        public static bool GCDummy = false;
+        ~ScriptBaseClass()
+        {
+            GCDummy = true;
+        }
+#endif
+
 
         public ScriptBaseClass()
         {
             m_Executor = new Executor(this);
 
-            MethodInfo[] myArrayMethodInfo = GetType().GetMethods(BindingFlags.Public|BindingFlags.Instance);
+            MethodInfo[] myArrayMethodInfo = GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance);
 
             foreach (MethodInfo mi in myArrayMethodInfo)
             {
                 if (mi.Name.Length > 7 && mi.Name.Substring(0, 7) == "ApiType")
                 {
-                    string type=mi.Name.Substring(7);
-                    inits[type]=mi;
+                    string type = mi.Name.Substring(7);
+                    inits[type] = mi;
                 }
             }
         }
@@ -130,7 +140,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
             foreach (FieldInfo field in fields)
             {
-                m_Fields[field.Name]=field;
+                m_Fields[field.Name] = field;
 
                 if (field.FieldType == typeof(LSL_Types.list)) // ref type, copy
                 {
@@ -141,7 +151,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                     c.Data = data;
                     vars[field.Name] = c;
                 }
-                else if (field.FieldType == typeof(LSL_Types.LSLInteger) || 
+                else if (field.FieldType == typeof(LSL_Types.LSLInteger) ||
                         field.FieldType == typeof(LSL_Types.LSLString) ||
                         field.FieldType == typeof(LSL_Types.LSLFloat) ||
                         field.FieldType == typeof(Int32) ||
@@ -174,7 +184,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                         Array.Copy(data, 0, v.Data, 0, data.Length);
                         m_Fields[var.Key].SetValue(this, v);
                     }
-                    else if (m_Fields[var.Key].FieldType == typeof(LSL_Types.LSLInteger) || 
+                    else if (m_Fields[var.Key].FieldType == typeof(LSL_Types.LSLInteger) ||
                             m_Fields[var.Key].FieldType == typeof(LSL_Types.LSLString) ||
                             m_Fields[var.Key].FieldType == typeof(LSL_Types.LSLFloat) ||
                             m_Fields[var.Key].FieldType == typeof(Int32) ||
