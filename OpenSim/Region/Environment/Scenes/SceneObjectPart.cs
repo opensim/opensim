@@ -3404,7 +3404,7 @@ if (m_shape != null) {
                     return;
 
                 lPos = ParentGroup.RootPart.AttachedPos;
-                state = AttachmentPoint;
+                state = (byte)AttachmentPoint;
             }
             else
             {
