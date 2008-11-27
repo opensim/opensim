@@ -134,7 +134,7 @@ namespace OpenSim.Grid.UserServer
                 m_userManager, m_interServiceInventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
         }
 
-        protected void AddHttpHandlers()
+        protected virtual void AddHttpHandlers()
         {
             m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
 
