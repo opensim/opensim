@@ -991,5 +991,15 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public void SendTerminateFriend(UUID exFriendID)
         {
         }
+
+        #region IClientAPI Members
+
+
+        public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

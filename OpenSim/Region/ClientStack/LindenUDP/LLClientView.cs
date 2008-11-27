@@ -93,6 +93,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
         protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>();
+        protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
 
         protected IScene m_scene;
 
@@ -602,6 +603,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!m_packetHandlers.ContainsKey(packetType))
                 {
                     m_packetHandlers.Add(packetType, handler);
+                    result = true;
+                }
+            }
+            return result;
+        }
+
+        public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
+        {
+            bool result = false;
+            lock (m_genericPacketHandlers)
+            {
+                if (!m_genericPacketHandlers.ContainsKey(MethodName))
+                {
+                    m_genericPacketHandlers.Add(MethodName, handler);
                     result = true;
                 }
             }
@@ -3457,21 +3472,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public bool HandleGenericMessage(IClientAPI sender, Packet pack)
         {
             GenericMessagePacket gmpack = (GenericMessagePacket) pack;
-            handlerGenericMessage = OnGenericMessage;
-
-            List<string> msg = new List<string>();
-
-            if (handlerGenericMessage != null)
+            if (m_genericPacketHandlers.Count == 0) return false;
+            handlerGenericMessage = null;
+            string method = Util.FieldToString(gmpack.MethodData.Method).ToLower().Trim();
+            if(m_genericPacketHandlers.TryGetValue(method, out handlerGenericMessage))
             {
-                string method = Util.FieldToString(gmpack.MethodData.Method);
-                foreach (GenericMessagePacket.ParamListBlock block in gmpack.ParamList)
-                {
-                    msg.Add(Util.FieldToString(block.Parameter));
-                }
+                List<string> msg = new List<string>();
 
-                handlerGenericMessage(this, method, msg);
+                if (handlerGenericMessage != null)
+                {
+                    foreach (GenericMessagePacket.ParamListBlock block in gmpack.ParamList)
+                    {
+                        msg.Add(Util.FieldToString(block.Parameter));
+                    }
+                    try
+                    {
+                        handlerGenericMessage(sender, method, msg);
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                }
             }
-            return true;
+            return false;
         }
 
         public bool HandleObjectGroupRequest(IClientAPI sender, Packet Pack)
@@ -3965,12 +3989,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                     #region Scene/Avatar
 
-                case PacketType.GenericMessage:
-                    GenericMessagePacket gmpack = (GenericMessagePacket)Pack;
+                      //                case PacketType.GenericMessage:
+                      //                    GenericMessagePacket gmpack = (GenericMessagePacket)Pack;
 
-                    DecipherGenericMessage(Utils.BytesToString(gmpack.MethodData.Method), gmpack.MethodData.Invoice, gmpack.ParamList);
+                      //                    DecipherGenericMessage(Utils.BytesToString(gmpack.MethodData.Method), gmpack.MethodData.Invoice, gmpack.ParamList);
 
-                    break;
+                      //                    break;
                 case PacketType.AvatarPropertiesRequest:
                     AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
 

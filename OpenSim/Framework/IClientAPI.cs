@@ -1045,5 +1045,7 @@ namespace OpenSim.Framework
         void SendTerminateFriend(UUID exFriendID);
 
         void KillEndDone();
+
+        bool AddGenericPacketHandler(string MethodName, GenericMessage handler);
     }
 }

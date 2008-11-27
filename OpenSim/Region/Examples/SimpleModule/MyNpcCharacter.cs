@@ -991,5 +991,15 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendTerminateFriend(UUID exFriendID)
         {
         }
+
+        #region IClientAPI Members
+
+
+        public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

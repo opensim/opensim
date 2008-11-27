@@ -939,5 +939,11 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         public void SendTerminateFriend(UUID exFriendID)
         {
         }
+
+        public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

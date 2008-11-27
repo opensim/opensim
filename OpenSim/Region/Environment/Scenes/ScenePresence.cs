@@ -175,6 +175,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         private string m_nextSitAnimation = String.Empty;
 
+        //PauPaw:Proper PID Controler for autopilot************
+        private bool m_moveToPositionInProgress = false;
+        private Vector3 m_moveToPositionTarget = Vector3.Zero;
+        private int m_moveToPositionStateStatus = 0;
+        //*****************************************************
+
         // Agent's Draw distance.
         protected float m_DrawDistance = 0f;
 
@@ -550,6 +556,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient.OnStopAnim += HandleStopAnim;
             m_controllingClient.OnForceReleaseControls += HandleForceReleaseControls;
             m_controllingClient.OnAutoPilotGo += DoAutoPilot;
+            m_controllingClient.AddGenericPacketHandler("autopilot", DoMoveToPosition);
 
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             // ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -1063,10 +1070,13 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (m_parentID == 0)
                 {
+                    bool bAllowUpdateMoveToPosition = false;
+                    bool bResetMoveToPosition = false;
                     foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof (Dir_ControlFlags)))
                     {
                         if ((flags & (uint) DCF) != 0)
                         {
+                            bResetMoveToPosition = true;
                             DCFlagKeyPressed = true;
                             try
                             {
@@ -1090,8 +1100,99 @@ namespace OpenSim.Region.Environment.Scenes
                                 m_movementflag -= (byte) (uint) DCF;
                                 update_movementflag = true;
                             }
+                            else
+                            {
+                                bAllowUpdateMoveToPosition = true;
+                            }
                         }
                         i++;
+                    }
+
+                    //Paupaw:Do Proper PID for Autopilot here
+                    if (bResetMoveToPosition)
+                    {
+                        m_moveToPositionTarget = Vector3.Zero;
+                        m_moveToPositionInProgress = false;
+                        update_movementflag = true;
+                        bAllowUpdateMoveToPosition = false;
+                    }
+
+                    if (bAllowUpdateMoveToPosition && (m_moveToPositionInProgress && !m_autopilotMoving))
+                    {
+                        //Check the error term of the current position in relation to the target position
+                        if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 1.5)
+                        {
+                            // we are close enough to the target
+                            m_moveToPositionTarget = Vector3.Zero;
+                            m_moveToPositionInProgress = false;
+                            update_movementflag = true;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                // move avatar in 2D at one meter/second towards target, in avatar coordinate frame.
+                                // This movement vector gets added to the velocity through AddNewMovement().
+                                // Theoretically we might need a more complex PID approach here if other 
+                                // unknown forces are acting on the avatar and we need to adaptively respond
+                                // to such forces, but the following simple approach seems to works fine.
+                                Vector3 LocalVectorToTarget3D =
+                                    (m_moveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
+                                    * Matrix4.CreateFromQuaternion(Quaternion.Inverse(bodyRotation)); // change to avatar coords
+                                // Ignore z component of vector
+                                Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
+                                LocalVectorToTarget2D.Normalize();
+                                agent_control_v3 += LocalVectorToTarget2D;
+
+                                // update avatar movement flags. the avatar coordinate system is as follows:
+                                //
+                                //                        +X (forward)
+                                //
+                                //                        ^
+                                //                        |
+                                //                        |
+                                //                        |
+                                //                        |
+                                //     (left) +Y <--------o--------> -Y
+                                //                       avatar
+                                //                        |
+                                //                        |
+                                //                        |
+                                //                        |
+                                //                        v
+                                //                        -X
+                                //
+
+                                // based on the above avatar coordinate system, classify the movement into 
+                                // one of left/right/back/forward.
+                                if (LocalVectorToTarget2D.Y > 0)//MoveLeft
+                                {
+                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
+                                    update_movementflag = true;
+                                }
+                                else if (LocalVectorToTarget2D.Y < 0) //MoveRight
+                                {
+                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
+                                    update_movementflag = true;
+                                }
+                                if (LocalVectorToTarget2D.X < 0) //MoveBack
+                                {
+                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                                    update_movementflag = true;
+                                }
+                                else if (LocalVectorToTarget2D.X > 0) //Move Forward
+                                {
+                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                                    update_movementflag = true;
+                                }
+                            }
+                            catch (Exception)
+                            {
+
+                                //Avoid system crash, can be slower but...
+                            }
+
+                        }
                     }
                 }
                 
@@ -1156,6 +1257,37 @@ namespace OpenSim.Region.Environment.Scenes
 //                m_autoPilotTarget = Vector3.Zero;
 //                ControllingClient.SendAlertMessage("Autopilot cancelled");
 //            }
+        }
+
+        public void DoMoveToPosition(Object sender, string method, List<String> args)
+        {
+            try
+            {
+                float locx = 0f;
+                float locy = 0f;
+                float locz = 0f;
+                uint regionX = 0;
+                uint regionY = 0;
+                try
+                {
+                    Utils.LongToUInts(Scene.RegionInfo.RegionHandle, out regionX, out regionY);
+                    locx = Convert.ToSingle(args[0]) - (float)regionX;
+                    locy = Convert.ToSingle(args[1]) - (float)regionY;
+                    locz = Convert.ToSingle(args[2]);
+                }
+                catch (InvalidCastException)
+                {
+                    m_log.Error("[CLIENT]: Invalid autopilot request");
+                    return;
+                }
+                m_moveToPositionInProgress = true;
+                m_moveToPositionTarget = new Vector3(locx, locy, locz);
+            }
+            catch (Exception ex)
+            {
+                //Why did I get this error?
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+            }
         }
 
         private void CheckAtSitTarget()
