@@ -97,7 +97,6 @@ namespace OpenSim.Data.MySQL
                     {
                         errorSeen = true;
                         continue;
-                        continue;
                     }
                     throw;
                 }

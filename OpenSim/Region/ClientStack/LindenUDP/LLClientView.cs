@@ -3490,7 +3490,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerGenericMessage(sender, method, msg);
                         return true;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                     }
                 }

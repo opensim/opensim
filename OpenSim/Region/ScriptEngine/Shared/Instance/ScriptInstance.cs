@@ -83,7 +83,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private int m_ControlEventsInQueue = 0;
         private int m_LastControlLevel = 0;
         private bool m_CollisionInQueue = false;
-        private ISponsor m_ScriptSponsor;
+        //private ISponsor m_ScriptSponsor;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 m_LineMap;
 
@@ -213,7 +213,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 ISponsor scriptSponsor = new ScriptSponsor();
                 ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as MarshalByRefObject);
                 lease.Register(scriptSponsor);
-                m_ScriptSponsor = scriptSponsor;
+                //m_ScriptSponsor = scriptSponsor;
 
             }
             catch (Exception e)
