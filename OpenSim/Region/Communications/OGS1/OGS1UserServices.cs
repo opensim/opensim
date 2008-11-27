@@ -43,11 +43,11 @@ namespace OpenSim.Region.Communications.OGS1
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private CommunicationsManager m_parent;
+        private CommunicationsManager m_commsManager;
 
-        public OGS1UserServices(CommunicationsManager parent)
+        public OGS1UserServices(CommunicationsManager commsManager)
         {
-            m_parent = parent;
+            m_commsManager = commsManager;
         }
 
         public UserProfileData ConvertXMLRPCDataToUserProfile(Hashtable data)
@@ -121,7 +121,7 @@ namespace OpenSim.Region.Communications.OGS1
                IList parameters = new ArrayList();
                parameters.Add(param);
                XmlRpcRequest req = new XmlRpcRequest("get_agent_by_uuid", parameters);
-               XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 6000);
+               XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 6000);
                Hashtable respData = (Hashtable) resp.Value;
                if (respData.Contains("error_type"))
                {
@@ -258,7 +258,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             try
             {
-                req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                req.Send(m_commsManager.NetworkServersInfo.UserURL, 3000);
             }
             catch (WebException)
             {
@@ -297,7 +297,7 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_avatar_picker_avatar", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 3000);
                 Hashtable respData = (Hashtable) resp.Value;
                 pickerlist = ConvertXMLRPCDataToAvatarPickerList(queryID, respData);
             }
@@ -324,7 +324,7 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_by_name", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 30000);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);
                 Hashtable respData = (Hashtable) resp.Value;
 
                 return ConvertXMLRPCDataToUserProfile(respData);
@@ -353,7 +353,7 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_by_uuid", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 30000);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);
                 Hashtable respData = (Hashtable) resp.Value;
 
                 return ConvertXMLRPCDataToUserProfile(respData);
@@ -454,7 +454,7 @@ namespace OpenSim.Region.Communications.OGS1
             parameters.Add(param);
 
             XmlRpcRequest req = new XmlRpcRequest("update_user_profile", parameters);
-            XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+            XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 3000);
             Hashtable respData = (Hashtable)resp.Value;
             if (respData != null)
             {
@@ -500,7 +500,7 @@ namespace OpenSim.Region.Communications.OGS1
                 parameters.Add(param);
 
                 XmlRpcRequest req = new XmlRpcRequest("add_new_user_friend", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 3000);
                 Hashtable respData = (Hashtable)resp.Value;
                 if (respData != null)
                 {
@@ -552,7 +552,7 @@ namespace OpenSim.Region.Communications.OGS1
                 parameters.Add(param);
 
                 XmlRpcRequest req = new XmlRpcRequest("remove_user_friend", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 3000);
                 Hashtable respData = (Hashtable)resp.Value;
                 if (respData != null)
                 {
@@ -604,7 +604,7 @@ namespace OpenSim.Region.Communications.OGS1
                 parameters.Add(param);
 
                 XmlRpcRequest req = new XmlRpcRequest("update_user_friend_perms", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 3000);
                 Hashtable respData = (Hashtable)resp.Value;
                 if (respData != null)
                 {
@@ -652,7 +652,7 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_friend_list", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 8000);
                 Hashtable respData = (Hashtable) resp.Value;
 
                 if (respData.Contains("avcount"))
@@ -686,14 +686,14 @@ namespace OpenSim.Region.Communications.OGS1
             }
             map["uuids"] = list;
 
-            map["recv_key"] = m_parent.NetworkServersInfo.UserRecvKey;
-            map["send_key"] = m_parent.NetworkServersInfo.UserSendKey;
+            map["recv_key"] = m_commsManager.NetworkServersInfo.UserRecvKey;
+            map["send_key"] = m_commsManager.NetworkServersInfo.UserSendKey;
 
             parameters.Add(map);
 
             try {
                 XmlRpcRequest req = new XmlRpcRequest("get_presence_info_bulk", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.MessagingURL, 8000);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.MessagingURL, 8000);
                 Hashtable respData = resp != null ? (Hashtable) resp.Value : null;
 
                 if (respData == null || respData.ContainsKey("faultMessage"))
@@ -762,7 +762,7 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_avatar_appearance", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 8000);
                 Hashtable respData = (Hashtable) resp.Value;
 
                 return ConvertXMLRPCDataToAvatarAppearance(respData);
@@ -785,7 +785,7 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("update_avatar_appearance", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 8000);
                 Hashtable respData = (Hashtable) resp.Value;
 
                 if (respData != null)
