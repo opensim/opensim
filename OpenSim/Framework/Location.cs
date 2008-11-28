@@ -86,6 +86,16 @@ namespace OpenSim.Framework
             return X == x && y == Y;
         }
 
+        public static bool operator ==(Location o, object o2)
+        {
+            return o.Equals(o2);
+        }
+
+        public static bool operator !=(Location o, object o2)
+        {
+            return !o.Equals(o2);
+        }
+
         public override int GetHashCode()
         {
             return X.GetHashCode() * 29 + Y.GetHashCode();

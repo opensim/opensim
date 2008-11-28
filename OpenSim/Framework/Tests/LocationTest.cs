@@ -45,6 +45,22 @@ namespace OpenSim.Framework.Tests
             Location TestLocation1 = new Location(1099511628032000);
             Location TestLocation2 = new Location(1099511628032000);
             Assert.That(TestLocation1 == TestLocation2);
+
+            TestLocation1 = new Location(1099511628032001);
+            TestLocation2 = new Location(1099511628032000);
+            Assert.That(TestLocation1 != TestLocation2);
+        }
+
+        [Test]
+        public void locationXYRegionHandle()
+        {
+            Location TestLocation1 = new Location(256000,256000);
+            Location TestLocation2 = new Location(1099511628032000);
+            Assert.That(TestLocation1 == TestLocation2);
+
+            TestLocation1 = new Location(256001, 256001);
+            TestLocation2 = new Location(1099511628032000);
+            Assert.That(TestLocation1 != TestLocation2);
         }
         
     }

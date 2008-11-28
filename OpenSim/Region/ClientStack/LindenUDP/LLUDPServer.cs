@@ -106,8 +106,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool HandlesRegion(Location x)
         {
-            return x.RegionHandle == m_location.RegionHandle;
-            //return x == m_location;
+            //return x.RegionHandle == m_location.RegionHandle;
+            return x == m_location;
         }
 
         public void AddScene(Scene x)
