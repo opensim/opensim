@@ -2146,6 +2146,11 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);
 
+                // Force allocation of new LocalId
+                //
+                foreach (SceneObjectPart p in sceneObject.Children.Values)
+                    p.LocalId = 0;
+
                 AddRestoredSceneObject(sceneObject, true, false);
 
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
@@ -2184,6 +2189,9 @@ namespace OpenSim.Region.Environment.Scenes
                                     // hack assetID until we get assetID into the XML format.
                                     // LastOwnerID is used for group deeding, so when you do stuff
                                     // with the deeded object, it goes back to them
+
+                                    foreach (SceneObjectPart prim in grp.Children.Values)
+                                        prim.ParentID = sp.LocalId;
 
                                     grp.SetFromAssetID(grp.RootPart.LastOwnerID);
                                     m_log.DebugFormat("[ATTACHMENT]: Attach to avatar {0}", sp.UUID.ToString());

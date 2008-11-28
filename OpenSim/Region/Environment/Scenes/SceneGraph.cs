@@ -1440,7 +1440,12 @@ namespace OpenSim.Region.Environment.Scenes
                 if (ent is SceneObjectGroup)
                 {
                     SceneObjectGroup obj = (SceneObjectGroup)ent;
-                    sceneObjects.Add(obj.LocalId, obj);
+                    // Nasty one. Can't unlink anything in the sim
+                    // If a duplicate local ID sneaks in
+                    // So, check it here!
+                    //
+                    if (!sceneObjects.ContainsKey(obj.LocalId))
+                        sceneObjects.Add(obj.LocalId, obj);
 
                 }
             }
