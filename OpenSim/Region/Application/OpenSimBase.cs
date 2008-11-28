@@ -484,6 +484,8 @@ namespace OpenSim
 
             for (int i = 0; i < m_clientServers.Count; i++)
             {
+                //--> Melanie, the following needs to be fixed
+                // the Equals override is not returning true if the locations are actually equal
                 if (m_clientServers[i].HandlesRegion(new Location(whichRegion.RegionHandle)))
                 {
                     clientServerElement = i;

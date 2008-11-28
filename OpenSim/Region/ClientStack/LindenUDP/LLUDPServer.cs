@@ -106,7 +106,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool HandlesRegion(Location x)
         {
-            return x == m_location;
+            return x.RegionHandle == m_location.RegionHandle;
+            //return x == m_location;
         }
 
         public void AddScene(Scene x)
@@ -306,6 +307,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // the next set of UDP data is for a valid client.         
                 ResetServerEndPoint(e);
             }
+            catch (System.ObjectDisposedException)
+            {
+                m_log.Info("[UDPSERVER]: UDP Object disposed.   No need to worry about this if you're restarting the simulator.");
+            }
+            
         }       
 
         /// <summary>
