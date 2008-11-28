@@ -40,7 +40,19 @@ namespace OpenSim.Framework
         Crashed = 2,
         Starting = 3,
         SlaveScene = 4
-    } ;
+    };
+            
+    /// <value>
+    /// Indicate what action to take on an object derez request
+    /// </value>
+    public enum DeRezAction : byte
+    {
+        TakeCopy = 1,
+        Take = 4,
+        GodTakeCopy = 5,
+        Delete = 6,
+        Return = 9
+    };     
 
     public interface IScene
     {

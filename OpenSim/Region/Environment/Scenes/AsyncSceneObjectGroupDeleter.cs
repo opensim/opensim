@@ -38,7 +38,7 @@ namespace OpenSim.Region.Environment.Scenes
 {        
     class DeleteToInventoryHolder
     {
-        public int destination;
+        public DeRezAction action;
         public IClientAPI remoteClient;
         public SceneObjectGroup objectGroup;
         public UUID folderID;
@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Delete the given object from the scene
         /// </summary>
-        public void DeleteToInventory(int destination, UUID folderID,
+        public void DeleteToInventory(DeRezAction action, UUID folderID,
                 SceneObjectGroup objectGroup, IClientAPI remoteClient, 
                 bool permissionToDelete)
         {
@@ -84,7 +84,7 @@ namespace OpenSim.Region.Environment.Scenes
             lock (m_inventoryDeletes)
             {
                 DeleteToInventoryHolder dtis = new DeleteToInventoryHolder();
-                dtis.destination = destination;
+                dtis.action = action;
                 dtis.folderID = folderID;
                 dtis.objectGroup = objectGroup;
                 dtis.remoteClient = remoteClient;
@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         try
                         {
-                            m_scene.DeleteToInventory(x.destination, x.folderID, x.objectGroup, x.remoteClient);                            
+                            m_scene.DeleteToInventory(x.action, x.folderID, x.objectGroup, x.remoteClient);                            
                             if (x.permissionToDelete)
                                 m_scene.DeleteSceneObject(x.objectGroup, false);                            
                         }
@@ -149,7 +149,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 // We can't put the object group details in here since the root part may have disappeared (which is where these sit).
                 // FIXME: This needs to be fixed.

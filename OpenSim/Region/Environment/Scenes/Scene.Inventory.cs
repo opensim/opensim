@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment.Scenes
     public partial class Scene
     {
         private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);   
         
         /// <summary>
         /// Allows asynchronous derezzing of objects from the scene into a client's inventory.
@@ -1543,10 +1543,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Called when an object is removed from the environment into inventory.
         /// </summary>
-        /// <param name="packet"></param>
         /// <param name="remoteClient"></param>
+        /// <param name="localID"></param>
+        /// <param name="groupID"></param>
+        /// <param name="action"></param>
+        /// <param name="destinationID"></param>
         public virtual void DeRezObject(IClientAPI remoteClient, uint localID,
-                UUID groupID, byte destination, UUID destinationID)
+                UUID groupID, DeRezAction action, UUID destinationID)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
             if (part == null)
@@ -1564,20 +1567,20 @@ namespace OpenSim.Region.Environment.Scenes
             bool permissionToTake = false;
             bool permissionToDelete = false;
 
-            if (destination == 1) // Take Copy
+            if (action == DeRezAction.TakeCopy)
             {
                 permissionToTake =
                         Permissions.CanTakeCopyObject(
                         grp.UUID,
                         remoteClient.AgentId);
             }
-            else if (destination == 5) // God take copy
+            else if (action == DeRezAction.GodTakeCopy)
             {
                 permissionToTake =
                         Permissions.IsGod(
                         remoteClient.AgentId);
             }
-            else if (destination == 4) // Take
+            else if (action == DeRezAction.Take)
             {
                 permissionToTake =
                         Permissions.CanTakeObject(
@@ -1587,7 +1590,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //If they can take, they can delete!
                 permissionToDelete = permissionToTake;
             }
-            else if (destination == 6) //Delete
+            else if (action == DeRezAction.Delete)
             {
                 permissionToTake =
                         Permissions.CanDeleteObject(
@@ -1598,7 +1601,7 @@ namespace OpenSim.Region.Environment.Scenes
                         grp.UUID,
                         remoteClient.AgentId);
             }
-            else if (destination == 9) //Return
+            else if (action == DeRezAction.Return)
             {
                 if (remoteClient != null)
                 {
@@ -1625,7 +1628,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (permissionToTake)
             {
                 m_asyncSceneObjectDeleter.DeleteToInventory(
-                        destination, destinationID, grp, remoteClient,
+                        action, destinationID, grp, remoteClient,
                         permissionToDelete);
             }
             else if (permissionToDelete)
@@ -1638,13 +1641,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// Delete a scene object from a scene and place in the given avatar's inventory.
         /// Returns the UUID of the newly created asset.
         /// </summary>
-        /// <param name="DeRezPacket"></param>
-        /// <param name="selectedEnt"></param>
-        /// <param name="remoteClient"> </param>
-        /// <param name="objectGroup"></param>
+        /// <param name="action"></param>
         /// <param name="folderID"></param>
-        /// <param name="permissionToDelete"></param>
-        public virtual UUID DeleteToInventory(int destination, UUID folderID,
+        /// <param name="objectGroup"></param> 
+        /// <param name="remoteClient"> </param>        
+        public virtual UUID DeleteToInventory(DeRezAction action, UUID folderID,
                 SceneObjectGroup objectGroup, IClientAPI remoteClient)
         {
             UUID assetID = UUID.Zero;
@@ -1671,7 +1672,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // If we're returning someone's item, it goes back to the
                 // owner's Lost And Found folder.
 
-                if (folderID == UUID.Zero || (destination == 6 &&
+                if (folderID == UUID.Zero || (action == DeRezAction.Delete &&
                         objectGroup.OwnerID != remoteClient.AgentId))
                 {
                     InventoryFolderBase folder =
@@ -1708,8 +1709,7 @@ namespace OpenSim.Region.Environment.Scenes
                 InventoryItemBase item = new InventoryItemBase();
                 item.Creator = objectGroup.RootPart.CreatorID;
 
-                if (destination == 1 ||
-                        destination == 4)// Take / Copy
+                if (action == DeRezAction.TakeCopy || action == DeRezAction.Take)
                     item.Owner = remoteClient.AgentId;
                 else // Delete / Return
                     item.Owner = objectGroup.OwnerID;
@@ -2215,7 +2215,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AddReturn(grp.OwnerID, grp.Name, grp.AbsolutePosition, "parcel owner return");
                 DeRezObject(null, grp.RootPart.LocalId,
-                        grp.RootPart.GroupID, 9, UUID.Zero);
+                        grp.RootPart.GroupID, DeRezAction.Return, UUID.Zero);
             }
             return true;
         }

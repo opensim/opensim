@@ -4162,9 +4162,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         foreach (DeRezObjectPacket.ObjectDataBlock data in
                             DeRezPacket.ObjectData)
                         {
+                            // It just so happens that the values on the DeRezAction enumerator match the Destination 
+                            // values given by a Second Life client 
                             handlerDeRezObject(this, data.ObjectLocalID,
                                                DeRezPacket.AgentBlock.GroupID,
-                                               DeRezPacket.AgentBlock.Destination,
+                                               (DeRezAction)DeRezPacket.AgentBlock.Destination,
                                                DeRezPacket.AgentBlock.DestinationID);
                         }
                     }

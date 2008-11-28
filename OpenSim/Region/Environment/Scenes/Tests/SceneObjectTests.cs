@@ -110,7 +110,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
                 Is.EqualTo(agentId));  
             
             IClientAPI client = SceneTestUtils.AddRootAgent(scene, agentId);
-            scene.DeRezObject(client, part.LocalId, UUID.Zero, 9, UUID.Zero);
+            scene.DeRezObject(client, part.LocalId, UUID.Zero, DeRezAction.Return, UUID.Zero);
             
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
             Assert.That(retrievedPart, Is.Not.Null);

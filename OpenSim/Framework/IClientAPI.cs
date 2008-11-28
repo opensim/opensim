@@ -20,7 +20,7 @@
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORTOn
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
@@ -33,7 +33,6 @@ using OpenMetaverse.Packets;
 
 namespace OpenSim.Framework
 {
-
     #region Client API Delegate definitions
 
     public delegate void ViewerEffectEventHandler(IClientAPI sender, List<ViewerEffectEventHandlerArg> args);
@@ -98,7 +97,7 @@ namespace OpenSim.Framework
     public delegate void GenericCall4(Packet packet, IClientAPI remoteClient);
 
     public delegate void DeRezObject(
-        IClientAPI remoteClient, uint localID, UUID groupID, byte destination, UUID destinationID);
+        IClientAPI remoteClient, uint localID, UUID groupID, DeRezAction action, UUID destinationID);
 
     public delegate void GenericCall5(IClientAPI remoteClient, bool status);
 

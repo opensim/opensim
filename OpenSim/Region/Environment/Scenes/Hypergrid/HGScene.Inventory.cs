@@ -102,9 +102,9 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
         ///
         /// DeleteToInventory
         ///
-        public override UUID DeleteToInventory(int destination, UUID folderID, SceneObjectGroup objectGroup, IClientAPI remoteClient)
+        public override UUID DeleteToInventory(DeRezAction action, UUID folderID, SceneObjectGroup objectGroup, IClientAPI remoteClient)
         {
-            UUID assetID = base.DeleteToInventory(destination, folderID, objectGroup, remoteClient);
+            UUID assetID = base.DeleteToInventory(action, folderID, objectGroup, remoteClient);
 
             if (!assetID.Equals(UUID.Zero))
             {
