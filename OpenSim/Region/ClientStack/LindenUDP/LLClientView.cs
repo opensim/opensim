@@ -773,7 +773,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientPingTimer.Elapsed += CheckClientConnectivity;
             m_clientPingTimer.Enabled = true;
 
-            m_scene.AddNewClient(this, true);
+            m_scene.AddNewClient(this);
 
             RefreshGroupMembership();
         }

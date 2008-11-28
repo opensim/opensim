@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             agent.CapsPath = "http://wibble.com";
             
             scene.NewUserConnection(agent);
-            scene.AddNewClient(new TestClient(agent), false);
+            scene.AddNewClient(new TestClient(agent));
             
             ScenePresence presence = scene.GetScenePresence(agentId);
             

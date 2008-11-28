@@ -63,7 +63,7 @@ namespace OpenSim.Framework
         ClientManager ClientManager { get; }
         event restart OnRestart;
 
-        void AddNewClient(IClientAPI client, bool child);
+        void AddNewClient(IClientAPI client);
         void RemoveClient(UUID agentID);
         void CloseAllAgents(uint circuitcode);
 

@@ -97,9 +97,16 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             agent.startpos = Vector3.Zero;
             agent.CapsPath = "http://wibble.com";
             
+            // We emulate the proper login sequence here by doing things in three stages            
+            // Stage 1: simulate login by telling the scene to expect a new user connection
             scene.NewUserConnection(agent);
+            
+            // Stage 2: add the new client as a child agent to the scene
             IClientAPI client = new TestClient(agent);
-            scene.AddNewClient(client, true);
+            scene.AddNewClient(client);
+            
+            // Stage 3: Invoke agent crossing, which converts the child agent into a root agent (with appearance,
+            // inventory, etc.)
             scene.AgentCrossing(agent.AgentID, new Vector3(90, 90, 90), false);
             
             return client;

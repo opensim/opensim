@@ -2229,7 +2229,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Add/Remove Avatar Methods
 
-        public override void AddNewClient(IClientAPI client, bool child)
+        public override void AddNewClient(IClientAPI client)
         {
             SubscribeToClientEvents(client);
             ScenePresence presence;
@@ -2261,12 +2261,12 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.DebugFormat(
-                    "[SCENE]: Adding new {0} agent {1} {2} in {3}",
-                    (child ? "child" : "root"), client.Name, client.AgentId, RegionInfo.RegionName);
+                    "[SCENE]: Adding new child agent {0} for new user connection in {1}",
+                    client.Name, RegionInfo.RegionName);
 
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
 
-                CreateAndAddScenePresence(client, child);
+                CreateAndAddScenePresence(client);
             }
             
             m_LastLogin = System.Environment.TickCount;
@@ -2547,17 +2547,16 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Create a scene presence and add it to this scene.
+        /// Create a child agent scene presence and add it to this scene.
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="child"></param>
         /// <returns></returns>
-        protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child)
+        protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client)
         {
             AvatarAppearance appearance = null;
             GetAvatarAppearance(client, out appearance);
 
-            ScenePresence avatar = m_sceneGraph.CreateAndAddScenePresence(client, child, appearance);
+            ScenePresence avatar = m_sceneGraph.CreateAndAddChildScenePresence(client, appearance);
 
             return avatar;
         }

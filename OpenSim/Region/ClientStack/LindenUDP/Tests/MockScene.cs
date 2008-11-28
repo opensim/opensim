@@ -51,7 +51,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public override void Update() {}
         public override void LoadWorldMap() {}
         
-        public override void AddNewClient(IClientAPI client, bool child) 
+        public override void AddNewClient(IClientAPI client) 
         {
             client.OnObjectName += RecordObjectNameCall;
         }

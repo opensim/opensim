@@ -574,12 +574,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        protected internal ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child, AvatarAppearance appearance)
+        protected internal ScenePresence CreateAndAddChildScenePresence(IClientAPI client, AvatarAppearance appearance)
         {
             ScenePresence newAvatar = null;
 
             newAvatar = new ScenePresence(client, m_parentScene, m_regInfo, appearance);
-            newAvatar.IsChildAgent = child;
+            newAvatar.IsChildAgent = true;
 
             AddScenePresence(newAvatar);
 
