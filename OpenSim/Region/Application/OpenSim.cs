@@ -170,14 +170,15 @@ namespace OpenSim
         }
 
         /// <summary>
-        ///
+        /// Run an optional startup list of commands
         /// </summary>
         /// <param name="fileName"></param>
         private void RunCommandScript(string fileName)
-        {
-            m_log.Info("[COMMANDFILE]: Running " + fileName);
+        {                        
             if (File.Exists(fileName))
             {
+                m_log.Info("[COMMANDFILE]: Running " + fileName);
+                
                 StreamReader readFile = File.OpenText(fileName);
                 string currentCommand;
                 while ((currentCommand = readFile.ReadLine()) != null)
@@ -188,10 +189,6 @@ namespace OpenSim
                         m_console.RunCommand(currentCommand);
                     }
                 }
-            }
-            else
-            {
-                m_log.Error("[COMMANDFILE]: Command script missing. Can not run commands");
             }
         }
 
