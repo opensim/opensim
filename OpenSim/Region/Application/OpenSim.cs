@@ -535,7 +535,7 @@ namespace OpenSim
                     }
                     else
                     {
-                        m_console.Notice("Create user is not available in grid mode, use the user-server.");
+                        m_console.Notice("Create user is not available in grid mode, use the user server.");
                     }
                     break;
             }
@@ -800,7 +800,7 @@ namespace OpenSim
 
             if (null == m_commsManager.UserService.GetUserProfile(firstName, lastName))
             {
-                CreateUser(firstName, lastName, password, email, regX, regY);
+                m_commsManager.UserServiceAdmin.AddUser(firstName, lastName, password, email, regX, regY);
             }
             else
             {

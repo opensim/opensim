@@ -474,7 +474,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         m_log.InfoFormat("master avatar does not exist, creating it");
                         // ...or create new user
-                        userID = m_app.CreateUser(masterFirst, masterLast, masterPassword, "", region.RegionLocX, region.RegionLocY);
+                        userID = m_app.CommunicationsManager.UserServiceAdmin.AddUser(
+                            masterFirst, masterLast, masterPassword, "", region.RegionLocX, region.RegionLocY);
+                        
                         if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
                                                                                    masterFirst, masterLast));
                     }
@@ -668,7 +670,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (null != userProfile)
                     throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
 
-                UUID userID = m_app.CreateUser(firstname, lastname, passwd, email, regX, regY);
+                UUID userID 
+                    = m_app.CommunicationsManager.UserServiceAdmin.AddUser(
+                        firstname, lastname, passwd, email, regX, regY);
 
                 if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
                                                                              firstname, lastname));
@@ -764,7 +768,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (null != userProfile)
                     throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
 
-                UUID userID = m_app.CreateUser(firstname, lastname, passwd, email, regX, regY);
+                UUID userID
+                    = m_app.CommunicationsManager.UserServiceAdmin.AddUser(
+                        firstname, lastname, passwd, email, regX, regY);
 
                 if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
                                                                              firstname, lastname));

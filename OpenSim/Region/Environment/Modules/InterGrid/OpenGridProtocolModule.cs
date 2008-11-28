@@ -530,7 +530,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             // get seed capagentData.firstname = FirstName;agentData.lastname = LastName;
             if (homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID) == null && !GridMode)
             {
-                homeScene.CommsManager.AddUser(agentData.firstname, agentData.lastname, CreateRandomStr(7), "", homeScene.RegionInfo.RegionLocX, homeScene.RegionInfo.RegionLocY, agentData.AgentID);
+                homeScene.CommsManager.UserServiceAdmin.AddUser(
+                    agentData.firstname, agentData.lastname, CreateRandomStr(7), "", 
+                    homeScene.RegionInfo.RegionLocX, homeScene.RegionInfo.RegionLocY, agentData.AgentID);
+                
                 UserProfileData userProfile2 = homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID);
                 if (userProfile2 != null)
                 {
@@ -539,7 +542,6 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     userProfile.FirstLifeAboutText = "OGP USER";
                     homeScene.CommsManager.UserService.UpdateUserProfile(userProfile);
                 }
-
             }
             
             // Stick our data in the cache so the region will know something about us

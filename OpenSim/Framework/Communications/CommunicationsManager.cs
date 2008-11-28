@@ -106,8 +106,12 @@ namespace OpenSim.Framework.Communications
         protected NetworkServersInfo m_networkServersInfo;
              
         /// <summary>
-        /// Interface to administrative user service calls.
+        /// Interface to user service for administrating users.
         /// </summary>
+        public IUserServiceAdmin UserServiceAdmin
+        {
+            get { return m_userServiceAdmin; }
+        }        
         protected IUserServiceAdmin m_userServiceAdmin;        
 
         public BaseHttpServer HttpServer
@@ -247,63 +251,6 @@ namespace OpenSim.Framework.Communications
         }
 
         #endregion
-
-        /// <summary>
-        /// Persistently adds a user to OpenSim.
-        /// </summary>
-        /// <param name="firstName"></param>
-        /// <param name="lastName"></param>
-        /// <param name="password"></param>
-        /// <param name="email"></param>
-        /// <param name="regX"></param>
-        /// <param name="regY"></param>
-        /// <returns>The UUID of the added user.  Returns UUID.Zero if the add was unsuccessful</returns>
-        public UUID AddUser(string firstName, string lastName, string password, string email, uint regX, uint regY)
-        {
-            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
-
-            m_userServiceAdmin.AddUserProfile(firstName, lastName, md5PasswdHash, email, regX, regY);
-            UserProfileData userProf = UserService.GetUserProfile(firstName, lastName);
-            if (userProf == null)
-            {
-                return UUID.Zero;
-            }
-            else
-            {
-                InterServiceInventoryService.CreateNewUserInventory(userProf.ID);
-                m_log.Info("[USERS]: Created new inventory set for " + firstName + " " + lastName);
-                return userProf.ID;
-            }
-        }
-
-        /// <summary>
-        /// Adds the user.
-        /// </summary>
-        /// <param name="firstName">The first name.</param>
-        /// <param name="lastName">The last name.</param>
-        /// <param name="password">The password.</param>
-        /// <param name="email">The email.</param>
-        /// <param name="regX">The reg X.</param>
-        /// <param name="regY">The reg Y.</param>
-        /// <param name="SetUUID">The set UUID.</param>
-        /// <returns></returns>
-        public UUID AddUser(string firstName, string lastName, string password, string email, uint regX, uint regY, UUID SetUUID)
-        {
-            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
-
-            m_userServiceAdmin.AddUserProfile(firstName, lastName, md5PasswdHash, email, regX, regY, SetUUID);
-            UserProfileData userProf = UserService.GetUserProfile(firstName, lastName);
-            if (userProf == null)
-            {
-                return UUID.Zero;
-            }
-            else
-            {
-                InterServiceInventoryService.CreateNewUserInventory(userProf.ID);
-                m_log.Info("[USERS]: Created new inventory set for " + firstName + " " + lastName);
-                return userProf.ID;
-            }
-        }
         
         /// <summary>
         /// Reset a user password

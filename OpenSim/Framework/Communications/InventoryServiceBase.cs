@@ -82,7 +82,6 @@ namespace OpenSim.Framework.Communications
             get { return "default"; }
         }
 
-        // See IInventoryServices
         public List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
         {
 //            m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);

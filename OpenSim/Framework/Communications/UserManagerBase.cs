@@ -52,6 +52,17 @@ namespace OpenSim.Framework.Communications
         /// List of plugins to search for user data
         /// </value>
         private List<IUserDataPlugin> _plugins = new List<IUserDataPlugin>();
+        
+        private IInterServiceInventoryServices m_interServiceInventoryService;
+        
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="interServiceInventoryService"></param>
+        public UserManagerBase(IInterServiceInventoryServices interServiceInventoryService)
+        {
+            m_interServiceInventoryService = interServiceInventoryService;            
+        }        
                 
         /// <summary>
         /// Add a new user data plugin - plugins will be requested in the order they were added.
@@ -80,7 +91,7 @@ namespace OpenSim.Framework.Communications
             _plugins.AddRange(loader.Plugins);
         }
 
-        #region Get UserProfile
+        #region Get UserProfile      
 
         // see IUserService
         public UserProfileData GetUserProfile(string fname, string lname)
@@ -586,39 +597,42 @@ namespace OpenSim.Framework.Communications
         #endregion
 
         /// <summary>
-        /// Add a new user profile
+        /// Add a new user
         /// </summary>
-        /// <param name="firstName">first name.</param>
-        /// <param name="lastName">last name.</param>
-        /// <param name="pass">password</param>
-        /// <param name="email">email.</param>
-        /// <param name="regX">location X.</param>
-        /// <param name="regY">location Y.</param>
-        /// <returns></returns>
-        public UUID AddUserProfile(string firstName, string lastName, string pass, string email, uint regX, uint regY)
+        /// <param name="firstName">first name</param>
+        /// <param name="lastName">last name</param>
+        /// <param name="password">password</param>
+        /// <param name="email">email</param>
+        /// <param name="regX">location X</param>
+        /// <param name="regY">location Y</param>
+        /// <returns>The UUID of the created user profile.  On failure, returns UUID.Zero</returns>
+        public UUID AddUser(string firstName, string lastName, string password, string email, uint regX, uint regY)
         {
-            return AddUserProfile(firstName, lastName, pass, email, regX, regY, UUID.Random());
+            return AddUser(firstName, lastName, password, email, regX, regY, UUID.Random());
         }
 
         /// <summary>
-        /// Adds the user profile.
+        /// Add a new user
         /// </summary>
-        /// <param name="firstName">first name.</param>
-        /// <param name="lastName">last name.</param>
-        /// <param name="pass">password</param>
-        /// <param name="email">email.</param>
-        /// <param name="regX">location X.</param>
-        /// <param name="regY">location Y.</param>
+        /// <param name="firstName">first name</param>
+        /// <param name="lastName">last name</param>
+        /// <param name="password">password</param>
+        /// <param name="email">email</param>
+        /// <param name="regX">location X</param>
+        /// <param name="regY">location Y</param>
         /// <param name="SetUUID">UUID of avatar.</param>
-        /// <returns></returns>
-        public UUID AddUserProfile(string firstName, string lastName, string pass, string email, uint regX, uint regY, UUID SetUUID)
+        /// <returns>The UUID of the created user profile.  On failure, returns UUID.Zero</returns>
+        public UUID AddUser(
+            string firstName, string lastName, string password, string email, uint regX, uint regY, UUID SetUUID)
         {
+            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
+            
             UserProfileData user = new UserProfileData();
             user.HomeLocation = new Vector3(128, 128, 100);
             user.ID = SetUUID;
             user.FirstName = firstName;
             user.SurName = lastName;
-            user.PasswordHash = pass;
+            user.PasswordHash = md5PasswdHash;
             user.PasswordSalt = String.Empty;
             user.Created = Util.UnixTimeSinceEpoch();
             user.HomeLookAt = new Vector3(100, 100, 100);
@@ -638,7 +652,17 @@ namespace OpenSim.Framework.Communications
                 }
             }
 
-            return user.ID;
+            UserProfileData userProf = GetUserProfile(firstName, lastName);
+            if (userProf == null)
+            {
+                return UUID.Zero;
+            }
+            else
+            {
+                m_interServiceInventoryService.CreateNewUserInventory(userProf.ID);
+                
+                return userProf.ID;
+            }            
         }
 
         /// <summary>

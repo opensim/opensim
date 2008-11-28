@@ -41,6 +41,15 @@ namespace OpenSim.Grid.MessagingServer
 {
     class UserManager : UserManagerBase
     {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// Passing null to parent because we never use any function that requires an interservice inventory call.
+        public UserManager()
+            : base(null)
+        {
+        }
+        
         public UserAgentData GetUserAgentData(UUID AgentID)
         {
             UserProfileData userProfile = GetUserProfile(AgentID);
@@ -52,8 +61,6 @@ namespace OpenSim.Grid.MessagingServer
 
             return null;
         }
-
-
 
         public override UserProfileData SetupMasterUser(string firstName, string lastName)
         {

@@ -46,6 +46,14 @@ namespace OpenSim.Grid.UserServer
 
         public event logOffUser OnLogOffUser;
         private logOffUser handlerLogOffUser;
+        
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="interServiceInventoryService"></param>
+        public UserManager(IInterServiceInventoryServices interServiceInventoryService)
+            : base(interServiceInventoryService)
+        {}
 
         /// <summary>
         /// Deletes an active agent session

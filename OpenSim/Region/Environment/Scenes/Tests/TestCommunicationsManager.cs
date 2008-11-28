@@ -38,13 +38,13 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         public TestCommunicationsManager()
             : base(null, null, null, false, null)
         {
-            LocalUserServices lus = new LocalUserServices(null, 991, 992, null);
-            m_userService = lus;
-            m_userServiceAdmin = lus;
-            
             LocalInventoryService lis = new LocalInventoryService();
             m_interServiceInventoryService = lis;
             AddInventoryService(lis);
+            
+            LocalUserServices lus = new LocalUserServices(null, 991, 992, lis);
+            m_userService = lus;
+            m_userServiceAdmin = lus;           
         }
     }
 }

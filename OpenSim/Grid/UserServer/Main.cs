@@ -56,7 +56,6 @@ namespace OpenSim.Grid.UserServer
         public UserLoginService m_loginService;
         public GridInfoService m_gridInfoService;
         public MessageServersConnector m_messagesService;
-        protected IInterServiceInventoryServices m_interServiceInventoryService;
 
         private UUID m_lastCreatedUser = UUID.Random();
 
@@ -94,17 +93,16 @@ namespace OpenSim.Grid.UserServer
 
             m_stats = StatsManager.StartCollectingUserStats();
 
-            m_log.Info("[REGION]: Establishing data connection");
+            m_log.Info("[STARTUP]: Establishing data connection");
+            
+            IInterServiceInventoryServices inventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
 
-            StartupUserManager();
-
+            StartupUserManager(inventoryService);
             m_userManager.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
 
             m_gridInfoService = new GridInfoService();
 
-            m_interServiceInventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
-
-            StartupLoginService();
+            StartupLoginService(inventoryService);
 
             m_messagesService = new MessageServersConnector();
 
@@ -116,22 +114,30 @@ namespace OpenSim.Grid.UserServer
             m_messagesService.OnRegionStartup += HandleRegionStartup;
             m_messagesService.OnRegionShutdown += HandleRegionShutdown;
 
-            m_log.Info("[REGION]: Starting HTTP process");
+            m_log.Info("[STARTUP]: Starting HTTP process");
 
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
             AddHttpHandlers();
             m_httpServer.Start();
         }
 
-        protected virtual void StartupUserManager()
+        /// <summary>
+        /// Start up the user manager
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        protected virtual void StartupUserManager(IInterServiceInventoryServices inventoryService)
         {
-            m_userManager = new UserManager();
+            m_userManager = new UserManager(new OGS1InterServiceInventoryService(Cfg.InventoryUrl));
         }
 
-        protected virtual void StartupLoginService()
+        /// <summary>
+        /// Start up the login service
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        protected virtual void StartupLoginService(IInterServiceInventoryServices inventoryService)
         {
             m_loginService = new UserLoginService(
-                m_userManager, m_interServiceInventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
+                m_userManager, inventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
         }
 
         protected virtual void AddHttpHandlers()
@@ -256,39 +262,7 @@ namespace OpenSim.Grid.UserServer
 
             if (null == m_userManager.GetUserProfile(firstName, lastName))
             {
-                password = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
-
-                UUID userID = new UUID();
-
-                try
-                {
-                    userID = m_userManager.AddUserProfile(firstName, lastName, password, email, regX, regY);
-                }
-                catch (Exception ex)
-                {
-                    m_log.ErrorFormat("[USERS]: Error creating user: {0}", ex.ToString());
-                }
-
-                try
-                {
-                    if (!m_interServiceInventoryService.CreateNewUserInventory(userID))
-                    {
-                        throw new Exception(
-                            String.Format("The inventory creation request for user {0} did not succeed."
-                                + "  Please contact your inventory service provider for more information.", userID));
-                    }
-                }
-                catch (WebException)
-                {
-                    m_log.ErrorFormat("[USERS]: Could not contact the inventory service at {0} to create an inventory for {1}",
-                        Cfg.InventoryUrl + "CreateInventory/", userID);
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[USERS]: Error creating inventory for user: {0}", e);
-                }
-
-                m_lastCreatedUser = userID;
+                m_lastCreatedUser = m_userManager.AddUser(firstName, lastName, password, email, regX, regY);
             }
             else
             {

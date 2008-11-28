@@ -105,7 +105,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             ((LocalInventoryService)scene.CommsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());
             
             Assert.That(
-                scene.CommsManager.AddUser("Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
+                scene.CommsManager.UserServiceAdmin.AddUser(
+                    "Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
                 Is.EqualTo(agentId));  
             
             IClientAPI client = SceneTestUtils.AddRootAgent(scene, agentId);

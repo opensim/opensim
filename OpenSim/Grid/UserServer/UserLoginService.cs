@@ -44,6 +44,9 @@ namespace OpenSim.Grid.UserServer
                                                 ulong regionhandle, float positionX, float positionY, float positionZ,
                                                 string firstname, string lastname);
 
+    /// <summary>
+    /// Login service used in grid mode.
+    /// </summary>     
     public class UserLoginService : LoginService
     {
         protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -65,17 +68,16 @@ namespace OpenSim.Grid.UserServer
             m_config = config;
             m_inventoryService = inventoryService;
         }
+        
         public  void  setloginlevel(int level)
         {
               m_minLoginLevel = level;
               m_log.InfoFormat("[GRID] Login Level set to {0} ", level);
-
         }
         public void setwelcometext(string text)
         {
             m_welcomeMessage = text;
             m_log.InfoFormat("[GRID] Login text  set to {0} ", text);
-
         }
 
         public override void LogOffUser(UserProfileData theUser, string message)
