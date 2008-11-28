@@ -800,7 +800,7 @@ namespace OpenSim
 
             if (null == m_commsManager.UserService.GetUserProfile(firstName, lastName))
             {
-                m_commsManager.UserServiceAdmin.AddUser(firstName, lastName, password, email, regX, regY);
+                m_commsManager.UserAdminService.AddUser(firstName, lastName, password, email, regX, regY);
             }
             else
             {
@@ -830,7 +830,7 @@ namespace OpenSim
                 newPassword = MainConsole.Instance.PasswdPrompt("New password");
             else newPassword = cmdparams[4];
             
-            m_commsManager.UserServiceAdmin.ResetUserPassword(firstName, lastName, newPassword);
+            m_commsManager.UserAdminService.ResetUserPassword(firstName, lastName, newPassword);
         }                        
 
         protected void SaveXml(string[] cmdparams)

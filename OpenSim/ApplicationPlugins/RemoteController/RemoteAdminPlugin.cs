@@ -474,7 +474,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         m_log.InfoFormat("master avatar does not exist, creating it");
                         // ...or create new user
-                        userID = m_app.CommunicationsManager.UserServiceAdmin.AddUser(
+                        userID = m_app.CommunicationsManager.UserAdminService.AddUser(
                             masterFirst, masterLast, masterPassword, "", region.RegionLocX, region.RegionLocY);
                         
                         if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
@@ -671,7 +671,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
 
                 UUID userID 
-                    = m_app.CommunicationsManager.UserServiceAdmin.AddUser(
+                    = m_app.CommunicationsManager.UserAdminService.AddUser(
                         firstname, lastname, passwd, email, regX, regY);
 
                 if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
@@ -769,7 +769,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
 
                 UUID userID
-                    = m_app.CommunicationsManager.UserServiceAdmin.AddUser(
+                    = m_app.CommunicationsManager.UserAdminService.AddUser(
                         firstname, lastname, passwd, email, regX, regY);
 
                 if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",

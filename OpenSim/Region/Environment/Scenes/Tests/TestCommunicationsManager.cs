@@ -44,7 +44,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             LocalUserServices lus = new LocalUserServices(991, 992, lis);
             m_userService = lus;
-            m_userServiceAdmin = lus;           
+            m_userAdminService = lus;           
         }
     }
 }

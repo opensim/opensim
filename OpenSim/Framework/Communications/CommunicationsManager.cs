@@ -108,11 +108,11 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// Interface to user service for administrating users.
         /// </summary>
-        public IUserServiceAdmin UserServiceAdmin
+        public IUserAdminService UserAdminService
         {
-            get { return m_userServiceAdmin; }
+            get { return m_userAdminService; }
         }        
-        protected IUserServiceAdmin m_userServiceAdmin;        
+        protected IUserAdminService m_userAdminService;        
 
         public BaseHttpServer HttpServer
         {

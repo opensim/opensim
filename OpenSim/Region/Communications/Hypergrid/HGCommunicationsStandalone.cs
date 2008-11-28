@@ -42,7 +42,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             BaseHttpServer httpServer,
             AssetCache assetCache,
             IUserService userService,
-            IUserServiceAdmin userServiceAdmin,
+            IUserAdminService userServiceAdmin,
             LocalInventoryService inventoryService,
             IInterRegionCommunications interRegionService,
             HGGridServices gridService, IMessagingService messageService, LibraryRootFolder libraryRootFolder, bool dumpAssetsToFile)
@@ -54,6 +54,5 @@ namespace OpenSim.Region.Communications.Hypergrid
             AddSecureInventoryService((ISecureInventoryService)inventoryService);
             m_inventoryServices = null;
         }
-
     }
 }

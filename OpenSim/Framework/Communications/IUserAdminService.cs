@@ -29,7 +29,10 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications
 {
-    public interface IUserServiceAdmin
+    /// <summary>
+    /// Interface for the service for administrating users
+    /// </summary>
+    public interface IUserAdminService
     {
         /// <summary>
         /// Add a new user
