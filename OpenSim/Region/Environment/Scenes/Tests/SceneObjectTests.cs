@@ -84,12 +84,12 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);            
             Assert.That(retrievedPart, Is.Null);
         }
- 
+        
         /// <summary>
-        /// Test deleting an object to user inventory 
+        /// Test deleting an object asynchronously
         /// </summary>
         [Test]
-        public void TestDeleteSceneObjectToUserInventory()
+        public void TestDeleteSceneObjectAsync()
         {
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
@@ -101,6 +101,28 @@ namespace OpenSim.Region.Environment.Scenes.Tests
                 
             SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
             
+            IClientAPI client = SceneTestUtils.AddRootAgent(scene, agentId);
+            scene.DeRezObject(client, part.LocalId, UUID.Zero, DeRezAction.Delete, UUID.Zero);
+            
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+            Assert.That(retrievedPart, Is.Not.Null);
+            
+            sogd.InventoryDeQueueAndDelete();
+            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
+            Assert.That(retrievedPart2, Is.Null);            
+        }
+ 
+        /// <summary>
+        /// Test deleting an object asynchronously to user inventory.  Doesn't yet do what it says on the tin.
+        /// </summary>
+        [Test]
+        public void TestDeleteSceneObjectAsyncToUserInventory()
+        {
+            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
+            
+            TestScene scene = SceneTestUtils.SetupScene();                
+            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
+            
             ((LocalUserServices)scene.CommsManager.UserService).AddPlugin(new TestUserDataPlugin());
             ((LocalInventoryService)scene.CommsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());
             
@@ -110,14 +132,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
                 Is.EqualTo(agentId));  
             
             IClientAPI client = SceneTestUtils.AddRootAgent(scene, agentId);
-            scene.DeRezObject(client, part.LocalId, UUID.Zero, DeRezAction.Return, UUID.Zero);
-            
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-            Assert.That(retrievedPart, Is.Not.Null);
-            
-            sogd.InventoryDeQueueAndDelete();
-            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
-            Assert.That(retrievedPart2, Is.Null);
+            SceneTestUtils.DeleteSceneObjectAsync(scene, part, DeRezAction.TakeCopy, client);
                                     
             CachedUserInfo userInfo = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentId);
             Assert.That(userInfo, Is.Not.Null);
