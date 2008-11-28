@@ -34,7 +34,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
 {
     /// <summary>
     /// In memory user data provider.  Might be quite useful as a proper user data plugin, though getting mono addins
-    /// to load any plugins when running unit tests has proven impossible so far
+    /// to load any plugins when running unit tests has proven impossible so far.  Currently no locking since unit
+    /// tests are single threaded.
     /// </summary>
     public class TestUserDataPlugin : IUserDataPlugin
     {        

@@ -1074,7 +1074,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Loads the World heightmap
         /// </summary>
-        ///
         public override void LoadWorldMap()
         {
             try
@@ -1095,7 +1094,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                m_log.Warn("[terrain]: Scene.cs: LoadWorldMap() - Failed with exception " + e.ToString());
+                m_log.Warn("[TERRAIN]: Scene.cs: LoadWorldMap() - Failed with exception " + e.ToString());
             }
         }
 
@@ -2269,6 +2268,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 CreateAndAddScenePresence(client, child);
             }
+            
             m_LastLogin = System.Environment.TickCount;
             EventManager.TriggerOnNewClient(client);
         }

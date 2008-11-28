@@ -44,20 +44,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
     /// </summary>
     [TestFixture]
     public class EntityListTests
-    {
-        [SetUp]
-        public void Init()
-        {
-            try
-            {
-                log4net.Config.XmlConfigurator.Configure();
-            }
-            catch
-            {
-                // I don't care, just leave log4net off
-            }          
-        }
-        
+    {        
         static public Random random;
         SceneObjectGroup found;
         Scene scene = SceneTestUtils.SetupScene();

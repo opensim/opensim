@@ -29,6 +29,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Environment.Scenes;
@@ -52,15 +53,20 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             AgentCircuitManager acm = new AgentCircuitManager();
             CommunicationsManager cm = new TestCommunicationsManager();
-            SceneCommunicationService scs = new SceneCommunicationService(cm);            
+            SceneCommunicationService scs = new SceneCommunicationService(cm);
+            
+            SQLAssetServer assetService = new SQLAssetServer(new TestAssetDataPlugin());
+            AssetCache ac = new AssetCache(assetService);
+            
             StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");
             BaseHttpServer httpServer = new BaseHttpServer(666);
             IConfigSource configSource = new IniConfigSource();
             
             TestScene testScene = new TestScene(
-                regInfo, acm, cm, scs, null, sm, httpServer, null, false, false, false, configSource, null);
+                regInfo, acm, cm, scs, ac, sm, httpServer, null, false, false, false, configSource, null);
             
             testScene.LandChannel = new TestLandChannel();
+            testScene.LoadWorldMap();
             
             PhysicsPluginManager physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPluginsFromAssembly("Physics/OpenSim.Region.Physics.BasicPhysicsPlugin.dll");
@@ -93,7 +99,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             scene.NewUserConnection(agent);
             IClientAPI client = new TestClient(agent);
-            scene.AddNewClient(client, false);
+            scene.AddNewClient(client, true);
+            scene.AgentCrossing(agent.AgentID, new Vector3(90, 90, 90), false);
             
             return client;
         }
@@ -123,15 +130,16 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         /// <param name="scene"></param>
         /// <param name="part"></param>
         /// <param name="action"></param>
+        /// <param name="destinationId"></param>
         /// <param name="client"></param>
         public static void DeleteSceneObjectAsync(
-            TestScene scene, SceneObjectPart part, DeRezAction action, IClientAPI client)
+            TestScene scene, SceneObjectPart part, DeRezAction action, UUID destinationId, IClientAPI client)
         {
             // Turn off the timer on the async sog deleter - we'll crank it by hand within a unit test
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
             sogd.Enabled = false;
 
-            scene.DeRezObject(client, part.LocalId, UUID.Zero, action, UUID.Zero);
+            scene.DeRezObject(client, part.LocalId, UUID.Zero, action, destinationId);
             sogd.InventoryDeQueueAndDelete();             
         }
     }

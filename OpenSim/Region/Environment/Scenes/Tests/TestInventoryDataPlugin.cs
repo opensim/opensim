@@ -32,8 +32,23 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {
+    /// <summary>
+    /// In memory inventory data plugin for test purposes.  Could be another dll when properly filled out and when the
+    /// mono addin plugin system starts co-operating with the unit test system.  Currently no locking since unit
+    /// tests are single threaded.
+    /// </summary>
     public class TestInventoryDataPlugin : IInventoryDataPlugin
     {
+        /// <value>
+        /// Known inventory folders
+        /// </value>
+        private Dictionary<UUID, InventoryFolderBase> m_folders = new Dictionary<UUID, InventoryFolderBase>();
+        
+        /// <value>
+        /// User root folders
+        /// </value>
+        private Dictionary<UUID, InventoryFolderBase> m_rootFolders = new Dictionary<UUID, InventoryFolderBase>();
+        
         public string Version { get { return "0"; } }
         public string Name { get { return "TestInventoryDataPlugin"; } }
 
@@ -41,17 +56,60 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         public void Initialise(string connect) {}
         public void Dispose() {}
 
-        public List<InventoryFolderBase> getFolderHierarchy(UUID parentID) { return null; } 
-        public List<InventoryItemBase> getInventoryInFolder(UUID folderID) { return null; }
+        public List<InventoryFolderBase> getFolderHierarchy(UUID parentID) 
+        {
+            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+            
+            foreach (InventoryFolderBase folder in m_folders.Values)
+            {
+                if (folder.ParentID == parentID)
+                {
+                    folders.AddRange(getFolderHierarchy(folder.ID));
+                    folders.Add(folder);
+                }
+            }
+            
+            return folders;
+        }
+        
+        public List<InventoryItemBase> getInventoryInFolder(UUID folderID) 
+        { 
+            return new List<InventoryItemBase>(); 
+        }
+        
         public List<InventoryFolderBase> getUserRootFolders(UUID user) { return null; }
-        public InventoryFolderBase getUserRootFolder(UUID user) { return null; }
+        
+        public InventoryFolderBase getUserRootFolder(UUID user) 
+        { 
+            InventoryFolderBase folder = null;
+            m_rootFolders.TryGetValue(user, out folder);
+            
+            return folder;
+        }
+        
         public List<InventoryFolderBase> getInventoryFolders(UUID parentID) { return null; }
         public InventoryItemBase getInventoryItem(UUID item) { return null; }
-        public InventoryFolderBase getInventoryFolder(UUID folder) { return null; }
+        
+        public InventoryFolderBase getInventoryFolder(UUID folderId) 
+        {
+            InventoryFolderBase folder = null;
+            m_folders.TryGetValue(folderId, out folder);
+            
+            return folder;
+        }
+        
         public void addInventoryItem(InventoryItemBase item) {}
         public void updateInventoryItem(InventoryItemBase item) {}
         public void deleteInventoryItem(UUID item) {}
-        public void addInventoryFolder(InventoryFolderBase folder) {}
+        
+        public void addInventoryFolder(InventoryFolderBase folder) 
+        {
+            m_folders[folder.ID] = folder;
+            
+            if (folder.ParentID == UUID.Zero)
+                m_rootFolders[folder.Owner] = folder;
+        }
+        
         public void updateInventoryFolder(InventoryFolderBase folder) {}
         public void moveInventoryFolder(InventoryFolderBase folder) {}
         public void deleteInventoryFolder(UUID folder) {}

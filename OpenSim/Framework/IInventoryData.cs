@@ -41,8 +41,7 @@ namespace OpenSim.Framework
         void Initialise(string connect);
 
         /// <summary>
-        /// Returns all child folders in the hierarchy from the parent folder and down.
-        /// Does not return the parent folder itself.
+        /// Returns all descendent folders of this folder.  Does not return the parent folder itself.
         /// </summary>
         /// <param name="parentID">The folder to get subfolders for</param>
         /// <returns>A list of inventory folders</returns>

@@ -45,15 +45,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
     {
         [SetUp]
         public void Init()
-        {
-            try
-            {
-                log4net.Config.XmlConfigurator.Configure();
-            }
-            catch
-            {
-                // I don't care, just leave log4net off
-            }            
+        {        
         }
                 
         /// <summary>
@@ -118,6 +110,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         [Test]
         public void TestDeleteSceneObjectAsyncToUserInventory()
         {
+            log4net.Config.XmlConfigurator.Configure();                  
+            
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
             TestScene scene = SceneTestUtils.SetupScene();                
@@ -132,12 +126,16 @@ namespace OpenSim.Region.Environment.Scenes.Tests
                 Is.EqualTo(agentId));  
             
             IClientAPI client = SceneTestUtils.AddRootAgent(scene, agentId);
-            SceneTestUtils.DeleteSceneObjectAsync(scene, part, DeRezAction.TakeCopy, client);
-                                    
+                                                
             CachedUserInfo userInfo = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentId);
             Assert.That(userInfo, Is.Not.Null);
+            Assert.That(userInfo.RootFolder, Is.Not.Null);
+            
+            SceneTestUtils.DeleteSceneObjectAsync(scene, part, DeRezAction.TakeCopy, userInfo.RootFolder.ID, client);
             
             // TODO: test that the object actually made it successfully into inventory
+            
+            log4net.LogManager.Shutdown();            
         }
     }
 }

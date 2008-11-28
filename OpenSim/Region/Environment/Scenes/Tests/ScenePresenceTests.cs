@@ -38,20 +38,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
     /// </summary>
     [TestFixture]    
     public class ScenePresenceTests
-    {        
-        [SetUp]
-        public void Init()
-        {
-            try
-            {
-                log4net.Config.XmlConfigurator.Configure();
-            }
-            catch
-            {
-                // I don't care, just leave log4net off
-            }            
-        }
-        
+    {      
         /// <summary>
         /// Test adding a root agent to a scene.  Doesn't yet actually complete crossing the agent into the scene.
         /// </summary>
