@@ -2156,14 +2156,11 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
                 if (RootPrim != null)
                 {
-                    if (m_regInfo.EstateSettings.IsBanned(RootPrim.OwnerID) ||
-                        (!Permissions.CanObjectEntry(RootPrim.UUID, true, RootPrim.AbsolutePosition)))
+                    if (m_regInfo.EstateSettings.IsBanned(RootPrim.OwnerID))
                     {
                         SceneObjectGroup grp = RootPrim.ParentGroup;
                         if (grp != null)
-                        {
                             DeleteSceneObject(grp, false);
-                        }
 
                         m_log.Info("[INTERREGION]: Denied prim crossing for banned avatar");
 
@@ -2172,6 +2169,19 @@ namespace OpenSim.Region.Environment.Scenes
                     if (RootPrim.Shape.PCode == (byte)PCode.Prim)
                     {
                         SceneObjectGroup grp = RootPrim.ParentGroup;
+                        if((RootPrim.Shape.State == 0) &&
+                                (!Permissions.CanObjectEntry(RootPrim.UUID,
+                                true, RootPrim.AbsolutePosition)))
+                        {
+                            if (grp != null)
+                            {
+                                DeleteSceneObject(grp, false);
+                            }
+
+                            m_log.Info("[INTERREGION]: Denied prim crossing because of parcel settings");
+
+                            return false;
+                        }
                         if (grp != null)
                         {
                             if (RootPrim.Shape.State != 0)
