@@ -73,7 +73,6 @@ namespace OpenSim
             base.StartupSpecific();
         }
 
-
         protected override void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
         {
             // Standalone mode
