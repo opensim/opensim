@@ -423,7 +423,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         SceneObjectGroup group = (SceneObjectGroup)obj;
 
-                        if (group.OwnerID != remoteClient.AgentId)
+                        if (group.OwnerID == remoteClient.AgentId)
                             group.SetGroup(GroupID, remoteClient);
                     }
                 }
