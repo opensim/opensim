@@ -111,17 +111,32 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             return client;
         }
+
+        /// <summary>
+        /// Add a test object
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <returns></returns>        
+        public static SceneObjectPart AddSceneObject(Scene scene)
+        {
+            return AddSceneObject(scene, null);
+        }
         
         /// <summary>
         /// Add a test object
         /// </summary>
         /// <param name="scene"></param>
+        /// <param name="name"></param>
         /// <returns></returns>
-        public static SceneObjectPart AddSceneObject(Scene scene)
+        public static SceneObjectPart AddSceneObject(Scene scene, string name)
         {
             SceneObjectGroup sceneObject = new SceneObjectGroup();
             SceneObjectPart part 
                 = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
+            
+            if (name != null)
+                part.Name = name;
+            
             //part.UpdatePrimFlags(false, false, true);           
             part.ObjectFlags |= (uint)PrimFlags.Phantom;            
             sceneObject.SetRootPart(part);

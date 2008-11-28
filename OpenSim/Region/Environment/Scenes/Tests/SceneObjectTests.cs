@@ -105,17 +105,18 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         }
  
         /// <summary>
-        /// Test deleting an object asynchronously to user inventory.  Doesn't yet do what it says on the tin.
+        /// Test deleting an object asynchronously to user inventory.
         /// </summary>
         [Test]
         public void TestDeleteSceneObjectAsyncToUserInventory()
         {
-            log4net.Config.XmlConfigurator.Configure();                  
+            //log4net.Config.XmlConfigurator.Configure();                  
             
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
+            string myObjectName = "Fred";
             
             TestScene scene = SceneTestUtils.SetupScene();                
-            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
+            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene, myObjectName);
             
             ((LocalUserServices)scene.CommsManager.UserService).AddPlugin(new TestUserDataPlugin());
             ((LocalInventoryService)scene.CommsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());
@@ -131,11 +132,16 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             Assert.That(userInfo, Is.Not.Null);
             Assert.That(userInfo.RootFolder, Is.Not.Null);
             
-            SceneTestUtils.DeleteSceneObjectAsync(scene, part, DeRezAction.TakeCopy, userInfo.RootFolder.ID, client);
+            SceneTestUtils.DeleteSceneObjectAsync(scene, part, DeRezAction.Take, userInfo.RootFolder.ID, client);
             
-            // TODO: test that the object actually made it successfully into inventory
+            // Check that we now have the taken part in our inventory
+            Assert.That(myObjectName, Is.EqualTo(userInfo.RootFolder.FindItemByPath(myObjectName).Name));
             
-            log4net.LogManager.Shutdown();            
+            // Check that the taken part has actually disappeared
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+            Assert.That(retrievedPart, Is.Null);                 
+            
+            //log4net.LogManager.Shutdown();            
         }
     }
 }

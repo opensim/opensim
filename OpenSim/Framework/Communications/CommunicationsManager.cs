@@ -40,7 +40,7 @@ namespace OpenSim.Framework.Communications
     /// </summary>
     public class CommunicationsManager
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Dictionary<UUID, string[]> m_nameRequestCache = new Dictionary<UUID, string[]>();
 
