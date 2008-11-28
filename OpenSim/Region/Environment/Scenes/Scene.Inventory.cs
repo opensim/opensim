@@ -975,7 +975,7 @@ namespace OpenSim.Region.Environment.Scenes
             agentItem.InvType = taskItem.InvType;
             agentItem.Flags = taskItem.Flags;
 
-            if (Permissions.PropagatePermissions())
+            if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
             {
                 agentItem.BasePermissions = taskItem.NextPermissions;
                 agentItem.CurrentPermissions = taskItem.NextPermissions | 8;
