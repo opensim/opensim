@@ -2152,7 +2152,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (RootPrim != null)
                 {
                     if (m_regInfo.EstateSettings.IsBanned(RootPrim.OwnerID) ||
-                        Permissions.CanObjectEntry(RootPrim.UUID, true, RootPrim.AbsolutePosition))
+                        (!Permissions.CanObjectEntry(RootPrim.UUID, true, RootPrim.AbsolutePosition)))
                     {
                         SceneObjectGroup grp = RootPrim.ParentGroup;
                         if (grp != null)
