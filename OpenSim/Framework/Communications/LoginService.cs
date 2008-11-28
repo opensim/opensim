@@ -152,7 +152,7 @@ namespace OpenSim.Framework.Communications
                     m_log.DebugFormat(
                         "[LOGIN]: XMLRPC Client is {0}, start location is {1}", clientVersion, startLocationRequest);
 
-                    if (!TryAuthenticateUser(request, firstname, lastname, out userProfile))
+                    if( !TryAuthenticateXmlRpcLogin(request, firstname, lastname, out userProfile ) )
                     {
                         return logResponse.CreateLoginFailedResponse();
                     }
@@ -193,6 +193,7 @@ namespace OpenSim.Framework.Communications
 
                         return logResponse.CreateAlreadyLoggedInResponse();
                     }
+
                     // Otherwise...
                     // Create a new agent session
 
@@ -285,7 +286,7 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        protected virtual bool TryAuthenticateUser(XmlRpcRequest request, string firstname, string lastname, out UserProfileData userProfile)
+        protected virtual bool TryAuthenticateXmlRpcLogin(XmlRpcRequest request, string firstname, string lastname, out UserProfileData userProfile)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
 
