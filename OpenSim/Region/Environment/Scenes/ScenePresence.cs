@@ -178,7 +178,7 @@ namespace OpenSim.Region.Environment.Scenes
         //PauPaw:Proper PID Controler for autopilot************
         private bool m_moveToPositionInProgress = false;
         private Vector3 m_moveToPositionTarget = Vector3.Zero;
-        private int m_moveToPositionStateStatus = 0;
+        //private int m_moveToPositionStateStatus = 0;
         //*****************************************************
 
         // Agent's Draw distance.
