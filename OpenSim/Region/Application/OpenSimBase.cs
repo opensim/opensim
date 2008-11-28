@@ -210,8 +210,8 @@ namespace OpenSim
             inventoryService.AddPlugin(m_configSettings.StandaloneInventoryPlugin, m_configSettings.StandaloneInventorySource);
 
             LocalUserServices userService =
-                new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
-                                      m_networkServersInfo.DefaultHomeLocY, inventoryService);
+                new LocalUserServices(
+                    m_networkServersInfo.DefaultHomeLocX, m_networkServersInfo.DefaultHomeLocY, inventoryService);
             userService.AddPlugin(m_configSettings.StandaloneUserPlugin, m_configSettings.StandaloneUserSource);
 
             LocalBackEndServices backendService = new LocalBackEndServices();

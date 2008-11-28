@@ -42,7 +42,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             m_interServiceInventoryService = lis;
             AddInventoryService(lis);
             
-            LocalUserServices lus = new LocalUserServices(null, 991, 992, lis);
+            LocalUserServices lus = new LocalUserServices(991, 992, lis);
             m_userService = lus;
             m_userServiceAdmin = lus;           
         }

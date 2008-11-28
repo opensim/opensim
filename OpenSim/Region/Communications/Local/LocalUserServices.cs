@@ -40,17 +40,13 @@ namespace OpenSim.Region.Communications.Local
         /// <summary>
         /// User services used when OpenSim is running in standalone mode.
         /// </summary>
-        /// <param name="serversInfo"></param>
         /// <param name="defaultHomeLocX"></param>
         /// <param name="defaultHomeLocY"></param>
         /// <param name="inventoryService"></param>
-        /// <param name="statsCollector">Can be null if stats collection is not required.</param>
-        public LocalUserServices(NetworkServersInfo serversInfo, uint defaultHomeLocX, uint defaultHomeLocY,
-                                 IInterServiceInventoryServices interServiceInventoryService)
+        public LocalUserServices(
+            uint defaultHomeLocX, uint defaultHomeLocY, IInterServiceInventoryServices interServiceInventoryService)
             : base(interServiceInventoryService)
         {
-            // m_serversInfo = serversInfo;
-
             m_defaultHomeX = defaultHomeLocX;
             m_defaultHomeY = defaultHomeLocY;
         }

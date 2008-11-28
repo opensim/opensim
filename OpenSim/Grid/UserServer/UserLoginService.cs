@@ -72,12 +72,12 @@ namespace OpenSim.Grid.UserServer
         public  void  setloginlevel(int level)
         {
               m_minLoginLevel = level;
-              m_log.InfoFormat("[GRID] Login Level set to {0} ", level);
+              m_log.InfoFormat("[GRID]: Login Level set to {0} ", level);
         }
         public void setwelcometext(string text)
         {
             m_welcomeMessage = text;
-            m_log.InfoFormat("[GRID] Login text  set to {0} ", text);
+            m_log.InfoFormat("[GRID]: Login text  set to {0} ", text);
         }
 
         public override void LogOffUser(UserProfileData theUser, string message)
