@@ -2200,9 +2200,6 @@ namespace OpenSim.Region.Environment.Scenes
                                     // LastOwnerID is used for group deeding, so when you do stuff
                                     // with the deeded object, it goes back to them
 
-                                    foreach (SceneObjectPart prim in grp.Children.Values)
-                                        prim.ParentID = sp.LocalId;
-
                                     grp.SetFromAssetID(grp.RootPart.LastOwnerID);
                                     m_log.DebugFormat("[ATTACHMENT]: Attach to avatar {0}", sp.UUID.ToString());
                                     AttachObject(sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition, false);
