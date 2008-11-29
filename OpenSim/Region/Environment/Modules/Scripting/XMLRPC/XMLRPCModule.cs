@@ -647,7 +647,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
                 if (resp != null)
                 {
                     Hashtable respParms;
-                    if (resp.Value.GetType().Equals(Type.GetType("System.Collections.Hashtable")))
+                    if (resp.Value.GetType().Equals(typeof(System.Collections.Hashtable)))
                     {
                         respParms = (Hashtable) resp.Value;
                     }
