@@ -73,6 +73,7 @@ namespace OpenSim.Data.MySQL
                     "left join primshapes on prims.uuid = primshapes.uuid " +
                     "where PCode = 9 and State <> 0";
             ExecuteNonQuery(cmd);
+            cmd.Dispose();
         }
 
         private IDataReader ExecuteReader(MySqlCommand c)
@@ -256,6 +257,7 @@ namespace OpenSim.Data.MySQL
 
                     ExecuteNonQuery(cmd);
                 }
+                cmd.Dispose();
             }
         }
 
@@ -304,12 +306,13 @@ namespace OpenSim.Data.MySQL
                 cmd.CommandText = "delete from primshapes where UUID = ?UUID";
 
                 ExecuteNonQuery(cmd);
+                cmd.Dispose();
             }
         }
         
         /// <summary>
         /// Remove all persisted items of the given prim.
-        /// The caller must acquire the necessrary synchronization locks and commit or rollback changes.
+        /// The caller must acquire the necessrary synchronization locks
         /// </summary>
         /// <param name="uuid">the Item UUID</param>
         private void RemoveItems(UUID uuid)
@@ -324,6 +327,7 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("PrimID", uuid.ToString());
 
                 ExecuteNonQuery(cmd);
+                cmd.Dispose();
             }
         }
 
@@ -397,6 +401,7 @@ namespace OpenSim.Data.MySQL
 
                 if (grp != null)
                     objects.Add(grp);
+                cmd.Dispose();
             }
 
             foreach (SceneObjectPart part in prims)
@@ -442,6 +447,7 @@ namespace OpenSim.Data.MySQL
                     reader.Close();
                 }
 
+                cmd.Dispose();
                 prim.Inventory.RestoreInventoryItems(inventory);
             }
         }
@@ -469,6 +475,7 @@ namespace OpenSim.Data.MySQL
                         SerializeTerrain(ter));
                 
                 ExecuteNonQuery(cmd);
+                cmd.Dispose();
             }
         }
 
@@ -513,6 +520,7 @@ namespace OpenSim.Data.MySQL
                 {
                     reader.Close();
                 }
+                cmd.Dispose();
             }
 
             return null;
@@ -529,6 +537,7 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("UUID", Util.ToRawUuidString(globalID));
 
                 ExecuteNonQuery(cmd);
+                cmd.Dispose();
             }
         }
 
@@ -580,6 +589,7 @@ namespace OpenSim.Data.MySQL
                     ExecuteNonQuery(cmd);
                     cmd.Parameters.Clear();
                 }
+                cmd.Dispose();
             }
         }
 
@@ -617,6 +627,7 @@ namespace OpenSim.Data.MySQL
                 {
                     reader.Close();
                 }
+                cmd.Dispose();
             }
 
             return rs;
@@ -662,6 +673,7 @@ namespace OpenSim.Data.MySQL
                 FillRegionSettingsCommand(cmd, rs);
 
                 ExecuteNonQuery(cmd);
+                cmd.Dispose();
             }
         }
 
@@ -718,6 +730,7 @@ namespace OpenSim.Data.MySQL
                         reader.Close();
                     }
                 }
+                cmd.Dispose();
             }
 
             return landData;
@@ -1435,6 +1448,7 @@ byte[] textureEntry = (byte[]) row["Texture"];
 
                     ExecuteNonQuery(cmd);
                 }
+                cmd.Dispose();
             }
         }
     }
