@@ -90,6 +90,8 @@ namespace OpenSim.Region.Environment.Scenes
         public float m_maxNonphys = 65536;
         public float m_maxPhys = 10;
         public bool m_clampPrimSize = false;
+        public bool m_trustBinaries = false;
+        public bool m_allowScriptCrossings = false;
 
         public bool m_seeIntoRegionFromNeighbor;
         public int MaxUndoCount = 5;
@@ -337,6 +339,8 @@ namespace OpenSim.Region.Environment.Scenes
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", 65536.0f);
                 m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", 10.0f);
                 m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", false);
+                m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", false);
+                m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossings", false);
                 m_dontPersistBefore =
                   startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
                 m_dontPersistBefore *= 10000000;

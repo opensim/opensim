@@ -241,7 +241,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (!m_part.ParentGroup.Scene.RegionInfo.RegionSettings.DisableScripts)
             {
-                if (stateSource == 1) // Prim crossing
+                if (stateSource == 1 && // Prim crossing
+                        m_part.ParentGroup.Scene.m_trustBinaries)
                 {
                     m_items[item.ItemID].PermsMask = 0;
                     m_items[item.ItemID].PermsGranter = UUID.Zero;
