@@ -78,6 +78,21 @@ namespace OpenSim.Region.Environment
             return buildEvent("EnableSimulator", llsdBody);
         }
 
+        public static OSD DisableSimulator(ulong Handle)
+        {
+            OSDMap llsdSimInfo = new OSDMap(1);
+
+            llsdSimInfo.Add("Handle", new OSDBinary(regionHandleToByteArray(Handle)));
+
+            OSDArray arr = new OSDArray(1);
+            arr.Add(llsdSimInfo);
+
+            OSDMap llsdBody = new OSDMap(1);
+            llsdBody.Add("SimulatorInfo", arr);
+
+            return buildEvent("DisableSimulator", llsdBody);
+        }
+        
         public static OSD CrossRegion(ulong Handle, Vector3 pos, Vector3 lookAt,
                                        IPEndPoint newRegionExternalEndPoint,
                                        string capsURL, UUID AgentID, UUID SessionID)

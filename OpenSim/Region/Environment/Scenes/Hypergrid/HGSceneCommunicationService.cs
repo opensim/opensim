@@ -149,6 +149,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
 
                     if (destRegionUp)
                     {
+
                         // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
                         // both regions
                         if (avatar.ParentID != (uint)0)
@@ -168,6 +169,17 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         avatar.Scene.RemoveCapsHandler(avatar.UUID);
                         agent.child = false;
                         m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent);
+
+                        if (eq != null)
+                        {
+                            OSD Item = EventQueueHelper.EnableSimulator(realHandle, reg.ExternalEndPoint);
+                            eq.Enqueue(Item, avatar.UUID);
+                        }
+                        else
+                        {
+                            avatar.ControllingClient.InformClientOfNeighbour(realHandle, reg.ExternalEndPoint);
+                            // TODO: make Event Queue disablable!
+                        }
 
                         m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
                                                                      position, false);
@@ -223,6 +235,12 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         {
                             //SendCloseChildAgentConnections(avatar.UUID, avatar.GetKnownRegionList());
                             SendCloseChildAgentConnections(avatar.UUID, childRegions);
+                            if (eq != null)
+                            {
+                                OSD Item = EventQueueHelper.DisableSimulator(m_regionInfo.RegionHandle);
+                                eq.Enqueue(Item, avatar.UUID);
+                            }
+                            Thread.Sleep(2000);
                             CloseConnection(avatar.UUID);
                         }
                         // if (teleport success) // seems to be always success here
