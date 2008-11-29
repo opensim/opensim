@@ -115,26 +115,6 @@ namespace OpenSim.Region.Physics.Meshing
             vertices.Remove(v);
         }
 
-        public void RemoveTrianglesOutside(SimpleHull hull)
-        {
-            int i;
-
-            for (i = 0; i < triangles.Count; i++)
-            {
-                Triangle t = triangles[i];
-                Vertex v1 = t.v1;
-                Vertex v2 = t.v2;
-                Vertex v3 = t.v3;
-                PhysicsVector m = v1 + v2 + v3;
-                m /= 3.0f;
-                if (!hull.IsPointIn(new Vertex(m)))
-                {
-                    triangles.RemoveAt(i);
-                    i--;
-                }
-            }
-        }
-
         public void Add(List<Vertex> lv)
         {
             foreach (Vertex v in lv)

@@ -356,20 +356,6 @@ public class Triangle
         radius_square = (float) (rx*rx + ry*ry);
     }
 
-    public List<Simplex> GetSimplices()
-    {
-        List<Simplex> result = new List<Simplex>();
-        Simplex s1 = new Simplex(v1, v2);
-        Simplex s2 = new Simplex(v2, v3);
-        Simplex s3 = new Simplex(v3, v1);
-
-        result.Add(s1);
-        result.Add(s2);
-        result.Add(s3);
-
-        return result;
-    }
-
     public override String ToString()
     {
         NumberFormatInfo nfi = new NumberFormatInfo();

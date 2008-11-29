@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Contributors, http://opensimulator.org/
+ * Copyright (c) Contributors
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,314 +27,317 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
+using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Text;
-using OpenMetaverse.Imaging;
 
-namespace OpenSim.Region.Physics.Meshing
+namespace PrimMesher
 {
-    // This functionality based on the XNA SculptPreview by John Hurliman.
-    public class SculptMesh : Mesh
-    {        
-        Image idata = null;
-        Bitmap bLOD = null;
-        Bitmap bBitmap = null;
 
-        Vertex northpole = new Vertex(0, 0, 0);
-        Vertex southpole = new Vertex(0, 0, 0);
+    public class SculptMesh
+    {
+        public List<Coord> coords;
+        public List<Face> faces;
 
-        private int lod = 32;
-        private const float RANGE = 128.0f;
+        public List<ViewerFace> viewerFaces;
+        public List<Coord> normals;
+        public List<UVCoord> uvs;
 
-        public SculptMesh(byte[] jpegData, float _lod)
+        public enum SculptType { sphere = 1, torus = 2, plane = 3, cylinder = 4 };
+        private const float pixScale = 0.00390625f; // 1.0 / 256
+
+        private Bitmap ScaleImage(Bitmap srcImage, float scale)
         {
-            if (_lod == 2f || _lod == 4f || _lod == 8f || _lod == 16f || _lod == 32f || _lod == 64f)
-                lod = (int)_lod;
+            int sourceWidth = srcImage.Width;
+            int sourceHeight = srcImage.Height;
+            int sourceX = 0;
+            int sourceY = 0;
 
-            try
-            {
-                ManagedImage managedImage;  // we never use this
-                OpenJPEG.DecodeToImage(jpegData, out managedImage, out idata);
-                //int i = 0;
-                //i = i / i;
-            }
-            catch (Exception)
-            {
-                System.Console.WriteLine("[PHYSICS]: Unable to generate a Sculpty physics proxy.  Sculpty texture decode failed!");
-                return;
-            }
+            int destX = 0;
+            int destY = 0;
+            int destWidth = (int)(sourceWidth * scale);
+            int destHeight = (int)(sourceHeight * scale);
 
-            if (idata != null)
-            {
-                bBitmap = new Bitmap(idata);
-                if (bBitmap.Width == bBitmap.Height)
+            Bitmap scaledImage = new Bitmap(destWidth, destHeight,
+                                     PixelFormat.Format24bppRgb);
+            scaledImage.SetResolution(srcImage.HorizontalResolution,
+                                    srcImage.VerticalResolution);
+
+            Graphics grPhoto = Graphics.FromImage(scaledImage);
+            grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bilinear;
+
+            grPhoto.DrawImage(srcImage,
+                new Rectangle(destX, destY, destWidth, destHeight),
+                new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight),
+                GraphicsUnit.Pixel);
+
+            grPhoto.Dispose();
+            return scaledImage;
+        }
+
+        public SculptMesh SculptMeshFromFile(string fileName, SculptType sculptType, int lod, bool viewerMode)
+        {
+            Bitmap bitmap = (Bitmap)Bitmap.FromFile(fileName);
+            SculptMesh sculptMesh = new SculptMesh(bitmap, sculptType, lod, viewerMode);
+            bitmap.Dispose();
+            return sculptMesh;
+        }
+
+        public SculptMesh(Bitmap sculptBitmap, SculptType sculptType, int lod, bool viewerMode)
+        {
+            coords = new List<Coord>();
+            faces = new List<Face>();
+            normals = new List<Coord>();
+            uvs = new List<UVCoord>();
+
+            float sourceScaleFactor = (float)lod / (float)Math.Max(sculptBitmap.Width, sculptBitmap.Height);
+            bool scaleSourceImage = sourceScaleFactor < 1.0f ? true : false;
+
+            Bitmap bitmap;
+            if (scaleSourceImage)
+                bitmap = ScaleImage(sculptBitmap, sourceScaleFactor);
+            else
+                bitmap = sculptBitmap;
+
+            viewerFaces = new List<ViewerFace>();
+
+            int width = bitmap.Width;
+            int height = bitmap.Height;
+
+            float widthUnit = 1.0f / width;
+            float heightUnit = 1.0f / (height - 1);
+
+            int p1, p2, p3, p4;
+            Color color;
+            float x, y, z;
+
+            int imageX, imageY;
+
+            if (sculptType == SculptType.sphere)
+            { // average the top and bottom row pixel values so the resulting vertices appear to converge
+                int lastRow = height - 1;
+                int r1 = 0, g1 = 0, b1 = 0;
+                int r2 = 0, g2 = 0, b2 = 0;
+                for (imageX = 0; imageX < width; imageX++)
                 {
-                    DoLOD();
+                    Color c1 = bitmap.GetPixel(imageX, 0);
+                    Color c2 = bitmap.GetPixel(imageX, lastRow);
 
-                    LoadPoles();
+                    r1 += c1.R;
+                    g1 += c1.G;
+                    b1 += c1.B;
 
-                    processSculptTexture();
+                    r2 += c2.R;
+                    g2 += c2.G;
+                    b2 += c2.B;
+                }
 
-                    bLOD.Dispose();
-                    bBitmap.Dispose();
-                    idata.Dispose();
+                Color newC1 = Color.FromArgb(r1 / width, g1 / width, b1 / width);
+                Color newC2 = Color.FromArgb(r2 / width, g2 / width, b2 / width);
+
+                for (imageX = 0; imageX < width; imageX++)
+                {
+                    bitmap.SetPixel(imageX, 0, newC1);
+                    bitmap.SetPixel(imageX, lastRow, newC2);
                 }
             }
-        }
-        
-        private Vertex ColorToVertex(Color input)
-        {
-            return new Vertex(
-                ((float)input.R - 128) / RANGE,
-                ((float)input.G - 128) / RANGE,
-                ((float)input.B - 128) / RANGE);
-        }
-        
-        private void LoadPoles()
-        {
-            northpole = new Vertex(0, 0, 0);
-            for (int x = 0; x < bLOD.Width; x++)
-            {
-                northpole += ColorToVertex(GetPixel(0, 0));
-            }
-            northpole /= bLOD.Width;
 
-            southpole = new Vertex(0, 0, 0);
-            for (int x = 0; x < bLOD.Width; x++)
-            {
-                //System.Console.WriteLine("Height: " + bLOD.Height.ToString());
-                southpole += ColorToVertex(GetPixel(bLOD.Height - 1, (bLOD.Height - 1)));
-            }
-            southpole /= bBitmap.Width;
-        }
 
-        private Color GetPixel(int x, int y)
-        {
-            return bLOD.GetPixel(x, y);
-        }
+            int pixelsAcross = sculptType == SculptType.plane ? width : width + 1;
+            int pixelsDown = sculptType == SculptType.sphere || sculptType == SculptType.cylinder ? height + 1 : height;
 
-        public int LOD
-        {
-            get
+            for (imageY = 0; imageY < pixelsDown; imageY++)
             {
-                return (int)Math.Log(Scale, 2);
-            }
-            set
-            {
-                int power = value;
-                if (power == 0)
-                    power = 6;
-                if (power < 2)
-                    power = 2;
-                if (power > 9)
-                    power = 9;
-                int t = (int)Math.Pow(2, power);
-                if (t != Scale)
+                int rowOffset = imageY * width;
+
+                for (imageX = 0; imageX < pixelsAcross; imageX++)
                 {
-                    lod = t;
-                }
-            }
-        }
+                    /*
+                    *   p1-----p2
+                    *   | \ f2 |
+                    *   |   \  |
+                    *   | f1  \|
+                    *   p3-----p4
+                    */
 
-        public int Scale
-        {
-            get
-            {
-                return lod;
-            }
-        }
-        
-        private void DoLOD()
-        {
-            int x_max = Math.Min(Scale, bBitmap.Width);
-            int y_max = Math.Min(Scale, bBitmap.Height);
-            if (bBitmap.Width == x_max && bBitmap.Height == y_max)
-                bLOD = bBitmap;
-
-            else if (bLOD == null || x_max != bLOD.Width || y_max != bLOD.Height)//don't resize if you don't need to.
-            {
-                System.Drawing.Bitmap tile = new System.Drawing.Bitmap(bBitmap.Width * 2, bBitmap.Height, PixelFormat.Format24bppRgb);
-                System.Drawing.Bitmap tile_LOD = new System.Drawing.Bitmap(x_max * 2, y_max, PixelFormat.Format24bppRgb);
-
-                bLOD = new System.Drawing.Bitmap(x_max, y_max, PixelFormat.Format24bppRgb);
-                bLOD.SetResolution(bBitmap.HorizontalResolution, bBitmap.VerticalResolution);
-
-                System.Drawing.Graphics grPhoto = System.Drawing.Graphics.FromImage(tile);
-                grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-
-                grPhoto.DrawImage(bBitmap,
-                    new System.Drawing.Rectangle(0, 0, bBitmap.Width / 2, bBitmap.Height),
-                    new System.Drawing.Rectangle(bBitmap.Width / 2, 0, bBitmap.Width / 2, bBitmap.Height),
-                    System.Drawing.GraphicsUnit.Pixel);
-
-                grPhoto.DrawImage(bBitmap,
-                    new System.Drawing.Rectangle((3 * bBitmap.Width) / 2, 0, bBitmap.Width / 2, bBitmap.Height),
-                    new System.Drawing.Rectangle(0, 0, bBitmap.Width / 2, bBitmap.Height),
-                    System.Drawing.GraphicsUnit.Pixel);
-
-                grPhoto.DrawImage(bBitmap,
-                    new System.Drawing.Rectangle(bBitmap.Width / 2, 0, bBitmap.Width, bBitmap.Height),
-                    new System.Drawing.Rectangle(0, 0, bBitmap.Width, bBitmap.Height),
-                    System.Drawing.GraphicsUnit.Pixel);
-
-                grPhoto = System.Drawing.Graphics.FromImage(tile_LOD);
-                //grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
-                grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bilinear;
-
-                grPhoto.DrawImage(tile,
-                    new System.Drawing.Rectangle(0, 0, tile_LOD.Width, tile_LOD.Height),
-                    new System.Drawing.Rectangle(0, 0, tile.Width, tile.Height),
-                    System.Drawing.GraphicsUnit.Pixel);
-
-                grPhoto = System.Drawing.Graphics.FromImage(bLOD);
-                grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-
-                grPhoto.DrawImage(tile_LOD,
-                    new System.Drawing.Rectangle(0, 0, bLOD.Width, bLOD.Height),
-                    new System.Drawing.Rectangle(tile_LOD.Width / 4, 0, tile_LOD.Width / 2, tile_LOD.Height),
-                    System.Drawing.GraphicsUnit.Pixel);
-
-                grPhoto.Dispose();
-                tile_LOD.Dispose();
-                tile.Dispose();
-            }
-
-        }
-        
-        public void clearStuff()
-        {
-            this.triangles.Clear();
-            this.vertices.Clear();
-            //normals = new float[0];
-        }
-        
-        public void processSculptTexture()
-        {
-            int x_max = Math.Min(Scale, bBitmap.Width);
-            int y_max = Math.Min(Scale, bBitmap.Height);
-
-            int COLUMNS = x_max + 1;
-
-            Vertex[] sVertices = new Vertex[COLUMNS * y_max];
-            //float[] indices = new float[COLUMNS * (y_max - 1) * 6];
-
-            for (int y = 0; y < y_max; y++)
-            {
-                for (int x = 0; x < x_max; x++)
-                {
-                    // Create the vertex
-                    Vertex v1 = new Vertex(0,0,0);
-
-                    // Create a vertex position from the RGB channels in the current pixel
-                    // int ypos = y * bLOD.Width;
-
-
-                    if (y == 0)
+                    if (imageX < width)
                     {
-                        v1 = northpole;
-                    }
-                    else if (y == y_max - 1)
-                    {
-                        v1 = southpole;
+                        p4 = rowOffset + imageX;
+                        p3 = p4 - 1;
                     }
                     else
                     {
-                        v1 = ColorToVertex(GetPixel(x, y));
+                        p4 = rowOffset; // wrap around to beginning
+                        p3 = rowOffset + imageX - 1;
                     }
 
-                    // Add the vertex for use later
-                    if (!vertices.Contains(v1))
-                        Add(v1);
+                    p2 = p4 - width;
+                    p1 = p3 - width;
 
-                    sVertices[y * COLUMNS + x] = v1;
-                    //System.Console.WriteLine("adding: " + v1.ToString());
-                }
-                //Vertex tempVertex = vertices[y * COLUMNS];
-               // sVertices[y * COLUMNS + x_max] = tempVertex;
-            }
+                    color = bitmap.GetPixel(imageX == width ? 0 : imageX, imageY == height ? height - 1 : imageY);
 
-            // Create the Triangles
-            //int i = 0;
+                    x = (color.R - 128) * pixScale;
+                    y = (color.G - 128) * pixScale;
+                    z = (color.B - 128) * pixScale;
 
-            for (int y = 0; y < y_max - 1; y++)
-            {
-                int x;
-
-                for (x = 0; x < x_max; x++)
-                {
-                    Vertex vt11 = sVertices[(y * COLUMNS + x)];
-                    Vertex vt12 = sVertices[(y * COLUMNS + (x + 1))];
-                    Vertex vt13 = sVertices[((y + 1) * COLUMNS + (x + 1))];
-                    if (vt11 != null && vt12 != null && vt13 != null)
+                    Coord c = new Coord(x, y, z);
+                    this.coords.Add(c);
+                    if (viewerMode)
                     {
-                        if (vt11 != vt12 && vt11 != vt13 && vt12 != vt13)
-                        {
-                            Triangle tri1 = new Triangle(vt11, vt12, vt13);
-                            //indices[i++] = (ushort)(y * COLUMNS + x);
-                            //indices[i++] = (ushort)(y * COLUMNS + (x + 1));
-                            //indices[i++] = (ushort)((y + 1) * COLUMNS + (x + 1));
-                            Add(tri1);
-                        }
+                        this.normals.Add(new Coord());
+                        this.uvs.Add(new UVCoord(widthUnit * imageX, heightUnit * imageY));
                     }
 
-                    Vertex vt21 = sVertices[(y * COLUMNS + x)];
-                    Vertex vt22 = sVertices[((y + 1) * COLUMNS + (x + 1))];
-                    Vertex vt23 = sVertices[((y + 1) * COLUMNS + x)];
-                    if (vt21 != null && vt22 != null && vt23 != null)
+                    if (imageY > 0 && imageX > 0)
                     {
-                        if (vt21.Equals(vt22, 0.022f) || vt21.Equals(vt23, 0.022f) || vt22.Equals(vt23, 0.022f))
+                        Face f1, f2;
+
+                        if (viewerMode)
                         {
+                            f1 = new Face(p1, p3, p4, p1, p3, p4);
+                            f1.uv1 = p1;
+                            f1.uv2 = p3;
+                            f1.uv3 = p4;
+
+                            f2 = new Face(p1, p4, p2, p1, p4, p2);
+                            f2.uv1 = p1;
+                            f2.uv2 = p4;
+                            f2.uv3 = p2;
                         }
                         else
                         {
-                            Triangle tri2 = new Triangle(vt21, vt22, vt23);
-                            //indices[i++] = (ushort)(y * COLUMNS + x);
-                            //indices[i++] = (ushort)((y + 1) * COLUMNS + (x + 1));
-                            //indices[i++] = (ushort)((y + 1) * COLUMNS + x);
-                            Add(tri2);
+                            f1 = new Face(p1, p3, p4);
+                            f2 = new Face(p1, p4, p2);
                         }
+
+                        this.faces.Add(f1);
+                        this.faces.Add(f2);
                     }
-
                 }
-                //Vertex vt31 = sVertices[(y * x_max + x)];
-                //Vertex vt32 = sVertices[(y * x_max + 0)];
-                //Vertex vt33 = sVertices[((y + 1) * x_max + 0)];
-                //if (vt31 != null && vt32 != null && vt33 != null)
-                //{
-                    //if (vt31.Equals(vt32, 0.022f) || vt31.Equals(vt33, 0.022f) || vt32.Equals(vt33, 0.022f))
-                    //{
-                    //}
-                    //else
-                    //{
-                        //Triangle tri3 = new Triangle(vt31, vt32, vt33);
-                        // Wrap the last cell in the row around
-                        //indices[i++] = (ushort)(y * x_max + x); //a
-                        //indices[i++] = (ushort)(y * x_max + 0); //b
-                        //indices[i++] = (ushort)((y + 1) * x_max + 0); //c
-                        //Add(tri3);
-                   // }
-                //}
-
-                //Vertex vt41 = sVertices[(y * x_max + x)];
-                //Vertex vt42 = sVertices[((y + 1) * x_max + 0)];
-                //Vertex vt43 = sVertices[((y + 1) * x_max + x)];
-                //if (vt41 != null && vt42 != null && vt43 != null)
-                //{
-                    //if (vt41.Equals(vt42, 0.022f) || vt31.Equals(vt43, 0.022f) || vt32.Equals(vt43, 0.022f))
-                    //{
-                    //}
-                   // else
-                   // {
-                        //Triangle tri4 = new Triangle(vt41, vt42, vt43);
-                        //indices[i++] = (ushort)(y * x_max + x); //a
-                        //indices[i++] = (ushort)((y + 1) * x_max + 0); //b
-                        //indices[i++] = (ushort)((y + 1) * x_max + x); //c
-                        //Add(tri4);
-                    //}
-                //}
-
             }
+
+            if (scaleSourceImage)
+                bitmap.Dispose();
+
+            if (viewerMode)
+            {  // compute vertex normals by summing all the surface normals of all the triangles sharing
+                // each vertex and then normalizing
+                int numFaces = this.faces.Count;
+                for (int i = 0; i < numFaces; i++)
+                {
+                    Face face = this.faces[i];
+                    Coord surfaceNormal = face.SurfaceNormal(this.coords);
+                    this.normals[face.v1] += surfaceNormal;
+                    this.normals[face.v2] += surfaceNormal;
+                    this.normals[face.v3] += surfaceNormal;
+                }
+
+                int numCoords = this.coords.Count;
+                for (int i = 0; i < numCoords; i++)
+                    this.coords[i].Normalize();
+
+                if (sculptType != SculptType.plane)
+                { // blend the vertex normals at the cylinder seam
+                    pixelsAcross = width + 1;
+                    for (imageY = 0; imageY < height; imageY++)
+                    {
+                        int rowOffset = imageY * pixelsAcross;
+
+                        this.normals[rowOffset] = this.normals[rowOffset + width - 1] = (this.normals[rowOffset] + this.normals[rowOffset + width - 1]).Normalize();
+                    }
+                }
+
+                foreach (Face face in this.faces)
+                {
+                    ViewerFace vf = new ViewerFace(0);
+                    vf.v1 = this.coords[face.v1];
+                    vf.v2 = this.coords[face.v2];
+                    vf.v3 = this.coords[face.v3];
+
+                    vf.n1 = this.normals[face.n1];
+                    vf.n2 = this.normals[face.n2];
+                    vf.n3 = this.normals[face.n3];
+
+                    vf.uv1 = this.uvs[face.uv1];
+                    vf.uv2 = this.uvs[face.uv2];
+                    vf.uv3 = this.uvs[face.uv3];
+
+                    this.viewerFaces.Add(vf);
+                }
+            }
+        }
+
+        public void AddRot(Quat q)
+        {
+            int i;
+            int numVerts = this.coords.Count;
+
+            for (i = 0; i < numVerts; i++)
+                this.coords[i] *= q;
+
+            if (this.viewerFaces != null)
+            {
+                int numViewerFaces = this.viewerFaces.Count;
+
+                for (i = 0; i < numViewerFaces; i++)
+                {
+                    ViewerFace v = this.viewerFaces[i];
+                    v.v1 *= q;
+                    v.v2 *= q;
+                    v.v3 *= q;
+
+                    v.n1 *= q;
+                    v.n2 *= q;
+                    v.n3 *= q;
+
+                    this.viewerFaces[i] = v;
+                }
+            }
+        }
+
+        public void Scale(float x, float y, float z)
+        {
+            int i;
+            int numVerts = this.coords.Count;
+            //Coord vert;
+
+            Coord m = new Coord(x, y, z);
+            for (i = 0; i < numVerts; i++)
+                this.coords[i] *= m;
+
+            if (this.viewerFaces != null)
+            {
+                int numViewerFaces = this.viewerFaces.Count;
+                for (i = 0; i < numViewerFaces; i++)
+                {
+                    ViewerFace v = this.viewerFaces[i];
+                    v.v1 *= m;
+                    v.v2 *= m;
+                    v.v3 *= m;
+                    this.viewerFaces[i] = v;
+                }
+            }
+        }
+
+        public void DumpRaw(String path, String name, String title)
+        {
+            if (path == null)
+                return;
+            String fileName = name + "_" + title + ".raw";
+            String completePath = Path.Combine(path, fileName);
+            StreamWriter sw = new StreamWriter(completePath);
+
+            for (int i = 0; i < this.faces.Count; i++)
+            {
+                string s = this.coords[this.faces[i].v1].ToString();
+                s += " " + this.coords[this.faces[i].v2].ToString();
+                s += " " + this.coords[this.faces[i].v3].ToString();
+
+                sw.WriteLine(s);
+            }
+
+            sw.Close();
         }
     }
 }
