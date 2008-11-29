@@ -2173,6 +2173,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (sp != null)
                             parentLocalID = sp.LocalId;
 
+                        sceneObject.RootPart.IsAttachment = true;
                         sceneObject.RootPart.SetParentLocalId(parentLocalID);
 
                         AddRestoredSceneObject(sceneObject, false, false);

@@ -541,7 +541,7 @@ namespace OpenSim.Region.Environment.Scenes
             get
             {
                 // We don't want the physics engine mucking up the rotations in a linkset
-                if (PhysActor != null && _parentID == 0)
+                if ((_parentID == 0) && (Shape.PCode != 9 || Shape.State == 0)  && (PhysActor != null))
                 {
                     if (PhysActor.Orientation.X != 0 || PhysActor.Orientation.Y != 0
                         || PhysActor.Orientation.Z != 0 || PhysActor.Orientation.W != 0)
@@ -1193,8 +1193,8 @@ if (m_shape != null) {
             // Added clarification..   since A rigid body is an object that you can kick around, etc.
             bool RigidBody = isPhysical && !isPhantom;
 
-            // The only time the physics scene shouldn't know about the prim is if it's phantom
-            if (!isPhantom)
+            // The only time the physics scene shouldn't know about the prim is if it's phantom or an attachment, which is phantom by definition
+            if (!isPhantom && !IsAttachment)
             {
                 PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
                     Name,
@@ -3090,7 +3090,7 @@ if (m_shape != null) {
                 }
             }
 
-            if (IsPhantom)
+            if (IsPhantom || IsAttachment)
             {
                 AddFlag(PrimFlags.Phantom);
                 if (PhysActor != null)
