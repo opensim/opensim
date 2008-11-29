@@ -3346,7 +3346,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     // Attach from world, if not already attached
                     if (att.ParentGroup != null && !att.IsAttachment)
-                        m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, (uint)0, att.ParentGroup.GroupRotation, Vector3.Zero, false);
+                        m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, (uint)0, Quaternion.Identity, att.ParentGroup.AbsolutePosition, false);
                 }
                 catch (NullReferenceException)
                 {
