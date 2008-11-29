@@ -210,9 +210,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     "SecondLife.Script");
 
                 // Add a sponsor to the script
-                ISponsor scriptSponsor = new ScriptSponsor();
-                ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as MarshalByRefObject);
-                lease.Register(scriptSponsor);
+//                ISponsor scriptSponsor = new ScriptSponsor();
+//                ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as MarshalByRefObject);
+//                lease.Register(scriptSponsor);
                 //m_ScriptSponsor = scriptSponsor;
 
             }

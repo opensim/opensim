@@ -50,10 +50,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             ILease lease = (ILease)base.InitializeLifetimeService();
             if (lease.CurrentState == LeaseState.Initial)
             {
-                //lease.InitialLeaseTime = TimeSpan.Zero;
-                lease.InitialLeaseTime = TimeSpan.FromMinutes(1);
-                lease.SponsorshipTimeout = TimeSpan.FromMinutes(2);
-                lease.RenewOnCallTime = TimeSpan.FromSeconds(2);
+                lease.InitialLeaseTime = TimeSpan.Zero;
+//                lease.InitialLeaseTime = TimeSpan.FromMinutes(1);
+//                lease.SponsorshipTimeout = TimeSpan.FromMinutes(2);
+//                lease.RenewOnCallTime = TimeSpan.FromSeconds(2);
             }
             return lease;
         }

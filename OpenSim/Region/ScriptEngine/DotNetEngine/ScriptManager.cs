@@ -59,7 +59,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public Dictionary<string, IScriptApi> Apis;
         public Dictionary<KeyValuePair<int,int>, KeyValuePair<int,int>>
                 LineMap;
-        public ISponsor ScriptSponsor;
+//        public ISponsor ScriptSponsor;
     }
 
     public class ScriptManager
@@ -169,10 +169,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         m_scriptEngine.m_AppDomainManager.LoadScript(
                         CompiledScriptFile, out id.AppDomain);
                 //Register the sponsor
-                ISponsor scriptSponsor = new ScriptSponsor();
-                ILease lease = (ILease)RemotingServices.GetLifetimeService(CompiledScript as MarshalByRefObject);
-                lease.Register(scriptSponsor);
-                id.ScriptSponsor = scriptSponsor;
+//                ISponsor scriptSponsor = new ScriptSponsor();
+//                ILease lease = (ILease)RemotingServices.GetLifetimeService(CompiledScript as MarshalByRefObject);
+//                lease.Register(scriptSponsor);
+//                id.ScriptSponsor = scriptSponsor;
 
                 id.LineMap = LSLCompiler.LineMap();
                 id.Script = CompiledScript;
