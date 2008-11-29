@@ -269,6 +269,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_config = config;
 
+            Random random = new Random();
+            m_lastAllocatedLocalId = (uint)(random.NextDouble() * (double)(uint.MaxValue/2))+(uint)(uint.MaxValue/4);
             m_moduleLoader = moduleLoader;
             m_authenticateHandler = authen;
             CommsManager = commsMan;
@@ -2182,11 +2184,11 @@ namespace OpenSim.Region.Environment.Scenes
                         //
                         SceneObjectPart RootPrim = GetSceneObjectPart(primID);
 
-                        RootPrim.SetParentLocalId(parentLocalID);
-
                         if (RootPrim != null)
                         {
                             SceneObjectGroup grp = RootPrim.ParentGroup;
+
+                            RootPrim.SetParentLocalId(parentLocalID);
 
                             if (grp != null)
                             {
@@ -2205,6 +2207,7 @@ namespace OpenSim.Region.Environment.Scenes
                                             grp.LocalId, (uint)0,
                                             grp.GroupRotation,
                                             grp.AbsolutePosition, false);
+                                    grp.SendGroupFullUpdate();
                                 }
                                 else
                                 {

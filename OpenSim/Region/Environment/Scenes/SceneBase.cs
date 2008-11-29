@@ -53,7 +53,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is
         /// dispensed.
         /// </summary>
-        private uint m_lastAllocatedLocalId = 720000;
+        protected uint m_lastAllocatedLocalId = 720000;
 
         private readonly Mutex _primAllocateMutex = new Mutex(false);
         
@@ -91,8 +91,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected string m_datastore;
-
-        private uint m_nextAvatarLocalId = 8880000;
 
         private AssetCache m_assetCache;
 
@@ -165,11 +163,6 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual RegionInfo RegionInfo
         {
             get { return m_regInfo; }
-        }
-
-        public uint NextAvatarLocalId
-        {
-            get { return m_nextAvatarLocalId++; }
         }
 
         #region admin stuff

@@ -508,7 +508,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene = world;
             m_uuid = client.AgentId;
             m_regionInfo = reginfo;
-            m_localId = m_scene.NextAvatarLocalId;
+            m_localId = m_scene.AllocateLocalId();
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)

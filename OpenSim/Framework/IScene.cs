@@ -57,7 +57,6 @@ namespace OpenSim.Framework
     public interface IScene
     {
         RegionInfo RegionInfo { get; }
-        uint NextAvatarLocalId { get; }
         RegionStatus Region_Status { get; set; }
 
         ClientManager ClientManager { get; }

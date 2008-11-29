@@ -556,7 +556,12 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
             lock (m_landList)
             {
-                return m_landList[m_landIDList[x, y]];
+                // Corner case. If an autoreturn happens during sim startup
+                // we will come here with the list uninitialized
+                //
+                if (m_landList.ContainsKey(m_landIDList[x, y]))
+                    return m_landList[m_landIDList[x, y]];
+                return null;
             }
         }
 
