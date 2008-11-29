@@ -40,7 +40,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     {
         NewRez = 0,
         PrimCrossing = 1,
-        ScriptedRez= 2
+        ScriptedRez = 2
     }
 
     public interface IScriptWorkItem

@@ -286,6 +286,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 }
             }
 
+            if (Script == String.Empty)
+            {
+                if (File.Exists(OutFile))
+
+                {
+                    m_scriptEngine.Log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
+                    return OutFile;
+                }
+
+                throw new Exception("Cannot find script assembly and no script text present");
+            }
+
             enumCompileType l = DefaultCompileLanguage;
 
             if (Script.StartsWith("//c#", true, CultureInfo.InvariantCulture))

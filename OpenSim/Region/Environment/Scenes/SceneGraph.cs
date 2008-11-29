@@ -472,6 +472,10 @@ namespace OpenSim.Region.Environment.Scenes
                 objatt.ScheduleGroupForFullUpdate();
                 if (tainted)
                     objatt.HasGroupChanged = true;
+
+                // Fire after attach, so we don't get messy perms dialogs
+                //
+                objatt.CreateScriptInstances(0, true, m_parentScene.DefaultScriptEngine, 0);
             }
             return objatt;
         }

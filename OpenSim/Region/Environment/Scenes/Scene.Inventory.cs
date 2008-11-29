@@ -2088,10 +2088,11 @@ namespace OpenSim.Region.Environment.Scenes
                             }
 
                             // Fire on_rez
-                            group.CreateScriptInstances(0, true, DefaultScriptEngine, 0);
-
                             if (!attachment)
+                            {
+                                group.CreateScriptInstances(0, true, DefaultScriptEngine, 0);
                                 rootPart.ScheduleFullUpdate();
+                            }
 
                             if (!Permissions.BypassPermissions())
                             {
