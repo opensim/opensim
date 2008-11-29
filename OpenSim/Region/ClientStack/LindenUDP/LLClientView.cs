@@ -2414,6 +2414,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (AttachPoint > 30 && ownerID != AgentId) // Someone else's HUD
                 return;
+            if (parentID == 0)
+                return;
 
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = Quaternion.Identity;

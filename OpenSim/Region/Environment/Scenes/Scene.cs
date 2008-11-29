@@ -2145,84 +2145,93 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);
 
+                // If the user is banned, we won't let any of their objects
+                // enter. Period.
+                //
+                if (m_regInfo.EstateSettings.IsBanned(sceneObject.OwnerID))
+                {
+                    m_log.Info("[INTERREGION]: Denied prim crossing for "+
+                            "banned avatar");
+
+                    return false;
+                }
+
                 // Force allocation of new LocalId
                 //
                 foreach (SceneObjectPart p in sceneObject.Children.Values)
                     p.LocalId = 0;
 
-                AddRestoredSceneObject(sceneObject, true, false);
-
-                SceneObjectPart RootPrim = GetSceneObjectPart(primID);
-                if (RootPrim != null)
+                if (sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim)
                 {
-                    if (m_regInfo.EstateSettings.IsBanned(RootPrim.OwnerID))
+                    if(sceneObject.RootPart.Shape.State != 0)
                     {
-                        SceneObjectGroup grp = RootPrim.ParentGroup;
-                        if (grp != null)
-                            DeleteSceneObject(grp, false);
+                        // Fix up attachment Parent Local ID
+                        //
+                        ScenePresence sp = GetScenePresence(sceneObject.OwnerID);
 
-                        m_log.Info("[INTERREGION]: Denied prim crossing for banned avatar");
+                        uint parentLocalID = 0;
+                        if (sp != null)
+                            parentLocalID = sp.LocalId;
 
-                        return false;
-                    }
-                    if (RootPrim.Shape.PCode == (byte)PCode.Prim)
-                    {
-                        SceneObjectGroup grp = RootPrim.ParentGroup;
-                        if((RootPrim.Shape.State == 0) &&
-                                (!Permissions.CanObjectEntry(RootPrim.UUID,
-                                true, RootPrim.AbsolutePosition)))
+                        sceneObject.RootPart.SetParentLocalId(parentLocalID);
+
+                        AddRestoredSceneObject(sceneObject, false, false);
+
+                        // Handle attachment special case
+                        //
+                        SceneObjectPart RootPrim = GetSceneObjectPart(primID);
+
+                        RootPrim.SetParentLocalId(parentLocalID);
+
+                        if (RootPrim != null)
                         {
+                            SceneObjectGroup grp = RootPrim.ParentGroup;
+
                             if (grp != null)
                             {
-                                DeleteSceneObject(grp, false);
-                            }
+                                m_log.DebugFormat("[ATTACHMENT]: Received "+
+                                        "attachment {0}, inworld asset id {1}",
+                                        grp.RootPart.LastOwnerID.ToString(),
+                                        grp.UUID.ToString());
 
-                            m_log.Info("[INTERREGION]: Denied prim crossing because of parcel settings");
-
-                            return false;
-                        }
-                        if (grp != null)
-                        {
-                            if (RootPrim.Shape.State != 0)
-                            {
-                                // Never persist
-
-                                m_log.DebugFormat("[ATTACHMENT]: Received attachment {0}, inworld asset id {1}", grp.RootPart.LastOwnerID.ToString(), grp.UUID.ToString());
-
-                                grp.DetachFromBackup();
-
-                                // Attachment
-                                ScenePresence sp = GetScenePresence(grp.OwnerID);
                                 if (sp != null)
                                 {
-                                    // hack assetID until we get assetID into the XML format.
-                                    // LastOwnerID is used for group deeding, so when you do stuff
-                                    // with the deeded object, it goes back to them
-
                                     grp.SetFromAssetID(grp.RootPart.LastOwnerID);
-                                    m_log.DebugFormat("[ATTACHMENT]: Attach to avatar {0}", sp.UUID.ToString());
-                                    AttachObject(sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition, false);
+                                    m_log.DebugFormat("[ATTACHMENT]: Attach "+
+                                            "to avatar {0}",
+                                            sp.UUID.ToString());
+                                    AttachObject(sp.ControllingClient,
+                                            grp.LocalId, (uint)0,
+                                            grp.GroupRotation,
+                                            grp.AbsolutePosition, false);
                                 }
                                 else
                                 {
-                                    // Remove, then add, to ensure the expire
-                                    // time is refreshed. Wouldn't do to
-                                    // have it poof before the avatar gets
-                                    // there.
-                                    //
                                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                                     RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
                                 }
                             }
                         }
                     }
+                    else
+                    {
+                        if (!Permissions.CanObjectEntry(sceneObject.UUID,
+                                true, sceneObject.AbsolutePosition))
+                        {
+                            // Deny non attachments based on parcel settings
+                            //
+                            m_log.Info("[INTERREGION]: Denied prim crossing "+
+                                    "because of parcel settings");
+
+                            return false;
+                        }
+                    }
+
+                    AddRestoredSceneObject(sceneObject, true, false);
                 }
-                return true;
             }
-            else
-            {
-                return false;
-            }
+
+            return true;
         }
 
         #endregion

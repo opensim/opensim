@@ -592,7 +592,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene = scene;                        
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
-            m_rootPart.ParentID = 0;
+            if (m_rootPart.Shape.PCode != 9 || m_rootPart.Shape.State == 0)
+                m_rootPart.ParentID = 0;
             if (m_rootPart.LocalId==0)
                 m_rootPart.LocalId = m_scene.AllocateLocalId();
 
@@ -921,9 +922,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetRootPart(SceneObjectPart part)
         {            
             part.SetParent(this);
-            part.ParentID = 0;
-            part.LinkNum = 0;           
             m_rootPart = part;
+            if (!IsAttachment)
+                part.ParentID = 0;
+            part.LinkNum = 0;           
             
             // No locking required since the SOG should not be in the scene yet - one can't change root parts after
             // the scene object has been attached to the scene
