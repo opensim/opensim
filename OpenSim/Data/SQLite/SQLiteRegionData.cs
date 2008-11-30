@@ -783,7 +783,7 @@ namespace OpenSim.Data.SQLite
 
             createCol(prims, "UUID", typeof (String));
             createCol(prims, "RegionUUID", typeof (String));
-            createCol(prims, "ParentID", typeof (Int32));
+            createCol(prims, "ParentID", typeof (UInt32));
             createCol(prims, "CreationDate", typeof (Int32));
             createCol(prims, "Name", typeof (String));
             createCol(prims, "SceneGroupID", typeof (String));
