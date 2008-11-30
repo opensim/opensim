@@ -1397,6 +1397,10 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
+            else
+            {
+                return; // parent is null so not in this region
+            }
 
             foreach (SceneObjectGroup sceneObj in children)
             {
