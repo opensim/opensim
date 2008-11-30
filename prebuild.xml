@@ -684,6 +684,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
       <Reference name="log4net.dll"/>
+      <Reference name="PrimMesher.dll" localCopy="false"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
