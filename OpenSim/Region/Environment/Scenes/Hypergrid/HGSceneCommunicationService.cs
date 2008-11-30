@@ -222,25 +222,28 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                             KiPrimitive(avatar.LocalId);
                         }
 
-                        avatar.Close();
 
                         uint newRegionX = (uint)(reg.RegionHandle >> 40);
                         uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
                         uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);
                         uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
+
+                        // Let's close some children agents
+                        if (isHyperLink) // close them all
+                            SendCloseChildAgentConnections(avatar.UUID, avatar.GetKnownRegionList());
+                        else // close just a few
+                            avatar.CloseChildAgents(newRegionX, newRegionY);
+                        
+                        avatar.Close();
+                        
+                        // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
                         ///
                         /// Hypergrid mod: extra check for isHyperLink
                         /// 
-                        if ((Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3) || isHyperLink)
+                        //if ((Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 1) || isHyperLink)
+                        //if (((int)Math.Abs((int)(newRegionX - oldRegionX)) > 1) || ((int)Math.Abs((int)(newRegionY - oldRegionY)) > 1) || isHyperLink)
+                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
-                            //SendCloseChildAgentConnections(avatar.UUID, avatar.GetKnownRegionList());
-                            SendCloseChildAgentConnections(avatar.UUID, childRegions);
-                            if (eq != null)
-                            {
-                                OSD Item = EventQueueHelper.DisableSimulator(m_regionInfo.RegionHandle);
-                                eq.Enqueue(Item, avatar.UUID);
-                            }
-                            Thread.Sleep(2000);
                             CloseConnection(avatar.UUID);
                         }
                         // if (teleport success) // seems to be always success here

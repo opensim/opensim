@@ -2373,7 +2373,10 @@ namespace OpenSim.Region.Environment.Scenes
 
                     CrossAttachmentsIntoNewRegion(neighbourHandle, true);
 
-//                    m_scene.SendKillObject(m_localId);
+                    // Next, let's close the child agent connections that are too far away.
+                    CloseChildAgents(neighbourx, neighboury);
+
+                    //                    m_scene.SendKillObject(m_localId);
 
                     m_scene.NotifyMyCoarseLocationChange();
                     // the user may change their profile information in other region,
@@ -2389,6 +2392,44 @@ namespace OpenSim.Region.Environment.Scenes
                     m_scene.AddCapsHandler(UUID);
                 }
             }
+        }
+
+        /// <summary>
+        /// Computes which child agents to close when the scene presence moves to another region.
+        /// Removes those regions from m_knownRegions.
+        /// </summary>
+        /// <param name="newRegionX">The new region's x on the map</param>
+        /// <param name="newRegionY">The new region's y on the map</param>
+        /// <returns></returns>
+        public void CloseChildAgents(uint newRegionX, uint newRegionY)
+        {
+            List<ulong> byebyeRegions = new List<ulong>();
+
+            foreach (ulong handle in m_knownChildRegions)
+            {
+                uint x, y;
+                Utils.LongToUInts(handle, out x, out y);
+                x = x / Constants.RegionSize;
+                y = y / Constants.RegionSize;
+
+                if (Util.IsOutsideView(x, newRegionX, y, newRegionY))
+                {
+                    Console.WriteLine("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs(x-newRegionX));
+                    Console.WriteLine("---> y: " + y + "; newy:" + newRegionY);
+                    byebyeRegions.Add(handle);
+                }
+            }
+            foreach (ulong handle in byebyeRegions)
+            {
+                RemoveNeighbourRegion(handle);
+            }
+
+            if (byebyeRegions.Count > 0)
+            {
+                m_log.Info("[AVATAR]: Closing " + byebyeRegions.Count + " child agents");
+                m_scene.SceneGridService.SendCloseChildAgentConnections(m_controllingClient.AgentId, byebyeRegions);
+            }
+
         }
 
         #endregion

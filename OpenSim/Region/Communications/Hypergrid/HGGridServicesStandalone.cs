@@ -644,6 +644,7 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         public override bool TellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
         {
+            m_log.Debug("[HGrid]: TellRegion " + regionHandle + " ToCloseChildConnection for " + agentID);
             RegionInfo regInfo = null;
             try
             {

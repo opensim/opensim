@@ -230,7 +230,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected bool CloseConnection(UUID agentID)
         {
             m_log.Debug("[INTERREGION]: Incoming Agent Close Request for agent: " + agentID);
-            
+
             handlerCloseAgentConnection = OnCloseAgentConnection;
             if (handlerCloseAgentConnection != null)
             {
@@ -727,24 +727,31 @@ namespace OpenSim.Region.Environment.Scenes
                             KiPrimitive(avatar.LocalId);
                         }
 
-                        avatar.Close();
 
                         uint newRegionX = (uint)(reg.RegionHandle >> 40);
                         uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
                         uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);
                         uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
-                        if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
+
+                        // Let's close some children agents
+                        avatar.CloseChildAgents(newRegionX, newRegionY);
+
+                        avatar.Close();
+
+                        // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
+
+                        // This is a little too fast of a distance computation... it's not consistent with the rule
+                        // of having child agents in exactly the adjacent regions. Some topologies result in orphan
+                        // children
+                        //if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
+                        //if (((int)Math.Abs((int)(newRegionX - oldRegionX)) > 1) || ((int)Math.Abs((int)(newRegionY - oldRegionY)) > 1))
+                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
                             //SendCloseChildAgentConnections(avatar.UUID,avatar.GetKnownRegionList());
-                            SendCloseChildAgentConnections(avatar.UUID, childRegions);
-                            if (eq != null)
-                            {
-                                OSD Item = EventQueueHelper.DisableSimulator(m_regionInfo.RegionHandle);
-                                eq.Enqueue(Item, avatar.UUID);
-                            }
-                            Thread.Sleep(2000);
+                            //SendCloseChildAgentConnections(avatar.UUID, childRegions);
                             CloseConnection(avatar.UUID);
                         }
+
                         // if (teleport success) // seems to be always success here
                         // the user may change their profile information in other region,
                         // so the userinfo in UserProfileCache is not reliable any more, delete it

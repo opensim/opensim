@@ -52,6 +52,7 @@ using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 using Image = System.Drawing.Image;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 using Timer = System.Timers.Timer;
+using OSD = OpenMetaverse.StructuredData.OSD;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -2807,9 +2808,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             capsPaths[agent.AgentID] = agent.CapsPath;
 
+            AddCapsHandler(agent.AgentID);
+
             if (!agent.child)
             {
-                AddCapsHandler(agent.AgentID);
 
                 // Honor parcel landing type and position.
                 ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
@@ -3027,7 +3029,18 @@ namespace OpenSim.Region.Environment.Scenes
                 // }
 
                 // Tell a single agent to disconnect from the region.
+                // This sends DisableSimulator over UDP, but that doesn't seem to be working
+                // well with the latest LL viewer, so we're sending it also via the EQ
                 presence.ControllingClient.SendShutdownConnectionNotice();
+                IEventQueue eq = RequestModuleInterface<IEventQueue>();
+                if (eq != null)
+                {
+                    OSD Item = EventQueueHelper.DisableSimulator(m_regInfo.RegionHandle);
+                    eq.Enqueue(Item, agentID);
+                    m_log.Debug("[Scene]: Enqueuing DisableSimulator for " + agentID + " in region " + m_regInfo.RegionName);
+                    Thread.Sleep(2000);
+                }
+                RemoveCapsHandler(agentID);
 
                 presence.ControllingClient.Close(true);
             }
