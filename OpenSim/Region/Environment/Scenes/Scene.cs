@@ -2076,6 +2076,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (!CrossPrimGroupIntoNewRegion(newRegionHandle, grp, silent))
             {
                 grp.OffsetForNewRegion(oldGroupPosition);
+                grp.ScheduleGroupForFullUpdate();
             }
         }
 
@@ -2223,6 +2224,8 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
+                        AddRestoredSceneObject(sceneObject, true, false);
+
                         if (!Permissions.CanObjectEntry(sceneObject.UUID,
                                 true, sceneObject.AbsolutePosition))
                         {
@@ -2231,11 +2234,11 @@ namespace OpenSim.Region.Environment.Scenes
                             m_log.Info("[INTERREGION]: Denied prim crossing "+
                                     "because of parcel settings");
 
+                            DeleteSceneObject(sceneObject, false);
+
                             return false;
                         }
                     }
-
-                    AddRestoredSceneObject(sceneObject, true, false);
                 }
             }
 
