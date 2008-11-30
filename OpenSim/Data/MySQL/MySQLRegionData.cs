@@ -286,7 +286,7 @@ namespace OpenSim.Data.MySQL
 
                 try
                 {
-                    while(reader.Read())
+                    while (reader.Read())
                     {
                         uuids.Add(new UUID(reader["UUID"].ToString()));
                     }

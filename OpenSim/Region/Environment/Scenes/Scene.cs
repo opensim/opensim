@@ -2169,7 +2169,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim)
                 {
-                    if(sceneObject.RootPart.Shape.State != 0)
+                    if (sceneObject.RootPart.Shape.State != 0)
                     {
                         // Fix up attachment Parent Local ID
                         //

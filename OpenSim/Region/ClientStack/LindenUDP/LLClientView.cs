@@ -3477,7 +3477,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_genericPacketHandlers.Count == 0) return false;
             handlerGenericMessage = null;
             string method = Util.FieldToString(gmpack.MethodData.Method).ToLower().Trim();
-            if(m_genericPacketHandlers.TryGetValue(method, out handlerGenericMessage))
+            if (m_genericPacketHandlers.TryGetValue(method, out handlerGenericMessage))
             {
                 List<string> msg = new List<string>();
 
