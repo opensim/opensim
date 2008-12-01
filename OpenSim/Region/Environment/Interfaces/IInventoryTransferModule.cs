@@ -33,7 +33,7 @@ using OpenSim.Region.Environment.Scenes;
 namespace OpenSim.Framework
 {
     /// <summary>
-    /// An interface for accessing and managing agent inventory
+    /// An interface for a module that manages inter-agent inventory offers and transfers.
     /// </summary>
     public interface IInventoryTransferModule
     {

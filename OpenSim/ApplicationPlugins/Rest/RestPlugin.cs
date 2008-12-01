@@ -232,7 +232,6 @@ namespace OpenSim.ApplicationPlugins.Rest
                 // Get plugin specific config
                 _pluginConfig = openSim.ConfigSource.Source.Configs[ConfigName];
 
-
                 m_log.InfoFormat("{0} Rest Plugins Enabled", MsgID);
             }
             catch (Exception e)

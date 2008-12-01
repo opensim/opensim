@@ -84,7 +84,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
         public void Initialise(OpenSimBase openSim)
         {
-            m_log.Info("[BALANCER] " + "Entering Initialize()");
+            m_log.Info("[BALANCER]: " + "Entering Initialize()");
 
             proxyURL = openSim.ConfigSource.Source.Configs["Network"].GetString("proxy_url", "");
             if (proxyURL.Length == 0) return;

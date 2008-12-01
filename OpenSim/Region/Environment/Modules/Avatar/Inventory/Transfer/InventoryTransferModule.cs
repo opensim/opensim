@@ -244,7 +244,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                         if (item == null)
                             reason += " Item not found.";
                         client.SendAgentAlertMessage("Unable to delete "+
-                                "received item"+reason, false);
+                                "received item" + reason, false);
                     }
                 }
 

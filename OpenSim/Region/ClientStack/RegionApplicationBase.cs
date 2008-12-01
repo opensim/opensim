@@ -53,13 +53,12 @@ namespace OpenSim.Region.ClientStack
 
         protected BaseHttpServer m_httpServer;
         protected uint m_httpServerPort;
-
-        protected CommunicationsManager m_commsManager;
-        public CommunicationsManager CommunicationsManager {
+        
+        public CommunicationsManager CommunicationsManager 
+        {
             get { return m_commsManager; }
         }
-
-        protected SceneManager m_sceneManager = new SceneManager();
+        protected CommunicationsManager m_commsManager;        
 
         protected StorageManager m_storageManager;
         
@@ -69,6 +68,7 @@ namespace OpenSim.Region.ClientStack
         {
             get { return m_sceneManager; }
         }
+        protected SceneManager m_sceneManager = new SceneManager();
         
         protected abstract void Initialize();
         protected abstract PhysicsScene GetPhysicsScene();

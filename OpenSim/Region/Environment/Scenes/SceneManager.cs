@@ -38,6 +38,9 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public delegate void RestartSim(RegionInfo thisregion);
 
+    /// <summary>
+    /// Manager for adding, closing and restarting scenes.
+    /// </summary>
     public class SceneManager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
