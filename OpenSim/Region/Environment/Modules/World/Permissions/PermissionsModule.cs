@@ -698,6 +698,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
 
+            // If we selected a sub-prim to edit, the objectID won't represent the object, but only a part.
+            // We have to check the permissions of the group, though.
+            if (part.ParentID != 0)
+            {
+                objectID = part.ParentUUID;
+                part = m_scene.GetSceneObjectPart(objectID);
+            }
+
             // TODO: add group support!
             //
             if (part.OwnerID != editorID)
