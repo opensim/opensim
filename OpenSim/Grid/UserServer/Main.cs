@@ -48,7 +48,7 @@ namespace OpenSim.Grid.UserServer
     /// </summary>
     public class OpenUser_Main : BaseOpenSimServer, conscmd_callback
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected UserConfig Cfg;
 
