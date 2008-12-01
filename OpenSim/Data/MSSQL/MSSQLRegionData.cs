@@ -930,7 +930,7 @@ VALUES
             prim.UUID = new UUID((String)primRow["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
-            prim.ParentID = Convert.ToUInt32(primRow["ParentID"]);
+            prim.ParentID = (uint)Convert.ToInt32(primRow["ParentID"]);
             prim.CreationDate = Convert.ToInt32(primRow["CreationDate"]);
             prim.Name = (String)primRow["Name"];
             // various text fields
@@ -1307,7 +1307,7 @@ VALUES
         {
             row["UUID"] = prim.UUID.ToString();
             row["RegionUUID"] = regionUUID.ToString();
-            row["ParentID"] = prim.ParentID;
+            row["ParentID"] = (int)prim.ParentID;
             row["CreationDate"] = prim.CreationDate;
             row["Name"] = prim.Name;
             row["SceneGroupID"] = sceneGroupID.ToString();
