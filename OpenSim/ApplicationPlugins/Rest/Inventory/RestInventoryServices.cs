@@ -1243,7 +1243,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// <param name=rdata>HTTP service request work area</param>
         /// <param name=folder>The folder to be searched (parent)</param>
         /// <param name=indent>pretty print indentation</param>
-
         private void formatInventory(InventoryRequestData rdata, InventoryFolderBase folder, string indent)
         {
             if (Rest.DEBUG)
@@ -1325,7 +1324,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             rdata.writer.WriteAttributeString("everyone", String.Empty, i.EveryOnePermissions.ToString("X"));
             rdata.writer.WriteAttributeString("base", String.Empty, i.BasePermissions.ToString("X"));
             rdata.writer.WriteEndElement();
-
+            
             rdata.writer.WriteElementString("Asset", i.AssetID.ToString());
 
             rdata.writer.WriteEndElement();
@@ -1795,7 +1794,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             bool     local  = false;
 
             // This is not a persistent attribute
-            bool    inline  = true;
+            bool    inline  = false;
 
             UUID    uuid  = UUID.Zero;
 
