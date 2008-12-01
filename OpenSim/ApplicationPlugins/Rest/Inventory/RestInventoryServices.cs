@@ -1293,9 +1293,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// <summary>
         /// This method generates XML that describes an instance of InventoryItemBase.
         /// </summary>
-        /// <param name=rdata>HTTP service request work area</param>
-        /// <param name=i>The item to be formatted</param>
-        /// <param name=indent>Pretty print indentation</param>
+        /// <param name="rdata">HTTP service request work area</param>
+        /// <param name="i">The item to be formatted</param>
+        /// <param name="indent">Pretty print indentation</param>
         private void formatItem(InventoryRequestData rdata, InventoryItemBase i, string indent)
         {
             Rest.Log.DebugFormat("{0}   Item : {1} {2} {3} Type = {4}, AssetType = {5}",
@@ -1310,7 +1310,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             rdata.writer.WriteAttributeString("owner", String.Empty, i.Owner.ToString());
             rdata.writer.WriteAttributeString("creator", String.Empty, i.Creator.ToString());
             rdata.writer.WriteAttributeString("creationdate", String.Empty, i.CreationDate.ToString());
-            rdata.writer.WriteAttributeString("type", String.Empty, i.InvType.ToString());
+            rdata.writer.WriteAttributeString("invtype", String.Empty, i.InvType.ToString());
             rdata.writer.WriteAttributeString("assettype", String.Empty, i.AssetType.ToString());
             rdata.writer.WriteAttributeString("groupowned", String.Empty, i.GroupOwned.ToString());
             rdata.writer.WriteAttributeString("groupid", String.Empty, i.GroupID.ToString());
@@ -1456,36 +1456,38 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     {
                         switch (ic.xml.NodeType)
                         {
-                            case XmlNodeType.Element :
+                            case XmlNodeType.Element:
                                 Rest.Log.DebugFormat("{0} StartElement: <{1}>",
                                                      MsgId, ic.xml.Name);
+                            
                                 switch (ic.xml.Name)
                                 {
-                                    case "Folder" :
+                                    case "Folder":
                                         Rest.Log.DebugFormat("{0} Processing {1} element",
                                                              MsgId, ic.xml.Name);
                                         CollectFolder(ic);
                                         break;
-                                    case "Item"   :
+                                    case "Item":
                                         Rest.Log.DebugFormat("{0} Processing {1} element",
                                                              MsgId, ic.xml.Name);
                                         CollectItem(ic);
                                         break;
-                                    case "Asset"  :
+                                    case "Asset":
                                         Rest.Log.DebugFormat("{0} Processing {1} element",
                                                              MsgId, ic.xml.Name);
                                         CollectAsset(ic);
                                         break;
-                                    case "Permissions"  :
+                                    case "Permissions":
                                         Rest.Log.DebugFormat("{0} Processing {1} element",
                                                              MsgId, ic.xml.Name);
                                         CollectPermissions(ic);
                                         break;
-                                    default :
+                                    default:
                                         Rest.Log.DebugFormat("{0} Ignoring {1} element",
                                                              MsgId, ic.xml.Name);
                                         break;
                                 }
+                            
                                 // This stinks, but the ReadElement call above not only reads
                                 // the imbedded data, but also consumes the end tag for Asset
                                 // and moves the element pointer on to the containing Item's
@@ -1501,32 +1503,32 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                             case XmlNodeType.EndElement :
                                 switch (ic.xml.Name)
                                 {
-                                    case "Folder" :
+                                    case "Folder":
                                         Rest.Log.DebugFormat("{0} Completing {1} element",
                                                              MsgId, ic.xml.Name);
                                         ic.Pop();
                                         break;
-                                    case "Item"   :
+                                    case "Item":
                                         Rest.Log.DebugFormat("{0} Completing {1} element",
                                                              MsgId, ic.xml.Name);
                                         Validate(ic);
                                         break;
-                                    case "Asset"  :
+                                    case "Asset":
                                         Rest.Log.DebugFormat("{0} Completing {1} element",
                                                              MsgId, ic.xml.Name);
                                         break;
-                                    case "Permissions"  :
+                                    case "Permissions":
                                         Rest.Log.DebugFormat("{0} Completing {1} element",
                                                              MsgId, ic.xml.Name);
                                         break;
-                                    default :
+                                    default:
                                         Rest.Log.DebugFormat("{0} Ignoring {1} element",
                                                              MsgId, ic.xml.Name);
                                         break;
                                     }
                                 break;
                             
-                            default :
+                            default:
                                 Rest.Log.DebugFormat("{0} Ignoring: <{1}>:<{2}>",
                                                      MsgId, ic.xml.NodeType, ic.xml.Value);
                                 break;
@@ -1592,25 +1594,25 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     ic.xml.MoveToAttribute(i);
                     switch (ic.xml.Name)
                     {
-                    case "name" :
+                    case "name":
                         result.Name     =     ic.xml.Value;
                         break;
-                    case "uuid" :
+                    case "uuid":
                         result.ID       = new UUID(ic.xml.Value);
                         break;
-                    case "parent" :
+                    case "parent":
                         result.ParentID = new UUID(ic.xml.Value);
                         break;
-                    case "owner" :
+                    case "owner":
                         result.Owner    = new UUID(ic.xml.Value);
                         break;
-                    case "type" :
+                    case "type":
                         result.Type     =     Int16.Parse(ic.xml.Value);
                         break;
-                    case "version" :
+                    case "version":
                         result.Version  =     UInt16.Parse(ic.xml.Value);
                         break;
-                    default :
+                    default:
                         Rest.Log.DebugFormat("{0} Folder: unrecognized attribute: {1}:{2}",
                                              MsgId, ic.xml.Name, ic.xml.Value);
                         ic.Fail(Rest.HttpStatusCodeBadRequest, String.Format("unrecognized attribute <{0}>",
@@ -1704,50 +1706,50 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     switch (ic.xml.Name)
                     {
-                        case "name" :
+                        case "name":
                             result.Name         =     ic.xml.Value;
                             break;
-                        case "desc" :
+                        case "desc":
                             result.Description  =     ic.xml.Value;
                             break;
-                        case "uuid" :
+                        case "uuid":
                             result.ID           = new UUID(ic.xml.Value);
                             break;
-                        case "folder" :
+                        case "folder":
                             result.Folder       = new UUID(ic.xml.Value);
                             break;
-                        case "owner" :
+                        case "owner":
                             result.Owner        = new UUID(ic.xml.Value);
                             break;
-                        case "invtype" :
+                        case "invtype":
                             result.InvType      =     Int32.Parse(ic.xml.Value);
                             break;
-                        case "creator" :
+                        case "creator":
                             result.Creator      = new UUID(ic.xml.Value);
                             break;
-                        case "assettype" :
+                        case "assettype":
                             result.AssetType    =     Int32.Parse(ic.xml.Value);
                             break;
-                        case "groupowned" :
+                        case "groupowned":
                             result.GroupOwned   =     Boolean.Parse(ic.xml.Value);
                             break;
-                        case "groupid" :
+                        case "groupid":
                             result.GroupID      = new UUID(ic.xml.Value);
                             break;
-                        case "flags" :
+                        case "flags":
                             result.Flags        =     UInt32.Parse(ic.xml.Value);
                             break;
-                        case "creationdate" :
+                        case "creationdate":
                             result.CreationDate =     Int32.Parse(ic.xml.Value);
                             break;
-                        case "saletype" :
+                        case "saletype":
                             result.SaleType     =     Byte.Parse(ic.xml.Value);
                             break;
-                        case "saleprice" :
+                        case "saleprice":
                             result.SalePrice    =     Int32.Parse(ic.xml.Value);
                             break;
 
-                        default :
+                        default:
                             Rest.Log.DebugFormat("{0} Item: Unrecognized attribute: {1}:{2}",
                                                  MsgId, ic.xml.Name, ic.xml.Value);
                             ic.Fail(Rest.HttpStatusCodeBadRequest, String.Format("unrecognized attribute",
@@ -1786,8 +1788,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         {
             Rest.Log.DebugFormat("{0} Interpret asset element", MsgId);
 
-            AssetBase asset = null;
-
             string    name  = String.Empty;
             string    desc  = String.Empty;
             sbyte     type  = (sbyte) AssetType.Unknown;
@@ -1807,41 +1807,40 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     ic.xml.MoveToAttribute(i);
                     switch (ic.xml.Name)
                     {
+                        case "name" :
+                            name = ic.xml.Value;
+                            break;
 
-                    case "name" :
-                        name = ic.xml.Value;
-                        break;
+                        case "type" :
+                            type = SByte.Parse(ic.xml.Value);
+                            break;
 
-                    case "type" :
-                        type = SByte.Parse(ic.xml.Value);
-                        break;
+                        case "description" :
+                            desc = ic.xml.Value;
+                            break;
 
-                    case "description" :
-                        desc = ic.xml.Value;
-                        break;
+                        case "temporary" :
+                            temp = Boolean.Parse(ic.xml.Value);
+                            break;
 
-                    case "temporary" :
-                        temp = Boolean.Parse(ic.xml.Value);
-                        break;
+                        case "uuid" :
+                            uuid = new UUID(ic.xml.Value);
+                            break;
 
-                    case "uuid" :
-                        uuid = new UUID(ic.xml.Value);
-                        break;
+                        case "inline" :
+                            inline = Boolean.Parse(ic.xml.Value);
+                            break;
 
-                    case "inline" :
-                        inline = Boolean.Parse(ic.xml.Value);
-                        break;
+                        case "local" :
+                            local = Boolean.Parse(ic.xml.Value);
+                            break;
 
-                    case "local" :
-                        local = Boolean.Parse(ic.xml.Value);
-                        break;
-
-                    default :
-                        Rest.Log.DebugFormat("{0} Asset: Unrecognized attribute: {1}:{2}",
-                                             MsgId, ic.xml.Name, ic.xml.Value);
-                        ic.Fail(Rest.HttpStatusCodeBadRequest,
-                                String.Format("unrecognized attribute <{0}>", ic.xml.Name));
-                        break;
+                        default :
+                            Rest.Log.DebugFormat("{0} Asset: Unrecognized attribute: {1}:{2}",
+                                                 MsgId, ic.xml.Name, ic.xml.Value);
+                            ic.Fail(Rest.HttpStatusCodeBadRequest,
+                                    String.Format("unrecognized attribute <{0}>", ic.xml.Name));
+                            break;
                     }
                 }
             }
@@ -1870,7 +1869,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // only if the size is non-zero.
 
             else
-            {
+            {                
+                AssetBase asset = null;
                 string b64string = null;
 
                 // Generate a UUID if none were given, and generally none should
@@ -1912,9 +1912,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 {
                     ic.Item.AssetID = uuid;
                 }
+                
+                ic.Push(asset);                
             }
-
-            ic.Push(asset);
         }
 
         /// <summary>
@@ -1931,27 +1931,27 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     ic.xml.MoveToAttribute(i);
                     switch (ic.xml.Name)
                     {
-                    case "current" :
-                        ic.CurrentPermissions  = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
-                        break;
-                    case "next" :
-                        ic.NextPermissions     = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
-                        break;
-                    case "group" :
-                        ic.GroupPermissions = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
-                        break;
-                    case "everyone" :
-                        ic.EveryOnePermissions = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
-                        break;
-                    case "base" :
-                        ic.BasePermissions     = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
-                        break;
-                    default :
-                        Rest.Log.DebugFormat("{0} Permissions:  invalid attribute {1}:{2}",
-                                             MsgId,ic.xml.Name, ic.xml.Value);
-                        ic.Fail(Rest.HttpStatusCodeBadRequest,
-                                     String.Format("invalid attribute <{0}>", ic.xml.Name));
-                        break;
+                        case "current":
+                            ic.CurrentPermissions  = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
+                            break;
+                        case "next":
+                            ic.NextPermissions     = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
+                            break;
+                        case "group":
+                            ic.GroupPermissions    = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
+                            break;
+                        case "everyone":
+                            ic.EveryOnePermissions = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
+                            break;
+                        case "base":
+                            ic.BasePermissions     = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
+                            break;
+                        default:
+                            Rest.Log.DebugFormat("{0} Permissions:  invalid attribute {1}:{2}",
+                                                 MsgId,ic.xml.Name, ic.xml.Value);
+                            ic.Fail(Rest.HttpStatusCodeBadRequest,
+                                         String.Format("invalid attribute <{0}>", ic.xml.Name));
+                            break;
                     }
                 }
             }
@@ -2152,7 +2152,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             /// extensions.
             /// </summary>
 
-            internal UUID                              uuid = UUID.Zero;
+            internal UUID                                uuid = UUID.Zero;
             internal bool                       HaveInventory = false;
             internal ICollection<InventoryFolderImpl> folders = null;
             internal ICollection<InventoryItemBase>     items = null;
