@@ -93,6 +93,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
                 scene.EventManager.OnNewClient += OnNewClient;
                 scene.EventManager.OnClientClosed += ClientClosed;
+                scene.EventManager.OnRemovePresence += ClientClosed;
                 scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
                 scene.EventManager.OnMakeChildAgent += MakeChildAgent;
                 scene.EventManager.OnRegisterCaps += OnRegisterCaps;
@@ -170,12 +171,13 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         private void ClientClosed(IClientAPI client)
         {
-            m_log.DebugFormat("[EVENTQUEUE]: Closed client {0} in region {1}", client.AgentId, m_scene.RegionInfo.RegionName);
+
             ClientClosed(client.AgentId);
         }
 
         private void ClientClosed(UUID AgentID)
         {
+            m_log.DebugFormat("[EVENTQUEUE]: Closed client {0} in region {1}", AgentID, m_scene.RegionInfo.RegionName);
             lock (queues)
             {
                 queues.Remove(AgentID);
@@ -319,7 +321,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
             if (element == null)
             {
-                m_log.ErrorFormat("[EVENTQUEUE]: Failed to process queue");
+                // m_log.ErrorFormat("[EVENTQUEUE]: Failed to process queue");
                 if (thisID == -1) // close-request
                 {
                     responsedata["int_response_code"] = 404;
