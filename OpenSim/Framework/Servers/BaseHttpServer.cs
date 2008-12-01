@@ -266,7 +266,7 @@ namespace OpenSim.Framework.Servers
 
         public virtual void HandleRequest(OSHttpRequest request, OSHttpResponse response)
         {
-            try 
+            try
             {
                 Culture.SetCurrentCulture();
                 //  This is the REST agent interface. We require an agent to properly identify
@@ -287,7 +287,7 @@ namespace OpenSim.Framework.Servers
                 }
 
                 IRequestHandler requestHandler;
-                response.KeepAlive   = true;
+                response.KeepAlive = true;
                 response.SendChunked = false;
 
                 string path = request.RawUrl;
@@ -316,8 +316,8 @@ namespace OpenSim.Framework.Servers
                         StreamReader reader = new StreamReader(requestStream, encoding);
 
                         string requestBody = reader.ReadToEnd();
-                        
-                        
+
+
                         reader.Close();
                         requestStream.Close();
 
@@ -340,21 +340,21 @@ namespace OpenSim.Framework.Servers
                             headervals[headername] = request.Headers[headername];
                         }
 
-//                        if (headervals.Contains("Host"))
-//                        {
-//                            host = (string)headervals["Host"];
-//                        }
-                        
-                        keysvals.Add("requestbody",requestBody);
+                        //                        if (headervals.Contains("Host"))
+                        //                        {
+                        //                            host = (string)headervals["Host"];
+                        //                        }
+
+                        keysvals.Add("requestbody", requestBody);
                         if (keysvals.Contains("method"))
                         {
                             //m_log.Warn("[HTTP]: Contains Method");
                             //string method = (string)keysvals["method"];
                             //m_log.Warn("[HTTP]: " + requestBody);
-                   
-                        } 
-                        DoHTTPGruntWork(HTTPRequestHandler.Handle(path,keysvals), response);
-                        return;                        
+
+                        }
+                        DoHTTPGruntWork(HTTPRequestHandler.Handle(path, keysvals), response);
+                        return;
                     }
                     else
                     {
@@ -427,10 +427,10 @@ namespace OpenSim.Framework.Servers
                     default:
                         //m_log.Info("[Debug BASE HTTP SERVER]: in default handler");
                         // Point of note..  the DoWeHaveA methods check for an EXACT path
-//                        if (request.RawUrl.Contains("/CAPS/EQG"))
-//                        {
-//                            int i = 1;
-//                        }
+                        //                        if (request.RawUrl.Contains("/CAPS/EQG"))
+                        //                        {
+                        //                            int i = 1;
+                        //                        }
                         //m_log.Info("[Debug BASE HTTP SERVER]: Checking for LLSD Handler");
                         if (DoWeHaveALLSDHandler(request.RawUrl))
                         {
@@ -449,7 +449,7 @@ namespace OpenSim.Framework.Servers
                         //m_log.Info("[Debug BASE HTTP SERVER]: Generic XMLRPC");
                         // generic login request.
                         HandleXmlRpcRequests(request, response);
-                        
+
                         return;
                 }
             }
@@ -467,6 +467,11 @@ namespace OpenSim.Framework.Servers
             catch (EndOfStreamException e)
             {
                 m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
+            }
+            catch (InvalidOperationException e)
+            {
+                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
+                SendHTML500(response);
             }
         }
 
