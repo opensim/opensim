@@ -527,7 +527,7 @@ namespace OpenSim.Data.MySQL
                 cmd.Dispose();
             }
 
-            return null;
+            return terrain;
         }
 
         public void RemoveLandObject(UUID globalID)
