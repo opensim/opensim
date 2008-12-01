@@ -92,8 +92,16 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 //scene.AddLLSDHandler("/CAPS/EQG/", EventQueueFallBack);
 
                 scene.EventManager.OnNewClient += OnNewClient;
-                scene.EventManager.OnClientClosed += ClientClosed;
-                scene.EventManager.OnRemovePresence += ClientClosed;
+
+                // TODO: we should really close out something when we
+                // leave the region, but not doing the close actually
+                // fixes the A -> B -> A teleport bug where you don't
+                // get any textures.  This means we're leaving more in
+                // memory than we should, but it does provide a better
+                // user experience.
+
+                // scene.EventManager.OnClientClosed += ClientClosed;
+                // scene.EventManager.OnRemovePresence += ClientClosed;
                 scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
                 scene.EventManager.OnMakeChildAgent += MakeChildAgent;
                 scene.EventManager.OnRegisterCaps += OnRegisterCaps;
