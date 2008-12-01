@@ -247,10 +247,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// The only parameter we recognize is a UUID. The enclosed asset data (base-64 encoded)
         /// is decoded and stored in the database, identified by the supplied UUID.
         /// </summary>
-
         private void DoPut(AssetRequestData rdata)
         {
-
             bool modified = false;
             bool created  = false;
 

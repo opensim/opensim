@@ -121,7 +121,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// This property is declared locally because it is used a lot and
         /// brevity is nice.
         /// </summary>
-
         internal string MsgId
         {
             get { return Rest.MsgId; }
@@ -139,7 +138,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// <param name=response>Outbound HTTP request information</param>
         /// <param name=qPrefix>REST service domain prefix</param>
         /// <returns>A RequestData instance suitable for this service</returns>
-
         private RequestData Allocate(OSHttpRequest request, OSHttpResponse response, string prefix)
         {
             return (RequestData) new InventoryRequestData(request, response, prefix);
@@ -152,7 +150,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// It handles all aspects of inventory REST processing, i.e. /admin/inventory
         /// </summary>
         /// <param name=hdata>A consolidated HTTP request work area</param>
-
         private void DoInventory(RequestData hdata)
         {
             InventoryRequestData rdata = (InventoryRequestData) hdata;
@@ -295,7 +292,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.DebugFormat("{0} Inventory catalog requested for {1} {2}",
                                      MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
 
-
                 lock (rdata)
                 {
                     if (!rdata.HaveInventory)
@@ -373,7 +369,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// corresponding subtree based upon node name.
         /// </summary>
         /// <param name=rdata>HTTP service request work area</param>
-
         private void DoGet(InventoryRequestData rdata)
         {
             rdata.initXmlWriter();
@@ -439,7 +434,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// context identified by the URI.
         /// </summary>
         /// <param name=rdata>HTTP service request work area</param>
-
         private void DoExtend(InventoryRequestData rdata)
         {
             bool  created  = false;
@@ -480,7 +474,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // [3] A (possibly empty) set of assets.
                 // If all of these are empty, then the POST is a harmless no-operation.
 
-                XmlInventoryCollection entity  = ReconstituteEntity(rdata);
+                XmlInventoryCollection entity = ReconstituteEntity(rdata);
 
                 // Inlined assets can be included in entity. These must be incorporated into
                 // the asset database before we attempt to update the inventory. If anything
@@ -667,7 +661,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// during the reconstitution process.
         /// </summary>
         /// <param name=rdata>HTTP service request work area</param>
-
         private void DoUpdate(InventoryRequestData rdata)
         {
             int     count  = 0;
@@ -1303,7 +1296,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// <param name=rdata>HTTP service request work area</param>
         /// <param name=i>The item to be formatted</param>
         /// <param name=indent>Pretty print indentation</param>
-
         private void formatItem(InventoryRequestData rdata, InventoryItemBase i, string indent)
         {
             Rest.Log.DebugFormat("{0}   Item : {1} {2} {3} Type = {4}, AssetType = {5}",
@@ -1349,7 +1341,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// that required it cannot be completed, and it fails accordingly.
         /// </summary>
         /// <param name=rdata>HTTP service request work area</param>
-
         private InventoryFolderBase GetTrashCan(InventoryRequestData rdata)
         {
             InventoryFolderBase TrashCan = null;
@@ -1394,7 +1385,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// </summary>
         /// <param name=newf>Folder obtained from enclosed entity</param>
         /// <param name=oldf>Folder obtained from the user's inventory</param>
-
         private bool FolderHasChanged(InventoryFolderBase newf, InventoryFolderBase oldf)
         {
             return (newf.Name           != oldf.Name
@@ -1411,7 +1401,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// </summary>
         /// <param name=newf>Item obtained from enclosed entity</param>
         /// <param name=oldf>Item obtained from the user's inventory</param>
-
         private bool ItemHasChanged(InventoryItemBase newf, InventoryItemBase oldf)
         {
             return (newf.Name           != oldf.Name
@@ -1449,7 +1438,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// missing parent IDs are resolved).
         /// </summary>
         /// <param name=rdata>HTTP service request work area</param>
-
         internal XmlInventoryCollection ReconstituteEntity(InventoryRequestData rdata)
         {
             Rest.Log.DebugFormat("{0} Reconstituting entity", MsgId);
@@ -1468,78 +1456,80 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     {
                         switch (ic.xml.NodeType)
                         {
-                        case XmlNodeType.Element :
-                            Rest.Log.DebugFormat("{0} StartElement: <{1}>",
-                                                 MsgId, ic.xml.Name);
-                            switch (ic.xml.Name)
-                            {
-                            case "Folder" :
-                                Rest.Log.DebugFormat("{0} Processing {1} element",
+                            case XmlNodeType.Element :
+                                Rest.Log.DebugFormat("{0} StartElement: <{1}>",
                                                      MsgId, ic.xml.Name);
-                                CollectFolder(ic);
+                                switch (ic.xml.Name)
+                                {
+                                    case "Folder" :
+                                        Rest.Log.DebugFormat("{0} Processing {1} element",
+                                                             MsgId, ic.xml.Name);
+                                        CollectFolder(ic);
+                                        break;
+                                    case "Item"   :
+                                        Rest.Log.DebugFormat("{0} Processing {1} element",
+                                                             MsgId, ic.xml.Name);
+                                        CollectItem(ic);
+                                        break;
+                                    case "Asset"  :
+                                        Rest.Log.DebugFormat("{0} Processing {1} element",
+                                                             MsgId, ic.xml.Name);
+                                        CollectAsset(ic);
+                                        break;
+                                    case "Permissions"  :
+                                        Rest.Log.DebugFormat("{0} Processing {1} element",
+                                                             MsgId, ic.xml.Name);
+                                        CollectPermissions(ic);
+                                        break;
+                                    default :
+                                        Rest.Log.DebugFormat("{0} Ignoring {1} element",
+                                                             MsgId, ic.xml.Name);
+                                        break;
+                                }
+                                // This stinks, but the ReadElement call above not only reads
+                                // the imbedded data, but also consumes the end tag for Asset
+                                // and moves the element pointer on to the containing Item's
+                                // element-end, however, if there was a permissions element
+                                // following, it would get us to the start of that..
+                                if (ic.xml.NodeType == XmlNodeType.EndElement &&
+                                    ic.xml.Name     == "Item")
+                                {
+                                    Validate(ic);
+                                }
                                 break;
-                            case "Item"   :
-                                Rest.Log.DebugFormat("{0} Processing {1} element",
-                                                     MsgId, ic.xml.Name);
-                                CollectItem(ic);
+                            
+                            case XmlNodeType.EndElement :
+                                switch (ic.xml.Name)
+                                {
+                                    case "Folder" :
+                                        Rest.Log.DebugFormat("{0} Completing {1} element",
+                                                             MsgId, ic.xml.Name);
+                                        ic.Pop();
+                                        break;
+                                    case "Item"   :
+                                        Rest.Log.DebugFormat("{0} Completing {1} element",
+                                                             MsgId, ic.xml.Name);
+                                        Validate(ic);
+                                        break;
+                                    case "Asset"  :
+                                        Rest.Log.DebugFormat("{0} Completing {1} element",
+                                                             MsgId, ic.xml.Name);
+                                        break;
+                                    case "Permissions"  :
+                                        Rest.Log.DebugFormat("{0} Completing {1} element",
+                                                             MsgId, ic.xml.Name);
+                                        break;
+                                    default :
+                                        Rest.Log.DebugFormat("{0} Ignoring {1} element",
+                                                             MsgId, ic.xml.Name);
+                                        break;
+                                    }
                                 break;
-                            case "Asset"  :
-                                Rest.Log.DebugFormat("{0} Processing {1} element",
-                                                     MsgId, ic.xml.Name);
-                                CollectAsset(ic);
-                                break;
-                            case "Permissions"  :
-                                Rest.Log.DebugFormat("{0} Processing {1} element",
-                                                     MsgId, ic.xml.Name);
-                                CollectPermissions(ic);
-                                break;
+                            
                             default :
-                                Rest.Log.DebugFormat("{0} Ignoring {1} element",
-                                                     MsgId, ic.xml.Name);
+                                Rest.Log.DebugFormat("{0} Ignoring: <{1}>:<{2}>",
+                                                     MsgId, ic.xml.NodeType, ic.xml.Value);
                                 break;
-                            }
-                            // This stinks, but the ReadElement call above not only reads
-                            // the imbedded data, but also consumes the end tag for Asset
-                            // and moves the element pointer on to the containing Item's
-                            // element-end, however, if there was a permissions element
-                            // following, it would get us to the start of that..
-                            if (ic.xml.NodeType == XmlNodeType.EndElement &&
-                                ic.xml.Name     == "Item")
-                            {
-                                Validate(ic);
-                            }
-                            break;
-                        case XmlNodeType.EndElement :
-                            switch (ic.xml.Name)
-                            {
-                            case "Folder" :
-                                Rest.Log.DebugFormat("{0} Completing {1} element",
-                                                     MsgId, ic.xml.Name);
-                                ic.Pop();
-                                break;
-                            case "Item"   :
-                                Rest.Log.DebugFormat("{0} Completing {1} element",
-                                                     MsgId, ic.xml.Name);
-                                Validate(ic);
-                                break;
-                            case "Asset"  :
-                                Rest.Log.DebugFormat("{0} Completing {1} element",
-                                                     MsgId, ic.xml.Name);
-                                break;
-                            case "Permissions"  :
-                                Rest.Log.DebugFormat("{0} Completing {1} element",
-                                                     MsgId, ic.xml.Name);
-                                break;
-                            default :
-                                Rest.Log.DebugFormat("{0} Ignoring {1} element",
-                                                     MsgId, ic.xml.Name);
-                                break;
-                            }
-                            break;
-                        default :
-                            Rest.Log.DebugFormat("{0} [0] Ignoring: <{1}>:<2>",
-                                                 MsgId, ic.xml.NodeType, ic.xml.Value);
-                            break;
                         }
                     }
                 }
@@ -1688,7 +1678,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// All context is reset whenever the effective folder changes
         /// or an item is successfully validated.
         /// </summary>
-
         private void CollectItem(XmlInventoryCollection ic)
         {
             Rest.Log.DebugFormat("{0} Interpret item element", MsgId);
@@ -1715,55 +1704,55 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     switch (ic.xml.Name)
                     {
-                    case "name" :
-                        result.Name         = ic.xml.Value;
-                        break;
-                    case "desc" :
-                        result.Description  = ic.xml.Value;
-                        break;
-                    case "uuid" :
-                        result.ID           = new UUID(ic.xml.Value);
-                        break;
-                    case "folder" :
-                        result.Folder       = new UUID(ic.xml.Value);
-                        break;
-                    case "owner" :
-                        result.Owner        = new UUID(ic.xml.Value);
-                        break;
-                    case "invtype" :
-                        result.InvType      =     Int32.Parse(ic.xml.Value);
-                        break;
-                    case "creator" :
-                        result.Creator      = new UUID(ic.xml.Value);
-                        break;
-                    case "assettype" :
-                        result.AssetType    =     Int32.Parse(ic.xml.Value);
-                        break;
-                    case "groupowned" :
-                        result.GroupOwned   =     Boolean.Parse(ic.xml.Value);
-                        break;
-                    case "groupid" :
-                        result.GroupID      = new UUID(ic.xml.Value);
-                        break;
-                    case "flags" :
-                        result.Flags        =     UInt32.Parse(ic.xml.Value);
-                        break;
-                    case "creationdate" :
-                        result.CreationDate =     Int32.Parse(ic.xml.Value);
-                        break;
-                    case "saletype" :
-                        result.SaleType     =     Byte.Parse(ic.xml.Value);
-                        break;
-                    case "saleprice" :
-                        result.SalePrice    =     Int32.Parse(ic.xml.Value);
-                        break;
+                        case "name" :
+                            result.Name         =     ic.xml.Value;
+                            break;
+                        case "desc" :
+                            result.Description  =     ic.xml.Value;
+                            break;
+                        case "uuid" :
+                            result.ID           = new UUID(ic.xml.Value);
+                            break;
+                        case "folder" :
+                            result.Folder       = new UUID(ic.xml.Value);
+                            break;
+                        case "owner" :
+                            result.Owner        = new UUID(ic.xml.Value);
+                            break;
+                        case "invtype" :
+                            result.InvType      =     Int32.Parse(ic.xml.Value);
+                            break;
+                        case "creator" :
+                            result.Creator      = new UUID(ic.xml.Value);
+                            break;
+                        case "assettype" :
+                            result.AssetType    =     Int32.Parse(ic.xml.Value);
+                            break;
+                        case "groupowned" :
+                            result.GroupOwned   =     Boolean.Parse(ic.xml.Value);
+                            break;
+                        case "groupid" :
+                            result.GroupID      = new UUID(ic.xml.Value);
+                            break;
+                        case "flags" :
+                            result.Flags        =     UInt32.Parse(ic.xml.Value);
+                            break;
+                        case "creationdate" :
+                            result.CreationDate =     Int32.Parse(ic.xml.Value);
+                            break;
+                        case "saletype" :
+                            result.SaleType     =     Byte.Parse(ic.xml.Value);
+                            break;
+                        case "saleprice" :
+                            result.SalePrice    =     Int32.Parse(ic.xml.Value);
+                            break;
 
-                    default :
-                        Rest.Log.DebugFormat("{0} Item: Unrecognized attribute: {1}:{2}",
-                                             MsgId, ic.xml.Name, ic.xml.Value);
-                        ic.Fail(Rest.HttpStatusCodeBadRequest, String.Format("unrecognized attribute",
-                            ic.xml.Name));
-                        break;
+                        default :
+                            Rest.Log.DebugFormat("{0} Item: Unrecognized attribute: {1}:{2}",
+                                                 MsgId, ic.xml.Name, ic.xml.Value);
+                            ic.Fail(Rest.HttpStatusCodeBadRequest, String.Format("unrecognized attribute",
+                                ic.xml.Name));
+                            break;
                     }
                 }
             }
@@ -1793,7 +1782,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// An asset, if created is stored in the
         /// XmlInventoryCollection
         /// </summary>
-
         private void CollectAsset(XmlInventoryCollection ic)
         {
             Rest.Log.DebugFormat("{0} Interpret asset element", MsgId);
@@ -1885,7 +1873,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 string b64string = null;
 
-                // Generate a UUID of none were given, and generally none should
+                // Generate a UUID if none were given, and generally none should
                 // be. Ever.
 
                 if (uuid == UUID.Zero)
@@ -1927,7 +1915,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             ic.Push(asset);
-
         }
 
         /// <summary>
@@ -1935,7 +1922,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// This overrides the default permissions set when the
         /// XmlInventoryCollection object was created.
         /// </summary>
-
         private void CollectPermissions(XmlInventoryCollection ic)
         {
             if (ic.xml.HasAttributes)
