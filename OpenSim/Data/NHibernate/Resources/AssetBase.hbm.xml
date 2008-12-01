@@ -4,7 +4,7 @@
         <id name="FullID" column="ID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id> 
-        <property name="Type" type="OpenSim.Data.NHibernate.SByteType, OpenSim.Data.NHibernate" />
+        <property name="Type" type="System.SByte" />
         <property name="Name" type="String" length="64" />
         <property name="Description" type="String" length="64" />
         <property name="Local" type="boolean" />

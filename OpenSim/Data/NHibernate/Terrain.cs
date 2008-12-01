@@ -60,7 +60,7 @@ namespace OpenSim.Data.NHibernate
             set { regionID = value; }
         }
 
-        public byte[] MapData
+        public byte[] Map
         {
             get { return serializeTerrain(map); }
             set { map = parseTerrain(value); }

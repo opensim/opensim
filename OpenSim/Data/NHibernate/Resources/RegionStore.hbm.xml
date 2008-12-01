@@ -4,7 +4,7 @@
         <id name="UUID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id>
-        <property name="ParentID" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate"/>
+        <property name="ParentID" type="System.UInt32"/>
         <property name="ParentUUID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="RegionID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="CreationDate" type="System.Int32" />
@@ -14,17 +14,17 @@
         <property name="SitName" type="String" length="255" />
         <property name="TouchName" type="String" length="255" />
         
-        <property name="ObjectFlags" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
+        <property name="ObjectFlags" type="System.UInt32" />
         <property name="CreatorID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="OwnerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="GroupID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="LastOwnerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
 
-        <property name="OwnerMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-        <property name="NextOwnerMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-        <property name="GroupMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-        <property name="EveryoneMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-        <property name="BaseMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
+        <property name="OwnerMask" type="System.UInt32" />
+        <property name="NextOwnerMask" type="System.UInt32" />
+        <property name="GroupMask" type="System.UInt32" />
+        <property name="EveryoneMask" type="System.UInt32" />
+        <property name="BaseMask" type="System.UInt32" />
 
         <property name="OffsetPosition" type="OpenSim.Data.NHibernate.Vector3UserType, OpenSim.Data.NHibernate" >
           <column name="PositionX" />
@@ -83,24 +83,24 @@
             <column name="ScaleZ" />
           </property>
           <property name="PCode" type="System.Byte" />
-          <property name="PathBegin" type="OpenSim.Data.NHibernate.UInt16Type, OpenSim.Data.NHibernate" />
-          <property name="PathEnd" type="OpenSim.Data.NHibernate.UInt16Type, OpenSim.Data.NHibernate" />
+          <property name="PathBegin" type="System.UInt16" />
+          <property name="PathEnd" type="System.UInt16" />
           <property name="PathScaleX" type="System.Byte" />
           <property name="PathScaleY" type="System.Byte" />
           <property name="PathShearX" type="System.Byte" />
           <property name="PathShearY" type="System.Byte" />
-          <property name="PathSkew" type="OpenSim.Data.NHibernate.SByteType, OpenSim.Data.NHibernate" />
+          <property name="PathSkew" type="System.SByte" />
           <property name="PathCurve" type="System.Byte" />
-          <property name="PathRadiusOffset" type="OpenSim.Data.NHibernate.SByteType, OpenSim.Data.NHibernate" />
+          <property name="PathRadiusOffset" type="System.SByte" />
           <property name="PathRevolutions" type="System.Byte" />
-          <property name="PathTaperX" type="OpenSim.Data.NHibernate.SByteType, OpenSim.Data.NHibernate" />
-          <property name="PathTwist" type="OpenSim.Data.NHibernate.SByteType, OpenSim.Data.NHibernate" />
-          <property name="ProfileBegin" type="OpenSim.Data.NHibernate.UInt16Type, OpenSim.Data.NHibernate" />
-          <property name="ProfileEnd" type="OpenSim.Data.NHibernate.UInt16Type, OpenSim.Data.NHibernate" />
+          <property name="PathTaperX" type="System.SByte" />
+          <property name="PathTwist" type="System.SByte" />
+          <property name="ProfileBegin" type="System.UInt16" />
+          <property name="ProfileEnd" type="System.UInt16" />
           <property name="ProfileCurve" type="System.Byte" />
-          <property name="ProfileHollow" type="OpenSim.Data.NHibernate.UInt16Type, OpenSim.Data.NHibernate" />    
-          <property name="TextureEntry" column="Texture" type="binary" />
-          <property name="ExtraParams" type="binary" />
+          <property name="ProfileHollow" type="System.UInt16" />    
+          <property name="TextureEntry" column="Texture" type="System.Byte[]" />
+          <property name="ExtraParams" type="System.Byte[]" />
           <property name="State" type="System.Byte" />
         </component>
     </class>
@@ -108,8 +108,7 @@
         <id name="RegionID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"> 
           <generator class="assigned" /> 
         </id>
-        <!-- <property name="MapData" type="OpenSim.Data.NHibernate.BlobType, OpenSim.Data.NHibernate" /> -->
-        <property name="MapData" type="binary" />
+        <property name="Map" type="System.Byte[]" />
     </class>
     <class name="OpenSim.Framework.TaskInventoryItem, OpenSim.Framework" table="PrimItems" lazy="false">
       <id name="ItemID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"> 
@@ -122,47 +121,15 @@
       <property name="OwnerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/> 
       <property name="GroupID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/> 
       <property name="LastOwnerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/> 
-      <property name="CurrentPermissions" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-      <property name="BasePermissions" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-      <property name="EveryonePermissions" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-      <property name="GroupPermissions" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-      <property name="NextPermissions" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
+      <property name="CurrentPermissions" type="System.UInt32" />
+      <property name="BasePermissions" type="System.UInt32" />
+      <property name="EveryonePermissions" type="System.UInt32" />
+      <property name="GroupPermissions" type="System.UInt32" />
+      <property name="NextPermissions" type="System.UInt32" />
       <property name="Name" type="String" length="255" />
       <property name="Description" type="String" length="255" />
-      <property name="CreationDate" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-      <property name="Flags" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
+      <property name="CreationDate" type="System.UInt32" />
+      <property name="Flags" type="System.UInt32" />
       <property name="InvType" type="System.Int32" />
     </class>
-    <class name="OpenSim.Data.RegionProfileData, OpenSim.Data" table="Regions" lazy="false">
-      <id name="Uuid" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate">
-        <generator class="assigned" />
-      </id>
-      <property name="RegionHandle" index="region_handle" type="OpenSim.Data.NHibernate.UInt64Type, OpenSim.Data.NHibernate" />
-      <property name="RegionName" index="region_name" type="String" length="32"/>
-      <property name="RegionRecvKey" type="String" length="128"/>
-      <property name="RegionSendKey" type="String" length="128"/>
-      <property name="RegionSecret" type="String" length="128"/>
-      <property name="RegionDataURI" type="String" length="255"/>
-      <property name="ServerIP" type="String" length="64"/>
-      <property name="ServerPort" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-      <property name="ServerURI" type="String" length="255"/>
-      <property name="RegionLocX" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-      <property name="RegionLocY" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-      <property name="RegionLocZ" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-      <property name="EastOverrideHandle" index="overrideHandles" type="OpenSim.Data.NHibernate.UInt64Type, OpenSim.Data.NHibernate" />
-      <property name="WestOverrideHandle" index="overrideHandles" type="OpenSim.Data.NHibernate.UInt64Type, OpenSim.Data.NHibernate" />
-      <property name="SouthOverrideHandle" index="overrideHandles" type="OpenSim.Data.NHibernate.UInt64Type, OpenSim.Data.NHibernate" />
-      <property name="NorthOverrideHandle" index="overrideHandles" type="OpenSim.Data.NHibernate.UInt64Type, OpenSim.Data.NHibernate" />
-      <property name="RegionAssetURI" type="String" length="255"/>
-      <property name="RegionAssetRecvKey" type="String" length="128"/>
-      <property name="RegionAssetSendKey" type="String" length="128"/>
-      <property name="RegionUserURI" type="String" length="255"/>
-      <property name="RegionUserRecvKey" type="String" length="128"/>
-      <property name="RegionUserSendKey" type="String" length="128"/>
-      <property name="ServerHttpPort" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-      <property name="ServerRemotingPort" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-      <property name="RegionMapTextureID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/>
-      <property name="Owner_uuid" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/>
-      <property name="OriginUUID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/>
-    </class>  
 </hibernate-mapping>

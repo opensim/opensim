@@ -9,8 +9,8 @@
         <property name="PasswordHash" type="String" length="32" />
         <property name="PasswordSalt" type="String" length="32" />
         <property name="WebLoginKey" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
-        <property name="HomeRegionX" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
-        <property name="HomeRegionY" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
+        <property name="HomeRegionX" type="System.UInt32" />
+        <property name="HomeRegionY" type="System.UInt32" />
         <property name="HomeLocationX" type="Single" />
         <property name="HomeLocationY" type="Single" />
         <property name="HomeLocationZ" type="Single" />

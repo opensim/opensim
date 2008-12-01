@@ -5,7 +5,7 @@
             <generator class="assigned" /> 
         </id> 
         <property name="Type" type="Int16" />
-        <property name="Version" type="OpenSim.Data.NHibernate.UInt16Type, OpenSim.Data.NHibernate" />
+        <property name="Version" type="System.UInt16" />
         <property name="ParentID" index="folder_parent_id" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         <property name="Owner" index="folder_owner_id" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         <property name="Name" type="String" length="64" />

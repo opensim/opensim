@@ -34,7 +34,10 @@ using System.Text.RegularExpressions;
 using OpenMetaverse;
 using log4net;
 using NHibernate;
-using NHibernate.Criterion;
+using NHibernate.Cfg;
+using NHibernate.Expression;
+using NHibernate.Mapping.Attributes;
+using NHibernate.Tool.hbm2ddl;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -49,12 +52,51 @@ namespace OpenSim.Data.NHibernate
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private NHibernateManager manager;
+        private Configuration cfg;
+        private ISessionFactory factory;
+        private ISession session;
+
+        // public void Initialise()
+        // {
+        //     Initialise("SQLiteDialect;SqliteClientDriver;URI=file:OpenSim.db,version=3", true);
+        // }
 
         public void Initialise(string connect)
         {
-            m_log.InfoFormat("[NHIBERNATE] Initializing NHibernateRegionData");
-            manager = new NHibernateManager(connect, "RegionStore");
+            // Split out the dialect, driver, and connect string
+            char[] split = {';'};
+            string[] parts = connect.Split(split, 3);
+            if (parts.Length != 3)
+            {
+                // TODO: make this a real exception type
+                throw new Exception("Malformed Region connection string '" + connect + "'");
+            }
+
+            string dialect = parts[0];
+
+            // NHibernate setup
+            cfg = new Configuration();
+            cfg.SetProperty(Environment.ConnectionProvider,
+                            "NHibernate.Connection.DriverConnectionProvider");
+            cfg.SetProperty(Environment.Dialect,
+                            "NHibernate.Dialect." + dialect);
+            cfg.SetProperty(Environment.ConnectionDriver,
+                            "NHibernate.Driver." + parts[1]);
+            cfg.SetProperty(Environment.ConnectionString, parts[2]);
+            cfg.AddAssembly("OpenSim.Data.NHibernate");
+
+            HbmSerializer.Default.Validate = true;
+            using (MemoryStream stream =
+                   HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
+                cfg.AddInputStream(stream);
+
+            factory  = cfg.BuildSessionFactory();
+            session = factory.OpenSession();
+
+            // This actually does the roll forward assembly stuff
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "RegionStore");
+            m.Update();
         }
 
         /***********************************************************************
@@ -80,18 +122,15 @@ namespace OpenSim.Data.NHibernate
         {
             try
             {
-                SceneObjectPart old = (SceneObjectPart)manager.Load(typeof(SceneObjectPart), p.UUID);
-                if (old != null)
-                {
-                    m_log.InfoFormat("[NHIBERNATE] updating object {0}", p.UUID);
-                    manager.Update(old);
-                } 
-                else
-                {
-                    m_log.InfoFormat("[NHIBERNATE] saving object {0}", p.UUID);
-                    manager.Save(p);
-                }
-                
+                SceneObjectPart old = session.Load(typeof(SceneObjectPart), p.UUID) as SceneObjectPart;
+                session.Evict(old);
+                session.Update(p);
+                m_log.InfoFormat("[NHIBERNATE] updating object {0}", p.UUID);
+            }
+            catch (ObjectNotFoundException)
+            {
+                m_log.InfoFormat("[NHIBERNATE] saving object {0}", p.UUID);
+                session.Save(p);
             }
             catch (Exception e)
             {
@@ -103,19 +142,15 @@ namespace OpenSim.Data.NHibernate
         {
             try
             {
-                
-                Terrain old = (Terrain)manager.Load(typeof(Terrain), t.RegionID);
-                if (old != null)
-                {
-                    m_log.InfoFormat("[NHIBERNATE] updating terrain {0}", t.RegionID);
-                    manager.Update(old);
-                }
-                else
-                {
-                    m_log.InfoFormat("[NHIBERNATE] saving terrain {0}", t.RegionID);
-                    manager.Save(t);
-                }
-
+                Terrain old = session.Load(typeof(Terrain), t.RegionID) as Terrain;
+                session.Evict(old);
+                session.Update(t);
+                session.Flush();
+            }
+            catch (ObjectNotFoundException)
+            {
+                session.Save(t);
+                session.Flush();
             }
             catch (Exception e)
             {
@@ -138,6 +173,7 @@ namespace OpenSim.Data.NHibernate
                     m_log.InfoFormat("Storing part {0}", part.UUID);
                     SaveOrUpdate(part);
                 }
+                session.Flush();
             }
             catch (Exception e)
             {
@@ -149,7 +185,7 @@ namespace OpenSim.Data.NHibernate
         {
             SceneObjectGroup group = new SceneObjectGroup();
 
-            ICriteria criteria = manager.GetSession().CreateCriteria(typeof(SceneObjectPart));
+            ICriteria criteria = session.CreateCriteria(typeof(SceneObjectPart));
             criteria.Add(Expression.Eq("RegionID", region));
             criteria.Add(Expression.Eq("ParentUUID", uuid));
             criteria.AddOrder( Order.Asc("ParentID") );
@@ -180,8 +216,9 @@ namespace OpenSim.Data.NHibernate
             SceneObjectGroup g = LoadObject(obj, regionUUID);
             foreach (SceneObjectPart p in g.Children.Values)
             {
-                manager.Delete(p);
+                session.Delete(p);
             }
+            session.Flush();
 
             m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.Guid, regionUUID);
 
@@ -197,7 +234,7 @@ namespace OpenSim.Data.NHibernate
             Dictionary<UUID, SceneObjectGroup> SOG = new Dictionary<UUID, SceneObjectGroup>();
             List<SceneObjectGroup> ret = new List<SceneObjectGroup>();
 
-            ICriteria criteria = manager.GetSession().CreateCriteria(typeof(SceneObjectPart));
+            ICriteria criteria = session.CreateCriteria(typeof(SceneObjectPart));
             criteria.Add(Expression.Eq("RegionID", regionUUID));
             criteria.AddOrder( Order.Asc("ParentID") );
             foreach (SceneObjectPart p in criteria.List())
@@ -215,7 +252,7 @@ namespace OpenSim.Data.NHibernate
                 }
                 // get the inventory
 
-                ICriteria InvCriteria = manager.GetSession().CreateCriteria(typeof(TaskInventoryItem));
+                ICriteria InvCriteria = session.CreateCriteria(typeof(TaskInventoryItem));
                 InvCriteria.Add(Expression.Eq("ParentPartID", p.UUID));
                 IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
                 foreach (TaskInventoryItem i in InvCriteria.List())
@@ -254,14 +291,16 @@ namespace OpenSim.Data.NHibernate
         /// <returns>Heightfield data</returns>
         public double[,] LoadTerrain(UUID regionID)
         {
-            Terrain t = (Terrain)manager.Load(typeof(Terrain), regionID);
-            if (t != null)
+            try
             {
+                Terrain t = session.Load(typeof(Terrain), regionID) as Terrain;
                 return t.Doubles;
             }
-               
-            m_log.Info("No terrain yet");
-            return null;
+            catch (ObjectNotFoundException)
+            {
+                m_log.Info("No terrain yet");
+                return null;
+            }
         }
 
         /// <summary>
@@ -300,7 +339,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         public void Shutdown()
         {
-            //session.Flush();
+            session.Flush();
         }
 
         /// <summary>
@@ -358,20 +397,21 @@ namespace OpenSim.Data.NHibernate
         /// <param name="items"></param>
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
-             ICriteria criteria = manager.GetSession().CreateCriteria(typeof(TaskInventoryItem));
+             ICriteria criteria = session.CreateCriteria(typeof(TaskInventoryItem));
              criteria.Add(Expression.Eq("ParentPartID", primID));
              try
              {
                  foreach (TaskInventoryItem i in criteria.List())
                  {
-                     manager.Delete(i);
+                     session.Delete(i);
                  }
 
                  foreach (TaskInventoryItem i in items)
                  {
-                     manager.Save(i);
+                     session.Save(i);
 
                  }
+                 session.Flush();
              }
              catch (Exception e)
              {
