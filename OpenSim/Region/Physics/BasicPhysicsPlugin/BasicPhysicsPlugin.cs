@@ -152,7 +152,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                     actor.Position.X = 255.9F;
                 }
 
-                float height = _heightMap[(int)actor.Position.Y * Constants.RegionSize + (int)actor.Position.X] + 1.0f;
+                float height = _heightMap[(int)actor.Position.Y * Constants.RegionSize + (int)actor.Position.X] + actor.Size.Z;
                 if (actor.Flying)
                 {
                     if (actor.Position.Z + (actor.Velocity.Z*timeStep) <
@@ -210,15 +210,16 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         private PhysicsVector _position;
         private PhysicsVector _velocity;
         private PhysicsVector _acceleration;
+        private PhysicsVector _size;
         private PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
         private bool flying;
         private bool iscolliding;
-
         public BasicActor()
         {
             _velocity = new PhysicsVector();
             _position = new PhysicsVector();
             _acceleration = new PhysicsVector();
+            _size = new PhysicsVector();
         }
 
         public override int PhysicsActorType
@@ -315,8 +316,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override PhysicsVector Size
         {
-            get { return PhysicsVector.Zero; }
-            set { }
+            get { return _size; }
+            set {
+                  _size = value;
+                  _size.Z = _size.Z / 2.0f;
+                }
         }
 
         public override PrimitiveBaseShape Shape

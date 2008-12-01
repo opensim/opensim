@@ -39,6 +39,7 @@ namespace OpenSim.Region.Physics.POSPlugin
         private PhysicsVector _position;
         public PhysicsVector _velocity;
         public PhysicsVector _target_velocity = PhysicsVector.Zero;
+        public PhysicsVector _size = PhysicsVector.Zero;
         private PhysicsVector _acceleration;
         private PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
         private bool flying;
@@ -144,8 +145,12 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override PhysicsVector Size
         {
-            get { return new PhysicsVector(0.5f, 0.5f, 1.0f); }
-            set { }
+            get { return _size; }
+            set
+            {
+                _size = value;
+                _size.Z = _size.Z / 2.0f;
+            }
         }
 
         public override float Mass

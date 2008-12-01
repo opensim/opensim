@@ -167,7 +167,7 @@ namespace OpenSim.Region.Physics.POSPlugin
                 float terrainheight = _heightMap[(int)character.Position.Y * Constants.RegionSize + (int)character.Position.X];
                 if (character.Position.Z + (character._target_velocity.Z * timeStep) < terrainheight + 2)
                 {
-                    character.Position.Z = terrainheight + 1.0f;
+                    character.Position.Z = terrainheight + character.Size.Z;
                     forcedZ = true;
                 }
                 else
@@ -184,23 +184,31 @@ namespace OpenSim.Region.Physics.POSPlugin
                     character.Position.Z = oldposZ; //  first try Z axis
                     if (isCollidingWithPrim(character))
                     {
-                        character.Position.Z = oldposZ + 0.4f; // try harder
+                        character.Position.Z = oldposZ + character.Size.Z / 4.4f; // try harder
                         if (isCollidingWithPrim(character))
                         {
-                            character.Position.X = oldposX;
-                            character.Position.Y = oldposY;
-                            character.Position.Z = oldposZ;
-
-                            character.Position.X += character._target_velocity.X * timeStep;
+                            character.Position.Z = oldposZ + character.Size.Z / 2.2f; // try very hard
                             if (isCollidingWithPrim(character))
                             {
                                 character.Position.X = oldposX;
-                            }
-
-                            character.Position.Y += character._target_velocity.Y * timeStep;
-                            if (isCollidingWithPrim(character))
-                            {
                                 character.Position.Y = oldposY;
+                                character.Position.Z = oldposZ;
+
+                                character.Position.X += character._target_velocity.X * timeStep;
+                                if (isCollidingWithPrim(character))
+                                {
+                                    character.Position.X = oldposX;
+                                }
+
+                                character.Position.Y += character._target_velocity.Y * timeStep;
+                                if (isCollidingWithPrim(character))
+                                {
+                                    character.Position.Y = oldposY;
+                                }
+                            }
+                            else
+                            {
+                                forcedZ = true;
                             }
                         }
                         else

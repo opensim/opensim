@@ -5040,25 +5040,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                agentSize = new LSL_Vector(0.45, 0.6, calculateAgentHeight(avatar));
+                agentSize = new LSL_Vector(0.45, 0.6, avatar.Appearance.AvatarHeight);
             }
             return agentSize;
-        }
-
-        private float calculateAgentHeight(ScenePresence avatar)
-        {
-            byte[] parms = avatar.Appearance.VisualParams;
-            // The values here were arrived at from experimentation with the sliders
-            // in edit appearance in SL to find the ones that affected the height and how
-            // much they affected it.
-            float avatarHeight = 1.23077f  // Shortest possible avatar height
-                               + 0.516945f * (float)parms[25] / 255.0f   // Body height
-                               + 0.072514f * (float)parms[120] / 255.0f  // Head size
-                               + 0.3836f * (float)parms[125] / 255.0f    // Leg length
-                               + 0.08f * (float)parms[77] / 255.0f    // Shoe heel height
-                               + 0.07f * (float)parms[78] / 255.0f    // Shoe platform height
-                               + 0.076f * (float)parms[148] / 255.0f;    // Neck length
-            return avatarHeight;
         }
 
         public LSL_Integer llSameGroup(string agent)
@@ -6600,14 +6584,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (presence.Animations.DefaultAnimation.AnimID == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
                     {
                         // This is for ground sitting avatars
-                        float height = calculateAgentHeight(presence) / 2.66666667f;
+                        float height = presence.Appearance.AvatarHeight / 2.66666667f;
                         lower = new LSL_Vector(-0.3375f, -0.45f, height * -1.0f);
                         upper = new LSL_Vector(0.3375f, 0.45f, 0.0f);
                     }
                     else
                     {
                         // This is for standing/flying avatars
-                        float height = calculateAgentHeight(presence) / 2.0f;
+                        float height = presence.Appearance.AvatarHeight / 2.0f;
                         lower = new LSL_Vector(-0.225f, -0.3f, height * -1.0f);
                         upper = new LSL_Vector(0.225f, 0.3f, height + 0.05f);
                     }
