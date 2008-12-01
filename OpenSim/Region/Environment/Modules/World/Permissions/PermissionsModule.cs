@@ -217,6 +217,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.Permissions.AddEditObjectInventoryHandler(CanEditObjectInventory);//MAYBE FULLY IMPLEMENTED            
             m_scene.Permissions.AddCanCopyObjectInventoryHandler(CanCopyObjectInventory); //NOT YET IMPLEMENTED
             m_scene.Permissions.AddCanDeleteObjectInventoryHandler(CanDeleteObjectInventory); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddResetScriptHandler(CanResetScript);
             
             m_scene.Permissions.AddCanCreateUserInventoryHandler(CanCreateUserInventory); //NOT YET IMPLEMENTED
             m_scene.Permissions.AddCanCopyUserInventoryHandler(CanCopyUserInventory); //NOT YET IMPLEMENTED
@@ -1426,6 +1427,15 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
             return true;
+        }
+
+        private bool CanResetScript(UUID prim, UUID script, UUID agentID, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            // You can reset the scripts in any object you can edit
+            return GenericObjectPermission(agentID, prim, false);
         }
     }
 }
