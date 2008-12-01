@@ -74,9 +74,12 @@ namespace OpenSim.Data.NHibernate
             int x = rs.GetOrdinal(names[0]);
             int y = rs.GetOrdinal(names[1]);
             int z = rs.GetOrdinal(names[2]);
-            if (!rs.IsDBNull(x))
+            if (!rs.IsDBNull(x) && !rs.IsDBNull(y) && !rs.IsDBNull(z))
             {
-                vector = new Vector3((Single)rs[x], (Single)rs[y], (Single)rs[z]);
+                float X = (Single)Convert.ToDouble(rs[x].ToString());
+                float Y = (Single)Convert.ToDouble(rs[y].ToString());
+                float Z = (Single)Convert.ToDouble(rs[z].ToString());
+                vector = new Vector3(X, Y, Z);
             }
             return vector;
         }

@@ -78,7 +78,11 @@ namespace OpenSim.Data.NHibernate
             int w = rs.GetOrdinal(names[3]);
             if (!rs.IsDBNull(x))
             {
-                quat = new Quaternion((Single)rs[x], (Single)rs[y], (Single)rs[z], (Single)rs[w]);
+                float X = (Single)Convert.ToDouble(rs[x].ToString());
+                float Y = (Single)Convert.ToDouble(rs[y].ToString());
+                float Z = (Single)Convert.ToDouble(rs[z].ToString());
+                float W = (Single)Convert.ToDouble(rs[w].ToString());
+                quat = new Quaternion(X, Y, Z, W);
             }
             return quat;
         }

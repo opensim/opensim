@@ -12,15 +12,15 @@
         <property name="Creator" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         <property name="Name" type="String" length="64" />
         <property name="Description" type="String" length="64" />
-        <property name="NextPermissions" type="System.UInt32" />
-        <property name="CurrentPermissions" type="System.UInt32" />
-        <property name="BasePermissions" type="System.UInt32" />
-        <property name="EveryOnePermissions" type="System.UInt32" />
+        <property name="NextPermissions" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
+        <property name="CurrentPermissions" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
+        <property name="BasePermissions" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
+        <property name="EveryOnePermissions" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
         <property name="GroupID" index="item_group_id" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         <property name="GroupOwned" type="boolean" />
         <property name="SalePrice" type="System.Int32" />
         <property name="SaleType" type="System.Byte" />
-        <property name="Flags" type="System.UInt32" />
+        <property name="Flags" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
         <property name="CreationDate" type="System.Int32" />
     </class>
 </hibernate-mapping>
