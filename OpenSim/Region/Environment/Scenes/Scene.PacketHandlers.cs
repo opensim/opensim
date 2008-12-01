@@ -337,7 +337,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part == null)
                 return;
 
-            if (Permissions.CanResetScript(itemID, remoteClient.AgentId))
+            if (Permissions.CanResetScript(objectID, itemID, remoteClient.AgentId))
             {
                 EventManager.TriggerScriptReset(part.LocalId, itemID);
             }

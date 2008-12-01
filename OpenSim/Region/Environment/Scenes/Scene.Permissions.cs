@@ -727,7 +727,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region RESET SCRIPT
-        public delegate bool CanResetScriptHandler(UUID script, UUID user, Scene scene);
+        public delegate bool CanResetScriptHandler(UUID prim, UUID script, UUID user, Scene scene);
         private List<CanResetScriptHandler> CanResetScriptCheckFunctions = new List<CanResetScriptHandler>();
 
         public void AddResetScriptHandler(CanResetScriptHandler delegateFunc)
@@ -742,11 +742,11 @@ namespace OpenSim.Region.Environment.Scenes
                 CanResetScriptCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool CanResetScript(UUID script, UUID user)
+        public bool CanResetScript(UUID prim, UUID script, UUID user)
         {
             foreach (CanResetScriptHandler check in CanResetScriptCheckFunctions)
             {
-                if (check(script, user, m_scene) == false)
+                if (check(prim, script, user, m_scene) == false)
                 {
                     return false;
                 }
