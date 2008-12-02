@@ -53,7 +53,7 @@ namespace OpenSim.Framework.Communications
         /// </value>
         private List<IUserDataPlugin> _plugins = new List<IUserDataPlugin>();
         
-        private IInterServiceInventoryServices m_interServiceInventoryService;
+        protected IInterServiceInventoryServices m_interServiceInventoryService;
         
         /// <summary>
         /// Constructor
