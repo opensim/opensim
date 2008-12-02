@@ -33,10 +33,7 @@ using System.Text.RegularExpressions;
 using OpenMetaverse;
 using log4net;
 using NHibernate;
-using NHibernate.Cfg;
-using NHibernate.Expression;
-using NHibernate.Mapping.Attributes;
-using NHibernate.Tool.hbm2ddl;
+using NHibernate.Criterion;
 using OpenSim.Framework;
 using Environment=NHibernate.Cfg.Environment;
 
@@ -49,9 +46,7 @@ namespace OpenSim.Data.NHibernate
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Configuration cfg;
-        private ISessionFactory factory;
-        private ISession session;
+        private NHibernateManager manager;
 
         public override void Initialise()
         {
@@ -61,62 +56,40 @@ namespace OpenSim.Data.NHibernate
 
         public override void Initialise(string connect)
         {
-            char[] split = {';'};
-            string[] parts = connect.Split(split, 3);
-            if (parts.Length != 3)
-            {
-                // TODO: make this a real exception type
-                throw new Exception("Malformed Inventory connection string '" + connect + "'");
-            }
-            string dialect = parts[0];
-
-            // This is stubbing for now, it will become dynamic later and support different db backends
-            cfg = new Configuration();
-            cfg.SetProperty(Environment.ConnectionProvider,
-                            "NHibernate.Connection.DriverConnectionProvider");
-            cfg.SetProperty(Environment.Dialect,
-                            "NHibernate.Dialect." + parts[0]);
-            cfg.SetProperty(Environment.ConnectionDriver,
-                            "NHibernate.Driver." + parts[1]);
-            cfg.SetProperty(Environment.ConnectionString, parts[2]);
-            cfg.AddAssembly("OpenSim.Data.NHibernate");
-
-            factory  = cfg.BuildSessionFactory();
-            session = factory.OpenSession();
-
-            // This actually does the roll forward assembly stuff
-            Assembly assem = GetType().Assembly;
-            Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "UserStore");
-            m.Update();
+            m_log.InfoFormat("[NHIBERNATE] Initializing NHibernateUserData");
+            manager = new NHibernateManager(connect, "UserStore");
         }
 
         private bool ExistsUser(UUID uuid)
         {
             UserProfileData user = null;
-            try
+
+            m_log.InfoFormat("[NHIBERNATE] ExistsUser; {0}", uuid);
+            user = (UserProfileData)manager.Load(typeof(UserProfileData), uuid);
+            
+            if (user == null)
             {
-                user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
-            }
-            catch (ObjectNotFoundException)
-            {
-                user = null;
+                m_log.InfoFormat("[NHIBERNATE] User with given UUID does not exist {0} ", uuid);
+                return false;
             }
 
-            return (user != null);
+            return true;
+
         }
 
         override public UserProfileData GetUserByUUID(UUID uuid)
         {
             UserProfileData user;
-            // TODO: I'm sure I'll have to do something silly here
-            try
+            m_log.InfoFormat("[NHIBERNATE] GetUserByUUID: {0} ", uuid);
+            
+            user = (UserProfileData)manager.Load(typeof(UserProfileData), uuid);
+            if (user != null)    
             {
-                user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
-                user.CurrentAgent = GetAgentByUUID(uuid);
-            }
-            catch (ObjectNotFoundException)
-            {
-                user = null;
+                UserAgentData agent = GetAgentByUUID(uuid);
+                if (agent != null)
+                {
+                    user.CurrentAgent = agent;
+                }
             }
 
             return user;
@@ -126,33 +99,30 @@ namespace OpenSim.Data.NHibernate
         {
             if (!ExistsUser(profile.ID))
             {
-                session.Save(profile);
+                m_log.InfoFormat("[NHIBERNATE] AddNewUserProfile {0}", profile.ID);
+                manager.Save(profile);
                 SetAgentData(profile.ID, profile.CurrentAgent);
+
             }
             else
             {
-                m_log.ErrorFormat("Attempted to add User {0} {1} that already exists, updating instead", profile.FirstName, profile.SurName);
+                m_log.ErrorFormat("[NHIBERNATE] Attempted to add User {0} {1} that already exists, updating instead", profile.FirstName, profile.SurName);
                 UpdateUserProfile(profile);
             }
         }
 
         private void SetAgentData(UUID uuid, UserAgentData agent)
         {
-            if (agent == null)
+            UserAgentData old = (UserAgentData)manager.Load(typeof(UserAgentData), uuid);
+            if (old != null)
             {
-                // TODO: got to figure out how to do a delete right
+                m_log.InfoFormat("[NHIBERNATE] SetAgentData deleting old: {0} ",uuid);
+                manager.Delete(old);
             }
-            else
+            if (agent != null)
             {
-                try
-                {
-                    UserAgentData old = session.Load(typeof(UserAgentData), uuid) as UserAgentData;
-                    session.Delete(old);
-                }
-                catch (ObjectNotFoundException)
-                {
-                }
-                session.Save(agent);
+                m_log.InfoFormat("[NHIBERNATE] SetAgentData: {0} ", agent.ProfileID);
+                manager.Save(agent);
             }
 
         }
@@ -160,13 +130,13 @@ namespace OpenSim.Data.NHibernate
         {
             if (ExistsUser(profile.ID))
             {
-                session.Update(profile);
+                manager.Update(profile);
                 SetAgentData(profile.ID, profile.CurrentAgent);
                 return true;
             }
             else
             {
-                m_log.ErrorFormat("Attempted to update User {0} {1} that doesn't exist, updating instead", profile.FirstName, profile.SurName);
+                m_log.ErrorFormat("[NHIBERNATE] Attempted to update User {0} {1} that doesn't exist, updating instead", profile.FirstName, profile.SurName);
                 AddNewUserProfile(profile);
                 return true;
             }
@@ -174,37 +144,32 @@ namespace OpenSim.Data.NHibernate
 
         override public void AddNewUserAgent(UserAgentData agent)
         {
-            try
+            UserAgentData old = (UserAgentData)manager.Load(typeof(UserAgentData), agent.ProfileID);
+            if (old != null)
             {
-                UserAgentData old = session.Load(typeof(UserAgentData), agent.ProfileID) as UserAgentData;
-                session.Delete(old);
+                manager.Delete(old);
             }
-            catch (ObjectNotFoundException)
-            {
-            }
-            session.Save(agent);
+            
+            manager.Save(agent);
+            
         }
 
         public void UpdateUserAgent(UserAgentData agent)
         {
-            session.Update(agent);
+            m_log.InfoFormat("[NHIBERNATE] UpdateUserAgent: {0} ", agent.ProfileID);
+            manager.Update(agent);
         }
 
         override public UserAgentData GetAgentByUUID(UUID uuid)
         {
-            try
-            {
-                return session.Load(typeof(UserAgentData), uuid) as UserAgentData;
-            }
-            catch
-            {
-                return null;
-            }
+            m_log.InfoFormat("[NHIBERNATE] GetAgentByUUID: {0} ", uuid);
+            return (UserAgentData)manager.Load(typeof(UserAgentData), uuid);
         }
 
         override public UserProfileData GetUserByName(string fname, string lname)
         {
-            ICriteria criteria = session.CreateCriteria(typeof(UserProfileData));
+            m_log.InfoFormat("[NHIBERNATE] GetUserByName: {0} {1} ", fname, lname);
+            ICriteria criteria = manager.GetSession().CreateCriteria(typeof(UserProfileData));
             criteria.Add(Expression.Eq("FirstName", fname));
             criteria.Add(Expression.Eq("SurName", lname));
             foreach (UserProfileData profile in criteria.List())
@@ -233,7 +198,7 @@ namespace OpenSim.Data.NHibernate
 
             if (querysplit.Length == 2)
             {
-                ICriteria criteria = session.CreateCriteria(typeof(UserProfileData));
+                ICriteria criteria = manager.GetSession().CreateCriteria(typeof(UserProfileData));
                 criteria.Add(Expression.Like("FirstName", querysplit[0]));
                 criteria.Add(Expression.Like("SurName", querysplit[1]));
                 foreach (UserProfileData profile in criteria.List())
@@ -262,26 +227,18 @@ namespace OpenSim.Data.NHibernate
         /// TODO: stubs for now to get us to a compiling state gently
         public override AvatarAppearance GetUserAppearance(UUID user)
         {
-            AvatarAppearance appearance;
-            // TODO: I'm sure I'll have to do something silly here
-            try {
-                appearance = session.Load(typeof(AvatarAppearance), user) as AvatarAppearance;
-            } catch (ObjectNotFoundException) {
-                appearance = null;
-            }
-            return appearance;
+            return (AvatarAppearance)manager.Load(typeof(AvatarAppearance), user);
         }
 
         private bool ExistsAppearance(UUID uuid)
         {
-            AvatarAppearance appearance;
-            try {
-                appearance = session.Load(typeof(AvatarAppearance), uuid) as AvatarAppearance;
-            } catch (ObjectNotFoundException) {
-                appearance = null;
+            AvatarAppearance appearance = (AvatarAppearance)manager.Load(typeof(AvatarAppearance), uuid);
+            if (appearance == null)
+            {
+                return false;
             }
 
-            return (appearance == null) ? false : true;
+            return true;
         }
 
 
@@ -295,11 +252,11 @@ namespace OpenSim.Data.NHibernate
             bool exists = ExistsAppearance(user);
             if (exists)
             {
-                session.Update(appearance);
+                manager.Update(appearance);
             }
             else
             {
-                session.Save(appearance);
+                manager.Save(appearance);
             }
         }
 

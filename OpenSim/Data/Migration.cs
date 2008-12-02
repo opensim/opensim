@@ -82,6 +82,7 @@ namespace OpenSim.Data
         // private static readonly string _migrations_init = "insert into migrations values('migrations', 1)";
         // private static readonly string _migrations_find = "select version from migrations where name='migrations'";
 
+
         public Migration(DbConnection conn, Assembly assem, string type)
         {
             _type = type;
@@ -112,6 +113,7 @@ namespace OpenSim.Data
             DbCommand cmd = _conn.CreateCommand();
             cmd.CommandText = _migrations_create;
             cmd.ExecuteNonQuery();
+            cmd.Dispose();
 
             InsertVersion("migrations", 1);
         }
@@ -135,7 +137,7 @@ namespace OpenSim.Data
                 int newversion = kvp.Key;
                 cmd.CommandText = kvp.Value;
                 // we need to up the command timeout to infinite as we might be doing long migrations.
-                cmd.CommandTimeout = 0;
+                //cmd.CommandTimeout = 0;
                 cmd.ExecuteNonQuery();
 
                 if (version == 0)
@@ -147,6 +149,7 @@ namespace OpenSim.Data
                     UpdateVersion(_type, newversion);
                 }
                 version = newversion;
+                cmd.Dispose();
             }
         }
 
@@ -189,7 +192,7 @@ namespace OpenSim.Data
             DbCommand cmd = conn.CreateCommand();
             try
             {
-                cmd.CommandText = "select version from migrations where name='" + type + "' limit 1";
+                cmd.CommandText = "select version from migrations where name='" + type +"' order by version desc";
                 using (IDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
@@ -203,6 +206,7 @@ namespace OpenSim.Data
             {
                 // Something went wrong, so we're version 0
             }
+            cmd.Dispose();
             return version;
         }
 
@@ -212,6 +216,7 @@ namespace OpenSim.Data
             cmd.CommandText = "insert into migrations(name, version) values('" + type + "', " + version + ")";
             m_log.InfoFormat("[MIGRATIONS]: Creating {0} at version {1}", type, version);
             cmd.ExecuteNonQuery();
+            cmd.Dispose();
         }
 
         private void UpdateVersion(string type, int version)
@@ -220,6 +225,7 @@ namespace OpenSim.Data
             cmd.CommandText = "update migrations set version=" + version + " where name='" + type + "'";
             m_log.InfoFormat("[MIGRATIONS]: Updating {0} to version {1}", type, version);
             cmd.ExecuteNonQuery();
+            cmd.Dispose();
         }
 
         // private SortedList<int, string> GetAllMigrations()

@@ -33,10 +33,7 @@ using System.Text.RegularExpressions;
 using OpenMetaverse;
 using log4net;
 using NHibernate;
-using NHibernate.Cfg;
-using NHibernate.Expression;
 using NHibernate.Mapping.Attributes;
-using NHibernate.Tool.hbm2ddl;
 using OpenSim.Framework;
 using Environment=NHibernate.Cfg.Environment;
 
@@ -49,9 +46,7 @@ namespace OpenSim.Data.NHibernate
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Configuration cfg;
-        private ISessionFactory factory;
-        private ISession session;
+        private NHibernateManager manager;
 
         override public void Dispose() { }
 
@@ -62,79 +57,23 @@ namespace OpenSim.Data.NHibernate
 
         public override void Initialise(string connect)
         {
-            // Split out the dialect, driver, and connect string
-            char[] split = {';'};
-            string[] parts = connect.Split(split, 3);
-            if (parts.Length != 3)
-            {
-                // TODO: make this a real exception type
-                throw new Exception("Malformed Inventory connection string '" + connect + "'");
-            }
 
-            string dialect = parts[0];
-
-            // NHibernate setup
-            cfg = new Configuration();
-            cfg.SetProperty(Environment.ConnectionProvider,
-                            "NHibernate.Connection.DriverConnectionProvider");
-            cfg.SetProperty(Environment.Dialect,
-                            "NHibernate.Dialect." + dialect);
-            cfg.SetProperty(Environment.ConnectionDriver,
-                            "NHibernate.Driver." + parts[1]);
-            cfg.SetProperty(Environment.ConnectionString, parts[2]);
-            cfg.AddAssembly("OpenSim.Data.NHibernate");
-
-
-
-            HbmSerializer.Default.Validate = true;
-            using (MemoryStream stream =
-                   HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
-                cfg.AddInputStream(stream);
-
-            factory  = cfg.BuildSessionFactory();
-            session = factory.OpenSession();
-
-            // This actually does the roll forward assembly stuff
-            Assembly assem = GetType().Assembly;
-            Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "AssetStore");
-            m.Update();
+            m_log.InfoFormat("[NHIBERNATE] Initializing NHibernateAssetData");
+            manager = new NHibernateManager(connect, "AssetStore");
 
         }
 
         override public AssetBase FetchAsset(UUID uuid)
         {
-            try
-            {
-                return session.Load(typeof(AssetBase), uuid) as AssetBase;
-            }
-            catch (ObjectNotFoundException)
-            {
-                m_log.ErrorFormat("[NHIBERNATE] no such asset {0}", uuid);
-                return null;
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[NHIBERNATE] unexpected exception: ", e);
-                return null;
-            }
+            return (AssetBase)manager.Load(typeof(AssetBase), uuid);
         }
 
         private void Save(AssetBase asset)
         {
-            try
+            AssetBase temp = (AssetBase)manager.Load(typeof(AssetBase), asset.FullID);
+            if (temp == null)
             {
-                // a is not used anywhere?
-                // AssetBase a = session.Load(typeof(AssetBase), asset.FullID) as AssetBase;
-                session.Load(typeof(AssetBase), asset.FullID);
-            }
-            catch (ObjectNotFoundException)
-            {
-                session.Save(asset);
-                session.Flush();
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[NHIBERNATE] issue saving asset", e);
+                manager.Save(asset);
             }
         }
 
@@ -147,7 +86,7 @@ namespace OpenSim.Data.NHibernate
         override public void UpdateAsset(AssetBase asset)
         {
             m_log.InfoFormat("[NHIBERNATE] updating asset {0}", asset.FullID);
-            Save(asset);
+            manager.Update(asset);
         }
 
         // private void LogAssetLoad(AssetBase asset)

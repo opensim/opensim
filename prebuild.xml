@@ -1867,9 +1867,11 @@
       <Files>
         <Match pattern="*.cs" recurse="true"/>
         <Match path="Resources" pattern="*.xml" buildAction="EmbeddedResource"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
         <!-- add more as you go -->
         <Match path="Resources/SQLiteDialect" pattern="*.sql" buildAction="EmbeddedResource"/>
         <Match path="Resources/MySQLDialect" pattern="*.sql" buildAction="EmbeddedResource"/>
+        <Match path="Resources/MsSql2005Dialect" pattern="*.sql" buildAction="EmbeddedResource"/>
       </Files>
     </Project>
 
