@@ -163,7 +163,7 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.Clear();
 
                     cmd.CommandText = "replace into prims ("+
-                            "UUID, ParentID, CreationDate, "+
+                            "UUID, CreationDate, "+
                             "Name, Text, Description, "+
                             "SitName, TouchName, ObjectFlags, "+
                             "OwnerMask, NextOwnerMask, GroupMask, "+
@@ -196,7 +196,7 @@ namespace OpenSim.Data.MySQL
                             "ColorR, ColorG, ColorB, ColorA, "+
                             "ParticleSystem, ClickAction, Material, "+
                             "CollisionSound, CollisionSoundVolume, "+
-                            "LinkNumber) values (" + "?UUID, ?ParentID, "+
+                            "LinkNumber) values (" + "?UUID, "+
                             "?CreationDate, ?Name, ?Text, "+
                             "?Description, ?SitName, ?TouchName, "+
                             "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, "+
@@ -750,7 +750,6 @@ namespace OpenSim.Data.MySQL
             prim.UUID = new UUID((String) row["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
-            prim.ParentID = Convert.ToUInt32(row["ParentID"]);
             prim.CreationDate = Convert.ToInt32(row["CreationDate"]);
             prim.Name = (String) row["Name"];
             // various text fields
@@ -1067,7 +1066,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        ///
+        /// Fill the prim command with prim values
         /// </summary>
         /// <param name="row"></param>
         /// <param name="prim"></param>
@@ -1077,7 +1076,6 @@ namespace OpenSim.Data.MySQL
         {
             cmd.Parameters.AddWithValue("UUID", Util.ToRawUuidString(prim.UUID));
             cmd.Parameters.AddWithValue("RegionUUID", Util.ToRawUuidString(regionUUID));
-            cmd.Parameters.AddWithValue("ParentID", prim.ParentID);
             cmd.Parameters.AddWithValue("CreationDate", prim.CreationDate);
             cmd.Parameters.AddWithValue("Name", prim.Name);
             cmd.Parameters.AddWithValue("SceneGroupID", Util.ToRawUuidString(sceneGroupID));

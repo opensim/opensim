@@ -783,7 +783,6 @@ namespace OpenSim.Data.SQLite
 
             createCol(prims, "UUID", typeof (String));
             createCol(prims, "RegionUUID", typeof (String));
-            createCol(prims, "ParentID", typeof (UInt32));
             createCol(prims, "CreationDate", typeof (Int32));
             createCol(prims, "Name", typeof (String));
             createCol(prims, "SceneGroupID", typeof (String));
@@ -1118,7 +1117,6 @@ namespace OpenSim.Data.SQLite
             prim.UUID = new UUID((String) row["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
-            prim.ParentID = Convert.ToUInt32(row["ParentID"]);
             prim.CreationDate = Convert.ToInt32(row["CreationDate"]);
             prim.Name = (String) row["Name"];
             // various text fields
@@ -1454,7 +1452,6 @@ namespace OpenSim.Data.SQLite
         {
             row["UUID"] = Util.ToRawUuidString(prim.UUID);
             row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
-            row["ParentID"] = prim.ParentID;
             row["CreationDate"] = prim.CreationDate;
             row["Name"] = prim.Name;
             row["SceneGroupID"] = Util.ToRawUuidString(sceneGroupID);
