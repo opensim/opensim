@@ -816,6 +816,5 @@ namespace OpenSim.Grid.UserServer
         {
             LogoutUsers(regionID);
         }   
-
     }
 }

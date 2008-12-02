@@ -195,7 +195,7 @@ namespace OpenSim.Grid.GridServer
             */
         }
 
-        protected override void ShutdownSpecific()
+        public override void ShutdownSpecific()
         {
             foreach (IGridPlugin plugin in m_plugins) plugin.Dispose();
         }

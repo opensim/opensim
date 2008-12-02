@@ -103,7 +103,7 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
         /// </summary>      
-        protected virtual void ShutdownSpecific() {}
+        public virtual void ShutdownSpecific() {}
 
         /// <summary>
         /// Print statistics to the logfile, if they are active

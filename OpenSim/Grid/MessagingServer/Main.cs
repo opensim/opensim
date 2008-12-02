@@ -179,7 +179,7 @@ namespace OpenSim.Grid.MessagingServer
             m_console.Notice("register    - (Re-)registers with user-server. This might be necessary if the userserver crashed/restarted"); 
         }
 
-        protected override void ShutdownSpecific()
+        public override void ShutdownSpecific()
         {
             msgsvc.deregisterWithUserServer();
         }
