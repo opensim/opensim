@@ -192,21 +192,37 @@ namespace OpenSim.Grid.InventoryServer
             invCollection.Folders = allFolders;
             invCollection.Items = allItems;
 
-//            foreach (InventoryFolderBase folder in invCollection.Folders)
-//            {
-//                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back folder {0} {1}", folder.Name, folder.ID);
-//            }
-//
-//            foreach (InventoryItemBase item in invCollection.Items)
-//            {
-//                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back item {0} {1}, folder {2}", item.Name, item.ID, item.Folder);
-//            }
+            //            foreach (InventoryFolderBase folder in invCollection.Folders)
+            //            {
+            //                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back folder {0} {1}", folder.Name, folder.ID);
+            //            }
+            //
+            //            foreach (InventoryItemBase item in invCollection.Items)
+            //            {
+            //                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back item {0} {1}, folder {2}", item.Name, item.ID, item.Folder);
+            //            }
 
             m_log.InfoFormat(
                 "[GRID AGENT INVENTORY]: Sending back inventory response to user {0} containing {1} folders and {2} items",
                 invCollection.UserID, invCollection.Folders.Count, invCollection.Items.Count);
 
             return invCollection;
+        }
+
+        public List<InventoryItemBase> GetFolderItems(Guid folderID)
+        {
+            List<InventoryItemBase> allItems = new List<InventoryItemBase>();
+
+
+            List<InventoryItemBase> items = RequestFolderItems(new UUID(folderID));
+
+            if (items != null)
+            {
+                allItems.InsertRange(0, items);
+            }
+            m_log.InfoFormat(
+              "[GRID AGENT INVENTORY]: Sending back inventory response  containing {0} items", allItems.Count.ToString());
+            return allItems;
         }
 
         /// <summary>
@@ -233,7 +249,7 @@ namespace OpenSim.Grid.InventoryServer
 
             return CreateNewUserInventory(userID);
         }
-        
+
         public List<InventoryItemBase> GetActiveGestures(Guid rawUserID)
         {
             UUID userID = new UUID(rawUserID);

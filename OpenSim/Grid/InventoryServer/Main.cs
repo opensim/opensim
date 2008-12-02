@@ -110,6 +110,14 @@ namespace OpenSim.Grid.InventoryServer
                     "POST", "/NewItem/", m_inventoryService.AddItem, m_inventoryService.CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
+           new RestDeserialiseTrustedHandler<Guid, List<InventoryItemBase>>(
+               "POST", "/GetItems/", m_inventoryService.GetFolderItems, m_inventoryService.CheckTrustSource));
+
+            m_httpServer.AddStreamHandler(
+             new RestDeserialiseTrustedHandler<InventoryItemBase, bool>(
+                 "POST", "/AddNewItem/", m_inventoryService.AddItem, m_inventoryService.CheckTrustSource));
+
+            m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
                     "POST", "/DeleteItem/", m_inventoryService.DeleteItem, m_inventoryService.CheckAuthSession));
 
