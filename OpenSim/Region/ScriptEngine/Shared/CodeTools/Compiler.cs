@@ -291,7 +291,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 if (File.Exists(OutFile))
 
                 {
-                    m_scriptEngine.Log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
+//                    m_scriptEngine.Log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
                     return OutFile;
                 }
 
@@ -573,8 +573,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 errtext += "No compile error. But not able to locate compiled file.";
                 throw new Exception(errtext);
             }
-            m_scriptEngine.Log.DebugFormat("[Compiler] Compiled new assembly "+
-                    "for {0}", asset);
+//            m_scriptEngine.Log.DebugFormat("[Compiler] Compiled new assembly "+
+//                    "for {0}", asset);
             return OutFile;
         }
 

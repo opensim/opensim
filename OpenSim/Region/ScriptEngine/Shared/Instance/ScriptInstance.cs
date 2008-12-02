@@ -270,7 +270,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                 m_LocalID, m_ItemID, m_ObjectID,
                                 PluginData);
 
-                            m_Engine.Log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", m_PrimName, m_ScriptName);
+//                            m_Engine.Log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", m_PrimName, m_ScriptName);
 
                             part.SetScriptEvents(m_ItemID,
                                     (int)m_Script.GetStateEventFlags(State));
