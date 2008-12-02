@@ -2055,7 +2055,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             // send the sound, once, to all clients in range
-            m_host.SendSound(KeyOrName(sound).ToString(), volume, false, 0);
+            m_host.SendSound(KeyOrName(sound).ToString(), volume, true, 0);
         }
 
         // Xantor 20080528: Clear prim data of sound instead
