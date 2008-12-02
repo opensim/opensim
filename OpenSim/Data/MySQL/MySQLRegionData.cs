@@ -87,7 +87,7 @@ namespace OpenSim.Data.MySQL
                 {
                     r = c.ExecuteReader();
                 }
-                catch (MySqlException)
+                catch (Exception)
                 {
                     System.Threading.Thread.Sleep(500);
 
@@ -120,7 +120,7 @@ namespace OpenSim.Data.MySQL
                 {
                     c.ExecuteNonQuery();
                 }
-                catch (MySqlException)
+                catch (Exception)
                 {
                     System.Threading.Thread.Sleep(500);
 
