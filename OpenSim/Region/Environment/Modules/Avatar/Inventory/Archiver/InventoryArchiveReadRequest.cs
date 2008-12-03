@@ -45,7 +45,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
 {
     public class InventoryArchiveReadRequest
     {
-        private static ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene scene;
         protected TarArchiveReader archive;
