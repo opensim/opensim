@@ -3028,7 +3028,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
               ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
               return;
             }
-            IClientAPI client = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter).ControllingClient;
+            IClientAPI client = null;
+	    ScenePresence sp = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter);
+	    if (sp!=null) 
+		client = sp.ControllingClient;
             SceneObjectPart targetPart = World.GetSceneObjectPart((UUID)target);
             if (targetPart.ParentGroup.RootPart.AttachmentPoint != 0)
                 return; // Fail silently if attached
