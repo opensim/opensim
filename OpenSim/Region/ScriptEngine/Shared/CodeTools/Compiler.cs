@@ -341,7 +341,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             //
             if (File.Exists(OutFile))
             {
-                m_scriptEngine.Log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
+//                m_scriptEngine.Log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
                 return OutFile;
             }
 
