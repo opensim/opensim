@@ -438,6 +438,7 @@ namespace OpenSim.Data.Tests
             UUID secureagent = UUID.Random();
             string agentip = RandomName();
             uint agentport = (uint)random.Next();
+            bool agentonline = (random.NextDouble() > 0.5);
             int logintime = random.Next();
             int logouttime = random.Next();
             UUID regionid = UUID.Random();
@@ -452,6 +453,7 @@ namespace OpenSim.Data.Tests
             a.SecureSessionID = secureagent;
             a.AgentIP = agentip;
             a.AgentPort = agentport;
+            a.AgentOnline = agentonline;
             a.LoginTime = logintime;
             a.LogoutTime = logouttime;
             a.Region = regionid;
@@ -468,6 +470,7 @@ namespace OpenSim.Data.Tests
             Assert.That(secureagent,Is.EqualTo(a1.SecureSessionID));
             Assert.That(agentip,Is.EqualTo(a1.AgentIP));
             Assert.That(agentport,Is.EqualTo(a1.AgentPort));
+            Assert.That(agentonline,Is.EqualTo(a1.AgentOnline));
             Assert.That(logintime,Is.EqualTo(a1.LoginTime));
             Assert.That(logouttime,Is.EqualTo(a1.LogoutTime));
             Assert.That(regionid,Is.EqualTo(a1.Region));
@@ -542,6 +545,111 @@ namespace OpenSim.Data.Tests
             AvatarAppearance user1app = db.GetUserAppearance(user1);
             Assert.That(user1,Is.EqualTo(user1app.Owner));
         }
+        
+        [Test]
+        public void T041_UserAppearancePersistency()
+        {
+            AvatarAppearance appear = new AvatarAppearance();            
+            UUID owner = UUID.Random();
+            int serial = random.Next();
+            byte[] visualp = new byte[218];
+            random.NextBytes(visualp);
+            UUID bodyitem = UUID.Random();
+            UUID bodyasset = UUID.Random();
+            UUID skinitem = UUID.Random();
+            UUID skinasset = UUID.Random();
+            UUID hairitem = UUID.Random();
+            UUID hairasset = UUID.Random();
+            UUID eyesitem = UUID.Random();
+            UUID eyesasset = UUID.Random();
+            UUID shirtitem = UUID.Random();
+            UUID shirtasset = UUID.Random();
+            UUID pantsitem = UUID.Random();
+            UUID pantsasset = UUID.Random();
+            UUID shoesitem = UUID.Random();
+            UUID shoesasset = UUID.Random();
+            UUID socksitem = UUID.Random();
+            UUID socksasset = UUID.Random();
+            UUID jacketitem = UUID.Random();
+            UUID jacketasset = UUID.Random();
+            UUID glovesitem = UUID.Random();
+            UUID glovesasset = UUID.Random();
+            UUID ushirtitem = UUID.Random();
+            UUID ushirtasset = UUID.Random();
+            UUID upantsitem = UUID.Random();
+            UUID upantsasset = UUID.Random();
+            UUID skirtitem = UUID.Random();
+            UUID skirtasset = UUID.Random();
+            Primitive.TextureEntry texture = AvatarAppearance.GetDefaultTexture();
+            float avatarheight = (float) (Math.Round(random.NextDouble(),5));
+            
+            appear.Owner = owner;
+            appear.Serial = serial;
+            appear.VisualParams = visualp;
+            appear.BodyItem = bodyitem;
+            appear.BodyAsset = bodyasset;
+            appear.SkinItem = skinitem;
+            appear.SkinAsset = skinasset;
+            appear.HairItem = hairitem;
+            appear.HairAsset = hairasset;
+            appear.EyesItem = eyesitem;
+            appear.EyesAsset = eyesasset;
+            appear.ShirtItem = shirtitem;
+            appear.ShirtAsset = shirtasset;
+            appear.PantsItem = pantsitem;
+            appear.PantsAsset = pantsasset;
+            appear.ShoesItem = shoesitem;
+            appear.ShoesAsset = shoesasset;
+            appear.SocksItem = socksitem;
+            appear.SocksAsset = socksasset;
+            appear.JacketItem = jacketitem;
+            appear.JacketAsset = jacketasset;
+            appear.GlovesItem = glovesitem;
+            appear.GlovesAsset = glovesasset;
+            appear.UnderShirtItem = ushirtitem;
+            appear.UnderShirtAsset = ushirtasset;
+            appear.UnderPantsItem = upantsitem;
+            appear.UnderPantsAsset = upantsasset;
+            appear.SkirtItem = skirtitem;
+            appear.SkirtAsset = skirtasset;
+            appear.Texture = texture;
+            appear.AvatarHeight = avatarheight;
+            
+            db.UpdateUserAppearance(owner, appear);
+            AvatarAppearance app = db.GetUserAppearance(owner);
+
+            Assert.That(owner,Is.EqualTo(app.Owner));
+            Assert.That(serial,Is.EqualTo(app.Serial));
+            Assert.That(visualp,Is.EqualTo(app.VisualParams));
+            Assert.That(bodyitem,Is.EqualTo(app.BodyItem));
+            Assert.That(bodyasset,Is.EqualTo(app.BodyAsset));
+            Assert.That(skinitem,Is.EqualTo(app.SkinItem));
+            Assert.That(skinasset,Is.EqualTo(app.SkinAsset));
+            Assert.That(hairitem,Is.EqualTo(app.HairItem));
+            Assert.That(hairasset,Is.EqualTo(app.HairAsset));
+            Assert.That(eyesitem,Is.EqualTo(app.EyesItem));
+            Assert.That(eyesasset,Is.EqualTo(app.EyesAsset));
+            Assert.That(shirtitem,Is.EqualTo(app.ShirtItem));
+            Assert.That(shirtasset,Is.EqualTo(app.ShirtAsset));
+            Assert.That(pantsitem,Is.EqualTo(app.PantsItem));
+            Assert.That(pantsasset,Is.EqualTo(app.PantsAsset));
+            Assert.That(shoesitem,Is.EqualTo(app.ShoesItem));
+            Assert.That(shoesasset,Is.EqualTo(app.ShoesAsset));
+            Assert.That(socksitem,Is.EqualTo(app.SocksItem));
+            Assert.That(socksasset,Is.EqualTo(app.SocksAsset));
+            Assert.That(jacketitem,Is.EqualTo(app.JacketItem));
+            Assert.That(jacketasset,Is.EqualTo(app.JacketAsset));
+            Assert.That(glovesitem,Is.EqualTo(app.GlovesItem));
+            Assert.That(glovesasset,Is.EqualTo(app.GlovesAsset));
+            Assert.That(ushirtitem,Is.EqualTo(app.UnderShirtItem));
+            Assert.That(ushirtasset,Is.EqualTo(app.UnderShirtAsset));
+            Assert.That(upantsitem,Is.EqualTo(app.UnderPantsItem));
+            Assert.That(upantsasset,Is.EqualTo(app.UnderPantsAsset));
+            Assert.That(skirtitem,Is.EqualTo(app.SkirtItem));
+            Assert.That(skirtasset,Is.EqualTo(app.SkirtAsset));
+            Assert.That(texture.ToString(),Is.EqualTo(app.Texture.ToString()));
+            Assert.That(avatarheight,Is.EqualTo(app.AvatarHeight));
+        }
 
         public UserProfileData NewUser(UUID id,string fname,string lname)
         {
@@ -577,6 +685,6 @@ namespace OpenSim.Data.Tests
                 name.Append(ch);
             }
             return name.ToString();
-        }        
+        }
     }
 }
