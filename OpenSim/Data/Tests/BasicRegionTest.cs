@@ -476,7 +476,6 @@ namespace OpenSim.Data.Tests
             Dictionary<UUID, SceneObjectPart> mydic = new Dictionary<UUID, SceneObjectPart>();
             SceneObjectGroup sog = NewSOG("Test SOG",id);
             mydic.Add(sog.RootPart.UUID,sog.RootPart);
-            Console.WriteLine("Let's Start!");
             for (int i=0;i<30;i++) 
             {
                 UUID tmp = UUID.Random();
