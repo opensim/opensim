@@ -683,15 +683,15 @@ namespace OpenSim.Region.Environment.Scenes
                         agent.child = false;
                         m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent);
 
-                        //if (eq != null)
-                        //{
-                        //    OSD Item = EventQueueHelper.EnableSimulator(reg.RegionHandle, reg.ExternalEndPoint);
-                        //    eq.Enqueue(Item, avatar.UUID);
-                        //}
-                        //else
-                        //{
-                        //    avatar.ControllingClient.InformClientOfNeighbour(reg.RegionHandle, reg.ExternalEndPoint);
-                        //}
+                        if (eq != null)
+                        {
+                            OSD Item = EventQueueHelper.EnableSimulator(reg.RegionHandle, reg.ExternalEndPoint);
+                            eq.Enqueue(Item, avatar.UUID);
+                        }
+                        else
+                        {
+                            avatar.ControllingClient.InformClientOfNeighbour(reg.RegionHandle, reg.ExternalEndPoint);
+                        }
                         
                         m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
                                                                      position, false);
