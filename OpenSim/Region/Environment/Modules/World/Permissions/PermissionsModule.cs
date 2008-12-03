@@ -1442,6 +1442,12 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
+            SceneObjectPart part = m_scene.GetSceneObjectPart(prim);
+
+            // If we selected a sub-prim to reset, prim won't represent the object, but only a part.
+            // We have to check the permissions of the object, though.
+            if (part.ParentID != 0) prim = part.ParentUUID;
+
             // You can reset the scripts in any object you can edit
             return GenericObjectPermission(agentID, prim, false);
         }
