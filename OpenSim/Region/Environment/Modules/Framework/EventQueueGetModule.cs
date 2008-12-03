@@ -93,15 +93,12 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
                 scene.EventManager.OnNewClient += OnNewClient;
 
-                // TODO: we should really close out something when we
-                // leave the region, but not doing the close actually
-                // fixes the A -> B -> A teleport bug where you don't
-                // get any textures.  This means we're leaving more in
-                // memory than we should, but it does provide a better
-                // user experience.
+                // TODO: Leaving these open, or closing them when we
+                // become a child is incorrect. It messes up TP in a big
+                // way. CAPS/EQ need to be active as long as the UDP
+                // circuit is there.
 
-                // scene.EventManager.OnClientClosed += ClientClosed;
-                // scene.EventManager.OnRemovePresence += ClientClosed;
+                scene.EventManager.OnClientClosed += ClientClosed;
                 scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
                 scene.EventManager.OnMakeChildAgent += MakeChildAgent;
                 scene.EventManager.OnRegisterCaps += OnRegisterCaps;
