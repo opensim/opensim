@@ -380,165 +380,166 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            int m_regionLimit = m_config.GetInt("region_limit", 0);
+            lock(this) {
+                int m_regionLimit = m_config.GetInt("region_limit", 0);
 
-            try {
-                Hashtable requestData = (Hashtable) request.Params[0];
+                try {
+                    Hashtable requestData = (Hashtable) request.Params[0];
 
-                checkStringParameters(request, new string[] { "password",
-                                                              "region_name",
-                                                              "region_master_first", "region_master_last",
-                                                              "region_master_password",
-                                                              "listen_ip", "external_address"});
-                checkIntegerParams(request, new string[] {"region_x", "region_y", "listen_port"});
+                    checkStringParameters(request, new string[] { "password",
+                                                                  "region_name",
+                                                                  "region_master_first", "region_master_last",
+                                                                  "region_master_password",
+                                                                  "listen_ip", "external_address"});
+                    checkIntegerParams(request, new string[] {"region_x", "region_y", "listen_port"});
 
-                // check password
-                if (!String.IsNullOrEmpty(requiredPassword) &&
-                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+                    // check password
+                    if (!String.IsNullOrEmpty(requiredPassword) &&
+                        (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
 
-                // check whether we still have space left (iff we are using limits)
-                if (m_regionLimit != 0 && m_app.SceneManager.Scenes.Count >= m_regionLimit)
-                    throw new Exception(String.Format("cannot instantiate new region, server capacity {0} already reached; delete regions first", m_regionLimit));
-
-
-                // extract or generate region ID now
-                Scene scene = null;
-                UUID regionID = UUID.Zero;
-                if (requestData.ContainsKey("region_id") &&
-                    !String.IsNullOrEmpty((string)requestData["region_id"]))
-                {
-                    regionID = (UUID)(string)requestData["region_id"];
-                    if (m_app.SceneManager.TryGetScene(regionID, out scene))
-                        throw new Exception(String.Format("region UUID already in use by region {0}, UUID {1}, <{2},{3}>",
-                                                          scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
-                                                          scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
-                }
-                else
-                {
-                    regionID = UUID.Random();
-                    m_log.DebugFormat("[RADMIN] CreateRegion: new region UUID {0}", regionID);
-                }
-
-                // create volatile or persistent region info
-                RegionInfo region = new RegionInfo();
-
-                region.RegionID = regionID;
-                region.RegionName = (string) requestData["region_name"];
-                region.RegionLocX = Convert.ToUInt32(requestData["region_x"]);
-                region.RegionLocY = Convert.ToUInt32(requestData["region_y"]);
-
-                // check for collisions: region name, region UUID,
-                // region location
-                if (m_app.SceneManager.TryGetScene(region.RegionName, out scene))
-                    throw new Exception(String.Format("region name already in use by region {0}, UUID {1}, <{2},{3}>",
-                                                      scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
-                                                      scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
-
-                if (m_app.SceneManager.TryGetScene(region.RegionLocX, region.RegionLocY, out scene))
-                    throw new Exception(String.Format("region location <{0},{1}> already in use by region {2}, UUID {3}, <{4},{5}>",
-                                                      region.RegionLocX, region.RegionLocY,
-                                                      scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
-                                                      scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
-
-                region.InternalEndPoint =
-                    new IPEndPoint(IPAddress.Parse((string) requestData["listen_ip"]), 0);
-
-                region.InternalEndPoint.Port = Convert.ToInt32(requestData["listen_port"]);
-                if (0 == region.InternalEndPoint.Port) throw new Exception("listen_port is 0");
-                if (m_app.SceneManager.TryGetScene(region.InternalEndPoint, out scene))
-                    throw new Exception(String.Format("region internal IP {0} and port {1} already in use by region {2}, UUID {3}, <{4},{5}>",
-                                                      region.InternalEndPoint.Address,
-                                                      region.InternalEndPoint.Port,
-                                                      scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
-                                                      scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
+                    // check whether we still have space left (iff we are using limits)
+                    if (m_regionLimit != 0 && m_app.SceneManager.Scenes.Count >= m_regionLimit)
+                        throw new Exception(String.Format("cannot instantiate new region, server capacity {0} already reached; delete regions first", m_regionLimit));
 
 
-                region.ExternalHostName = (string)requestData["external_address"];
-
-                string masterFirst = (string)requestData["region_master_first"];
-                string masterLast = (string)requestData["region_master_last"];
-                string masterPassword = (string)requestData["region_master_password"];
-
-                UUID userID = UUID.Zero;
-                if (requestData.ContainsKey("region_master_uuid"))
-                {
-                    // ok, client wants us to use an explicit UUID
-                    // regardless of what the avatar name provided
-                    userID = new UUID((string)requestData["region_master_uuid"]);
-                }
-                else
-                {
-                    // no client supplied UUID: look it up...
-                    UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(masterFirst, masterLast);
-                    if (null == userProfile) 
+                    // extract or generate region ID now
+                    Scene scene = null;
+                    UUID regionID = UUID.Zero;
+                    if (requestData.ContainsKey("region_id") &&
+                        !String.IsNullOrEmpty((string)requestData["region_id"]))
                     {
-                        m_log.InfoFormat("master avatar does not exist, creating it");
-                        // ...or create new user
-                        userID = m_app.CommunicationsManager.UserAdminService.AddUser(
-                            masterFirst, masterLast, masterPassword, "", region.RegionLocX, region.RegionLocY);
-                        
-                        if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
-                                                                                   masterFirst, masterLast));
+                        regionID = (UUID)(string)requestData["region_id"];
+                        if (m_app.SceneManager.TryGetScene(regionID, out scene))
+                            throw new Exception(String.Format("region UUID already in use by region {0}, UUID {1}, <{2},{3}>",
+                                                              scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
+                                                              scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
                     }
                     else
                     {
-                        userID = userProfile.ID;
+                        regionID = UUID.Random();
+                        m_log.DebugFormat("[RADMIN] CreateRegion: new region UUID {0}", regionID);
                     }
+
+                    // create volatile or persistent region info
+                    RegionInfo region = new RegionInfo();
+
+                    region.RegionID = regionID;
+                    region.RegionName = (string) requestData["region_name"];
+                    region.RegionLocX = Convert.ToUInt32(requestData["region_x"]);
+                    region.RegionLocY = Convert.ToUInt32(requestData["region_y"]);
+
+                    // check for collisions: region name, region UUID,
+                    // region location
+                    if (m_app.SceneManager.TryGetScene(region.RegionName, out scene))
+                        throw new Exception(String.Format("region name already in use by region {0}, UUID {1}, <{2},{3}>",
+                                                          scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
+                                                          scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
+
+                    if (m_app.SceneManager.TryGetScene(region.RegionLocX, region.RegionLocY, out scene))
+                        throw new Exception(String.Format("region location <{0},{1}> already in use by region {2}, UUID {3}, <{4},{5}>",
+                                                          region.RegionLocX, region.RegionLocY,
+                                                          scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
+                                                          scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
+
+                    region.InternalEndPoint =
+                        new IPEndPoint(IPAddress.Parse((string) requestData["listen_ip"]), 0);
+
+                    region.InternalEndPoint.Port = Convert.ToInt32(requestData["listen_port"]);
+                    if (0 == region.InternalEndPoint.Port) throw new Exception("listen_port is 0");
+                    if (m_app.SceneManager.TryGetScene(region.InternalEndPoint, out scene))
+                        throw new Exception(String.Format("region internal IP {0} and port {1} already in use by region {2}, UUID {3}, <{4},{5}>",
+                                                          region.InternalEndPoint.Address,
+                                                          region.InternalEndPoint.Port,
+                                                          scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
+                                                          scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
+
+
+                    region.ExternalHostName = (string)requestData["external_address"];
+
+                    string masterFirst = (string)requestData["region_master_first"];
+                    string masterLast = (string)requestData["region_master_last"];
+                    string masterPassword = (string)requestData["region_master_password"];
+
+                    UUID userID = UUID.Zero;
+                    if (requestData.ContainsKey("region_master_uuid"))
+                    {
+                        // ok, client wants us to use an explicit UUID
+                        // regardless of what the avatar name provided
+                        userID = new UUID((string)requestData["region_master_uuid"]);
+                    }
+                    else
+                    {
+                        // no client supplied UUID: look it up...
+                        UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(masterFirst, masterLast);
+                        if (null == userProfile) 
+                        {
+                            m_log.InfoFormat("master avatar does not exist, creating it");
+                            // ...or create new user
+                            userID = m_app.CommunicationsManager.UserAdminService.AddUser(
+                                masterFirst, masterLast, masterPassword, "", region.RegionLocX, region.RegionLocY);
+                            
+                            if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
+                                                                                       masterFirst, masterLast));
+                        }
+                        else
+                        {
+                            userID = userProfile.ID;
+                        }
+                    }
+
+                    region.MasterAvatarFirstName = masterFirst;
+                    region.MasterAvatarLastName = masterLast;
+                    region.MasterAvatarSandboxPassword = masterPassword;
+                    region.MasterAvatarAssignedUUID = userID;
+
+                    bool persist = Convert.ToBoolean((string)requestData["persist"]);
+                    if (persist)
+                    {
+                        // default place for region XML files is in the
+                        // Regions directory of the config dir (aka /bin)
+                        string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
+                        try
+                        {
+                            // OpenSim.ini can specify a different regions dir
+                            IConfig startupConfig = (IConfig)m_configSource.Configs["Startup"];
+                            regionConfigPath = startupConfig.GetString("regionload_regionsdir", regionConfigPath).Trim();
+                        }
+                        catch (Exception)
+                        {
+                            // No INI setting recorded.
+                        }
+                        string regionXmlPath = Path.Combine(regionConfigPath,
+                                                            String.Format(m_config.GetString("region_file_template", "{0}x{1}-{2}.xml"),
+                                                                          region.RegionLocX.ToString(),
+                                                                          region.RegionLocY.ToString(),
+                                                                          regionID.ToString(),
+                                                                          region.InternalEndPoint.Port.ToString(),
+                                                                          region.RegionName.Replace(" ", "_").Replace(":", "_").Replace("/", "_")));
+                        m_log.DebugFormat("[RADMIN] CreateRegion: persisting region {0} to {1}",
+                                          region.RegionID, regionXmlPath);
+                        region.SaveRegionToFile("dynamic region", regionXmlPath);
+                    }
+
+                    m_app.CreateRegion(region);
+
+                    responseData["success"]     = "true";
+                    responseData["region_name"] = region.RegionName;
+                    responseData["region_uuid"] = region.RegionID.ToString();
+
+                    response.Value = responseData;
                 }
-
-                region.MasterAvatarFirstName = masterFirst;
-                region.MasterAvatarLastName = masterLast;
-                region.MasterAvatarSandboxPassword = masterPassword;
-                region.MasterAvatarAssignedUUID = userID;
-
-                bool persist = Convert.ToBoolean((string)requestData["persist"]);
-                if (persist)
+                catch (Exception e)
                 {
-                    // default place for region XML files is in the
-                    // Regions directory of the config dir (aka /bin)
-                    string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
-                    try
-                    {
-                        // OpenSim.ini can specify a different regions dir
-                        IConfig startupConfig = (IConfig)m_configSource.Configs["Startup"];
-                        regionConfigPath = startupConfig.GetString("regionload_regionsdir", regionConfigPath).Trim();
-                    }
-                    catch (Exception)
-                    {
-                        // No INI setting recorded.
-                    }
-                    string regionXmlPath = Path.Combine(regionConfigPath,
-                                                        String.Format(m_config.GetString("region_file_template", "{0}x{1}-{2}.xml"),
-                                                                      region.RegionLocX.ToString(),
-                                                                      region.RegionLocY.ToString(),
-                                                                      regionID.ToString(),
-                                                                      region.InternalEndPoint.Port.ToString(),
-                                                                      region.RegionName.Replace(" ", "_").Replace(":", "_").Replace("/", "_")));
-                    m_log.DebugFormat("[RADMIN] CreateRegion: persisting region {0} to {1}",
-                                      region.RegionID, regionXmlPath);
-                    region.SaveRegionToFile("dynamic region", regionXmlPath);
+                    m_log.ErrorFormat("[RADMIN] CreateRegion: failed {0}", e.Message);
+                    m_log.DebugFormat("[RADMIN] CreateRegion: failed {0}", e.ToString());
+
+                    responseData["success"] = "false";
+                    responseData["error"] = e.Message;
+
+                    response.Value = responseData;
                 }
-
-                m_app.CreateRegion(region);
-
-                responseData["success"]     = "true";
-                responseData["region_name"] = region.RegionName;
-                responseData["region_uuid"] = region.RegionID.ToString();
-
-                response.Value = responseData;
+                return response;
             }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[RADMIN] CreateRegion: failed {0}", e.Message);
-                m_log.DebugFormat("[RADMIN] CreateRegion: failed {0}", e.ToString());
-
-                responseData["success"] = "false";
-                responseData["error"] = e.Message;
-
-                response.Value = responseData;
-            }
-
-            return response;
         }
 
         /// <summary>
@@ -573,34 +574,37 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            try {
-                Hashtable requestData = (Hashtable) request.Params[0];
-                checkStringParameters(request, new string[] {"password", "region_name"});
+            lock(this) {
+                try {
+                    Hashtable requestData = (Hashtable) request.Params[0];
+                    checkStringParameters(request, new string[] {"password", "region_name"});
 
-                Scene scene = null;
-                string regionName = (string)requestData["region_name"];
-                if (!m_app.SceneManager.TryGetScene(regionName, out scene))
-                    throw new Exception(String.Format("region \"{0}\" does not exist", regionName));
-                
-                m_app.RemoveRegion(scene, true);
+                    Scene scene = null;
+                    string regionName = (string)requestData["region_name"];
+                    if (!m_app.SceneManager.TryGetScene(regionName, out scene))
+                        throw new Exception(String.Format("region \"{0}\" does not exist", regionName));
+                    
+                    m_app.RemoveRegion(scene, true);
 
-                responseData["success"] = "true";
-                responseData["region_name"] = regionName;
+                    responseData["success"] = "true";
+                    responseData["region_name"] = regionName;
 
-                response.Value = responseData;
+                    response.Value = responseData;
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[RADMIN] DeleteRegion: failed {0}", e.Message);
+                    m_log.DebugFormat("[RADMIN] DeleteRegion: failed {0}", e.ToString());
+
+                    responseData["success"] = "false";
+                    responseData["error"] = e.Message;
+
+                    response.Value = responseData;
+                }
+
+                return response;
+
             }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[RADMIN] DeleteRegion: failed {0}", e.Message);
-                m_log.DebugFormat("[RADMIN] DeleteRegion: failed {0}", e.ToString());
-
-                responseData["success"] = "false";
-                responseData["error"] = e.Message;
-
-                response.Value = responseData;
-            }
-
-            return response;
         }
 
         /// <summary>
@@ -645,58 +649,60 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            try
-            {
-                Hashtable requestData = (Hashtable) request.Params[0];
+            lock(this) {
+                try
+                {
+                    Hashtable requestData = (Hashtable) request.Params[0];
 
-                // check completeness
-                checkStringParameters(request, new string[] { "password", "user_firstname",
-                                                              "user_lastname", "user_password", });
-                checkIntegerParams(request, new string[] { "start_region_x", "start_region_y" });
+                    // check completeness
+                    checkStringParameters(request, new string[] { "password", "user_firstname",
+                                                                  "user_lastname", "user_password", });
+                    checkIntegerParams(request, new string[] { "start_region_x", "start_region_y" });
 
-                // check password
-                if (!String.IsNullOrEmpty(requiredPassword) &&
-                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+                    // check password
+                    if (!String.IsNullOrEmpty(requiredPassword) &&
+                        (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
 
-                // do the job
-                string firstname = (string) requestData["user_firstname"];
-                string lastname  = (string) requestData["user_lastname"];
-                string passwd    = (string) requestData["user_password"];
-                string email     = ""; //Empty string for email
-                uint   regX      = Convert.ToUInt32((Int32)requestData["start_region_x"]);
-                uint   regY      = Convert.ToUInt32((Int32)requestData["start_region_y"]);
+                    // do the job
+                    string firstname = (string) requestData["user_firstname"];
+                    string lastname  = (string) requestData["user_lastname"];
+                    string passwd    = (string) requestData["user_password"];
+                    string email     = ""; //Empty string for email
+                    uint   regX      = Convert.ToUInt32((Int32)requestData["start_region_x"]);
+                    uint   regY      = Convert.ToUInt32((Int32)requestData["start_region_y"]);
 
-                UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
-                if (null != userProfile)
-                    throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
+                    UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+                    if (null != userProfile)
+                        throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
 
-                UUID userID 
-                    = m_app.CommunicationsManager.UserAdminService.AddUser(
-                        firstname, lastname, passwd, email, regX, regY);
+                    UUID userID 
+                        = m_app.CommunicationsManager.UserAdminService.AddUser(
+                            firstname, lastname, passwd, email, regX, regY);
 
-                if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
-                                                                             firstname, lastname));
+                    if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
+                                                                                 firstname, lastname));
 
-                responseData["success"]     = "true";
-                responseData["avatar_uuid"] = userID.ToString();
+                    responseData["success"]     = "true";
+                    responseData["avatar_uuid"] = userID.ToString();
 
-                response.Value = responseData;
+                    response.Value = responseData;
 
-                m_log.InfoFormat("[RADMIN]: CreateUser: User {0} {1} created, UUID {2}", firstname, lastname, userID);
+                    m_log.InfoFormat("[RADMIN]: CreateUser: User {0} {1} created, UUID {2}", firstname, lastname, userID);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[RADMIN] CreateUser: failed: {0}", e.Message);
+                    m_log.DebugFormat("[RADMIN] CreateUser: failed: {0}", e.ToString());
+
+                    responseData["success"]     = "false";
+                    responseData["avatar_uuid"] = UUID.Zero.ToString();
+                    responseData["error"]       = e.Message;
+
+                    response.Value = responseData;
+                }
+                return response;
+
             }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[RADMIN] CreateUser: failed: {0}", e.Message);
-                m_log.DebugFormat("[RADMIN] CreateUser: failed: {0}", e.ToString());
-
-                responseData["success"]     = "false";
-                responseData["avatar_uuid"] = UUID.Zero.ToString();
-                responseData["error"]       = e.Message;
-
-                response.Value = responseData;
-            }
-
-            return response;
         }
 
         /// <summary>
@@ -743,58 +749,60 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            try
-            {
-                Hashtable requestData = (Hashtable)request.Params[0];
+            lock(this) {
+                try
+                {
+                    Hashtable requestData = (Hashtable)request.Params[0];
 
-                // check completeness
-                checkStringParameters(request, new string[] { "password", "user_firstname",
-                                                              "user_lastname", "user_password", "user_email" });
-                checkIntegerParams(request, new string[] { "start_region_x", "start_region_y" });
+                    // check completeness
+                    checkStringParameters(request, new string[] { "password", "user_firstname",
+                                                                  "user_lastname", "user_password", "user_email" });
+                    checkIntegerParams(request, new string[] { "start_region_x", "start_region_y" });
 
-                // check password
-                if (!String.IsNullOrEmpty(requiredPassword) &&
-                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+                    // check password
+                    if (!String.IsNullOrEmpty(requiredPassword) &&
+                        (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
 
-                // do the job
-                string firstname = (string)requestData["user_firstname"];
-                string lastname = (string)requestData["user_lastname"];
-                string passwd = (string)requestData["user_password"];
-                string email = (string)requestData["user_email"];
-                uint regX = Convert.ToUInt32((Int32)requestData["start_region_x"]);
-                uint regY = Convert.ToUInt32((Int32)requestData["start_region_y"]);
+                    // do the job
+                    string firstname = (string)requestData["user_firstname"];
+                    string lastname = (string)requestData["user_lastname"];
+                    string passwd = (string)requestData["user_password"];
+                    string email = (string)requestData["user_email"];
+                    uint regX = Convert.ToUInt32((Int32)requestData["start_region_x"]);
+                    uint regY = Convert.ToUInt32((Int32)requestData["start_region_y"]);
 
-                UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
-                if (null != userProfile)
-                    throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
+                    UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+                    if (null != userProfile)
+                        throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
 
-                UUID userID
-                    = m_app.CommunicationsManager.UserAdminService.AddUser(
-                        firstname, lastname, passwd, email, regX, regY);
+                    UUID userID
+                        = m_app.CommunicationsManager.UserAdminService.AddUser(
+                            firstname, lastname, passwd, email, regX, regY);
 
-                if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
-                                                                             firstname, lastname));
+                    if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
+                                                                                 firstname, lastname));
 
-                responseData["success"] = "true";
-                responseData["avatar_uuid"] = userID.ToString();
+                    responseData["success"] = "true";
+                    responseData["avatar_uuid"] = userID.ToString();
 
-                response.Value = responseData;
+                    response.Value = responseData;
 
-                m_log.InfoFormat("[RADMIN]: CreateUser: User {0} {1} created, UUID {2}", firstname, lastname, userID);
+                    m_log.InfoFormat("[RADMIN]: CreateUser: User {0} {1} created, UUID {2}", firstname, lastname, userID);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[RADMIN] CreateUser: failed: {0}", e.Message);
+                    m_log.DebugFormat("[RADMIN] CreateUser: failed: {0}", e.ToString());
+
+                    responseData["success"] = "false";
+                    responseData["avatar_uuid"] = UUID.Zero.ToString();
+                    responseData["error"] = e.Message;
+
+                    response.Value = responseData;
+                }
+                return response;
+
             }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[RADMIN] CreateUser: failed: {0}", e.Message);
-                m_log.DebugFormat("[RADMIN] CreateUser: failed: {0}", e.ToString());
-
-                responseData["success"] = "false";
-                responseData["avatar_uuid"] = UUID.Zero.ToString();
-                responseData["error"] = e.Message;
-
-                response.Value = responseData;
-            }
-
-            return response;
         }
 
         /// <summary>
@@ -909,87 +917,89 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            try
-            {
-                Hashtable requestData = (Hashtable) request.Params[0];
-
-                // check completeness
-                checkStringParameters(request, new string[] { "password", "user_firstname",
-                                                              "user_lastname" });
-
-                // check password
-                if (!String.IsNullOrEmpty(requiredPassword) &&
-                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
-
-                // do the job
-                string firstname = (string) requestData["user_firstname"];
-                string lastname  = (string) requestData["user_lastname"];
-
-
-                string passwd = String.Empty;
-                uint?  regX   = null;
-                uint?  regY   = null;
-                uint?  ulaX   = null;
-                uint?  ulaY   = null;
-                uint?  ulaZ   = null;
-                uint?  usaX   = null;
-                uint?  usaY   = null;
-                uint?  usaZ   = null;
-
-
-                if (requestData.ContainsKey("user_password"))  passwd = (string) requestData["user_password"];
-                if (requestData.ContainsKey("start_region_x"))   regX = Convert.ToUInt32((Int32)requestData["start_region_x"]);
-                if (requestData.ContainsKey("start_region_y"))   regY = Convert.ToUInt32((Int32)requestData["start_region_y"]);
-
-                if (requestData.ContainsKey("start_lookat_x"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_x"]);
-                if (requestData.ContainsKey("start_lookat_y"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_y"]);
-                if (requestData.ContainsKey("start_lookat_z"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_z"]);
-
-                if (requestData.ContainsKey("start_standat_x"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_x"]);
-                if (requestData.ContainsKey("start_standat_y"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_y"]);
-                if (requestData.ContainsKey("start_standat_z"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_z"]);
-
-                UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
-
-                if (null == userProfile)
-                    throw new Exception(String.Format("avatar {0} {1} does not exist", firstname, lastname));
-
-                if (null != passwd)
+            lock(this) {
+                try
                 {
-                    string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(passwd) + ":" + String.Empty);
-                    userProfile.PasswordHash = md5PasswdHash;
+                    Hashtable requestData = (Hashtable) request.Params[0];
+
+                    // check completeness
+                    checkStringParameters(request, new string[] { "password", "user_firstname",
+                                                                  "user_lastname" });
+
+                    // check password
+                    if (!String.IsNullOrEmpty(requiredPassword) &&
+                        (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                    // do the job
+                    string firstname = (string) requestData["user_firstname"];
+                    string lastname  = (string) requestData["user_lastname"];
+
+
+                    string passwd = String.Empty;
+                    uint?  regX   = null;
+                    uint?  regY   = null;
+                    uint?  ulaX   = null;
+                    uint?  ulaY   = null;
+                    uint?  ulaZ   = null;
+                    uint?  usaX   = null;
+                    uint?  usaY   = null;
+                    uint?  usaZ   = null;
+
+
+                    if (requestData.ContainsKey("user_password"))  passwd = (string) requestData["user_password"];
+                    if (requestData.ContainsKey("start_region_x"))   regX = Convert.ToUInt32((Int32)requestData["start_region_x"]);
+                    if (requestData.ContainsKey("start_region_y"))   regY = Convert.ToUInt32((Int32)requestData["start_region_y"]);
+
+                    if (requestData.ContainsKey("start_lookat_x"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_x"]);
+                    if (requestData.ContainsKey("start_lookat_y"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_y"]);
+                    if (requestData.ContainsKey("start_lookat_z"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_z"]);
+
+                    if (requestData.ContainsKey("start_standat_x"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_x"]);
+                    if (requestData.ContainsKey("start_standat_y"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_y"]);
+                    if (requestData.ContainsKey("start_standat_z"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_z"]);
+
+                    UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+
+                    if (null == userProfile)
+                        throw new Exception(String.Format("avatar {0} {1} does not exist", firstname, lastname));
+
+                    if (null != passwd)
+                    {
+                        string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(passwd) + ":" + String.Empty);
+                        userProfile.PasswordHash = md5PasswdHash;
+                    }
+
+                    if (null != regX) userProfile.HomeRegionX   = (uint)regX;
+                    if (null != regY) userProfile.HomeRegionY   = (uint)regY;
+
+                    if (null != usaX) userProfile.HomeLocationX = (uint)usaX;
+                    if (null != usaY) userProfile.HomeLocationY = (uint)usaY;
+                    if (null != usaZ) userProfile.HomeLocationZ = (uint)usaZ;
+        
+                    if (null != ulaX) userProfile.HomeLookAtX   = (uint)ulaX;
+                    if (null != ulaY) userProfile.HomeLookAtY   = (uint)ulaY;
+                    if (null != ulaZ) userProfile.HomeLookAtZ   = (uint)ulaZ;
+        
+                    if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
+                        throw new Exception("did not manage to update user profile");
+
+                    responseData["success"]     = "true";
+
+                    response.Value = responseData;
+
+                    m_log.InfoFormat("[RADMIN]: UpdateUserAccount: account for user {0} {1} updated, UUID {2}", firstname, lastname,
+                                     userProfile.ID);
                 }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.Message);
+                    m_log.DebugFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.ToString());
 
-                if (null != regX) userProfile.HomeRegionX   = (uint)regX;
-                if (null != regY) userProfile.HomeRegionY   = (uint)regY;
+                    responseData["success"]     = "false";
+                    responseData["error"]       = e.Message;
 
-                if (null != usaX) userProfile.HomeLocationX = (uint)usaX;
-                if (null != usaY) userProfile.HomeLocationY = (uint)usaY;
-                if (null != usaZ) userProfile.HomeLocationZ = (uint)usaZ;
-    
-                if (null != ulaX) userProfile.HomeLookAtX   = (uint)ulaX;
-                if (null != ulaY) userProfile.HomeLookAtY   = (uint)ulaY;
-                if (null != ulaZ) userProfile.HomeLookAtZ   = (uint)ulaZ;
-    
-                if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
-                    throw new Exception("did not manage to update user profile");
-
-                responseData["success"]     = "true";
-
-                response.Value = responseData;
-
-                m_log.InfoFormat("[RADMIN]: UpdateUserAccount: account for user {0} {1} updated, UUID {2}", firstname, lastname,
-                                 userProfile.ID);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.Message);
-                m_log.DebugFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.ToString());
-
-                responseData["success"]     = "false";
-                responseData["error"]       = e.Message;
-
-                response.Value = responseData;
+                    response.Value = responseData;
+                }
             }
 
             return response;
@@ -1033,56 +1043,58 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            try
-            {
-                Hashtable requestData = (Hashtable) request.Params[0];
-
-                // check completeness
-                foreach (string p in new string[] { "password", "filename" })
+            lock(this) {                
+                try
                 {
-                    if (!requestData.Contains(p))
-                        throw new Exception(String.Format("missing parameter {0}", p));
-                    if (String.IsNullOrEmpty((string)requestData[p]))
-                        throw new Exception(String.Format("parameter {0} is empty"));
+                    Hashtable requestData = (Hashtable) request.Params[0];
+
+                    // check completeness
+                    foreach (string p in new string[] { "password", "filename" })
+                    {
+                        if (!requestData.Contains(p))
+                            throw new Exception(String.Format("missing parameter {0}", p));
+                        if (String.IsNullOrEmpty((string)requestData[p]))
+                            throw new Exception(String.Format("parameter {0} is empty"));
+                    }
+
+                    // check password
+                    if (!String.IsNullOrEmpty(requiredPassword) &&
+                        (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                    string filename = (string)requestData["filename"];
+                    Scene scene = null;
+                    if (requestData.Contains("region_uuid"))
+                    {
+                        UUID region_uuid = (UUID)(string)requestData["region_uuid"];
+                        if (!m_app.SceneManager.TryGetScene(region_uuid, out scene))
+                            throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+                    }
+                    else if (requestData.Contains("region_name"))
+                    {
+                        string region_name = (string)requestData["region_name"];
+                        if (!m_app.SceneManager.TryGetScene(region_name, out scene))
+                            throw new Exception(String.Format("failed to switch to region {0}", region_name));
+                    }
+                    else throw new Exception("neither region_name nor region_uuid given");
+
+                    new ArchiveReadRequest(scene, filename);
+                    responseData["loaded"]   = "true";
+
+                    response.Value           = responseData;
+                }
+                catch (Exception e)
+                {
+                    m_log.InfoFormat("[RADMIN] LoadOAR: {0}", e.Message);
+                    m_log.DebugFormat("[RADMIN] LoadOAR: {0}", e.ToString());
+
+                    responseData["loaded"]  = "false";
+                    responseData["error"]   = e.Message;
+
+                    response.Value          = responseData;
                 }
 
-                // check password
-                if (!String.IsNullOrEmpty(requiredPassword) &&
-                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
-
-                string filename = (string)requestData["filename"];
-                Scene scene = null;
-                if (requestData.Contains("region_uuid"))
-                {
-                    UUID region_uuid = (UUID)(string)requestData["region_uuid"];
-                    if (!m_app.SceneManager.TryGetScene(region_uuid, out scene))
-                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
-                }
-                else if (requestData.Contains("region_name"))
-                {
-                    string region_name = (string)requestData["region_name"];
-                    if (!m_app.SceneManager.TryGetScene(region_name, out scene))
-                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
-                }
-                else throw new Exception("neither region_name nor region_uuid given");
-
-                new ArchiveReadRequest(scene, filename);
-                responseData["loaded"]   = "true";
-
-                response.Value           = responseData;
+                return response;
             }
-            catch (Exception e)
-            {
-                m_log.InfoFormat("[RADMIN] LoadOAR: {0}", e.Message);
-                m_log.DebugFormat("[RADMIN] LoadOAR: {0}", e.ToString());
-
-                responseData["loaded"]  = "false";
-                responseData["error"]   = e.Message;
-
-                response.Value          = responseData;
-            }
-
-            return response;
         }
 
         /// <summary>
@@ -1181,79 +1193,82 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             m_log.Info("[RADMIN]: Received Load XML Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
+            
+            lock(this) {
 
-            try
-            {
-                Hashtable requestData = (Hashtable) request.Params[0];
-
-                // check completeness
-                foreach (string p in new string[] { "password", "filename" })
+                try
                 {
-                    if (!requestData.Contains(p))
-                        throw new Exception(String.Format("missing parameter {0}", p));
-                    if (String.IsNullOrEmpty((string)requestData[p]))
-                        throw new Exception(String.Format("parameter {0} is empty"));
+                    Hashtable requestData = (Hashtable) request.Params[0];
+
+                    // check completeness
+                    foreach (string p in new string[] { "password", "filename" })
+                    {
+                        if (!requestData.Contains(p))
+                            throw new Exception(String.Format("missing parameter {0}", p));
+                        if (String.IsNullOrEmpty((string)requestData[p]))
+                            throw new Exception(String.Format("parameter {0} is empty"));
+                    }
+
+                    // check password
+                    if (!String.IsNullOrEmpty(requiredPassword) &&
+                        (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                    string filename = (string)requestData["filename"];
+                    if (requestData.Contains("region_uuid"))
+                    {
+                        UUID region_uuid = (UUID)(string)requestData["region_uuid"];
+                        if (!m_app.SceneManager.TrySetCurrentScene(region_uuid))
+                            throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+                        m_log.InfoFormat("[RADMIN] Switched to region {0}", region_uuid.ToString());
+                    }
+                    else if (requestData.Contains("region_name"))
+                    {
+                        string region_name = (string)requestData["region_name"];
+                        if (!m_app.SceneManager.TrySetCurrentScene(region_name))
+                            throw new Exception(String.Format("failed to switch to region {0}", region_name));
+                        m_log.InfoFormat("[RADMIN] Switched to region {0}", region_name);
+                    }
+                    else throw new Exception("neither region_name nor region_uuid given");
+
+                    responseData["switched"] = "true";
+
+                    string xml_version = "1";
+                    if (requestData.Contains("xml_version"))
+                    {
+                        xml_version = (string)requestData["xml_version"];
+                    }
+
+                    switch (xml_version)
+                    {
+                        case "1":
+                            m_app.SceneManager.LoadCurrentSceneFromXml(filename, true, new Vector3(0, 0, 0));
+                            break;
+
+                        case "2":
+                            m_app.SceneManager.LoadCurrentSceneFromXml2(filename);
+                            break;
+
+                        default:
+                            throw new Exception(String.Format("unknown Xml{0} format", xml_version));
+                    }
+
+                    responseData["loaded"]   = "true";
+                    response.Value           = responseData;
+                }
+                catch (Exception e)
+                {
+                    m_log.InfoFormat("[RADMIN] LoadXml: {0}", e.Message);
+                    m_log.DebugFormat("[RADMIN] LoadXml: {0}", e.ToString());
+
+                    responseData["loaded"]  = "false";
+                    responseData["switched"] = "false";
+                    responseData["error"]   = e.Message;
+
+                    response.Value          = responseData;
                 }
 
-                // check password
-                if (!String.IsNullOrEmpty(requiredPassword) &&
-                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
-
-                string filename = (string)requestData["filename"];
-                if (requestData.Contains("region_uuid"))
-                {
-                    UUID region_uuid = (UUID)(string)requestData["region_uuid"];
-                    if (!m_app.SceneManager.TrySetCurrentScene(region_uuid))
-                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
-                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_uuid.ToString());
-                }
-                else if (requestData.Contains("region_name"))
-                {
-                    string region_name = (string)requestData["region_name"];
-                    if (!m_app.SceneManager.TrySetCurrentScene(region_name))
-                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
-                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_name);
-                }
-                else throw new Exception("neither region_name nor region_uuid given");
-
-                responseData["switched"] = "true";
-
-                string xml_version = "1";
-                if (requestData.Contains("xml_version"))
-                {
-                    xml_version = (string)requestData["xml_version"];
-                }
-
-                switch (xml_version)
-                {
-                    case "1":
-                        m_app.SceneManager.LoadCurrentSceneFromXml(filename, true, new Vector3(0, 0, 0));
-                        break;
-
-                    case "2":
-                        m_app.SceneManager.LoadCurrentSceneFromXml2(filename);
-                        break;
-
-                    default:
-                        throw new Exception(String.Format("unknown Xml{0} format", xml_version));
-                }
-
-                responseData["loaded"]   = "true";
-                response.Value           = responseData;
+                return response;
             }
-            catch (Exception e)
-            {
-                m_log.InfoFormat("[RADMIN] LoadXml: {0}", e.Message);
-                m_log.DebugFormat("[RADMIN] LoadXml: {0}", e.ToString());
-
-                responseData["loaded"]  = "false";
-                responseData["switched"] = "false";
-                responseData["error"]   = e.Message;
-
-                response.Value          = responseData;
-            }
-
-            return response;
         }
 
 
