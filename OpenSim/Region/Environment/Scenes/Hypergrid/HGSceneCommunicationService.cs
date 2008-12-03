@@ -170,16 +170,16 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         agent.child = false;
                         m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent);
 
-                        if (eq != null)
-                        {
-                            OSD Item = EventQueueHelper.EnableSimulator(realHandle, reg.ExternalEndPoint);
-                            eq.Enqueue(Item, avatar.UUID);
-                        }
-                        else
-                        {
-                            avatar.ControllingClient.InformClientOfNeighbour(realHandle, reg.ExternalEndPoint);
-                            // TODO: make Event Queue disablable!
-                        }
+                        //if (eq != null)
+                        //{
+                        //    OSD Item = EventQueueHelper.EnableSimulator(realHandle, reg.ExternalEndPoint);
+                        //    eq.Enqueue(Item, avatar.UUID);
+                        //}
+                        //else
+                        //{
+                        //    avatar.ControllingClient.InformClientOfNeighbour(realHandle, reg.ExternalEndPoint);
+                        //    // TODO: make Event Queue disablable!
+                        //}
 
                         m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
                                                                      position, false);
