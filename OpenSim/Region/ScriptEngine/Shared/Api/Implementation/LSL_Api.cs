@@ -3029,9 +3029,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
               return;
             }
             IClientAPI client = null;
-	    ScenePresence sp = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter);
-	    if (sp!=null) 
-		client = sp.ControllingClient;
+            ScenePresence sp = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter);
+            if (sp != null)
+                client = sp.ControllingClient;
             SceneObjectPart targetPart = World.GetSceneObjectPart((UUID)target);
             if (targetPart.ParentGroup.RootPart.AttachmentPoint != 0)
                 return; // Fail silently if attached

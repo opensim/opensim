@@ -380,7 +380,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock(this) {
+            lock (this) {
                 int m_regionLimit = m_config.GetInt("region_limit", 0);
 
                 try {
@@ -574,7 +574,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock(this) {
+            lock (this) {
                 try {
                     Hashtable requestData = (Hashtable) request.Params[0];
                     checkStringParameters(request, new string[] {"password", "region_name"});
@@ -649,7 +649,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock(this) {
+            lock (this) {
                 try
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
@@ -749,7 +749,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock(this) {
+            lock (this) {
                 try
                 {
                     Hashtable requestData = (Hashtable)request.Params[0];
@@ -917,7 +917,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock(this) {
+            lock (this) {
                 try
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
@@ -1043,7 +1043,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock(this) {                
+            lock (this) {                
                 try
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
@@ -1194,7 +1194,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
             
-            lock(this) {
+            lock (this) {
 
                 try
                 {
