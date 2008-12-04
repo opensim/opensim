@@ -59,7 +59,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public bool Init()
         {
-            d.InitODE();
             return true;
         }
 
@@ -67,6 +66,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (_mScene == null)
             {
+                // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
+                // http://opensimulator.org/mantis/view.php?id=2750).
+                d.InitODE();
+                
                 _mScene = new OdeScene(ode);
             }
             return (_mScene);
@@ -260,7 +263,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// These settings need to be tweaked 'exactly' right or weird stuff happens.
         /// </summary>
         public OdeScene(CollisionLocker dode)
-        {
+        {            
             OdeLock = new Object();
             ode = dode;
             nearCallback = near;
