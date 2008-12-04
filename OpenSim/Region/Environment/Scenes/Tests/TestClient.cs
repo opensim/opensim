@@ -538,6 +538,9 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         public virtual void SendBulkUpdateInventory(InventoryItemBase item)
         {
         }
+        
+        public void SendBulkUpdateInventory(InventoryFolderBase folderBase)
+        {}
 
         public UUID GetDefaultAnimation(string name)
         {
@@ -561,8 +564,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             int PriceParcelClaim, float PriceParcelClaimFactor, int PriceParcelRent, int PricePublicObjectDecay,
             int PricePublicObjectDelete, int PriceRentLight, int PriceUpload, int TeleportMinPrice, float TeleportPriceExponent)
         {
-
         }
+        
         public virtual void SendNameReply(UUID profileId, string firstname, string lastname)
         {
         }

@@ -1144,6 +1144,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 msg.MessageBlock.Message = Utils.StringToBytes(message);
                 msg.MessageBlock.BinaryBucket = binaryBucket;
 
+                System.Console.WriteLine("SendInstantMessage: " + msg);               
                 OutPacket(msg, ThrottleOutPacketType.Task);
             }
         }
@@ -1762,6 +1763,153 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                      FULL_MASK_PERMISSIONS);
             inventoryReply.Header.Zerocoded = true;
             OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
+        }
+        
+        /// <see>IClientAPI.SendBulkUpdateInventory(InventoryFolderBase)</see>
+        public void SendBulkUpdateInventory(InventoryFolderBase folderBase)
+        {
+            // XXX: Nasty temporary move that will be resolved shortly
+            InventoryFolderImpl folder = (InventoryFolderImpl)folderBase;
+            
+            // We will use the same transaction id for all the separate packets to be sent out in this update.
+            UUID transactionId = UUID.Random();
+            
+            List<BulkUpdateInventoryPacket.FolderDataBlock> folderDataBlocks 
+                = new List<BulkUpdateInventoryPacket.FolderDataBlock>();
+            
+            SendBulkUpdateInventoryRecursive(folder, ref folderDataBlocks, transactionId);
+            
+            if (folderDataBlocks.Count > 0)
+            {
+                // We'll end up with some unsent folder blocks if there were some empty folders at the end of the list
+                // Send these now
+                BulkUpdateInventoryPacket bulkUpdate
+                    = (BulkUpdateInventoryPacket)PacketPool.Instance.GetPacket(PacketType.BulkUpdateInventory);
+                bulkUpdate.Header.Zerocoded = true;
+                
+                bulkUpdate.AgentData.AgentID = AgentId;
+                bulkUpdate.AgentData.TransactionID = transactionId;                                 
+                bulkUpdate.FolderData = folderDataBlocks.ToArray(); 
+                
+                Console.WriteLine("SendBulkUpdateInventory :" + bulkUpdate); 
+                OutPacket(bulkUpdate, ThrottleOutPacketType.Asset);       
+            }
+        }
+        
+        /// <summary>
+        /// Recursively construct bulk update packets to send folders and items
+        /// </summary>
+        /// <param name="folder"></param>
+        /// <param name="folderDataBlocks"></param>
+        /// <param name="transactionId"></param>
+        private void SendBulkUpdateInventoryRecursive(
+            InventoryFolderImpl folder, ref List<BulkUpdateInventoryPacket.FolderDataBlock> folderDataBlocks, 
+            UUID transactionId)
+        {            
+            folderDataBlocks.Add(GenerateBulkUpdateFolderDataBlock(folder));
+            
+            const int MAX_ITEMS_PER_PACKET = 5;
+
+            // If there are any items then we have to start sending them off in this packet - the next folder will have
+            // to be in its own bulk update packet.  Also, we can only fit 5 items in a packet (at least this was the limit
+            // being used on the Linden grid at 20081203).
+            List<InventoryItemBase> items = folder.RequestListOfItems();
+            while (items.Count > 0)
+            {
+                BulkUpdateInventoryPacket bulkUpdate
+                    = (BulkUpdateInventoryPacket)PacketPool.Instance.GetPacket(PacketType.BulkUpdateInventory);
+                bulkUpdate.Header.Zerocoded = true;
+
+                bulkUpdate.AgentData.AgentID = AgentId;
+                bulkUpdate.AgentData.TransactionID = transactionId;                                 
+                bulkUpdate.FolderData = folderDataBlocks.ToArray();               
+                
+                int itemsToSend = (items.Count > MAX_ITEMS_PER_PACKET ? MAX_ITEMS_PER_PACKET : items.Count);                
+                bulkUpdate.ItemData = new BulkUpdateInventoryPacket.ItemDataBlock[itemsToSend];
+
+                for (int i = 0; i < itemsToSend; i++)
+                {
+                    // Remove from the end of the list so that we don't incur a performance penalty
+                    bulkUpdate.ItemData[i] = GenerateBulkUpdateItemDataBlock(items[items.Count - 1]);
+                    items.RemoveAt(items.Count - 1);
+                }
+                
+                Console.WriteLine("SendBulkUpdateInventoryRecursive :" + bulkUpdate);
+                OutPacket(bulkUpdate, ThrottleOutPacketType.Asset);
+                
+                folderDataBlocks = new List<BulkUpdateInventoryPacket.FolderDataBlock>();
+                    
+                // If we're going to be sending another items packet then it needs to contain just the folder to which those
+                // items belong.
+                if (items.Count > 0)
+                    folderDataBlocks.Add(GenerateBulkUpdateFolderDataBlock(folder));
+            } 
+            
+            List<InventoryFolderImpl> subFolders = folder.RequestListOfFolderImpls();
+            foreach (InventoryFolderImpl subFolder in subFolders)
+            {
+                SendBulkUpdateInventoryRecursive(subFolder, ref folderDataBlocks, transactionId);
+            }                       
+        }
+        
+        /// <summary>
+        /// Generate a bulk update inventory data block for the given folder
+        /// </summary>
+        /// <param name="folder"></param>
+        /// <returns></returns>        
+        private BulkUpdateInventoryPacket.FolderDataBlock GenerateBulkUpdateFolderDataBlock(InventoryFolderBase folder)
+        {
+            BulkUpdateInventoryPacket.FolderDataBlock folderBlock = new BulkUpdateInventoryPacket.FolderDataBlock();
+            
+            folderBlock.FolderID = folder.ID;
+            folderBlock.ParentID = folder.ParentID;
+            folderBlock.Type = -1;
+            folderBlock.Name = Utils.StringToBytes(folder.Name);     
+            
+            return folderBlock;
+        }
+                
+        /// <summary>
+        /// Generate a bulk update inventory data block for the given item        
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        private BulkUpdateInventoryPacket.ItemDataBlock GenerateBulkUpdateItemDataBlock(InventoryItemBase item)
+        {
+            BulkUpdateInventoryPacket.ItemDataBlock itemBlock = new BulkUpdateInventoryPacket.ItemDataBlock();
+            
+            itemBlock.ItemID = item.ID;
+            itemBlock.AssetID = item.AssetID;
+            itemBlock.CreatorID = item.Creator;
+            itemBlock.BaseMask = item.BasePermissions;
+            itemBlock.Description = Utils.StringToBytes(item.Description);
+            itemBlock.EveryoneMask = item.EveryOnePermissions;
+            itemBlock.FolderID = item.Folder;
+            itemBlock.InvType = (sbyte)item.InvType;
+            itemBlock.Name = Utils.StringToBytes(item.Name);
+            itemBlock.NextOwnerMask = item.NextPermissions;
+            itemBlock.OwnerID = item.Owner;
+            itemBlock.OwnerMask = item.CurrentPermissions;
+            itemBlock.Type = (sbyte)item.AssetType;
+            itemBlock.GroupID = item.GroupID;
+            itemBlock.GroupOwned = item.GroupOwned;
+            itemBlock.GroupMask = item.GroupPermissions;
+            itemBlock.Flags = item.Flags;
+            itemBlock.SalePrice = item.SalePrice;
+            itemBlock.SaleType = item.SaleType;
+            itemBlock.CreationDate = item.CreationDate;
+
+            itemBlock.CRC =
+                Helpers.InventoryCRC(
+                    1000, 0, itemBlock.InvType,
+                    itemBlock.Type, itemBlock.AssetID,
+                    itemBlock.GroupID, 100,
+                    itemBlock.OwnerID, itemBlock.CreatorID,
+                    itemBlock.ItemID, itemBlock.FolderID,
+                    (uint)PermissionMask.All, 1, (uint)PermissionMask.All, (uint)PermissionMask.All,
+                    (uint)PermissionMask.All);
+            
+            return itemBlock;
         }
 
         /// <see>IClientAPI.SendBulkUpdateInventory(InventoryItemBase)</see>

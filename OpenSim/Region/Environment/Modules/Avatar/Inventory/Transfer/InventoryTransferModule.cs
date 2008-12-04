@@ -136,31 +136,78 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
 
             if (im.dialog == (byte) InstantMessageDialog.InventoryOffered)
             {
-                ScenePresence user =
-                        scene.GetScenePresence(new UUID(im.toAgentID));
+                m_log.DebugFormat("Asset type {0}", ((AssetType)im.binaryBucket[0]));
+                
+                ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
+                UUID copyID;
 
-                // First byte of the array is probably the item type
-                // Next 16 bytes are the UUID
-
-                UUID itemID = new UUID(im.binaryBucket, 1);
-
-                m_log.DebugFormat("[AGENT INVENTORY]: Inserting item {0} "+
-                        "into agent {1}'s inventory",
-                        itemID, new UUID(im.toAgentID));
-
-                InventoryItemBase itemCopy = scene.GiveInventoryItem(
-                        new UUID(im.toAgentID),
-                        client.AgentId, itemID);
-
-                if (itemCopy == null)
-                {
-                    client.SendAgentAlertMessage("Can't find item to give. Nothing given.", false);
+                // First byte is the asset type
+                AssetType assetType = (AssetType)im.binaryBucket[0];
+                
+                // Temporarily disabled pending test of complex transfers (folders within folders, lots of items, 
+                // empty folders, etc.) 
+                if (AssetType.Folder == assetType)
                     return;
+                
+                if (AssetType.Folder == assetType)
+                {
+                    UUID folderID = new UUID(im.binaryBucket, 1);
+                    
+                    m_log.DebugFormat("[AGENT INVENTORY]: Inserting original folder {0} "+
+                            "into agent {1}'s inventory",
+                            folderID, new UUID(im.toAgentID));
+                    
+                    InventoryFolderImpl folderCopy 
+                        = scene.GiveInventoryFolder(new UUID(im.toAgentID), client.AgentId, folderID, UUID.Zero);
+                    
+                    if (folderCopy == null)
+                    {
+                        client.SendAgentAlertMessage("Can't find folder to give. Nothing given.", false);
+                        return;
+                    }
+                                                           
+                    // The outgoing binary bucket should contain only the byte which signals an asset folder is
+                    // being copied and the following bytes for the copied folder's UUID
+                    copyID = folderCopy.ID;
+                    byte[] copyIDBytes = copyID.GetBytes();
+                    im.binaryBucket = new byte[1 + copyIDBytes.Length];
+                    im.binaryBucket[0] = (byte)AssetType.Folder;
+                    Array.Copy(copyIDBytes, 0, im.binaryBucket, 1, copyIDBytes.Length);  
+                    
+                    if (user != null && !user.IsChildAgent)
+                    {        
+                        user.ControllingClient.SendBulkUpdateInventory(folderCopy);
+                    }                    
                 }
+                else
+                {
+                    // First byte of the array is probably the item type
+                    // Next 16 bytes are the UUID
 
-                byte[] itemCopyID = itemCopy.ID.GetBytes();
+                    UUID itemID = new UUID(im.binaryBucket, 1);
 
-                Array.Copy(itemCopyID, 0, im.binaryBucket, 1, 16);
+                    m_log.DebugFormat("[AGENT INVENTORY]: Inserting item {0} "+
+                            "into agent {1}'s inventory",
+                            itemID, new UUID(im.toAgentID));
+
+                    InventoryItemBase itemCopy = scene.GiveInventoryItem(
+                            new UUID(im.toAgentID),
+                            client.AgentId, itemID);
+
+                    if (itemCopy == null)
+                    {
+                        client.SendAgentAlertMessage("Can't find item to give. Nothing given.", false);
+                        return;
+                    }
+                    
+                    copyID = itemCopy.ID;
+                    Array.Copy(copyID.GetBytes(), 0, im.binaryBucket, 1, 16);                                       
+                    
+                    if (user != null && !user.IsChildAgent)
+                    {        
+                        user.ControllingClient.SendBulkUpdateInventory(itemCopy);
+                    }
+                }
 
                 // Send the IM to the recipient. The item is already
                 // in their inventory, so it will not be lost if
@@ -168,10 +215,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                 //
                 if (user != null && !user.IsChildAgent)
                 {
-                    // User is online. So, let's make the item visible
-                    //
-                    user.ControllingClient.SendBulkUpdateInventory(itemCopy);
-
                     // And notify. Transaction ID is the item ID. We get that
                     // same ID back on the reply so we know what to act on
                     //
@@ -179,7 +222,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                             new UUID(im.fromAgentID), im.message,
                             new UUID(im.toAgentID),
                             im.fromAgentName, im.dialog, im.timestamp,
-                            itemCopy.ID, false, im.binaryBucket);
+                            copyID, false, im.binaryBucket);
 
                     return;
                 }
@@ -208,9 +251,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                 }
             }
             else if (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
-            {
-                UUID itemID = new UUID(im.imSessionID); // The item, back from it's trip
-
+            {                                           
                 // Here, the recipient is local and we can assume that the
                 // inventory is loaded. Courtesy of the above bulk update,
                 // It will have been pushed to the client, too
@@ -224,27 +265,43 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                 {
                     InventoryFolderImpl trashFolder =
                         userInfo.FindFolderForType((int)AssetType.TrashFolder);
-
-                    InventoryItemBase item =
-                            userInfo.RootFolder.FindItem(itemID);
-
-                    if (trashFolder != null && item != null)
+                    
+                    UUID inventoryEntityID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
+                        
+                    InventoryItemBase item = userInfo.RootFolder.FindItem(inventoryEntityID);
+                    InventoryFolderBase folder = null;
+                    
+                    if (item != null && trashFolder != null)
                     {
                         item.Folder = trashFolder.ID;
 
-                        userInfo.DeleteItem(itemID);
+                        userInfo.DeleteItem(inventoryEntityID);
 
                         scene.AddInventoryItem(client, item);
                     }
                     else
                     {
-                        string reason = "";
+                        folder = userInfo.RootFolder.FindFolder(inventoryEntityID);
+                        
+                        if (folder != null & trashFolder != null)
+                        {
+                            userInfo.MoveFolder(inventoryEntityID, trashFolder.ID);
+                        }
+                    }
+                    
+                    if ((null == item && null == folder) | null == trashFolder)
+                    {                        
+                        string reason = String.Empty;
+                        
                         if (trashFolder == null)
                             reason += " Trash folder not found.";
                         if (item == null)
                             reason += " Item not found.";
+                        if (folder == null)
+                            reason += " Folder not found.";
+                        
                         client.SendAgentAlertMessage("Unable to delete "+
-                                "received item" + reason, false);
+                                "received inventory" + reason, false);
                     }
                 }
 

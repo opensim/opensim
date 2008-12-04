@@ -556,8 +556,10 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Add an item to the user's inventory
+        /// Add an item to the user's inventory.
         /// </summary>
+        /// If the item has no folder set (i.e. it is UUID.Zero), then it is placed in the most appropriate folder
+        /// for that type.
         /// <param name="itemInfo"></param>
         public void AddItem(InventoryItemBase item)
         {
@@ -572,6 +574,7 @@ namespace OpenSim.Framework.Communications.Cache
                         item.Folder = RootFolder.ID;
                 }
                 ItemReceive(item, null);
+                
                 if (m_commsManager.SecureInventoryService != null)
                 {
                     m_commsManager.SecureInventoryService.AddItem(item, m_session_id);

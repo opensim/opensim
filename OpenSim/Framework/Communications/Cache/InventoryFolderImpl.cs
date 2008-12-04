@@ -358,6 +358,10 @@ namespace OpenSim.Framework.Communications.Cache
             return folderList;
         }
 
+        /// <value>
+        /// The total number of items in this folder and in the immediate child folders (though not from other
+        /// descendants).
+        /// </value>
         public int TotalCount
         {
             get

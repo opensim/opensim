@@ -537,6 +537,9 @@ namespace OpenSim.Region.Examples.SimpleModule
         public virtual void SendBulkUpdateInventory(InventoryItemBase item)
         {
         }
+        
+        public void SendBulkUpdateInventory(InventoryFolderBase folderBase)
+        {}
 
         public UUID GetDefaultAnimation(string name)
         {

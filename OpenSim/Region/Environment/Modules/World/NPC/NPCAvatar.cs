@@ -624,6 +624,9 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public virtual void SendBulkUpdateInventory(InventoryItemBase item)
         {
         }
+        
+        public virtual void SendBulkUpdateInventory(InventoryFolderBase folderBase)
+        {}
 
         public void SendTakeControls(int controls, bool passToAgent, bool TakeControls)
         {

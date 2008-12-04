@@ -400,11 +400,11 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Give an inventory item from one avatar to another
+        /// Give an inventory item from one user to another
         /// </summary>
         /// <param name="recipientClient"></param>
         /// <param name="senderId">ID of the sender of the item</param>
-        /// <param name="itemId"></param>
+        /// <param name="itemId"></param>        
         public virtual void GiveInventoryItem(IClientAPI recipientClient, UUID senderId, UUID itemId)
         {
             InventoryItemBase itemCopy = GiveInventoryItem(recipientClient.AgentId, senderId, itemId);
@@ -413,7 +413,33 @@ namespace OpenSim.Region.Environment.Scenes
                 recipientClient.SendBulkUpdateInventory(itemCopy);
         }
 
+        /// <summary>
+        /// Give an inventory item from one user to another
+        /// </summary>
+        /// <param name="recipient"></param>
+        /// <param name="senderId">ID of the sender of the item</param>
+        /// <param name="itemId"></param>        
+        /// <returns>The inventory item copy given, null if the give was unsuccessful</returns>
         public virtual InventoryItemBase GiveInventoryItem(UUID recipient, UUID senderId, UUID itemId)
+        {
+            return GiveInventoryItem(recipient, senderId, itemId, UUID.Zero);
+        }
+        
+        /// <summary>
+        /// Give an inventory item from one user to another
+        /// </summary>
+        /// <param name="recipient"></param>
+        /// <param name="senderId">ID of the sender of the item</param>
+        /// <param name="itemId"></param>        
+        /// <param name="recipientFolderId">
+        /// The id of the folder in which the copy item should go.  If UUID.Zero then the item is placed in the most
+        /// appropriate default folder.
+        /// </param>
+        /// <returns>
+        /// The inventory item copy given, null if the give was unsuccessful
+        /// </returns>
+        public virtual InventoryItemBase GiveInventoryItem(
+            UUID recipient, UUID senderId, UUID itemId, UUID recipientFolderId)
         {
             // Retrieve the item from the sender
             CachedUserInfo senderUserInfo = CommsManager.UserProfileCacheService.GetUserDetails(senderId);
@@ -438,7 +464,6 @@ namespace OpenSim.Region.Environment.Scenes
                             return null;
                     }
 
-                    // TODO get recipient's root folder
                     CachedUserInfo recipientUserInfo
                         = CommsManager.UserProfileCacheService.GetUserDetails(recipient);
 
@@ -457,7 +482,8 @@ namespace OpenSim.Region.Environment.Scenes
                         itemCopy.Name = item.Name;
                         itemCopy.AssetType = item.AssetType;
                         itemCopy.InvType = item.InvType;
-                        itemCopy.Folder = UUID.Zero;
+                        itemCopy.Folder = recipientFolderId;
+                        
                         if (Permissions.PropagatePermissions())
                         {
                             if (item.InvType == 6)
@@ -529,7 +555,92 @@ namespace OpenSim.Region.Environment.Scenes
                 m_log.Error("[AGENT INVENTORY]: Failed to find item " + itemId.ToString() + ", no root folder");
                 return null;
             }
+            
             return null;
+        }
+        
+        /// <summary>
+        /// Give an entire inventory folder from one user to another.  The entire contents (including all descendent 
+        /// folders) is given.
+        /// </summary>
+        /// <param name="recipientId"></param>
+        /// <param name="senderId">ID of the sender of the item</param>
+        /// <param name="folderId"></param>
+        /// <param name="recipientParentFolderId">
+        /// The id of the receipient folder in which the send folder should be placed.  If UUID.Zero then the 
+        /// recipient folder is the root folder
+        /// </param>
+        /// <returns>
+        /// The inventory folder copy given, null if the copy was unsuccessful
+        /// </returns>
+        public virtual InventoryFolderImpl GiveInventoryFolder(
+            UUID recipientId, UUID senderId, UUID folderId, UUID recipientParentFolderId)
+        {
+            // Retrieve the folder from the sender
+            CachedUserInfo senderUserInfo = CommsManager.UserProfileCacheService.GetUserDetails(senderId);
+
+            if (null == senderUserInfo)
+            {
+                m_log.ErrorFormat(
+                     "[AGENT INVENTORY]: Failed to find sending user {0} for folder {1}", senderId, folderId);
+
+                return null;
+            }
+            
+            if (!senderUserInfo.HasReceivedInventory)
+            {
+                m_log.DebugFormat(
+                     "[AGENT INVENTORY]: Could not give inventory folder - have not yet received inventory for {0}",
+                     senderId);
+                
+                return null;
+            }
+            
+            InventoryFolderImpl folder = senderUserInfo.RootFolder.FindFolder(folderId);
+            
+            if (null == folder)
+            {
+                m_log.ErrorFormat(
+                     "[AGENT INVENTORY]: Could not find inventory folder {0} to give", folderId);
+
+                return null;                
+            }
+
+            CachedUserInfo recipientUserInfo
+                = CommsManager.UserProfileCacheService.GetUserDetails(recipientId);
+
+            if (null == recipientUserInfo)
+            {
+                m_log.ErrorFormat(
+                     "[AGENT INVENTORY]: Failed to find receiving user {0} for folder {1}", recipientId, folderId);
+
+                return null;
+            }
+            
+            if (recipientParentFolderId == UUID.Zero)
+                recipientParentFolderId = recipientUserInfo.RootFolder.ID;
+            
+            UUID newFolderId = UUID.Random();
+            recipientUserInfo.CreateFolder(folder.Name, newFolderId, (ushort)folder.Type, recipientParentFolderId);
+            
+            // XXX: Messy - we should really get this back in the CreateFolder call
+            InventoryFolderImpl copiedFolder = recipientUserInfo.RootFolder.FindFolder(newFolderId);
+            
+            // Give all the subfolders
+            List<InventoryFolderImpl> subFolders = folder.RequestListOfFolderImpls();
+            foreach (InventoryFolderImpl childFolder in subFolders)
+            {
+                GiveInventoryFolder(recipientId, senderId, childFolder.ID, copiedFolder.ID);
+            }              
+             
+            // Give all the items
+            List<InventoryItemBase> items = folder.RequestListOfItems();
+            foreach (InventoryItemBase item in items)
+            {
+                GiveInventoryItem(recipientId, senderId, item.ID, copiedFolder.ID);
+            }
+            
+            return copiedFolder;
         }
 
         public void CopyInventoryItem(IClientAPI remoteClient, uint callbackID, UUID oldAgentID, UUID oldItemID,
