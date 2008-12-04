@@ -1144,7 +1144,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 msg.MessageBlock.Message = Utils.StringToBytes(message);
                 msg.MessageBlock.BinaryBucket = binaryBucket;
 
-                System.Console.WriteLine("SendInstantMessage: " + msg);               
+                //System.Console.WriteLine("SendInstantMessage: " + msg);               
                 OutPacket(msg, ThrottleOutPacketType.Task);
             }
         }

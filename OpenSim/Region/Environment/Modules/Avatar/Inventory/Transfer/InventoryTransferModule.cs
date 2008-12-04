@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
 
             if (im.dialog == (byte) InstantMessageDialog.InventoryOffered)
             {
-                m_log.DebugFormat("Asset type {0}", ((AssetType)im.binaryBucket[0]));
+                //m_log.DebugFormat("Asset type {0}", ((AssetType)im.binaryBucket[0]));
                 
                 ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
                 UUID copyID;
