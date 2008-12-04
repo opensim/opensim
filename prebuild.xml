@@ -1861,7 +1861,6 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="NHibernate.dll"/>
-      <Reference name="NHibernate.Mapping.Attributes.dll"/>
       <Reference name="log4net.dll"/>
 
       <Files>

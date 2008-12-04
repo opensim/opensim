@@ -31,7 +31,6 @@ using System.IO;
 using log4net;
 using NHibernate;
 using NHibernate.Cfg;
-using NHibernate.Mapping.Attributes;
 using NHibernate.Tool.hbm2ddl;
 using OpenMetaverse;
 using Environment = NHibernate.Cfg.Environment;
@@ -76,11 +75,6 @@ namespace OpenSim.Data.NHibernate
             //SchemaExport exp = new SchemaExport(cfg);
             //exp.SetOutputFile("nameofthefile.sql");
             //exp.Create(false, true);
-
-            HbmSerializer.Default.Validate = true;
-            using (MemoryStream stream =
-                   HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
-                cfg.AddInputStream(stream);
 
             factory = cfg.BuildSessionFactory();
             session = factory.OpenSession();

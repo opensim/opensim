@@ -33,7 +33,6 @@ using System.Text.RegularExpressions;
 using OpenMetaverse;
 using log4net;
 using NHibernate;
-using NHibernate.Mapping.Attributes;
 using OpenSim.Framework;
 using Environment=NHibernate.Cfg.Environment;
 
