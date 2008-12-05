@@ -380,7 +380,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock (this) {
+            lock(this) 
+            {
                 int m_regionLimit = m_config.GetInt("region_limit", 0);
 
                 try {
@@ -574,7 +575,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock (this) {
+            lock(this) 
+            {
                 try {
                     Hashtable requestData = (Hashtable) request.Params[0];
                     checkStringParameters(request, new string[] {"password", "region_name"});
@@ -649,7 +651,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock (this) {
+            lock(this) 
+            {
                 try
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
@@ -675,12 +678,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if (null != userProfile)
                         throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
 
-                    UUID userID 
-                        = m_app.CommunicationsManager.UserAdminService.AddUser(
-                            firstname, lastname, passwd, email, regX, regY);
+                    UUID userID = m_app.CommunicationsManager.UserAdminService.AddUser(firstname, lastname, 
+                                                                                       passwd, email, regX, regY);
 
                     if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
-                                                                                 firstname, lastname));
+                                                                               firstname, lastname));
 
                     responseData["success"]     = "true";
                     responseData["avatar_uuid"] = userID.ToString();
@@ -749,7 +751,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock (this) {
+            lock(this) 
+            {
                 try
                 {
                     Hashtable requestData = (Hashtable)request.Params[0];
@@ -917,7 +920,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock (this) {
+            lock(this) 
+            {
                 try
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
@@ -1043,7 +1047,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock (this) {                
+            lock(this) 
+            {                
                 try
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
@@ -1194,8 +1199,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
             
-            lock (this) {
-
+            lock(this) 
+            {
                 try
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];

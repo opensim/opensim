@@ -709,7 +709,7 @@ namespace PrimMesher
 
             for (int i = 0; i < numAngles; i++)
             {
-                int iNext = i == numAngles ? i + 1 : 0;
+                // int iNext = i == numAngles ? i + 1 : 0;
                 angle = angles.angles[i];
                 newVert.X = angle.X * xScale;
                 newVert.Y = angle.Y * yScale;

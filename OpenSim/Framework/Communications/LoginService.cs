@@ -350,7 +350,7 @@ namespace OpenSim.Framework.Communications
 
             try
             {
-                bool GoodLogin = false;
+                // bool GoodLogin = false;
 
                 string startLocationRequest = "last";
 

@@ -270,11 +270,10 @@ namespace OpenSim.Framework.Communications.Cache
                 // passphrase and salt value. The password will be created using
                 // the specified hash algorithm. Password creation can be done in
                 // several iterations.
-                PasswordDeriveBytes password = new PasswordDeriveBytes(
-                                                                passPhrase,
-                                                                saltValueBytes,
-                                                                hashAlgorithm,
-                                                                passwordIterations);
+                PasswordDeriveBytes password = new PasswordDeriveBytes(passPhrase,
+                                                                       saltValueBytes,
+                                                                       hashAlgorithm,
+                                                                       passwordIterations);
 
                 // Use the password to generate pseudo-random bytes for the encryption
                 // key. Specify the size of the key in bytes (instead of bits).
