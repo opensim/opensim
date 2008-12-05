@@ -525,6 +525,10 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_items.ContainsKey(itemID))
                 {
                     int type = m_items[itemID].InvType;
+                    if (type == 10) // Script
+                    {
+                        m_part.ParentGroup.Scene.TriggerStopScript(m_part.LocalId, itemID);
+                    }
                     m_items.Remove(itemID);
                     m_inventorySerial++;
                     m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
