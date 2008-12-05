@@ -323,6 +323,21 @@ namespace OpenSim.Framework.Communications
             return GoodLogin;
         }
 
+        protected virtual bool TryAuthenticateLLSDLogin( string firstname, string lastname, string passwd, out UserProfileData userProfile)
+        {
+            bool GoodLogin = false;
+            userProfile = GetTheUser(firstname, lastname);
+            if (userProfile == null)
+            {
+                m_log.Info("[LOGIN]:  LLSD Could not find a profile for " + firstname + " " + lastname);
+
+                return false;
+            }
+
+            GoodLogin = AuthenticateUser(userProfile, passwd);
+            return GoodLogin;
+        }
+
         /// <summary>
         /// Called when we receive the client's initial LLSD login_to_simulator request message
         /// </summary>
@@ -359,23 +374,15 @@ namespace OpenSim.Framework.Communications
                         }
                         m_log.Info("[LOGIN]: LLSD Login Requested for: '" + firstname+"' '"+lastname+"' / "+passwd);
 
-                        userProfile = GetTheUser(firstname, lastname);
-                        if (userProfile == null)
+                        if (!TryAuthenticateLLSDLogin( firstname, lastname, passwd, out userProfile))
                         {
-                            m_log.Info("[LOGIN]:  LLSD Could not find a profile for " + firstname + " " + lastname);
-
                             return logResponse.CreateLoginFailedResponseLLSD();
                         }
-
-                        GoodLogin = AuthenticateUser(userProfile, passwd);
                     }
                 }
 
-                if (!GoodLogin)
-                {
-                    return logResponse.CreateLoginFailedResponseLLSD();
-                }
-                else if (userProfile.GodLevel < m_minLoginLevel)
+               
+                if (userProfile.GodLevel < m_minLoginLevel)
                 {
                     return logResponse.CreateLoginBlockedResponseLLSD();
                 }
