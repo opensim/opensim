@@ -2686,7 +2686,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //
                 foreach (SceneObjectGroup grp in m_attachments)
                 {
-                    m_scene.DeleteSceneObject(grp);
+                    m_scene.DeleteSceneObject(grp, false);
                 }
                 m_attachments.Clear();
             }
