@@ -301,6 +301,11 @@ namespace OpenSim.Region.Communications.OGS1
                         {
                             sri.HttpPort = Convert.ToUInt32(neighbourData["http_port"]);
                         }
+                        else
+                        {
+                            m_log.Error("[OGS1 GRID SERVICES]: Couldn't find httpPort, using default 9000; please upgrade your grid-server to r7621 or later");
+                            sri.HttpPort = 9000; // that's the default and will probably be wrong
+                        }
 
                         sri.RegionID = new UUID((string) neighbourData["uuid"]);
 
