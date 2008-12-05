@@ -2194,8 +2194,6 @@ namespace OpenSim.Region.Environment.Scenes
                                 {
                                     group.ClearPartAttachmentData();
                                 }
-                                // Ghost prim if this is enabled!
-                                //group.ApplyPhysics(m_physicalPrim);
                             }
 
                             // Fire on_rez
@@ -2208,7 +2206,13 @@ namespace OpenSim.Region.Environment.Scenes
                             if (!Permissions.BypassPermissions())
                             {
                                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                                    userInfo.DeleteItem(item.ID);
+                                {
+                                    // If this is done on attachments, no
+                                    // copy ones will be lost, so avoid it
+                                    //
+                                    if (!attachment)
+                                        userInfo.DeleteItem(item.ID);
+                                }
                             }
 
                             return rootPart.ParentGroup;
