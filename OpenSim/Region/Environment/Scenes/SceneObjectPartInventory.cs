@@ -527,7 +527,7 @@ namespace OpenSim.Region.Environment.Scenes
                     int type = m_items[itemID].InvType;
                     if (type == 10) // Script
                     {
-                        m_part.ParentGroup.Scene.EventManager.TriggerStopScript(m_part.LocalId, itemID);
+                        m_part.ParentGroup.Scene.EventManager.TriggerRemoveScript(m_part.LocalId, itemID);
                     }
                     m_items.Remove(itemID);
                     m_inventorySerial++;
