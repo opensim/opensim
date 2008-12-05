@@ -250,6 +250,7 @@ namespace OpenSim.Region.Environment.Scenes
                         m_part.LocalId, item.ItemID, String.Empty, startParam, postOnRez, engine, stateSource);
                     m_part.ParentGroup.AddActiveScriptCount(1);
                     m_part.ScheduleFullUpdate();
+                    return;
                 }
                 AssetCache cache = m_part.ParentGroup.Scene.AssetCache;
 

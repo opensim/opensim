@@ -2098,9 +2098,16 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (newRegionHandle != 0)
             {
+                string objectState = grp.GetStateSnapshot();
+
                 successYN
                     = m_sceneGridService.PrimCrossToNeighboringRegion(
                         newRegionHandle, grp.UUID, m_serialiser.SaveGroupToXml2(grp), primcrossingXMLmethod);
+                if (successYN && (objectState != "") && m_allowScriptCrossings)
+                {
+                    successYN = m_sceneGridService.PrimCrossToNeighboringRegion(
+                            newRegionHandle, grp.UUID, objectState, 100);
+                }
 
                 if (successYN)
                 {
@@ -2147,10 +2154,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public bool IncomingInterRegionPrimGroup(UUID primID, string objXMLData, int XMLMethod)
         {
-            m_log.DebugFormat("[INTERREGION]: A new prim {0} arrived from a neighbor", primID);
             
             if (XMLMethod == 0)
             {
+                m_log.DebugFormat("[INTERREGION]: A new prim {0} arrived from a neighbor", primID);
                 SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);
 
                 // If the user is banned, we won't let any of their objects
@@ -2241,6 +2248,78 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                     }
                 }
+            }
+            else if ((XMLMethod == 100) && m_allowScriptCrossings)
+            {
+                m_log.Warn("[INTERREGION]: Prim state data arrived from a neighbor");
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(objXMLData);
+
+                XmlNodeList rootL = doc.GetElementsByTagName("ScriptData");
+                if (rootL.Count == 1)
+                {
+                    XmlNode rootNode = rootL[0];
+                    if (rootNode != null)
+                    {
+                        XmlNodeList partL = rootNode.ChildNodes;
+
+                        foreach (XmlNode part in partL)
+                        {
+                            XmlNodeList nodeL = part.ChildNodes;
+
+                            switch (part.Name)
+                            {
+                            case "Assemblies":
+                                foreach (XmlNode asm in nodeL)
+                                {
+                                    string fn = asm.Attributes.GetNamedItem("Filename").Value;
+
+                                    Byte[] filedata = Convert.FromBase64String(asm.InnerText);
+                                    string path = Path.Combine("ScriptEngines", RegionInfo.RegionID.ToString());
+                                    path = Path.Combine(path, fn);
+
+                                    if (!File.Exists(path))
+                                    {
+                                        FileStream fs = File.Create(path);
+                                        fs.Write(filedata, 0, filedata.Length);
+                                        fs.Close();
+                                    }
+                                }
+                                break;
+                            case "ScriptStates":
+                                foreach (XmlNode st in nodeL)
+                                {
+                                    string id = st.Attributes.GetNamedItem("UUID").Value;
+                                    UUID uuid = new UUID(id);
+                                    XmlNode state = st.ChildNodes[0];
+
+                                    XmlDocument sdoc = new XmlDocument();
+                                    XmlNode sxmlnode = sdoc.CreateNode(
+                                            XmlNodeType.XmlDeclaration,
+                                            "", "");
+                                    sdoc.AppendChild(sxmlnode);
+
+                                    XmlNode newnode = sdoc.ImportNode(state, true);
+                                    sdoc.AppendChild(newnode);
+
+                                    string spath = Path.Combine("ScriptEngines", RegionInfo.RegionID.ToString());
+                                    spath = Path.Combine(spath, uuid.ToString());
+                                    FileStream sfs = File.Create(spath + ".state");
+                                    System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                                    Byte[] buf = enc.GetBytes(sdoc.InnerXml);
+                                    sfs.Write(buf, 0, buf.Length);
+                                    sfs.Close();
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                SceneObjectPart RootPrim = GetSceneObjectPart(primID);
+                RootPrim.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, 1);
+
+                return true;
             }
 
             return true;
