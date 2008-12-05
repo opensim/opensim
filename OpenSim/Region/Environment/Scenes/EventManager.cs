@@ -92,7 +92,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnShutdownDelegate OnShutdown;
 
-        public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient);
+        public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);
         public delegate void ObjectDeGrabDelegate(uint localID, uint originalID, IClientAPI remoteClient);
         public delegate void ScriptResetDelegate(uint localID, UUID itemID);
 
@@ -530,12 +530,12 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerShutdown();
         }
 
-        public void TriggerObjectGrab(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient)
+        public void TriggerObjectGrab(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
         {
             handlerObjectGrab = OnObjectGrab;
             if (handlerObjectGrab != null)
             {
-                handlerObjectGrab(localID, originalID, offsetPos, remoteClient);
+                handlerObjectGrab(localID, originalID, offsetPos, remoteClient, surfaceArgs);
             }
         }
 

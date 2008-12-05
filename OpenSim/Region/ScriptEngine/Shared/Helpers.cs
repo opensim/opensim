@@ -80,6 +80,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             Rotation = new LSL_Types.Quaternion();
             Type = 0;
             Velocity = new LSL_Types.Vector3();
+            initializeSurfaceTouch();
         }
 
         public UUID Key;
@@ -92,6 +93,61 @@ namespace OpenSim.Region.ScriptEngine.Shared
         public LSL_Types.Quaternion Rotation;
         public int Type;
         public LSL_Types.Vector3 Velocity;
+
+        private LSL_Types.Vector3 touchST;
+        public LSL_Types.Vector3 TouchST { get { return touchST; } }
+
+        private LSL_Types.Vector3 touchNormal;
+        public LSL_Types.Vector3 TouchNormal { get { return touchNormal; } }
+
+        private LSL_Types.Vector3 touchBinormal;
+        public LSL_Types.Vector3 TouchBinormal { get { return touchBinormal; } }
+
+        private LSL_Types.Vector3 touchPos;
+        public LSL_Types.Vector3 TouchPos { get { return touchPos; } }
+
+        private LSL_Types.Vector3 touchUV;
+        public LSL_Types.Vector3 TouchUV { get { return touchUV; } }
+
+        private int touchFace;
+        public int TouchFace { get { return touchFace; } }
+
+        // This can be done in two places including the constructor
+        // so be carefull what gets added here
+        private void initializeSurfaceTouch()
+        {
+            touchST = new LSL_Types.Vector3(-1.0, -1.0, 0.0);
+            touchNormal = new LSL_Types.Vector3();
+            touchBinormal = new LSL_Types.Vector3();
+            touchPos = new LSL_Types.Vector3();
+            touchUV = new LSL_Types.Vector3(-1.0, -1.0, 0.0);
+            touchFace = -1;
+        }
+
+        /*
+         * Set up the surface touch detected values
+         */
+        public SurfaceTouchEventArgs SurfaceTouchArgs
+        {
+            set
+            {
+                if (value == null)
+                {
+                    // Initialise to defaults if no value
+                    initializeSurfaceTouch();
+                }
+                else
+                {
+                    // Set the values from the touch data provided by the client
+                    touchST = new LSL_Types.Vector3(value.STCoord.X, value.STCoord.Y, value.STCoord.Z);
+                    touchUV = new LSL_Types.Vector3(value.UVCoord.X, value.UVCoord.Y, value.UVCoord.Z);
+                    touchNormal = new LSL_Types.Vector3(value.Normal.X, value.Normal.Y, value.Normal.Z);
+                    touchBinormal = new LSL_Types.Vector3(value.Binormal.X, value.Binormal.Y, value.Binormal.Z);
+                    touchPos = new LSL_Types.Vector3(value.Position.X, value.Position.Y, value.Position.Z);
+                    touchFace = value.FaceIndex;
+                }
+            }
+        }
 
         public void Populate(Scene scene)
         {

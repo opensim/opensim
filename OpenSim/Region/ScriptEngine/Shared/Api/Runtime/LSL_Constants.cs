@@ -494,5 +494,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CLICK_ACTION_OPEN = 4;
         public const int CLICK_ACTION_PLAY = 5;
         public const int CLICK_ACTION_OPEN_MEDIA = 6;
+
+        // constants for the llDetectedTouch* functions
+        public const int TOUCH_INVALID_FACE = -1;
+        public static readonly vector TOUCH_INVALID_TEXCOORD = new vector(-1.0, -1.0, 0.0);
+        public static readonly vector TOUCH_INVALID_VECTOR = ZERO_VECTOR;
     }
 }

@@ -889,46 +889,76 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Integer(parms.LinkNum);
         }
 
+        /// <summary>
+        /// See http://wiki.secondlife.com/wiki/LlDetectedTouchBinormal for details
+        /// </summary>
         public LSL_Vector llDetectedTouchBinormal(int index)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedTouchBinormal");
-            return new LSL_Vector();
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            if (detectedParams == null || detectedParams.TouchBinormal == null)
+                return new LSL_Vector();
+            return detectedParams.TouchBinormal;
         }
 
+        /// <summary>
+        /// See http://wiki.secondlife.com/wiki/LlDetectedTouchFace for details
+        /// </summary>
         public LSL_Integer llDetectedTouchFace(int index)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedTouchFace");
-            return new LSL_Integer(0);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            if (detectedParams == null || detectedParams.TouchFace == null)
+                return new LSL_Integer(-1);
+            return new LSL_Integer(detectedParams.TouchFace);
         }
 
+        /// <summary>
+        /// See http://wiki.secondlife.com/wiki/LlDetectedTouchNormal for details
+        /// </summary>
         public LSL_Vector llDetectedTouchNormal(int index)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedTouchNormal");
-            return new LSL_Vector();
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            if (detectedParams == null || detectedParams.TouchNormal == null)
+                return new LSL_Vector();
+            return detectedParams.TouchNormal;
         }
 
+        /// <summary>
+        /// See http://wiki.secondlife.com/wiki/LlDetectedTouchPos for details
+        /// </summary>
         public LSL_Vector llDetectedTouchPos(int index)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedTouchPos");
-            return new LSL_Vector();
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            if (detectedParams == null || detectedParams.TouchPos == null)
+                return new LSL_Vector();
+            return detectedParams.TouchPos;
         }
 
+        /// <summary>
+        /// See http://wiki.secondlife.com/wiki/LlDetectedTouchST for details
+        /// </summary>
         public LSL_Vector llDetectedTouchST(int index)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedTouchST");
-            return new LSL_Vector();
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            if (detectedParams == null || detectedParams.TouchST == null)
+                return new LSL_Vector(-1.0, -1.0, 0.0);
+            return detectedParams.TouchST;
         }
 
+        /// <summary>
+        /// See http://wiki.secondlife.com/wiki/LlDetectedTouchUV for details
+        /// </summary>
         public LSL_Vector llDetectedTouchUV(int index)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedTouchUV");
-            return new LSL_Vector();
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            if (detectedParams == null || detectedParams.TouchUV == null)
+                return new LSL_Vector(-1.0, -1.0, 0.0);
+            return detectedParams.TouchUV;
         }
 
         public void llDie()

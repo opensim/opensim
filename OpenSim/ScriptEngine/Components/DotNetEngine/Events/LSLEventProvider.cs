@@ -84,7 +84,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Events
                 RezScript(localID, itemID, script, startParam, postOnRez, engine);
         }
 
-        private void OnObjectGrab(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient)
+        private void OnObjectGrab(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
         {
             // Add to queue for all scripts in ObjectID object
             DetectParams[] det = new DetectParams[1];
@@ -108,7 +108,10 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Events
                         CurrentRegion.Scene.GetSceneObjectPart(originalID);
                 det[0].LinkNum = originalPart.LinkNum;
             }
-
+            if (surfaceArgs != null)
+            {
+                det[0].SurfaceTouchArgs = surfaceArgs;
+            }
             Shared.EventParams ep =
                 new Shared.EventParams(localID, "touch_start", new Object[] {new LSL_Types.LSLInteger(1)}, det);
             CurrentRegion.Executors_Execute(ep);

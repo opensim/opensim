@@ -141,7 +141,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         }
 
         public void touch_start(uint localID, uint originalID,
-                Vector3 offsetPos, IClientAPI remoteClient)
+                Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
         {
             // Add to queue for all scripts in ObjectID object
             DetectParams[] det = new DetectParams[1];
@@ -164,6 +164,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 SceneObjectPart originalPart =
                         myScriptEngine.World.GetSceneObjectPart(originalID);
                 det[0].LinkNum = originalPart.LinkNum;
+            }
+            if (surfaceArgs != null)
+            {
+                det[0].SurfaceTouchArgs = surfaceArgs;
             }
 
             myScriptEngine.PostObjectEvent(localID, new EventParams(

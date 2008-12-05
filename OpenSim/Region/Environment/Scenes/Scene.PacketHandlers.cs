@@ -217,6 +217,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             List<EntityBase> EntityList = GetEntities();
 
+            SurfaceTouchEventArgs surfaceArg = null;
+            if (surfaceArgs != null && surfaceArgs.Count > 0)
+                surfaceArg = surfaceArgs[0];
+
             foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
@@ -236,9 +240,9 @@ namespace OpenSim.Region.Environment.Scenes
                             // If the touched prim handles touches, deliver it
                             // If not, deliver to root prim
                             if ((part.ScriptEvents & scriptEvents.touch_start) != 0)
-                                EventManager.TriggerObjectGrab(part.LocalId, 0, part.OffsetPosition, remoteClient);
+                                EventManager.TriggerObjectGrab(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
                             else
-                                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient);
+                                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
 
                             return;
                         }
