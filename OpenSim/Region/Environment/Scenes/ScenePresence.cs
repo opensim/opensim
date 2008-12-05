@@ -2679,17 +2679,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_attachments)
             {
-                try
+                // Delete attachments from scene
+                // Don't try to save, as this thread won't live long
+                // enough to complete the save. This would cause no copy
+                // attachments to poof!
+                //
+                foreach (SceneObjectGroup grp in m_attachments)
                 {
-                    foreach (SceneObjectGroup grp in m_attachments)
-                    {
-                        // ControllingClient may be null at this point!
-                        m_scene.m_sceneGraph.DetachSingleAttachmentToInv(grp.GetFromAssetID(), ControllingClient);
-                    }
-                }
-                catch (InvalidOperationException)
-                {
-                    m_log.Info("[CLIENT]: Couldn't save attachments. :(");
+                    m_scene.DeleteSceneObject(grp);
                 }
                 m_attachments.Clear();
             }
