@@ -93,7 +93,8 @@ namespace OpenSim
             m_log.Info("====================================================================");
             m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode", (ConfigurationSettings.Standalone ? "sandbox" : "grid"));
             m_log.InfoFormat("[OPENSIM MAIN]: GC Is Server GC: {0}", GCSettings.IsServerGC.ToString());
-            m_log.InfoFormat("[OPENSIM MAIN]: GC Latency Mode: {0}", GCSettings.LatencyMode.ToString());
+            // http://msdn.microsoft.com/en-us/library/bb384202.aspx
+            //GCSettings.LatencyMode = GCLatencyMode.Batch;
             m_log.InfoFormat("[OPENSIM MAIN]: GC Latency Mode: {0}", GCSettings.LatencyMode.ToString());
 
             m_console = new ConsoleBase("Region", this);
