@@ -106,8 +106,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
 
                     if (item.Action == LoadUnloadStructure.LUType.Unload)
                     {
-                        m_log.DebugFormat("[{0}] Unloading script", Name);
-                        _StopScript(item.Script.LocalID, item.Script.ItemID);
+                         _StopScript(item.Script.LocalID, item.Script.ItemID);
                         RemoveScript(item.Script.LocalID, item.Script.ItemID);
                     }
                     else if (item.Action == LoadUnloadStructure.LUType.Load)
@@ -253,6 +252,8 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
             ScriptStructure ss = new ScriptStructure();
             if (!TryGetScript(localID, itemID, ref ss))
                 return;
+
+            m_log.DebugFormat("[{0}] Unloading script", Name);
 
             // Stop long command on script
             //AsyncCommandManager.RemoveScript(ss);

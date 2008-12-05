@@ -258,6 +258,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (id == null)
                 return;
 
+            m_scriptEngine.Log.DebugFormat("[{0}]: Unloading script",
+                    m_scriptEngine.ScriptEngineName);
+
             // Stop long command on script
             AsyncCommandManager.RemoveScript(m_scriptEngine, localID, itemID);
 
@@ -371,8 +374,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
                     if (item.Action == LUType.Unload)
                     {
-                        m_scriptEngine.Log.DebugFormat("[{0}]: Unloading script",
-                                m_scriptEngine.ScriptEngineName);
                         _StopScript(item.localID, item.itemID);
                         RemoveScript(item.localID, item.itemID);
                     }
