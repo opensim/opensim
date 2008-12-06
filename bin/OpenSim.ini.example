@@ -49,7 +49,7 @@
     ClampPrimSize = false
 
     ; Region crossing
-    AllowScriptCrossings = false
+    AllowScriptCrossing = false
     ; If you set this to "true", any region that can teleport to you can
     ; inject ARBITRARY BINARY CODE into your system. Use at your own risk.
     ; YOU HAVE BEEN WARNED!!!
