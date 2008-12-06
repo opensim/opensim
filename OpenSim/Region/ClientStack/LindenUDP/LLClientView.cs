@@ -1734,8 +1734,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             inventoryReply.InventoryData[0].AssetID = item.AssetID;
             inventoryReply.InventoryData[0].CreatorID = item.Creator;
             inventoryReply.InventoryData[0].BaseMask = item.BasePermissions;
-            inventoryReply.InventoryData[0].CreationDate =
-                (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            inventoryReply.InventoryData[0].CreationDate = item.CreationDate;
+
             inventoryReply.InventoryData[0].Description = Utils.StringToBytes(item.Description);
             inventoryReply.InventoryData[0].EveryoneMask = item.EveryOnePermissions;
             inventoryReply.InventoryData[0].FolderID = item.Folder;

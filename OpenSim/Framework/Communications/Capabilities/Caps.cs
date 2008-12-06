@@ -397,7 +397,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         {
             LLSDInventoryItem llsdItem = new LLSDInventoryItem();
             llsdItem.asset_id = invItem.AssetID;
-            llsdItem.created_at = 1000;
+            llsdItem.created_at = invItem.CreationDate;
             llsdItem.desc = invItem.Description;
             llsdItem.flags = 0;
             llsdItem.item_id = invItem.ID;
