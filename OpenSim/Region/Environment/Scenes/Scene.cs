@@ -341,7 +341,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", 10.0f);
                 m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", false);
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", false);
-                m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossings", false);
+                m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", false);
                 m_dontPersistBefore =
                   startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
                 m_dontPersistBefore *= 10000000;
