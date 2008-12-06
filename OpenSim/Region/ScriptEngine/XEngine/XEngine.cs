@@ -967,7 +967,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance == null)
-                return null;
+                return "";
             return instance.GetAssemblyName();
         }
 
@@ -975,7 +975,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance == null)
-                return null;
+                return "";
             return instance.GetXMLState();
         }
     }
