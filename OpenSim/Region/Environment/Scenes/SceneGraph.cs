@@ -1405,6 +1405,10 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (SceneObjectGroup sceneObj in children)
             {
                 parenPrim.LinkToGroup(sceneObj);
+
+                // this is here so physics gets updated!
+                // Don't remove!  Bad juju!  Stay away! or fix physics!
+                sceneObj.AbsolutePosition = sceneObj.AbsolutePosition;
             }
 
             // We need to explicitly resend the newly link prim's object properties since no other actions

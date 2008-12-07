@@ -1247,6 +1247,12 @@ if (m_shape != null) {
             if (userExposed)
                 dupe.UUID = UUID.Random();
 
+            //memberwiseclone means it also clones the physics actor reference
+            // This will make physical prim 'bounce' if not set to null.
+            if (!userExposed)
+                dupe.PhysActor = null;
+
+
             dupe._ownerID = AgentID;
             dupe._groupID = GroupID;
             dupe.GroupPosition = GroupPosition;

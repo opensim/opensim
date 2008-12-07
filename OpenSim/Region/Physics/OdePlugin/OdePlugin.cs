@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+//#define USE_DRAWSTUFF
 
 using System;
 using System.Collections.Generic;
@@ -34,6 +35,9 @@ using System.IO;
 using log4net;
 using Nini.Config;
 using Ode.NET;
+#if USE_DRAWSTUFF
+using Drawstuff.NET;
+#endif 
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using OpenMetaverse;
@@ -257,6 +261,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int physics_logging_interval = 0;
         public bool physics_logging_append_existing_logfile = false;
 
+        public d.Vector3 xyz = new d.Vector3(2.1640f, -1.3079f, 1.7600f);
+        public d.Vector3 hpr = new d.Vector3(125.5000f, -17.0000f, 0.0000f);
+
         /// <summary>
         /// Initiailizes the scene
         /// Sets many properties that ODE requires to be stable
@@ -280,6 +287,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //contactgroup
 
                 d.WorldSetAutoDisableFlag(world, false);
+                #if USE_DRAWSTUFF
+                
+                Thread viewthread = new Thread(new ParameterizedThreadStart(startvisualization));
+                viewthread.Start();
+                #endif
             }
 
             // zero out a heightmap array float array (single dimention [flattened]))
@@ -289,6 +301,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Zero out the prim spaces array (we split our space into smaller spaces so
             // we can hit test less.
         }
+
+#if USE_DRAWSTUFF
+        public void startvisualization(object o)
+        {
+            ds.Functions fn;
+            fn.version = ds.VERSION;
+            fn.start = new ds.CallbackFunction(start);
+            fn.step = new ds.CallbackFunction(step);
+            fn.command = new ds.CallbackFunction(command);
+            fn.stop = null;
+            fn.path_to_textures = "./textures";
+            string[] args = new string[0];
+            ds.SimulationLoop(args.Length, args, 352, 288, ref fn);
+        }
+#endif
 
         // Initialize the mesh plugin
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
@@ -787,6 +814,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                             _perloopContact.Add(contacts[i]);
                             joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
                         }
+                        //if (p2.PhysicsActorType == (int)ActorTypes.Prim)
+                        //{
+                            //m_log.Debug("[PHYSICS]: prim contacting with ground");
+                        //}
                     }
                     else if (name1 == "Water" || name2 == "Water")
                     {
@@ -1137,7 +1168,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 List<OdePrim> removeprims = null;
                 foreach (OdePrim chr in _activeprims)
                 {
-                    if (d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
+                    if (chr.Body != IntPtr.Zero && d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
                     {
                         try
                         {
@@ -1243,7 +1274,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical, ode);
 
-                _prims.Add(newPrim);
+                lock (_prims)
+                    _prims.Add(newPrim);
             }
 
             return newPrim;
@@ -1252,8 +1284,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void addActivePrim(OdePrim activatePrim)
         {
             // adds active prim..   (ones that should be iterated over in collisions_optimized
-
-            _activeprims.Add(activatePrim);
+            lock (_activeprims)
+            {
+                if (!_activeprims.Contains(activatePrim))
+                    _activeprims.Add(activatePrim);
+                //else
+                  //  m_log.Warn("[PHYSICS]: Double Entry in _activeprims detected, potential crash immenent");
+            }
         }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
@@ -1334,6 +1371,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                         if (prim.IsPhysical)
                         {
                             prim.disableBody();
+                            if (prim.childPrim)
+                            {
+                                prim.childPrim = false;
+                                prim.Body = IntPtr.Zero;
+                                prim.m_disabled = true;
+                                prim.IsPhysical = false;
+                            }
+
+
                         }
                         // we don't want to remove the main space
 
@@ -1376,6 +1422,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             m_log.Info("[PHYSICS]: Couldn't remove prim from physics scene, it was already be removed.");
                         }
+                        lock (_prims)
                         _prims.Remove(prim);
 
                         //If there are no more geometries in the sub-space, we don't need it in the main space anymore
@@ -2376,9 +2423,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (OdeLock)
             {
-                foreach (OdePrim prm in _prims)
+                lock (_prims)
                 {
-                    RemovePrim(prm);
+                    foreach (OdePrim prm in _prims)
+                    {
+                        RemovePrim(prm);
+                    }
                 }
 
                 //foreach (OdeCharacter act in _characters)
@@ -2411,5 +2461,126 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             return returncolliders;
         }
+#if USE_DRAWSTUFF
+        // Keyboard callback
+        public void command(int cmd)
+        {
+            IntPtr geom;
+            d.Mass mass;
+            d.Vector3 sides = new d.Vector3(d.RandReal() * 0.5f + 0.1f, d.RandReal() * 0.5f + 0.1f, d.RandReal() * 0.5f + 0.1f);
+
+            
+
+            Char ch = Char.ToLower((Char)cmd);
+            switch ((Char)ch)
+            {
+                case 'w':
+                    Vector3 rotate = (new Vector3(1, 0, 0) * Quaternion.CreateFromEulers(hpr.Z * Utils.DEG_TO_RAD, hpr.Y * Utils.DEG_TO_RAD, hpr.X * Utils.DEG_TO_RAD));
+
+                    xyz.X += rotate.X; xyz.Y += rotate.Y; xyz.Z += rotate.Z;
+                    ds.SetViewpoint(ref xyz, ref hpr);
+                    break;
+
+                case 'a':
+                    hpr.X++;
+                    ds.SetViewpoint(ref xyz, ref hpr);
+                    break;
+
+                case 's':
+                    Vector3 rotate2 = (new Vector3(-1, 0, 0) * Quaternion.CreateFromEulers(hpr.Z * Utils.DEG_TO_RAD, hpr.Y * Utils.DEG_TO_RAD, hpr.X * Utils.DEG_TO_RAD));
+
+                    xyz.X += rotate2.X; xyz.Y += rotate2.Y; xyz.Z += rotate2.Z;
+                    ds.SetViewpoint(ref xyz, ref hpr);
+                    break;
+                case 'd':
+                    hpr.X--;
+                    ds.SetViewpoint(ref xyz, ref hpr);
+                    break;
+                case 'r':
+                    xyz.Z++;
+                    ds.SetViewpoint(ref xyz, ref hpr);
+                    break;
+                case 'f':
+                    xyz.Z--;
+                    ds.SetViewpoint(ref xyz, ref hpr);
+                    break;
+                case 'e':
+                    xyz.Y++;
+                    ds.SetViewpoint(ref xyz, ref hpr);
+                    break;
+                case 'q':
+                    xyz.Y--;
+                    ds.SetViewpoint(ref xyz, ref hpr);
+                    break;
+            }
+        }
+
+        public void step(int pause)
+        {
+            
+            ds.SetColor(1.0f, 1.0f, 0.0f);
+            ds.SetTexture(ds.Texture.Wood);
+            lock (_prims)
+            {
+                foreach (OdePrim prm in _prims)
+                {
+                    //IntPtr body = d.GeomGetBody(prm.prim_geom);
+                    if (prm.prim_geom != IntPtr.Zero)
+                    {
+                        d.Vector3 pos;
+                        d.GeomCopyPosition(prm.prim_geom, out pos);
+                        //d.BodyCopyPosition(body, out pos);
+
+                        d.Matrix3 R;
+                        d.GeomCopyRotation(prm.prim_geom, out R);
+                        //d.BodyCopyRotation(body, out R);
+
+
+                        d.Vector3 sides = new d.Vector3();
+                        sides.X = prm.Size.X;
+                        sides.Y = prm.Size.Y;
+                        sides.Z = prm.Size.Z;
+
+                        ds.DrawBox(ref pos, ref R, ref sides);
+                    }
+                }
+            }
+            ds.SetColor(1.0f, 0.0f, 0.0f);
+            lock (_characters)
+            {
+                foreach (OdeCharacter chr in _characters)
+                {
+                    if (chr.Shell != IntPtr.Zero)
+                    {
+                        IntPtr body = d.GeomGetBody(chr.Shell);
+
+                        d.Vector3 pos;
+                        d.GeomCopyPosition(chr.Shell, out pos);
+                        //d.BodyCopyPosition(body, out pos);
+
+                        d.Matrix3 R;
+                        d.GeomCopyRotation(chr.Shell, out R);
+                        //d.BodyCopyRotation(body, out R);
+
+                        ds.DrawCapsule(ref pos, ref R, chr.Size.Z, 0.35f);
+                        d.Vector3 sides = new d.Vector3();
+                        sides.X = 0.5f;
+                        sides.Y = 0.5f;
+                        sides.Z = 0.5f;
+
+                        ds.DrawBox(ref pos, ref R, ref sides);
+
+
+                    }
+                }
+            }
+        }
+
+        public void start(int unused)
+        {
+            
+            ds.SetViewpoint(ref xyz, ref hpr);
+        }
+#endif
     }
 }

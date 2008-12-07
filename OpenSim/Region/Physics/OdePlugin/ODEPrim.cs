@@ -24,7 +24,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -118,6 +117,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsActor _parent = null;
         private PhysicsActor m_taintparent = null;
 
+        private List<OdePrim> childrenPrim = new List<OdePrim>();
+
         private bool iscolliding = false;
         private bool m_isphysical = false;
         private bool m_isSelected = false;
@@ -147,6 +148,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private IntPtr m_linkJoint = (IntPtr)0;
 
+        public volatile bool childPrim = false;
+
         public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
         {
@@ -161,10 +164,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_density = parent_scene.geomDefaultDensity;
             m_tensor = parent_scene.bodyMotorJointMaxforceTensor;
             body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
-            
 
-            prim_geom = (IntPtr)0;
-            prev_geom = (IntPtr)0;
+
+            prim_geom = IntPtr.Zero;
+            prev_geom = IntPtr.Zero;
 
             if (size.X <= 0) size.X = 0.01f;
             if (size.Y <= 0) size.Y = 0.01f;
@@ -247,64 +250,83 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             prev_geom = prim_geom;
             prim_geom = geom;
-            if (prim_geom != (IntPtr)0)
+            if (prim_geom != IntPtr.Zero)
             {
                 d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                 d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
             }
+
+            if (childPrim)
+            {
+                if (_parent != null && _parent is OdePrim)
+                {
+                    OdePrim parent = (OdePrim)_parent;
+                    parent.ChildSetGeom(this);
+                }
+            }
             //m_log.Warn("Setting Geom to: " + prim_geom);
         }
 
+        
+
         public void enableBodySoft()
         {
-            if (m_isphysical && Body != (IntPtr)0)
-                d.BodyEnable(Body);
+            if (!childPrim)
+            {
+                if (m_isphysical && Body != IntPtr.Zero)
+                    d.BodyEnable(Body);
 
-            m_disabled = false;
+                m_disabled = false;
+            }
         }
 
         public void disableBodySoft()
         {
             m_disabled = true;
 
-            if (m_isphysical && Body != (IntPtr)0)
+            if (m_isphysical && Body != IntPtr.Zero)
                 d.BodyDisable(Body);
         }
 
         public void enableBody()
         {
-            // Sets the geom to a body
-            Body = d.BodyCreate(_parent_scene.world);
-
-            setMass();
-            d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
-            d.Quaternion myrot = new d.Quaternion();
-            myrot.X = _orientation.X;
-            myrot.Y = _orientation.Y;
-            myrot.Z = _orientation.Z;
-            myrot.W = _orientation.W;
-            d.BodySetQuaternion(Body, ref myrot);
-            d.GeomSetBody(prim_geom, Body);
-            m_collisionCategories |= CollisionCategories.Body;
-            m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
-
-            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-
-            d.BodySetAutoDisableFlag(Body, true);
-            d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
-
-            m_interpenetrationcount = 0;
-            m_collisionscore = 0;
-            m_disabled = false;
-
-            // The body doesn't already have a finite rotation mode set here
-            if ((!m_angularlock.IsIdentical(PhysicsVector.Zero, 0)) && _parent == null)
+            // Don't enable this body if we're a child prim
+            // this should be taken care of in the parent function not here
+            if (!childPrim)
             {
-                createAMotor(m_angularlock);
-            }
+                // Sets the geom to a body
+                Body = d.BodyCreate(_parent_scene.world);
 
-            _parent_scene.addActivePrim(this);
+                setMass();
+                d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
+                d.Quaternion myrot = new d.Quaternion();
+                myrot.X = _orientation.X;
+                myrot.Y = _orientation.Y;
+                myrot.Z = _orientation.Z;
+                myrot.W = _orientation.W;
+                d.BodySetQuaternion(Body, ref myrot);
+                d.GeomSetBody(prim_geom, Body);
+                m_collisionCategories |= CollisionCategories.Body;
+                m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+
+                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+
+                d.BodySetAutoDisableFlag(Body, true);
+                d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
+
+                m_interpenetrationcount = 0;
+                m_collisionscore = 0;
+                m_disabled = false;
+
+                // The body doesn't already have a finite rotation mode set here
+                if ((!m_angularlock.IsIdentical(PhysicsVector.Zero, 0)) && _parent == null)
+                {
+                    createAMotor(m_angularlock);
+                }
+
+                _parent_scene.addActivePrim(this);
+            }
         }
 
         #region Mass Calculation
@@ -627,20 +649,41 @@ namespace OpenSim.Region.Physics.OdePlugin
             //this kills the body so things like 'mesh' can re-create it.
             lock (this)
             {
-                if (Body != (IntPtr)0)
+                if (!childPrim)
                 {
+                    if (Body != IntPtr.Zero)
+                    {
+                        _parent_scene.remActivePrim(this);
+                        
+                        m_collisionCategories &= ~CollisionCategories.Body;
+                        m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
+
+                        if (prim_geom != IntPtr.Zero)
+                        {
+                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                        }
+
+                        
+                        d.BodyDestroy(Body);
+                        Body = IntPtr.Zero;
+                    }
+                }
+                else
+                {
+                    _parent_scene.remActivePrim(this);
+                    
                     m_collisionCategories &= ~CollisionCategories.Body;
                     m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
 
-                    if (prim_geom != (IntPtr)0)
+                    if (prim_geom != IntPtr.Zero)
                     {
                         d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                         d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                     }
 
-                    _parent_scene.remActivePrim(this);
-                    d.BodyDestroy(Body);
-                    Body = (IntPtr)0;
+                    
+                    Body = IntPtr.Zero;
                 }
             }
             m_disabled = true;
@@ -655,9 +698,20 @@ namespace OpenSim.Region.Physics.OdePlugin
             Thread.Sleep(10);
 
             //Kill Body so that mesh can re-make the geom
-            if (IsPhysical && Body != (IntPtr) 0)
+            if (IsPhysical && Body != IntPtr.Zero)
             {
-                disableBody();
+                if (childPrim)
+                {
+                    if (_parent != null)
+                    {
+                        OdePrim parent = (OdePrim)_parent;
+                        parent.ChildDelink(this);
+                    }
+                }
+                else
+                {
+                    disableBody();
+                }
             }
 
             IMesh oldMesh = primMesh;
@@ -682,7 +736,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             try
             {
-                if (prim_geom == (IntPtr)0)
+                if (prim_geom == IntPtr.Zero)
                 {
                     SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
                 }
@@ -715,7 +769,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 changeadd(timestep);
             }
-            if (prim_geom != (IntPtr)0)
+            if (prim_geom != IntPtr.Zero)
             {
                 if (!_position.IsIdentical(m_taintposition,0f))
                     changemove(timestep);
@@ -724,7 +778,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     rotate(timestep);
                 //
 
-                if (m_taintPhysics != m_isphysical)
+                if (m_taintPhysics != m_isphysical && !(m_taintparent != _parent))
                     changePhysicsStatus(timestep);
                 //
 
@@ -783,7 +837,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         if (Amotor != IntPtr.Zero)
                         {
                             d.JointDestroy(Amotor);
-                            Amotor = (IntPtr)0;
+                            Amotor = IntPtr.Zero;
                         }
                     }
                 }
@@ -794,11 +848,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changelink(float timestep)
         {
+            // If the newly set parent is not null
+            // create link
             if (_parent == null && m_taintparent != null)
             {
                 if (m_taintparent.PhysicsActorType == (int)ActorTypes.Prim)
                 {
                     OdePrim obj = (OdePrim)m_taintparent;
+                    //obj.disableBody();
+
+                    obj.ParentPrim(this);
+
+                    /*
                     if (obj.Body != (IntPtr)0 && Body != (IntPtr)0 && obj.Body != Body)
                     {
                         _linkJointGroup = d.JointGroupCreate(0);
@@ -806,18 +867,245 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.JointAttach(m_linkJoint, obj.Body, Body);
                         d.JointSetFixed(m_linkJoint);
                     }
+                     */
                 }
             }
+            // If the newly set parent is null
+            // destroy link
             else if (_parent != null && m_taintparent == null)
             {
-                if (Body != (IntPtr)0 && _linkJointGroup != (IntPtr)0)
+                if (_parent is OdePrim)
+                {
+                    OdePrim obj = (OdePrim)_parent;
+                    obj.ChildDelink(this);
+                    childPrim = false;
+                    //_parent = null;
+                }
+                
+                /*
+                    if (Body != (IntPtr)0 && _linkJointGroup != (IntPtr)0)
                     d.JointGroupDestroy(_linkJointGroup);
-
-                _linkJointGroup = (IntPtr)0;
-                m_linkJoint = (IntPtr)0;
+                        
+                    _linkJointGroup = (IntPtr)0;
+                    m_linkJoint = (IntPtr)0;
+                */
             }
 
             _parent = m_taintparent;
+            m_taintPhysics = m_isphysical;
+        }
+
+        // I'm the parent
+        // prim is the child
+        public void ParentPrim(OdePrim prim)
+        {
+            if (this.m_localID != prim.m_localID)
+            {
+                if (Body == IntPtr.Zero)
+                {
+                    Body = d.BodyCreate(_parent_scene.world);
+                }
+                if (Body != IntPtr.Zero)
+                {
+                    lock (childrenPrim)
+                    {
+                        if (!childrenPrim.Contains(prim))
+                        {
+                            childrenPrim.Add(prim);
+                            
+                            foreach (OdePrim prm in childrenPrim)
+                            {
+                                d.Mass m2;
+                                d.MassSetZero(out m2);
+                                d.MassSetBoxTotal(out m2, prim.CalculateMass(), prm._size.X, prm._size.Y, prm._size.Z);
+
+
+                                d.Quaternion quat = new d.Quaternion();
+                                quat.W = prm._orientation.W;
+                                quat.X = prm._orientation.X;
+                                quat.Y = prm._orientation.Y;
+                                quat.Z = prm._orientation.Z;
+
+                                d.Matrix3 mat = new d.Matrix3();
+                                d.RfromQ(out mat, ref quat);
+                                d.MassRotate(out m2, ref mat);
+                                d.MassTranslate(out m2, Position.X - prm.Position.X, Position.Y - prm.Position.Y, Position.Z - prm.Position.Z);
+                                d.MassAdd(ref pMass, ref m2);
+                            }
+                            foreach (OdePrim prm in childrenPrim)
+                            {
+                                prm.m_collisionCategories |= CollisionCategories.Body;
+                                prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+
+                                d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
+                                d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
+
+
+                                d.Quaternion quat = new d.Quaternion();
+                                quat.W = prm._orientation.W;
+                                quat.X = prm._orientation.X;
+                                quat.Y = prm._orientation.Y;
+                                quat.Z = prm._orientation.Z;
+
+                                d.Matrix3 mat = new d.Matrix3();
+                                d.RfromQ(out mat, ref quat);
+                                if (Body != IntPtr.Zero)
+                                {
+                                    d.GeomSetBody(prm.prim_geom, Body);
+                                    prm.childPrim = true;
+                                    d.GeomSetOffsetWorldPosition(prm.prim_geom, prm.Position.X , prm.Position.Y, prm.Position.Z);
+                                    //d.GeomSetOffsetPosition(prim.prim_geom,
+                                    //    (Position.X - prm.Position.X) - pMass.c.X,
+                                    //    (Position.Y - prm.Position.Y) - pMass.c.Y,
+                                    //    (Position.Z - prm.Position.Z) - pMass.c.Z);
+                                    d.GeomSetOffsetWorldRotation(prm.prim_geom, ref mat);
+                                    //d.GeomSetOffsetRotation(prm.prim_geom, ref mat);
+                                    d.MassTranslate(out pMass, -pMass.c.X, -pMass.c.Y, -pMass.c.Z);
+                                    d.BodySetMass(Body, ref pMass);
+                                }
+                                else
+                                {
+                                    m_log.Debug("[PHYSICS]:I ain't got no boooooooooddy, no body");
+                                }
+
+
+                                prm.m_interpenetrationcount = 0;
+                                prm.m_collisionscore = 0;
+                                prm.m_disabled = false;
+
+                                // The body doesn't already have a finite rotation mode set here
+                                if ((!m_angularlock.IsIdentical(PhysicsVector.Zero, 0)) && _parent == null)
+                                {
+                                    prm.createAMotor(m_angularlock);
+                                }
+                                prm.Body = Body;
+                                _parent_scene.addActivePrim(prm);
+                            }
+
+                            m_collisionCategories |= CollisionCategories.Body;
+                            m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+
+                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+
+
+                            d.Quaternion quat2 = new d.Quaternion();
+                            quat2.W = _orientation.W;
+                            quat2.X = _orientation.X;
+                            quat2.Y = _orientation.Y;
+                            quat2.Z = _orientation.Z;
+
+                            d.Matrix3 mat2 = new d.Matrix3();
+                            d.RfromQ(out mat2, ref quat2);
+                            d.GeomSetBody(prim_geom, Body);
+                            d.GeomSetOffsetWorldPosition(prim_geom, Position.X - pMass.c.X, Position.Y - pMass.c.Y, Position.Z - pMass.c.Z);
+                            //d.GeomSetOffsetPosition(prim.prim_geom,
+                            //    (Position.X - prm.Position.X) - pMass.c.X,
+                            //    (Position.Y - prm.Position.Y) - pMass.c.Y,
+                            //    (Position.Z - prm.Position.Z) - pMass.c.Z);
+                            //d.GeomSetOffsetRotation(prim_geom, ref mat2);
+                            d.MassTranslate(out pMass, -pMass.c.X, -pMass.c.Y, -pMass.c.Z);
+                            d.BodySetMass(Body, ref pMass);
+                            
+                            d.BodySetAutoDisableFlag(Body, true);
+                            d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
+
+
+                            m_interpenetrationcount = 0;
+                            m_collisionscore = 0;
+                            m_disabled = false;
+
+                            // The body doesn't already have a finite rotation mode set here
+                            if ((!m_angularlock.IsIdentical(PhysicsVector.Zero, 0)) && _parent == null)
+                            {
+                                createAMotor(m_angularlock);
+                            }
+                            d.BodySetPosition(Body, Position.X, Position.Y, Position.Z);
+
+                            _parent_scene.addActivePrim(this);
+                        }
+                    }
+                }
+            }
+
+        }
+
+        private void ChildSetGeom(OdePrim odePrim)
+        {
+            //if (m_isphysical && Body != IntPtr.Zero)
+            lock (childrenPrim)
+            {
+                foreach (OdePrim prm in childrenPrim)
+                {
+                    //prm.childPrim = true;
+                    prm.disableBody();
+                    //prm.m_taintparent = null;
+                    //prm._parent = null;
+                    //prm.m_taintPhysics = false;
+                    //prm.m_disabled = true;
+                    //prm.childPrim = false;
+                }
+            }
+            disableBody();
+
+
+            if (Body != IntPtr.Zero)
+            {
+                _parent_scene.remActivePrim(this);
+            }
+
+            lock (childrenPrim)
+            {
+                foreach (OdePrim prm in childrenPrim)
+                {
+                    ParentPrim(prm);
+                }
+            }
+            
+        }
+
+        private void ChildDelink(OdePrim odePrim)
+        {
+            // Okay, we have a delinked child..   need to rebuild the body.
+            lock (childrenPrim)
+            {
+                foreach (OdePrim prm in childrenPrim)
+                {
+                    prm.childPrim = true;
+                    prm.disableBody();
+                    //prm.m_taintparent = null;
+                    //prm._parent = null;
+                    //prm.m_taintPhysics = false;
+                    //prm.m_disabled = true;
+                    //prm.childPrim = false;
+                }
+            }
+            disableBody();
+
+            lock (childrenPrim)
+            {
+                childrenPrim.Remove(odePrim);
+            }
+            
+            
+            
+
+            if (Body != IntPtr.Zero)
+            {
+                _parent_scene.remActivePrim(this);
+            }
+
+            
+
+            lock (childrenPrim)
+            {
+                foreach (OdePrim prm in childrenPrim)
+                {
+                    ParentPrim(prm);
+                }
+            }
+
+           
         }
 
         private void changeSelectedStatus(float timestep)
@@ -837,7 +1125,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     disableBodySoft();
                 }
 
-                if (prim_geom != (IntPtr)0)
+                if (prim_geom != IntPtr.Zero)
                 {
                     d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                     d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
@@ -862,7 +1150,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_collidesWater)
                     m_collisionFlags |= CollisionCategories.Water;
 
-                if (prim_geom != (IntPtr)0)
+                if (prim_geom != IntPtr.Zero)
                 {
                     d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                     d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
@@ -993,7 +1281,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 CreateGeom(m_targetSpace, _mesh);
 
-                if (prim_geom != (IntPtr) 0)
+                if (prim_geom != IntPtr.Zero)
                 {
                     d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                     d.Quaternion myrot = new d.Quaternion();
@@ -1004,7 +1292,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetQuaternion(prim_geom, ref myrot);
                 }
 
-                if (m_isphysical && Body == (IntPtr)0)
+                if (m_isphysical && Body == IntPtr.Zero)
                 {
                     enableBody();
                 }
@@ -1023,16 +1311,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_isphysical)
             {
                 // This is a fallback..   May no longer be necessary.
-                if (Body == (IntPtr) 0)
+                if (Body == IntPtr.Zero)
                     enableBody();
                 //Prim auto disable after 20 frames,
                 //if you move it, re-enable the prim manually.
                 if (_parent != null)
                 {
-                    if (m_linkJoint != (IntPtr)0)
+                    if (m_linkJoint != IntPtr.Zero)
                     {
                         d.JointDestroy(m_linkJoint);
-                        m_linkJoint = (IntPtr)0;
+                        m_linkJoint = IntPtr.Zero;
                     }
                 }
                 d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
@@ -1058,7 +1346,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_targetSpace = tempspace;
 
                 _parent_scene.waitForSpaceUnlock(m_targetSpace);
-                if (prim_geom != (IntPtr) 0)
+                if (prim_geom != IntPtr.Zero)
                 {
                     d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
 
@@ -1079,7 +1367,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float fy = 0;
             float fz = 0;
 
-            if (IsPhysical && Body != (IntPtr)0 && !m_isSelected)
+            if (IsPhysical && Body != IntPtr.Zero && !m_isSelected)
             {
                 //float PID_P = 900.0f;
 
@@ -1201,7 +1489,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             myrot.Z = _orientation.Z;
             myrot.W = _orientation.W;
             d.GeomSetQuaternion(prim_geom, ref myrot);
-            if (m_isphysical && Body != (IntPtr) 0)
+            if (m_isphysical && Body != IntPtr.Zero)
             {
                 d.BodySetQuaternion(Body, ref myrot);
                 if (!m_angularlock.IsIdentical(new PhysicsVector(1, 1, 1), 0))
@@ -1222,10 +1510,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void changedisable(float timestep)
         {
             m_disabled = true;
-            if (Body != (IntPtr)0)
+            if (Body != IntPtr.Zero)
             {
                 d.BodyDisable(Body);
-                Body = (IntPtr)0;
+                Body = IntPtr.Zero;
             }
 
             m_taintdisable = false;
@@ -1235,7 +1523,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_isphysical == true)
             {
-                if (Body == (IntPtr)0)
+                if (Body == IntPtr.Zero)
                 {
                     if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
                     {
@@ -1249,7 +1537,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                if (Body != (IntPtr)0)
+                if (Body != IntPtr.Zero)
                 {
                     if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
                     {
@@ -1272,7 +1560,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         changeadd(2f);
                     }
-                    disableBody();
+                    if (childPrim)
+                    {
+                        if (_parent != null)
+                        {
+                            OdePrim parent = (OdePrim)_parent;
+                            parent.ChildDelink(this);
+                        }
+                    }
+                    else
+                    {
+                        disableBody();
+                    }
                 }
             }
 
@@ -1301,9 +1600,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // Cleanup meshing here
             }
             //kill body to rebuild
-            if (IsPhysical && Body != (IntPtr)0)
+            if (IsPhysical && Body != IntPtr.Zero)
             {
-                disableBody();
+                if (childPrim)
+                {
+                    if (_parent != null)
+                    {
+                        OdePrim parent = (OdePrim)_parent;
+                        parent.ChildDelink(this);
+                    }
+                }
+                else
+                {
+                    disableBody();
+                }
             }
             if (d.SpaceQuery(m_targetSpace, prim_geom))
             {
@@ -1311,7 +1621,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.SpaceRemove(m_targetSpace, prim_geom);
             }
             d.GeomDestroy(prim_geom);
-            prim_geom = (IntPtr)0;
+            prim_geom = IntPtr.Zero;
             // we don't need to do space calculation because the client sends a position update also.
 
             // Construction of new prim
@@ -1349,7 +1659,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomSetQuaternion(prim_geom, ref myrot);
 
             //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
-            if (IsPhysical && Body == (IntPtr)0)
+            if (IsPhysical && Body == IntPtr.Zero && !childPrim)
             {
                 // Re creates body on size.
                 // EnableBody also does setMass()
@@ -1360,7 +1670,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             _parent_scene.geom_name_map[prim_geom] = oldname;
 
             changeSelectedStatus(timestamp);
-
+            if (childPrim)
+            {
+                if (_parent is OdePrim)
+                {
+                    OdePrim parent = (OdePrim)_parent;
+                    parent.ChildSetGeom(this);
+                }
+            }
             resetCollisionAccounting();
             m_taintsize = _size;
         }
@@ -1541,7 +1858,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_collidesWater = m_taintCollidesWater;
 
-            if (prim_geom != (IntPtr)0)
+            if (prim_geom != IntPtr.Zero)
             {
                 if (m_collidesWater)
                 {
@@ -1560,9 +1877,20 @@ namespace OpenSim.Region.Physics.OdePlugin
             string oldname = _parent_scene.geom_name_map[prim_geom];
 
             // Cleanup of old prim geometry and Bodies
-            if (IsPhysical && Body != (IntPtr) 0)
+            if (IsPhysical && Body != IntPtr.Zero)
             {
-                disableBody();
+                if (childPrim)
+                {
+                    if (_parent != null)
+                    {
+                        OdePrim parent = (OdePrim)_parent;
+                        parent.ChildDelink(this);
+                    }
+                }
+                else
+                {
+                    disableBody();
+                }
             }
             try
             {
@@ -1573,7 +1901,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 prim_geom = IntPtr.Zero;
                 m_log.Error("[PHYSICS]: PrimGeom dead");
             }
-            prim_geom = (IntPtr) 0;
+            prim_geom = IntPtr.Zero;
             // we don't need to do space calculation because the client sends a position update also.
             if (_size.X <= 0) _size.X = 0.01f;
             if (_size.Y <= 0) _size.Y = 0.01f;
@@ -1608,7 +1936,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomSetQuaternion(prim_geom, ref myrot);
 
             //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
-            if (IsPhysical && Body == (IntPtr)0)
+            if (IsPhysical && Body == IntPtr.Zero)
             {
                 // Re creates body on size.
                 // EnableBody also does setMass()
@@ -1618,7 +1946,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             _parent_scene.geom_name_map[prim_geom] = oldname;
 
             changeSelectedStatus(timestamp);
-
+            if (childPrim)
+            {
+                if (_parent is OdePrim)
+                {
+                    OdePrim parent = (OdePrim)_parent;
+                    parent.ChildSetGeom(this);
+                }
+            }
             resetCollisionAccounting();
             m_taintshape = false;
         }
@@ -1658,7 +1993,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 Thread.Sleep(20);
                 if (IsPhysical)
                 {
-                    if (Body != (IntPtr)0)
+                    if (Body != IntPtr.Zero)
                     {
                         d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
                     }
