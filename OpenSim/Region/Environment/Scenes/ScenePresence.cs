@@ -1342,6 +1342,18 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
                 if (part != null)
                 {
+                    TaskInventoryDictionary taskIDict = part.TaskInventory;
+                    if (taskIDict != null)
+                    {
+                        lock (taskIDict)
+                        {
+                            foreach (UUID taskID in taskIDict.Keys)
+                            {
+                                UnRegisterControlEventsToScript(LocalId, taskID);
+                            }
+                        }
+
+                    }
                     // Reset sit target.
                     if (part.GetAvatarOnSitTarget() == UUID)
                         part.SetAvatarOnSitTarget(UUID.Zero);
@@ -3212,6 +3224,11 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (scriptedcontrols.ContainsKey(Script_item_UUID))
                 {
+                    ScriptControllers takecontrolls = scriptedcontrols[Script_item_UUID];
+                    ScriptControlled sctc = takecontrolls.eventControls;
+                    ControllingClient.SendTakeControls((int)sctc, false, false);
+                    ControllingClient.SendTakeControls((int)sctc, true, false);
+
                     scriptedcontrols.Remove(Script_item_UUID);
                     IgnoredControls = ScriptControlled.CONTROL_ZERO;
                     foreach (ScriptControllers scData in scriptedcontrols.Values)
@@ -3219,6 +3236,7 @@ namespace OpenSim.Region.Environment.Scenes
                         IgnoredControls |= scData.ignoreControls;
                     }
                 }
+                
             }
         }
 
