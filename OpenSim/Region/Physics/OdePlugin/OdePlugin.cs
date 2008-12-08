@@ -2475,10 +2475,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             switch ((Char)ch)
             {
                 case 'w':
-                    Vector3 rotate = (new Vector3(1, 0, 0) * Quaternion.CreateFromEulers(hpr.Z * Utils.DEG_TO_RAD, hpr.Y * Utils.DEG_TO_RAD, hpr.X * Utils.DEG_TO_RAD));
+                    try
+                    {
+                        Vector3 rotate = (new Vector3(1, 0, 0) * Quaternion.CreateFromEulers(hpr.Z * Utils.DEG_TO_RAD, hpr.Y * Utils.DEG_TO_RAD, hpr.X * Utils.DEG_TO_RAD));
 
-                    xyz.X += rotate.X; xyz.Y += rotate.Y; xyz.Z += rotate.Z;
-                    ds.SetViewpoint(ref xyz, ref hpr);
+                        xyz.X += rotate.X; xyz.Y += rotate.Y; xyz.Z += rotate.Z;
+                        ds.SetViewpoint(ref xyz, ref hpr);
+                    }
+                    catch (ArgumentException)
+                    { hpr.X = 0; }
                     break;
 
                 case 'a':
@@ -2487,10 +2492,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
 
                 case 's':
-                    Vector3 rotate2 = (new Vector3(-1, 0, 0) * Quaternion.CreateFromEulers(hpr.Z * Utils.DEG_TO_RAD, hpr.Y * Utils.DEG_TO_RAD, hpr.X * Utils.DEG_TO_RAD));
+                    try
+                    {
+                        Vector3 rotate2 = (new Vector3(-1, 0, 0) * Quaternion.CreateFromEulers(hpr.Z * Utils.DEG_TO_RAD, hpr.Y * Utils.DEG_TO_RAD, hpr.X * Utils.DEG_TO_RAD));
 
-                    xyz.X += rotate2.X; xyz.Y += rotate2.Y; xyz.Z += rotate2.Z;
-                    ds.SetViewpoint(ref xyz, ref hpr);
+                        xyz.X += rotate2.X; xyz.Y += rotate2.Y; xyz.Z += rotate2.Z;
+                        ds.SetViewpoint(ref xyz, ref hpr);
+                    }
+                    catch (ArgumentException)
+                    { hpr.X = 0; }
                     break;
                 case 'd':
                     hpr.X--;
