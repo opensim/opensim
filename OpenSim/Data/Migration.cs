@@ -137,7 +137,7 @@ namespace OpenSim.Data
                 int newversion = kvp.Key;
                 cmd.CommandText = kvp.Value;
                 // we need to up the command timeout to infinite as we might be doing long migrations.
-                //cmd.CommandTimeout = 0;
+                cmd.CommandTimeout = 0;
                 cmd.ExecuteNonQuery();
 
                 if (version == 0)
