@@ -300,20 +300,22 @@ namespace OpenSim.Data.MySQL
                     reader.Close();
                 }
 
-                foreach (UUID uuid in uuids)
-                    RemoveItems(uuid);
-
+                // delete the main prims
                 cmd.CommandText = "delete from prims where SceneGroupID= ?UUID";
-
-                ExecuteNonQuery(cmd);
-
-                cmd.CommandText = "delete from primshapes where UUID = ?UUID";
-
                 ExecuteNonQuery(cmd);
                 cmd.Dispose();
+
+                // there is no way this should be < 1 unless there is
+                // a very corrupt database, but in that case be extra
+                // safe anyway.
+                if (uuids.Count > 0) 
+                {
+                    RemoveShapes(uuids);
+                    RemoveItems(uuids);
+                }
             }
         }
-        
+
         /// <summary>
         /// Remove all persisted items of the given prim.
         /// The caller must acquire the necessrary synchronization locks
@@ -329,6 +331,77 @@ namespace OpenSim.Data.MySQL
                         "PrimID = ?PrimID";
 
                 cmd.Parameters.AddWithValue("PrimID", uuid.ToString());
+
+                ExecuteNonQuery(cmd);
+                cmd.Dispose();
+            }
+        }
+
+
+        /// <summary>
+        /// Remove all persisted shapes for a list of prims
+        /// The caller must acquire the necessrary synchronization locks
+        /// </summary>
+        /// <param name="uuids">the list of UUIDs</param>
+        private void RemoveShapes(List<UUID> uuids)
+        {
+            lock (m_Connection)
+            {
+                string sql = "delete from primshapes where ";
+                MySqlCommand cmd = m_Connection.CreateCommand();
+                
+                for (int i = 0; i < uuids.Count; i++)
+                {
+                    if ((i + 1) == uuids.Count) 
+                    {// end of the list
+                        sql += "(UUID = ?UUID" + i + ")";
+                    }
+                    else
+                    {
+                        sql += "(UUID = ?UUID" + i + ") or ";
+                    }
+                }
+                cmd.CommandText = sql;
+
+                for (int i = 0; i < uuids.Count; i++)
+                {
+                    cmd.Parameters.AddWithValue("UUID" + i, uuids[i].ToString());
+                }
+
+                ExecuteNonQuery(cmd);
+                cmd.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Remove all persisted items for a list of prims
+        /// The caller must acquire the necessrary synchronization locks
+        /// </summary>
+        /// <param name="uuids">the list of UUIDs</param>
+        private void RemoveItems(List<UUID> uuids)
+        {
+            lock (m_Connection)
+            {
+                string sql = "delete from primitems where ";
+                MySqlCommand cmd = m_Connection.CreateCommand();
+                
+                for (int i = 0; i < uuids.Count; i++)
+                {
+                    if ((i + 1) == uuids.Count) 
+                    {// end of the list
+                        sql += "(PrimID = ?PrimID" + i + ")";
+                    }
+                    else
+                    {
+                        sql += "(PrimID = ?PrimID" + i + ") or ";
+                    }
+                }
+                cmd.CommandText = sql;
+
+                for (int i = 0; i < uuids.Count; i++)
+                {
+                    cmd.Parameters.AddWithValue("PrimID" + i, uuids[i].ToString());
+                }
 
                 ExecuteNonQuery(cmd);
                 cmd.Dispose();
