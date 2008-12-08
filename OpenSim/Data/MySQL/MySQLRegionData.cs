@@ -1049,7 +1049,7 @@ namespace OpenSim.Data.MySQL
 
             newData.Name = (String) row["Name"];
             newData.Description = (String) row["Description"];
-            newData.OwnerID = (UUID)(String)row["OwnerUUID"];
+            newData.OwnerID = new UUID((String)row["OwnerUUID"]);
             newData.IsGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]);
             newData.Area = Convert.ToInt32(row["Area"]);
             newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unimplemented
