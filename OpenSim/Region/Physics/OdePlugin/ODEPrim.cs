@@ -627,6 +627,40 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             returnMass = m_density*volume;
             if (returnMass <= 0) returnMass = 0.0001f;//ckrinke: Mass must be greater then zero.
+
+
+
+            // Recursively calculate mass
+            bool HasChildPrim = false;
+            lock (childrenPrim)
+            {
+                if (childrenPrim.Count > 0)
+                {
+                    HasChildPrim = true;
+                }
+
+            }
+            if (HasChildPrim)
+            {
+                OdePrim[] childPrimArr = new OdePrim[0];
+
+                lock (childrenPrim)
+                    childPrimArr = childrenPrim.ToArray();
+
+                for (int i = 0; i < childPrimArr.Length; i++)
+                {
+                    if (childPrimArr[i] != null && !childPrimArr[i].m_taintremove)
+                        returnMass += childPrimArr[i].CalculateMass();
+                    // failsafe, this shouldn't happen but with OpenSim, you never know :)
+                    if (i > 256)
+                        break;
+                }
+            }
+                
+
+
+
+           
             return returnMass;
         }
 
@@ -843,7 +877,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
             // Store this for later in case we get turned into a separate body
-            m_angularlock = new PhysicsVector(m_taintAngularLock.X,m_angularlock.Y,m_angularlock.Z);
+            m_angularlock = new PhysicsVector(m_taintAngularLock.X, m_taintAngularLock.Y, m_taintAngularLock.Z);
         }
 
         private void changelink(float timestep)
@@ -1160,6 +1194,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (Body != IntPtr.Zero)
                     {
                         d.BodySetLinearVel(Body, 0f, 0f, 0f);
+                        d.BodySetForce(Body, 0, 0, 0);
                         enableBodySoft();
                     }
                 }
@@ -1394,7 +1429,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_usePID)
                 {
                     // If we're using the PID controller, then we have no gravity
-                    fz = (-1 * _parent_scene.gravityz) * this.Mass;
+                    fz = (-1 * _parent_scene.gravityz) * m_mass;
 
                     //  no lock; for now it's only called from within Simulate()
 
@@ -1470,7 +1505,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //m_taintdisable = true;
                     //base.RaiseOutOfBounds(Position);
                     //d.BodySetLinearVel(Body, fx, fy, 0f);
-                    enableBodySoft();
+                    if (!d.BodyIsEnabled(Body))
+                    {
+                        d.BodySetLinearVel(Body, 0f, 0f, 0f);
+                        d.BodySetForce(Body, 0, 0, 0);
+                        enableBodySoft();
+                    }
                     d.BodyAddForce(Body, fx, fy, fz);
                 }
             }
@@ -2234,6 +2274,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             axis.X = (axis.X > 0) ? 1f : 0f;
             axis.Y = (axis.Y > 0) ? 1f : 0f;
             axis.Z = (axis.Z > 0) ? 1f : 0f;
+            m_log.DebugFormat("[axislock]: <{0},{1},{2}>", axis.X, axis.Y, axis.Z);
             m_taintAngularLock = new PhysicsVector(axis.X, axis.Y, axis.Z); ;
         }
 
@@ -2455,6 +2496,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float axisnum = 3;
 
             axisnum = (axisnum - (axis.X + axis.Y + axis.Z));
+            
 
             if (axisnum <= 0)
                 return;
@@ -2502,7 +2544,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
 
             d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, m_tensor);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, m_tensor * 5);//
         }
 
         public override void SubscribeEvents(int ms)
