@@ -560,6 +560,34 @@ namespace OpenSim.Framework
             return ".";
         }
 
+        // From: http://coercedcode.blogspot.com/2008/03/c-generate-unique-filenames-within.html
+        public static string GetUniqueFilename(string FileName)
+        {
+            int count = 0;
+            string Name;
+
+            if (File.Exists(FileName))
+            {
+                FileInfo f = new FileInfo(FileName);
+
+                if (!string.IsNullOrEmpty(f.Extension))
+                {
+                    Name = f.FullName.Substring(0, f.FullName.LastIndexOf('.'));
+                }
+                else
+                {
+                    Name = f.FullName;
+                }
+
+                while (File.Exists(FileName))
+                {
+                    count++;
+                    FileName = Name + count + f.Extension;
+                }
+            }
+            return FileName;
+        }
+
         // Nini (config) related Methods
         public static IConfigSource ConvertDataRowToXMLConfig(DataRow row, string fileName)
         {

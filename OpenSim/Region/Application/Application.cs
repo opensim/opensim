@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using System.Net;
 using System.Reflection;
 using log4net;
@@ -41,6 +42,9 @@ namespace OpenSim
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         public static string iniFilePath = "";
+
+        public static bool m_saveCrashDumps = false;
+        public static string m_crashDir = "crashes";
 
         //could move our main function into OpenSimMain and kill this class
         public static void Main(string[] args)
@@ -83,6 +87,9 @@ namespace OpenSim
 
             bool background = configSource.Configs["Startup"].GetBoolean("background", false);
             bool hgrid = configSource.Configs["Startup"].GetBoolean("hypergrid", false);
+
+            m_saveCrashDumps = configSource.Configs["Startup"].GetBoolean("save_crashes", false);
+            m_crashDir = configSource.Configs["Startup"].GetString("crash_dir", m_crashDir);
 
             if (background)
             {
@@ -139,19 +146,23 @@ namespace OpenSim
 
             m_log.ErrorFormat("[APPLICATION]: {0}", msg);
 
-            // Try to post errormessage to an URL
+            // Log exception to disk
             try
             {
-                // DISABLED UNTIL WE CAN DISCUSS IF THIS IS MORALLY RIGHT OR NOT
-                // Note! Needs reference to System.Web
-                //System.Net.WebClient wc = new WebClient();
-                //wc.DownloadData("http://www.opensimulator.org/ErrorReport.php?Msg=" +
-                //                System.Web.HttpUtility.UrlEncode(msg));
-                //wc.Dispose();
+                if (!Directory.Exists(m_crashDir))
+                {
+                    Directory.CreateDirectory(m_crashDir);
+                }
+                StreamWriter m_crashLog =
+                    new StreamWriter(
+                        Path.Combine(m_crashDir, Util.GetUniqueFilename(ex.GetType() + ".txt"))
+                        );
+                m_crashLog.WriteLine(msg);
+                m_crashLog.Close();
             }
-            catch (WebException)
+            catch (Exception e2)
             {
-                // Ignore
+                m_log.ErrorFormat("[CRASH LOGGER CRASHED]: {0}", e2);
             }
 
             _IsHandlingException=false;
