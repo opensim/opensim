@@ -144,11 +144,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                 // First byte is the asset type
                 AssetType assetType = (AssetType)im.binaryBucket[0];
                 
-                // Temporarily disabled pending test of complex transfers (folders within folders, lots of items, 
-                // empty folders, etc.) 
-                if (AssetType.Folder == assetType)
-                    return;
-                
                 if (AssetType.Folder == assetType)
                 {
                     UUID folderID = new UUID(im.binaryBucket, 1);
