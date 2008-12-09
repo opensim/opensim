@@ -2366,6 +2366,14 @@ if (m_shape != null) {
             }
         }
 
+        public void SetVolumeDetect(int param)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.SetVolumeDetect(param);
+            }
+        }
+
         public void SetGroup(UUID groupID, IClientAPI client)
         {
             _groupID = groupID;

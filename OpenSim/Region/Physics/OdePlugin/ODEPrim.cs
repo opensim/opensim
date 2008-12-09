@@ -2099,6 +2099,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         }
 
+        public override void SetVolumeDetect(int param)
+        {
+
+        }
+
         public override PhysicsVector CenterOfMass
         {
             get { return PhysicsVector.Zero; }

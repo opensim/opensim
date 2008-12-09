@@ -49,6 +49,7 @@ Patches
 * devalnor-#708
 * Diva Canto
 * dmiles (Daxtron Labs)
+* Gerhard
 * Godfrey
 * Grumly57
 * jhurliman

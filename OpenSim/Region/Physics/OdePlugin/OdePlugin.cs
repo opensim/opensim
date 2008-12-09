@@ -261,7 +261,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int physics_logging_interval = 0;
         public bool physics_logging_append_existing_logfile = false;
 
-        public d.Vector3 xyz = new d.Vector3(2.1640f, -1.3079f, 1.7600f);
+        public d.Vector3 xyz = new d.Vector3(128.1640f, 128.3079f, 25.7600f);
         public d.Vector3 hpr = new d.Vector3(125.5000f, -17.0000f, 0.0000f);
 
         /// <summary>

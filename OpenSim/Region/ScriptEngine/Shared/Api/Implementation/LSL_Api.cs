@@ -5671,7 +5671,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llVolumeDetect(int detect)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llVolumeDetect");
+            if (m_host.ParentGroup != null)
+            {
+                if (!m_host.ParentGroup.IsDeleted)
+                {
+                    m_host.ParentGroup.RootPart.SetVolumeDetect(detect);
+                }
+            }
         }
 
         /// <summary>

@@ -180,6 +180,8 @@ namespace OpenSim.Region.Physics.Manager
         public abstract void VehicleVectorParam(int param, PhysicsVector value);
         public abstract void VehicleRotationParam(int param, Quaternion rotation);
 
+        public abstract void SetVolumeDetect(int param);    // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
+
         public abstract PhysicsVector GeometricCenter { get; }
         public abstract PhysicsVector CenterOfMass { get; }
         public abstract PhysicsVector Velocity { get; set; }
@@ -299,6 +301,11 @@ namespace OpenSim.Region.Physics.Manager
         }
 
         public override void VehicleRotationParam(int param, Quaternion rotation)
+        {
+
+        }
+
+        public override void SetVolumeDetect(int param)
         {
 
         }

@@ -364,6 +364,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
         }
 
+        public override void SetVolumeDetect(int param)
+        {
+
+        }
+
+
         public override PhysicsVector CenterOfMass
         {
             get { return PhysicsVector.Zero; }
@@ -711,6 +717,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         }
 
         public override void VehicleRotationParam(int param, Quaternion rotation)
+        {
+
+        }
+
+        public override void SetVolumeDetect(int param)
         {
 
         }

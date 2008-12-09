@@ -971,6 +971,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         }
 
+        public override void SetVolumeDetect(int param)
+        {
+
+        }
+
         public override PhysicsVector CenterOfMass
         {
             get { return PhysicsVector.Zero; }
