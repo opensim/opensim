@@ -896,7 +896,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
-            if (detectedParams == null || detectedParams.TouchBinormal == null)
+            if (detectedParams == null)
                 return new LSL_Vector();
             return detectedParams.TouchBinormal;
         }
@@ -908,7 +908,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
-            if (detectedParams == null || detectedParams.TouchFace == null)
+            if (detectedParams == null)
                 return new LSL_Integer(-1);
             return new LSL_Integer(detectedParams.TouchFace);
         }
@@ -920,7 +920,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
-            if (detectedParams == null || detectedParams.TouchNormal == null)
+            if (detectedParams == null)
                 return new LSL_Vector();
             return detectedParams.TouchNormal;
         }
@@ -932,7 +932,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
-            if (detectedParams == null || detectedParams.TouchPos == null)
+            if (detectedParams == null)
                 return new LSL_Vector();
             return detectedParams.TouchPos;
         }
@@ -944,7 +944,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
-            if (detectedParams == null || detectedParams.TouchST == null)
+            if (detectedParams == null)
                 return new LSL_Vector(-1.0, -1.0, 0.0);
             return detectedParams.TouchST;
         }
@@ -956,7 +956,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
-            if (detectedParams == null || detectedParams.TouchUV == null)
+            if (detectedParams == null)
                 return new LSL_Vector(-1.0, -1.0, 0.0);
             return detectedParams.TouchUV;
         }
