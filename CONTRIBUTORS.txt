@@ -55,6 +55,7 @@ Patches
 * jhurliman
 * jimbo2120 (IBM)
 * John R Sohn (XenReborn)
+* jonc
 * Junta Kohime
 * Kayne
 * Kevin Cozens
@@ -64,6 +65,7 @@ Patches
 * M.Igarashi
 * Mic Bowman
 * mikkopa/_someone - RealXtend
+* Mircea Kitsune
 * nlin
 * nornalbion
 * openlifegrid.com
@@ -80,7 +82,6 @@ Patches
 * Y. Nitta
 * YZh
 * Zha Ewry
-* Mircea Kitsune
 
 
 LSL Devs

@@ -753,6 +753,47 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             CheckForTerrainUpdates();
         }
 
+        private void InterfaceFlipTerrain(Object[] args)
+        {
+            String direction = (String)args[0];
+
+            if( direction.ToLower().StartsWith("y"))
+            {
+                for (int x = 0; x < Constants.RegionSize; x++)
+                {
+                    for (int y = 0; y < Constants.RegionSize / 2; y++)
+                    {
+                        double height = m_channel[x, y];
+                        double flippedHeight = m_channel[x, (int)Constants.RegionSize - 1 - y];
+                        m_channel[x, y] = flippedHeight;
+                        m_channel[x, (int)Constants.RegionSize - 1 - y] = height;
+
+                    }
+                }
+            }
+            else if (direction.ToLower().StartsWith("x"))
+            {
+                for (int y = 0; y < Constants.RegionSize; y++)
+                {
+                    for (int x = 0; x < Constants.RegionSize / 2; x++)
+                    {
+                        double height = m_channel[x, y];
+                        double flippedHeight = m_channel[(int)Constants.RegionSize - 1 - x, y];
+                        m_channel[x, y] = flippedHeight;
+                        m_channel[(int)Constants.RegionSize - 1 - x, y] = height;
+
+                    }
+                }
+            }
+            else
+            {
+                m_log.Error("Unrecognised direction - need x or y");
+            }
+
+
+            CheckForTerrainUpdates();
+        }
+
         private void InterfaceElevateTerrain(Object[] args)
         {
             int x, y;
@@ -911,6 +952,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             Command revertRegionCommand =
                 new Command("revert", CommandIntentions.COMMAND_HAZARDOUS, InterfaceRevertTerrain, "Loads the revert map terrain into the regions heightmap.");
 
+            Command flipCommand =
+                new Command("flip", CommandIntentions.COMMAND_HAZARDOUS, InterfaceFlipTerrain, "Flips the current terrain about the X or Y axis");
+            flipCommand.AddArgument("direction", "[x|y] the direction to flip the terrain in", "String");
+
             // Debug
             Command showDebugStatsCommand =
                 new Command("stats", CommandIntentions.COMMAND_STATISTICAL, InterfaceShowDebugStats,
@@ -938,6 +983,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             m_commander.RegisterCommand("newbrushes", experimentalBrushesCommand);
             m_commander.RegisterCommand("stats", showDebugStatsCommand);
             m_commander.RegisterCommand("effect", pluginRunCommand);
+            m_commander.RegisterCommand("flip", flipCommand);
 
             // Add this to our scene so scripts can call these functions
             m_scene.RegisterModuleCommander("Terrain", m_commander);
