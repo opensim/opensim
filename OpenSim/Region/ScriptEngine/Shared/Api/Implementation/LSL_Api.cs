@@ -78,6 +78,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private DateTime m_timer = DateTime.Now;
         private bool m_waitingForScriptAnswer=false;
+	private bool m_automaticLinkPermission=false;
 
         //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -94,6 +95,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
             m_MinTimerInterval =
                     m_ScriptEngine.Config.GetFloat("MinTimerInterval", 0.5f);
+	    m_automaticLinkPermission =
+		    m_ScriptEngine.Config.GetBoolean("AutomaticLinkPermission", false);
 
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
@@ -3021,7 +3024,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (item.Type == 10 && item.ItemID == m_itemID)
                 {
-                    return item.PermsMask;
+		    int perms = item.PermsMask;
+		    if (m_automaticLinkPermission) 
+			perms |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
+                    return perms;
                 }
             }
 
@@ -3054,10 +3060,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID invItemID = InventorySelf();
-            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0) {
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
+		    && !m_automaticLinkPermission) 
+	    {
               ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
               return;
             }
+	    
             IClientAPI client = null;
             ScenePresence sp = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter);
             if (sp != null)
@@ -3087,7 +3096,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             parentPrim.RootPart.AddFlag(PrimFlags.CreateSelected);
             parentPrim.HasGroupChanged = true;
             parentPrim.ScheduleGroupForFullUpdate();
-            parentPrim.GetProperties(client);
+	    if (client!=null) 
+		parentPrim.GetProperties(client);
 
             ScriptSleep(1000);
         }
@@ -3096,7 +3106,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID invItemID = InventorySelf();
-            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0)
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
+		    && !m_automaticLinkPermission)
             {
                 ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
                 return;
