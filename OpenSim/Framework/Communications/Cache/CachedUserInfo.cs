@@ -397,14 +397,14 @@ namespace OpenSim.Framework.Communications.Cache
 
         /// <summary>
         /// Handle a client request to update the inventory folder
+        /// </summary>
         ///
         /// If the inventory service has not yet delievered the inventory
         /// for this user then the request will be queued.
         ///
         /// FIXME: We call add new inventory folder because in the data layer, we happen to use an SQL REPLACE
         /// so this will work to rename an existing folder.  Needless to say, to rely on this is very confusing,
-        /// and needs to be changed.
-        /// </summary>
+        /// and needs to be changed.        
         ///
         /// <param name="folderID"></param>
         /// <param name="type"></param>
@@ -461,6 +461,10 @@ namespace OpenSim.Framework.Communications.Cache
         ///
         /// <param name="folderID"></param>
         /// <param name="parentID"></param>
+        /// <returns>
+        /// true if the delete was successful, or if it was queued pending folder receipt
+        /// false if the folder to be deleted did not exist.
+        /// </returns>
         public bool MoveFolder(UUID folderID, UUID parentID)
         {
             //            m_log.DebugFormat(
@@ -482,10 +486,27 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     m_commsManager.InventoryService.MoveFolder(baseFolder);
                 }
-
+                
                 InventoryFolderImpl folder = RootFolder.FindFolder(folderID);
-                if (folder != null)
-                    folder.ParentID = parentID;
+                InventoryFolderImpl parentFolder = RootFolder.FindFolder(parentID);
+                if (parentFolder != null && folder != null)
+                {
+                    InventoryFolderImpl oldParentFolder = RootFolder.FindFolder(folder.ParentID);
+
+                    if (oldParentFolder != null)
+                    {                        
+                        oldParentFolder.RemoveChildFolder(folderID);
+                        parentFolder.AddChildFolder(folder);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                { 
+                    return false;
+                }
 
                 return true;
             }
@@ -502,10 +523,9 @@ namespace OpenSim.Framework.Communications.Cache
 
         /// <summary>
         /// This method will delete all the items and folders in the given folder.
-        ///
+        /// </summary>
         /// If the inventory service has not yet delievered the inventory
         /// for this user then the request will be queued.
-        /// </summary>
         ///
         /// <param name="folderID"></param>
         public bool PurgeFolder(UUID folderID)

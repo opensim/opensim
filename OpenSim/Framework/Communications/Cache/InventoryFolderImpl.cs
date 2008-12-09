@@ -92,6 +92,42 @@ namespace OpenSim.Framework.Communications.Cache
 
             return null;
         }
+        
+        /// <summary>
+        /// Add a folder that already exists.
+        /// </summary>
+        /// <param name="folder"></param>
+        public void AddChildFolder(InventoryFolderImpl folder)
+        {
+            lock (SubFolders)
+            {
+                folder.ParentID = ID;
+                SubFolders[folder.ID] = folder;
+            }                        
+        }
+        
+        /// <summary>
+        /// Removes the given child subfolder.
+        /// </summary>
+        /// <param name="folderID"></param>
+        /// <returns>
+        /// The folder removed, or null if the folder was not present.
+        /// </returns>
+        public InventoryFolderImpl RemoveChildFolder(UUID folderID)
+        {
+            InventoryFolderImpl removedFolder = null;
+            
+            lock (SubFolders)
+            {
+                if (SubFolders.ContainsKey(folderID))
+                {
+                    removedFolder = SubFolders[folderID];
+                    SubFolders.Remove(folderID);
+                }                    
+            }
+            
+            return removedFolder;
+        }
 
         /// <summary>
         /// Delete all the folders and items in this folder.

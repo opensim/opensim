@@ -274,8 +274,8 @@ namespace OpenSim.Framework.Communications.Cache
                 if (!userProfile.MoveFolder(folderID, parentID))
                 {
                     m_log.ErrorFormat(
-                         "[AGENT INVENTORY]: Failed to move folder for user {0} {1}",
-                         remoteClient.Name, remoteClient.AgentId);
+                         "[AGENT INVENTORY]: Failed to move folder {0} to {1} for user {2}",
+                         folderID, parentID, remoteClient.Name);
                 }
             }
             else
