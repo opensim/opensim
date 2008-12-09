@@ -1355,8 +1355,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <returns></returns>
         private bool CanCreateObjectInventory(int invType, UUID objectID, UUID userID)
         {
-            m_log.Debug("[PERMISSIONS]: CanCreateObjectInventory called");
-            
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
@@ -1375,8 +1373,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <returns></returns>           
         private bool CanCreateUserInventory(int invType, UUID userID)
         {
-            m_log.Debug("[PERMISSIONS]: CanCreateAvatarInventory called");
-            
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 

@@ -1791,7 +1791,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 bulkUpdate.AgentData.TransactionID = transactionId;                                 
                 bulkUpdate.FolderData = folderDataBlocks.ToArray(); 
                 
-                Console.WriteLine("SendBulkUpdateInventory :" + bulkUpdate); 
+                //Console.WriteLine("SendBulkUpdateInventory :" + bulkUpdate); 
                 OutPacket(bulkUpdate, ThrottleOutPacketType.Asset);       
             }
         }
@@ -1834,7 +1834,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     items.RemoveAt(items.Count - 1);
                 }
                 
-                Console.WriteLine("SendBulkUpdateInventoryRecursive :" + bulkUpdate);
+                //Console.WriteLine("SendBulkUpdateInventoryRecursive :" + bulkUpdate);
                 OutPacket(bulkUpdate, ThrottleOutPacketType.Asset);
                 
                 folderDataBlocks = new List<BulkUpdateInventoryPacket.FolderDataBlock>();
@@ -2525,7 +2525,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             ObjectAttachPacket attach = (ObjectAttachPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAttach);
-            Console.WriteLine("Attach object!");
             // TODO: don't create new blocks if recycling an old packet
             attach.AgentData.AgentID = AgentId;
             attach.AgentData.SessionID = m_sessionId;

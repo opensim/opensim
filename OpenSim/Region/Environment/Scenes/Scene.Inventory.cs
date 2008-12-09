@@ -169,22 +169,24 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (item != null)
                     {
-                        if ((InventoryType) item.InvType == InventoryType.Notecard)
+                        if ((InventoryType)item.InvType == InventoryType.Notecard)
                         {
                             if (!Permissions.CanEditNotecard(itemID, UUID.Zero, remoteClient.AgentId))
                             {
                                 remoteClient.SendAgentAlertMessage("Insufficient permissions to edit notecard", false);
                                 return UUID.Zero;
                             }
+                            
                             remoteClient.SendAgentAlertMessage("Notecard saved", false);
                         }
-                        else if ((InventoryType) item.InvType == InventoryType.LSL)
+                        else if ((InventoryType)item.InvType == InventoryType.LSL)
                         {
                             if (!Permissions.CanEditScript(itemID, UUID.Zero, remoteClient.AgentId))
                             {
                                 remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
                                 return UUID.Zero;
                             }
+                            
                             remoteClient.SendAgentAlertMessage("Script saved", false);
                         }
 
