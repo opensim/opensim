@@ -45,7 +45,7 @@ using Ode.NET;
 namespace Drawstuff.NET
 {
 #if dDOUBLE
-	using dReal = System.Double;
+    using dReal = System.Double;
 #else
     using dReal = System.Single;
 #endif
