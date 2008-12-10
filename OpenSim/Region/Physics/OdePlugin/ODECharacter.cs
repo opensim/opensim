@@ -26,10 +26,12 @@
  */
 
 using System;
+using System.Reflection;
 using OpenMetaverse;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using log4net;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
@@ -55,7 +57,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     }
     public class OdeCharacter : PhysicsActor
     {
-        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private PhysicsVector _position;
         private d.Vector3 _zeroPosition;
@@ -89,6 +91,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_hackSentFly = false;
         public uint m_localID = 0;
         public bool m_returnCollisions = false;
+        // taints and their non-tainted counterparts
+        public bool m_isPhysical = false; // the current physical status
+        public bool m_tainted_isPhysical = false; // set when the physical status is tainted (false=not existing in physics engine, true=existing)
+        private float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes. 
 
         private float m_buoyancy = 0f;
 
@@ -108,10 +114,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                         | CollisionCategories.Body
                                                         | CollisionCategories.Character
                                                         | CollisionCategories.Land);
-        public IntPtr Body;
+        public IntPtr Body = IntPtr.Zero;
         private OdeScene _parent_scene;
-        public IntPtr Shell;
-        public IntPtr Amotor;
+        public IntPtr Shell = IntPtr.Zero;
+        public IntPtr Amotor = IntPtr.Zero;
         public d.Mass ShellMass;
         public bool collidelock = false;
 
@@ -147,14 +153,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             CAPSULE_LENGTH = (size.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
             //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
+            m_tainted_CAPSULE_LENGTH = CAPSULE_LENGTH;
+
+            m_isPhysical = false; // current status: no ODE information exists
+            m_tainted_isPhysical = true; // new tainted status: need to create ODE information
 
             lock (_parent_scene.OdeLock)
             {
-                AvatarGeomAndBodyCreation(pos.X, pos.Y, pos.Z, m_tensor);
+                _parent_scene.AddPhysicsActorTaint(this);
             }
             m_name = avName;
-            parent_scene.geom_name_map[Shell] = avName;
-            parent_scene.actor_name_map[Shell] = (PhysicsActor) this;
         }
 
         public override int PhysicsActorType
@@ -389,27 +397,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_pidControllerActive = true;
                 lock (_parent_scene.OdeLock)
                 {
-                    d.JointDestroy(Amotor);
-
                     PhysicsVector SetSize = value;
-                    float prevCapsule = CAPSULE_LENGTH;
-                    // float capsuleradius = CAPSULE_RADIUS;
-                    //capsuleradius = 0.2f;
-
-                    CAPSULE_LENGTH = (SetSize.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
+                    m_tainted_CAPSULE_LENGTH = (SetSize.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
                     //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
-                    d.BodyDestroy(Body);
 
-                    _parent_scene.waitForSpaceUnlock(_parent_scene.space);
-
-                    d.GeomDestroy(Shell);
-                    AvatarGeomAndBodyCreation(_position.X, _position.Y,
-                                      _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2), m_tensor);
                     Velocity = new PhysicsVector(0f, 0f, 0f);
-
                 }
-                _parent_scene.geom_name_map[Shell] = m_name;
-                _parent_scene.actor_name_map[Shell] = (PhysicsActor) this;
+                _parent_scene.AddPhysicsActorTaint(this);
             }
         }
         
@@ -419,9 +413,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="npositionX"></param>
         /// <param name="npositionY"></param>
         /// <param name="npositionZ"></param>
+
+        // WARNING: This MUST NOT be called outside of ProcessTaints, else we can have unsynchronized access
+        // to ODE internals. ProcessTaints is called from within thread-locked Simulate(), so it is the only 
+        // place that is safe to call this routine AvatarGeomAndBodyCreation.
         private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ, float tensor)
         {
-
             int dAMotorEuler = 1;
             _parent_scene.waitForSpaceUnlock(_parent_scene.space);
             Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
@@ -477,9 +474,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             //
             //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
             //standupStraight();
-
-
-
         }
 
         //
@@ -872,17 +866,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (_parent_scene.OdeLock)
             {
-                // Kill the Amotor
-                d.JointDestroy(Amotor);
-
-                //kill the Geometry
-                _parent_scene.waitForSpaceUnlock(_parent_scene.space);
-
-                d.GeomDestroy(Shell);
-                _parent_scene.geom_name_map.Remove(Shell);
-
-                //kill the body
-                d.BodyDestroy(Body);
+                m_tainted_isPhysical = false;
+                _parent_scene.AddPhysicsActorTaint(this);
             }
         }
 
@@ -921,6 +906,79 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_eventsubscription > 0)
                 return true;
             return false;
+        }
+
+        public void ProcessTaints(float timestep)
+        {
+
+            if (m_tainted_isPhysical != m_isPhysical)
+            {
+                if (m_tainted_isPhysical)
+                {
+                    // Create avatar capsule and related ODE data
+                    if (!(Shell == IntPtr.Zero && Body == IntPtr.Zero && Amotor == IntPtr.Zero))
+                    {
+                        m_log.Warn("[PHYSICS]: re-creating the following avatar ODE data, even though it already exists - "
+                            + (Shell!=IntPtr.Zero ? "Shell ":"")
+                            + (Body!=IntPtr.Zero ? "Body ":"")
+                            + (Amotor!=IntPtr.Zero ? "Amotor ":"") );
+                    }
+                    AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z, m_tensor);
+                
+                    _parent_scene.geom_name_map[Shell] = m_name;
+                    _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
+                }
+                else
+                {
+                    // destroy avatar capsule and related ODE data
+
+                    // Kill the Amotor
+                    d.JointDestroy(Amotor);
+                    Amotor = IntPtr.Zero;
+
+                    //kill the Geometry
+                    _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+
+                    d.GeomDestroy(Shell);
+                    _parent_scene.geom_name_map.Remove(Shell);
+                    Shell = IntPtr.Zero;
+
+                    //kill the body
+                    d.BodyDestroy(Body);
+                    Body=IntPtr.Zero;
+                }
+
+                m_isPhysical = m_tainted_isPhysical;
+            }
+
+            if (m_tainted_CAPSULE_LENGTH != CAPSULE_LENGTH)
+            {
+                if (Shell != IntPtr.Zero && Body != IntPtr.Zero && Amotor != IntPtr.Zero)
+                {
+
+                    m_pidControllerActive = true;
+                    // no lock needed on _parent_scene.OdeLock because we are called from within the thread lock in OdePlugin's simulate()
+                    d.JointDestroy(Amotor);
+                    float prevCapsule = CAPSULE_LENGTH;
+                    CAPSULE_LENGTH = m_tainted_CAPSULE_LENGTH;
+                    //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
+                    d.BodyDestroy(Body);
+                    d.GeomDestroy(Shell);
+                    AvatarGeomAndBodyCreation(_position.X, _position.Y,
+                                      _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2), m_tensor);
+                    Velocity = new PhysicsVector(0f, 0f, 0f);
+
+                    _parent_scene.geom_name_map[Shell] = m_name;
+                    _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
+                }
+                else
+                {
+                    m_log.Warn("[PHYSICS]: trying to change capsule size, but the following ODE data is missing - " 
+                        + (Shell==IntPtr.Zero ? "Shell ":"")
+                        + (Body==IntPtr.Zero ? "Body ":"")
+                        + (Amotor==IntPtr.Zero ? "Amotor ":"") );
+                }
+            }
         }
     }
 }

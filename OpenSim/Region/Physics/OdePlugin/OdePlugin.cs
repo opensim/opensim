@@ -213,6 +213,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<OdePrim> _prims = new List<OdePrim>();
         private List<OdePrim> _activeprims = new List<OdePrim>();
         private List<OdePrim> _taintedPrim = new List<OdePrim>();
+        private List<OdeCharacter> _taintedActors = new List<OdeCharacter>();
         private List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
         private List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
@@ -1793,6 +1794,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="prim"></param>
         public override void AddPhysicsActorTaint(PhysicsActor prim)
         {
+            
             if (prim is OdePrim)
             {
                 OdePrim taintedprim = ((OdePrim) prim);
@@ -1800,6 +1802,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (!(_taintedPrim.Contains(taintedprim)))
                         _taintedPrim.Add(taintedprim);
+                }
+                return;
+            }
+            else if (prim is OdeCharacter)
+            {
+                OdeCharacter taintedchar = ((OdeCharacter)prim);
+                lock (_taintedActors)
+                {
+                    if (!(_taintedActors.Contains(taintedchar)))
+                        _taintedActors.Add(taintedchar);
                 }
             }
         }
@@ -1869,17 +1881,30 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //{
                            // ode.dlock(world);
                             try
-                            {
-                                lock (_characters)
+                            { 
+                                // Insert, remove Characters
+                                bool processedtaints = false;
+
+                                lock (_taintedActors)
                                 {
-                                    foreach (OdeCharacter actor in _characters)
+                                    if (_taintedActors.Count > 0)
                                     {
-                                        if (actor != null)
-                                            actor.Move(timeStep);
+                                        foreach (OdeCharacter character in _taintedActors)
+                                        {
+
+                                            character.ProcessTaints(timeStep);
+
+                                            processedtaints = true;
+                                            //character.m_collisionscore = 0;
+                                        }
+
+                                        if (processedtaints)
+                                            _taintedActors.Clear();
                                     }
                                 }
 
-                                bool processedtaints = false;
+                                // Modify other objects in the scene.
+                                processedtaints = false;
 
                                 lock (_taintedPrim)
                                 {
@@ -1898,9 +1923,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     }
 
                                     if (processedtaints)
-                                        _taintedPrim = new List<OdePrim>();
+                                        _taintedPrim.Clear();
                                 }
 
+                                // Move characters
+                                lock (_characters)
+                                {
+                                    foreach (OdeCharacter actor in _characters)
+                                    {
+                                        if (actor != null)
+                                            actor.Move(timeStep);
+                                    }
+                                }
+
+                                // Move other active objects
                                 lock (_activeprims)
                                 {
                                     foreach (OdePrim prim in _activeprims)
