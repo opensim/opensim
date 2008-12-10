@@ -32,10 +32,11 @@ using System.Text;
 using System.Collections.Generic;
 using Nini.Config;
 using NUnit.Framework;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Scenes;
-using OpenMetaverse;
+using OpenSim.Tests.Infra;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {

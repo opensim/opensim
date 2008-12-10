@@ -25,26 +25,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
+using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Communications.Local;
+using OpenSim.Region.Environment.Interfaces;
 
-namespace OpenSim.Region.Environment.Scenes.Tests
-{
-    public class TestCommunicationsManager : CommunicationsManager
+namespace OpenSim.Tests.Infra
+{       
+    /// <summary>
+    /// Land channel for test purposes
+    /// </summary>
+    public class TestLandChannel : ILandChannel
     {
-        public TestCommunicationsManager()
-            : base(null, null, null, false, null)
-        {
-            LocalInventoryService lis = new LocalInventoryService();
-            m_interServiceInventoryService = lis;
-            AddInventoryService(lis);
-            
-            LocalUserServices lus = new LocalUserServices(991, 992, lis);
-            m_userService = lus;
-            m_userAdminService = lus;           
-        }
+        public List<ILandObject> ParcelsNearPoint(Vector3 position) { return null; }
+        public List<ILandObject> AllParcels() { return null; }
+        public ILandObject GetLandObject(int x, int y) { return null; }        
+        public ILandObject GetLandObject(float x, float y) { return null; }
+        public bool IsLandPrimCountTainted() { return false; }
+        public bool IsForcefulBansAllowed() { return false; }
+        public void UpdateLandObject(int localID, LandData data) {}
+        public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient) {}
+        public void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel) {}
+        public void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel) {}
+        public void SetParcelOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime) {}
     }
 }

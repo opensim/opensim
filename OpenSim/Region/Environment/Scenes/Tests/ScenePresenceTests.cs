@@ -30,6 +30,7 @@ using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Tests.Infra;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {  

@@ -33,7 +33,7 @@ using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Scenes.Tests
+namespace OpenSim.Tests.Infra
 {
     public class TestClient : IClientAPI
     {
