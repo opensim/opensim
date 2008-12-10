@@ -329,10 +329,11 @@ namespace OpenSim.Framework.Communications.Cache
 
         /// <summary>
         /// Create a folder in this agent's inventory.
+        /// </summary>
         ///
         /// If the inventory service has not yet delievered the inventory
         /// for this user then the request will be queued.
-        /// </summary>
+        /// 
         /// <param name="parentID"></param>
         /// <returns></returns>
         public bool CreateFolder(string folderName, UUID folderID, ushort folderType, UUID parentID)

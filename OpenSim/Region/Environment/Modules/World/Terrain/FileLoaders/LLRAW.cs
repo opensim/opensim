@@ -88,23 +88,23 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
             BinaryReader bs = new BinaryReader(s);
 
-            int currFileYOffset = 0;
+            int currFileYOffset = fileHeight - 1;
 
             // if our region isn't on the first Y section of the areas to be landscaped, then
             // advance to our section of the file
-            while (currFileYOffset < offsetY)
+            while (currFileYOffset > offsetY)
             {
                 // read a whole strip of regions
                 int heightsToRead = sectionHeight * (fileWidth * sectionWidth);
                 bs.ReadBytes(heightsToRead * 13); // because there are 13 fun channels
-                currFileYOffset++;
+                currFileYOffset--;
             }
 
             // got to the Y start offset within the file of our region
             // so read the file bits associated with our region
             int y;
             // for each Y within our Y offset
-            for (y = 0; y < sectionHeight; y++)
+            for (y = sectionHeight - 1; y >= 0; y--)
             {
                 int currFileXOffset = 0;
 
@@ -155,7 +155,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 int x;
                 for (x = 0; x < retval.Width; x++)
                 {
-                    retval[x, y] = bs.ReadByte() * (bs.ReadByte() / 128.0);
+                    retval[x, (retval.Height - 1) - y] = bs.ReadByte() * (bs.ReadByte() / 128.0);
                     bs.ReadBytes(11); // Advance the stream to next bytes.
                 }
             }
@@ -183,7 +183,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             {
                 for (int x = 0; x < map.Width; x++)
                 {
-                    double t = map[x, y];
+                    double t = map[x, (map.Height - 1) - y];
                     int index = 0;
 
                     // The lookup table is pre-sorted, so we either find an exact match or
