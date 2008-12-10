@@ -675,7 +675,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         // the avatar.Close below will clear the child region list. We need this below for (possibly)
                         // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
-                        //List<ulong> childRegions = new List<ulong>(avatar.GetKnownRegionList());
+                        List<ulong> childRegions = new List<ulong>(avatar.GetKnownRegionList());
                         // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
                         // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
                         // once we reach here...
@@ -727,28 +727,17 @@ namespace OpenSim.Region.Environment.Scenes
                             KiPrimitive(avatar.LocalId);
                         }
 
+                        avatar.Close();
 
                         uint newRegionX = (uint)(reg.RegionHandle >> 40);
                         uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
                         uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);
                         uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
 
-                        // Let's close some children agents
-                        avatar.CloseChildAgents(newRegionX, newRegionY);
-
-                        avatar.Close();
-
-                        // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
-
-                        // This is a little too fast of a distance computation... it's not consistent with the rule
-                        // of having child agents in exactly the adjacent regions. Some topologies result in orphan
-                        // children
-                        //if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
-                        //if (((int)Math.Abs((int)(newRegionX - oldRegionX)) > 1) || ((int)Math.Abs((int)(newRegionY - oldRegionY)) > 1))
-                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
                         {
                             //SendCloseChildAgentConnections(avatar.UUID,avatar.GetKnownRegionList());
-                            //SendCloseChildAgentConnections(avatar.UUID, childRegions);
+                            SendCloseChildAgentConnections(avatar.UUID, childRegions);
                             CloseConnection(avatar.UUID);
                         }
 

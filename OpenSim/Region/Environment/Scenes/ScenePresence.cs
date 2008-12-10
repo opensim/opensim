@@ -2385,9 +2385,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                     CrossAttachmentsIntoNewRegion(neighbourHandle, true);
 
-                    // Next, let's close the child agent connections that are too far away.
-                    CloseChildAgents(neighbourx, neighboury);
-
                     //                    m_scene.SendKillObject(m_localId);
 
                     m_scene.NotifyMyCoarseLocationChange();
