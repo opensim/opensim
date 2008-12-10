@@ -773,7 +773,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="false"/>
+        <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
 

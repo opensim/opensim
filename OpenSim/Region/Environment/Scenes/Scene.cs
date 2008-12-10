@@ -2415,12 +2415,12 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnGodKickUser += HandleGodlikeKickUser;
             client.OnObjectPermissions += HandleObjectPermissionsUpdate;
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
-            client.OnCreateNewInventoryFolder += CommsManager.UserProfileCacheService.HandleCreateInventoryFolder;
-            client.OnUpdateInventoryFolder += CommsManager.UserProfileCacheService.HandleUpdateInventoryFolder;
-            client.OnMoveInventoryFolder += CommsManager.UserProfileCacheService.HandleMoveInventoryFolder;
-            client.OnFetchInventoryDescendents += CommsManager.UserProfileCacheService.HandleFetchInventoryDescendents;
-            client.OnPurgeInventoryDescendents += CommsManager.UserProfileCacheService.HandlePurgeInventoryDescendents;
-            client.OnFetchInventory += CommsManager.UserProfileCacheService.HandleFetchInventory;
+            client.OnCreateNewInventoryFolder += HandleCreateInventoryFolder;
+            client.OnUpdateInventoryFolder += HandleUpdateInventoryFolder;
+            client.OnMoveInventoryFolder += HandleMoveInventoryFolder;
+            client.OnFetchInventoryDescendents += HandleFetchInventoryDescendents;
+            client.OnPurgeInventoryDescendents += HandlePurgeInventoryDescendents;
+            client.OnFetchInventory += HandleFetchInventory;
             client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
             client.OnCopyInventoryItem += CopyInventoryItem;
             client.OnMoveInventoryItem += MoveInventoryItem;
@@ -2982,7 +2982,7 @@ namespace OpenSim.Region.Environment.Scenes
             cap.AddNewInventoryItem = AddUploadedInventoryItem;
             cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
             cap.TaskScriptUpdatedCall = CapsUpdateTaskInventoryScriptAsset;
-            cap.CAPSFetchInventoryDescendents = CommsManager.UserProfileCacheService.HandleFetchInventoryDescendentsCAPS;
+            cap.CAPSFetchInventoryDescendents = HandleFetchInventoryDescendentsCAPS;
             cap.GetClient = m_sceneGraph.GetControllingClient;
             m_capsHandlers[agentId] = cap;
         }

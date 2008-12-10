@@ -26,9 +26,12 @@
  */
 
 using System.Collections.Generic;
+using System.Threading;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -214,7 +217,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual void ProcessObjectGrab(uint localID, Vector3 offsetPos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
-
             List<EntityBase> EntityList = GetEntities();
 
             SurfaceTouchEventArgs surfaceArg = null;
@@ -253,7 +255,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient)
         {
-
             List<EntityBase> EntityList = GetEntities();
 
             foreach (EntityBase ent in EntityList)
@@ -346,5 +347,286 @@ namespace OpenSim.Region.Environment.Scenes
                 EventManager.TriggerScriptReset(part.LocalId, itemID);
             }
         }
+        
+        /// <summary>
+        /// Handle a fetch inventory request from the client
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="ownerID"></param>
+        public void HandleFetchInventory(IClientAPI remoteClient, UUID itemID, UUID ownerID)
+        {
+            if (ownerID == CommsManager.UserProfileCacheService.LibraryRoot.Owner)
+            {
+                //Console.WriteLine("request info for library item");
+                return;
+            }
+            
+            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+
+            if (null == userProfile)
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
+                    remoteClient.Name, remoteClient.AgentId);     
+                return;
+            }
+
+            if (userProfile.HasReceivedInventory)
+            {
+                InventoryItemBase item = null;
+                if (userProfile.RootFolder == null)
+                    m_log.ErrorFormat(
+                        "[AGENT INVENTORY]: User {0} {1} does not have a root folder.",
+                        remoteClient.Name, remoteClient.AgentId);
+                else
+                    item = userProfile.RootFolder.FindItem(itemID);
+                
+                if (item != null)
+                {
+                    remoteClient.SendInventoryItemDetails(ownerID, item);
+                }
+            }
+        }    
+        
+        /// <summary>
+        /// Tell the client about the various child items and folders contained in the requested folder.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="fetchFolders"></param>
+        /// <param name="fetchItems"></param>
+        /// <param name="sortOrder"></param>
+        public void HandleFetchInventoryDescendents(IClientAPI remoteClient, UUID folderID, UUID ownerID,
+                                                    bool fetchFolders, bool fetchItems, int sortOrder)
+        {
+            // FIXME MAYBE: We're not handling sortOrder!
+
+            // TODO: This code for looking in the folder for the library should be folded back into the
+            // CachedUserInfo so that this class doesn't have to know the details (and so that multiple libraries, etc.
+            // can be handled transparently).
+            InventoryFolderImpl fold = null;
+            if ((fold = CommsManager.UserProfileCacheService.LibraryRoot.FindFolder(folderID)) != null)
+            {
+                remoteClient.SendInventoryFolderDetails(
+                    fold.Owner, folderID, fold.RequestListOfItems(),
+                    fold.RequestListOfFolders(), fetchFolders, fetchItems);
+                return;
+            }
+
+            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            
+            if (null == userProfile)
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
+                    remoteClient.Name, remoteClient.AgentId);  
+                return;
+            }
+
+            userProfile.SendInventoryDecendents(remoteClient, folderID, fetchFolders, fetchItems);
+        }        
+        
+        /// <summary>
+        /// Handle the caps inventory descendents fetch.
+        ///
+        /// Since the folder structure is sent to the client on login, I believe we only need to handle items.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="folderID"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="fetchFolders"></param>
+        /// <param name="fetchItems"></param>
+        /// <param name="sortOrder"></param>
+        /// <returns>null if the inventory look up failed</returns>
+        public List<InventoryItemBase> HandleFetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
+                                                   bool fetchFolders, bool fetchItems, int sortOrder)
+        {
+//            m_log.DebugFormat(
+//                "[INVENTORY CACHE]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
+//                fetchFolders, fetchItems, folderID, agentID);
+
+            // FIXME MAYBE: We're not handling sortOrder!
+
+            // TODO: This code for looking in the folder for the library should be folded back into the
+            // CachedUserInfo so that this class doesn't have to know the details (and so that multiple libraries, etc.
+            // can be handled transparently).            
+            InventoryFolderImpl fold;
+            if ((fold = CommsManager.UserProfileCacheService.LibraryRoot.FindFolder(folderID)) != null)
+            {
+                return fold.RequestListOfItems();
+            }
+            
+            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(agentID);
+            
+            if (null == userProfile)
+            {
+                m_log.ErrorFormat("[AGENT INVENTORY]: Could not find user profile for {0}", agentID);                
+                return null;
+            }
+
+            // XXX: When a client crosses into a scene, their entire inventory is fetched
+            // asynchronously.  If the client makes a request before the inventory is received, we need
+            // to give the inventory a chance to come in.
+            //
+            // This is a crude way of dealing with that by retrying the lookup.  It's not quite as bad
+            // in CAPS as doing this with the udp request, since here it won't hold up other packets.
+            // In fact, here we'll be generous and try for longer.
+            if (!userProfile.HasReceivedInventory)
+            {
+                int attempts = 0;
+                while (attempts++ < 30)
+                {
+                    m_log.DebugFormat(
+                         "[INVENTORY CACHE]: Poll number {0} for inventory items in folder {1} for user {2}",
+                         attempts, folderID, agentID);
+
+                    Thread.Sleep(2000);
+
+                    if (userProfile.HasReceivedInventory)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (userProfile.HasReceivedInventory)
+            {
+                if ((fold = userProfile.RootFolder.FindFolder(folderID)) != null)
+                {
+                    return fold.RequestListOfItems();
+                }
+                else
+                {
+                    m_log.WarnFormat(
+                        "[AGENT INVENTORY]: Could not find folder {0} requested by user {1}",
+                        folderID, agentID);
+                    return null;
+                }
+            }
+            else
+            {
+                m_log.ErrorFormat("[INVENTORY CACHE]: Could not find root folder for user {0}", agentID);
+                return null;
+            }
+        }        
+        
+        /// <summary>
+        /// Handle an inventory folder creation request from the client.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="folderType"></param>
+        /// <param name="folderName"></param>
+        /// <param name="parentID"></param>
+        public void HandleCreateInventoryFolder(IClientAPI remoteClient, UUID folderID, ushort folderType,
+                                                string folderName, UUID parentID)
+        {
+            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+
+            if (null == userProfile)
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
+                    remoteClient.Name, remoteClient.AgentId);
+                return;
+            }
+            
+            if (!userProfile.CreateFolder(folderName, folderID, folderType, parentID))
+            {
+                m_log.ErrorFormat(
+                     "[AGENT INVENTORY]: Failed to move create folder for user {0} {1}",
+                     remoteClient.Name, remoteClient.AgentId);
+            }
+        }      
+
+        /// <summary>
+        /// Handle a client request to update the inventory folder
+        /// </summary>
+        ///
+        /// FIXME: We call add new inventory folder because in the data layer, we happen to use an SQL REPLACE
+        /// so this will work to rename an existing folder.  Needless to say, to rely on this is very confusing,
+        /// and needs to be changed.
+        ///  
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <param name="parentID"></param>
+        public void HandleUpdateInventoryFolder(IClientAPI remoteClient, UUID folderID, ushort type, string name,
+                                                UUID parentID)
+        {
+//            m_log.DebugFormat(
+//                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
+
+            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            
+            if (null == userProfile)
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
+                    remoteClient.Name, remoteClient.AgentId);
+                return;
+            }
+
+            if (!userProfile.UpdateFolder(name, folderID, type, parentID))
+            {
+                m_log.ErrorFormat(
+                     "[AGENT INVENTORY]: Failed to update folder for user {0} {1}",
+                     remoteClient.Name, remoteClient.AgentId);
+            }
+        }        
+        
+        /// <summary>
+        /// Handle an inventory folder move request from the client.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="parentID"></param>
+        public void HandleMoveInventoryFolder(IClientAPI remoteClient, UUID folderID, UUID parentID)
+        {
+            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            
+            if (null == userProfile)
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
+                    remoteClient.Name, remoteClient.AgentId);
+                return;
+            }
+
+            if (!userProfile.MoveFolder(folderID, parentID))
+            {
+                m_log.ErrorFormat(
+                     "[AGENT INVENTORY]: Failed to move folder {0} to {1} for user {2}",
+                     folderID, parentID, remoteClient.Name);
+            }
+        }      
+        
+        /// <summary>
+        /// This should delete all the items and folders in the given directory.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, UUID folderID)
+        {
+            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            
+            if (null == userProfile)
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
+                    remoteClient.Name, remoteClient.AgentId);     
+                return;
+            }
+
+            if (!userProfile.PurgeFolder(folderID))
+            {
+                m_log.ErrorFormat(
+                     "[AGENT INVENTORY]: Failed to purge folder for user {0} {1}",
+                     remoteClient.Name, remoteClient.AgentId);
+            }
+        }        
     }
 }
