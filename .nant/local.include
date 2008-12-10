@@ -35,6 +35,7 @@
       <test>
         <assemblies>
           <include name="./bin/OpenSim.Framework.Tests.dll" />
+          <include name="./bin/OpenSim.Framework.Communications.Tests.dll"/>
           <include name="./bin/OpenSim.Framework.Servers.Tests.dll" />
           <include name="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />
@@ -59,6 +60,17 @@
     <delete dir="./cov/OpenSim.Framework.Servers" />
     <exec program="monocov">
       <arg value="--export-html=./cov/OpenSim.Framework.Servers ./cov/OpenSim.Framework.Servers.cov" />
+    </exec>
+
+    <exec program="mono">
+      <arg value="--debug" />
+      <arg value="--profile=monocov:outfile=./cov/OpenSim.Framework.Communications.cov,+[OpenSim.Framework.Communications]" />
+      <arg value="/usr/lib/nunit/nunit-console.exe" />
+      <arg value="./bin/OpenSim.Framework.Communications.Tests.dll" />
+    </exec>
+    <delete dir="./cov/OpenSim.Framework.Communications" />
+    <exec program="monocov">
+      <arg value="--export-html=./cov/OpenSim.Framework.Servers ./cov/OpenSim.Framework.Communications.cov" />
     </exec>
     
     <exec program="mono">
@@ -137,6 +149,7 @@
       <test>
         <assemblies>
           <include name="./bin/OpenSim.Framework.Tests.dll" />
+          <include name="./bin/OpenSim.Framework.Communications.Tests.dll"/>
           <include name="./bin/OpenSim.Framework.Servers.Tests.dll" />
           <include name="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />

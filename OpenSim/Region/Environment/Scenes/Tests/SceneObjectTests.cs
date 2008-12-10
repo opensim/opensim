@@ -42,12 +42,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
     /// </summary>
     [TestFixture]
     public class SceneObjectTests
-    {
-        [SetUp]
-        public void Init()
-        {        
-        }
-                
+    {         
         /// <summary>
         /// Test adding an object to a scene.
         /// </summary>

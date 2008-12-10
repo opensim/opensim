@@ -745,10 +745,35 @@
       <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
-	  <Reference name="GlynnTucker.Cache.dll"/>
+	    <Reference name="GlynnTucker.Cache.dll"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+        </Match>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Framework.Communications.Tests" path="OpenSim/Framework/Communications/Tests" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="log4net.dll"/>
+      <Reference name="nunit.framework.dll" />
+      <Reference name="OpenSim.Framework.Communications"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="false"/>
       </Files>
     </Project>
 
