@@ -30,7 +30,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 
-namespace OpenSim.Tests.Infra.Mock
+namespace OpenSim.Tests.Common.Mock
 {       
     /// <summary>
     /// Land channel for test purposes

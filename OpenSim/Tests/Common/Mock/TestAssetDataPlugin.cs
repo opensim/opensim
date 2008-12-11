@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,32 +25,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Environment;
-using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Tests.Infra.Mock
-{        
-    public class TestScene : Scene
-    {        
-        public TestScene(
-            RegionInfo regInfo, AgentCircuitManager authen,
-            CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
-            AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
-            ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
-            bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, commsMan, sceneGridService, assetCach, storeManager, httpServer, moduleLoader,
-                   dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
-        {
-        }
-            
-        public AsyncSceneObjectGroupDeleter SceneObjectGroupDeleter
-        {
-            get { return m_asyncSceneObjectDeleter; }
-        }
+namespace OpenSim.Tests.Common.Mock
+{
+    /// <summary>
+    /// In memory asset data plugin for test purposes.  Could be another dll when properly filled out and when the
+    /// mono addin plugin system starts co-operating with the unit test system.  Currently no locking since unit
+    /// tests are single threaded.
+    /// </summary>    
+    public class TestAssetDataPlugin : IAssetProviderPlugin
+    {
+        public string Version { get { return "0"; } }
+        public string Name { get { return "TestAssetDataPlugin"; } }
+
+        public void Initialise() {}
+        public void Dispose() {}
+        
+        public AssetBase FetchAsset(UUID uuid) { return null; }
+        public void CreateAsset(AssetBase asset) {}
+        public void UpdateAsset(AssetBase asset) {}
+        public bool ExistsAsset(UUID uuid) { return false; }
+        public void Initialise(string connect) {}
     }
 }

@@ -33,7 +33,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Tests.Infra.Mock;
+using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {        

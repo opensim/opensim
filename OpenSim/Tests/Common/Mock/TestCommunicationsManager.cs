@@ -25,29 +25,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Servers;
+using OpenSim.Region.Communications.Local;
 
-namespace OpenSim.Tests.Infra.Mock
+namespace OpenSim.Tests.Common.Mock
 {
-    /// <summary>
-    /// In memory asset data plugin for test purposes.  Could be another dll when properly filled out and when the
-    /// mono addin plugin system starts co-operating with the unit test system.  Currently no locking since unit
-    /// tests are single threaded.
-    /// </summary>    
-    public class TestAssetDataPlugin : IAssetProviderPlugin
+    public class TestCommunicationsManager : CommunicationsManager
     {
-        public string Version { get { return "0"; } }
-        public string Name { get { return "TestAssetDataPlugin"; } }
-
-        public void Initialise() {}
-        public void Dispose() {}
-        
-        public AssetBase FetchAsset(UUID uuid) { return null; }
-        public void CreateAsset(AssetBase asset) {}
-        public void UpdateAsset(AssetBase asset) {}
-        public bool ExistsAsset(UUID uuid) { return false; }
-        public void Initialise(string connect) {}
+        public TestCommunicationsManager()
+            : base(null, null, null, false, null)
+        {
+            LocalInventoryService lis = new LocalInventoryService();
+            m_interServiceInventoryService = lis;
+            AddInventoryService(lis);
+            
+            LocalUserServices lus = new LocalUserServices(991, 992, lis);
+            m_userService = lus;
+            m_userAdminService = lus;           
+        }
     }
 }

@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Tests.Infra.Mock
+namespace OpenSim.Tests.Common.Mock
 {
     /// <summary>
     /// In memory inventory data plugin for test purposes.  Could be another dll when properly filled out and when the

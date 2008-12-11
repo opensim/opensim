@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Tests.Infra.Mock
+namespace OpenSim.Tests.Common.Mock
 {
     /// <summary>
     /// In memory user data provider.  Might be quite useful as a proper user data plugin, though getting mono addins

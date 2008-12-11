@@ -2388,34 +2388,6 @@
     </Project>
 
     <!-- Test assemblies -->
-    <Project name="OpenSim.Tests.Infra.Mock" path="OpenSim/Tests/Infra/Mock" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Region.Communications.Local"/>
-      <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="Nini.dll" />
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project name="OpenSim.Tests.Common" path="OpenSim/Tests/Common" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2433,10 +2405,18 @@
       <Reference name="System.Drawing"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
+      <Reference name="Nini.dll" />
       <Reference name="nunit.framework.dll" />
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Region.Communications.Local"/>
+      <Reference name="OpenSim.Region.Environment"/>
+
       <Files>
-        <Match pattern="*.cs" recurse="false"/>
+        <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
 
@@ -2618,7 +2598,7 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
-      <Reference name="OpenSim.Tests.Infra.Mock"/>
+      <Reference name="OpenSim.Tests.Common"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -2657,7 +2637,7 @@
 
       <!-- Unit tests -->
       <!-- <Reference name="OpenSim.Tests.Common"/> -->
-      <Reference name="OpenSim.Tests.Infra.Mock"/>
+      <Reference name="OpenSim.Tests.Common"/>
       <Reference name="Nini.dll"/>
       <Reference name="nunit.framework.dll"/>
 

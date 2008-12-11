@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,26 +25,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.Communications.Local;
+using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Tests.Infra.Mock
-{
-    public class TestCommunicationsManager : CommunicationsManager
-    {
-        public TestCommunicationsManager()
-            : base(null, null, null, false, null)
+namespace OpenSim.Tests.Common.Mock
+{        
+    public class TestScene : Scene
+    {        
+        public TestScene(
+            RegionInfo regInfo, AgentCircuitManager authen,
+            CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
+            AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
+            ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
+            bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
+            : base(regInfo, authen, commsMan, sceneGridService, assetCach, storeManager, httpServer, moduleLoader,
+                   dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
         {
-            LocalInventoryService lis = new LocalInventoryService();
-            m_interServiceInventoryService = lis;
-            AddInventoryService(lis);
+        }
             
-            LocalUserServices lus = new LocalUserServices(991, 992, lis);
-            m_userService = lus;
-            m_userAdminService = lus;           
+        public AsyncSceneObjectGroupDeleter SceneObjectGroupDeleter
+        {
+            get { return m_asyncSceneObjectDeleter; }
         }
     }
 }

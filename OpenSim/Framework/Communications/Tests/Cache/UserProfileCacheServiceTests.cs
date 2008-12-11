@@ -31,7 +31,7 @@ using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
-using OpenSim.Tests.Infra.Mock;
+using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Framework.Communications.Tests
 {       
