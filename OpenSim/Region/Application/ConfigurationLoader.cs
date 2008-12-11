@@ -127,7 +127,7 @@ namespace OpenSim
                 config.Set("storage_prim_inventories", true);
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
-                config.Set("DefaultScriptEngine", "ScriptEngine.DotNetEngine");
+                config.Set("DefaultScriptEngine", "XEngine");
                 config.Set("asset_database", "sqlite");
                 config.Set("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }

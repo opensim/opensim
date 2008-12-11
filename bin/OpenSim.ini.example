@@ -169,8 +169,8 @@
     ; ## SCRIPT ENGINE
     ; ##
 
-    DefaultScriptEngine = "ScriptEngine.DotNetEngine"
-    ;DefaultScriptEngine = "XEngine"
+    ;DefaultScriptEngine = "ScriptEngine.DotNetEngine"
+    DefaultScriptEngine = "XEngine"
 
     ; ##
     ; ## WORLD MAP
