@@ -29,6 +29,7 @@ using System;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Tests.Common.Mock;
@@ -64,7 +65,7 @@ namespace OpenSim.Framework.Communications.Tests
         }
         
         /// <summary>
-        /// Test moving a folder
+        /// Test requesting inventory for a user
         /// </summary>
         [Test]
         public void TestRequestInventoryForUser()
@@ -82,6 +83,14 @@ namespace OpenSim.Framework.Communications.Tests
             
             CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
             Assert.That(userInfo.HasReceivedInventory, Is.True);
+        }
+        
+        /// <summary>
+        /// Test moving an inventory folder
+        /// </summary>
+        [Test]
+        public void TestMoveFolder()
+        {
         }
     }
 }
