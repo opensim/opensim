@@ -107,6 +107,23 @@ namespace OpenSim.Framework.Communications.Cache
         }
         
         /// <summary>
+        /// Get a child folder
+        /// </summary>
+        /// <param name="folderID"></param>
+        /// <returns>The folder if it exists, null if it doesn't</returns>
+        public InventoryFolderImpl GetChildFolder(UUID folderID)
+        {
+            InventoryFolderImpl folder = null;
+            
+            lock (SubFolders)
+            {
+                SubFolders.TryGetValue(folderID, out folder);
+            }
+            
+            return folder;
+        }
+        
+        /// <summary>
         /// Removes the given child subfolder.
         /// </summary>
         /// <param name="folderID"></param>

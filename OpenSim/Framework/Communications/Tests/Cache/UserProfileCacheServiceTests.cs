@@ -112,5 +112,32 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(inventoryDataPlugin.getInventoryFolder(folderId), Is.Not.Null);
             Assert.That(userInfo.RootFolder.SubFolders.ContainsKey(folderId), Is.True);
         }
+        
+        /// <summary>
+        /// Test retrieving a child folder
+        /// </summary>
+        [Test]
+        public void TestGetChildFolder()
+        {
+            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000005");
+            
+            CommunicationsManager commsManager = new TestCommunicationsManager();
+            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
+            lus.AddPlugin(new TestUserDataPlugin());
+            ((LocalInventoryService)commsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());            
+            
+            lus.AddUser("Bill", "Bailey", "troll", "bill@bailey.com", 1000, 1000, userId);
+            
+            commsManager.UserProfileCacheService.RequestInventoryForUser(userId);
+            
+            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
+            
+            UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000011");
+            
+            Assert.That(userInfo.RootFolder.GetChildFolder(folderId), Is.Null);                                   
+            userInfo.CreateFolder("testFolder", folderId, (ushort)AssetType.Animation, userInfo.RootFolder.ID);
+            
+            Assert.That(userInfo.RootFolder.GetChildFolder(folderId), Is.Not.Null);
+        }        
     }
 }
