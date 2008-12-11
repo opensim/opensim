@@ -2757,33 +2757,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Region.Modules.Python" path="OpenSim/Region/Modules/Python" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="IronPython.dll"/>
-      <Reference name="IronMath.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Data.Base" />
-      <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="Nini.dll" />
-      <Reference name="log4net.dll"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
 <!-- /////////////////// DO NOT EDIT THE BELOW 6 LINES!!!! //////////// -->
 
 
