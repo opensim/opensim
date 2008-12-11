@@ -48,13 +48,19 @@ namespace OpenSim.Framework.Communications.Tests
         public void TestGetUserDetails()
         {
             UUID nonExistingUserId = UUID.Parse("00000000-0000-0000-0000-000000000001"); 
+            UUID existingUserId = UUID.Parse("00000000-0000-0000-0000-000000000002");
             
             CommunicationsManager commsManager = new TestCommunicationsManager();
-            ((LocalUserServices)commsManager.UserService).AddPlugin(new TestUserDataPlugin());
+            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
+            lus.AddPlugin(new TestUserDataPlugin());
             ((LocalInventoryService)commsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());
 
             CachedUserInfo nonExistingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(nonExistingUserId);
-            Assert.That(nonExistingUserInfo, Is.Null, "Non existing user info unexpectedly exists!");
+            Assert.That(nonExistingUserInfo, Is.Null, "Non existing user info unexpectedly found");
+            
+            lus.AddUser("Bill", "Bailey", "troll", "bill@bailey.com", 1000, 1000, existingUserId);            
+            CachedUserInfo existingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(existingUserId);
+            Assert.That(existingUserInfo, Is.Not.Null, "Existing user info unexpectedly not found");            
         }  
     }
 }
