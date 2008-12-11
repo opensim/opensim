@@ -1709,23 +1709,17 @@ namespace OpenSim.Region.Environment.Scenes
                         Permissions.CanDeleteObject(
                         grp.UUID,
                         remoteClient.AgentId);
-                permissionToDelete =
-                        Permissions.CanDeleteObject(
-                        grp.UUID,
-                        remoteClient.AgentId);
+                permissionToDelete = permissionToTake;
             }
             else if (action == DeRezAction.Return)
             {
                 if (remoteClient != null)
                 {
                     permissionToTake =
-                            Permissions.CanDeleteObject(
+                            Permissions.CanReturnObject(
                             grp.UUID,
                             remoteClient.AgentId);
-                    permissionToDelete =
-                            Permissions.CanDeleteObject(
-                            grp.UUID,
-                            remoteClient.AgentId);
+                    permissionToDelete = permissionToTake;
                     if (permissionToDelete)
                     {
                         AddReturn(grp.OwnerID, grp.Name, grp.AbsolutePosition, "parcel owner return");
