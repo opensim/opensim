@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Child folders that are contained in this folder
         /// </summary>
-        public Dictionary<UUID, InventoryFolderImpl> SubFolders = new Dictionary<UUID, InventoryFolderImpl>();
+        protected Dictionary<UUID, InventoryFolderImpl> m_childFolders = new Dictionary<UUID, InventoryFolderImpl>();
 
         // Constructors
         public InventoryFolderImpl(InventoryFolderBase folderbase)
@@ -74,9 +74,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// <returns>The newly created subfolder.  Returns null if the folder already exists</returns>
         public InventoryFolderImpl CreateChildFolder(UUID folderID, string folderName, ushort type)
         {
-            lock (SubFolders)
+            lock (m_childFolders)
             {
-                if (!SubFolders.ContainsKey(folderID))
+                if (!m_childFolders.ContainsKey(folderID))
                 {
                     InventoryFolderImpl subFold = new InventoryFolderImpl();
                     subFold.Name = folderName;
@@ -84,7 +84,7 @@ namespace OpenSim.Framework.Communications.Cache
                     subFold.Type = (short) type;
                     subFold.ParentID = this.ID;
                     subFold.Owner = Owner;
-                    SubFolders.Add(subFold.ID, subFold);
+                    m_childFolders.Add(subFold.ID, subFold);
 
                     return subFold;
                 }
@@ -99,11 +99,21 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folder"></param>
         public void AddChildFolder(InventoryFolderImpl folder)
         {
-            lock (SubFolders)
+            lock (m_childFolders)
             {
                 folder.ParentID = ID;
-                SubFolders[folder.ID] = folder;
+                m_childFolders[folder.ID] = folder;
             }                        
+        }
+        
+        /// <summary>
+        /// Does this folder contain the given child folder?
+        /// </summary>
+        /// <param name="folderID"></param>
+        /// <returns></returns>
+        public bool ContainsChildFolder(UUID folderID)
+        {
+            return m_childFolders.ContainsKey(folderID);
         }
         
         /// <summary>
@@ -115,9 +125,9 @@ namespace OpenSim.Framework.Communications.Cache
         {
             InventoryFolderImpl folder = null;
             
-            lock (SubFolders)
+            lock (m_childFolders)
             {
-                SubFolders.TryGetValue(folderID, out folder);
+                m_childFolders.TryGetValue(folderID, out folder);
             }
             
             return folder;
@@ -134,12 +144,12 @@ namespace OpenSim.Framework.Communications.Cache
         {
             InventoryFolderImpl removedFolder = null;
             
-            lock (SubFolders)
+            lock (m_childFolders)
             {
-                if (SubFolders.ContainsKey(folderID))
+                if (m_childFolders.ContainsKey(folderID))
                 {
-                    removedFolder = SubFolders[folderID];
-                    SubFolders.Remove(folderID);
+                    removedFolder = m_childFolders[folderID];
+                    m_childFolders.Remove(folderID);
                 }                    
             }
             
@@ -151,12 +161,12 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         public void Purge()
         {
-            foreach (InventoryFolderImpl folder in SubFolders.Values)
+            foreach (InventoryFolderImpl folder in m_childFolders.Values)
             {
                 folder.Purge();
             }
 
-            SubFolders.Clear();
+            m_childFolders.Clear();
             Items.Clear();
         }
 
@@ -175,9 +185,9 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
 
-            lock (SubFolders)
+            lock (m_childFolders)
             {
-                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                foreach (InventoryFolderImpl folder in m_childFolders.Values)
                 {
                     InventoryItemBase item = folder.FindItem(itemID);
 
@@ -202,9 +212,9 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
 
-            lock (SubFolders)
+            lock (m_childFolders)
             {
-                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                foreach (InventoryFolderImpl folder in m_childFolders.Values)
                 {
                     InventoryItemBase item = folder.FindAsset(assetID);
 
@@ -236,9 +246,9 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
 
-            lock (SubFolders)
+            lock (m_childFolders)
             {
-                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                foreach (InventoryFolderImpl folder in m_childFolders.Values)
                 {
                     found = folder.DeleteItem(itemID);
 
@@ -262,9 +272,9 @@ namespace OpenSim.Framework.Communications.Cache
             if (folderID == ID)
                 return this;
 
-            lock (SubFolders)
+            lock (m_childFolders)
             {
-                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                foreach (InventoryFolderImpl folder in m_childFolders.Values)
                 {
                     InventoryFolderImpl returnFolder = folder.FindFolder(folderID);
 
@@ -274,7 +284,26 @@ namespace OpenSim.Framework.Communications.Cache
             }
 
             return null;
-        }
+        }    
+        
+        /// <summary>
+        /// Look through all child subfolders for a folder marked as one for a particular asset type, and return it.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns>Returns null if no such folder is found</returns>
+        public InventoryFolderImpl FindFolderForType(int type)
+        {
+            lock (m_childFolders)
+            {
+                foreach (InventoryFolderImpl f in m_childFolders.Values)
+                {
+                    if (f.Type == type)
+                        return f;
+                }
+            }
+            
+            return null;
+        }        
 
         /// <summary>
         /// Find a folder given a PATH_DELIMITOR delimited path starting from this folder
@@ -297,9 +326,9 @@ namespace OpenSim.Framework.Communications.Cache
 
             string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
 
-            lock (SubFolders)
+            lock (m_childFolders)
             {
-                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                foreach (InventoryFolderImpl folder in m_childFolders.Values)
                 {
                     if (folder.Name == components[0])
                         if (components.Length > 1)
@@ -344,9 +373,9 @@ namespace OpenSim.Framework.Communications.Cache
             }
             else
             {
-                lock (SubFolders)
+                lock (m_childFolders)
                 {
-                    foreach (InventoryFolderImpl folder in SubFolders.Values)
+                    foreach (InventoryFolderImpl folder in m_childFolders.Values)
                     {
                         if (folder.Name == components[0])
                             return folder.FindItemByPath(components[1]);
@@ -385,9 +414,9 @@ namespace OpenSim.Framework.Communications.Cache
         {
             List<InventoryFolderBase> folderList = new List<InventoryFolderBase>();
 
-            lock (SubFolders)
+            lock (m_childFolders)
             {
-                foreach (InventoryFolderBase folder in SubFolders.Values)
+                foreach (InventoryFolderBase folder in m_childFolders.Values)
                 {
                     folderList.Add(folder);
                 }
@@ -400,9 +429,9 @@ namespace OpenSim.Framework.Communications.Cache
         {
             List<InventoryFolderImpl> folderList = new List<InventoryFolderImpl>();
 
-            lock (SubFolders)
+            lock (m_childFolders)
             {
-                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                foreach (InventoryFolderImpl folder in m_childFolders.Values)
                 {
                     folderList.Add(folder);
                 }
@@ -421,7 +450,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 int total = Items.Count;
 
-                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                foreach (InventoryFolderImpl folder in m_childFolders.Values)
                 {
                     total = total + folder.TotalCount;
                 }

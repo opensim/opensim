@@ -161,29 +161,27 @@ namespace OpenSim.Framework.Communications.Cache
                 List<InventoryFolderImpl> resolvedFolders = new List<InventoryFolderImpl>(); // Folders we've resolved with this invocation
                 foreach (InventoryFolderImpl folder in receivedFolderDictionary[parentFolder.ID])
                 {
-                    lock (parentFolder.SubFolders)
+                    if (parentFolder.ContainsChildFolder(folder.ID))
                     {
-                        if (parentFolder.SubFolders.ContainsKey(folder.ID))
+                        m_log.WarnFormat(
+                            "[INVENTORY CACHE]: Received folder {0} {1} from inventory service which has already been received",
+                            folder.Name, folder.ID);
+                    }
+                    else
+                    {
+                        if (resolvedFolderDictionary.ContainsKey(folder.ID)) 
                         {
                             m_log.WarnFormat(
-                                "[INVENTORY CACHE]: Received folder {0} {1} from inventory service which has already been received",
+                                "[INVENTORY CACHE]: Received folder {0} {1} from inventory service has already been received but with different parent",
                                 folder.Name, folder.ID);
                         }
                         else
                         {
-                            if ( resolvedFolderDictionary.ContainsKey( folder.ID ) ) {
-                                m_log.WarnFormat(
-                                    "[INVENTORY CACHE]: Received folder {0} {1} from inventory service has already been received but with different parent",
-                                    folder.Name, folder.ID);
-                            }
-                            else
-                            {
-                                resolvedFolders.Add(folder);
-                                resolvedFolderDictionary[folder.ID] = folder;
-                                parentFolder.SubFolders.Add(folder.ID, folder);
-                            }                            
-                        }
-                    } // lock (parentFolder.SubFolders)
+                            resolvedFolders.Add(folder);
+                            resolvedFolderDictionary[folder.ID] = folder;
+                            parentFolder.AddChildFolder(folder);
+                        }                            
+                    }
                 } // foreach (folder in pendingCategorizationFolders[parentFolder.ID])
 
                 receivedFolderDictionary.Remove(parentFolder.ID);
@@ -738,20 +736,17 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary>
+        /// Find an appropriate folder for the given asset type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns>null if no appropriate folder exists</returns>
         public InventoryFolderImpl FindFolderForType(int type)
         {
             if (RootFolder == null)
                 return null;
 
-            lock (RootFolder.SubFolders)
-            {
-                foreach (InventoryFolderImpl f in RootFolder.SubFolders.Values)
-                {
-                    if (f.Type == type)
-                        return f;
-                }
-            }
-            return null;
+            return RootFolder.FindFolderForType(type);
         }
     }
 

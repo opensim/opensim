@@ -142,7 +142,7 @@ namespace OpenSim.Framework.Communications.Cache
                 InventoryFolderImpl parentFolder = libraryFolders[folderInfo.ParentID];
 
                 libraryFolders.Add(folderInfo.ID, folderInfo);
-                parentFolder.SubFolders.Add(folderInfo.ID, folderInfo);
+                parentFolder.AddChildFolder(folderInfo);
 
 //                 m_log.InfoFormat("[LIBRARY INVENTORY]: Adding folder {0} ({1})", folderInfo.name, folderInfo.folderID);
             }

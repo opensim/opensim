@@ -1884,10 +1884,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (!grp.HasGroupChanged)
                 {
-                    m_log.InfoFormat("[ATTACHMENT] Save request for {0} which is unchanged", grp.UUID.ToString());
+                    m_log.InfoFormat("[ATTACHMENT]: Save request for {0} which is unchanged", grp.UUID);
                     return;
                 }
-                m_log.InfoFormat("[ATTACHMENT] Updating asset for attachment {0}, attachpoint {1}", grp.UUID.ToString(), grp.GetAttachmentPoint());
+                
+                m_log.InfoFormat(
+                    "[ATTACHMENT]: Updating asset for attachment {0}, attachpoint {1}", 
+                    grp.UUID, grp.GetAttachmentPoint());
+                
                 string sceneObjectXml = objectGroup.ToXmlString();
 
                 CachedUserInfo userInfo =
@@ -1917,7 +1921,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 }
                                 else
                                 {
-                                    foreach (InventoryFolderImpl subfld in fld.SubFolders.Values)
+                                    foreach (InventoryFolderImpl subfld in fld.RequestListOfFolderImpls())
                                     {
                                         searchfolders.Enqueue(subfld);
                                     }
