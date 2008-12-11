@@ -66,7 +66,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Create a new subfolder.  This exists only in the cache.
+        /// Create a new subfolder.
         /// </summary>
         /// <param name="folderID"></param>
         /// <param name="folderName"></param>

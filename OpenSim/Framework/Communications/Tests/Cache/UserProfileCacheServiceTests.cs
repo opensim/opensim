@@ -89,8 +89,28 @@ namespace OpenSim.Framework.Communications.Tests
         /// Test moving an inventory folder
         /// </summary>
         [Test]
-        public void TestMoveFolder()
+        public void TestCreateFolder()
         {
+            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000004");
+            
+            CommunicationsManager commsManager = new TestCommunicationsManager();
+            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
+            lus.AddPlugin(new TestUserDataPlugin());
+            TestInventoryDataPlugin inventoryDataPlugin = new TestInventoryDataPlugin();
+            ((LocalInventoryService)commsManager.InventoryService).AddPlugin(inventoryDataPlugin);            
+            
+            lus.AddUser("Bill", "Bailey", "troll", "bill@bailey.com", 1000, 1000, userId);
+            
+            commsManager.UserProfileCacheService.RequestInventoryForUser(userId);
+            
+            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
+            
+            UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000010");            
+            Assert.That(userInfo.RootFolder.SubFolders.ContainsKey(folderId), Is.False);
+            
+            userInfo.CreateFolder("testFolder", folderId, (ushort)AssetType.Animation, userInfo.RootFolder.ID);
+            Assert.That(inventoryDataPlugin.getInventoryFolder(folderId), Is.Not.Null);
+            Assert.That(userInfo.RootFolder.SubFolders.ContainsKey(folderId), Is.True);
         }
     }
 }
