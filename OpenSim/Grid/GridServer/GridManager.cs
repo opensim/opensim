@@ -810,6 +810,7 @@ namespace OpenSim.Grid.GridServer
                 m_log.Info("[DATA]: found " + (string)simData.regionName + " regionHandle = " +
                            (string)requestData["region_handle"]);
                 responseData["sim_ip"] = Util.GetHostFromDNS(simData.serverIP).ToString();
+                responseData["sim_host"] = simData.serverIP;
                 responseData["sim_port"] = simData.serverPort.ToString();
                 responseData["server_uri"] = simData.serverURI;
                 responseData["http_port"] = simData.httpPort.ToString();
