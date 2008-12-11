@@ -2596,6 +2596,7 @@
       <Reference name="nunit.framework.dll" />
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Tests.Common"/>
