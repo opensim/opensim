@@ -757,7 +757,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         {
             String direction = (String)args[0];
 
-            if( direction.ToLower().StartsWith("y"))
+            if (direction.ToLower().StartsWith("y"))
             {
                 for (int x = 0; x < Constants.RegionSize; x++)
                 {
