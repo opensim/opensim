@@ -1,12 +1,11 @@
 [Startup]
-; Set this to true if you want to log crashes to disk
-; this can be useful when submitting bug reports.
-save_crashes = false
+    ; Set this to true if you want to log crashes to disk
+    ; this can be useful when submitting bug reports.
+    save_crashes = false
 
-; Directory to save crashes to if above is enabled
-; (eg default is /opensimdir/crashes/*.txt or C:\opensim\crashes\*.txt)
-crash_dir = "crashes"
-
+    ; Directory to save crashes to if above is enabled
+    ; (eg default is /opensimdir/crashes/*.txt or C:\opensim\crashes\*.txt)
+    crash_dir = "crashes"
 
     ; Set this to true if you are connecting your OpenSimulator regions to a grid
     ; Set this to false if you are running OpenSimulator in standalone mode
