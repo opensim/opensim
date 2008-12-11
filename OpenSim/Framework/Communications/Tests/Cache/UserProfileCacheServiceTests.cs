@@ -61,6 +61,27 @@ namespace OpenSim.Framework.Communications.Tests
             lus.AddUser("Bill", "Bailey", "troll", "bill@bailey.com", 1000, 1000, existingUserId);            
             CachedUserInfo existingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(existingUserId);
             Assert.That(existingUserInfo, Is.Not.Null, "Existing user info unexpectedly not found");            
-        }  
+        }
+        
+        /// <summary>
+        /// Test moving a folder
+        /// </summary>
+        [Test]
+        public void TestRequestInventoryForUser()
+        {
+            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000003");
+            
+            CommunicationsManager commsManager = new TestCommunicationsManager();
+            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
+            lus.AddPlugin(new TestUserDataPlugin());
+            ((LocalInventoryService)commsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());
+            
+            lus.AddUser("Bill", "Bailey", "troll", "bill@bailey.com", 1000, 1000, userId);
+            
+            commsManager.UserProfileCacheService.RequestInventoryForUser(userId);
+            
+            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
+            Assert.That(userInfo.HasReceivedInventory, Is.True);
+        }
     }
 }

@@ -28,7 +28,6 @@
 using OpenMetaverse;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
-using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Tests
 {
@@ -38,7 +37,6 @@ namespace OpenSim.Framework.Tests
         [Test]
         public void locationRegionHandleRegionHandle()
         {
-
             //1099511628032000
             // 256000
             // 256000
