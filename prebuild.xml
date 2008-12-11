@@ -2387,6 +2387,7 @@
       </Files>
     </Project>
 
+    <!-- Test assemblies -->
     <Project name="OpenSim.Tests.Infra.Mock" path="OpenSim/Tests/Infra/Mock" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2613,7 +2614,11 @@
       <Reference name="System"/>
       <Reference name="log4net.dll"/>
       <Reference name="nunit.framework.dll" />
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Communications.Local"/>
+      <Reference name="OpenSim.Tests.Infra.Mock"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

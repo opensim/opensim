@@ -27,6 +27,11 @@
 
 using System;
 using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
+using OpenMetaverse;
+using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.Communications.Local;
+using OpenSim.Tests.Infra.Mock;
 
 namespace OpenSim.Framework.Communications.Tests
 {       
@@ -37,12 +42,19 @@ namespace OpenSim.Framework.Communications.Tests
     public class UserProfileCacheServiceTests
     {        
         /// <summary>
-        /// Test folder moving.  Doesn't do what is says on the tin yet
+        /// Test user details get.
         /// </summary>
         [Test]
-        public void TestMoveFolder()
+        public void TestGetUserDetails()
         {
-            // Temporarily empty     
+            UUID nonExistingUserId = UUID.Parse("00000000-0000-0000-0000-000000000001"); 
+            
+            CommunicationsManager commsManager = new TestCommunicationsManager();
+            ((LocalUserServices)commsManager.UserService).AddPlugin(new TestUserDataPlugin());
+            ((LocalInventoryService)commsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());
+
+            CachedUserInfo nonExistingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(nonExistingUserId);
+            Assert.That(nonExistingUserInfo, Is.Null, "Non existing user info unexpectedly exists!");
         }  
     }
 }

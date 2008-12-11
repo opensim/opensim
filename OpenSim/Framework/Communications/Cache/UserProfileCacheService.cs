@@ -54,7 +54,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// The root library folder.
         /// </summary>
-        public readonly LibraryRootFolder LibraryRoot;
+        public readonly InventoryFolderImpl LibraryRoot;
 
         /// <summary>
         /// Constructor
@@ -70,6 +70,10 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// A new user has moved into a region in this instance so retrieve their profile from the user service.
         /// </summary>
+        /// 
+        /// It isn't strictly necessary to make this call since user data can be lazily requested later on.  However, 
+        /// it might be helpful in order to avoid an initial response delay later on
+        /// 
         /// <param name="userID"></param>
         public void AddNewUser(UUID userID)
         {
