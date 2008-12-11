@@ -129,6 +129,15 @@ namespace OpenSim
             ChangeSelectedRegion(new string[] {"root"});
         }
 
+        public override void ShutdownSpecific()
+        {
+            if (m_shutdownCommandsFile != String.Empty)
+            {
+                RunCommandScript(m_shutdownCommandsFile);
+            }
+            base.ShutdownSpecific();
+        }
+        
         private void RunAutoTimerScript(object sender, EventArgs e)
         {
             if (m_timedScript != "disabled")
