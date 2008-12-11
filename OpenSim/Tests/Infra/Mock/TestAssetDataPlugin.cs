@@ -29,7 +29,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 
-namespace OpenSim.Tests.Infra
+namespace OpenSim.Tests.Infra.Mock
 {
     /// <summary>
     /// In memory asset data plugin for test purposes.  Could be another dll when properly filled out and when the

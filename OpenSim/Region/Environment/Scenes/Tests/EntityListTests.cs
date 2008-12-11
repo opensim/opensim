@@ -36,7 +36,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Tests.Infra;
+using OpenSim.Tests.Infra.Mock;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,28 +25,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Collections.Generic;
-using OpenMetaverse;
+using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Servers;
+using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Tests.Infra
-{       
-    /// <summary>
-    /// Land channel for test purposes
-    /// </summary>
-    public class TestLandChannel : ILandChannel
-    {
-        public List<ILandObject> ParcelsNearPoint(Vector3 position) { return null; }
-        public List<ILandObject> AllParcels() { return null; }
-        public ILandObject GetLandObject(int x, int y) { return null; }        
-        public ILandObject GetLandObject(float x, float y) { return null; }
-        public bool IsLandPrimCountTainted() { return false; }
-        public bool IsForcefulBansAllowed() { return false; }
-        public void UpdateLandObject(int localID, LandData data) {}
-        public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient) {}
-        public void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel) {}
-        public void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel) {}
-        public void SetParcelOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime) {}
+namespace OpenSim.Tests.Infra.Mock
+{        
+    public class TestScene : Scene
+    {        
+        public TestScene(
+            RegionInfo regInfo, AgentCircuitManager authen,
+            CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
+            AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
+            ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
+            bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
+            : base(regInfo, authen, commsMan, sceneGridService, assetCach, storeManager, httpServer, moduleLoader,
+                   dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
+        {
+        }
+            
+        public AsyncSceneObjectGroupDeleter SceneObjectGroupDeleter
+        {
+            get { return m_asyncSceneObjectDeleter; }
+        }
     }
 }

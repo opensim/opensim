@@ -2387,19 +2387,19 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Tests.Infra" path="OpenSim/Tests/Infra" type="Library">
+    <Project name="OpenSim.Tests.Infra.Mock" path="OpenSim/Tests/Infra/Mock" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../bin/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../bin/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../bin/</ReferencePath>
+      <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
@@ -2652,7 +2652,7 @@
 
       <!-- Unit tests -->
       <!-- <Reference name="OpenSim.Tests.Common"/> -->
-      <Reference name="OpenSim.Tests.Infra"/>
+      <Reference name="OpenSim.Tests.Infra.Mock"/>
       <Reference name="Nini.dll"/>
       <Reference name="nunit.framework.dll"/>
 
