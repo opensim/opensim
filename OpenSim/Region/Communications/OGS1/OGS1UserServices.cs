@@ -655,7 +655,7 @@ namespace OpenSim.Region.Communications.OGS1
                 XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 8000);
                 Hashtable respData = (Hashtable) resp.Value;
 
-                if (respData.Contains("avcount"))
+                if (respData != null && respData.Contains("avcount"))
                 {
                     buddylist = ConvertXMLRPCDataToFriendListItemList(respData);
                 }
