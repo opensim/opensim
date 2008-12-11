@@ -561,6 +561,7 @@ namespace OpenSim.Grid.GridServer
                 foreach (RegionProfileData aSim in neighbours)
                 {
                     NeighbourBlock = new Hashtable();
+                    NeighbourBlock["sim_host"] = aSim.serverIP;
                     NeighbourBlock["sim_ip"] = Util.GetHostFromDNS(aSim.serverIP.ToString()).ToString();
                     NeighbourBlock["sim_port"] = aSim.serverPort.ToString();
                     NeighbourBlock["region_locx"] = aSim.regionLocX.ToString();
@@ -591,6 +592,7 @@ namespace OpenSim.Grid.GridServer
                                                         (uint)(sim.regionLocY + y) * Constants.RegionSize));
 
                             NeighbourBlock = new Hashtable();
+                            NeighbourBlock["sim_host"] = neighbour.serverIP;
                             NeighbourBlock["sim_ip"] = Util.GetHostFromDNS(neighbour.serverIP).ToString();
                             NeighbourBlock["sim_port"] = neighbour.serverPort.ToString();
                             NeighbourBlock["region_locx"] = neighbour.regionLocX.ToString();
