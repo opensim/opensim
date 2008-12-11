@@ -116,6 +116,8 @@ namespace OpenSim
                 if (null == config)
                     config = defaultConfig.AddConfig("Startup");
 
+                config.Set("region_info_source", "filesystem");
+
                 config.Set("gridmode", false);
                 config.Set("physics", "basicphysics");
                 config.Set("meshing", "ZeroMesher");
@@ -128,8 +130,10 @@ namespace OpenSim
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
                 config.Set("DefaultScriptEngine", "XEngine");
-                config.Set("asset_database", "sqlite");
+                config.Set("asset_database", "local");
                 config.Set("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
+                // life doesn't really work without this
+                config.Set("EventQueue", true);
             }
 
             {
@@ -167,7 +171,7 @@ namespace OpenSim
                 config.Set("user_recv_key", "null");
                 config.Set("asset_server_url", "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString());
                 config.Set("inventory_server_url", "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString());
-                config.Set("secure_inventory_server", "true");
+                config.Set("secure_inventory_server", "false");
             }
 
             return defaultConfig;
