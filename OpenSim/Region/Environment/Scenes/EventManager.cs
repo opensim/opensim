@@ -233,18 +233,21 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public delegate void RegisterCapsEvent(UUID agentID, Caps caps);
         public event RegisterCapsEvent OnRegisterCaps;
+        
         /// <summary>
         /// DeregisterCapsEvent is called by Scene when the caps
         /// handler for an agent are removed.
         /// </summary>
         public delegate void DeregisterCapsEvent(UUID agentID, Caps caps);
         public event DeregisterCapsEvent OnDeregisterCaps;
+        
         /// <summary>
         /// ChatFromWorldEvent is called via Scene when a chat message
         /// from world comes in.
         /// </summary>
         public delegate void ChatFromWorldEvent(Object sender, OSChatMessage chat);
         public event ChatFromWorldEvent OnChatFromWorld;
+        
         /// <summary>
         /// ChatFromClientEvent is triggered via ChatModule (or
         /// substitutes thereof) when a chat message
@@ -252,6 +255,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public delegate void ChatFromClientEvent(Object sender, OSChatMessage chat);
         public event ChatFromClientEvent OnChatFromClient;
+        
         /// <summary>
         /// ChatBroadcastEvent is called via Scene when a broadcast chat message
         /// from world comes in

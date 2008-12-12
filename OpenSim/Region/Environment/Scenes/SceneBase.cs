@@ -76,13 +76,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// </value>
         public ILandChannel LandChannel;
 
-        protected EventManager m_eventManager;
-
+        /// <value>
+        /// Manage events that occur in this scene (avatar movement, script rez, etc.).  Commonly used by region modules
+        /// to subscribe to scene events.
+        /// </value>
         public EventManager EventManager
         {
             get { return m_eventManager; }
         }
-
+        protected EventManager m_eventManager;
 
         protected ScenePermissions m_permissions;
         public ScenePermissions Permissions

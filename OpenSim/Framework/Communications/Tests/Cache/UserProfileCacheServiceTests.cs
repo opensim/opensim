@@ -48,20 +48,17 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestGetUserDetails()
         {
-            UUID nonExistingUserId = UUID.Parse("00000000-0000-0000-0000-000000000001"); 
+            UUID nonExistingUserId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             UUID existingUserId = UUID.Parse("00000000-0000-0000-0000-000000000002");
             
-            CommunicationsManager commsManager = new TestCommunicationsManager();
-            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
-            lus.AddPlugin(new TestUserDataPlugin());
-            ((LocalInventoryService)commsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());
-
-            CachedUserInfo nonExistingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(nonExistingUserId);
-            Assert.That(nonExistingUserInfo, Is.Null, "Non existing user info unexpectedly found");
+            CommunicationsManager commsManager = UserProfileTestUtils.SetupServices();
+            CachedUserInfo existingUserInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager, existingUserId);
             
-            lus.AddUser("Bill", "Bailey", "troll", "bill@bailey.com", 1000, 1000, existingUserId);            
-            CachedUserInfo existingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(existingUserId);
-            Assert.That(existingUserInfo, Is.Not.Null, "Existing user info unexpectedly not found");            
+            Assert.That(existingUserInfo, Is.Not.Null, "Existing user info unexpectedly not found");
+            
+            CachedUserInfo nonExistingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(nonExistingUserId);
+            
+            Assert.That(nonExistingUserInfo, Is.Null, "Non existing user info unexpectedly found");                        
         }
         
         /// <summary>
@@ -70,18 +67,9 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestRequestInventoryForUser()
         {
-            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000003");
+            CommunicationsManager commsManager = UserProfileTestUtils.SetupServices();
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);          
             
-            CommunicationsManager commsManager = new TestCommunicationsManager();
-            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
-            lus.AddPlugin(new TestUserDataPlugin());
-            ((LocalInventoryService)commsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());
-            
-            lus.AddUser("Bill", "Bailey", "troll", "bill@bailey.com", 1000, 1000, userId);
-            
-            commsManager.UserProfileCacheService.RequestInventoryForUser(userId);
-            
-            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
             Assert.That(userInfo.HasReceivedInventory, Is.True);
         }
         
@@ -91,19 +79,12 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestCreateFolder()
         {
-            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000004");
+            IUserDataPlugin userDataPlugin = new TestUserDataPlugin();
+            IInventoryDataPlugin inventoryDataPlugin = new TestInventoryDataPlugin();
             
-            CommunicationsManager commsManager = new TestCommunicationsManager();
-            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
-            lus.AddPlugin(new TestUserDataPlugin());
-            TestInventoryDataPlugin inventoryDataPlugin = new TestInventoryDataPlugin();
-            ((LocalInventoryService)commsManager.InventoryService).AddPlugin(inventoryDataPlugin);            
-            
-            lus.AddUser("Bill", "Bailey", "troll", "bill@bailey.com", 1000, 1000, userId);
-            
-            commsManager.UserProfileCacheService.RequestInventoryForUser(userId);
-            
-            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
+            CommunicationsManager commsManager 
+                = UserProfileTestUtils.SetupServices(userDataPlugin, inventoryDataPlugin);
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
             
             UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000010");            
             Assert.That(userInfo.RootFolder.ContainsChildFolder(folderId), Is.False);
@@ -119,18 +100,8 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestGetChildFolder()
         {
-            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000005");
-            
-            CommunicationsManager commsManager = new TestCommunicationsManager();
-            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
-            lus.AddPlugin(new TestUserDataPlugin());
-            ((LocalInventoryService)commsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());            
-            
-            lus.AddUser("Bill", "Bailey", "troll", "bill@bailey.com", 1000, 1000, userId);
-            
-            commsManager.UserProfileCacheService.RequestInventoryForUser(userId);
-            
-            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
+            CommunicationsManager commsManager = UserProfileTestUtils.SetupServices();
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
             
             UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000011");
             

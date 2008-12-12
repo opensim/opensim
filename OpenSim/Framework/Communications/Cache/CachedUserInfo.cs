@@ -141,7 +141,6 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-
         /// <summary>
         /// Recursively, in depth-first order, add all the folders we've received (stored 
         /// in a dictionary indexed by parent ID) into the tree that describes user folder
