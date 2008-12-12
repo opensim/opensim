@@ -409,8 +409,10 @@ namespace OpenSim.Grid.GridServer
             {
                 return ErrorResponse(
                     String.Format(
-                        "Your region is the wrong version to connect to this grid.  Try changing to version {0} (interface version {1})",
-                        m_opensimVersion, VersionInfo.MajorInterfaceVersion));
+                        "Your region service implements OGS1 interface version {0}"
+                        + " but this grid requires that the region implement OGS1 interface version {1} to connect."
+                        + "  Try changing to OpenSimulator {2}",
+                        majorInterfaceVersion, VersionInfo.MajorInterfaceVersion, m_opensimVersion));
             }
 
             existingSim = GetRegion(sim.regionHandle);
