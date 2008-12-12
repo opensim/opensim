@@ -28,14 +28,19 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
+
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public class EntityManager : IEnumerable<EntityBase>
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly Dictionary<UUID,EntityBase> m_eb_uuid = new Dictionary<UUID, EntityBase>();
         private readonly Dictionary<uint, EntityBase> m_eb_localID = new Dictionary<uint, EntityBase>();
+        private readonly Dictionary<UUID, ScenePresence> m_pres_uuid = new Dictionary<UUID, ScenePresence>();
         private readonly Object m_lock = new Object();
 
         [Obsolete("Use Add() instead.")]
@@ -48,8 +53,15 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_lock)
             {
-                m_eb_uuid.Add(entity.UUID, entity);
-                m_eb_localID.Add(entity.LocalId, entity);
+                try
+                {
+                    m_eb_uuid.Add(entity.UUID, entity);
+                    m_eb_localID.Add(entity.LocalId, entity);
+                }
+                catch(Exception e)
+                {
+                    m_log.ErrorFormat("Add Entity failed: ", e);
+                }
             }
         }
 
@@ -57,8 +69,15 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_lock)
             {
-                m_eb_uuid[entity.UUID] = entity;
-                m_eb_localID[entity.LocalId] = entity;
+                try
+                {
+                    m_eb_uuid[entity.UUID] = entity;
+                    m_eb_localID[entity.LocalId] = entity;
+                }
+                catch(Exception e)
+                {
+                    m_log.ErrorFormat("Insert or Replace Entity failed: ", e);
+                }
             }
         }
 
@@ -86,7 +105,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_lock)
             {
-                return m_eb_uuid.ContainsKey(id);
+                try
+                {
+                    return m_eb_uuid.ContainsKey(id);
+                }
+                catch
+                {
+                    return false;
+                }
             }
         }
 
@@ -94,7 +120,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_lock)
             {
-                return m_eb_localID.ContainsKey(localID);
+                try
+                {
+                    return m_eb_localID.ContainsKey(localID);
+                }
+                catch
+                {
+                    return false;
+                }
             }
         }
 
@@ -102,10 +135,17 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_lock)
             {
-                bool a = m_eb_uuid.Remove(m_eb_localID[localID].UUID);
-                bool b =  m_eb_localID.Remove(localID);
-
-                return a && b;
+                try
+                {
+                    bool a = m_eb_uuid.Remove(m_eb_localID[localID].UUID);
+                    bool b = m_eb_localID.Remove(localID);
+                    return a && b;
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("Remove Entity failed for {0}", localID, e);
+                    return false;
+                }                
             }
         }
 
@@ -113,10 +153,17 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_lock)
             {
-                bool a = m_eb_localID.Remove(m_eb_uuid[id].LocalId);
-                bool b = m_eb_uuid.Remove(id);
-
-                return a && b;
+                try 
+                {
+                    bool a = m_eb_localID.Remove(m_eb_uuid[id].LocalId);
+                    bool b = m_eb_uuid.Remove(id);
+                    return a && b;
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("Remove Entity failed for {0}", id, e);
+                    return false;
+                }
             }
         }
 
@@ -126,12 +173,20 @@ namespace OpenSim.Region.Environment.Scenes
 
             lock (m_lock)
             {
-                foreach (KeyValuePair<UUID, EntityBase> pair in m_eb_uuid)
+                try
                 {
-                    if (pair.Value is T)
+                    foreach (KeyValuePair<UUID, EntityBase> pair in m_eb_uuid)
                     {
-                        tmp.Add(pair.Value);
+                        if (pair.Value is T)
+                        {
+                            tmp.Add(pair.Value);
+                        }
                     }
+                }
+                catch (Exception e) 
+                {
+                    m_log.ErrorFormat("GetAllByType failed for {0}", e);
+                    tmp = null;
                 }
             }
 
@@ -152,7 +207,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 lock (m_lock)
                 {
-                    return m_eb_uuid[id];
+                    try
+                    {
+                        return m_eb_uuid[id];
+                    }
+                    catch
+                    {
+                        return null;
+                    }
                 }
             }
             set
@@ -167,7 +229,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 lock (m_lock)
                 {
-                    return m_eb_localID[localID];
+                    try
+                    {
+                        return m_eb_localID[localID];
+                    }
+                    catch
+                    {
+                        return null;
+                    }
                 }
             }
             set
@@ -205,5 +274,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return GetEnumerator();
         }
+
     }
 }

@@ -32,11 +32,10 @@ using System.Text;
 using System.Collections.Generic;
 using Nini.Config;
 using NUnit.Framework;
-using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Tests.Common.Mock;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {
@@ -44,7 +43,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
     /// Scene oriented tests
     /// </summary>
     [TestFixture]
-    public class EntityListTests
+    public class EntityManagerTests
     {        
         static public Random random;
         SceneObjectGroup found;
@@ -55,116 +54,72 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         {
             random = new Random();
             SceneObjectGroup found;
-            EntityList entlist = new EntityList();
+            EntityManager entman = new EntityManager();
             SceneObjectGroup sog = NewSOG();
             UUID obj1 = sog.UUID;
             uint li1 = sog.LocalId;
-            entlist.Add(sog);
+            entman.Add(sog);
             sog = NewSOG();
             UUID obj2 = sog.UUID;
             uint li2 = sog.LocalId;
-            entlist.Add(sog);
-
-            found = entlist.FindObject(obj1);
+            entman.Add(sog);
+            
+            found = (SceneObjectGroup)entman[obj1];
             Assert.That(found.UUID ,Is.EqualTo(obj1) );
-            found = entlist.FindObject(li1);
+            found = (SceneObjectGroup)entman[li1];
             Assert.That(found.UUID ,Is.EqualTo(obj1) );
-            found = entlist.FindObject(obj2);
+            found = (SceneObjectGroup)entman[obj2];
             Assert.That(found.UUID ,Is.EqualTo(obj2) );
-            found = entlist.FindObject(li2);
+            found = (SceneObjectGroup)entman[li2];
             Assert.That(found.UUID ,Is.EqualTo(obj2) );
 
-            entlist.RemoveObject(obj1);
-            entlist.RemoveObject(obj2);
+            entman.Remove(obj1);
+            entman.Remove(li2);
 
-            found = entlist.FindObject(obj1);
-            Assert.That(found, Is.Null);
-            found = entlist.FindObject(obj2);
-            Assert.That(found, Is.Null);
+            Assert.That(entman.ContainsKey(obj1), Is.False);
+            Assert.That(entman.ContainsKey(li1), Is.False);
+            Assert.That(entman.ContainsKey(obj2), Is.False);            
+            Assert.That(entman.ContainsKey(li2), Is.False);
         }
 
         [Test]
         public void T011_ThreadAddRemoveTest()
         {   
-            EntityList entlist = new EntityList();
-            Dictionary<UUID, uint> dict = new Dictionary<UUID,uint>();
-            List<Thread> trdlist = new List<Thread>();
-            for (int i=0; i<80; i++)
+            // This test adds and removes with mutiple threads, attempting to break the 
+            // uuid and localid dictionary coherence.
+            EntityManager entman = new EntityManager();
+            SceneObjectGroup sog = NewSOG();
+            for (int j=0; j<20; j++)
             {
-                SceneObjectGroup sog = NewSOG();
-                TestThreads test = new TestThreads(entlist,sog);
-                Thread start = new Thread(new ThreadStart(test.TestAddSceneObject));
-                start.Start();
-                trdlist.Add(start);
-                dict.Add(sog.UUID, sog.LocalId);
-            }
-            foreach (Thread thread in trdlist) 
-            {
-                thread.Join();
-            }
-            foreach (KeyValuePair<UUID, uint> item in dict)
-            {
-                found = entlist.FindObject(item.Key);
-                Assert.That(found.UUID,Is.EqualTo(item.Key));
-                found = entlist.FindObject(item.Value);
-                Assert.That(found.UUID,Is.EqualTo(item.Key));
+                List<Thread> trdlist = new List<Thread>();
                 
-                // Start Removing
-                TestThreads test = new TestThreads(entlist,found);
-                Thread start = new Thread(new ThreadStart(test.TestRemoveSceneObject));
-                start.Start();
-                trdlist.Add(start);
-            }
-            foreach (Thread thread in trdlist) 
-            {
-                thread.Join();
-            }
-            foreach (KeyValuePair<UUID, uint> item in dict)
-            {
-                found = entlist.FindObject(item.Key);
-                Assert.That(found,Is.Null);
-                found = entlist.FindObject(item.Value);
-                Assert.That(found,Is.Null);
-            }
-        }
-
-        [Test]
-        public void T012_MultipleUUIDEntry()
-        {
-            EntityList entlist = new EntityList();
-            UUID id = UUID.Random();
-            //int exceptions = 0;
-            //Dictionary<UUID, uint> dict = new Dictionary<UUID,uint>();
-            List<Thread> trdlist = new List<Thread>();
-            SceneObjectGroup sog = NewSOG(id);
-            uint lid = sog.LocalId;
-            for (int i=0; i<30; i++)
-            {
-                try
+                for (int i=0; i<4; i++)
                 {
-                    TestThreads test = new TestThreads(entlist,sog);
+                    // Adds scene object
+                    NewTestThreads test = new NewTestThreads(entman,sog);
                     Thread start = new Thread(new ThreadStart(test.TestAddSceneObject));
                     start.Start();
                     trdlist.Add(start);
+                        
+                    // Removes it
+                    test = new NewTestThreads(entman,sog);
+                    start = new Thread(new ThreadStart(test.TestRemoveSceneObject));
+                    start.Start();
+                    trdlist.Add(start);
                 }
-                catch
+                foreach (Thread thread in trdlist) 
                 {
+                    thread.Join();
+                }
+                if (entman.ContainsKey(sog.UUID) || entman.ContainsKey(sog.LocalId)) {
+                    found = (SceneObjectGroup)entman[sog.UUID];
+                    Assert.That(found.UUID,Is.EqualTo(sog.UUID));
+                    found = (SceneObjectGroup)entman[sog.LocalId];
+                    Assert.That(found.UUID,Is.EqualTo(sog.UUID));
                 }
             }
-            foreach (Thread thread in trdlist) 
-            {
-                thread.Join();
-            }
-            found = entlist.FindObject(sog.UUID);
-            Assert.That(found.UUID,Is.EqualTo(sog.UUID));
-            found = entlist.FindObject(lid);
-            Assert.That(found.UUID,Is.EqualTo(sog.UUID));
-            
-            entlist.RemoveObject(id);
-            found = entlist.FindObject(id);
-            Assert.That(found,Is.Null);
         }
-        
+
         private SceneObjectGroup NewSOG()
         {
             SceneObjectGroup sog = new SceneObjectGroup();
@@ -182,26 +137,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             return sog;
         }
-        
-        private SceneObjectGroup NewSOG(UUID id)
-        {
-            SceneObjectGroup sog = new SceneObjectGroup();            
-            SceneObjectPart sop = new SceneObjectPart(UUID.Random(), PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
-            sop.UUID = id;
-            sop.Name = RandomName();
-            sop.Description = sop.Name;
-            sop.Text = RandomName();
-            sop.SitName = RandomName();
-            sop.TouchName = RandomName();
-            sop.ObjectFlags |= (uint)PrimFlags.Phantom;
-            
-            sog.SetRootPart(sop);
-
-            scene.AddNewSceneObject(sog, false);
-            
-            return sog;
-        }
-        
+                
         private static string RandomName()
         {
             StringBuilder name = new StringBuilder();
@@ -216,23 +152,27 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         }        
     }
 
-    public class TestThreads
+    public class NewTestThreads
     {
-        private EntityList entlist;
+        private EntityManager entman;
         private SceneObjectGroup sog;
+        private Random random;
         
-        public TestThreads(EntityList entlist, SceneObjectGroup sog)
+        public NewTestThreads(EntityManager entman, SceneObjectGroup sog)
         {
-            this.entlist = entlist;
+            this.entman = entman;
             this.sog = sog;
+            this.random = new Random();
         }
         public void TestAddSceneObject()
         {
-            entlist.Add(sog);
+            Thread.Sleep(random.Next(0,50));
+            entman.Add(sog);
         }
         public void TestRemoveSceneObject()
         {
-            entlist.RemoveObject(sog.UUID);
+            Thread.Sleep(random.Next(0,50));
+            entman.Remove(sog.UUID);
         }
     }
 }    
