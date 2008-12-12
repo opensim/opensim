@@ -17,6 +17,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     {
         protected IClientAPI m_clientAPI;
 
+        /// Dictionary of handlers for uploading files from client
+        /// TODO: Need to add cleanup code to remove handlers that have completed their upload
         protected Dictionary<ulong, XferHandler> m_handlers;
         protected object m_handlerLock = new object();
 
@@ -47,6 +49,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             XferHandler uploader = new XferHandler(m_clientAPI, clientFileName);
+
+            return StartUpload(uploader, uploadCompleteCallback, abortCallback);
+        }
+
+        public bool RequestUpload(UUID fileID, UploadComplete uploadCompleteCallback, UploadAborted abortCallback)
+        {
+            if ((fileID == UUID.Zero) || (uploadCompleteCallback == null))
+            {
+                return false;
+            }
+
+            XferHandler uploader = new XferHandler(m_clientAPI, fileID);
+
+            return StartUpload(uploader, uploadCompleteCallback, abortCallback);
+        }
+
+        private bool StartUpload(XferHandler uploader, UploadComplete uploadCompleteCallback, UploadAborted abortCallback)
+        {
             uploader.UploadDone += uploadCompleteCallback;
 
             if (abortCallback != null)
@@ -133,6 +153,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             mXferID = Util.GetNextXferID();
         }
 
+        public XferHandler(IClientAPI pRemoteClient, UUID fileID)
+        {
+            m_asset = new AssetBase();
+            m_asset.FullID = fileID;
+            m_asset.Type = type;
+            m_asset.Data = new byte[0];
+            m_asset.Name = null;
+            m_asset.Description = "empty";
+            m_asset.Local = true;
+            m_asset.Temporary = true;
+            mXferID = Util.GetNextXferID();
+        }
+
         public ulong XferID
         {
             get { return mXferID; }
@@ -140,7 +173,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void RequestStartXfer(IClientAPI pRemoteClient)
         {
-            pRemoteClient.SendXferRequest(mXferID, m_asset.Type, m_asset.FullID, 0, Utils.StringToBytes(m_asset.Name));
+            if (m_asset.Name != null)
+            {
+                pRemoteClient.SendXferRequest(mXferID, m_asset.Type, m_asset.FullID, 0, Utils.StringToBytes(m_asset.Name));
+            }
+            else
+            {
+                pRemoteClient.SendXferRequest(mXferID, m_asset.Type, m_asset.FullID, 0, new byte[0]);
+            }
         }
 
         /// <summary>
@@ -183,7 +223,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             handlerUploadDone = UploadDone;
             if (handlerUploadDone != null)
             {
-                handlerUploadDone(m_asset.Name, m_asset.Data, remoteClient);
+                handlerUploadDone(m_asset.Name, m_asset.FullID, m_asset.Data, remoteClient);
             }
         }
 
