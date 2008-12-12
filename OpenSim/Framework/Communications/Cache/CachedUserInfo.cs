@@ -415,6 +415,12 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (m_hasReceivedInventory)
             {
+                InventoryFolderImpl folder = RootFolder.FindFolder(folderID);
+                
+                // Delegate movement if updated parent id isn't the same as the existing parentId
+                if (folder.ParentID != parentID)
+                    MoveFolder(folderID, parentID);
+                
                 InventoryFolderBase baseFolder = new InventoryFolderBase();
                 baseFolder.Owner = m_userProfile.ID;
                 baseFolder.ID = folderID;
@@ -432,13 +438,8 @@ namespace OpenSim.Framework.Communications.Cache
                     m_commsManager.InventoryService.UpdateFolder(baseFolder);
                 }
 
-                InventoryFolderImpl folder = RootFolder.FindFolder(folderID);
-                if (folder != null)
-                {
-                    folder.Name = name;
-                    folder.Type = (short)type;
-                    folder.ParentID = parentID;
-                }
+                folder.Name = name;
+                folder.Type = (short)type;
             }
             else
             {

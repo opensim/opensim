@@ -142,17 +142,44 @@ namespace OpenSim.Framework.Communications.Tests
             userInfo.CreateFolder("folder1", folder1Id, (ushort)AssetType.Animation, rootFolder.ID);
             
             // 1: Test updates that don't involve moving the folder
-            string newFolderName1 = "newFolderName1";
-            ushort folderType1 = (ushort)AssetType.Texture;
-            userInfo.UpdateFolder(newFolderName1, folder1Id, folderType1, rootFolder.ID);
+            {
+                string newFolderName1 = "newFolderName1";
+                ushort folderType1 = (ushort)AssetType.Texture;
+                userInfo.UpdateFolder(newFolderName1, folder1Id, folderType1, rootFolder.ID);
+                
+                InventoryFolderImpl folder1 = rootFolder.GetChildFolder(folder1Id);
+                Assert.That(newFolderName1, Is.EqualTo(folder1.Name));
+                Assert.That(folderType1, Is.EqualTo((ushort)folder1.Type));
+                
+                InventoryFolderBase dataFolder1 = inventoryDataPlugin.getInventoryFolder(folder1Id);
+                Assert.That(newFolderName1, Is.EqualTo(dataFolder1.Name));
+                Assert.That(folderType1, Is.EqualTo((ushort)dataFolder1.Type));
+            }
             
-            InventoryFolderImpl folder1 = rootFolder.GetChildFolder(folder1Id);
-            Assert.That(newFolderName1, Is.EqualTo(folder1.Name));
-            Assert.That(folderType1, Is.EqualTo((ushort)folder1.Type));
+            // 2: Test an update that also involves moving the folder
+            {
+                UUID folder2Id = UUID.Parse("00000000-0000-0000-0000-000000000061");
+                userInfo.CreateFolder("folder2", folder2Id, (ushort)AssetType.Animation, rootFolder.ID);
+                InventoryFolderImpl folder2 = rootFolder.GetChildFolder(folder2Id);
+                
+                string newFolderName2 = "newFolderName2";
+                ushort folderType2 = (ushort)AssetType.Bodypart;
+                userInfo.UpdateFolder(newFolderName2, folder1Id, folderType2, folder2Id);
+                
+                InventoryFolderImpl folder1 = folder2.GetChildFolder(folder1Id);
+                Assert.That(newFolderName2, Is.EqualTo(folder1.Name));
+                Assert.That(folderType2, Is.EqualTo((ushort)folder1.Type));
+                Assert.That(folder2Id, Is.EqualTo(folder1.ParentID));
+                
+                Assert.That(folder2.ContainsChildFolder(folder1Id), Is.True);
+                Assert.That(rootFolder.ContainsChildFolder(folder1Id), Is.False);
+                
+                InventoryFolderBase dataFolder1 = inventoryDataPlugin.getInventoryFolder(folder1Id);
+                Assert.That(newFolderName2, Is.EqualTo(dataFolder1.Name));
+                Assert.That(folderType2, Is.EqualTo((ushort)dataFolder1.Type));  
+                Assert.That(folder2Id, Is.EqualTo(dataFolder1.ParentID));
+            }
             
-            InventoryFolderBase dataFolder1 = inventoryDataPlugin.getInventoryFolder(folder1Id);
-            Assert.That(newFolderName1, Is.EqualTo(dataFolder1.Name));
-            Assert.That(folderType1, Is.EqualTo((ushort)dataFolder1.Type));
         }            
 
         /// <summary>
