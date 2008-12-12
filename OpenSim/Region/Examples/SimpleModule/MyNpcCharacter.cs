@@ -250,7 +250,7 @@ namespace OpenSim.Region.Examples.SimpleModule
             m_scene.EventManager.OnFrame += Update;
         }
 
-        private Vector3 startPos = new Vector3(128, 128, 2);
+        private Vector3 startPos = new Vector3(128, 128, 30);
 
         public virtual Vector3 StartPos
         {
@@ -732,6 +732,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                         args.Message = "Hey You! Get out of my Home. This is my Region";
                         args.Channel = 0;
                         args.From = FirstName + " " + LastName;
+                        args.Scene = m_scene;
                         args.Position = new Vector3(128, 128, 26);
                         args.Sender = this;
                         args.Type = ChatTypeEnum.Shout;
