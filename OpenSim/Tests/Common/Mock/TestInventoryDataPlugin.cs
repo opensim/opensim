@@ -87,7 +87,19 @@ namespace OpenSim.Tests.Common.Mock
             return folder;
         }
         
-        public List<InventoryFolderBase> getInventoryFolders(UUID parentID) { return null; }
+        public List<InventoryFolderBase> getInventoryFolders(UUID parentID) 
+        {
+            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+            
+            foreach (InventoryFolderBase folder in m_folders.Values)
+            {
+                if (folder.ParentID == parentID)
+                    folders.Add(folder);
+            }
+            
+            return folders;
+        }
+        
         public InventoryItemBase getInventoryItem(UUID item) { return null; }
         
         public InventoryFolderBase getInventoryFolder(UUID folderId) 
@@ -118,7 +130,12 @@ namespace OpenSim.Tests.Common.Mock
             m_folders[folder.ID] = folder;            
         }
         
-        public void deleteInventoryFolder(UUID folder) {}
+        public void deleteInventoryFolder(UUID folderId) 
+        {
+            if (m_folders.ContainsKey(folderId))
+                m_folders.Remove(folderId);
+        }
+        
         public List<InventoryItemBase> fetchActiveGestures(UUID avatarID) { return null; }          
     }
 }

@@ -135,9 +135,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             // Check that the taken part has actually disappeared
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-            Assert.That(retrievedPart, Is.Null);                 
-            
-            //log4net.LogManager.Shutdown();            
+            Assert.That(retrievedPart, Is.Null);                             
         }
     }
 }

@@ -26,6 +26,7 @@
  */
 
 using System;
+using log4net;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
@@ -161,8 +162,11 @@ namespace OpenSim.Framework.Communications.Tests
         /// <summary>
         /// Test purging an inventory folder
         /// </summary>
+        [Test]
         public void TestPurgeFolder()
         {
+            //log4net.Config.XmlConfigurator.Configure();
+            
             IUserDataPlugin userDataPlugin = new TestUserDataPlugin();
             IInventoryDataPlugin inventoryDataPlugin = new TestInventoryDataPlugin();
             
@@ -174,6 +178,7 @@ namespace OpenSim.Framework.Communications.Tests
             InventoryFolderImpl rootFolder = userInfo.RootFolder;
             
             userInfo.CreateFolder("folder1", folder1Id, (ushort)AssetType.Animation, rootFolder.ID);
+            Assert.That(inventoryDataPlugin.getInventoryFolder(folder1Id), Is.Not.Null);
             
             // Test purge
             userInfo.PurgeFolder(rootFolder.ID);
