@@ -137,8 +137,7 @@ namespace OpenSim.Framework.Communications.Tests
 
             UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000020");
             UUID folder2Id = UUID.Parse("00000000-0000-0000-0000-000000000021");
-            UUID folderToMoveId = UUID.Parse("00000000-0000-0000-0000-000000000030");
-            
+            UUID folderToMoveId = UUID.Parse("00000000-0000-0000-0000-000000000030");            
             InventoryFolderImpl rootFolder = userInfo.RootFolder;
             
             userInfo.CreateFolder("folder1", folder1Id, (ushort)AssetType.Animation, rootFolder.ID);
@@ -157,6 +156,30 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(inventoryDataPlugin.getInventoryFolder(folderToMoveId).ParentID, Is.EqualTo(folder2Id));
             
             Assert.That(folder1.ContainsChildFolder(folderToMoveId), Is.False);
+        }
+        
+        /// <summary>
+        /// Test purging an inventory folder
+        /// </summary>
+        public void TestPurgeFolder()
+        {
+            IUserDataPlugin userDataPlugin = new TestUserDataPlugin();
+            IInventoryDataPlugin inventoryDataPlugin = new TestInventoryDataPlugin();
+            
+            CommunicationsManager commsManager 
+                = UserProfileTestUtils.SetupServices(userDataPlugin, inventoryDataPlugin);
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+            
+            UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000070");
+            InventoryFolderImpl rootFolder = userInfo.RootFolder;
+            
+            userInfo.CreateFolder("folder1", folder1Id, (ushort)AssetType.Animation, rootFolder.ID);
+            
+            // Test purge
+            userInfo.PurgeFolder(rootFolder.ID);
+            
+            Assert.That(rootFolder.RequestListOfFolders(), Is.Empty);
+            Assert.That(inventoryDataPlugin.getInventoryFolder(folder1Id), Is.Null);
         }
     }
 }
