@@ -145,7 +145,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_stringDoubleSet.Add("-548.5", -548.5);
             m_stringDoubleSet.Add("-2.0005", -2.0005);
             m_stringDoubleSet.Add("-349485435.6805", -349485435.6805);
-
+            // some oddball combinations and exponents
+            m_stringDoubleSet.Add("", 0.0);
+            m_stringDoubleSet.Add("1.0E+5", 100000.0);
+            m_stringDoubleSet.Add("-1.0E+5", -100000.0);
+            m_stringDoubleSet.Add("-1E+5", -100000.0);
+            m_stringDoubleSet.Add("-1.E+5", -100000.0);
+            m_stringDoubleSet.Add("-1.E+5.0", -100000.0);
+            m_stringDoubleSet.Add("1ef", 1.0);
+            m_stringDoubleSet.Add("e10", 0.0);
+            m_stringDoubleSet.Add("1.e0.0", 1.0);
+ 
             m_doubleStringSet = new Dictionary<double, string>();
             m_doubleStringSet.Add(2.0, "2.000000");
             m_doubleStringSet.Add(-2.0, "-2.000000");

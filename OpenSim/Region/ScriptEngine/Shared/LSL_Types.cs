@@ -1363,7 +1363,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static explicit operator double(LSLString s)
             {
-                return Convert.ToDouble(s.m_string);
+                return new LSLFloat(s).value;
             }
 
             public static explicit operator LSLInteger(LSLString s)
@@ -1401,7 +1401,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static implicit operator LSLFloat(LSLString s)
             {
-                return new LSLFloat(Convert.ToDouble(s.m_string));
+                return new LSLFloat(s);
             }
 
             public static implicit operator list(LSLString s)
@@ -1737,7 +1737,21 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLFloat(string s)
             {
-                this.value = double.Parse(s);
+                Regex r = new Regex("^ *(\\+|-)?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE](\\+|-)?[0-9]+)?");
+                Match m = r.Match(s);
+                string v = m.Groups[0].Value;
+
+                v = v.Trim();
+
+                if (v == String.Empty || v == null)
+                    v = "0.0";
+                else
+                    if (!v.Contains(".") && !v.ToLower().Contains("e"))
+                        v = v + ".0";
+                    else
+                        if (v.EndsWith("."))
+                            v = v + "0";
+                this.value = double.Parse(v, System.Globalization.NumberStyles.Float);
             }
 
             #endregion
@@ -1783,17 +1797,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public explicit operator LSLFloat(string s)
             {
-                Regex r = new Regex("^[ ]*-?[0-9]*\\.?[0-9]*[eE]?-?[0-9]*");
-                Match m = r.Match(s);
-                string v = m.Groups[0].Value;
-
-                while (v.Length > 0 && v.Substring(0, 1) == " ")
-                    v = v.Substring(1);
-
-                if (v == String.Empty)
-                    v = "0";
-
-                return new LSLFloat(double.Parse(v));
+                return new LSLFloat(s);
             }
 
             public static implicit operator list(LSLFloat f)
