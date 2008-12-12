@@ -72,6 +72,23 @@ namespace OpenSim.Framework.Communications.Tests
             
             Assert.That(userInfo.HasReceivedInventory, Is.True);
         }
+                
+        /// <summary>
+        /// Test retrieving a child folder
+        /// </summary>
+        [Test]
+        public void TestGetChildFolder()
+        {
+            CommunicationsManager commsManager = UserProfileTestUtils.SetupServices();
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+            
+            UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000011");
+            
+            Assert.That(userInfo.RootFolder.GetChildFolder(folderId), Is.Null);                                   
+            userInfo.CreateFolder("testFolder", folderId, (ushort)AssetType.Animation, userInfo.RootFolder.ID);
+            
+            Assert.That(userInfo.RootFolder.GetChildFolder(folderId), Is.Not.Null);
+        }           
         
         /// <summary>
         /// Test creating an inventory folder
@@ -104,22 +121,42 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(inventoryDataPlugin.getInventoryFolder(folderId), Is.Not.Null);
             Assert.That(userInfo.RootFolder.ContainsChildFolder(folderId), Is.True);
         }
-        
+
         /// <summary>
-        /// Test retrieving a child folder
+        /// Test moving an inventory folder
         /// </summary>
         [Test]
-        public void TestGetChildFolder()
+        public void TestMoveFolder()
         {
-            CommunicationsManager commsManager = UserProfileTestUtils.SetupServices();
+            IUserDataPlugin userDataPlugin = new TestUserDataPlugin();
+            IInventoryDataPlugin inventoryDataPlugin = new TestInventoryDataPlugin();
+            
+            CommunicationsManager commsManager 
+                = UserProfileTestUtils.SetupServices(userDataPlugin, inventoryDataPlugin);
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+
+            UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000020");
+            UUID folder2Id = UUID.Parse("00000000-0000-0000-0000-000000000021");
+            UUID folderToMoveId = UUID.Parse("00000000-0000-0000-0000-000000000030");
             
-            UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000011");
+            InventoryFolderImpl rootFolder = userInfo.RootFolder;
             
-            Assert.That(userInfo.RootFolder.GetChildFolder(folderId), Is.Null);                                   
-            userInfo.CreateFolder("testFolder", folderId, (ushort)AssetType.Animation, userInfo.RootFolder.ID);
+            userInfo.CreateFolder("folder1", folder1Id, (ushort)AssetType.Animation, rootFolder.ID);
+            InventoryFolderImpl folder1 = rootFolder.GetChildFolder(folder1Id);
+            userInfo.CreateFolder("folder2", folder2Id, (ushort)AssetType.Animation, rootFolder.ID);
+            InventoryFolderImpl folder2 = rootFolder.GetChildFolder(folder2Id);
             
-            Assert.That(userInfo.RootFolder.GetChildFolder(folderId), Is.Not.Null);
-        }        
+            // Check folder is currently in folder1
+            userInfo.CreateFolder("folderToMove", folderToMoveId, (ushort)AssetType.Animation, folder1Id);
+            Assert.That(folder1.ContainsChildFolder(folderToMoveId), Is.True);
+            
+            userInfo.MoveFolder(folderToMoveId, folder2Id);
+            
+            // Check folder is now in folder2 and no trace remains in folder1
+            Assert.That(folder2.ContainsChildFolder(folderToMoveId), Is.True);
+            Assert.That(inventoryDataPlugin.getInventoryFolder(folderToMoveId).ParentID, Is.EqualTo(folder2Id));
+            
+            Assert.That(folder1.ContainsChildFolder(folderToMoveId), Is.False);
+        }
     }
 }

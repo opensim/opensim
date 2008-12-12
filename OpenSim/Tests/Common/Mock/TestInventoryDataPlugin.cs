@@ -111,7 +111,13 @@ namespace OpenSim.Tests.Common.Mock
         }
         
         public void updateInventoryFolder(InventoryFolderBase folder) {}
-        public void moveInventoryFolder(InventoryFolderBase folder) {}
+        
+        public void moveInventoryFolder(InventoryFolderBase folder) 
+        {
+            // Simple replace
+            m_folders[folder.ID] = folder;            
+        }
+        
         public void deleteInventoryFolder(UUID folder) {}
         public List<InventoryItemBase> fetchActiveGestures(UUID avatarID) { return null; }          
     }
