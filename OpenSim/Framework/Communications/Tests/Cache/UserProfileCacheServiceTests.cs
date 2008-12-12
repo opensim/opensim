@@ -74,7 +74,7 @@ namespace OpenSim.Framework.Communications.Tests
         }
         
         /// <summary>
-        /// Test moving an inventory folder
+        /// Test creating an inventory folder
         /// </summary>
         [Test]
         public void TestCreateFolder()
@@ -89,7 +89,18 @@ namespace OpenSim.Framework.Communications.Tests
             UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000010");            
             Assert.That(userInfo.RootFolder.ContainsChildFolder(folderId), Is.False);
             
-            userInfo.CreateFolder("testFolder", folderId, (ushort)AssetType.Animation, userInfo.RootFolder.ID);
+            // 1: Try a folder create that should fail because the parent id given does not exist
+            UUID missingFolderId = UUID.Random();
+             
+            Assert.That(
+                userInfo.CreateFolder("testFolder1", folderId, (ushort)AssetType.Animation, missingFolderId), Is.False);
+            Assert.That(inventoryDataPlugin.getInventoryFolder(folderId), Is.Null);
+            Assert.That(userInfo.RootFolder.ContainsChildFolder(missingFolderId), Is.False);
+            Assert.That(userInfo.RootFolder.FindFolder(folderId), Is.Null);
+            
+            // 2: Try a folder create that should work
+            Assert.That(
+                userInfo.CreateFolder("testFolder2", folderId, (ushort)AssetType.Animation, userInfo.RootFolder.ID), Is.True);
             Assert.That(inventoryDataPlugin.getInventoryFolder(folderId), Is.Not.Null);
             Assert.That(userInfo.RootFolder.ContainsChildFolder(folderId), Is.True);
         }
