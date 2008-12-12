@@ -122,6 +122,38 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(inventoryDataPlugin.getInventoryFolder(folderId), Is.Not.Null);
             Assert.That(userInfo.RootFolder.ContainsChildFolder(folderId), Is.True);
         }
+        
+        /// <summary>
+        /// Test updating a folder
+        /// </summary>
+        [Test]
+        public void TestUpdateFolder()
+        {
+            IUserDataPlugin userDataPlugin = new TestUserDataPlugin();
+            IInventoryDataPlugin inventoryDataPlugin = new TestInventoryDataPlugin();
+            
+            CommunicationsManager commsManager 
+                = UserProfileTestUtils.SetupServices(userDataPlugin, inventoryDataPlugin);
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+            
+            UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
+            InventoryFolderImpl rootFolder = userInfo.RootFolder;
+            
+            userInfo.CreateFolder("folder1", folder1Id, (ushort)AssetType.Animation, rootFolder.ID);
+            
+            // 1: Test updates that don't involve moving the folder
+            string newFolderName1 = "newFolderName1";
+            ushort folderType1 = (ushort)AssetType.Texture;
+            userInfo.UpdateFolder(newFolderName1, folder1Id, folderType1, rootFolder.ID);
+            
+            InventoryFolderImpl folder1 = rootFolder.GetChildFolder(folder1Id);
+            Assert.That(newFolderName1, Is.EqualTo(folder1.Name));
+            Assert.That(folderType1, Is.EqualTo((ushort)folder1.Type));
+            
+            InventoryFolderBase dataFolder1 = inventoryDataPlugin.getInventoryFolder(folder1Id);
+            Assert.That(newFolderName1, Is.EqualTo(dataFolder1.Name));
+            Assert.That(folderType1, Is.EqualTo((ushort)dataFolder1.Type));
+        }            
 
         /// <summary>
         /// Test moving an inventory folder

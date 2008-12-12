@@ -436,6 +436,7 @@ namespace OpenSim.Framework.Communications.Cache
                 if (folder != null)
                 {
                     folder.Name = name;
+                    folder.Type = (short)type;
                     folder.ParentID = parentID;
                 }
             }

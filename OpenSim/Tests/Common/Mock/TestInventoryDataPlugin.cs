@@ -122,12 +122,15 @@ namespace OpenSim.Tests.Common.Mock
                 m_rootFolders[folder.Owner] = folder;
         }
         
-        public void updateInventoryFolder(InventoryFolderBase folder) {}
+        public void updateInventoryFolder(InventoryFolderBase folder)
+        {
+            m_folders[folder.ID] = folder;
+        }
         
         public void moveInventoryFolder(InventoryFolderBase folder) 
         {
             // Simple replace
-            m_folders[folder.ID] = folder;            
+            updateInventoryFolder(folder);            
         }
         
         public void deleteInventoryFolder(UUID folderId) 
