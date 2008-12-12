@@ -108,7 +108,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// is executed immediately instead.
         /// </summary>
         /// <param name="parent"></param>
-        public void AddRequest(IInventoryRequest request)
+        protected void AddRequest(IInventoryRequest request)
         {
             lock (m_pendingRequests)
             {
