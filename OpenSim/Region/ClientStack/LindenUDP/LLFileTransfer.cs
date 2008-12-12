@@ -13,10 +13,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public delegate void UploadComplete(string filename, byte[] fileData, IClientAPI remoteClient);
-    public delegate void UploadAborted(string filename, ulong id, IClientAPI remoteClient);
-
-    public class LLFileTransfer
+    public class LLFileTransfer : IClientFileTransfer
     {
         protected IClientAPI m_clientAPI;
 
