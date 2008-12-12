@@ -912,7 +912,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
         private void OnLogout(IClientAPI remoteClient)
         {
-            m_log.ErrorFormat("[FRIEND]: Client {0} logged out", remoteClient.Name);
+            m_log.DebugFormat("[FRIEND]: Client {0} logged out", remoteClient.Name);
 
             List<FriendListItem> fl;
             lock (m_friendLists)
