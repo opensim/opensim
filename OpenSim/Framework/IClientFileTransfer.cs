@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -33,10 +33,11 @@ using OpenMetaverse;
 namespace OpenSim.Framework
 {
     public delegate void UploadComplete(string filename, UUID fileID, byte[] fileData, IClientAPI remoteClient);
-    public delegate void UploadAborted(string filename, ulong id, IClientAPI remoteClient);
+    public delegate void UploadAborted(string filename, UUID fileID,  ulong transferID, IClientAPI remoteClient);
 
     public interface IClientFileTransfer
     {
         bool RequestUpload(string clientFileName, UploadComplete uploadCompleteCallback, UploadAborted abortCallback);
+        bool RequestUpload(UUID fileID, UploadComplete uploadCompleteCallback, UploadAborted abortCallback);
     }
 }

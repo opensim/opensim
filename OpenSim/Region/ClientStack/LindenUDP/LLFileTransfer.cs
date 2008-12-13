@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -95,6 +95,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool StartUpload(XferHandler uploader, UploadComplete uploadCompleteCallback, UploadAborted abortCallback)
         {
             uploader.UploadDone += uploadCompleteCallback;
+            uploader.UploadDone += RemoveXferHandler;
 
             if (abortCallback != null)
             {
@@ -113,6 +114,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     // something went wrong with the xferID allocation
                     uploader.UploadDone -= uploadCompleteCallback;
+                    uploader.UploadDone -= RemoveXferHandler;
                     if (abortCallback != null)
                     {
                         uploader.UploadAborted -= abortCallback;
@@ -143,6 +145,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_handlers[xferID].XferReceive(remoteClient, xferID, packetID, data);
                 }
             }
+        }
+
+        protected void RemoveXferHandler(string filename, UUID fileID, byte[] fileData, IClientAPI remoteClient)
+        {
+
         }
     }
 
@@ -186,7 +193,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_asset.FullID = fileID;
             m_asset.Type = type;
             m_asset.Data = new byte[0];
-            m_asset.Name = null;
+            m_asset.Name = String.Empty;
             m_asset.Description = "empty";
             m_asset.Local = true;
             m_asset.Temporary = true;
@@ -200,7 +207,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void RequestStartXfer(IClientAPI pRemoteClient)
         {
-            if (m_asset.Name != null)
+            if (!String.IsNullOrEmpty(m_asset.Name) )
             {
                 pRemoteClient.SendXferRequest(mXferID, m_asset.Type, m_asset.FullID, 0, Utils.StringToBytes(m_asset.Name));
             }
@@ -259,7 +266,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             handlerAbort = UploadAborted;
             if (handlerAbort != null)
             {
-                handlerAbort(m_asset.Name, mXferID, remoteClient);
+                handlerAbort(m_asset.Name, m_asset.FullID, mXferID, remoteClient);
             }
         }
     }
