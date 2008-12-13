@@ -410,16 +410,17 @@ namespace OpenSim.Region.Communications.OGS1
 
                     uint regX = Convert.ToUInt32((string) responseData["region_locx"]);
                     uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
-                    string internalIpStr = (string) responseData["sim_ip"];
+                    string externalHostName = (string) responseData["sim_ip"];
                     uint port = Convert.ToUInt32(responseData["sim_port"]);
                     // string externalUri = (string) responseData["sim_uri"];
 
-                    IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
-                    // string neighbourExternalUri = externalUri;
-                    regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
+                    //IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
+                    IPEndPoint neighbourInternalEndPoint = new IPEndPoint(Util.GetHostFromDNS(externalHostName), (int)port);
+                    
+                    regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, externalHostName);
 
                     regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
-                    regionInfo.RemotingAddress = internalIpStr;
+                    regionInfo.RemotingAddress = externalHostName;
 
                     if (responseData.ContainsKey("http_port"))
                     {
@@ -437,11 +438,11 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                     }
                 }
-                catch
+                catch (Exception e)
                 {
                     m_log.Error("[OGS1 GRID SERVICES]: " +
                                 "Region lookup failed for: " + regionHandle.ToString() +
-                                " - Is the GridServer down?");
+                                " - Is the GridServer down?" + e.ToString());
                     return null;
                 }
             }
@@ -1551,8 +1552,7 @@ namespace OpenSim.Region.Communications.OGS1
             bool available = false;
             bool timed_out = true;
 
-            IPAddress ia;
-            IPAddress.TryParse(address, out ia);
+            IPAddress ia = Util.GetHostFromDNS(address);
             IPEndPoint m_EndPoint;
             try
             {

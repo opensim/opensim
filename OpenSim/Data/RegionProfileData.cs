@@ -161,7 +161,7 @@ namespace OpenSim.Data
                 simData.httpPort = Convert.ToUInt32((string) responseData["http_port"]);
                 simData.remotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
                 simData.serverURI = (string) responseData["server_uri"];
-                simData.httpServerURI = "http://" + (string)responseData["sim_host"] + ":" + simData.httpPort.ToString() + "/";
+                simData.httpServerURI = "http://" + (string)responseData["sim_ip"] + ":" + simData.httpPort.ToString() + "/";
                 simData.UUID = new UUID((string) responseData["region_UUID"]);
                 simData.regionName = (string) responseData["region_name"];
             }

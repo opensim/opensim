@@ -563,8 +563,7 @@ namespace OpenSim.Grid.GridServer
                 foreach (RegionProfileData aSim in neighbours)
                 {
                     NeighbourBlock = new Hashtable();
-                    NeighbourBlock["sim_host"] = aSim.serverIP;
-                    NeighbourBlock["sim_ip"] = Util.GetHostFromDNS(aSim.serverIP.ToString()).ToString();
+                    NeighbourBlock["sim_ip"] = aSim.serverIP;
                     NeighbourBlock["sim_port"] = aSim.serverPort.ToString();
                     NeighbourBlock["region_locx"] = aSim.regionLocX.ToString();
                     NeighbourBlock["region_locy"] = aSim.regionLocY.ToString();
@@ -594,8 +593,7 @@ namespace OpenSim.Grid.GridServer
                                                         (uint)(sim.regionLocY + y) * Constants.RegionSize));
 
                             NeighbourBlock = new Hashtable();
-                            NeighbourBlock["sim_host"] = neighbour.serverIP;
-                            NeighbourBlock["sim_ip"] = Util.GetHostFromDNS(neighbour.serverIP).ToString();
+                            NeighbourBlock["sim_ip"] = neighbour.serverIP;
                             NeighbourBlock["sim_port"] = neighbour.serverPort.ToString();
                             NeighbourBlock["region_locx"] = neighbour.regionLocX.ToString();
                             NeighbourBlock["region_locy"] = neighbour.regionLocY.ToString();
@@ -813,8 +811,7 @@ namespace OpenSim.Grid.GridServer
             {
                 m_log.Info("[DATA]: found " + (string)simData.regionName + " regionHandle = " +
                            (string)requestData["region_handle"]);
-                responseData["sim_ip"] = Util.GetHostFromDNS(simData.serverIP).ToString();
-                responseData["sim_host"] = simData.serverIP;
+                responseData["sim_ip"] = simData.serverIP;
                 responseData["sim_port"] = simData.serverPort.ToString();
                 responseData["server_uri"] = simData.serverURI;
                 responseData["http_port"] = simData.httpPort.ToString();
@@ -881,7 +878,7 @@ namespace OpenSim.Grid.GridServer
 
                     // For Sugilite compatibility
                     simProfileBlock["regionhandle"] = aSim.regionHandle.ToString();
-                    simProfileBlock["sim_ip"] = aSim.serverIP.ToString();
+                    simProfileBlock["sim_ip"] = aSim.serverIP;
                     simProfileBlock["sim_port"] = aSim.serverPort.ToString();
                     simProfileBlock["sim_uri"] = aSim.serverURI.ToString();
                     simProfileBlock["uuid"] = aSim.UUID.ToString();
@@ -1044,7 +1041,7 @@ namespace OpenSim.Grid.GridServer
                     respstring += "<sim>";
                     respstring += "<uuid>" + TheSim.ToString() + "</uuid>";
                     respstring += "<regionname>" + TheSim.regionName + "</regionname>";
-                    respstring += "<sim_ip>" + Util.GetHostFromDNS(TheSim.serverIP).ToString() + "</sim_ip>";
+                    respstring += "<sim_ip>" + TheSim.serverIP + "</sim_ip>";
                     respstring += "<sim_port>" + TheSim.serverPort.ToString() + "</sim_port>";
                     respstring += "<region_locx>" + TheSim.regionLocX.ToString() + "</region_locx>";
                     respstring += "<region_locy>" + TheSim.regionLocY.ToString() + "</region_locy>";
