@@ -700,6 +700,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         
                         d.BodyDestroy(Body);
+                        lock (childrenPrim)
+                        {
+                            if (childrenPrim.Count > 0)
+                            {
+                                foreach (OdePrim prm in childrenPrim)
+                                {
+                                    _parent_scene.remActivePrim(prm);
+                                    prm.Body = IntPtr.Zero;
+                                }
+                            }
+                        }
                         Body = IntPtr.Zero;
                     }
                 }
@@ -970,6 +981,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 prm.m_collisionCategories |= CollisionCategories.Body;
                                 prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+
+                                if (prm.prim_geom == IntPtr.Zero)
+                                {
+                                    m_log.Warn("[PHYSICS]: Unable to link one of the linkset elements.  No geom yet");
+                                    continue;
+                                }
 
                                 d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
                                 d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
@@ -1345,31 +1362,46 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_isphysical)
             {
-                // This is a fallback..   May no longer be necessary.
-                if (Body == IntPtr.Zero)
-                    enableBody();
-                //Prim auto disable after 20 frames,
-                //if you move it, re-enable the prim manually.
-                if (_parent != null)
+                
+                if (!m_disabled && !m_taintremove && !childPrim)
                 {
-                    if (m_linkJoint != IntPtr.Zero)
+                    if (Body == IntPtr.Zero)
+                        enableBody();
+                    //Prim auto disable after 20 frames,
+                    //if you move it, re-enable the prim manually.
+                    if (_parent != null)
                     {
-                        d.JointDestroy(m_linkJoint);
-                        m_linkJoint = IntPtr.Zero;
+                        if (m_linkJoint != IntPtr.Zero)
+                        {
+                            d.JointDestroy(m_linkJoint);
+                            m_linkJoint = IntPtr.Zero;
+                        }
+                    }
+                    if (Body != IntPtr.Zero)
+                    {
+                        d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
+
+                        if (_parent != null)
+                        {
+                            OdePrim odParent = (OdePrim)_parent;
+                            if (Body != (IntPtr)0 && odParent.Body != (IntPtr)0 && Body != odParent.Body)
+                            {
+                                m_linkJoint = d.JointCreateFixed(_parent_scene.world, _linkJointGroup);
+                                d.JointAttach(m_linkJoint, Body, odParent.Body);
+                                d.JointSetFixed(m_linkJoint);
+                            }
+                        }
+                        d.BodyEnable(Body);
+                    }
+                    else
+                    {
+                        m_log.Warn("[PHYSICS]: Body Still null after enableBody().  This is a crash scenario.");
                     }
                 }
-                d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
-                if (_parent != null)
-                {
-                    OdePrim odParent = (OdePrim)_parent;
-                    if (Body != (IntPtr)0 && odParent.Body != (IntPtr)0 && Body != odParent.Body)
-                    {
-                        m_linkJoint = d.JointCreateFixed(_parent_scene.world, _linkJointGroup);
-                        d.JointAttach(m_linkJoint, Body, odParent.Body);
-                        d.JointSetFixed(m_linkJoint);
-                    }
-                }
-                d.BodyEnable(Body);
+                //else
+               // {
+                    //m_log.Debug("[BUG]: race!");
+                //}
             }
             else
             {
