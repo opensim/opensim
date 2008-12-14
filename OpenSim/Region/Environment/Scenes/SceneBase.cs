@@ -216,8 +216,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         /// <summary>
         /// XXX These two methods are very temporary
+        /// XXX Diva: this is really truly horrible; must...move...to...LL client...stack...
         /// </summary>
         protected Dictionary<UUID, string> capsPaths = new Dictionary<UUID, string>();
+        protected Dictionary<UUID, Dictionary<ulong, string>> childrenSeeds = new Dictionary<UUID, Dictionary<ulong, string>>();
         public string GetCapsPath(UUID agentId)
         {
             if (capsPaths.ContainsKey(agentId))
@@ -227,7 +229,52 @@ namespace OpenSim.Region.Environment.Scenes
 
             return null;
         }
-        
+        public Dictionary<ulong, string> GetChildrenSeeds(UUID agentID)
+        {
+            Dictionary<ulong, string> seeds = null;
+            if (childrenSeeds.TryGetValue(agentID, out seeds))
+                return seeds;
+            return new Dictionary<ulong, string>();
+        }
+
+        public void DropChildSeed(UUID agentID, ulong handle)
+        {
+            Dictionary<ulong, string> seeds;
+            if (childrenSeeds.TryGetValue(agentID, out seeds))
+            {
+                seeds.Remove(handle);
+            }
+        }
+
+        public string GetChildSeed(UUID agentID, ulong handle)
+        {
+            Dictionary<ulong, string> seeds;
+            if (childrenSeeds.TryGetValue(agentID, out seeds))
+            {
+                return seeds[handle];
+            }
+            return null;
+        }
+
+        public void SetChildrenSeed(UUID agentID, Dictionary<ulong, string> value)
+        {
+            //Console.WriteLine(" !!! Setting child seeds in {0} to {1}", RegionInfo.RegionName, value.Count);
+            childrenSeeds[agentID] = value;
+        }
+
+        public void DumpChildrenSeeds(UUID agentID)
+        {
+            Console.WriteLine("================ ChildrenSeed {0} ================", RegionInfo.RegionName);
+            foreach (KeyValuePair<ulong, string> kvp in childrenSeeds[agentID])
+            {
+                uint x, y;
+                Utils.LongToUInts(kvp.Key, out x, out y);
+                x = x / Constants.RegionSize;
+                y = y / Constants.RegionSize;
+                Console.WriteLine(" >> {0}, {1}: {2}", x, y, kvp.Value);
+            }
+        }
+
         /// <summary>
         /// Returns a new unallocated local ID
         /// </summary>

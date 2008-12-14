@@ -350,7 +350,7 @@ namespace OpenSim.Framework
         public static bool IsOutsideView(uint oldx, uint newx, uint oldy, uint newy)
         {
             // Eventually this will be a function of the draw distance / camera position too.
-            return ((Math.Abs((int)(oldx - newx)) > 1) || (Math.Abs((int)(oldy - newy)) > 1));
+            return (((int)Math.Abs((int)(oldx - newx)) > 1) || ((int)Math.Abs((int)(oldy - newy)) > 1));
         }
 
         public static string FieldToString(byte[] bytes)

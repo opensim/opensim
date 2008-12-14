@@ -108,6 +108,12 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                 RegionInfo reg = RequestNeighbouringRegionInfo(regionHandle);
                 if (reg != null)
                 {
+
+                    uint newRegionX = (uint)(reg.RegionHandle >> 40);
+                    uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
+                    uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);
+                    uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
+
                     ///
                     /// Hypergrid mod start
                     /// 
@@ -130,11 +136,6 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                     if (eq == null)
                         avatar.ControllingClient.SendTeleportLocationStart();
 
-                    AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
-                    agent.BaseFolder = UUID.Zero;
-                    agent.InventoryFolder = UUID.Zero;
-                    agent.startpos = position;
-                    agent.child = true;
 
                     if (reg.RemotingAddress != "" && reg.RemotingPort != 0)
                     {
@@ -166,13 +167,41 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
                         // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
                         // once we reach here...
-                        avatar.Scene.RemoveCapsHandler(avatar.UUID);
-                        agent.child = false;
-                        m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent);
+                        //avatar.Scene.RemoveCapsHandler(avatar.UUID);
+
+                        AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
+                        agent.BaseFolder = UUID.Zero;
+                        agent.InventoryFolder = UUID.Zero;
+                        agent.startpos = position;
+                        agent.child = true;
+                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        {
+                            // brand new agent
+                            agent.CapsPath = Util.GetRandomCapsPath();
+                        }
+                        else
+                        {
+                            // child agent already there
+                            agent.CapsPath = avatar.Scene.GetChildSeed(avatar.UUID, reg.RegionHandle);
+                        }
+
+                        if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent))
+                        {
+                            avatar.ControllingClient.SendTeleportFailed("Destination is not accepting teleports.");
+                            return;
+                        }
+
+                        // TODO Should construct this behind a method
+                        string capsPath =
+                            "http://" + reg.ExternalHostName + ":" + reg.HttpPort
+                            + "/CAPS/" + agent.CapsPath + "0000/";
 
                         if (eq != null)
                         {
                             OSD Item = EventQueueHelper.EnableSimulator(realHandle, reg.ExternalEndPoint);
+                            eq.Enqueue(Item, avatar.UUID);
+
+                            Item = EventQueueHelper.EstablishAgentCommunication(avatar.UUID, reg.ExternalEndPoint.ToString(), capsPath);
                             eq.Enqueue(Item, avatar.UUID);
                         }
                         else
@@ -181,18 +210,21 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                             // TODO: make Event Queue disablable!
                         }
 
-                        m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
-                                                                     position, false);
-                        Thread.Sleep(2000);
-                        AgentCircuitData circuitdata = avatar.ControllingClient.RequestClientInfo();
+                        if (!m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
+                                                                              position, false))
+                        {
+                            avatar.ControllingClient.SendTeleportFailed("Problem with destination.");
+                            // We should close that agent we just created over at destination...
+                            List<ulong> lst = new List<ulong>();
+                            lst.Add(reg.RegionHandle);
+                            SendCloseChildAgentAsync(avatar.UUID, lst);
+                            return;
+                        }
 
-                        // TODO Should construct this behind a method
-                        string capsPath =
-                            "http://" + reg.ExternalHostName + ":" + reg.HttpPort
-                            + "/CAPS/" + circuitdata.CapsPath + "0000/";
+                        Thread.Sleep(2000);
 
                         m_log.DebugFormat(
-                            "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);
+                            "[CAPS]: Sending new CAPS seed url {0} to client {1}", agent.CapsPath, avatar.UUID);
 
 
                         ///
@@ -215,7 +247,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         /// 
 
                         avatar.MakeChildAgent();
-                        Thread.Sleep(7000);
+                        Thread.Sleep(5000);
                         avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
                         if (KiPrimitive != null)
                         {
@@ -223,29 +255,22 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         }
 
 
-                        uint newRegionX = (uint)(reg.RegionHandle >> 40);
-                        uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
-                        uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);
-                        uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
-
                         // Let's close some children agents
                         if (isHyperLink) // close them all
-                            SendCloseChildAgentConnections(avatar.UUID, avatar.GetKnownRegionList());
+                            SendCloseChildAgentConnections(avatar.UUID, avatar.KnownChildRegionHandles);
                         else // close just a few
                             avatar.CloseChildAgents(newRegionX, newRegionY);
                         
-                        avatar.Close();
+                        //avatar.Close();
                         
                         // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
                         ///
                         /// Hypergrid mod: extra check for isHyperLink
                         /// 
-                        //if ((Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 1) || isHyperLink)
-                        //if (((int)Math.Abs((int)(newRegionX - oldRegionX)) > 1) || ((int)Math.Abs((int)(newRegionY - oldRegionY)) > 1) || isHyperLink)
-                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
-                        {
-                            CloseConnection(avatar.UUID);
-                        }
+                        //if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        //{
+                        //    CloseConnection(avatar.UUID);
+                        //}
                         // if (teleport success) // seems to be always success here
                         // the user may change their profile information in other region,
                         // so the userinfo in UserProfileCache is not reliable any more, delete it

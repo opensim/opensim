@@ -188,8 +188,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
 
-        //neighbouring regions we have enabled a child agent in
-        private readonly List<ulong> m_knownChildRegions = new List<ulong>();
+        // neighbouring regions we have enabled a child agent in
+        // holds the seed cap for the child agent in that region
+        private Dictionary<ulong, string> m_knownChildRegions = new Dictionary<ulong, string>();
 
         /// <summary>
         /// Implemented Control Flags
@@ -483,9 +484,38 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// These are the region handles known by the avatar.
         /// </summary>
-        public List<ulong> KnownChildRegions
+        public List<ulong> KnownChildRegionHandles
+        {
+            get 
+            {
+                if (m_knownChildRegions.Count == 0) 
+                    return new List<ulong>();
+                else
+                    return new List<ulong>(m_knownChildRegions.Keys); 
+            }
+        }
+
+        public Dictionary<ulong, string> KnownRegions
         {
             get { return m_knownChildRegions; }
+            set 
+            {
+                //Console.WriteLine(" !! Setting known regions in {0} to {1}", Scene.RegionInfo.RegionName, value.Count);
+                m_knownChildRegions = value; 
+            }
+        }
+
+        public void DumpKnownRegions()
+        {
+            Console.WriteLine("================ KnownRegions {0} ================", Scene.RegionInfo.RegionName);
+            foreach (KeyValuePair<ulong, string> kvp in KnownRegions)
+            {
+                uint x, y;
+                Utils.LongToUInts(kvp.Key, out x, out y);
+                x = x / Constants.RegionSize;
+                y = y / Constants.RegionSize;
+                Console.WriteLine(" >> {0}, {1}: {2}", x, y, kvp.Value);
+            }
         }
 
         public AnimationSet Animations
@@ -529,6 +559,8 @@ namespace OpenSim.Region.Environment.Scenes
             CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid);
             if (userInfo != null)
                 userInfo.OnItemReceived += ItemReceived;
+
+            m_log.Info("[AVATAR]: New ScenePresence in " + Scene.RegionInfo.RegionName);
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,
@@ -742,7 +774,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.DebugFormat(
                 "[SCENE]: Upgrading child to root agent for {0} in {1}",
                 Name, m_scene.RegionInfo.RegionName);
-            
+
+            m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
+
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
                 m_grouptitle = gm.GetGroupTitle(m_uuid);
@@ -881,25 +915,43 @@ namespace OpenSim.Region.Environment.Scenes
             SendFullUpdateToAllClients();
         }
 
-        public void AddNeighbourRegion(ulong regionHandle)
+        public void AddNeighbourRegion(ulong regionHandle, string cap)
         {
-            if (!m_knownChildRegions.Contains(regionHandle))
+            lock (m_knownChildRegions)
             {
-                m_knownChildRegions.Add(regionHandle);
+                if (!m_knownChildRegions.ContainsKey(regionHandle))
+                {
+                    uint x, y;
+                    Utils.LongToUInts(regionHandle, out x, out y);
+                    m_knownChildRegions.Add(regionHandle, cap);
+                }
             }
         }
 
         public void RemoveNeighbourRegion(ulong regionHandle)
         {
-            if (m_knownChildRegions.Contains(regionHandle))
+            lock (m_knownChildRegions)
             {
-                m_knownChildRegions.Remove(regionHandle);
+                if (m_knownChildRegions.ContainsKey(regionHandle))
+                {
+                    m_knownChildRegions.Remove(regionHandle);
+                    //Console.WriteLine(" !!! removing known region {0} in {1}. Count = {2}", regionHandle, Scene.RegionInfo.RegionName, m_knownChildRegions.Count);
+                }
+            }
+        }
+
+        public void DropOldNeighbours(List<ulong> oldRegions)
+        {
+            foreach (ulong handle in oldRegions)
+            {
+                RemoveNeighbourRegion(handle);
+                Scene.DropChildSeed(UUID, handle);
             }
         }
 
         public List<ulong> GetKnownRegionList()
         {
-            return m_knownChildRegions;
+            return new List<ulong>(m_knownChildRegions.Keys);
         }
 
         #endregion
@@ -1856,6 +1908,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Overridden Methods
 
+        int x = 0;
         public override void Update()
         {
             SendPrimUpdates();
@@ -1896,6 +1949,9 @@ namespace OpenSim.Region.Environment.Scenes
                 CheckForBorderCrossing();
                 CheckForSignificantMovement(); // sends update to the modules.
             }
+
+            //if ((x++ % 30) == 0)
+            //    Console.WriteLine(" >> In {0} known regions: {0}, seeds:{1}", Scene.RegionInfo.RegionName, KnownRegions.Count, Scene.GetChildrenSeeds(UUID));
         }
 
         #endregion
@@ -2338,7 +2394,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // When the neighbour is informed of the border crossing, it will set up CAPS handlers for the avatar
                 // This means we need to remove the current caps handler here and possibly compensate later,
                 // in case both scenes are being hosted on the same region server.  Messy
-                m_scene.RemoveCapsHandler(UUID);
+                //m_scene.RemoveCapsHandler(UUID);
                 newpos = newpos + (vel);
 
                 CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(UUID);
@@ -2358,10 +2414,14 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
 
+                    //Console.WriteLine("BEFORE CROSS");
+                    //Scene.DumpChildrenSeeds(UUID);
+                    //DumpKnownRegions();
+
                     // TODO Should construct this behind a method
                     string capsPath =
                         "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
-                         + "/CAPS/" + circuitdata.CapsPath + "0000/";
+                         + "/CAPS/" + m_knownChildRegions[neighbourRegion.RegionHandle] /*circuitdata.CapsPath*/ + "0000/";
 
                     m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, m_uuid);
 
@@ -2386,6 +2446,8 @@ namespace OpenSim.Region.Environment.Scenes
                     CrossAttachmentsIntoNewRegion(neighbourHandle, true);
 
                     //                    m_scene.SendKillObject(m_localId);
+                    // Next, let's close the child agent connections that are too far away.
+                    CloseChildAgents(neighbourx, neighboury);
 
                     m_scene.NotifyMyCoarseLocationChange();
                     // the user may change their profile information in other region,
@@ -2401,6 +2463,11 @@ namespace OpenSim.Region.Environment.Scenes
                     m_scene.AddCapsHandler(UUID);
                 }
             }
+
+            //Console.WriteLine("AFTER CROSS");
+            //Scene.DumpChildrenSeeds(UUID);
+            //DumpKnownRegions();
+
         }
 
         /// <summary>
@@ -2413,31 +2480,36 @@ namespace OpenSim.Region.Environment.Scenes
         public void CloseChildAgents(uint newRegionX, uint newRegionY)
         {
             List<ulong> byebyeRegions = new List<ulong>();
+            m_log.DebugFormat("[AVATAR]: Closing child agents. Checking {0} regions in {1}", m_knownChildRegions.Keys.Count, Scene.RegionInfo.RegionName);
+            //DumpKnownRegions();
 
-            foreach (ulong handle in m_knownChildRegions)
+            lock (m_knownChildRegions)
             {
-                uint x, y;
-                Utils.LongToUInts(handle, out x, out y);
-                x = x / Constants.RegionSize;
-                y = y / Constants.RegionSize;
-
-                if (Util.IsOutsideView(x, newRegionX, y, newRegionY))
+                foreach (ulong handle in m_knownChildRegions.Keys)
                 {
-                    Console.WriteLine("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs(x-newRegionX));
-                    Console.WriteLine("---> y: " + y + "; newy:" + newRegionY);
-                    byebyeRegions.Add(handle);
+                    uint x, y;
+                    Utils.LongToUInts(handle, out x, out y);
+                    x = x / Constants.RegionSize;
+                    y = y / Constants.RegionSize;
+
+                    //Console.WriteLine("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
+                    //Console.WriteLine("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
+                    if (Util.IsOutsideView(x, newRegionX, y, newRegionY))
+                    {
+                        byebyeRegions.Add(handle);
+                    }
                 }
+            }
+            if (byebyeRegions.Count > 0)
+            {
+                m_log.Info("[AVATAR]: Closing " + byebyeRegions.Count + " child agents");
+                m_scene.SceneGridService.SendCloseChildAgentConnections(m_controllingClient.AgentId, byebyeRegions);
             }
             foreach (ulong handle in byebyeRegions)
             {
                 RemoveNeighbourRegion(handle);
             }
 
-            if (byebyeRegions.Count > 0)
-            {
-                m_log.Info("[AVATAR]: Closing " + byebyeRegions.Count + " child agents");
-                m_scene.SceneGridService.SendCloseChildAgentConnections(m_controllingClient.AgentId, byebyeRegions);
-            }
 
         }
 
@@ -2940,7 +3012,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_DrawDistance = (float)info.GetValue("m_DrawDistance", typeof(float));
             m_appearance = (AvatarAppearance)info.GetValue("m_appearance", typeof(AvatarAppearance));
-            m_knownChildRegions = (List<ulong>)info.GetValue("m_knownChildRegions", typeof(List<ulong>));
+
+            m_knownChildRegions = (Dictionary<ulong, string>)info.GetValue("m_knownChildRegions", typeof(Dictionary<ulong, string>));
 
             posLastSignificantMove
                 = new Vector3(

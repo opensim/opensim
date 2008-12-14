@@ -911,17 +911,20 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence presence;
             if (ScenePresences.TryGetValue(avatarId, out presence))
             {
-                if (!presence.IsChildAgent)
-                {
-                    avatar = presence;
-                    return true;
-                }
-                else
-                {
-                    m_log.WarnFormat(
-                        "[INNER SCENE]: Requested avatar {0} could not be found in scene {1} since it is only registered as a child agent!",
-                        avatarId, m_parentScene.RegionInfo.RegionName);
-                }
+                avatar = presence;
+                return true;
+
+                //if (!presence.IsChildAgent)
+                //{
+                //    avatar = presence;
+                //    return true;
+                //}
+                //else
+                //{
+                //    m_log.WarnFormat(
+                //        "[INNER SCENE]: Requested avatar {0} could not be found in scene {1} since it is only registered as a child agent!",
+                //        avatarId, m_parentScene.RegionInfo.RegionName);
+                //}
             }
 
             avatar = null;

@@ -649,8 +649,8 @@ namespace OpenSim.Region.Environment.Scenes
             // Kick all ROOT agents with the message, 'The simulator is going down'
             ForEachScenePresence(delegate(ScenePresence avatar)
                                  {
-                                     if (avatar.KnownChildRegions.Contains(RegionInfo.RegionHandle))
-                                         avatar.KnownChildRegions.Remove(RegionInfo.RegionHandle);
+                                     if (avatar.KnownChildRegionHandles.Contains(RegionInfo.RegionHandle))
+                                         avatar.KnownChildRegionHandles.Remove(RegionInfo.RegionHandle);
 
                                      if (!avatar.IsChildAgent)
                                          avatar.ControllingClient.Kick("The simulator is going down.");
@@ -2657,7 +2657,7 @@ namespace OpenSim.Region.Environment.Scenes
             GetAvatarAppearance(client, out appearance);
 
             ScenePresence avatar = m_sceneGraph.CreateAndAddChildScenePresence(client, appearance);
-
+            avatar.KnownRegions = GetChildrenSeeds(avatar.UUID);
             return avatar;
         }
 
@@ -2706,27 +2706,23 @@ namespace OpenSim.Region.Environment.Scenes
                     "[SCENE]: Removing {0} agent {1} from region {2}",
                     (childagentYN ? "child" : "root"), agentID, RegionInfo.RegionName);
 
-                if (avatar.IsChildAgent)
+                m_sceneGraph.removeUserCount(!childagentYN);
+                RemoveCapsHandler(agentID);
+
+                CommsManager.UserProfileCacheService.RemoveUser(agentID);
+
+                if (!avatar.IsChildAgent)
                 {
-                    m_sceneGraph.removeUserCount(false);
-                }
-                else
-                {
-                    m_sceneGraph.removeUserCount(true);
                     m_sceneGridService.LogOffUser(agentID, RegionInfo.RegionID, RegionInfo.RegionHandle, avatar.AbsolutePosition, avatar.Lookat);
-                    List<ulong> childknownRegions = new List<ulong>();
-                    List<ulong> ckn = avatar.GetKnownRegionList();
-                    for (int i = 0; i < ckn.Count; i++)
-                    {
-                        childknownRegions.Add(ckn[i]);
-                    }
-                    m_sceneGridService.SendCloseChildAgentConnections(agentID, childknownRegions);
+                    //List<ulong> childknownRegions = new List<ulong>();
+                    //List<ulong> ckn = avatar.KnownChildRegionHandles;
+                    //for (int i = 0; i < ckn.Count; i++)
+                    //{
+                    //    childknownRegions.Add(ckn[i]);
+                    //}
+                    m_sceneGridService.SendCloseChildAgentConnections(agentID, avatar.KnownChildRegionHandles);
 
-                    RemoveCapsHandler(agentID);
-
-                    CommsManager.UserProfileCacheService.RemoveUser(agentID);
                 }
-
                 m_eventManager.TriggerClientClosed(agentID);
             }
             catch (NullReferenceException)
@@ -2792,7 +2788,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     for (int i = 0; i < regionslst.Count; i++)
                     {
-                        av.KnownChildRegions.Remove(regionslst[i]);
+                        av.KnownChildRegionHandles.Remove(regionslst[i]);
                     }
                 }
             }
@@ -2875,8 +2871,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agent"></param>
         public void NewUserConnection(AgentCircuitData agent)
         {
-            m_log.DebugFormat("[CONNECTION DEBUGGING] Adding NewUserConnection for {0} with CC of {1}", agent.AgentID,
-                              agent.circuitcode);
+            m_log.DebugFormat("[CONNECTION DEBUGGING] Adding NewUserConnection for {0} in {1} with CC of {2}", agent.AgentID,
+                              RegionInfo.RegionName, agent.circuitcode);
 
             if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
             {
@@ -2885,12 +2881,15 @@ namespace OpenSim.Region.Environment.Scenes
                agent.AgentID, RegionInfo.RegionName);
             }
 
+            /// Diva: Horrible stuff!
             capsPaths[agent.AgentID] = agent.CapsPath;
+            //m_log.DebugFormat("------------>child seeds in {0}: {1}", RegionInfo.RegionName, ((agent.ChildrenCapSeeds == null) ? "null" : agent.ChildrenCapSeeds.Count.ToString()));
+            childrenSeeds[agent.AgentID] = ((agent.ChildrenCapSeeds == null) ? new Dictionary<ulong, string>() : agent.ChildrenCapSeeds);
+
+            AddCapsHandler(agent.AgentID);
 
             if (!agent.child)
             {
-
-                AddCapsHandler(agent.AgentID);
 
                 // Honor parcel landing type and position.
                 ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
@@ -2966,14 +2965,22 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (RegionInfo.EstateSettings.IsBanned(agentId))
                 return;
+
+
             String capsObjectPath = GetCapsPath(agentId);
 
             m_log.DebugFormat(
-                "[CAPS]: Setting up CAPS handler for root agent {0} in {1}",
+                "[CAPS]: Setting up CAPS handler for agent {0} in {1}",
                 agentId, RegionInfo.RegionName);
 
-            Caps cap =
-                new Caps(AssetCache, m_httpListener, m_regInfo.ExternalHostName, m_httpListener.Port,
+            Caps cap = null;
+            if (m_capsHandlers.TryGetValue(agentId, out cap))
+            {
+                m_log.DebugFormat("[CAPS] Attempt at registering twice for the same agent {0}. {1}. Ignoring.", agentId, capsObjectPath);
+                return;
+            }
+
+            cap = new Caps(AssetCache, m_httpListener, m_regInfo.ExternalHostName, m_httpListener.Port,
                          capsObjectPath, agentId, m_dumpAssetsToFile, RegionInfo.RegionName);
             cap.RegisterHandlers();
 
@@ -3005,6 +3012,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentId"></param>
         public void RemoveCapsHandler(UUID agentId)
         {
+            if (childrenSeeds.ContainsKey(agentId))
+            {
+                //Console.WriteLine(" !!! Removing seeds for {0} in {1}", agentId, RegionInfo.RegionName);
+                childrenSeeds.Remove(agentId);
+            }
+
             lock (m_capsHandlers)
             {
                 if (m_capsHandlers.ContainsKey(agentId))
@@ -3094,7 +3107,6 @@ namespace OpenSim.Region.Environment.Scenes
         public bool CloseConnection(UUID agentID)
         {
             ScenePresence presence = m_sceneGraph.GetScenePresence(agentID);
-            
             if (presence != null)
             {
                 // Nothing is removed here, so down count it as such
@@ -3108,11 +3120,18 @@ namespace OpenSim.Region.Environment.Scenes
                 // }
 
                 // Tell a single agent to disconnect from the region.
-                presence.ControllingClient.SendShutdownConnectionNotice();
+                IEventQueue eq = RequestModuleInterface<IEventQueue>();
+                if (eq != null)
+                {
+                    OSD Item = EventQueueHelper.DisableSimulator(RegionInfo.RegionHandle);
+                    eq.Enqueue(Item, agentID);
+                }
+                else
+                    presence.ControllingClient.SendShutdownConnectionNotice();
 
                 presence.ControllingClient.Close(true);
+
             }
-            
             return true;
         }
 

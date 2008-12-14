@@ -255,7 +255,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Inform Client of Neighbours
 
         private delegate void InformClientOfNeighbourDelegate(
-            ScenePresence avatar, AgentCircuitData a, ulong regionHandle, IPEndPoint endPoint);
+            ScenePresence avatar, AgentCircuitData a, SimpleRegionInfo reg, IPEndPoint endPoint);
 
         private void InformClientOfNeighbourCompleted(IAsyncResult iar)
         {
@@ -273,28 +273,40 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="a"></param>
         /// <param name="regionHandle"></param>
         /// <param name="endPoint"></param>
-        private void InformClientOfNeighbourAsync(ScenePresence avatar, AgentCircuitData a, ulong regionHandle,
+        private void InformClientOfNeighbourAsync(ScenePresence avatar, AgentCircuitData a, SimpleRegionInfo reg,
                                                   IPEndPoint endPoint)
         {
-            m_log.Info("[INTERGRID]: Starting to inform client about neighbours");
-            bool regionAccepted = m_commsProvider.InterRegion.InformRegionOfChildAgent(regionHandle, a);
+            uint x, y;
+            Utils.LongToUInts(reg.RegionHandle, out x, out y);
+            x = x / Constants.RegionSize;
+            y = y / Constants.RegionSize;
+            m_log.Info("[INTERGRID]: Starting to inform client about neighbour " + x + ", " + y + "(" + endPoint.ToString() + ")");
+
+            string capsPath = "http://" + reg.ExternalHostName + ":" + reg.HttpPort
+                  + "/CAPS/" + a.CapsPath + "0000/";
+
+            bool regionAccepted = m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, a);
 
             if (regionAccepted)
             {
                 IEventQueue eq = avatar.Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
                 {
-                    OSD Item = EventQueueHelper.EnableSimulator(regionHandle, endPoint);
+                    OSD Item = EventQueueHelper.EnableSimulator(reg.RegionHandle, endPoint);
                     eq.Enqueue(Item, avatar.UUID);
+
+                    Item = EventQueueHelper.EstablishAgentCommunication(avatar.UUID, endPoint.ToString(), capsPath);
+                    eq.Enqueue(Item, avatar.UUID);
+
+                    m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1} in region {2}", capsPath, avatar.UUID, avatar.Scene.RegionInfo.RegionName);
                 }
                 else
                 {
-                    avatar.ControllingClient.InformClientOfNeighbour(regionHandle, endPoint);
+                    avatar.ControllingClient.InformClientOfNeighbour(reg.RegionHandle, endPoint);
                     // TODO: make Event Queue disablable!
                 }
-                
-                avatar.AddNeighbourRegion(regionHandle);
-                m_log.Info("[INTERGRID]: Completed inform client about neighbours");
+
+                m_log.Info("[INTERGRID]: Completed inform client about neighbour " + endPoint.ToString());
             }
         }
 
@@ -330,21 +342,72 @@ namespace OpenSim.Region.Environment.Scenes
             neighbours =
                 m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
 
-            if (neighbours != null)
+            m_log.Debug("[SCM]: EnableChildAgents from " + avatar.Scene.RegionInfo.RegionName);
+
+            /// We need to find the difference between the new regions where there are no child agents
+            /// and the regions where there are already child agents. We only send notification to the former.
+            List<ulong> neighbourHandles = NeighbourHandles(neighbours); // on this region
+            neighbourHandles.Add(avatar.Scene.RegionInfo.RegionHandle);  // add this region too
+            List<ulong> previousRegionNeighbourHandles = new List<ulong>(avatar.Scene.GetChildrenSeeds(avatar.UUID).Keys);
+            List<ulong> newRegions = NewNeighbours(neighbourHandles, previousRegionNeighbourHandles);
+            List<ulong> oldRegions = OldNeighbours(neighbourHandles, previousRegionNeighbourHandles);
+           
+            //Dump("Current Neighbors", neighbourHandles);
+            //Dump("Previous Neighbours", previousRegionNeighbourHandles);
+            //Dump("New Neighbours", newRegions);
+            //Dump("Old Neighbours", oldRegions);
+
+            /// Update the scene presence's known regions here on this region
+            avatar.DropOldNeighbours(oldRegions);
+
+            /// Collect as many seeds as possible
+            Dictionary<ulong, string> seeds = new Dictionary<ulong, string>(avatar.Scene.GetChildrenSeeds(avatar.UUID));
+            if (!seeds.ContainsKey(avatar.Scene.RegionInfo.RegionHandle))
+                seeds.Add(avatar.Scene.RegionInfo.RegionHandle, avatar.ControllingClient.RequestClientInfo().CapsPath);
+
+            /// Create the necessary child agents
+            List<AgentCircuitData> cagents = new List<AgentCircuitData>();
+            foreach (SimpleRegionInfo neighbour in neighbours)
             {
-                for (int i = 0; i < neighbours.Count; i++)
+                AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
+                agent.BaseFolder = UUID.Zero;
+                agent.InventoryFolder = UUID.Zero;
+                agent.startpos = new Vector3(128, 128, 70);
+                agent.child = true;
+
+                if (newRegions.Contains(neighbour.RegionHandle))
                 {
-                    AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
-                    agent.BaseFolder = UUID.Zero;
-                    agent.InventoryFolder = UUID.Zero;
-                    agent.startpos = new Vector3(128, 128, 70);
-                    agent.child = true;
+                    agent.CapsPath = Util.GetRandomCapsPath();
+                    avatar.AddNeighbourRegion(neighbour.RegionHandle, agent.CapsPath);
+                    seeds.Add(neighbour.RegionHandle, agent.CapsPath);
+                }
+                else
+                    agent.CapsPath = avatar.Scene.GetChildSeed(avatar.UUID, neighbour.RegionHandle);
 
+                cagents.Add(agent);
+            }
+
+            /// Update all child agent with everyone's seeds
+            foreach (AgentCircuitData a in cagents)
+            {
+                a.ChildrenCapSeeds = new Dictionary<ulong, string>(seeds);
+            }
+            // These two are the same thing!
+            avatar.Scene.SetChildrenSeed(avatar.UUID, seeds);
+            avatar.KnownRegions = seeds;
+            //avatar.Scene.DumpChildrenSeeds(avatar.UUID);
+            //avatar.DumpKnownRegions();
+
+            int count = 0;
+            foreach (SimpleRegionInfo neighbour in neighbours)
+            {
+                // Don't do it if there's already an agent in that region
+                if (newRegions.Contains(neighbour.RegionHandle))
+                {
                     InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
-
                     try
                     {
-                        d.BeginInvoke(avatar, agent, neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint,
+                        d.BeginInvoke(avatar, cagents[count], neighbour, neighbour.ExternalEndPoint,
                                       InformClientOfNeighbourCompleted,
                                       d);
                     }
@@ -352,10 +415,10 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         m_log.ErrorFormat(
                             "[REGIONINFO]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
-                            neighbours[i].ExternalHostName,
-                            neighbours[i].RegionHandle,
-                            neighbours[i].RegionLocX,
-                            neighbours[i].RegionLocY,
+                            neighbour.ExternalHostName,
+                            neighbour.RegionHandle,
+                            neighbour.RegionLocX,
+                            neighbour.RegionLocY,
                             e);
 
                         // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
@@ -366,6 +429,11 @@ namespace OpenSim.Region.Environment.Scenes
 
                     }
                 }
+                else
+                    m_log.Debug("[SCM]: Skipping common neighbor " + neighbour.RegionLocX + ", " + neighbour.RegionLocY);
+
+                count++;
+                
             }
         }
 
@@ -373,7 +441,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// This informs a single neighboring region about agent "avatar".
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
-        public void InformNeighborChildAgent(ScenePresence avatar, RegionInfo region, List<RegionInfo> neighbours)
+        public void InformNeighborChildAgent(ScenePresence avatar, SimpleRegionInfo region, List<RegionInfo> neighbours)
         {
             AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
             agent.BaseFolder = UUID.Zero;
@@ -382,7 +450,7 @@ namespace OpenSim.Region.Environment.Scenes
             agent.child = true;
 
             InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
-            d.BeginInvoke(avatar, agent, region.RegionHandle, region.ExternalEndPoint,
+            d.BeginInvoke(avatar, agent, region, region.ExternalEndPoint,
                           InformClientOfNeighbourCompleted,
                           d);
         }
@@ -463,10 +531,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         private void SendChildAgentDataUpdateAsync(ChildAgentDataUpdate cAgentData, ScenePresence presence)
         {
-            //m_log.Info("[INTERGRID]: Informing neighbors about my agent.");
+            m_log.Info("[INTERGRID]: Informing neighbors about my agent in " + presence.Scene.RegionInfo.RegionName);
             try
             {
-                foreach (ulong regionHandle in presence.KnownChildRegions)
+                foreach (ulong regionHandle in presence.KnownChildRegionHandles)
                 {
                     bool regionAccepted = m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
 
@@ -508,11 +576,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// This Closes child agents on neighboring regions
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
-        private void SendCloseChildAgentAsync(UUID agentID, List<ulong> regionlst)
+        protected void SendCloseChildAgentAsync(UUID agentID, List<ulong> regionlst)
         {
 
             foreach (ulong regionHandle in regionlst)
             {
+                m_log.Debug("[INTERGRID]: Sending close agent to " + regionHandle);
                 bool regionAccepted = m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
 
                 if (regionAccepted)
@@ -527,14 +596,14 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
             }
-            // We remove the list of known regions from the agent's known region list through an event
-            // to scene, because, if an agent logged of, it's likely that there will be no scene presence
-            // by the time we get to this part of the method.
-            handlerRemoveKnownRegionFromAvatar = OnRemoveKnownRegionFromAvatar;
-            if (handlerRemoveKnownRegionFromAvatar != null)
-            {
-                handlerRemoveKnownRegionFromAvatar(agentID, regionlst);
-            }
+            //// We remove the list of known regions from the agent's known region list through an event
+            //// to scene, because, if an agent logged of, it's likely that there will be no scene presence
+            //// by the time we get to this part of the method.
+            //handlerRemoveKnownRegionFromAvatar = OnRemoveKnownRegionFromAvatar;
+            //if (handlerRemoveKnownRegionFromAvatar != null)
+            //{
+            //    handlerRemoveKnownRegionFromAvatar(agentID, regionlst);
+            //}
         }
 
         private void SendCloseChildAgentCompleted(IAsyncResult iar)
@@ -643,12 +712,6 @@ namespace OpenSim.Region.Environment.Scenes
                     if (eq == null)
                         avatar.ControllingClient.SendTeleportLocationStart();
 
-                    AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
-                    agent.BaseFolder = UUID.Zero;
-                    agent.InventoryFolder = UUID.Zero;
-                    agent.startpos = position;
-                    agent.child = true;
-
                     if (reg.RemotingAddress != "" && reg.RemotingPort != 0)
                     {
                         // region is remote. see if it is up
@@ -662,6 +725,10 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (destRegionUp)
                     {
+                        uint newRegionX = (uint)(reg.RegionHandle >> 40);
+                        uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
+                        uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);
+                        uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
 
                         // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
                         // both regions
@@ -675,33 +742,64 @@ namespace OpenSim.Region.Environment.Scenes
 
                         // the avatar.Close below will clear the child region list. We need this below for (possibly)
                         // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
-                        List<ulong> childRegions = new List<ulong>(avatar.GetKnownRegionList());
+                        //List<ulong> childRegions = new List<ulong>(avatar.GetKnownRegionList());
                         // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
                         // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
                         // once we reach here...
-                        avatar.Scene.RemoveCapsHandler(avatar.UUID);
-                        agent.child = false;
-                        m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent);
+                        //avatar.Scene.RemoveCapsHandler(avatar.UUID);
+
+                        AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
+                        agent.BaseFolder = UUID.Zero;
+                        agent.InventoryFolder = UUID.Zero;
+                        agent.startpos = position;
+                        agent.child = true;
+                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        {
+                            // brand new agent
+                            agent.CapsPath = Util.GetRandomCapsPath();
+                        }
+                        else
+                        {
+                            // child agent already there
+                            agent.CapsPath = avatar.Scene.GetChildSeed(avatar.UUID, reg.RegionHandle);
+                        }
+
+                        if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent))
+                        {
+                            avatar.ControllingClient.SendTeleportFailed("Destination is not accepting teleports.");
+                            return;
+                        }
+
+                        // TODO Should construct this behind a method
+                        string capsPath =
+                            "http://" + reg.ExternalHostName + ":" + reg.HttpPort
+                            + "/CAPS/" + agent.CapsPath + "0000/";
 
                         if (eq != null)
                         {
                             OSD Item = EventQueueHelper.EnableSimulator(reg.RegionHandle, reg.ExternalEndPoint);
+                            eq.Enqueue(Item, avatar.UUID);
+
+                            Item = EventQueueHelper.EstablishAgentCommunication(avatar.UUID, reg.ExternalEndPoint.ToString(), capsPath);
                             eq.Enqueue(Item, avatar.UUID);
                         }
                         else
                         {
                             avatar.ControllingClient.InformClientOfNeighbour(reg.RegionHandle, reg.ExternalEndPoint);
                         }
-                        
-                        m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
-                                                                     position, false);
-                        Thread.Sleep(2000);
-                        AgentCircuitData circuitdata = avatar.ControllingClient.RequestClientInfo();
 
-                        // TODO Should construct this behind a method
-                        string capsPath =
-                            "http://" + reg.ExternalHostName + ":" + reg.HttpPort
-                            + "/CAPS/" + circuitdata.CapsPath + "0000/";
+                        if (!m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
+                                                                              position, false))
+                        {
+                            avatar.ControllingClient.SendTeleportFailed("Problem with destination.");
+                            // We should close that agent we just created over at destination...
+                            List<ulong> lst = new List<ulong>();
+                            lst.Add(reg.RegionHandle);
+                            SendCloseChildAgentAsync(avatar.UUID, lst);
+                            return;
+                        }
+
+                        Thread.Sleep(2000);
 
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);
@@ -720,26 +818,25 @@ namespace OpenSim.Region.Environment.Scenes
                         }
 
                         avatar.MakeChildAgent();
-                        Thread.Sleep(7000);
+                        Thread.Sleep(5000);
                         avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
                         if (KiPrimitive != null)
                         {
                             KiPrimitive(avatar.LocalId);
                         }
 
-                        avatar.Close();
 
-                        uint newRegionX = (uint)(reg.RegionHandle >> 40);
-                        uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
-                        uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);
-                        uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
+                        // Let's close some children agents
+                        avatar.CloseChildAgents(newRegionX, newRegionY);
+                        // Close this ScenePresence too
+                        //avatar.Close();
 
-                        if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
-                        {
-                            //SendCloseChildAgentConnections(avatar.UUID,avatar.GetKnownRegionList());
-                            SendCloseChildAgentConnections(avatar.UUID, childRegions);
-                            CloseConnection(avatar.UUID);
-                        }
+                        // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
+
+                        //if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        //{
+                        //    CloseConnection(avatar.UUID);
+                        //}
 
                         // if (teleport success) // seems to be always success here
                         // the user may change their profile information in other region,
@@ -775,6 +872,30 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        private List<ulong> NeighbourHandles(List<SimpleRegionInfo> neighbours)
+        {
+            List<ulong> handles = new List<ulong>();
+            foreach (SimpleRegionInfo reg in neighbours)
+            {
+                handles.Add(reg.RegionHandle);
+            }
+            return handles;
+        }
+
+        private List<ulong> NewNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
+        {
+            return currentNeighbours.FindAll(delegate(ulong handle) { return !previousNeighbours.Contains(handle); });
+        }
+
+        private List<ulong> CommonNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
+        {
+            return currentNeighbours.FindAll(delegate(ulong handle) { return previousNeighbours.Contains(handle); });
+        }
+
+        private List<ulong> OldNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
+        {
+            return previousNeighbours.FindAll(delegate(ulong handle) { return !currentNeighbours.Contains(handle); });
+        }
         /// <summary>
         /// Inform a neighbouring region that an avatar is about to cross into it.
         /// </summary>
@@ -845,6 +966,19 @@ namespace OpenSim.Region.Environment.Scenes
         public List<RegionInfo> RequestNamedRegions(string name, int maxNumber)
         {
             return m_commsProvider.GridService.RequestNamedRegions(name, maxNumber);
+        }
+
+        private void Dump(string msg, List<ulong> handles)
+        {
+            Console.WriteLine("-------------- HANDLE DUMP ({0}) ---------", msg);
+            foreach (ulong handle in handles)
+            {
+                uint x, y;
+                Utils.LongToUInts(handle, out x, out y);
+                x = x / Constants.RegionSize;
+                y = y / Constants.RegionSize;
+                Console.WriteLine("({0}, {1})", x, y);
+            }
         }
     }
 }

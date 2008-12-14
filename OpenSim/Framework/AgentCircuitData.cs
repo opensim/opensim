@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -35,6 +36,7 @@ namespace OpenSim.Framework
         public UUID AgentID;
         public UUID BaseFolder;
         public string CapsPath = String.Empty;
+        public Dictionary<ulong, string> ChildrenCapSeeds;
         public bool child;
         public uint circuitcode;
         public string firstname;
@@ -61,6 +63,7 @@ namespace OpenSim.Framework
             InventoryFolder = new UUID(cAgent.InventoryFolder);
             BaseFolder = new UUID(cAgent.BaseFolder);
             CapsPath = cAgent.CapsPath;
+            ChildrenCapSeeds = cAgent.ChildrenCapSeeds;
         }
     }
 
@@ -70,6 +73,7 @@ namespace OpenSim.Framework
         public Guid AgentID;
         public Guid BaseFolder;
         public string CapsPath = String.Empty;
+        public Dictionary<ulong, string> ChildrenCapSeeds;
         public bool child;
         public uint circuitcode;
         public string firstname;
@@ -100,6 +104,7 @@ namespace OpenSim.Framework
             InventoryFolder = cAgent.InventoryFolder.Guid;
             BaseFolder = cAgent.BaseFolder.Guid;
             CapsPath = cAgent.CapsPath;
+            ChildrenCapSeeds = cAgent.ChildrenCapSeeds;
         }
     }
 }

@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -73,7 +74,9 @@ namespace OpenSim.Framework
 
         bool PresenceChildStatus(UUID avatarID);
 
+        // Diva: get this out of here!!!
         string GetCapsPath(UUID agentId);
+        Dictionary<ulong, string> GetChildrenSeeds(UUID agentId);
 
         T RequestModuleInterface<T>();
         T[] RequestModuleInterfaces<T>();

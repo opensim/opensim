@@ -80,15 +80,15 @@ namespace OpenSim.Region.Environment
 
         public static OSD DisableSimulator(ulong Handle)
         {
-            OSDMap llsdSimInfo = new OSDMap(1);
+            //OSDMap llsdSimInfo = new OSDMap(1);
 
-            llsdSimInfo.Add("Handle", new OSDBinary(regionHandleToByteArray(Handle)));
+            //llsdSimInfo.Add("Handle", new OSDBinary(regionHandleToByteArray(Handle)));
 
-            OSDArray arr = new OSDArray(1);
-            arr.Add(llsdSimInfo);
+            //OSDArray arr = new OSDArray(1);
+            //arr.Add(llsdSimInfo);
 
-            OSDMap llsdBody = new OSDMap(1);
-            llsdBody.Add("SimulatorInfo", arr);
+            OSDMap llsdBody = new OSDMap(0);
+            //llsdBody.Add("SimulatorInfo", arr);
 
             return buildEvent("DisableSimulator", llsdBody);
         }
@@ -176,6 +176,16 @@ namespace OpenSim.Region.Environment
             body.Add("Script", scriptArr);
             
             return buildEvent("ScriptRunningReply", body);
+        }
+
+        public static OSD EstablishAgentCommunication(UUID agentID, string simIpAndPort, string seedcap)
+        {
+            OSDMap body = new OSDMap(3);
+            body.Add("agent-id", new OSDUUID(agentID));
+            body.Add("sim-ip-and-port", new OSDString(simIpAndPort));
+            body.Add("seed-capability", new OSDString(seedcap));
+
+            return buildEvent("EstablishAgentCommunication", body);
         }
 
         public static OSD KeepAliveEvent()

@@ -202,6 +202,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 {
                     m_AvatarQueueUUIDMapping.Remove(ky);
                     m_scene.RemoveHTTPHandler("","/CAPS/EQG/" + ky.ToString() + "/");
+                    m_log.Debug("[EVENTQUEUE]: Removing " + "/CAPS/EQG/" + ky.ToString() + "/");
                 }
 
             }
@@ -225,6 +226,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
                     m_QueueUUIDAvatarMapping.Remove(ky);
 
             }
+
             m_log.DebugFormat("[EVENTQUEUE]: Client {0} deregistered in region {1}.", AgentID, m_scene.RegionInfo.RegionName);
         }
         
@@ -326,13 +328,14 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
             if (element == null)
             {
-                // m_log.ErrorFormat("[EVENTQUEUE]: Failed to process queue");
+                //m_log.ErrorFormat("[EVENTQUEUE]: Nothing to process in " + m_scene.RegionInfo.RegionName);
                 if (thisID == -1) // close-request
                 {
-                    responsedata["int_response_code"] = 404;
+                    m_log.ErrorFormat("[EVENTQUEUE]: 404 in " + m_scene.RegionInfo.RegionName);
+                    responsedata["int_response_code"] = 404; //501; //410; //404;
                     responsedata["content_type"] = "text/plain";
                     responsedata["keepalive"] = false;
-                    responsedata["str_response_string"] = "";
+                    responsedata["str_response_string"] = "Closed EQG";
                     return responsedata;
                 }
                 responsedata["int_response_code"] = 502;

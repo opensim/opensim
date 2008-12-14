@@ -1327,6 +1327,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             agentData.firstname = m_firstName;
             agentData.lastname = m_lastName;
             agentData.CapsPath = m_scene.GetCapsPath(m_agentId);
+            agentData.ChildrenCapSeeds = new Dictionary<ulong,string>(m_scene.GetChildrenSeeds(m_agentId));
             return agentData;
         }
 
