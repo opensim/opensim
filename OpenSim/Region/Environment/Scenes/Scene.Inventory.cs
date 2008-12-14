@@ -1121,15 +1121,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="folderID"></param>
         /// <param name="part"></param>
         /// <param name="itemID"></param>
-        public void MoveTaskInventoryItem(IClientAPI remoteClient, UUID folderId, SceneObjectPart part, UUID itemId)
+        public InventoryItemBase MoveTaskInventoryItem(IClientAPI remoteClient, UUID folderId, SceneObjectPart part, UUID itemId)
         {
             InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(remoteClient.AgentId, part, itemId);
 
             if (agentItem == null)
-                return;
+                return null;
 
             agentItem.Folder = folderId;
             AddInventoryItem(remoteClient, agentItem);
+            return agentItem;
         }
 
         /// <summary>
@@ -1178,13 +1179,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="folderID"></param>
         /// <param name="part"></param>
         /// <param name="itemID"></param>
-        public void MoveTaskInventoryItem(UUID avatarId, UUID folderId, SceneObjectPart part, UUID itemId)
+        public InventoryItemBase MoveTaskInventoryItem(UUID avatarId, UUID folderId, SceneObjectPart part, UUID itemId)
         {
             ScenePresence avatar;
 
             if (TryGetAvatar(avatarId, out avatar))
             {
-                MoveTaskInventoryItem(avatar.ControllingClient, folderId, part, itemId);
+                return MoveTaskInventoryItem(avatar.ControllingClient, folderId, part, itemId);
             }
             else
             {
@@ -1201,11 +1202,13 @@ namespace OpenSim.Region.Environment.Scenes
                 InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(avatarId, part, itemId);
 
                 if (agentItem == null)
-                    return;
+                    return null;
 
                 agentItem.Folder = folderId;
 
                 AddInventoryItem(avatarId, agentItem);
+
+                return agentItem;
             }
         }
 
@@ -1310,7 +1313,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void MoveTaskInventoryItems(UUID destID, string category, SceneObjectPart host, List<UUID> items)
+        public UUID MoveTaskInventoryItems(UUID destID, string category, SceneObjectPart host, List<UUID> items)
         {
             CachedUserInfo profile = CommsManager.UserProfileCacheService.GetUserDetails(destID);
             if (profile == null || profile.RootFolder == null)
@@ -1319,7 +1322,7 @@ namespace OpenSim.Region.Environment.Scenes
                     "[PRIM INVENTORY]: " +
                     "Avatar {0} cannot be found to add items",
                     destID);
-                return;
+                return UUID.Zero;
             }
 
             UUID newFolderID = UUID.Random();
@@ -1347,6 +1350,8 @@ namespace OpenSim.Region.Environment.Scenes
                 profile.SendInventoryDecendents(avatar.ControllingClient,
                         newFolderID, false, true);
             }
+
+            return newFolderID;
         }
 
         /// <summary>

@@ -79,6 +79,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private DateTime m_timer = DateTime.Now;
         private bool m_waitingForScriptAnswer=false;
         private bool m_automaticLinkPermission=false;
+        private IMessageTransferModule m_TransferModule = null;
 
         //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -98,6 +99,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_automaticLinkPermission =
                 m_ScriptEngine.Config.GetBoolean("AutomaticLinkPermission", false);
 
+            m_TransferModule =
+                    m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
 
@@ -2654,11 +2657,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.RegionID = World.RegionInfo.RegionID.Guid;//RegionID.Guid;
             msg.binaryBucket = new byte[0];// binaryBucket;
 
-            IMessageTransferModule tr = World.RequestModuleInterface<IMessageTransferModule>();
-
-            if (tr != null)
+            if (m_TransferModule != null)
             {
-                tr.SendInstantMessage(msg, delegate(bool success) {} );
+                m_TransferModule.SendInstantMessage(msg, delegate(bool success) {} );
             }
             ScriptSleep(2000);
       }
@@ -3318,6 +3319,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool found = false;
             UUID destId = UUID.Zero;
             UUID objId = UUID.Zero;
+            int assetType = 0;
+            string objName = String.Empty;
 
             if (!UUID.TryParse(destination, out destId))
             {
@@ -3332,6 +3335,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     found = true;
                     objId = inv.Key;
+                    assetType = inv.Value.Type;
+                    objName = inv.Value.Name;
                     break;
                 }
             }
@@ -3346,7 +3351,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (World.GetScenePresence(destId) != null)
             {
                 // destination is an avatar
-                World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId);
+                InventoryItemBase agentItem =
+                        World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId);
+
+                if (agentItem == null)
+                    return;
+
+                byte[] bucket = new byte[17];
+                bucket[0] = (byte)assetType;
+                byte[] objBytes = objId.GetBytes();
+                Array.Copy(objBytes, 0, bucket, 1, 16);
+
+                GridInstantMessage msg = new GridInstantMessage(World,
+                        m_host.UUID, m_host.Name+", an object owned by "+
+                        resolveName(m_host.OwnerID)+",", destId,
+                        (byte)InstantMessageDialog.InventoryOffered,
+                        false, objName+"\n"+m_host.Name+" is located at "+
+                        World.RegionInfo.RegionName+" "+
+                        m_host.AbsolutePosition.ToString(),
+                        agentItem.ID, true, m_host.AbsolutePosition,
+                        bucket);
+
+                if (m_TransferModule != null)
+                    m_TransferModule.SendInstantMessage(msg, delegate(bool success) {} );
             }
             else
             {
@@ -5485,7 +5512,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (itemList.Count == 0)
                 return;
 
-            m_ScriptEngine.World.MoveTaskInventoryItems(destID, category, m_host, itemList);
+            UUID folderID = m_ScriptEngine.World.MoveTaskInventoryItems(destID, category, m_host, itemList);
+
+            if (folderID == UUID.Zero)
+                return;
+
+            byte[] bucket = new byte[17];
+            bucket[0] = (byte)AssetType.Folder;
+            byte[] objBytes = folderID.GetBytes();
+            Array.Copy(objBytes, 0, bucket, 1, 16);
+
+            GridInstantMessage msg = new GridInstantMessage(World,
+                    m_host.UUID, m_host.Name+", an object owned by "+
+                    resolveName(m_host.OwnerID)+",", destID,
+                    (byte)InstantMessageDialog.InventoryOffered,
+                    false, category+"\n"+m_host.Name+" is located at "+
+                    World.RegionInfo.RegionName+" "+
+                    m_host.AbsolutePosition.ToString(),
+                    folderID, true, m_host.AbsolutePosition,
+                    bucket);
+
+            if (m_TransferModule != null)
+                m_TransferModule.SendInstantMessage(msg, delegate(bool success) {} );
         }
 
         public void llSetVehicleType(int type)
