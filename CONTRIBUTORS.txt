@@ -32,6 +32,7 @@ OpenSim Developers
 * Melanie Thielker
 * Homer_Horwitz
 * idb (Ian Brown)
+* Diva (Crista Lopes, University of California, Irvine)
 
 
 Patches
@@ -47,7 +48,6 @@ Patches
 * Daedius
 * daTwitch 
 * devalnor-#708
-* Diva Canto
 * dmiles (Daxtron Labs)
 * Gerhard
 * Godfrey
