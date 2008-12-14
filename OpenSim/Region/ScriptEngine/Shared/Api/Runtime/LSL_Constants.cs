@@ -214,6 +214,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int ATTACH_BELLY = 28;
         public const int ATTACH_RPEC = 29;
         public const int ATTACH_LPEC = 30;
+        public const int ATTACH_HUD_CENTER_2 = 31;
+        public const int ATTACH_HUD_TOP_RIGHT = 32;
+        public const int ATTACH_HUD_TOP_CENTER = 33;
+        public const int ATTACH_HUD_TOP_LEFT = 34;
+        public const int ATTACH_HUD_CENTER_1 = 35;
+        public const int ATTACH_HUD_BOTTOM_LEFT = 36;
+        public const int ATTACH_HUD_BOTTOM = 37;
+        public const int ATTACH_HUD_BOTTOM_RIGHT = 38;
 
         public const int LAND_LEVEL = 0;
         public const int LAND_RAISE = 1;
