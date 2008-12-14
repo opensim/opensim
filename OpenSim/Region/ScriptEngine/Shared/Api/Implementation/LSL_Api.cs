@@ -1996,7 +1996,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llGetTimeOfDay()
         {
             m_host.AddScriptLPS(1);
-            return (double)(((DateTime.Now.TimeOfDay.TotalMilliseconds / 1000) % (3600 * 4)) * World.TimeDilation);
+            return (double)((DateTime.Now.TimeOfDay.TotalMilliseconds / 1000) % (3600 * 4));
         }
 
         public LSL_Float llGetWallclock()
@@ -2009,7 +2009,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             TimeSpan ScriptTime = DateTime.Now - m_timer;
-            return (double)((ScriptTime.TotalMilliseconds / 1000)*World.TimeDilation);
+            return (double)(ScriptTime.TotalMilliseconds / 1000);
         }
 
         public void llResetTime()
@@ -2023,7 +2023,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             TimeSpan ScriptTime = DateTime.Now - m_timer;
             m_timer = DateTime.Now;
-            return (double)((ScriptTime.TotalMilliseconds / 1000)*World.TimeDilation);
+            return (double)(ScriptTime.TotalMilliseconds / 1000);
         }
 
         public void llSound(string sound, double volume, int queue, int loop)
