@@ -342,6 +342,9 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event DeclineCallingCard OnDeclineCallingCard;
         public event SoundTrigger OnSoundTrigger;
 
+        public event StartLure OnStartLure;
+        public event TeleportLureRequest OnTeleportLureRequest;
+
 
 #pragma warning restore 67
 

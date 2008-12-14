@@ -411,6 +411,9 @@ namespace OpenSim.Framework
     
     public delegate void SoundTrigger(UUID soundId,UUID ownerid,UUID objid, UUID parentid,float Gain, Vector3 Position,UInt64 Handle);
 
+    public delegate void StartLure(byte lureType, string message, UUID targetID, IClientAPI client);
+    public delegate void TeleportLureRequest(UUID lureID, uint teleportFlags, IClientAPI client);
+
     #endregion
 
     public struct DirPlacesReplyData
@@ -716,6 +719,9 @@ namespace OpenSim.Framework
         event AcceptCallingCard OnAcceptCallingCard;
         event DeclineCallingCard OnDeclineCallingCard;
         event SoundTrigger OnSoundTrigger;
+
+        event StartLure OnStartLure;
+        event TeleportLureRequest OnTeleportLureRequest;
 
         //     void ActivateGesture(UUID assetId, UUID gestureId);
 

@@ -237,6 +237,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event DeclineCallingCard OnDeclineCallingCard;
         public event SoundTrigger OnSoundTrigger;
 
+        public event StartLure OnStartLure;
+        public event TeleportLureRequest OnTeleportLureRequest;
 
 #pragma warning restore 67
 

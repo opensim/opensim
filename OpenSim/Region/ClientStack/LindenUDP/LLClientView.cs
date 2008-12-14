@@ -269,6 +269,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private MapItemRequest handlerMapItemRequest;
 
+        private StartLure handlerStartLure;
+        private TeleportLureRequest handlerTeleportLureRequest;
+
         private readonly IGroupsModule m_GroupsModule;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
@@ -1011,6 +1014,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event DeclineCallingCard OnDeclineCallingCard;
         public event SoundTrigger OnSoundTrigger;
 
+        public event StartLure OnStartLure;
+        public event TeleportLureRequest OnTeleportLureRequest;
 
         
         public void ActivateGesture(UUID assetId, UUID gestureId)
@@ -7168,6 +7173,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+                case PacketType.StartLure:
+                    StartLurePacket startLureRequest = (StartLurePacket)Pack;
+                    handlerStartLure = OnStartLure;
+                    if (handlerStartLure != null)
+                        handlerStartLure(startLureRequest.Info.LureType,
+                                         Utils.BytesToString(
+                                            startLureRequest.Info.Message),
+                                         startLureRequest.TargetData[0].TargetID,
+                                         this);
+                    break;
+
+                case PacketType.TeleportLureRequest:
+                    TeleportLureRequestPacket teleportLureRequest =
+                            (TeleportLureRequestPacket)Pack;
+
+                    handlerTeleportLureRequest = OnTeleportLureRequest;
+                    if (handlerTeleportLureRequest != null)
+                        handlerTeleportLureRequest(
+                                 teleportLureRequest.Info.LureID,
+                                 teleportLureRequest.Info.TeleportFlags,
+                                 this);
+                    break;
+
                 default:
                     m_log.Warn("[CLIENT]: unhandled packet " + Pack);
                     break;

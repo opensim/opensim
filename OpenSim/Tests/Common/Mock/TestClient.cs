@@ -233,6 +233,9 @@ namespace OpenSim.Tests.Common.Mock
         
         public event SoundTrigger OnSoundTrigger;
 
+        public event StartLure OnStartLure;
+        public event TeleportLureRequest OnTeleportLureRequest;
+
 #pragma warning restore 67
 
         /// <value>
