@@ -185,6 +185,7 @@ namespace OpenSim.Region.Physics.Manager
         public abstract PhysicsVector GeometricCenter { get; }
         public abstract PhysicsVector CenterOfMass { get; }
         public abstract PhysicsVector Velocity { get; set; }
+        public abstract PhysicsVector Torque { get; set; }
         public abstract float CollisionScore { get; set;}
         public abstract PhysicsVector Acceleration { get; }
         public abstract Quaternion Orientation { get; set; }
@@ -204,6 +205,7 @@ namespace OpenSim.Region.Physics.Manager
         public abstract bool PIDActive { set;}
         public abstract float PIDTau { set; }
         public abstract void AddForce(PhysicsVector force, bool pushforce);
+        public abstract void AddAngularForce(PhysicsVector force, bool pushforce);
         public abstract void SetMomentum(PhysicsVector momentum);
         public abstract void SubscribeEvents(int ms);
         public abstract void UnSubscribeEvents();
@@ -331,6 +333,12 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
+        public override PhysicsVector Torque
+        {
+            get { return PhysicsVector.Zero; }
+            set { return; }
+        }
+
         public override float CollisionScore
         {
             get { return 0f; }
@@ -402,6 +410,11 @@ namespace OpenSim.Region.Physics.Manager
 
         public override void AddForce(PhysicsVector force, bool pushforce)
         {
+        }
+
+        public override void AddAngularForce(PhysicsVector force, bool pushforce)
+        {
+            
         }
 
         public override PhysicsVector RotationalVelocity

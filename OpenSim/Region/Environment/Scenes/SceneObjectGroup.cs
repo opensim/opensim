@@ -1466,6 +1466,64 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void applyAngularImpulse(PhysicsVector impulse)
+        {
+            // We check if rootpart is null here because scripts don't delete if you delete the host.
+            // This means that unfortunately, we can pass a null physics actor to Simulate!
+            // Make sure we don't do that!
+            SceneObjectPart rootpart = m_rootPart;
+            if (rootpart != null)
+            {
+                if (rootpart.PhysActor != null)
+                {
+                    if (!IsAttachment)
+                    {
+                        rootpart.PhysActor.AddAngularForce(impulse, true);
+                        m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
+                    }
+                }
+            }
+        }
+
+        public void setAngularImpulse(PhysicsVector impulse)
+        {
+            // We check if rootpart is null here because scripts don't delete if you delete the host.
+            // This means that unfortunately, we can pass a null physics actor to Simulate!
+            // Make sure we don't do that!
+            SceneObjectPart rootpart = m_rootPart;
+            if (rootpart != null)
+            {
+                if (rootpart.PhysActor != null)
+                {
+                    if (!IsAttachment)
+                    {
+                        rootpart.PhysActor.Torque = impulse;
+                        m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
+                    }
+                }
+            }
+        }
+
+        public Vector3 GetTorque()
+        {
+            // We check if rootpart is null here because scripts don't delete if you delete the host.
+            // This means that unfortunately, we can pass a null physics actor to Simulate!
+            // Make sure we don't do that!
+            SceneObjectPart rootpart = m_rootPart;
+            if (rootpart != null)
+            {
+                if (rootpart.PhysActor != null)
+                {
+                    if (!IsAttachment)
+                    {
+                        PhysicsVector torque = rootpart.PhysActor.Torque;
+                        return new Vector3(torque.X, torque.Y, torque.Z);
+                    }
+                }
+            }
+            return Vector3.Zero;
+        }
+
         public void moveToTarget(Vector3 target, float tau)
         {
             SceneObjectPart rootpart = m_rootPart;

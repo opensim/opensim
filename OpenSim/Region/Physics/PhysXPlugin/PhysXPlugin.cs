@@ -417,6 +417,14 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         public override void AddForce(PhysicsVector force, bool pushforce)
         {
         }
+        public override PhysicsVector Torque
+        {
+            get { return PhysicsVector.Zero; }
+            set { return; }
+        }
+        public override void AddAngularForce(PhysicsVector force, bool pushforce)
+        {
+        }
 
         public override void link(PhysicsActor obj)
         {
@@ -625,6 +633,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             set { _velocity = value; }
         }
 
+        public override PhysicsVector Torque
+        {
+            get { return PhysicsVector.Zero; }
+            set { return; }
+        }
+
         public override float CollisionScore
         {
             get { return 0f; }
@@ -663,6 +677,10 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         }
 
         public override void AddForce(PhysicsVector force, bool pushforce)
+        {
+        }
+
+        public override void AddAngularForce(PhysicsVector force, bool pushforce)
         {
         }
 

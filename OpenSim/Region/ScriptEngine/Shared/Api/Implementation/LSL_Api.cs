@@ -1951,26 +1951,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llApplyRotationalImpulse(LSL_Vector force, int local)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llApplyRotationalImpulse");
+            m_host.ApplyAngularImpulse(new Vector3((float)force.x, (float)force.y, (float)force.z), local != 0);
+
         }
 
         public void llSetTorque(LSL_Vector torque, int local)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetTorque");
+            m_host.SetAngularImpulse(new Vector3((float)torque.x, (float)torque.y, (float)torque.z), local != 0);
         }
 
         public LSL_Vector llGetTorque()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetTorque");
-            return new LSL_Vector();
+            Vector3 torque = m_host.GetTorque();
+            return new LSL_Vector(torque.X,torque.Y,torque.Z);
         }
 
         public void llSetForceAndTorque(LSL_Vector force, LSL_Vector torque, int local)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetForceAndTorque");
+            llSetForce(force, local);
+            llSetTorque(torque, local);
         }
 
         public LSL_Vector llGetVel()

@@ -1134,6 +1134,14 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         public override void AddForce(PhysicsVector force, bool pushforce)
         {
         }
+        public override PhysicsVector Torque
+        {
+            get { return PhysicsVector.Zero; }
+            set { return; }
+        }
+        public override void AddAngularForce(PhysicsVector force, bool pushforce)
+        {
+        }
 
         public override void SetMomentum(PhysicsVector momentum)
         {

@@ -605,6 +605,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        public override PhysicsVector Torque
+        {
+            get { return PhysicsVector.Zero; }
+            set { return; }
+        }
+
         public override float CollisionScore
         {
             get { return 0f; }
@@ -663,6 +669,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _target_velocity.Z += force.Z;
             }
             //m_lastUpdateSent = false;
+        }
+
+        public override void AddAngularForce(PhysicsVector force, bool pushforce)
+        {
+
         }
 
         /// <summary>

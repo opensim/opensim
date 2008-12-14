@@ -211,6 +211,16 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
         }
 
+        public override void AddAngularForce(PhysicsVector force, bool pushforce)
+        {
+        }
+
+        public override PhysicsVector Torque
+        {
+            get { return PhysicsVector.Zero; }
+            set { return; }
+        }
+
         public override void SetMomentum(PhysicsVector momentum)
         {
         }

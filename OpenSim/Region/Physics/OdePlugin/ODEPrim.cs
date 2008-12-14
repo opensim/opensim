@@ -47,6 +47,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public PhysicsVector _position;
         private PhysicsVector _velocity;
+        private PhysicsVector _torque = new PhysicsVector(0,0,0);
         private PhysicsVector m_lastVelocity = new PhysicsVector(0.0f, 0.0f, 0.0f);
         private PhysicsVector m_lastposition = new PhysicsVector(0.0f, 0.0f, 0.0f);
         private PhysicsVector m_rotationalVelocity;
@@ -56,7 +57,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Quaternion _orientation;
         private PhysicsVector m_taintposition;
         private PhysicsVector m_taintsize;
-        private PhysicsVector m_taintVelocity = PhysicsVector.Zero;
+        private PhysicsVector m_taintVelocity = new PhysicsVector(0, 0, 0);
+        private PhysicsVector m_taintTorque = new PhysicsVector(0, 0, 0);
         private Quaternion m_taintrot;
         private PhysicsVector m_angularlock = new PhysicsVector(1f, 1f, 1f);
         private PhysicsVector m_taintAngularLock = new PhysicsVector(1f, 1f, 1f);
@@ -102,8 +104,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         private CollisionLocker ode;
 
         private bool m_taintforce = false;
+        private bool m_taintaddangularforce = false;
         private PhysicsVector m_force = new PhysicsVector(0.0f, 0.0f, 0.0f);
         private List<PhysicsVector> m_forcelist = new List<PhysicsVector>();
+        private List<PhysicsVector> m_angularforcelist = new List<PhysicsVector>();
 
         private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
@@ -837,6 +841,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (m_taintforce)
                     changeAddForce(timestep);
+
+                if (m_taintaddangularforce)
+                    changeAddAngularForce(timestep);
+
+                if (!m_taintTorque.IsIdentical(PhysicsVector.Zero, 0.001f))
+                    changeSetTorque(timestep);
 
                 if (m_taintdisable)
                     changedisable(timestep);
@@ -2058,6 +2068,49 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         }
 
+
+
+        public void changeSetTorque(float timestamp)
+        {
+            if (!m_isSelected)
+            {
+                if (IsPhysical && Body != IntPtr.Zero)
+                {
+                    d.BodySetTorque(Body, m_taintTorque.X, m_taintTorque.Y, m_taintTorque.Z);
+                }
+            }
+            
+            m_taintTorque = new PhysicsVector(0, 0, 0);
+        }
+
+        public void changeAddAngularForce(float timestamp)
+        {
+            if (!m_isSelected)
+            {
+                lock (m_angularforcelist)
+                {
+                    //m_log.Info("[PHYSICS]: dequeing forcelist");
+                    if (IsPhysical)
+                    {
+                        PhysicsVector iforce = new PhysicsVector();
+                        for (int i = 0; i < m_angularforcelist.Count; i++)
+                        {
+                            iforce = iforce + (m_angularforcelist[i] * 100);
+                        }
+                        d.BodyEnable(Body);
+                        d.BodyAddTorque(Body, iforce.X, iforce.Y, iforce.Z);
+                        
+                    }
+                    m_angularforcelist.Clear();
+                }
+
+                m_collisionscore = 0;
+                m_interpenetrationcount = 0;
+            }
+
+            m_taintaddangularforce = false;
+        }
+
         private void changevelocity(float timestep)
         {
             if (!m_isSelected)
@@ -2070,7 +2123,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
                     }
                 }
-
+                
                 //resetCollisionAccounting();
             }
             m_taintVelocity = PhysicsVector.Zero;
@@ -2216,6 +2269,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        public override PhysicsVector Torque
+        {
+            get
+            {
+                if (!m_isphysical || Body == IntPtr.Zero)
+                    return new PhysicsVector(0,0,0);
+
+                return _torque;
+            }
+
+            set
+            {
+                m_taintTorque = value;
+                _parent_scene.AddPhysicsActorTaint(this);
+            }
+        }
+
         public override float CollisionScore
         {
             get { return m_collisionscore; }
@@ -2250,6 +2320,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_forcelist.Add(force);
             m_taintforce = true;
             //m_log.Info("[PHYSICS]: Added Force:" + force.ToString() +  " to prim at " + Position.ToString());
+        }
+
+        public override void AddAngularForce(PhysicsVector force, bool pushforce)
+        {
+            m_angularforcelist.Add(force);
+            m_taintaddangularforce = true;
         }
 
         public override PhysicsVector RotationalVelocity
@@ -2323,7 +2399,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.Quaternion ori = d.BodyGetQuaternion(Body);
                     d.Vector3 vel = d.BodyGetLinearVel(Body);
                     d.Vector3 rotvel = d.BodyGetAngularVel(Body);
-
+                    d.Vector3 torque = d.BodyGetTorque(Body);
+                    _torque.setValues(torque.X, torque.Y, torque.Z);
                     PhysicsVector l_position = new PhysicsVector();
 
                     //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)

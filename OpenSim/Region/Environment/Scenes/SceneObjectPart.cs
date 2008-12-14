@@ -1180,6 +1180,68 @@ if (m_shape != null) {
             }
         }
 
+
+        /// <summary>
+        /// hook to the physics scene to apply angular impulse
+        /// This is sent up to the group, which then finds the root prim
+        /// and applies the force on the root prim of the group
+        /// </summary>
+        /// <param name="impulsei">Vector force</param>
+        /// <param name="localGlobalTF">true for the local frame, false for the global frame</param>
+        public void ApplyAngularImpulse(Vector3 impulsei, bool localGlobalTF)
+        {
+            PhysicsVector impulse = new PhysicsVector(impulsei.X, impulsei.Y, impulsei.Z);
+
+            if (localGlobalTF)
+            {
+                Quaternion grot = GetWorldRotation();
+                Quaternion AXgrot = grot;
+                Vector3 AXimpulsei = impulsei;
+                Vector3 newimpulse = AXimpulsei * AXgrot;
+                impulse = new PhysicsVector(newimpulse.X, newimpulse.Y, newimpulse.Z);
+            }
+
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.applyAngularImpulse(impulse);
+            }
+        }
+
+        /// <summary>
+        /// hook to the physics scene to apply angular impulse
+        /// This is sent up to the group, which then finds the root prim
+        /// and applies the force on the root prim of the group
+        /// </summary>
+        /// <param name="impulsei">Vector force</param>
+        /// <param name="localGlobalTF">true for the local frame, false for the global frame</param>
+        public void SetAngularImpulse(Vector3 impulsei, bool localGlobalTF)
+        {
+            PhysicsVector impulse = new PhysicsVector(impulsei.X, impulsei.Y, impulsei.Z);
+
+            if (localGlobalTF)
+            {
+                Quaternion grot = GetWorldRotation();
+                Quaternion AXgrot = grot;
+                Vector3 AXimpulsei = impulsei;
+                Vector3 newimpulse = AXimpulsei * AXgrot;
+                impulse = new PhysicsVector(newimpulse.X, newimpulse.Y, newimpulse.Z);
+            }
+
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.setAngularImpulse(impulse);
+            }
+        }
+
+        public Vector3 GetTorque()
+        {
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.GetTorque();
+            }
+            return Vector3.Zero;
+        }
+
         /// <summary>
         /// Apply physics to this part.
         /// </summary>
