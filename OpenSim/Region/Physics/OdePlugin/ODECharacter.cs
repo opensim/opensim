@@ -419,8 +419,23 @@ namespace OpenSim.Region.Physics.OdePlugin
         // place that is safe to call this routine AvatarGeomAndBodyCreation.
         private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ, float tensor)
         {
+            //CAPSULE_LENGTH = -5;
+            //CAPSULE_RADIUS = -5;
             int dAMotorEuler = 1;
             _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+            if (CAPSULE_LENGTH <= 0)
+            {
+                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
+                CAPSULE_LENGTH = 0.01f;
+
+            }
+
+            if (CAPSULE_RADIUS <= 0)
+            {
+                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
+                CAPSULE_RADIUS = 0.01f;
+
+            }
             Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
 
             d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
