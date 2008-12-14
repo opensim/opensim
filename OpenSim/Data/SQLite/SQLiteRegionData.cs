@@ -1187,8 +1187,6 @@ namespace OpenSim.Data.SQLite
                                                          Convert.ToSingle(
                                                                           row["SitTargetOrientW"]));
 
-            prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorR"]), Convert.ToInt32(row["ColorG"]), Convert.ToInt32(row["ColorB"]));
-
             prim.ClickAction = Convert.ToByte(row["ClickAction"]);
             prim.PayPrice[0] = Convert.ToInt32(row["PayPrice"]);
             prim.PayPrice[1] = Convert.ToInt32(row["PayButton1"]);
