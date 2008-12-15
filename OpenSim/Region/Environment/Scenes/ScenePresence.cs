@@ -505,6 +505,28 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void AdjustKnownSeeds()
+        {
+            Dictionary<ulong, string> seeds = Scene.GetChildrenSeeds(UUID);
+            List<ulong> old = new List<ulong>();
+            foreach (ulong handle in seeds.Keys)
+            {
+                uint x, y;
+                Utils.LongToUInts(handle, out x, out y);
+                x = x / Constants.RegionSize;
+                y = y / Constants.RegionSize;
+                if (Util.IsOutsideView(x, Scene.RegionInfo.RegionLocX, y, Scene.RegionInfo.RegionLocY))
+                {
+                    old.Add(handle);
+                }
+            }
+            DropOldNeighbours(old);
+            Scene.SetChildrenSeed(UUID, seeds);
+            KnownRegions = seeds;
+            //Console.WriteLine(" ++++++++++AFTER+++++++++++++ ");
+            //DumpKnownRegions();
+        }
+
         public void DumpKnownRegions()
         {
             Console.WriteLine("================ KnownRegions {0} ================", Scene.RegionInfo.RegionName);
@@ -545,6 +567,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_grouptitle = gm.GetGroupTitle(m_uuid);
 
             AbsolutePosition = m_controllingClient.StartPos;
+            AdjustKnownSeeds();
 
             TrySetMovementAnimation("STAND"); // TODO: I think, this won't send anything, as we are still a child here...
 
@@ -935,7 +958,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_knownChildRegions.ContainsKey(regionHandle))
                 {
                     m_knownChildRegions.Remove(regionHandle);
-                    //Console.WriteLine(" !!! removing known region {0} in {1}. Count = {2}", regionHandle, Scene.RegionInfo.RegionName, m_knownChildRegions.Count);
+                   //Console.WriteLine(" !!! removing known region {0} in {1}. Count = {2}", regionHandle, Scene.RegionInfo.RegionName, m_knownChildRegions.Count);
                 }
             }
         }
@@ -1949,9 +1972,6 @@ namespace OpenSim.Region.Environment.Scenes
                 CheckForBorderCrossing();
                 CheckForSignificantMovement(); // sends update to the modules.
             }
-
-            //if ((x++ % 30) == 0)
-            //    Console.WriteLine(" >> In {0} known regions: {0}, seeds:{1}", Scene.RegionInfo.RegionName, KnownRegions.Count, Scene.GetChildrenSeeds(UUID));
         }
 
         #endregion
@@ -2412,6 +2432,9 @@ namespace OpenSim.Region.Environment.Scenes
                                                       m_physicsActor.Flying);
                 if (crossingSuccessful)
                 {
+                    // Next, let's close the child agent connections that are too far away.
+                    CloseChildAgents(neighbourx, neighboury);
+
                     AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
 
                     //Console.WriteLine("BEFORE CROSS");
@@ -2446,15 +2469,15 @@ namespace OpenSim.Region.Environment.Scenes
                     CrossAttachmentsIntoNewRegion(neighbourHandle, true);
 
                     //                    m_scene.SendKillObject(m_localId);
-                    // Next, let's close the child agent connections that are too far away.
-                    CloseChildAgents(neighbourx, neighboury);
 
                     m_scene.NotifyMyCoarseLocationChange();
                     // the user may change their profile information in other region,
                     // so the userinfo in UserProfileCache is not reliable any more, delete it
                     if (m_scene.NeedSceneCacheClear(UUID))
+                    {
                         m_scene.CommsManager.UserProfileCacheService.RemoveUser(UUID);
-                    m_log.InfoFormat("[AVATAR]: User {0} is going to another region, profile cache removed", UUID);
+                        m_log.InfoFormat("[AVATAR]: User {0} is going to another region, profile cache removed", UUID);
+                    }
                 }
                 else
                 {
@@ -2487,16 +2510,20 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (ulong handle in m_knownChildRegions.Keys)
                 {
-                    uint x, y;
-                    Utils.LongToUInts(handle, out x, out y);
-                    x = x / Constants.RegionSize;
-                    y = y / Constants.RegionSize;
-
-                    //Console.WriteLine("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
-                    //Console.WriteLine("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
-                    if (Util.IsOutsideView(x, newRegionX, y, newRegionY))
+                    // Don't close the agent on this region yet
+                    if (handle != Scene.RegionInfo.RegionHandle)
                     {
-                        byebyeRegions.Add(handle);
+                        uint x, y;
+                        Utils.LongToUInts(handle, out x, out y);
+                        x = x / Constants.RegionSize;
+                        y = y / Constants.RegionSize;
+
+                        //Console.WriteLine("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
+                        //Console.WriteLine("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
+                        if (Util.IsOutsideView(x, newRegionX, y, newRegionY))
+                        {
+                            byebyeRegions.Add(handle);
+                        }
                     }
                 }
             }
@@ -2509,7 +2536,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 RemoveNeighbourRegion(handle);
             }
-
 
         }
 

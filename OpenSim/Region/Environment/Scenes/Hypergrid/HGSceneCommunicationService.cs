@@ -169,6 +169,17 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         // once we reach here...
                         //avatar.Scene.RemoveCapsHandler(avatar.UUID);
 
+                        // Let's close some agents
+                        if (isHyperLink) // close them all except this one
+                        {
+                            List<ulong> regions = new List<ulong>(avatar.KnownChildRegionHandles);
+                            regions.Remove(avatar.Scene.RegionInfo.RegionHandle);
+                            SendCloseChildAgentConnections(avatar.UUID, regions);
+                        }
+                        else // close just a few
+                            avatar.CloseChildAgents(newRegionX, newRegionY);
+
+                        string capsPath = String.Empty;
                         AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
                         agent.BaseFolder = UUID.Zero;
                         agent.InventoryFolder = UUID.Zero;
@@ -178,38 +189,39 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         {
                             // brand new agent
                             agent.CapsPath = Util.GetRandomCapsPath();
+                            if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent))
+                            {
+                                avatar.ControllingClient.SendTeleportFailed("Destination is not accepting teleports.");
+                                return;
+                            }
+
+                            // TODO Should construct this behind a method
+                            capsPath =
+                                "http://" + reg.ExternalHostName + ":" + reg.HttpPort
+                                + "/CAPS/" + agent.CapsPath + "0000/";
+
+                            if (eq != null)
+                            {
+                                OSD Item = EventQueueHelper.EnableSimulator(realHandle, reg.ExternalEndPoint);
+                                eq.Enqueue(Item, avatar.UUID);
+
+                                Item = EventQueueHelper.EstablishAgentCommunication(avatar.UUID, reg.ExternalEndPoint.ToString(), capsPath);
+                                eq.Enqueue(Item, avatar.UUID);
+                            }
+                            else
+                            {
+                                avatar.ControllingClient.InformClientOfNeighbour(realHandle, reg.ExternalEndPoint);
+                                // TODO: make Event Queue disablable!
+                            }
                         }
                         else
                         {
                             // child agent already there
                             agent.CapsPath = avatar.Scene.GetChildSeed(avatar.UUID, reg.RegionHandle);
+                            capsPath = "http://" + reg.ExternalHostName + ":" + reg.HttpPort
+                                        + "/CAPS/" + agent.CapsPath + "0000/";
                         }
-
-                        if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent))
-                        {
-                            avatar.ControllingClient.SendTeleportFailed("Destination is not accepting teleports.");
-                            return;
-                        }
-
-                        // TODO Should construct this behind a method
-                        string capsPath =
-                            "http://" + reg.ExternalHostName + ":" + reg.HttpPort
-                            + "/CAPS/" + agent.CapsPath + "0000/";
-
-                        if (eq != null)
-                        {
-                            OSD Item = EventQueueHelper.EnableSimulator(realHandle, reg.ExternalEndPoint);
-                            eq.Enqueue(Item, avatar.UUID);
-
-                            Item = EventQueueHelper.EstablishAgentCommunication(avatar.UUID, reg.ExternalEndPoint.ToString(), capsPath);
-                            eq.Enqueue(Item, avatar.UUID);
-                        }
-                        else
-                        {
-                            avatar.ControllingClient.InformClientOfNeighbour(realHandle, reg.ExternalEndPoint);
-                            // TODO: make Event Queue disablable!
-                        }
-
+                        
                         m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
                                                                               position, false);
 
@@ -258,28 +270,24 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         }
 
 
-                        // Let's close some children agents
-                        if (isHyperLink) // close them all
-                            SendCloseChildAgentConnections(avatar.UUID, avatar.KnownChildRegionHandles);
-                        else // close just a few
-                            avatar.CloseChildAgents(newRegionX, newRegionY);
-                        
                         //avatar.Close();
                         
                         // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
                         ///
                         /// Hypergrid mod: extra check for isHyperLink
                         /// 
-                        //if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
-                        //{
-                        //    CloseConnection(avatar.UUID);
-                        //}
+                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
+                        {
+                            CloseConnection(avatar.UUID);
+                        }
                         // if (teleport success) // seems to be always success here
                         // the user may change their profile information in other region,
                         // so the userinfo in UserProfileCache is not reliable any more, delete it
                         if (avatar.Scene.NeedSceneCacheClear(avatar.UUID))
+                        {
                             m_commsProvider.UserProfileCacheService.RemoveUser(avatar.UUID);
-                        m_log.InfoFormat("[HGSceneCommService]: User {0} is going to another region, profile cache removed", avatar.UUID);
+                            m_log.InfoFormat("[HGSceneCommService]: User {0} is going to another region, profile cache removed", avatar.UUID);
+                        }
                     }
                     else
                     {

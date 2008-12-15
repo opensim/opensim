@@ -2657,7 +2657,7 @@ namespace OpenSim.Region.Environment.Scenes
             GetAvatarAppearance(client, out appearance);
 
             ScenePresence avatar = m_sceneGraph.CreateAndAddChildScenePresence(client, appearance);
-            avatar.KnownRegions = GetChildrenSeeds(avatar.UUID);
+            //avatar.KnownRegions = GetChildrenSeeds(avatar.UUID);
             return avatar;
         }
 
@@ -2871,9 +2871,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agent"></param>
         public void NewUserConnection(AgentCircuitData agent)
         {
-            m_log.DebugFormat("[CONNECTION DEBUGGING] Adding NewUserConnection for {0} in {1} with CC of {2}", agent.AgentID,
-                              RegionInfo.RegionName, agent.circuitcode);
-
             if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
             {
                 m_log.WarnFormat(
@@ -2883,8 +2880,18 @@ namespace OpenSim.Region.Environment.Scenes
 
             /// Diva: Horrible stuff!
             capsPaths[agent.AgentID] = agent.CapsPath;
-            //m_log.DebugFormat("------------>child seeds in {0}: {1}", RegionInfo.RegionName, ((agent.ChildrenCapSeeds == null) ? "null" : agent.ChildrenCapSeeds.Count.ToString()));
             childrenSeeds[agent.AgentID] = ((agent.ChildrenCapSeeds == null) ? new Dictionary<ulong, string>() : agent.ChildrenCapSeeds);
+
+            ScenePresence sp = m_sceneGraph.GetScenePresence(agent.AgentID);
+            if (sp != null)
+            {
+                m_log.DebugFormat("[CONNECTION DEBUGGING]: Updated agent {0} in {1}", agent.AgentID, RegionInfo.RegionName);
+                sp.AdjustKnownSeeds();
+                return;
+            }
+
+            m_log.DebugFormat("[CONNECTION DEBUGGING]: Adding NewUserConnection for {0} in {1} with CC of {2}", agent.AgentID,
+                              RegionInfo.RegionName, agent.circuitcode);
 
             AddCapsHandler(agent.AgentID);
 
