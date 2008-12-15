@@ -32,7 +32,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
-    public delegate void UploadComplete(string filename, UUID fileID, byte[] fileData, IClientAPI remoteClient);
+    public delegate void UploadComplete(string filename, UUID fileID, ulong transferID, byte[] fileData, IClientAPI remoteClient);
     public delegate void UploadAborted(string filename, UUID fileID,  ulong transferID, IClientAPI remoteClient);
 
     public interface IClientFileTransfer
