@@ -1021,14 +1021,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
         }
+        
         public void DeactivateGesture(UUID assetId, UUID gestureId)
         {
         }
 
         // Sound
         public void SoundTrigger(UUID soundId, UUID owerid, UUID Objectid,UUID ParentId,float Gain, Vector3 Position,UInt64 Handle)
-        {
-           
+        {           
         }
 
         #region Scene/Avatar to Client
@@ -2801,11 +2801,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(objPropFamilyPack, ThrottleOutPacketType.Task);
         }
 
-        public void SendObjectPropertiesReply(UUID ItemID, ulong CreationDate, UUID CreatorUUID, UUID FolderUUID, UUID FromTaskUUID,
-                                              UUID GroupUUID, short InventorySerial, UUID LastOwnerUUID, UUID ObjectUUID,
-                                              UUID OwnerUUID, string TouchTitle, byte[] TextureID, string SitTitle, string ItemName,
-                                              string ItemDescription, uint OwnerMask, uint NextOwnerMask, uint GroupMask, uint EveryoneMask,
-                                              uint BaseMask, byte saleType, int salePrice)
+        public void SendObjectPropertiesReply(
+            UUID ItemID, ulong CreationDate, UUID CreatorUUID, UUID FolderUUID, UUID FromTaskUUID,
+            UUID GroupUUID, short InventorySerial, UUID LastOwnerUUID, UUID ObjectUUID,
+            UUID OwnerUUID, string TouchTitle, byte[] TextureID, string SitTitle, string ItemName,
+            string ItemDescription, uint OwnerMask, uint NextOwnerMask, uint GroupMask, uint EveryoneMask,
+            uint BaseMask, byte saleType, int salePrice)
         {
             ObjectPropertiesPacket proper = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
             // TODO: don't create new blocks if recycling an old packet
@@ -4139,6 +4140,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //there is a handler registered that handled this packet type
                 return;
             }
+            
             // Main packet processing conditional
             switch (Pack.Type)
             {
@@ -4160,6 +4162,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+                
                 case PacketType.ChatFromViewer:
                     ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
 
@@ -4188,6 +4191,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerChatFromClient(this, args);
                     }
                     break;
+                
                 case PacketType.AvatarPropertiesUpdate:
                     AvatarPropertiesUpdatePacket Packet = (AvatarPropertiesUpdatePacket)Pack;
 
@@ -4226,6 +4230,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+                
                 case PacketType.ImprovedInstantMessage:
                     ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
                     string IMfromName = Util.FieldToString(msgpack.MessageBlock.FromAgentName);
@@ -4309,7 +4314,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
                     
-                case PacketType.DeRezObject:
+                case PacketType.DeRezObject:                       
                     DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) Pack;
                     handlerDeRezObject = OnDeRezObject;
                     if (handlerDeRezObject != null)

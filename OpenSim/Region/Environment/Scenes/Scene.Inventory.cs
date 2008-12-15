@@ -284,6 +284,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 part.Inventory.RemoveScriptInstance(item.ItemID);
             }
+            
             // Update item with new asset
             item.AssetID = asset.FullID;
             group.UpdateInventoryItem(item);
@@ -2050,21 +2051,21 @@ namespace OpenSim.Region.Environment.Scenes
                 RezSelected, RemoveItem, fromTaskID, false);
         }
 
-       /// <summary>
-       /// Returns SceneObjectGroup or null from asset request.
-       /// </summary>
-       /// <param name="remoteClient"></param>
-       /// <param name="itemID"></param>
-       /// <param name="RayEnd"></param>
-       /// <param name="RayStart"></param>
-       /// <param name="RayTargetID"></param>
-       /// <param name="BypassRayCast"></param>
-       /// <param name="RayEndIsIntersection"></param>
-       /// <param name="RezSelected"></param>
-       /// <param name="RemoveItem"></param>
-       /// <param name="fromTaskID"></param>
-       /// <param name="difference"></param>
-       /// <returns></returns>
+        /// <summary>
+        /// Rez an object into the scene from the user's inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="RayEnd"></param>
+        /// <param name="RayStart"></param>
+        /// <param name="RayTargetID"></param>
+        /// <param name="BypassRayCast"></param>
+        /// <param name="RayEndIsIntersection"></param>
+        /// <param name="RezSelected"></param>
+        /// <param name="RemoveItem"></param>
+        /// <param name="fromTaskID"></param>
+        /// <param name="attachment"></param>
+        /// <returns>The SceneObjectGroup rezzed or null if rez was unsuccessful.</returns>
         public virtual SceneObjectGroup RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
                                     UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
@@ -2141,7 +2142,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 if (attachment)
                                     isAttachment = " Object was an attachment";
 
-                                m_log.Error("[OJECTREZ]: Error rezzing ItemID: " + itemID + " object has no rootpart." + isAttachment);
+                                m_log.Error("[AGENT INVENTORY]: Error rezzing ItemID: " + itemID + " object has no rootpart." + isAttachment);
                             }
 
                             // Since renaming the item in the inventory does not affect the name stored
@@ -2200,11 +2201,12 @@ namespace OpenSim.Region.Environment.Scenes
                                     group.ClearPartAttachmentData();
                                 }
                             }
-
-                            // Fire on_rez
+                            
                             if (!attachment)
                             {
+                                // Fire on_rez
                                 group.CreateScriptInstances(0, true, DefaultScriptEngine, 0);
+                                
                                 rootPart.ScheduleFullUpdate();
                             }
 
@@ -2230,14 +2232,15 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Rez an object in the scene
+        /// Rez an object into the scene from a prim's inventory.
         /// </summary>
+        /// <param name="sourcePart"></param>
         /// <param name="item"></param>
         /// <param name="pos"></param>
         /// <param name="rot"></param>
         /// <param name="vel"></param>
         /// <param name="param"></param>
-        /// <returns></returns>
+        /// <returns>The SceneObjectGroup rezzed or null if rez was unsuccessful</returns>
         public virtual SceneObjectGroup RezObject(
             SceneObjectPart sourcePart, TaskInventoryItem item,
             Vector3 pos, Quaternion rot, Vector3 vel, int param)
@@ -2338,6 +2341,7 @@ namespace OpenSim.Region.Environment.Scenes
                 DeRezObject(null, grp.RootPart.LocalId,
                         grp.RootPart.GroupID, DeRezAction.Return, UUID.Zero);
             }
+            
             return true;
         }
 
