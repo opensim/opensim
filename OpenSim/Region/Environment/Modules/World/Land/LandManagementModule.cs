@@ -233,7 +233,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             if (AllowedForcefulBans)
             {
                 avatar.ControllingClient.SendAlertMessage(
-                    "You are not allowed on this parcel because you are banned. Please go away. <3 OpenSim Developers");
+                    "You are not allowed on this parcel because you are banned. Please go away.");
 
                 avatar.PhysicsActor.Position =
                     new PhysicsVector(avatar.lastKnownAllowedPosition.X, avatar.lastKnownAllowedPosition.Y,
@@ -243,7 +243,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             else
             {
                 avatar.ControllingClient.SendAlertMessage(
-                    "You are not allowed on this parcel because you are banned; however, the grid administrator has disabled ban lines globally. Please obey the land owner's requests or you can be banned from the entire sim! <3 OpenSim Developers");
+                    "You are not allowed on this parcel because you are banned; however, the grid administrator has disabled ban lines globally. Please obey the land owner's requests or you can be banned from the entire sim!");
             }
         }
 
@@ -268,7 +268,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                         else if (parcelAvatarIsEntering.isRestrictedFromLand(avatar.UUID))
                         {
                             avatar.ControllingClient.SendAlertMessage(
-                                "You are not allowed on this parcel because the land owner has restricted access. For now, you can enter, but please respect the land owner's decisions (or he can ban you!). <3 OpenSim Developers");
+                                "You are not allowed on this parcel because the land owner has restricted access. For now, you can enter, but please respect the land owner's decisions (or he can ban you!).");
                         }
                         else
                         {
