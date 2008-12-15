@@ -174,7 +174,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         agent.InventoryFolder = UUID.Zero;
                         agent.startpos = position;
                         agent.child = true;
-                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
                         {
                             // brand new agent
                             agent.CapsPath = Util.GetRandomCapsPath();
@@ -210,16 +210,19 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                             // TODO: make Event Queue disablable!
                         }
 
-                        if (!m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
-                                                                              position, false))
-                        {
-                            avatar.ControllingClient.SendTeleportFailed("Problem with destination.");
-                            // We should close that agent we just created over at destination...
-                            List<ulong> lst = new List<ulong>();
-                            lst.Add(reg.RegionHandle);
-                            SendCloseChildAgentAsync(avatar.UUID, lst);
-                            return;
-                        }
+                        m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
+                                                                              position, false);
+
+                        //if (!m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
+                        //                                                      position, false))
+                        //{
+                        //    avatar.ControllingClient.SendTeleportFailed("Problem with destination.");
+                        //    // We should close that agent we just created over at destination...
+                        //    List<ulong> lst = new List<ulong>();
+                        //    lst.Add(realHandle);
+                        //    SendCloseChildAgentAsync(avatar.UUID, lst);
+                        //    return;
+                        //}
 
                         Thread.Sleep(2000);
 
