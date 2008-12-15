@@ -66,7 +66,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             return true;
         }
 
-        public PhysicsScene GetScene()
+        public PhysicsScene GetScene(String sceneIdentifier)
         {
             if (_mScene == null)
             {
@@ -74,7 +74,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // http://opensimulator.org/mantis/view.php?id=2750).
                 d.InitODE();
                 
-                _mScene = new OdeScene(ode);
+                _mScene = new OdeScene(ode, sceneIdentifier);
             }
             return (_mScene);
         }
@@ -123,7 +123,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public class OdeScene : PhysicsScene
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private ILog m_log;
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
         CollisionLocker ode;
@@ -270,8 +270,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Sets many properties that ODE requires to be stable
         /// These settings need to be tweaked 'exactly' right or weird stuff happens.
         /// </summary>
-        public OdeScene(CollisionLocker dode)
-        {            
+        public OdeScene(CollisionLocker dode, string sceneIdentifier)
+        {
+            m_log 
+                = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + sceneIdentifier);
+
             OdeLock = new Object();
             ode = dode;
             nearCallback = near;

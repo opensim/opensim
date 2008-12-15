@@ -41,8 +41,11 @@ namespace OpenSim.Region.Physics.POSPlugin
         private float[] _heightMap;
         private const float gravity = -9.8f;
 
-        public POSScene()
+        string sceneIdentifier;
+
+        public POSScene(String _sceneIdentifier)
         {
+            sceneIdentifier = _sceneIdentifier;
         }
 
         public override void Initialise(IMesher meshmerizer, IConfigSource config)

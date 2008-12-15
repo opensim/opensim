@@ -71,7 +71,17 @@ namespace OpenSim.Region.ClientStack
         protected SceneManager m_sceneManager = new SceneManager();
         
         protected abstract void Initialize();
-        protected abstract PhysicsScene GetPhysicsScene();
+        
+        /// <summary>
+        /// Get a new physics scene.
+        /// </summary>
+        /// 
+        /// <param name="osSceneIdentifier">
+        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.  
+        /// </param>
+        /// <returns></returns>        
+        protected abstract PhysicsScene GetPhysicsScene(string osSceneIdentifier);
+        
         protected abstract StorageManager CreateStorageManager();
         protected abstract ClientStackManager CreateClientStackManager();
         protected abstract Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
@@ -99,13 +109,24 @@ namespace OpenSim.Region.ClientStack
             m_httpServer.Start();
         }
 
-        protected PhysicsScene GetPhysicsScene(string engine, string meshEngine, IConfigSource config)
+        /// <summary>
+        /// Get a new physics scene.
+        /// </summary>
+        /// <param name="engine">The name of the physics engine to use</param>
+        /// <param name="meshEngine">The name of the mesh engine to use</param>
+        /// <param name="config">The configuration data to pass to the physics and mesh engines</param>
+        /// <param name="osSceneIdentifier">
+        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.  
+        /// </param>
+        /// <returns></returns>
+        protected PhysicsScene GetPhysicsScene(
+            string engine, string meshEngine, IConfigSource config, string osSceneIdentifier)
         {
             PhysicsPluginManager physicsPluginManager;
             physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPluginsFromAssemblies("Physics");
             
-            return physicsPluginManager.GetPhysicsScene(engine, meshEngine, config);
+            return physicsPluginManager.GetPhysicsScene(engine, meshEngine, config, osSceneIdentifier);
         }
 
         /// <summary>
@@ -153,7 +174,7 @@ namespace OpenSim.Region.ClientStack
 
             scene.LoadWorldMap();
 
-            scene.PhysicsScene = GetPhysicsScene();
+            scene.PhysicsScene = GetPhysicsScene(scene.RegionInfo.RegionName);
             scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
             scene.PhysicsScene.SetWaterLevel((float)regionInfo.RegionSettings.WaterHeight);
 

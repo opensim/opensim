@@ -49,7 +49,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Loading Zero Mesher
             imp = new ZeroMesherPlugin();
             // Getting Physics Scene
-            ps = cbt.GetScene();
+            ps = cbt.GetScene("test");
             // Initializing Physics Scene.
             ps.Initialise(imp.GetMesher(),null);
             float[] _heightmap = new float[256 * 256];

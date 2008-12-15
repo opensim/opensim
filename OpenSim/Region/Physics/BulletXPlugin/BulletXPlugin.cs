@@ -212,11 +212,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             return true;
         }
 
-        public PhysicsScene GetScene()
+        public PhysicsScene GetScene(string sceneIdentifier)
         {
             if (_mScene == null)
             {
-                _mScene = new BulletXScene();
+                _mScene = new BulletXScene(sceneIdentifier);
             }
             return (_mScene);
         }
@@ -493,6 +493,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         public IMesher mesher;
         // private IConfigSource m_config;
 
+        String identifier;
+
+        public BulletXScene(String sceneIdentifier)
+        {
+            identifier = sceneIdentifier;
+        }
 
         public static float Gravity
         {

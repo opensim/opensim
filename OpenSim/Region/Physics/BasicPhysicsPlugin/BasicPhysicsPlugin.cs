@@ -47,9 +47,9 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             return true;
         }
 
-        public PhysicsScene GetScene()
+        public PhysicsScene GetScene(string sceneIdentifier)
         {
-            return new BasicScene();
+            return new BasicScene(sceneIdentifier);
         }
 
         public string GetName()
@@ -67,8 +67,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         private List<BasicActor> _actors = new List<BasicActor>();
         private float[] _heightMap;
 
-        public BasicScene()
+        string sceneIdentifier;
+
+        public BasicScene(string _sceneIdentifier)
         {
+            sceneIdentifier = _sceneIdentifier;
         }
 
         public override void Initialise(IMesher meshmerizer, IConfigSource config)

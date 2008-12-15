@@ -518,16 +518,16 @@ namespace OpenSim
 
         # region Setup methods
 
-        protected override PhysicsScene GetPhysicsScene()
+        protected override PhysicsScene GetPhysicsScene(string osSceneIdentifier)
         {
-            return GetPhysicsScene(m_configSettings.PhysicsEngine, m_configSettings.MeshEngineName, m_config.Source);
+            return GetPhysicsScene(
+                m_configSettings.PhysicsEngine, m_configSettings.MeshEngineName, m_config.Source, osSceneIdentifier);
         }
 
         /// <summary>
         /// Handler to supply the current status of this sim
-        ///
-        /// Currently this is always OK if the simulator is still listening for connections on its HTTP service
         /// </summary>
+        /// Currently this is always OK if the simulator is still listening for connections on its HTTP service
         protected class SimStatusHandler : IStreamedRequestHandler
         {
             public byte[] Handle(string path, Stream request,

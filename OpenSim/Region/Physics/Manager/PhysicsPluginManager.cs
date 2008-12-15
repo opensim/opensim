@@ -65,7 +65,7 @@ namespace OpenSim.Region.Physics.Manager
         /// <param name="meshEngineName"></param>
         /// <param name="config"></param>
         /// <returns></returns>
-        public PhysicsScene GetPhysicsScene(string physEngineName, string meshEngineName, IConfigSource config)
+        public PhysicsScene GetPhysicsScene(string physEngineName, string meshEngineName, IConfigSource config, string regionName)
         {
             if (String.IsNullOrEmpty(physEngineName))
             {
@@ -92,7 +92,7 @@ namespace OpenSim.Region.Physics.Manager
             if (_PhysPlugins.ContainsKey(physEngineName))
             {
                 m_log.Info("[PHYSICS]: creating " + physEngineName);
-                PhysicsScene result = _PhysPlugins[physEngineName].GetScene();
+                PhysicsScene result = _PhysPlugins[physEngineName].GetScene(regionName);
                 result.Initialise(meshEngine, config);
                 return result;
             }
@@ -226,7 +226,7 @@ namespace OpenSim.Region.Physics.Manager
     public interface IPhysicsPlugin
     {
         bool Init();
-        PhysicsScene GetScene();
+        PhysicsScene GetScene(String sceneIdentifier);
         string GetName();
         void Dispose();
     }

@@ -71,7 +71,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             PhysicsPluginManager physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPluginsFromAssembly("Physics/OpenSim.Region.Physics.BasicPhysicsPlugin.dll");
-            testScene.PhysicsScene = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", configSource);            
+            testScene.PhysicsScene = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", configSource, "test");            
                         
             return testScene;
         }

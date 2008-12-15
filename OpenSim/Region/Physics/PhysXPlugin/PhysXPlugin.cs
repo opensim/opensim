@@ -51,11 +51,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             return true;
         }
 
-        public PhysicsScene GetScene()
+        public PhysicsScene GetScene(string sceneIdentifier)
         {
             if (_mScene == null)
             {
-                _mScene = new PhysXScene();
+                _mScene = new PhysXScene(sceneIdentifier);
             }
             return (_mScene);
         }
@@ -78,8 +78,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         private NxPhysicsSDK mySdk;
         private NxScene scene;
 
-        public PhysXScene()
+        string sceneIdentifier;
+        public PhysXScene(string _sceneIdentifier)
         {
+            sceneIdentifier = _sceneIdentifier;
+
             mySdk = NxPhysicsSDK.CreateSDK();
             Console.WriteLine("Sdk created - now creating scene");
             scene = mySdk.CreateScene();
