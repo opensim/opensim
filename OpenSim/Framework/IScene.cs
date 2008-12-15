@@ -72,7 +72,15 @@ namespace OpenSim.Framework
 
         string GetSimulatorVersion();
 
-        bool PresenceChildStatus(UUID avatarID);
+        /// <summary>
+        /// Is the agent denoted by the given agentID a child presence in this scene?
+        /// </summary>
+        /// 
+        /// Used by ClientView when a 'kick everyone' or 'estate message' occurs
+        /// 
+        /// <param name="avatarID">AvatarID to lookup</param>
+        /// <returns>true if the presence is a child agent, false if the presence does not exist or is not a child agent</returns>        
+        bool PresenceChildStatus(UUID agentId);
 
         // Diva: get this out of here!!!
         string GetCapsPath(UUID agentId);

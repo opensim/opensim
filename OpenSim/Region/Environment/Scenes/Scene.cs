@@ -4130,15 +4130,14 @@ namespace OpenSim.Region.Environment.Scenes
             return m_sceneGraph.GetScenePresence(avatarID);
         }
 
-        /// <summary>
-        /// Request an Avatar's Child Status - used by ClientView when a 'kick everyone' or 'estate message' occurs
-        /// </summary>
-        /// <param name="avatarID">AvatarID to lookup</param>
-        /// <returns></returns>
         public override bool PresenceChildStatus(UUID avatarID)
         {
             ScenePresence cp = GetScenePresence(avatarID);
-            return cp.IsChildAgent;
+            
+            if (cp != null)
+                return cp.IsChildAgent;
+            
+            return false;
         }
 
         /// <summary>
