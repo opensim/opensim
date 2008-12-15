@@ -121,9 +121,9 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         public override RegionInfo RequestNeighbourInfo(ulong regionHandle)
         {
-            RegionInfo info = m_remoteBackend.RequestNeighbourInfo(regionHandle);
+            RegionInfo info = base.RequestNeighbourInfo(regionHandle);
             if (info == null)
-                info = base.RequestNeighbourInfo(regionHandle);
+                info = m_remoteBackend.RequestNeighbourInfo(regionHandle);
             return info;
         }
 

@@ -283,7 +283,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         // if (teleport success) // seems to be always success here
                         // the user may change their profile information in other region,
                         // so the userinfo in UserProfileCache is not reliable any more, delete it
-                        if (avatar.Scene.NeedSceneCacheClear(avatar.UUID))
+                        if (avatar.Scene.NeedSceneCacheClear(avatar.UUID) || isHyperLink)
                         {
                             m_commsProvider.UserProfileCacheService.RemoveUser(avatar.UUID);
                             m_log.InfoFormat("[HGSceneCommService]: User {0} is going to another region, profile cache removed", avatar.UUID);
