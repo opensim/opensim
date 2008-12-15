@@ -2106,7 +2106,7 @@ namespace OpenSim.Region.Environment.Scenes
                             string xmlData = Utils.BytesToString(rezAsset.Data);
                             SceneObjectGroup group = new SceneObjectGroup(xmlData, true);
                             if (!Permissions.CanRezObject(
-                                group.Children.Count, remoteClient.AgentId, pos) 
+                                group.Children.Count, remoteClient.AgentId, pos)
                                 && !attachment)
                             {
                                 return null;
@@ -2226,7 +2226,11 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                     }
                 }
+                else
+                    m_log.WarnFormat("[AGENT INVENTORY]: Root folder not found in {0}", RegionInfo.RegionName);
             }
+            else
+                m_log.WarnFormat("[AGENT INVENTORY]: User profile not found in {0}", RegionInfo.RegionName);
 
             return null;
         }

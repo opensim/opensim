@@ -194,6 +194,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         public void DropInventory()
         {
+            m_log.Debug("[INVENTORY CACHE]: DropInventory called");
             // Make sure there aren't pending requests around when we do this
             // FIXME: There is still a race condition where an inventory operation can be requested (since these aren't being locked).
             // Will have to extend locking to exclude this very soon.

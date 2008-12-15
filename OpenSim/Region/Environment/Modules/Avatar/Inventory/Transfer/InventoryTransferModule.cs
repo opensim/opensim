@@ -350,11 +350,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                         // are we even doing here??
                         //
                         if (s == scene)
+                        {
+                            //m_log.Debug("[INVTRANSFERMOD]: s == scene. Returning true in " + scene.RegionInfo.RegionName);
                             return true;
+                        }
                         else
+                        {
+                            //m_log.Debug("[INVTRANSFERMOD]: s != scene. Returning false in " + scene.RegionInfo.RegionName);
                             return false;
+                        }
                     }
                 }
+                //m_log.Debug("[INVTRANSFERMOD]: agent not in scene. Returning true in " + scene.RegionInfo.RegionName);
                 return true;
             }
 
@@ -363,12 +370,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
             //
             if (m_AgentRegions[agentID] == scene)
             {
+                //m_log.Debug("[INVTRANSFERMOD]: m_AgentRegions[agentID] == scene. Returning true in " + scene.RegionInfo.RegionName);
                 m_AgentRegions.Remove(agentID);
                 return true;
             }
 
             // Another region has claimed the agent
             //
+            //m_log.Debug("[INVTRANSFERMOD]: last resort. Returning false in " + scene.RegionInfo.RegionName);
             return false;
         }
 

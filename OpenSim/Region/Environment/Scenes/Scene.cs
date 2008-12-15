@@ -2709,7 +2709,11 @@ namespace OpenSim.Region.Environment.Scenes
                 m_sceneGraph.removeUserCount(!childagentYN);
                 RemoveCapsHandler(agentID);
 
-                CommsManager.UserProfileCacheService.RemoveUser(agentID);
+                if (avatar.Scene.NeedSceneCacheClear(avatar.UUID))
+                {
+                    m_log.InfoFormat("[SCENE]: User {0} is going to another region, profile cache removed in {1}", avatar.UUID, RegionInfo.RegionName);
+                    CommsManager.UserProfileCacheService.RemoveUser(agentID);
+                }
 
                 if (!avatar.IsChildAgent)
                 {
