@@ -3130,16 +3130,19 @@ namespace OpenSim.Region.Environment.Scenes
                 //    m_sceneGraph.removeUserCount(true);
                 // }
 
-                // Tell a single agent to disconnect from the region.
-                IEventQueue eq = RequestModuleInterface<IEventQueue>();
-                if (eq != null)
+                // Don't do this to root agents on logout, it's not nice for the viewer
+                if (presence.IsChildAgent) 
                 {
-                    OSD Item = EventQueueHelper.DisableSimulator(RegionInfo.RegionHandle);
-                    eq.Enqueue(Item, agentID);
+                    // Tell a single agent to disconnect from the region.
+                    IEventQueue eq = RequestModuleInterface<IEventQueue>();
+                    if (eq != null)
+                    {
+                        OSD Item = EventQueueHelper.DisableSimulator(RegionInfo.RegionHandle);
+                        eq.Enqueue(Item, agentID);
+                    }
+                    else
+                        presence.ControllingClient.SendShutdownConnectionNotice();
                 }
-                else
-                    presence.ControllingClient.SendShutdownConnectionNotice();
-
                 presence.ControllingClient.Close(true);
 
             }
