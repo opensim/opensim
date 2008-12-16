@@ -45,7 +45,7 @@ using OSD = OpenMetaverse.StructuredData.OSD;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    enum ScriptControlled : int
+    enum ScriptControlled : uint
     {
         CONTROL_ZERO = 0,
         CONTROL_FWD = 1,
@@ -85,6 +85,7 @@ namespace OpenSim.Region.Environment.Scenes
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
         private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
+        private bool MouseDown = false;
         private SceneObjectGroup proxyObjectGroup = null;
         //private SceneObjectPart proxyObjectPart = null;
 
@@ -3341,6 +3342,27 @@ namespace OpenSim.Region.Environment.Scenes
 
             ScriptControlled allflags = ScriptControlled.CONTROL_ZERO;
 
+            if (MouseDown)
+            {
+                allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 || (flags & unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP)) != 0)
+                {
+                    allflags = ScriptControlled.CONTROL_ZERO;
+                    MouseDown = true;
+                }
+            }
+
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_ML_LBUTTON;
+                MouseDown = true;
+            }
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_LBUTTON;
+                MouseDown = true;
+            }
+
             // find all activated controls, whether the scripts are interested in them or not
             if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS) != 0)
             {
@@ -3374,15 +3396,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 allflags |= ScriptControlled.CONTROL_ROT_LEFT;
             }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_ML_LBUTTON;
-            }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_LBUTTON;
-            }
-
             // optimization; we have to check per script, but if nothing is pressed and nothing changed, we can skip that
             if (allflags != ScriptControlled.CONTROL_ZERO || allflags != LastCommands)
             {
