@@ -115,9 +115,7 @@ namespace OpenSim.Framework
         {
             PacketType type = GetType(bytes);
 
-            int z;
-            for (z = 0 ; z < zeroBuffer.Length ; z++)
-                zeroBuffer[z] = 0;
+            Array.Clear(zeroBuffer, 0, zeroBuffer.Length);
 
             int i = 0;
             Packet packet = GetPacket(type);

@@ -331,10 +331,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // loop, since each pass through the loop checks the queue length, we no longer 
                 // need the check on entering the loop
                 bool qchanged = true;
+                
                 ResetCounters();
                 // m_log.Info("[THROTTLE]: Entering Throttle");
-                while (TotalThrottle.UnderLimit() && qchanged &&
-                       (throttleLoops <= MaxThrottleLoops))
+                while (TotalThrottle.UnderLimit() && qchanged && throttleLoops <= MaxThrottleLoops)
                 {
                     qchanged = false; // We will break out of the loop if no work was accomplished
 

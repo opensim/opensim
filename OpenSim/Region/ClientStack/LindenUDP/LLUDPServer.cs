@@ -195,10 +195,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // Make sure we are getting zeroes when running off the
                 // end of grab / degrab packets from old clients
-                //
-                int z;
-                for (z = numBytes ; z < RecvBuffer.Length ; z++)
-                    RecvBuffer[z] = 0;
+                Array.Clear(RecvBuffer, numBytes, RecvBuffer.Length - numBytes);
 
                 int packetEnd = numBytes - 1;
                 if (proxyPortOffset != 0) packetEnd -= 6;
