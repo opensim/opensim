@@ -572,11 +572,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_Scripts[itemID] = instance;
                 }
 
-                if (!m_PrimObjects.ContainsKey(localID))
-                    m_PrimObjects[localID] = new List<UUID>();
+                lock (m_PrimObjects)
+                {
+                    if (!m_PrimObjects.ContainsKey(localID))
+                        m_PrimObjects[localID] = new List<UUID>();
 
-                if (!m_PrimObjects[localID].Contains(itemID))
-                    m_PrimObjects[localID].Add(itemID);
+                    if (!m_PrimObjects[localID].Contains(itemID))
+                        m_PrimObjects[localID].Add(itemID);
+
+                }
 
                 if (!m_Assemblies.ContainsKey(assetID))
                     m_Assemblies[assetID] = assembly;
@@ -604,17 +608,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (part != null)
                     part.RemoveScriptEvents(itemID);
 
-                // Remove the script from it's prim
-                if (m_PrimObjects.ContainsKey(localID))
+                lock (m_PrimObjects)
                 {
-                    // Remove inventory item record
-                    if (m_PrimObjects[localID].Contains(itemID))
-                        m_PrimObjects[localID].Remove(itemID);
-
-                    // If there are no more scripts, remove prim
-                    if (m_PrimObjects[localID].Count == 0)
+                    // Remove the script from it's prim
+                    if (m_PrimObjects.ContainsKey(localID))
                     {
-                        m_PrimObjects.Remove(localID);
+                        // Remove inventory item record
+                        if (m_PrimObjects[localID].Contains(itemID))
+                            m_PrimObjects[localID].Remove(itemID);
+
+                        // If there are no more scripts, remove prim
+                        if (m_PrimObjects[localID].Count == 0)
+                        {
+                            m_PrimObjects.Remove(localID);
+                        }
                     }
                 }
 
@@ -749,19 +756,23 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public bool PostObjectEvent(uint localID, EventParams p)
         {
             bool result = false;
-
-            if (!m_PrimObjects.ContainsKey(localID))
-                return false;
-
-            foreach (UUID itemID in m_PrimObjects[localID])
+            
+            lock (m_PrimObjects)
             {
-                if (m_Scripts.ContainsKey(itemID))
+                if (!m_PrimObjects.ContainsKey(localID))
+                    return false;
+
+            
+                foreach (UUID itemID in m_PrimObjects[localID])
                 {
-                    IScriptInstance instance = m_Scripts[itemID];
-                    if (instance != null)
+                    if (m_Scripts.ContainsKey(itemID))
                     {
-                        instance.PostEvent(p);
-                        result = true;
+                        IScriptInstance instance = m_Scripts[itemID];
+                        if (instance != null)
+                        {
+                            instance.PostEvent(p);
+                            result = true;
+                        }
                     }
                 }
             }
