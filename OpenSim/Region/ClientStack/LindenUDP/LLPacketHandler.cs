@@ -54,7 +54,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         int PacketsReceived { get; }
         int PacketsReceivedReported { get; }
-        uint SilenceLimit { get; set; }
         uint ResendTimeout { get; set; }
         bool ReliableIsImportant { get; set; }
         int MaxReliableResends { get; set; }
@@ -124,20 +123,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// The number of milliseconds that can pass before a packet that needs an ack is resent.
         /// </param>
-        private uint m_ResendTimeout = 2000;
+        private uint m_ResendTimeout = 4000;
 
         public uint ResendTimeout
         {
             get { return m_ResendTimeout; }
             set { m_ResendTimeout = value; }
-        }
-
-        private uint m_SilenceLimit = 250;
-
-        public uint SilenceLimit
-        {
-            get { return m_SilenceLimit; }
-            set { m_SilenceLimit = value; }
         }
 
         private int m_MaxReliableResends = 3;
@@ -147,8 +138,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_MaxReliableResends; }
             set { m_MaxReliableResends = value; }
         }
-
-        private int m_LastAck = 0;
 
         // Track duplicated packets. This uses a Dictionary. Both insertion
         // and lookup are common operations and need to take advantage of
@@ -167,6 +156,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_PacketsSent = 0;
         private int m_PacketsSentReported = 0;
         private int m_UnackedBytes = 0;
+
+        private int m_LastResend = 0;
 
         public int PacketsReceived
         {
@@ -211,6 +202,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             set { m_ReliableIsImportant = value; }
         }
 
+        private int m_DropSafeTimeout;
+
         LLPacketServer m_PacketServer;
         private byte[] m_ZeroOutBuffer = new byte[4096];
 
@@ -222,6 +215,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_Client = client;
             m_PacketServer = server;
+            m_DropSafeTimeout = System.Environment.TickCount + 15000;
 
             m_PacketQueue = new LLPacketQueue(client.AgentId, userSettings);
 
@@ -235,6 +229,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_PacketQueue.Enqueue(null);
             m_PacketQueue.Close();
+            m_Client = null;
         }
 
         // Send one packet. This actually doesn't send anything, it queues
@@ -327,15 +322,39 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void ResendUnacked()
         {
             int now = System.Environment.TickCount;
-            int lastAck = m_LastAck;
+
+            int intervalMs = 250;
+
+            if (m_LastResend != 0)
+                intervalMs = now - m_LastResend;
+
+            lock (m_NeedAck)
+            {
+                if (m_DropSafeTimeout > now ||
+                        intervalMs > 500) // We were frozen!
+                {
+                    foreach (AckData data in new List<AckData>
+                            (m_NeedAck.Values))
+                    {
+                        if (m_DropSafeTimeout > now)
+                        {
+                            m_NeedAck[data.Packet.Header.Sequence].
+                                    TickCount = now;
+                        }
+                        else
+                        {
+                            m_NeedAck[data.Packet.Header.Sequence].
+                                    TickCount += intervalMs;
+                        }
+                    }
+                }
+            }
+            m_LastResend = now;
 
             // Unless we have received at least one ack, don't bother resending
             // anything. There may not be a client there, don't clog up the
             // pipes.
             //
-            if (lastAck == 0)
-                return;
-
             lock (m_NeedAck)
             {
                 // Nothing to do
@@ -343,16 +362,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (m_NeedAck.Count == 0)
                     return;
 
-                // If we have seen no acks in <SilenceLimit> s but are
-                // waiting for acks, then there may be no one listening.
-                // No need to resend anything. Keep it until it gets stale,
-                // then it will be dropped.
-                //
-                if ((((now - lastAck) > m_SilenceLimit) &&
-                     m_NeedAck.Count > 0) || m_NeedAck.Count == 0)
-                {
-                    return;
-                }
+                int resent = 0;
 
                 foreach (AckData data in new List<AckData>(m_NeedAck.Values))
                 {
@@ -362,25 +372,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //
                     if ((now - data.TickCount) > m_ResendTimeout)
                     {
-                        m_NeedAck[packet.Header.Sequence].Resends++;
-
-                        // The client needs to be told that a packet is being resent, otherwise it appears to believe
-                        // that it should reset its sequence to that packet number.
-                        packet.Header.Resent = true;
-
-                        if (m_NeedAck[packet.Header.Sequence].Resends >=
-                            m_MaxReliableResends && (!m_ReliableIsImportant))
+                        if (resent < 20)
                         {
-                            m_NeedAck.Remove(packet.Header.Sequence);
-                            TriggerOnPacketDrop(packet, data.Identifier);
-                            continue;
+                            m_NeedAck[packet.Header.Sequence].Resends++;
+
+                            // The client needs to be told that a packet is being resent, otherwise it appears to believe
+                            // that it should reset its sequence to that packet number.
+                            packet.Header.Resent = true;
+
+                            if ((m_NeedAck[packet.Header.Sequence].Resends >=
+                                m_MaxReliableResends) && (!m_ReliableIsImportant))
+                            {
+                                m_NeedAck.Remove(packet.Header.Sequence);
+                                TriggerOnPacketDrop(packet, data.Identifier);
+                                continue;
+                            }
+
+                            m_NeedAck[packet.Header.Sequence].TickCount =
+                                    System.Environment.TickCount;
+
+                            QueuePacket(packet, ThrottleOutPacketType.Resend,
+                                    data.Identifier);
+
+                            resent++;
                         }
-
-                        m_NeedAck[packet.Header.Sequence].TickCount =
-                                System.Environment.TickCount;
-
-                        QueuePacket(packet, ThrottleOutPacketType.Resend,
-                                data.Identifier);
+                        else
+                        {
+                            m_NeedAck[packet.Header.Sequence].TickCount +=
+                                    intervalMs;
+                        }
                     }
                 }
             }
@@ -623,8 +643,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 m_NeedAck.Remove(id);
                 m_UnackedBytes -= packet.ToBytes().Length;
-
-                m_LastAck = System.Environment.TickCount;
             }
         }
 
