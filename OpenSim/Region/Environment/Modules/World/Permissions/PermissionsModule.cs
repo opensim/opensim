@@ -670,6 +670,13 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 //They can't even edit the object
                 return false;
             }
+            SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+            if (part == null)
+                return false;
+
+            if ((part.OwnerMask & PERM_COPY) == 0)
+                return false;
+
             //If they can rez, they can duplicate
             return CanRezObject(objectCount, owner, objectPosition, scene);
         }
