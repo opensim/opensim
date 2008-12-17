@@ -1039,7 +1039,7 @@ namespace OpenSim.Grid.GridServer
                     respstring = "<Root>";
                     respstring += "<authkey>" + TheSim.regionSendKey + "</authkey>";
                     respstring += "<sim>";
-                    respstring += "<uuid>" + TheSim.ToString() + "</uuid>";
+                    respstring += "<uuid>" + TheSim.UUID.ToString() + "</uuid>";
                     respstring += "<regionname>" + TheSim.regionName + "</regionname>";
                     respstring += "<sim_ip>" + TheSim.serverIP + "</sim_ip>";
                     respstring += "<sim_port>" + TheSim.serverPort.ToString() + "</sim_port>";
