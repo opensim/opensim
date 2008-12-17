@@ -542,7 +542,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         private void SendChildAgentDataUpdateAsync(ChildAgentDataUpdate cAgentData, ScenePresence presence)
         {
-            m_log.Info("[INTERGRID]: Informing neighbors about my agent in " + presence.Scene.RegionInfo.RegionName);
+            //m_log.Info("[INTERGRID]: Informing neighbors about my agent in " + presence.Scene.RegionInfo.RegionName);
             try
             {
                 foreach (ulong regionHandle in presence.KnownChildRegionHandles)
