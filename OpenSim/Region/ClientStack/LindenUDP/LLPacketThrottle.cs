@@ -34,6 +34,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_currentThrottle;
         private const int m_throttleTimeDivisor = 7;
         private int m_currentBitsSent;
+        private int m_throttleBits;
         
         /// <value>
         /// Value with which to multiply all the throttle fields
@@ -55,10 +56,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public LLPacketThrottle(int min, int max, int throttle, float throttleMultiplier)
         {
             m_throttleMultiplier = throttleMultiplier;
-            m_maxAllowableThrottle = (int)(max * throttleMultiplier);
-            m_minAllowableThrottle = (int)(min * throttleMultiplier);
-            m_currentThrottle = (int)(throttle * throttleMultiplier);
+            m_maxAllowableThrottle = max;
+            m_minAllowableThrottle = min;
+            m_currentThrottle = throttle;
             m_currentBitsSent = 0;
+
+            CalcBits();
+        }
+
+        public void CalcBits()
+        {
+            m_throttleBits = (int)((float)m_currentThrottle*m_throttleMultiplier/(float)m_throttleTimeDivisor);
         }
 
         public void Reset()
@@ -68,15 +76,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool UnderLimit()
         {
-            return (m_currentBitsSent < (m_currentThrottle/m_throttleTimeDivisor));
+            return m_currentBitsSent < m_throttleBits;
         }
         
-//        public int AddBits(int bits)
-//        {
-//            m_currentBitsSent += bits;
-//            return m_currentBitsSent;
-//        }
-
         public int AddBytes(int bytes)
         {
             m_currentBitsSent += bytes * 8;
@@ -98,20 +100,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_currentThrottle; }
             set
             {
-                int multipliedValue = (int)(value * m_throttleMultiplier);
-                
-                if (multipliedValue > m_maxAllowableThrottle)
-                {
-                    m_currentThrottle = m_maxAllowableThrottle;
-                }
-                else if (multipliedValue < m_minAllowableThrottle)
-                {
-                    m_currentThrottle = m_minAllowableThrottle;
-                }
-                else
-                {
-                    m_currentThrottle = multipliedValue;
-                }
+                m_currentThrottle = value;
+
+                CalcBits();
             }
         }
     }
