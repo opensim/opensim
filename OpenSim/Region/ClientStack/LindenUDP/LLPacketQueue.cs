@@ -327,11 +327,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // we've hit the throttle limit or there's no more packets to send
             lock (this)
             {
+                // this variable will be true if there was work done in the last execution of the
+                // loop, since each pass through the loop checks the queue length, we no longer 
+                // need the check on entering the loop
+                bool qchanged = true;
                 ResetCounters();
                 // m_log.Info("[THROTTLE]: Entering Throttle");
-                while (TotalThrottle.UnderLimit() && PacketsWaiting() &&
+                while (TotalThrottle.UnderLimit() && qchanged &&
                        (throttleLoops <= MaxThrottleLoops))
                 {
+                    qchanged = false; // We will break out of the loop if no work was accomplished
+
                     throttleLoops++;
                     //Now comes the fun part..   we dump all our elements into m_packetQueue that we've saved up.
                     if ((ResendOutgoingPacketQueue.Count > 0) && ResendThrottle.UnderLimit())
@@ -341,6 +347,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SendQueue.Enqueue(qpack);
                         TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                         ResendThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        qchanged = true;
                     }
                     
                     if ((LandOutgoingPacketQueue.Count > 0) && LandThrottle.UnderLimit())
@@ -350,6 +357,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SendQueue.Enqueue(qpack);
                         TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                         LandThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        qchanged = true;
                     }
                     
                     if ((WindOutgoingPacketQueue.Count > 0) && WindThrottle.UnderLimit())
@@ -359,6 +367,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SendQueue.Enqueue(qpack);
                         TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                         WindThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        qchanged = true;
                     }
                     
                     if ((CloudOutgoingPacketQueue.Count > 0) && CloudThrottle.UnderLimit())
@@ -368,6 +377,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SendQueue.Enqueue(qpack);
                         TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                         CloudThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        qchanged = true;
                     }
                     
                     if ((TaskOutgoingPacketQueue.Count > 0 || TaskLowpriorityPacketQueue.Count > 0) && TaskThrottle.UnderLimit())
@@ -385,6 +395,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                         TaskThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        qchanged = true;
                     }
                     
                     if ((TextureOutgoingPacketQueue.Count > 0) && TextureThrottle.UnderLimit())
@@ -394,6 +405,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SendQueue.Enqueue(qpack);
                         TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                         TextureThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        qchanged = true;
                     }
                     
                     if ((AssetOutgoingPacketQueue.Count > 0) && AssetThrottle.UnderLimit())
@@ -403,6 +415,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SendQueue.Enqueue(qpack);
                         TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                         AssetThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        qchanged = true;
                     }
                 }
                 // m_log.Info("[THROTTLE]: Processed " + throttleLoops + " packets");
