@@ -401,16 +401,25 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SetRootPart(part);
         }
+        
+        public SceneObjectGroup(string xmlData, bool isOriginalXmlFormat)
+            : this(UUID.Zero, xmlData, isOriginalXmlFormat)            
+        {
+        }
 
         /// <summary>
         /// Create an object using serialized data in OpenSim's original xml format.
         /// </summary>
+        /// <param name="fromUserInventoryItemID">
+        /// If applicable, the user inventory item id from which this object was rezzed.  If not applicable then this
+        /// should be UUID.Zero
+        /// </param>
         /// <param name="xmlData"></param>
         /// <param name="isOriginalXmlFormat">
         /// This parameter only exists to separate the two different xml constructors.  In the future, versions should
         /// be specified within the xml itself.
         /// </param>
-        public SceneObjectGroup(string xmlData, bool isOriginalXmlFormat)
+        public SceneObjectGroup(UUID fromUserInventoryItemID, string xmlData, bool isOriginalXmlFormat)
         {
             if (!isOriginalXmlFormat)
                 throw new Exception("This constructor must specify the xml is in OpenSim's original format");
@@ -430,7 +439,7 @@ namespace OpenSim.Region.Environment.Scenes
                 reader.Read();
                 reader.ReadStartElement("SceneObjectGroup");
                 reader.ReadStartElement("RootPart");
-                SetRootPart(SceneObjectPart.FromXml(reader));
+                SetRootPart(SceneObjectPart.FromXml(fromUserInventoryItemID, reader));
 
                 reader.ReadEndElement();
 

@@ -116,30 +116,55 @@ namespace OpenSim.Region.Environment.Scenes
         //        for SL compatibility it should be persisted though (set sound / displaytext / particlesystem, kill script)
         [XmlIgnore]
         public UUID Sound;
+        
         [XmlIgnore]
         public byte SoundFlags;
+        
         [XmlIgnore]
         public double SoundGain;
+        
         [XmlIgnore]
         public double SoundRadius;
+        
         [XmlIgnore]
         public uint TimeStampFull = 0;
+        
         [XmlIgnore]
         public uint TimeStampLastActivity = 0; // Will be used for AutoReturn
+        
         [XmlIgnore]
         public uint TimeStampTerse = 0;
+        
         [XmlIgnore]
         public UUID FromAssetID = UUID.Zero;
+               
+        /// <value>
+        /// The UUID of the user inventory item from which this object was rezzed if this is a root part.  
+        /// If UUID.Zero then either this is not a root part or there is no connection with a user inventory item.
+        /// </value>
+        private UUID m_fromUserInventoryItemID = UUID.Zero;
+        
+        [XmlIgnore]
+        public UUID FromUserInventoryItemID
+        {
+            get { return m_fromUserInventoryItemID; }
+        }
+        
         [XmlIgnore]
         public bool IsAttachment = false;
+        
         [XmlIgnore]
         public scriptEvents AggregateScriptEvents = 0;
+        
         [XmlIgnore]
         public UUID AttachedAvatar = UUID.Zero;
+        
         [XmlIgnore]
         public Vector3 AttachedPos = Vector3.Zero;
+        
         [XmlIgnore]
         public uint AttachmentPoint = (byte)0;
+        
         [XmlIgnore]
         public PhysicsVector RotationAxis = new PhysicsVector(1f,1f,1f);
         
@@ -1428,15 +1453,27 @@ if (m_shape != null) {
         /// <summary>
         /// Restore this part from the serialized xml representation.
         /// </summary>
+        /// <param name="xmlReader"></param>
         /// <returns></returns>
         public static SceneObjectPart FromXml(XmlReader xmlReader)
         {
-            // It's not necessary to persist this
-
-            XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
-            SceneObjectPart newobject = (SceneObjectPart) serializer.Deserialize(xmlReader);
-            return newobject;
+            return FromXml(UUID.Zero, xmlReader);
         }
+        
+        /// <summary>
+        /// Restore this part from the serialized xml representation.
+        /// </summary>
+        /// <param name="fromUserInventoryItemId">The inventory id from which this part came, if applicable</param>
+        /// <param name="xmlReader"></param>
+        /// <returns></returns>
+        public static SceneObjectPart FromXml(UUID fromUserInventoryItemId, XmlReader xmlReader)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
+            SceneObjectPart part = (SceneObjectPart)serializer.Deserialize(xmlReader);
+            part.m_fromUserInventoryItemID = fromUserInventoryItemId;
+            
+            return part;
+        }        
 
         public UUID GetAvatarOnSitTarget()
         {
@@ -1603,7 +1640,7 @@ if (m_shape != null) {
         public void GetProperties(IClientAPI client)
         {
             client.SendObjectPropertiesReply(
-                UUID.Zero, (ulong)_creationDate, _creatorID, UUID.Zero, UUID.Zero,
+                m_fromUserInventoryItemID, (ulong)_creationDate, _creatorID, UUID.Zero, UUID.Zero,
                 _groupID, (short)InventorySerial, _lastOwnerID, UUID, _ownerID,
                 ParentGroup.RootPart.TouchName, new byte[0], ParentGroup.RootPart.SitName, Name, Description,
                 ParentGroup.RootPart._ownerMask, ParentGroup.RootPart._nextOwnerMask, ParentGroup.RootPart._groupMask, ParentGroup.RootPart._everyoneMask,

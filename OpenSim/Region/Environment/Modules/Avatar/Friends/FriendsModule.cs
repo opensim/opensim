@@ -124,6 +124,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 if (!m_scenes.ContainsKey(scene.RegionInfo.RegionHandle))
                     m_scenes[scene.RegionInfo.RegionHandle] = scene;
             }
+            
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
@@ -157,6 +158,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
         #endregion
 
+        /// <summary>
+        /// Receive presence information changes about clients in other regions.
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
         public XmlRpcResponse processPresenceUpdateBulk(XmlRpcRequest req)
         {
             Hashtable requestData = (Hashtable)req.Params[0];
@@ -171,6 +177,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             lock (m_rootAgents)
             {
                 List<ScenePresence> friendsHere = new List<ScenePresence>();
+                
                 try
                 {
                     UUID agentID = new UUID((string)requestData["agentID"]);
@@ -728,6 +735,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             if (destAgent != null) destAgent.ControllingClient.SendDeclineCallingCard(transactionID);
         }
 
+        /// <summary>
+        /// Send presence information about a client to other clients in both this region and others.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="friendList"></param>
+        /// <param name="iAmOnline"></param>
         private void SendPresenceState(IClientAPI client, List<FriendListItem> friendList, bool iAmOnline)
         {
             m_log.DebugFormat("[FRIEND]: {0} logged {1}; sending presence updates", client.Name, iAmOnline ? "in" : "out");
@@ -755,8 +768,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     if ((item.FriendPerms & (uint)FriendRights.CanSeeOnline) != 0) friendIDsToReceiveFromOffline.Add(item.Friend);
                 }
             }
-
-
 
             // we now have a list of "interesting" friends (which we have to find out on-/offline state for),
             // friends we want to send our online state to (if *they* are online, too), and
@@ -799,8 +810,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                             friendIDsToReceiveFromOnline.Add(uuid);
                         }
                     }
+                    
                     m_log.DebugFormat("[FRIEND]: Sending {0} offline and {1} online friends to {2}",
                                       friendIDsToReceiveFromOffline.Count, friendIDsToReceiveFromOnline.Count, client.Name);
+                    
                     if (friendIDsToReceiveFromOffline.Count > 0) client.SendAgentOffline(friendIDsToReceiveFromOffline.ToArray());
                     if (friendIDsToReceiveFromOnline.Count > 0) client.SendAgentOnline(friendIDsToReceiveFromOnline.ToArray());
 

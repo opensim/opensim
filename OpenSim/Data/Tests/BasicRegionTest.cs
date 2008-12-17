@@ -213,7 +213,7 @@ namespace OpenSim.Data.Tests
             // The ObjectFlags is an exception, if it is entered incorrectly, the object IS REJECTED on the database silently.
             UUID creator,uuid = new UUID();
             creator = UUID.Random();
-            uint iserial = (uint) random.Next();
+            uint iserial = (uint)random.Next();
             TaskInventoryDictionary dic = new TaskInventoryDictionary();
             uint objf = (uint) random.Next();
             uuid = prim4;

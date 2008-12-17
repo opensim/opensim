@@ -110,7 +110,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             while (InventoryDeQueueAndDelete())
             {
-                m_log.Debug("[SCENE]: Returned item successfully to inventory, continuing...");
+                m_log.Debug("[SCENE]: Sent item successfully to inventory, continuing...");
             }
         }            
 
@@ -130,7 +130,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (left > 0)
                     {
                         m_log.DebugFormat(
-                            "[SCENE]: Sending deleted object to user's inventory, {0} item(s) remaining.", left);
+                            "[SCENE]: Sending object to user's inventory, {0} item(s) remaining.", left);
                         
                         x = m_inventoryDeletes.Dequeue();
 
@@ -142,7 +142,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         catch (Exception e)
                         {
-                            m_log.DebugFormat("Exception background deleting object: " + e);
+                            m_log.DebugFormat("Exception background sending object: " + e);
                         }
                         
                         return true;
@@ -154,11 +154,11 @@ namespace OpenSim.Region.Environment.Scenes
                 // We can't put the object group details in here since the root part may have disappeared (which is where these sit).
                 // FIXME: This needs to be fixed.
                 m_log.ErrorFormat(
-                    "[SCENE]: Queued deletion of scene object to agent {0} {1} failed: {2}",
+                    "[SCENE]: Queued sending of scene object to agent {0} {1} failed: {2}",
                     (x != null ? x.remoteClient.Name : "unavailable"), (x != null ? x.remoteClient.AgentId.ToString() : "unavailable"), e.ToString());
             }
 
-            m_log.Debug("[SCENE]: No objects left in inventory delete queue.");
+            m_log.Debug("[SCENE]: No objects left in inventory send queue.");
             return false;
         }        
     }

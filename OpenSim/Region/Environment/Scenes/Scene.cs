@@ -3480,26 +3480,17 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual void StoreAddFriendship(UUID ownerID, UUID friendID, uint perms)
         {
-            // TODO: m_sceneGridService.DoStuff;
             m_sceneGridService.AddNewUserFriend(ownerID, friendID, perms);
         }
 
         public virtual void StoreUpdateFriendship(UUID ownerID, UUID friendID, uint perms)
         {
-            // TODO: m_sceneGridService.DoStuff;
             m_sceneGridService.UpdateUserFriendPerms(ownerID, friendID, perms);
         }
 
         public virtual void StoreRemoveFriendship(UUID ownerID, UUID ExfriendID)
         {
-            // TODO: m_sceneGridService.DoStuff;
             m_sceneGridService.RemoveUserFriend(ownerID, ExfriendID);
-        }
-
-        public virtual List<FriendListItem> StoreGetFriendsForUser(UUID ownerID)
-        {
-            // TODO: m_sceneGridService.DoStuff;
-            return m_sceneGridService.GetUserFriendList(ownerID);
         }
 
         public void AddPacketStats(int inPackets, int outPackets, int unAckedBytes)

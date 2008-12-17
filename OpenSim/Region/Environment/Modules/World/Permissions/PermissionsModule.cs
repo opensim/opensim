@@ -1106,7 +1106,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 // the administrator object permissions to take effect.
                 // UUID objectOwner = task.OwnerID;
 
-
                 if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
                     permission = true;
 
@@ -1120,6 +1119,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 if ((task.GetEffectivePermissions() & PERM_COPY) == 0)
                     permission = false;
             }
+            
             return permission;
         }
 

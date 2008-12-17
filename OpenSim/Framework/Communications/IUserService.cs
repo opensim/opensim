@@ -109,7 +109,8 @@ namespace OpenSim.Framework.Communications
         void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz);
 
         /// <summary>
-        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for UUID friendslistowner
+        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship 
+        /// for UUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
         List<FriendListItem> GetUserFriendList(UUID friendlistowner);

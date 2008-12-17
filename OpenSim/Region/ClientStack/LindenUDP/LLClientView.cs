@@ -7286,7 +7286,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         public void SendAgentOnline(UUID[] agentIDs)
-        {
+        {         
             OnlineNotificationPacket onp = new OnlineNotificationPacket();
             OnlineNotificationPacket.AgentBlockBlock[] onpb = new OnlineNotificationPacket.AgentBlockBlock[agentIDs.Length];
             for (int i = 0; i < agentIDs.Length; i++)

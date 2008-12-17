@@ -48,6 +48,7 @@ namespace OpenSim.Framework
     /// </value>
     public enum DeRezAction : byte
     {
+        SaveToExistingUserInventoryItem = 0,
         TakeCopy = 1,
         Take = 4,
         GodTakeCopy = 5,

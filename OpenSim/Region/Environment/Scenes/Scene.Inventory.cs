@@ -1686,7 +1686,15 @@ namespace OpenSim.Region.Environment.Scenes
             bool permissionToTake = false;
             bool permissionToDelete = false;
 
-            if (action == DeRezAction.TakeCopy)
+            if (action == DeRezAction.SaveToExistingUserInventoryItem)
+            {
+                if (grp.OwnerID == remoteClient.AgentId && grp.RootPart.FromUserInventoryItemID != UUID.Zero)
+                {
+                    permissionToTake = true;
+                    permissionToDelete = false;
+                }
+            }
+            else if (action == DeRezAction.TakeCopy)
             {
                 permissionToTake =
                         Permissions.CanTakeCopyObject(
@@ -1726,6 +1734,7 @@ namespace OpenSim.Region.Environment.Scenes
                             grp.UUID,
                             remoteClient.AgentId);
                     permissionToDelete = permissionToTake;
+                    
                     if (permissionToDelete)
                     {
                         AddReturn(grp.OwnerID, grp.Name, grp.AbsolutePosition, "parcel owner return");
@@ -1736,6 +1745,12 @@ namespace OpenSim.Region.Environment.Scenes
                     permissionToTake = true;
                     permissionToDelete = true;
                 }
+            }
+            else
+            {
+                m_log.DebugFormat(
+                    "[AGENT INVENTORY]: Ignoring unexpected derez action {0} for {1}", action, remoteClient.Name);
+                return;
             }
 
             if (permissionToTake)
@@ -1769,13 +1784,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (remoteClient == null)
             {
-                userInfo = CommsManager.UserProfileCacheService.GetUserDetails(
-                        objectGroup.RootPart.OwnerID);
+                userInfo = CommsManager.UserProfileCacheService.GetUserDetails(objectGroup.RootPart.OwnerID);
             }
             else
             {
-                userInfo = CommsManager.UserProfileCacheService.GetUserDetails(
-                        remoteClient.AgentId);
+                userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             }
 
             if (userInfo != null)
@@ -1785,8 +1798,8 @@ namespace OpenSim.Region.Environment.Scenes
                 // If we're returning someone's item, it goes back to the
                 // owner's Lost And Found folder.
 
-                if (folderID == UUID.Zero || (action == DeRezAction.Delete &&
-                        objectGroup.OwnerID != remoteClient.AgentId))
+                if (folderID == UUID.Zero 
+                    || (action == DeRezAction.Delete && objectGroup.OwnerID != remoteClient.AgentId))
                 {
                     InventoryFolderBase folder =
                             userInfo.FindFolderForType(
@@ -1811,6 +1824,21 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
 
+                InventoryItemBase item = null;
+                
+                if (DeRezAction.SaveToExistingUserInventoryItem == action)
+                {
+                    item = userInfo.RootFolder.FindItem(objectGroup.RootPart.FromUserInventoryItemID);
+                    
+                    if (null == item)
+                    {
+                        m_log.DebugFormat(
+                            "[AGENT INVENTORY]: Object {0} {1} scheduled for save to inventory has already been deleted.", 
+                            objectGroup.Name, objectGroup.UUID);                        
+                        return UUID.Zero;
+                    }
+                }
+
                 AssetBase asset = CreateAsset(
                     objectGroup.GetPartName(objectGroup.RootPart.LocalId),
                     objectGroup.GetPartDescription(objectGroup.RootPart.LocalId),
@@ -1818,65 +1846,74 @@ namespace OpenSim.Region.Environment.Scenes
                     Utils.StringToBytes(sceneObjectXml));
                 AssetCache.AddAsset(asset);
                 assetID = asset.FullID;
-
-                InventoryItemBase item = new InventoryItemBase();
-                item.Creator = objectGroup.RootPart.CreatorID;
-
-                if (action == DeRezAction.TakeCopy || action == DeRezAction.Take)
-                    item.Owner = remoteClient.AgentId;
-                else // Delete / Return
-                    item.Owner = objectGroup.OwnerID;
-
-                item.ID = UUID.Random();
-                item.AssetID = asset.FullID;
-                item.Description = asset.Description;
-                item.Name = asset.Name;
-                item.AssetType = asset.Type;
-                item.InvType = (int)InventoryType.Object;
-                item.Folder = folderID;
                 
-                if (remoteClient != null && (remoteClient.AgentId != objectGroup.RootPart.OwnerID) && Permissions.PropagatePermissions())
-                {
-                    uint perms=objectGroup.GetEffectivePermissions();
-                    uint nextPerms=(perms & 7) << 13;
-                    if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                        perms &= ~(uint)PermissionMask.Copy;
-                    if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                        perms &= ~(uint)PermissionMask.Transfer;
-                    if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                        perms &= ~(uint)PermissionMask.Modify;
-
-                    item.BasePermissions = perms & objectGroup.RootPart.NextOwnerMask;
-                    item.CurrentPermissions = item.BasePermissions;
-                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
-                    item.GroupPermissions = objectGroup.RootPart.GroupMask & objectGroup.RootPart.NextOwnerMask;
-                    item.CurrentPermissions |= 8; // Slam!
+                if (DeRezAction.SaveToExistingUserInventoryItem == action)
+                {                                   
+                    item.AssetID = asset.FullID;                    
+                    userInfo.UpdateItem(item);
                 }
                 else
                 {
-                    item.BasePermissions = objectGroup.GetEffectivePermissions();
-                    item.CurrentPermissions = objectGroup.GetEffectivePermissions();
-                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
-                    item.GroupPermissions = objectGroup.RootPart.GroupMask;
-                }
+                    item = new InventoryItemBase();
+                    item.Creator = objectGroup.RootPart.CreatorID;
 
-                // TODO: add the new fields (Flags, Sale info, etc)
-                item.CreationDate = Util.UnixTimeSinceEpoch();
+                    if (action == DeRezAction.TakeCopy || action == DeRezAction.Take)
+                        item.Owner = remoteClient.AgentId;
+                    else // Delete / Return
+                        item.Owner = objectGroup.OwnerID;
 
-                userInfo.AddItem(item);
-                if (remoteClient != null && item.Owner == remoteClient.AgentId)
-                {
-                    remoteClient.SendInventoryItemCreateUpdate(item);
-                }
-                else
-                {
-                    ScenePresence notifyUser = GetScenePresence(item.Owner);
-                    if (notifyUser != null)
+                    item.ID = UUID.Random();
+                    item.AssetID = asset.FullID;
+                    item.Description = asset.Description;
+                    item.Name = asset.Name;
+                    item.AssetType = asset.Type;
+                    item.InvType = (int)InventoryType.Object;
+                    item.Folder = folderID;
+                    
+                    if (remoteClient != null && (remoteClient.AgentId != objectGroup.RootPart.OwnerID) && Permissions.PropagatePermissions())
                     {
-                        notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
+                        uint perms=objectGroup.GetEffectivePermissions();
+                        uint nextPerms=(perms & 7) << 13;
+                        if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                            perms &= ~(uint)PermissionMask.Copy;
+                        if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                            perms &= ~(uint)PermissionMask.Transfer;
+                        if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                            perms &= ~(uint)PermissionMask.Modify;
+
+                        item.BasePermissions = perms & objectGroup.RootPart.NextOwnerMask;
+                        item.CurrentPermissions = item.BasePermissions;
+                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                        item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
+                        item.GroupPermissions = objectGroup.RootPart.GroupMask & objectGroup.RootPart.NextOwnerMask;
+                        item.CurrentPermissions |= 8; // Slam!
                     }
+                    else
+                    {
+                        item.BasePermissions = objectGroup.GetEffectivePermissions();
+                        item.CurrentPermissions = objectGroup.GetEffectivePermissions();
+                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                        item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
+                        item.GroupPermissions = objectGroup.RootPart.GroupMask;
+                    }
+
+                    // TODO: add the new fields (Flags, Sale info, etc)
+                    item.CreationDate = Util.UnixTimeSinceEpoch();
+
+                    userInfo.AddItem(item);
+                    
+                    if (remoteClient != null && item.Owner == remoteClient.AgentId)
+                    {
+                        remoteClient.SendInventoryItemCreateUpdate(item);
+                    }
+                    else
+                    {
+                        ScenePresence notifyUser = GetScenePresence(item.Owner);
+                        if (notifyUser != null)
+                        {
+                            notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
+                        }
+                    }                    
                 }
             }
             
@@ -2093,7 +2130,7 @@ namespace OpenSim.Region.Environment.Scenes
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
-                if (userInfo.RootFolder != null)
+                if (userInfo.HasReceivedInventory)
                 {
                     InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
 
@@ -2103,8 +2140,21 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (rezAsset != null)
                         {
+                            UUID itemId = UUID.Zero;
+                            
+                            // If we have permission to copy then link the rezzed object back to the user inventory
+                            // item that it came from.  This allows us to enable 'save object to inventory'
+                            if (!Permissions.BypassPermissions())
+                            {
+                                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == (uint)PermissionMask.Copy)
+                                {       
+                                    itemId = item.ID;
+                                }
+                            }
+                            
                             string xmlData = Utils.BytesToString(rezAsset.Data);
-                            SceneObjectGroup group = new SceneObjectGroup(xmlData, true);
+                            SceneObjectGroup group = new SceneObjectGroup(itemId, xmlData, true);
+                            
                             if (!Permissions.CanRezObject(
                                 group.Children.Count, remoteClient.AgentId, pos)
                                 && !attachment)
