@@ -345,8 +345,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         LLQueItem qpack = ResendOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);                        
-                        TotalThrottle.AddBytes(qpack.Length);
-                        ResendThrottle.AddBytes(qpack.Length);
+                        int qpackSize = qpack.Packet.ToBytes().Length;
+                        TotalThrottle.AddBytes(qpackSize);
+                        ResendThrottle.AddBytes(qpackSize);
                         
                         qchanged = true;
                     }
@@ -356,8 +357,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         LLQueItem qpack = LandOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);
-                        TotalThrottle.AddBytes(qpack.Length);
-                        LandThrottle.AddBytes(qpack.Length);
+                        int qpackSize = qpack.Packet.ToBytes().Length;
+                        TotalThrottle.AddBytes(qpackSize);
+                        LandThrottle.AddBytes(qpackSize);
                         qchanged = true;
                     }
                     
@@ -366,8 +368,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         LLQueItem qpack = WindOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);
-                        TotalThrottle.AddBytes(qpack.Length);
-                        WindThrottle.AddBytes(qpack.Length);
+                        int qpackSize = qpack.Packet.ToBytes().Length;
+                        TotalThrottle.AddBytes(qpackSize);
+                        WindThrottle.AddBytes(qpackSize);
                         qchanged = true;
                     }
                     
@@ -376,8 +379,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         LLQueItem qpack = CloudOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);
-                        TotalThrottle.AddBytes(qpack.Length);
-                        CloudThrottle.AddBytes(qpack.Length);
+                        int qpackSize = qpack.Packet.ToBytes().Length;
+                        TotalThrottle.AddBytes(qpackSize);
+                        CloudThrottle.AddBytes(qpackSize);
                         qchanged = true;
                     }
                     
@@ -395,8 +399,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             SendQueue.Enqueue(qpack);
                         }
 
-                        TotalThrottle.AddBytes(qpack.Length);
-                        TaskThrottle.AddBytes(qpack.Length);
+                        int qpackSize = qpack.Packet.ToBytes().Length;
+                        TotalThrottle.AddBytes(qpackSize);
+                        TaskThrottle.AddBytes(qpackSize);
                         qchanged = true;
                     }
                     
@@ -405,8 +410,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         LLQueItem qpack = TextureOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);                       
-                        TotalThrottle.AddBytes(qpack.Length);
-                        TextureThrottle.AddBytes(qpack.Length);
+                        int qpackSize = qpack.Packet.ToBytes().Length;
+                        TotalThrottle.AddBytes(qpackSize);
+                        TextureThrottle.AddBytes(qpackSize);
                         qchanged = true;
                     }
                     
@@ -415,8 +421,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         LLQueItem qpack = AssetOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);
-                        TotalThrottle.AddBytes(qpack.Length);
-                        AssetThrottle.AddBytes(qpack.Length);
+                        int qpackSize = qpack.Packet.ToBytes().Length;
+                        TotalThrottle.AddBytes(qpackSize);
+                        AssetThrottle.AddBytes(qpackSize);
                         qchanged = true;
                     }
                 }
@@ -444,8 +451,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 try
                 {
                     Monitor.Enter(this);
-                    throttle.AddBytes(item.Length);
-                    TotalThrottle.AddBytes(item.Length);
+                    throttle.AddBytes(item.Packet.ToBytes().Length);
+                    TotalThrottle.AddBytes(item.Packet.ToBytes().Length);
                     SendQueue.Enqueue(item);
                 }
                 catch (Exception e)

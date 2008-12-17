@@ -99,8 +99,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //
         private Dictionary<uint, uint> m_PendingAcks = new Dictionary<uint, uint>();
 
-        private Dictionary<uint, LLQueItem> m_NeedAck =
-                new Dictionary<uint, LLQueItem>();
+        // Dictionary of the packets that need acks from the client.
+        //
+        private class AckData
+        {
+            public AckData(Packet packet, Object identifier, int tickCount, int resends)
+            {
+                Packet = packet;
+                Identifier = identifier;
+                TickCount = tickCount;
+                Resends = resends;
+            }
+
+            public Packet Packet;
+            public Object Identifier;
+            public int TickCount;
+            public int Resends;
+        }
+
+        private Dictionary<uint, AckData> m_NeedAck =
+                new Dictionary<uint, AckData>();
 
         /// <summary>
         /// The number of milliseconds that can pass before a packet that needs an ack is resent.
@@ -296,9 +314,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             item.throttleType = throttlePacketType;
             item.TickCount = System.Environment.TickCount;
             item.Identifier = id;
-            item.Resends = 0;
-            item.Bytes = packet.ToBytes();
-            item.Length = item.Bytes.Length;
 
             m_PacketQueue.Enqueue(item);
             m_PacketsSent++;
@@ -318,7 +333,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (m_DropSafeTimeout > now ||
                         intervalMs > 500) // We were frozen!
                 {
-                    foreach (LLQueItem data in new List<LLQueItem>
+                    foreach (AckData data in new List<AckData>
                             (m_NeedAck.Values))
                     {
                         if (m_DropSafeTimeout > now)
@@ -349,7 +364,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 int resent = 0;
 
-                foreach (LLQueItem data in new List<LLQueItem>(m_NeedAck.Values))
+                foreach (AckData data in new List<AckData>(m_NeedAck.Values))
                 {
                     Packet packet = data.Packet;
 
@@ -615,7 +630,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void ProcessAck(uint id)
         {
-            LLQueItem data;
+            AckData data;
             Packet packet;
 
             lock (m_NeedAck)
@@ -625,9 +640,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!m_NeedAck.TryGetValue(id, out data))
                     return;
 
+                packet = data.Packet;
+
                 m_NeedAck.Remove(id);
+                m_UnackedBytes -= packet.ToBytes().Length;
                 PacketPool.Instance.ReturnPacket(data.Packet);
-                m_UnackedBytes -= data.Length;
             }
         }
 
@@ -661,7 +678,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             lock (m_NeedAck)
             {
                 foreach (uint key in m_NeedAck.Keys)
-                    info.needAck.Add(key, m_NeedAck[key].Bytes);
+                    info.needAck.Add(key, m_NeedAck[key].Packet.ToBytes());
             }
 
             LLQueItem[] queitems = m_PacketQueue.GetQueueArray();
@@ -669,7 +686,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int i = 0; i < queitems.Length; i++)
             {
                 if (queitems[i].Incoming == false)
-                    info.out_packets.Add(queitems[i].Bytes);
+                    info.out_packets.Add(queitems[i].Packet.ToBytes());
             }
 
             info.sequence = m_Sequence;
@@ -680,7 +697,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SetClientInfo(ClientInfo info)
         {
             m_PendingAcks = info.pendingAcks;
-            m_NeedAck = new Dictionary<uint, LLQueItem>();
+            m_NeedAck = new Dictionary<uint, AckData>();
 
             Packet packet = null;
             int packetEnd = 0;
@@ -699,16 +716,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                 }
 
-                LLQueItem item = new LLQueItem();
-                item.Packet = packet;
-                item.Incoming = false;
-                item.throttleType = 0;
-                item.TickCount = System.Environment.TickCount;
-                item.Identifier = 0;
-                item.Resends = 0;
-                item.Bytes = packet.ToBytes();
-                item.Length = item.Bytes.Length;
-                m_NeedAck.Add(key, item);
+                m_NeedAck.Add(key, new AckData(packet, null, System.Environment.TickCount, 0));
             }
 
             m_Sequence = info.sequence;
@@ -732,7 +740,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void DropResend(Object id)
         {
-            foreach (LLQueItem data in new List<LLQueItem>(m_NeedAck.Values))
+            foreach (AckData data in new List<AckData>(m_NeedAck.Values))
             {
                 if (data.Identifier != null && data.Identifier == id)
                 {
@@ -769,12 +777,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // We want to see that packet arrive if it's reliable
                     if (packet.Header.Reliable)
                     {
-                        m_UnackedBytes += item.Length;
+                        m_UnackedBytes += packet.ToBytes().Length;
 
                         // Keep track of when this packet was sent out
-                        item.TickCount = System.Environment.TickCount;
-
-                        m_NeedAck[packet.Header.Sequence] = item;
+                        m_NeedAck[packet.Header.Sequence] = new AckData(packet,
+                                item.Identifier, System.Environment.TickCount,
+                                0);
                     }
                 }
             }
@@ -784,7 +792,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Abort();
 
             // Actually make the byte array and send it
-            byte[] sendbuffer = item.Bytes;
+            byte[] sendbuffer = packet.ToBytes();
 
             //m_log.DebugFormat(
             //    "[CLIENT]: In {0} sending packet {1}",
