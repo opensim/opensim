@@ -1600,7 +1600,6 @@
         <!-- add more as you go -->
         <Match path="Resources/SQLiteDialect" pattern="*.sql" buildAction="EmbeddedResource"/>
         <Match path="Resources/MySQLDialect" pattern="*.sql" buildAction="EmbeddedResource"/>
-        <Match path="Resources/MsSql2005Dialect" pattern="*.sql" buildAction="EmbeddedResource"/>
       </Files>
     </Project>
 
