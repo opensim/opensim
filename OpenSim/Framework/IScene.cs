@@ -80,7 +80,10 @@ namespace OpenSim.Framework
         /// Used by ClientView when a 'kick everyone' or 'estate message' occurs
         /// 
         /// <param name="avatarID">AvatarID to lookup</param>
-        /// <returns>true if the presence is a child agent, false if the presence does not exist or is not a child agent</returns>        
+        /// <returns>true if the presence is a child agent, false if the presence is a root exception</returns>
+        /// <exception cref="System.NullReferenceException">
+        /// Thrown if the agent does not exist.
+        /// </exception>
         bool PresenceChildStatus(UUID agentId);
 
         // Diva: get this out of here!!!

@@ -4133,10 +4133,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ScenePresence cp = GetScenePresence(avatarID);
             
-            if (cp != null)
-                return cp.IsChildAgent;
+            // FIXME: This is really crap - some logout code is relying on a NullReferenceException to halt its processing
+            // This needs to be fixed properly by cleaning up the logout code.
+            //if (cp != null)
+            //    return cp.IsChildAgent;
             
-            return false;
+            //return false;
+            
+            return cp.IsChildAgent;
         }
 
         /// <summary>

@@ -333,6 +333,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (m_groupPowers.ContainsKey(groupID))
                 return m_groupPowers[groupID];
+            
             return 0;
         }
 
