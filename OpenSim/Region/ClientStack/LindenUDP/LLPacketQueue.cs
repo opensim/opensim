@@ -334,7 +334,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     throttleLoops++;
                     //Now comes the fun part..   we dump all our elements into m_packetQueue that we've saved up.
-                    if (ResendThrottle.UnderLimit() && ResendOutgoingPacketQueue.Count > 0)
+                    if ((ResendOutgoingPacketQueue.Count > 0) && ResendThrottle.UnderLimit())
                     {
                         LLQueItem qpack = ResendOutgoingPacketQueue.Dequeue();
 
@@ -343,7 +343,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ResendThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     
-                    if (LandThrottle.UnderLimit() && LandOutgoingPacketQueue.Count > 0)
+                    if ((LandOutgoingPacketQueue.Count > 0) && LandThrottle.UnderLimit())
                     {
                         LLQueItem qpack = LandOutgoingPacketQueue.Dequeue();
 
@@ -352,7 +352,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         LandThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     
-                    if (WindThrottle.UnderLimit() && WindOutgoingPacketQueue.Count > 0)
+                    if ((WindOutgoingPacketQueue.Count > 0) && WindThrottle.UnderLimit())
                     {
                         LLQueItem qpack = WindOutgoingPacketQueue.Dequeue();
 
@@ -361,7 +361,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         WindThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     
-                    if (CloudThrottle.UnderLimit() && CloudOutgoingPacketQueue.Count > 0)
+                    if ((CloudOutgoingPacketQueue.Count > 0) && CloudThrottle.UnderLimit())
                     {
                         LLQueItem qpack = CloudOutgoingPacketQueue.Dequeue();
 
@@ -370,7 +370,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         CloudThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     
-                    if (TaskThrottle.UnderLimit() && (TaskOutgoingPacketQueue.Count > 0 || TaskLowpriorityPacketQueue.Count > 0))
+                    if ((TaskOutgoingPacketQueue.Count > 0 || TaskLowpriorityPacketQueue.Count > 0) && TaskThrottle.UnderLimit())
                     {
                         LLQueItem qpack;
                         if (TaskOutgoingPacketQueue.Count > 0)
@@ -387,7 +387,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TaskThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     
-                    if (TextureThrottle.UnderLimit() && TextureOutgoingPacketQueue.Count > 0)
+                    if ((TextureOutgoingPacketQueue.Count > 0) && TextureThrottle.UnderLimit())
                     {
                         LLQueItem qpack = TextureOutgoingPacketQueue.Dequeue();
 
@@ -396,7 +396,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TextureThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     
-                    if (AssetThrottle.UnderLimit() && AssetOutgoingPacketQueue.Count > 0)
+                    if ((AssetOutgoingPacketQueue.Count > 0) && AssetThrottle.UnderLimit())
                     {
                         LLQueItem qpack = AssetOutgoingPacketQueue.Dequeue();
 
