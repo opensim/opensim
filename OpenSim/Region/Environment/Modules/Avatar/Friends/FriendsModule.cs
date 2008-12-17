@@ -755,17 +755,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // TODO: If we ever switch to .NET >= 3, replace those Lists with HashSets.
             // I can't believe that we have Dictionaries, but no Sets, considering Java introduced them years ago...
             List<UUID> friendIDsToSendTo = new List<UUID>();
-            List<UUID> friendIDsToReceiveFromOffline = new List<UUID>();
-            List<UUID> friendIDsToReceiveFromOnline = new List<UUID>();
+            List<UUID> candidateFriendIDsToReceive = new List<UUID>();
+            
             foreach (FriendListItem item in friendList)
             {
                 if (((item.FriendListOwnerPerms | item.FriendPerms) & (uint)FriendRights.CanSeeOnline) != 0)
                 {
                     // friend is allowed to see my presence => add
-                    if ((item.FriendListOwnerPerms & (uint)FriendRights.CanSeeOnline) != 0) friendIDsToSendTo.Add(item.Friend);
+                    if ((item.FriendListOwnerPerms & (uint)FriendRights.CanSeeOnline) != 0) 
+                        friendIDsToSendTo.Add(item.Friend);
 
-                    // I'm allowed to see friend's presence => add as offline, we might reconsider in a momnet...
-                    if ((item.FriendPerms & (uint)FriendRights.CanSeeOnline) != 0) friendIDsToReceiveFromOffline.Add(item.Friend);
+                    if ((item.FriendPerms & (uint)FriendRights.CanSeeOnline) != 0) 
+                        candidateFriendIDsToReceive.Add(item.Friend);
                 }
             }
 
@@ -780,19 +781,21 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             {
                 // build a list of friends to look up region-information and on-/offline-state for
                 List<UUID> friendIDsToLookup = new List<UUID>(friendIDsToSendTo);
-                foreach (UUID uuid in friendIDsToReceiveFromOffline)
+                foreach (UUID uuid in candidateFriendIDsToReceive)
                 {
                     if (!friendIDsToLookup.Contains(uuid)) friendIDsToLookup.Add(uuid);
                 }
 
-                m_log.DebugFormat("[FRIEND]: {0} to lookup, {1} to send to, {2} to receive from for agent {3}",
-                                  friendIDsToLookup.Count, friendIDsToSendTo.Count, friendIDsToReceiveFromOffline.Count, client.Name);
+                m_log.DebugFormat(
+                    "[FRIEND]: {0} to lookup, {1} to send to, {2} candidates to receive from for agent {3}",
+                    friendIDsToLookup.Count, friendIDsToSendTo.Count, candidateFriendIDsToReceive.Count, client.Name);
 
                 // we have to fetch FriendRegionInfos, as the (cached) FriendListItems don't
                 // necessarily contain the correct online state...
                 Dictionary<UUID, FriendRegionInfo> friendRegions = m_initialScene.GetFriendRegionInfos(friendIDsToLookup);
-                m_log.DebugFormat("[FRIEND]: Found {0} regionInfos for {1} friends of {2}",
-                                  friendRegions.Count, friendIDsToLookup.Count, client.Name);
+                m_log.DebugFormat(
+                    "[FRIEND]: Found {0} regionInfos for {1} friends of {2}",
+                    friendRegions.Count, friendIDsToLookup.Count, client.Name);
 
                 // argument for SendAgentOn/Offline; we shouldn't generate that repeatedly within loops.
                 UUID[] agentArr = new UUID[] { client.AgentId };
@@ -800,26 +803,26 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 // first, send to friend presence state to me, if I'm online...
                 if (iAmOnline)
                 {
-                    for (int i = friendIDsToReceiveFromOffline.Count - 1; i >= 0; --i)
+                    List<UUID> friendIDsToReceive = new List<UUID>();
+                    
+                    for (int i = candidateFriendIDsToReceive.Count - 1; i >= 0; --i)
                     {
-                        UUID uuid = friendIDsToReceiveFromOffline[i];
+                        UUID uuid = candidateFriendIDsToReceive[i];
                         FriendRegionInfo info;
                         if (friendRegions.TryGetValue(uuid, out info) && info != null && info.isOnline)
                         {
-                            friendIDsToReceiveFromOffline.RemoveAt(i);
-                            friendIDsToReceiveFromOnline.Add(uuid);
+                            friendIDsToReceive.Add(uuid);
                         }
                     }
                     
-                    m_log.DebugFormat("[FRIEND]: Sending {0} offline and {1} online friends to {2}",
-                                      friendIDsToReceiveFromOffline.Count, friendIDsToReceiveFromOnline.Count, client.Name);
+                    m_log.DebugFormat(
+                        "[FRIEND]: Sending {0} online friends to {1}", friendIDsToReceive.Count, client.Name);
                     
-                    if (friendIDsToReceiveFromOffline.Count > 0) client.SendAgentOffline(friendIDsToReceiveFromOffline.ToArray());
-                    if (friendIDsToReceiveFromOnline.Count > 0) client.SendAgentOnline(friendIDsToReceiveFromOnline.ToArray());
+                    if (friendIDsToReceive.Count > 0) 
+                        client.SendAgentOnline(friendIDsToReceive.ToArray());
 
                     // clear them for a possible second iteration; we don't have to repeat this
-                    friendIDsToReceiveFromOffline.Clear();
-                    friendIDsToReceiveFromOnline.Clear();
+                    candidateFriendIDsToReceive.Clear();
                 }
 
                 // now, send my presence state to my friends
