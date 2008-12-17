@@ -2130,7 +2130,12 @@ namespace OpenSim.Region.Environment.Scenes
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
-                if (userInfo.HasReceivedInventory)
+                // Do NOT use HasReceivedInventory here, this is called
+                // from within ItemReceive during login for attachments.
+                // Using HasReceivedInventory here will break attachment
+                // persistence!
+                //
+                if (userInfo.RootFolder != null)
                 {
                     InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
 
