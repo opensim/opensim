@@ -2946,6 +2946,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (RegionSecret == loggingOffUser.ControllingClient.SecureSessionId)
                 {
+                    m_sceneGridService.SendCloseChildAgentConnections(loggingOffUser.UUID, new List<ulong>(loggingOffUser.KnownRegions.Keys));
                     loggingOffUser.ControllingClient.Kick(message);
                     // Give them a second to receive the message!
                     System.Threading.Thread.Sleep(1000);

@@ -57,7 +57,7 @@ namespace OpenSim.Region.Communications.Local
         /// <summary>
         /// Used to make requests to the local regions.
         /// </summary>
-        protected IGridServices m_gridService;
+        protected LocalBackEndServices m_gridService;
 
         public event LoginToRegionEvent OnLoginToRegion;
 
@@ -376,5 +376,28 @@ namespace OpenSim.Region.Communications.Local
 
             return new InventoryData(AgentInventoryArray, rootID);
         }
+
+        public override void LogOffUser(UserProfileData theUser, string message)
+        {
+            RegionInfo SimInfo;
+            try
+            {
+                SimInfo = this.m_gridService.RequestNeighbourInfo(theUser.CurrentAgent.Handle);
+
+                if (SimInfo == null)
+                {
+                    m_log.Error("[LOCAL LOGIN]: Region user was in isn't currently logged in");
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                m_log.Error("[LOCAL LOGIN]: Unable to look up region to log user off");
+                return;
+            }
+
+            m_gridService.TriggerLogOffUser(SimInfo.RegionHandle, theUser.ID, theUser.CurrentAgent.SecureSessionID, "Logging you off");
+        }
+
     }
 }
