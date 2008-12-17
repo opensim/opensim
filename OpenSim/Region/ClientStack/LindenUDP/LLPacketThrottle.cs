@@ -100,6 +100,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_currentThrottle; }
             set
             {
+                if (value < m_minAllowableThrottle)
+                {
+                    m_currentThrottle = m_minAllowableThrottle;
+                    CalcBits();
+                    return;
+                }
+                if (value > m_maxAllowableThrottle)
+                {
+                    m_currentThrottle = m_maxAllowableThrottle;
+                    CalcBits();
+                    return;
+                }
                 m_currentThrottle = value;
 
                 CalcBits();
