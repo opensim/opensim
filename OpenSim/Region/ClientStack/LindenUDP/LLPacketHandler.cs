@@ -370,6 +370,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             {
                                 m_NeedAck.Remove(packet.Header.Sequence);
                                 TriggerOnPacketDrop(packet, data.Identifier);
+                                PacketPool.Instance.ReturnPacket(packet);
                                 continue;
                             }
 
@@ -625,6 +626,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return;
 
                 m_NeedAck.Remove(id);
+                PacketPool.Instance.ReturnPacket(data.Packet);
                 m_UnackedBytes -= data.Length;
             }
         }
@@ -735,6 +737,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (data.Identifier != null && data.Identifier == id)
                 {
                     m_NeedAck.Remove(data.Packet.Header.Sequence);
+                    PacketPool.Instance.ReturnPacket(data.Packet);
                     return;
                 }
             }
@@ -804,7 +807,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         sendbuffer.Length, SocketFlags.None, m_Client.CircuitCode);
             }
 
-            PacketPool.Instance.ReturnPacket(packet);
+            // If this is a reliable packet, we are still holding a ref
+            // Dont't return in that case
+            //
+            if (!packet.Header.Reliable)
+                PacketPool.Instance.ReturnPacket(packet);
         }
 
         private void Abort()
