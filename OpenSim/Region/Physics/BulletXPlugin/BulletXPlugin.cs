@@ -493,11 +493,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         public IMesher mesher;
         // private IConfigSource m_config;
 
-        String identifier;
+        // protected internal String identifier;
 
         public BulletXScene(String sceneIdentifier)
         {
-            identifier = sceneIdentifier;
+            //identifier = sceneIdentifier;
         }
 
         public static float Gravity

@@ -1932,7 +1932,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Overridden Methods
 
-        int x = 0;
         public override void Update()
         {
             SendPrimUpdates();
@@ -2436,7 +2435,8 @@ namespace OpenSim.Region.Environment.Scenes
                     // Next, let's close the child agent connections that are too far away.
                     CloseChildAgents(neighbourx, neighboury);
 
-                    AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
+                    //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
+                    m_controllingClient.RequestClientInfo();
 
                     //Console.WriteLine("BEFORE CROSS");
                     //Scene.DumpChildrenSeeds(UUID);

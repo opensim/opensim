@@ -67,11 +67,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         private List<BasicActor> _actors = new List<BasicActor>();
         private float[] _heightMap;
 
-        string sceneIdentifier;
+        //protected internal string sceneIdentifier;
 
         public BasicScene(string _sceneIdentifier)
         {
-            sceneIdentifier = _sceneIdentifier;
+            //sceneIdentifier = _sceneIdentifier;
         }
 
         public override void Initialise(IMesher meshmerizer, IConfigSource config)

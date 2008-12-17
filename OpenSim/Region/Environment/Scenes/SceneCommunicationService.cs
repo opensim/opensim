@@ -71,7 +71,7 @@ namespace OpenSim.Region.Environment.Scenes
         private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
         private RegionUp handlerRegionUp = null; // OnRegionUp;
         private ChildAgentUpdate handlerChildAgentUpdate = null; // OnChildAgentUpdate;
-        private RemoveKnownRegionsFromAvatarList handlerRemoveKnownRegionFromAvatar = null; // OnRemoveKnownRegionFromAvatar;
+        //private RemoveKnownRegionsFromAvatarList handlerRemoveKnownRegionFromAvatar = null; // OnRemoveKnownRegionFromAvatar;
         private LogOffUser handlerLogOffUser = null;
         private GetLandData handlerGetLandData = null; // OnGetLandData
 
@@ -904,10 +904,10 @@ namespace OpenSim.Region.Environment.Scenes
             return currentNeighbours.FindAll(delegate(ulong handle) { return !previousNeighbours.Contains(handle); });
         }
 
-        private List<ulong> CommonNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
-        {
-            return currentNeighbours.FindAll(delegate(ulong handle) { return previousNeighbours.Contains(handle); });
-        }
+//        private List<ulong> CommonNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
+//        {
+//            return currentNeighbours.FindAll(delegate(ulong handle) { return previousNeighbours.Contains(handle); });
+//        }
 
         private List<ulong> OldNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
         {
@@ -985,17 +985,17 @@ namespace OpenSim.Region.Environment.Scenes
             return m_commsProvider.GridService.RequestNamedRegions(name, maxNumber);
         }
 
-        private void Dump(string msg, List<ulong> handles)
-        {
-            Console.WriteLine("-------------- HANDLE DUMP ({0}) ---------", msg);
-            foreach (ulong handle in handles)
-            {
-                uint x, y;
-                Utils.LongToUInts(handle, out x, out y);
-                x = x / Constants.RegionSize;
-                y = y / Constants.RegionSize;
-                Console.WriteLine("({0}, {1})", x, y);
-            }
-        }
+//        private void Dump(string msg, List<ulong> handles)
+//        {
+//            Console.WriteLine("-------------- HANDLE DUMP ({0}) ---------", msg);
+//            foreach (ulong handle in handles)
+//            {
+//                uint x, y;
+//                Utils.LongToUInts(handle, out x, out y);
+//                x = x / Constants.RegionSize;
+//                y = y / Constants.RegionSize;
+//                Console.WriteLine("({0}, {1})", x, y);
+//            }
+//        }
     }
 }

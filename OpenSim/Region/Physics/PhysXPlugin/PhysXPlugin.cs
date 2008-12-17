@@ -78,10 +78,10 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         private NxPhysicsSDK mySdk;
         private NxScene scene;
 
-        string sceneIdentifier;
+        // protected internal string sceneIdentifier;
         public PhysXScene(string _sceneIdentifier)
         {
-            sceneIdentifier = _sceneIdentifier;
+            //sceneIdentifier = _sceneIdentifier;
 
             mySdk = NxPhysicsSDK.CreateSDK();
             Console.WriteLine("Sdk created - now creating scene");
