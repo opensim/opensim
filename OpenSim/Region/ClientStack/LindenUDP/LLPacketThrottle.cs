@@ -40,6 +40,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Value with which to multiply all the throttle fields
         /// </value>
         private float m_throttleMultiplier;
+        
+        public int Max
+        {
+            get { return m_maxAllowableThrottle; }
+        }
+
+        public int Min
+        {
+            get { return m_minAllowableThrottle; }
+        }                
 
         /// <summary>
         /// Constructor.
@@ -64,9 +74,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             CalcBits();
         }
 
-        public void CalcBits()
+        /// <summary>
+        /// Calculate the actual throttle required.
+        /// </summary>
+        private void CalcBits()
         {
-            m_throttleBits = (int)((float)m_currentThrottle*m_throttleMultiplier/(float)m_throttleTimeDivisor);
+            m_throttleBits = (int)((float)m_currentThrottle * m_throttleMultiplier / (float)m_throttleTimeDivisor);
         }
 
         public void Reset()
@@ -85,34 +98,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return m_currentBitsSent;
         }
 
-        public int Max
-        {
-            get { return m_maxAllowableThrottle; }
-        }
-
-        public int Min
-        {
-            get { return m_minAllowableThrottle; }
-        }
-
         public int Throttle
         {
-            get { return m_currentThrottle; }
+            get { return m_currentThrottle; }            
             set
             {
                 if (value < m_minAllowableThrottle)
                 {
                     m_currentThrottle = m_minAllowableThrottle;
-                    CalcBits();
-                    return;
-                }
-                if (value > m_maxAllowableThrottle)
+                }                
+                else if (value > m_maxAllowableThrottle)
                 {
                     m_currentThrottle = m_maxAllowableThrottle;
-                    CalcBits();
-                    return;
                 }
-                m_currentThrottle = value;
+                else
+                {
+                    m_currentThrottle = value;
+                }
 
                 CalcBits();
             }
