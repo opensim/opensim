@@ -789,10 +789,14 @@ namespace OpenSim.Framework.Servers
                     response.OutputStream.Flush();
                     response.OutputStream.Close();
                 }
+                catch (IOException e)
+                {
+                    m_log.DebugFormat("[BASE HTTP SERVER] LLSD IOException {0}.", e);                    
+                }
                 catch (SocketException e)
                 {
                     // This has to be here to prevent a Linux/Mono crash
-                    m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                    m_log.WarnFormat("[BASE HTTP SERVER] LLSD issue {0}.\nNOTE: this may be spurious on Linux.", e);
                 }
             }
         }
