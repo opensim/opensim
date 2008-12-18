@@ -521,8 +521,7 @@ namespace OpenSim.Framework
                     MasterAvatarLastName = (string) configuration_result;
                     break;
                 case "master_avatar_pass":
-                    string tempMD5Passwd = (string) configuration_result;
-                    MasterAvatarSandboxPassword = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
+                    MasterAvatarSandboxPassword = (string)configuration_result;
                     break;
                 case "lastmap_uuid":
                     lastMapUUID = (UUID)configuration_result;
