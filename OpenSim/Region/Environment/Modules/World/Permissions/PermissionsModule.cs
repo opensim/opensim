@@ -533,6 +533,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             {
                 permission = true;
             }
+            else if(group.IsAttachment)
+            {
+                permission = false;
+            }
 
             // Users should be able to edit what is over their land.
             ILandObject parcel = m_scene.LandChannel.GetLandObject(group.AbsolutePosition.X, group.AbsolutePosition.Y);
