@@ -610,7 +610,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // See IPullStatsProvider
         public string GetStats()
         {
-            return string.Format("{0,7}  {1,7}  {2,7}  {3,7}  {4,7}  {5,7}  {6,7}  {7,7}  {8,7}  {9,7}",
+            return string.Format("{0,7} {1,7} {2,7} {3,7} {4,7} {5,7} {6,7} {7,7} {8,7} {9,7}",
                                  SendQueue.Count(),
                                  IncomingPacketQueue.Count,
                                  OutgoingPacketQueue.Count,

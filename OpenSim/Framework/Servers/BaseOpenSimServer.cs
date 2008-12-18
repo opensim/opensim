@@ -373,7 +373,7 @@ namespace OpenSim.Framework.Servers
         /// That is something that cannot be determined within this class. So
         /// all attempts to use the console MUST be verified.
         /// </summary>
-        private void Notice(string msg)
+        protected void Notice(string msg)
         {
             if (m_console != null)
             {

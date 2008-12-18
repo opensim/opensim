@@ -2346,6 +2346,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Region.ClientStack"/>

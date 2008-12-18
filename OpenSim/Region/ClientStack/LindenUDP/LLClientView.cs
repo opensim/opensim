@@ -52,7 +52,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything
     /// </summary>
-    public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat
+    public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IStatsCollector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -8092,6 +8092,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
                 }
             }
+        }
+
+        public string Report()
+        {
+            LLPacketHandler handler = (LLPacketHandler) m_PacketHandler;
+            return handler.PacketQueue.GetStats();
         }
     }
 }

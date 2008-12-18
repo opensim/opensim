@@ -675,10 +675,11 @@ namespace OpenSim
             m_console.Notice("script - manually trigger scripts? or script commands?");
             m_console.Notice("set-time [x] - set the current scene time phase");
             m_console.Notice("show assets - show state of asset cache.");
+            m_console.Notice("show modules - shows info about loaded modules.");
+            m_console.Notice("show queues - show packet queues length for all clients.");
+            m_console.Notice("show regions - show running region information.");
             m_console.Notice("show users - show info about connected users (only root agents).");
             m_console.Notice("show users full - show info about connected users (root and child agents).");
-            m_console.Notice("show modules - shows info about loaded modules.");
-            m_console.Notice("show regions - show running region information.");
             m_console.Notice("config set section field value - set a config value");
             m_console.Notice("config get section field - get a config value");
             m_console.Notice("config save - save OpenSim.ini");
@@ -769,7 +770,48 @@ namespace OpenSim
                                              scene.RegionInfo.RegionLocY + " , Region Port: " + scene.RegionInfo.InternalEndPoint.Port.ToString());
                         });
                     break;
+
+
+                case "queues":
+                    Notice(GetQueuesReport());
+                    break;
             }
+        }
+
+        private string GetQueuesReport()
+        {
+            string report = String.Empty;
+
+            m_sceneManager.ForEachScene(delegate(Scene scene)
+                                            {
+                                                scene.ForEachClient(delegate(IClientAPI client)
+                                                                        {
+                                                                            if (client is IStatsCollector)
+                                                                            {
+                                                                                report = report + client.FirstName +
+                                                                                         " " + client.LastName + "\n";
+
+                                                                                IStatsCollector stats =
+                                                                                    (IStatsCollector) client;
+
+                                                                                report = report + string.Format("{0,7} {1,7} {2,7} {3,7} {4,7} {5,7} {6,7} {7,7} {8,7} {9,7}\n",
+                                 "Send",
+                                 "In",
+                                 "Out",
+                                 "Resend",
+                                 "Land",
+                                 "Wind",
+                                 "Cloud",
+                                 "Task",
+                                 "Texture",
+                                 "Asset");
+                                                                                report = report + stats.Report() +
+                                                                                         "\n\n";
+                                                                            }
+                                                                        });
+                                            });
+
+            return report;
         }
 
         /// <summary>
