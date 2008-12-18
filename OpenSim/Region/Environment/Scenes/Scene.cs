@@ -1778,7 +1778,7 @@ namespace OpenSim.Region.Environment.Scenes
             return sceneObject;
         }
 
-        void AdaptTree(ref PrimitiveBaseShape tree)
+        protected void AdaptTree(ref PrimitiveBaseShape tree)
         {
             // Tree size has to be adapted depending on its type
             switch ((Tree)tree.State)
@@ -2450,9 +2450,13 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRegionHandleRequest += RegionHandleRequest;
             client.OnUnackedTerrain += TerrainUnAcked;
 
-            //Gesture
-            client.OnActivateGesture += ActivateGesture;
-            client.OnDeactivateGesture += DeactivateGesture;
+            IGesturesModule gesturesModule = RequestModuleInterface<IGesturesModule>();            
+            if (gesturesModule != null)
+            {
+                client.OnActivateGesture += gesturesModule.ActivateGesture;
+                client.OnDeactivateGesture += gesturesModule.DeactivateGesture;
+            }
+            
             //sound
             client.OnSoundTrigger += SoundTrigger;
 
@@ -2476,47 +2480,6 @@ namespace OpenSim.Region.Environment.Scenes
                 p.ControllingClient.SendTriggeredSound(soundId, ownerID, objectID, parentID, handle, position, (float)gain);
             }
             
-        }
-
-        // Gesture
-        public virtual void ActivateGesture(IClientAPI client,  UUID assetId, UUID gestureId)
-        {
-          //  UserProfileCacheService User = CommsManager.SecureInventoryService.UpdateItem(gestureid, agentID);
-            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(client.AgentId);
-
-            if (userInfo != null)
-            {
-                InventoryItemBase item = userInfo.RootFolder.FindItem(gestureId);
-                if (item != null)
-                {
-                    item.Flags = 1;
-                    userInfo.UpdateItem(item);
-                }
-                else m_log.Error("Unable to find gesture");
-            }
-            else m_log.Error("Gesture : Unable to find user ");
-
-            m_log.DebugFormat("Asset : {0} gesture :{1}", gestureId.ToString(), assetId.ToString());
-        }
-
-        public virtual void DeactivateGesture(IClientAPI client,  UUID gestureId)
-        {
-            //  UserProfileCacheService User = CommsManager.SecureInventoryService.UpdateItem(gestureid, agentID);
-            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(client.AgentId);
-
-            if (userInfo != null)
-            {
-                InventoryItemBase item = userInfo.RootFolder.FindItem(gestureId);
-                if (item != null)
-                {
-                    item.Flags = 0;
-                    userInfo.UpdateItem(item);
-                }
-                else m_log.Error("Unable to find gesture");
-            }
-            else m_log.Error("Gesture : Unable to find user ");
-
-            m_log.DebugFormat("gesture : {0} ", gestureId.ToString());
         }
 
         /// <summary>
