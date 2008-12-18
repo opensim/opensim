@@ -121,7 +121,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                 if (m_userTextureServices.TryGetValue(agentId, out textureService))
                 {
                     textureService.Close();
-                    m_log.DebugFormat("[TEXTURE MODULE]: Removing UserTextureServices from {0}", m_scene.RegionInfo.RegionName);
+                    //m_log.DebugFormat("[TEXTURE MODULE]: Removing UserTextureServices from {0}", m_scene.RegionInfo.RegionName);
                     m_userTextureServices.Remove(agentId);
                 }
             }
@@ -129,17 +129,60 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 
         public void NewClient(IClientAPI client)
         {
+            UserTextureDownloadService textureService;
+
+            lock (m_userTextureServices)
+            {
+                if (m_userTextureServices.TryGetValue(client.AgentId, out textureService))
+                {
+                    textureService.Close();
+                    //m_log.DebugFormat("[TEXTURE MODULE]: Removing outdated UserTextureServices from {0}", m_scene.RegionInfo.RegionName);
+                    m_userTextureServices.Remove(client.AgentId);
+                }
+                m_userTextureServices.Add(client.AgentId, new UserTextureDownloadService(client, m_scene, m_queueSenders));
+            }
+
             client.OnRequestTexture += TextureRequest;
         }
+
+        /// I'm commenting this out, and replacing it with the implementation below, which
+        /// may return a null value. This is necessary for avoiding race conditions 
+        /// recreating UserTextureServices for clients that have just been closed.
+        /// That behavior of always returning a UserTextureServices was causing the
+        /// A-B-A problem (mantis #2855).
+        /// 
+        ///// <summary>
+        ///// Does this user have a registered texture download service?
+        ///// </summary>
+        ///// <param name="userID"></param>
+        ///// <param name="textureService"></param>
+        ///// <returns>Always returns true, since a service is created if one does not already exist</returns>
+        //private bool TryGetUserTextureService(
+        //    IClientAPI client, out UserTextureDownloadService textureService)
+        //{
+        //    lock (m_userTextureServices)
+        //    {
+        //        if (m_userTextureServices.TryGetValue(client.AgentId, out textureService))
+        //        {
+        //            //m_log.DebugFormat("[TEXTURE MODULE]: Found existing UserTextureServices in ", m_scene.RegionInfo.RegionName);
+        //            return true;
+        //        }
+
+        //        m_log.DebugFormat("[TEXTURE MODULE]: Creating new UserTextureServices in ", m_scene.RegionInfo.RegionName);
+        //        textureService = new UserTextureDownloadService(client, m_scene, m_queueSenders);
+        //        m_userTextureServices.Add(client.AgentId, textureService);
+
+        //        return true;
+        //    }
+        //}
 
         /// <summary>
         /// Does this user have a registered texture download service?
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="textureService"></param>
-        /// <returns>Always returns true, since a service is created if one does not already exist</returns>
-        private bool TryGetUserTextureService(
-            IClientAPI client, out UserTextureDownloadService textureService)
+        /// <returns>A UserTextureDownloadService or null in the output parameter, and true or false accordingly.</returns>
+        private bool TryGetUserTextureService(IClientAPI client, out UserTextureDownloadService textureService)
         {
             lock (m_userTextureServices)
             {
@@ -149,11 +192,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                     return true;
                 }
 
-                m_log.DebugFormat("[TEXTURE MODULE]: Creating new UserTextureServices in ", m_scene.RegionInfo.RegionName);
-                textureService = new UserTextureDownloadService(client, m_scene, m_queueSenders);
-                m_userTextureServices.Add(client.AgentId, textureService);
-
-                return true;
+                textureService = null;
+                return false;
             }
         }
 
