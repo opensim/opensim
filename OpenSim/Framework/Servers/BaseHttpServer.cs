@@ -1362,6 +1362,7 @@ namespace OpenSim.Framework.Servers
                     //m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
                     //m_httpListener.Prefixes.Add("http://10.1.1.5:" + m_port + "/");
                     m_httpListener2 = new HttpServer.HttpListener(IPAddress.Any, (int)m_port);
+                    m_httpListener2.ExceptionThrown += httpServerException;
                 }
                 else
                 {
@@ -1385,6 +1386,11 @@ namespace OpenSim.Framework.Servers
                 m_log.Warn("[HTTPD]: Error - " + e.Message);
                 m_log.Warn("Tip: Do you have permission to listen on port " + m_port + "," + m_sslport + "?");
             }
+        }
+
+        public void httpServerException(object source, Exception exception)
+        {
+            m_log.ErrorFormat("[HTTPSERVER]: {0} had an exception {1}", source.ToString(), exception.ToString());
         }
 
         public void Stop()
