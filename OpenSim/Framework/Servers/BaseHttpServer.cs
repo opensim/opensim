@@ -1406,12 +1406,7 @@ namespace OpenSim.Framework.Servers
             {
                 case SocketError.NotSocket:
                     NotSocketErrors++;
-                    if (HTTPDRunning)// && NotSocketErrors > 5)
-                    {
-                        Stop();
-                        StartHTTP();
-                        m_log.Warn("[HTTPSERVER]: Died.  Trying to kick.....");
-                    }
+                    
                     break;
             }
         }
@@ -1419,6 +1414,13 @@ namespace OpenSim.Framework.Servers
         public void httpServerException(object source, Exception exception)
         {
             m_log.ErrorFormat("[HTTPSERVER]: {0} had an exception {1}", source.ToString(), exception.ToString());
+            if (HTTPDRunning)// && NotSocketErrors > 5)
+            {
+                Stop();
+                Thread.Sleep(200);
+                StartHTTP();
+                m_log.Warn("[HTTPSERVER]: Died.  Trying to kick.....");
+            }
         }
 
         public void Stop()
