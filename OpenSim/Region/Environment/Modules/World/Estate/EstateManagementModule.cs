@@ -709,15 +709,10 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         public void sendRegionHandshake(IClientAPI remoteClient)
         {
             RegionHandshakeArgs args = new RegionHandshakeArgs();
-            bool estatemanager = false;
-            UUID[] EstateManagers = m_scene.RegionInfo.EstateSettings.EstateManagers;
-            for (int i = 0; i < EstateManagers.Length; i++)
-            {
-                if (EstateManagers[i] == remoteClient.AgentId)
-                    estatemanager = true;
-            }
 
-            args.isEstateManager = estatemanager;
+            args.isEstateManager = m_scene.RegionInfo.EstateSettings.IsEstateManager(remoteClient.AgentId);
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero && m_scene.RegionInfo.EstateSettings.EstateOwner == remoteClient.AgentId)
+                args.isEstateManager = true;
 
             args.billableFactor = m_scene.RegionInfo.EstateSettings.BillableFactor;
             args.terrainStartHeight0 = (float)m_scene.RegionInfo.RegionSettings.Elevation1SW;
