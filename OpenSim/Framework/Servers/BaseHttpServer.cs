@@ -48,7 +48,9 @@ namespace OpenSim.Framework.Servers
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
-
+        
+        private volatile int NotSocketErrors = 0;
+        private volatile bool HTTPDRunning = false;
 
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
@@ -1362,7 +1364,7 @@ namespace OpenSim.Framework.Servers
             {
                 m_log.Info("[HTTPD]: Spawned main thread OK");
                 //m_httpListener = new HttpListener();
-                
+                NotSocketErrors = 0;
                 if (!m_ssl)
                 {
                     //m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
@@ -1370,6 +1372,7 @@ namespace OpenSim.Framework.Servers
                     m_httpListener2 = new HttpServer.HttpListener(IPAddress.Any, (int)m_port);
                     m_httpListener2.ExceptionThrown += httpServerException;
                     m_httpListener2.LogWriter = httpserverlog;
+                    m_httpListener2.DisconnectHandler = httpServerDisconnectMonitor;
                     
                 }
                 else
@@ -1381,6 +1384,7 @@ namespace OpenSim.Framework.Servers
                 m_httpListener2.RequestHandler += OnHandleRequestIOThread;
                 //m_httpListener.Start();
                 m_httpListener2.Start(64);
+                HTTPDRunning = true;
 
                 //HttpListenerContext context;
                 //while (true)
@@ -1396,6 +1400,22 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+        public void httpServerDisconnectMonitor(HttpServer.IHttpClientContext source, SocketError err)
+        {
+            switch (err)
+            {
+                case SocketError.NotSocket:
+                    NotSocketErrors++;
+                    if (HTTPDRunning)// && NotSocketErrors > 5)
+                    {
+                        Stop();
+                        StartHTTP();
+                        m_log.Warn("[HTTPSERVER]: Died.  Trying to kick.....");
+                    }
+                    break;
+            }
+        }
+
         public void httpServerException(object source, Exception exception)
         {
             m_log.ErrorFormat("[HTTPSERVER]: {0} had an exception {1}", source.ToString(), exception.ToString());
@@ -1403,6 +1423,13 @@ namespace OpenSim.Framework.Servers
 
         public void Stop()
         {
+            HTTPDRunning = false;
+            m_httpListener2.ExceptionThrown -= httpServerException;
+            m_httpListener2.DisconnectHandler = null;
+            
+            m_httpListener2.LogWriter = null;
+            m_httpListener2.RequestHandler -= OnHandleRequestIOThread;
+
             m_httpListener2.Stop();
         }
 
