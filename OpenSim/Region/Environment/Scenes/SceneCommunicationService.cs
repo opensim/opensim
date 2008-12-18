@@ -278,7 +278,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // Let's wait just a little to give time to originating regions to catch up with closing child agents
             // after a cross here
-            Thread.Sleep(200);
+            Thread.Sleep(500);
 
             uint x, y;
             Utils.LongToUInts(reg.RegionHandle, out x, out y);
@@ -593,18 +593,20 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (ulong regionHandle in regionlst)
             {
                 m_log.Debug("[INTERGRID]: Sending close agent to " + regionHandle);
-                bool regionAccepted = m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
+                //bool regionAccepted = m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
+                // let's do our best, but there's not much we can do if the neighbour doesn't accept.
+                m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
 
-                if (regionAccepted)
-                {
-                    m_log.Info("[INTERGRID]: Completed sending agent Close agent Request to neighbor");
+                //if (regionAccepted)
+                //{
+                //    m_log.Info("[INTERGRID]: Completed sending agent Close agent Request to neighbor");
 
-                }
-                else
-                {
-                    m_log.Info("[INTERGRID]: Failed sending agent Close agent Request to neighbor");
+                //}
+                //else
+                //{
+                //    m_log.Info("[INTERGRID]: Failed sending agent Close agent Request to neighbor");
 
-                }
+                //}
 
             }
             //// We remove the list of known regions from the agent's known region list through an event
@@ -804,16 +806,16 @@ namespace OpenSim.Region.Environment.Scenes
                         }
 
 
-                        if (!m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
-                                                                              position, false))
-                        {
-                            avatar.ControllingClient.SendTeleportFailed("Problem with destination.");
-                            // We should close that agent we just created over at destination...
-                            List<ulong> lst = new List<ulong>();
-                            lst.Add(reg.RegionHandle);
-                            SendCloseChildAgentAsync(avatar.UUID, lst);
-                            return;
-                        }
+                        m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
+                                                                              position, false);
+                        //{
+                        //    avatar.ControllingClient.SendTeleportFailed("Problem with destination.");
+                        //    // We should close that agent we just created over at destination...
+                        //    List<ulong> lst = new List<ulong>();
+                        //    lst.Add(reg.RegionHandle);
+                        //    SendCloseChildAgentAsync(avatar.UUID, lst);
+                        //    return;
+                        //}
 
                         Thread.Sleep(2000);
 
