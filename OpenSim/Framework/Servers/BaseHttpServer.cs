@@ -47,6 +47,8 @@ namespace OpenSim.Framework.Servers
     public class BaseHttpServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
+
 
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
@@ -1363,6 +1365,8 @@ namespace OpenSim.Framework.Servers
                     //m_httpListener.Prefixes.Add("http://10.1.1.5:" + m_port + "/");
                     m_httpListener2 = new HttpServer.HttpListener(IPAddress.Any, (int)m_port);
                     m_httpListener2.ExceptionThrown += httpServerException;
+                    m_httpListener2.LogWriter = httpserverlog;
+                    
                 }
                 else
                 {
@@ -1509,6 +1513,40 @@ namespace OpenSim.Framework.Servers
         {
             oreq = osreq;
             oresp = osresp;
+        }
+
+    }
+    public class HttpServerLogWriter : HttpServer.ILogWriter
+    {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public HttpServerLogWriter()
+        {
+        }
+
+        public void Write(object source, HttpServer.LogPrio priority, string message)
+        {
+            switch (priority)
+            {
+                case HttpServer.LogPrio.Debug:
+                    m_log.DebugFormat("[{0}]: {1}", source.ToString(), message);
+                    break;
+                case HttpServer.LogPrio.Error:
+                    m_log.ErrorFormat("[{0}]: {1}", source.ToString(), message);
+                    break;
+                case HttpServer.LogPrio.Info:
+                    m_log.InfoFormat("[{0}]: {1}", source.ToString(), message);
+                    break;
+                case HttpServer.LogPrio.Warning:
+                    m_log.WarnFormat("[{0}]: {1}", source.ToString(), message);
+                    break;
+                case HttpServer.LogPrio.Fatal:
+                    m_log.ErrorFormat("[{0}]: FATAL! - {1}", source.ToString(), message);
+                    break;
+                default:
+                    break;
+
+            }
         }
 
     }
