@@ -2341,29 +2341,13 @@ namespace OpenSim.Region.Environment.Scenes
                 client.OnDeactivateGesture += gesturesModule.DeactivateGesture;
             }
             
-            //sound
-            client.OnSoundTrigger += SoundTrigger;
+            ISoundModule soundModule = RequestModuleInterface<ISoundModule>();            
+            if (soundModule != null)
+                client.OnSoundTrigger += soundModule.TriggerSound;
 
             client.OnObjectOwner += ObjectOwner;
 
             // EventManager.TriggerOnNewClient(client);
-        }
-
-        // Sound
-        public virtual void SoundTrigger( UUID soundId, UUID ownerID, UUID objectID, UUID parentID,
-                                                float gain, Vector3 position, UInt64 handle)
-        {
-            foreach (ScenePresence p in GetAvatars())
-            {
-                double dis = Util.GetDistanceTo(p.AbsolutePosition, position);
-                if (dis > 100.0) // Max audio distance
-                    continue;
-
-                // Scale by distance          
-                gain = (float)((double)gain*((100.0 - dis) / 100.0));
-                p.ControllingClient.SendTriggeredSound(soundId, ownerID, objectID, parentID, handle, position, (float)gain);
-            }
-            
         }
 
         /// <summary>
