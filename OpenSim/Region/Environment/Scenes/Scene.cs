@@ -122,12 +122,20 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected BaseHttpServer m_httpListener;
 
-        protected Dictionary<string, IRegionModule> m_modules = new Dictionary<string, IRegionModule>();
+        /// <value>
+        /// All the region modules attached to this scene.
+        /// </value>        
         public Dictionary<string, IRegionModule> Modules
         {
             get { return m_modules; }
         }
+        protected Dictionary<string, IRegionModule> m_modules = new Dictionary<string, IRegionModule>();
+        
+        /// <value>
+        /// The module interfaces available from this scene.
+        /// </value>
         protected Dictionary<Type, List<object> > ModuleInterfaces = new Dictionary<Type, List<object> >();
+        
         protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
         protected Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();
 
@@ -3129,7 +3137,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Module Methods
 
         /// <summary>
-        ///
+        /// Add a module to this scene.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="module"></param>
