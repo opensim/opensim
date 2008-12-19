@@ -195,21 +195,6 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         private void OnNewClient(IClientAPI client)
         {
-            //m_log.DebugFormat("[EVENTQUEUE]: New client {0} detected in region {1}", client.AgentId, m_scene.RegionInfo.RegionName);
-            //lock (queues)
-            //{
-            //    if (queues.ContainsKey(client.AgentId))
-            //    {
-            //        m_log.DebugFormat("[EVENTQUEUE]: Removing old queue for agent {0} in region {1}", client.AgentId,
-            //                          m_scene.RegionInfo.RegionName);
-            //        queues.Remove(client.AgentId);
-            //    }
-
-            //    m_log.DebugFormat("[EVENTQUEUE]: Adding new queue for agent {0} in region {1}", client.AgentId,
-            //                          m_scene.RegionInfo.RegionName);
-            //    queues[client.AgentId] = new BlockingLLSDQueue();
-            //}
-
             client.OnLogout += ClientClosed;
         }
 
@@ -291,6 +276,10 @@ namespace OpenSim.Region.Environment.Modules.Framework
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             m_log.DebugFormat("[EVENTQUEUE] OnRegisterCaps: agentID {0} caps {1} region {2}", agentID, caps, m_scene.RegionInfo.RegionName);
+
+            // Let's instantiate a Queue for this agent right now
+            TryGetQueue(agentID);
+
             string capsBase = "/CAPS/EQG/";
             UUID EventQueueGetUUID = UUID.Zero;
 
