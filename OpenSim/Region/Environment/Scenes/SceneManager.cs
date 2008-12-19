@@ -184,7 +184,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="filename"></param>
         public void SaveCurrentSceneToXml(string filename)
         {
-            CurrentOrFirstScene.SavePrimsToXml(filename);
+            IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
+            if (serialiser != null)            
+                serialiser.SavePrimsToXml(CurrentOrFirstScene, filename);
         }
 
         /// <summary>
@@ -195,7 +197,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="loadOffset"></param>
         public void LoadCurrentSceneFromXml(string filename, bool generateNewIDs, Vector3 loadOffset)
         {
-            CurrentOrFirstScene.LoadPrimsFromXml(filename, generateNewIDs, loadOffset);
+            IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
+            if (serialiser != null)            
+                serialiser.LoadPrimsFromXml(CurrentOrFirstScene, filename, generateNewIDs, loadOffset);
         }
 
         /// <summary>

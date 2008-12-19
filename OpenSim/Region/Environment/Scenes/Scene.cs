@@ -42,8 +42,6 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Interfaces;
-using OpenSim.Region.Environment.Modules.World.Archiver;
-using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
@@ -1880,20 +1878,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             return false;
-        }
-
-        public void LoadPrimsFromXml(string fileName, bool newIdsFlag, Vector3 loadOffset)
-        {
-            m_log.InfoFormat("[SCENE]: Loading prims in xml format to region {0} from {1}", RegionInfo.RegionName, fileName);
-
-            m_serialiser.LoadPrimsFromXml(this, fileName, newIdsFlag, loadOffset);
-        }
-
-        public void SavePrimsToXml(string fileName)
-        {
-            m_log.InfoFormat("[SCENE]: Saving prims in xml format for region {0} to {1}", RegionInfo.RegionName, fileName);
-
-            m_serialiser.SavePrimsToXml(this, fileName);
         }
 
         public void LoadPrimsFromXml2(string fileName)
