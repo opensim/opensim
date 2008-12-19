@@ -102,6 +102,8 @@ namespace OpenSim.Region.Environment.Interfaces
         /// <param name="min"></param>
         /// <param name="max"></param>
         void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, Vector3 min, Vector3 max);
+        
+        void SaveNamedPrimsToXml2(Scene scene, string primName, string fileName);        
 
         /// <summary>
         /// Deserializes a scene object from its xml2 representation.  This does not load the object into the scene.

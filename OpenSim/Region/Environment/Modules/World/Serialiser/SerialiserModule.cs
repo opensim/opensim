@@ -116,6 +116,11 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         {
             SceneXmlLoader.SavePrimsToXml2(scene, stream, min, max);
         }
+        
+        public void SaveNamedPrimsToXml2(Scene scene, string primName, string fileName)
+        {
+            SceneXmlLoader.SaveNamedPrimsToXml2(scene, primName, fileName);
+        }
 
         public SceneObjectGroup DeserializeGroupFromXml2(string xmlString)
         {

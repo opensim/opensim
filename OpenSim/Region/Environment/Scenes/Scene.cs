@@ -1880,28 +1880,6 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public void SaveNamedPrimsToXml2(string primName, string fileName)
-        {
-            m_log.InfoFormat(
-                "[SCENE]: Saving prims with name {0} in xml2 format for region {1} to {2}", primName, RegionInfo.RegionName, fileName);
-
-            List<EntityBase> entityList = GetEntities();
-            List<EntityBase> primList = new List<EntityBase>();
-
-            foreach (EntityBase ent in entityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    if (ent.Name == primName)
-                    {
-                        primList.Add(ent);
-                    }
-                }
-            }
-
-            m_serialiser.SavePrimListToXml2(primList, fileName);
-        }
-
         /// <summary>
         /// Move the given scene object into a new region depending on which region its absolute position has moved
         /// into.

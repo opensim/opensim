@@ -28,10 +28,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-//using System.Reflection;
+using System.Reflection;
 using System.Xml;
 using OpenMetaverse;
-//using log4net;
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
@@ -42,7 +42,7 @@ namespace OpenSim.Region.Environment.Scenes
     /// </summary>
     public class SceneXmlLoader
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, Vector3 loadOffset)
         {
@@ -213,6 +213,29 @@ namespace OpenSim.Region.Environment.Scenes
 
             SavePrimListToXml2(EntityList, stream, min, max);
         }
+        
+        public static void SaveNamedPrimsToXml2(Scene scene, string primName, string fileName)
+        {
+            m_log.InfoFormat(
+                "[SERIALISER]: Saving prims with name {0} in xml2 format for region {1} to {2}", 
+                primName, scene.RegionInfo.RegionName, fileName);
+
+            List<EntityBase> entityList = scene.GetEntities();
+            List<EntityBase> primList = new List<EntityBase>();
+
+            foreach (EntityBase ent in entityList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    if (ent.Name == primName)
+                    {
+                        primList.Add(ent);
+                    }
+                }
+            }
+
+            SavePrimListToXml2(primList, fileName);
+        }        
 
         public static void SavePrimListToXml2(List<EntityBase> entityList, string fileName)
         {

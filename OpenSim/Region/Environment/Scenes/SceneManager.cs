@@ -215,7 +215,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SaveNamedPrimsToXml2(string primName, string filename)
         {
-            CurrentOrFirstScene.SaveNamedPrimsToXml2( primName, filename);
+            IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
+            if (serialiser != null)               
+                serialiser.SaveNamedPrimsToXml2(CurrentOrFirstScene, primName, filename);
         }
 
         /// <summary>
