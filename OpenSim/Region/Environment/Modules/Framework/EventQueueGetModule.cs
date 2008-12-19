@@ -136,7 +136,12 @@ namespace OpenSim.Region.Environment.Modules.Framework
         }
         #endregion
 
-        private BlockingLLSDQueue GetQueue(UUID agentId)
+        /// <summary>
+        ///  Always returns a valid queue
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <returns></returns>
+        private BlockingLLSDQueue TryGetQueue(UUID agentId)
         {
             lock (queues)
             {
@@ -150,15 +155,34 @@ namespace OpenSim.Region.Environment.Modules.Framework
             }
         }
 
-        
+        /// <summary>
+        /// May return a null queue
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <returns></returns>
+        private BlockingLLSDQueue GetQueue(UUID agentId)
+        {
+            lock (queues)
+            {
+                if (queues.ContainsKey(agentId))
+                {
+                    return queues[agentId];
+                }
+                else
+                    return null;
+            }
+        }
+
         #region IEventQueue Members
+
         public bool Enqueue(OSD ev, UUID avatarID)
         {
             m_log.DebugFormat("[EVENTQUEUE]: Enqueuing event for {0} in region {1}", avatarID, m_scene.RegionInfo.RegionName);
             try
             {
                 BlockingLLSDQueue queue = GetQueue(avatarID);
-                queue.Enqueue(ev);
+                if (queue != null)
+                    queue.Enqueue(ev);
             } catch(NullReferenceException e)
             {
                 m_log.Debug("[EVENTQUEUE] Caught exception: " + e);
@@ -166,11 +190,26 @@ namespace OpenSim.Region.Environment.Modules.Framework
             }
             return true;
         }
+
         #endregion
 
         private void OnNewClient(IClientAPI client)
         {
-            m_log.DebugFormat("[EVENTQUEUE]: New client {0} detected in region {1}", client.AgentId, m_scene.RegionInfo.RegionName);
+            //m_log.DebugFormat("[EVENTQUEUE]: New client {0} detected in region {1}", client.AgentId, m_scene.RegionInfo.RegionName);
+            //lock (queues)
+            //{
+            //    if (queues.ContainsKey(client.AgentId))
+            //    {
+            //        m_log.DebugFormat("[EVENTQUEUE]: Removing old queue for agent {0} in region {1}", client.AgentId,
+            //                          m_scene.RegionInfo.RegionName);
+            //        queues.Remove(client.AgentId);
+            //    }
+
+            //    m_log.DebugFormat("[EVENTQUEUE]: Adding new queue for agent {0} in region {1}", client.AgentId,
+            //                          m_scene.RegionInfo.RegionName);
+            //    queues[client.AgentId] = new BlockingLLSDQueue();
+            //}
+
             client.OnLogout += ClientClosed;
         }
 
@@ -317,7 +356,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 //                m_log.DebugFormat(debug + "  ]", agentID, m_scene.RegionInfo.RegionName, System.Threading.Thread.CurrentThread.Name);
 //            }
 
-            BlockingLLSDQueue queue = GetQueue(agentID);
+            BlockingLLSDQueue queue = TryGetQueue(agentID);
             OSD element = queue.Dequeue(15000); // 15s timeout
 
             Hashtable responsedata = new Hashtable();
