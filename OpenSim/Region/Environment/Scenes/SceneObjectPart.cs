@@ -1425,6 +1425,16 @@ if (m_shape != null) {
                         PhysActor.delink();
                     }
 
+                    if (!UsePhysics)
+                    {
+                        // reset velocity to 0 on physics switch-off. Without that, the client thinks the
+                        // prim still has velocity and continues to interpolate its position along the old
+                        // velocity-vector.
+                        Velocity = new Vector3(0, 0, 0);
+                        Acceleration = new Vector3(0, 0, 0);
+                        AngularVelocity = new Vector3(0, 0, 0);
+                    }
+
                     PhysActor.IsPhysical = UsePhysics;
 
 
@@ -1449,13 +1459,6 @@ if (m_shape != null) {
                                 }
                             }
                         }
-                    }
-
-                    if (!UsePhysics)
-                    {
-                        // reset velocity to 0. Without that, the client thinks the prim still has velocity and
-                        // continues to interpolate its position along the old velocity-vector.
-                        Velocity = new Vector3(0, 0, 0);
                     }
                 }
                 m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
