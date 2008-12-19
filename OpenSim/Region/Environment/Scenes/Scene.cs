@@ -1880,34 +1880,6 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public void LoadPrimsFromXml2(string fileName)
-        {
-            m_log.InfoFormat("[SCENE]: Loading prims in xml2 format to region {0} from {1}", RegionInfo.RegionName, fileName);
-
-            m_serialiser.LoadPrimsFromXml2(this, fileName);
-        }
-
-        public void LoadPrimsFromXml2(TextReader reader, bool startScripts)
-        {
-            m_log.InfoFormat("[SCENE]: Loading prims in xml2 format to region {0} from stream", RegionInfo.RegionName);
-
-            m_serialiser.LoadPrimsFromXml2(this, reader, startScripts);
-        }
-
-        public void SavePrimsToXml2(string fileName)
-        {
-            m_log.InfoFormat("[SCENE]: Saving prims in xml2 format for region {0} to {1}", RegionInfo.RegionName, fileName);
-
-            m_serialiser.SavePrimsToXml2(this, fileName);
-        }
-
-        public void SavePrimsToXml2(TextWriter stream, Vector3 min, Vector3 max)
-        {
-            m_log.InfoFormat("[SCENE]: Saving prims in xml2 format for region {0} to stream", RegionInfo.RegionName);
-
-            m_serialiser.SavePrimsToXml2(this, stream, min, max);
-        }
-
         public void SaveNamedPrimsToXml2(string primName, string fileName)
         {
             m_log.InfoFormat(

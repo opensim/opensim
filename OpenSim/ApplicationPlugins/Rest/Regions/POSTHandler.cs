@@ -44,6 +44,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.ApplicationPlugins.Rest;
 
@@ -120,7 +121,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
 
         public string LoadPrims(string requestBody, OSHttpRequest request, OSHttpResponse response, Scene scene)
         {
-            scene.LoadPrimsFromXml2(new StringReader(requestBody), true);
+            IRegionSerialiserModule serialiser = scene.RequestModuleInterface<IRegionSerialiserModule>();
+            if (serialiser != null)                
+                serialiser.LoadPrimsFromXml2(scene, new StringReader(requestBody), true);
+            
             return "";
         }
 

@@ -208,7 +208,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="filename"></param>
         public void SaveCurrentSceneToXml2(string filename)
         {
-            CurrentOrFirstScene.SavePrimsToXml2(filename);
+            IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
+            if (serialiser != null)            
+                serialiser.SavePrimsToXml2(CurrentOrFirstScene, filename);
         }
 
         public void SaveNamedPrimsToXml2(string primName, string filename)
@@ -221,7 +223,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void LoadCurrentSceneFromXml2(string filename)
         {
-            CurrentOrFirstScene.LoadPrimsFromXml2(filename);
+            IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
+            if (serialiser != null)              
+                serialiser.LoadPrimsFromXml2(CurrentOrFirstScene, filename);
         }
 
         /// <summary>

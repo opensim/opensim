@@ -44,6 +44,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.ApplicationPlugins.Rest;
 
@@ -219,7 +220,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
         {
             httpResponse.SendChunked = true;
             httpResponse.ContentType = "text/xml";
-            scene.SavePrimsToXml2(new StreamWriter(httpResponse.OutputStream), min, max);
+            
+            IRegionSerialiserModule serialiser = scene.RequestModuleInterface<IRegionSerialiserModule>();
+            if (serialiser != null)              
+                serialiser.SavePrimsToXml2(scene, new StreamWriter(httpResponse.OutputStream), min, max);
+            
             return "";
         }
     }
