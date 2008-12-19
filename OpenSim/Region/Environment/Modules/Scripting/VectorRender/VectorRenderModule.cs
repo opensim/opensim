@@ -322,8 +322,18 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                 {
                     nextLine = nextLine.Remove(0, 9);
                     nextLine = nextLine.Trim();
+                    int hex = 0;
 
-                    Color newColour = Color.FromName(nextLine);
+                    Color newColour;
+                    if(Int32.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
+                    {
+                        newColour = Color.FromArgb(hex);
+                    } 
+                    else
+                    {
+                        // this doesn't fail, it just returns black if nothing is found
+                        newColour = Color.FromName(nextLine);
+                    }
 
                     myBrush.Color = newColour;
                     drawPen.Color = newColour;
