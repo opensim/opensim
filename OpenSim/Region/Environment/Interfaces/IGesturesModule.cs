@@ -28,7 +28,7 @@
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Region.Environment
+namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IGesturesModule
     {
