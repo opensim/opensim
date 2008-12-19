@@ -1092,7 +1092,6 @@ if (m_shape != null) {
         public void ResetExpire()
         {
             Expires = DateTime.Now + new TimeSpan(600000000);
-            m_log.DebugFormat("[SOP]: Reset Expire to {0}", Expires);
         }
 
         public void AddFlag(PrimFlags flag)
