@@ -108,12 +108,20 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
 
         public float[] GetFloatsSerialised()
         {
-            float[] heights = new float[Width * Height];
-            int i;
+            // Move the member variables into local variables, calling
+            // member variables 256*256 times gets expensive
+            int w = Width;
+            int h = Height;
+            float[] heights = new float[w * h];
 
-            for (i = 0; i < Width * Height; i++)
+            int i, j; // map coordinates
+            int idx = 0; // index into serialized array
+            for (i = 0; i < h; i++)
             {
-                heights[i] = (float) map[i % Width, i / Width];
+                for (j = 0; j < w; j++)
+                {
+                    heights[idx++] = (float)map[j, i];
+                }
             }
 
             return heights;
