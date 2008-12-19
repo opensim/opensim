@@ -615,7 +615,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void ProcessAck(uint id)
         {
             LLQueItem data;
-            Packet packet;
 
             lock (m_NeedAck)
             {
