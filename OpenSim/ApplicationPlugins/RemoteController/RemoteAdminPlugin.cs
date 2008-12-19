@@ -37,9 +37,9 @@ using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Modules.World.Archiver;
 
 namespace OpenSim.ApplicationPlugins.RemoteController
 {
@@ -1082,9 +1082,14 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     }
                     else throw new Exception("neither region_name nor region_uuid given");
 
-                    new ArchiveReadRequest(scene, filename);
+                    IRegionArchiverModule archiver = scene.RequestModuleInterface<IRegionArchiverModule>();
+                    if (archiver != null)            
+                        archiver.DearchiveRegion(filename);
+                    else 
+                        throw new Exception("Archiver module not present for scene");
+                    
                     responseData["loaded"]   = "true";
-
+                    
                     response.Value           = responseData;
                 }
                 catch (Exception e)
@@ -1173,7 +1178,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 }
                 else throw new Exception("neither region_name nor region_uuid given");
 
-                scene.SavePrimsToArchive(filename);
+                IRegionArchiverModule archiver = scene.RequestModuleInterface<IRegionArchiverModule>();
+                if (archiver != null)
+                    archiver.ArchiveRegion(filename);
+                else 
+                    throw new Exception("Archiver module not present for scene");                
 
                 responseData["saved"]   = "true";
 

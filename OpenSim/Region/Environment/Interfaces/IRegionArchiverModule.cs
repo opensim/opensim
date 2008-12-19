@@ -25,14 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.Environment.Scenes;
-
-namespace OpenSim.Region.Environment.Modules.World.Archiver
+namespace OpenSim.Region.Environment.Interfaces
 {
     /// <summary>
     /// Interface to region archive functionality
     /// </summary>
-    public interface IRegionArchiver
+    public interface IRegionArchiverModule
     {
         /// <summary>
         /// Archive the region to the given path

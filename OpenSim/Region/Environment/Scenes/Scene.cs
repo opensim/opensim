@@ -142,7 +142,6 @@ namespace OpenSim.Region.Environment.Scenes
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
         protected IConfigSource m_config;
-        protected IRegionArchiver m_archiver;
         protected IRegionSerialiser m_serialiser;
 
         // Central Update Loop
@@ -729,7 +728,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_worldCommModule = RequestModuleInterface<IWorldComm>();
             XferManager = RequestModuleInterface<IXfer>();
             m_AvatarFactory = RequestModuleInterface<IAvatarFactory>();
-            m_archiver = RequestModuleInterface<IRegionArchiver>();
             m_serialiser = RequestModuleInterface<IRegionSerialiser>();
         }
 
@@ -1946,28 +1944,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             m_serialiser.SavePrimListToXml2(primList, fileName);
-        }
-
-        /// <summary>
-        /// Load a prim archive into the scene.  This loads both prims and their assets.
-        /// </summary>
-        /// <param name="filePath"></param>
-        public void LoadPrimsFromArchive(string filePath)
-        {
-            m_log.InfoFormat("[SCENE]: Loading archive to region {0} from {1}", RegionInfo.RegionName, filePath);
-
-            m_archiver.DearchiveRegion(filePath);
-        }
-
-        /// <summary>
-        /// Save the prims in the scene to an archive.  This saves both prims and their assets.
-        /// </summary>
-        /// <param name="filePath"></param>
-        public void SavePrimsToArchive(string filePath)
-        {
-            m_log.InfoFormat("[SCENE]: Writing archive for region {0} to {1}", RegionInfo.RegionName, filePath);
-
-            m_archiver.ArchiveRegion(filePath);
         }
 
         /// <summary>

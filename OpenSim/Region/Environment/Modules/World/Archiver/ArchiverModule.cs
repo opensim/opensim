@@ -40,9 +40,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// <summary>
     /// This module loads and saves OpenSimulator archives
     /// </summary>
-    public class ArchiverModule : IRegionModule, IRegionArchiver
+    public class ArchiverModule : IRegionModule, IRegionArchiverModule
     {
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Scene to which this module belongs
@@ -58,8 +58,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
-
-            m_scene.RegisterModuleInterface<IRegionArchiver>(this);
+            m_scene.RegisterModuleInterface<IRegionArchiverModule>(this);
         }
 
         public void PostInitialise()
@@ -72,11 +71,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         public void ArchiveRegion(string savePath)
         {
+            m_log.InfoFormat("[SCENE]: Writing archive for region {0} to {1}", m_scene.RegionInfo.RegionName, savePath);
+            
             new ArchiveWriteRequestPreparation(m_scene, savePath).ArchiveRegion();
         }
 
         public void DearchiveRegion(string loadPath)
         {
+            m_log.InfoFormat("[SCENE]: Loading archive to region {0} from {1}", m_scene.RegionInfo.RegionName, loadPath);
+            
             new ArchiveReadRequest(m_scene, loadPath);
         }
     }

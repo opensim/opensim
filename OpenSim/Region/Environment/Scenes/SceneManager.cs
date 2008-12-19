@@ -227,7 +227,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="filename"></param>
         public void SaveCurrentSceneToArchive(string filename)
         {
-            CurrentOrFirstScene.SavePrimsToArchive(filename);
+            IRegionArchiverModule archiver = CurrentOrFirstScene.RequestModuleInterface<IRegionArchiverModule>();
+            if (archiver != null)
+                archiver.ArchiveRegion(filename);
         }
 
         /// <summary>
@@ -237,7 +239,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="filename"></param>
         public void LoadArchiveToCurrentScene(string filename)
         {
-            CurrentOrFirstScene.LoadPrimsFromArchive(filename);
+            IRegionArchiverModule archiver = CurrentOrFirstScene.RequestModuleInterface<IRegionArchiverModule>();
+            if (archiver != null)            
+                archiver.DearchiveRegion(filename);
         }
 
         public string SaveCurrentSceneMapToXmlString()
