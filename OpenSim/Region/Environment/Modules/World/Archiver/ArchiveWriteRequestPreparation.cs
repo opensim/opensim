@@ -287,7 +287,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 = new ArchiveWriteRequestExecution(
                     sceneObjects,
                     m_scene.RequestModuleInterface<ITerrainModule>(),
-                    m_scene.RequestModuleInterface<IRegionSerialiser>(),
+                    m_scene.RequestModuleInterface<IRegionSerialiserModule>(),
                     m_scene.RegionInfo.RegionName,
                     m_savePath);
             new AssetsRequest(assetUuids.Keys, m_scene.AssetCache, awre.ReceivedAllAssets).Execute();

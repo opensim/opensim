@@ -54,7 +54,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected ITerrainModule m_terrainModule;
-        protected IRegionSerialiser m_serialiser;
+        protected IRegionSerialiserModule m_serialiser;
         protected List<SceneObjectGroup> m_sceneObjects;
         protected string m_sceneName;
         protected string m_savePath;
@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         public ArchiveWriteRequestExecution(
              List<SceneObjectGroup> sceneObjects,
              ITerrainModule terrainModule,
-             IRegionSerialiser serialiser,
+             IRegionSerialiserModule serialiser,
              string sceneName,
              string savePath)
         {

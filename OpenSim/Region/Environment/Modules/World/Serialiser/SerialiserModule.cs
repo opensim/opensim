@@ -36,7 +36,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Serialiser
 {
-    public class SerialiserModule : IRegionModule, IRegionSerialiser
+    public class SerialiserModule : IRegionModule, IRegionSerialiserModule
     {
         private Commander m_commander = new Commander("Export");
         private List<Scene> m_regions = new List<Scene>();
@@ -49,7 +49,7 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         {
             scene.RegisterModuleCommander("Export", m_commander);
             scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
-            scene.RegisterModuleInterface<IRegionSerialiser>(this);
+            scene.RegisterModuleInterface<IRegionSerialiserModule>(this);
 
             lock (m_regions)
             {

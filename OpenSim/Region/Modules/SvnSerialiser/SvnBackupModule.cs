@@ -50,7 +50,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         private bool m_enabled = false;
         private bool m_installBackupOnLoad = false;
-        private IRegionSerialiser m_serialiser;
+        private IRegionSerialiserModule m_serialiser;
         private bool m_svnAutoSave = false;
         private SvnClient m_svnClient;
         private string m_svndir = "SVNmodule" + Slash.DirectorySeparatorChar + "repo";
@@ -360,7 +360,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         private void SetupSerialiser()
         {
             if (m_scenes.Count > 0)
-                m_serialiser = m_scenes[0].RequestModuleInterface<IRegionSerialiser>();
+                m_serialiser = m_scenes[0].RequestModuleInterface<IRegionSerialiserModule>();
         }
 
         private void SetupSvnProvider()

@@ -25,11 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Modules.World.Serialiser;
-using OpenSim.Region.Environment.Modules.World.Terrain;
-using OpenSim.Framework.Communications.Cache;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -39,6 +34,11 @@ using System.Xml;
 using System.Net;
 using OpenMetaverse;
 using log4net;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Modules.World.Terrain;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
@@ -124,7 +124,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
-            IRegionSerialiser serialiser = m_scene.RequestModuleInterface<IRegionSerialiser>();
+            IRegionSerialiserModule serialiser = m_scene.RequestModuleInterface<IRegionSerialiserModule>();
             ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
 
             foreach (string serialisedSceneObject in serialisedSceneObjects)

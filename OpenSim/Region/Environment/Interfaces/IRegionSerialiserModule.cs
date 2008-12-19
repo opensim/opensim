@@ -30,9 +30,9 @@ using System.Collections.Generic;
 using System.IO;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Modules.World.Serialiser
+namespace OpenSim.Region.Environment.Interfaces
 {
-    public interface IRegionSerialiser
+    public interface IRegionSerialiserModule
     {
         List<string> SerialiseRegion(Scene scene, string saveDir);
 

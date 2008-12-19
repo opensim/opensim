@@ -142,7 +142,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
         protected IConfigSource m_config;
-        protected IRegionSerialiser m_serialiser;
+        protected IRegionSerialiserModule m_serialiser;
 
         // Central Update Loop
 
@@ -728,7 +728,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_worldCommModule = RequestModuleInterface<IWorldComm>();
             XferManager = RequestModuleInterface<IXfer>();
             m_AvatarFactory = RequestModuleInterface<IAvatarFactory>();
-            m_serialiser = RequestModuleInterface<IRegionSerialiser>();
+            m_serialiser = RequestModuleInterface<IRegionSerialiserModule>();
         }
 
         #endregion

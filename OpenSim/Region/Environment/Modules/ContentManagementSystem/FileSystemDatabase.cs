@@ -69,7 +69,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         private string m_repodir = null;
         private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
-        private Dictionary<UUID, IRegionSerialiser> m_serialiser = new Dictionary<UUID, IRegionSerialiser>();
+        private Dictionary<UUID, IRegionSerialiserModule> m_serialiser = new Dictionary<UUID, IRegionSerialiserModule>();
 
         #endregion Fields
 
@@ -105,9 +105,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             {
                 foreach (UUID region in m_scenes.Keys)
                 {
-                    m_serialiser.Add(region,
-                                     m_scenes[region].RequestModuleInterface<IRegionSerialiser>()
-                                     );
+                    m_serialiser.Add(region, m_scenes[region].RequestModuleInterface<IRegionSerialiserModule>());
                 }
             }
         }
