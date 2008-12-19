@@ -1089,6 +1089,12 @@ if (m_shape != null) {
 
         #region Public Methods
 
+        public void ResetExpire()
+        {
+            Expires = DateTime.Now + new TimeSpan(600000000);
+            m_log.DebugFormat("[SOP]: Reset Expire to {0}", Expires);
+        }
+
         public void AddFlag(PrimFlags flag)
         {
             // PrimFlags prevflag = Flags;
@@ -1098,7 +1104,7 @@ if (m_shape != null) {
                 _flags |= flag;
 
                 if (flag == PrimFlags.TemporaryOnRez)
-                    Expires = DateTime.Now + new TimeSpan(600000000);
+                    ResetExpire();
             }
             // System.Console.WriteLine("Aprev: " + prevflag.ToString() + " curr: " + Flags.ToString());
         }
@@ -1459,7 +1465,7 @@ if (m_shape != null) {
         {
             return FromXml(UUID.Zero, xmlReader);
         }
-        
+
         /// <summary>
         /// Restore this part from the serialized xml representation.
         /// </summary>
@@ -1471,9 +1477,12 @@ if (m_shape != null) {
             XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
             SceneObjectPart part = (SceneObjectPart)serializer.Deserialize(xmlReader);
             part.m_fromUserInventoryItemID = fromUserInventoryItemId;
-            
+
+            // for tempOnRez objects, we have to fix the Expire date.
+            if((part.Flags & PrimFlags.TemporaryOnRez) != 0) part.ResetExpire();
+
             return part;
-        }        
+        }
 
         public UUID GetAvatarOnSitTarget()
         {
