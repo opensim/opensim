@@ -6,7 +6,7 @@
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
+ *     * Redistributions in binary form must reproduce the above copyrightD
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
  *     * Neither the name of the OpenSim Project nor the
@@ -259,6 +259,11 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public int objectCapacity = 45000;
+        
+        /// <value>
+        /// Registered classes that are capable of creating entities.
+        /// </value>       
+        protected Dictionary<PCode, IEntityCreator> m_entityCreators = new Dictionary<PCode, IEntityCreator>();
 
         #endregion
 
@@ -1753,61 +1758,22 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public virtual SceneObjectGroup AddNewPrim(UUID ownerID, UUID groupID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
+        public virtual SceneObjectGroup AddNewPrim(
+            UUID ownerID, UUID groupID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
         {
             //m_log.DebugFormat(
-            //    "[SCENE]: Scene.AddNewPrim() called for agent {0} in {1}", ownerID, RegionInfo.RegionName);
+            //    "[SCENE]: Scene.AddNewPrim() pcode {0} called for {1} in {2}", shape.PCode, ownerID, RegionInfo.RegionName);
+            
+            // If an entity creator has been registered for this prim type then use that
+            if (m_entityCreators.ContainsKey((PCode)shape.PCode))
+                return m_entityCreators[(PCode)shape.PCode].CreateEntity(ownerID, groupID, pos, rot, shape);
 
+            // Otherwise, use this default creation code;
             SceneObjectGroup sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
-
-            SceneObjectPart rootPart = sceneObject.GetChildPart(sceneObject.UUID);
-            // if grass or tree, make phantom
-            //rootPart.TrimPermissions();
-            if ((rootPart.Shape.PCode == (byte)PCode.Grass) 
-                || (rootPart.Shape.PCode == (byte)PCode.Tree) || (rootPart.Shape.PCode == (byte)PCode.NewTree))
-            {
-                rootPart.AddFlag(PrimFlags.Phantom);
-                //rootPart.ObjectFlags += (uint)PrimFlags.Phantom;
-                if (rootPart.Shape.PCode != (byte)PCode.Grass)
-                    AdaptTree(ref shape);
-            }
-
             AddNewSceneObject(sceneObject, true);
             sceneObject.SetGroup(groupID, null);
 
             return sceneObject;
-        }
-
-        protected void AdaptTree(ref PrimitiveBaseShape tree)
-        {
-            // Tree size has to be adapted depending on its type
-            switch ((Tree)tree.State)
-            {
-                case Tree.Cypress1:
-                case Tree.Cypress2:
-                    tree.Scale = new Vector3(4, 4, 10);
-                    break;
-
-                // case... other tree types
-                // tree.Scale = new Vector3(?, ?, ?);
-                // break;
-
-                default:
-                    tree.Scale = new Vector3(4, 4, 4);
-                    break;
-            }
-        }
-
-        public SceneObjectGroup AddTree(UUID uuid, UUID groupID, Vector3 scale, Quaternion rotation, Vector3 position,
-                                        Tree treeType, bool newTree)
-        {
-            PrimitiveBaseShape treeShape = new PrimitiveBaseShape();
-            treeShape.PathCurve = 16;
-            treeShape.PathEnd = 49900;
-            treeShape.PCode = newTree ? (byte)PCode.NewTree : (byte)PCode.Tree;
-            treeShape.Scale = scale;
-            treeShape.State = (byte)treeType;
-            return AddNewPrim(uuid, groupID, position, rotation, treeShape);
         }
 
         /// <summary>
@@ -3299,6 +3265,15 @@ namespace OpenSim.Region.Environment.Scenes
                 List<Object> l = new List<Object>();
                 l.Add(mod);
                 ModuleInterfaces.Add(typeof(M), l);
+
+                if (mod is IEntityCreator)
+                {
+                    IEntityCreator entityCreator = (IEntityCreator)mod;
+                    foreach (PCode pcode in entityCreator.CreationCapabilities)
+                    {
+                        m_entityCreators[pcode] = entityCreator;
+                    }
+                }
             }
         }
 
@@ -3314,13 +3289,23 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
 
             l.Add(mod);
+            
+            if (mod is IEntityCreator)
+            {
+                IEntityCreator entityCreator = (IEntityCreator)mod;
+                foreach (PCode pcode in entityCreator.CreationCapabilities)
+                {
+                    m_entityCreators[pcode] = entityCreator;
+                }
+            }
+            
             ModuleInterfaces[typeof(M)] = l;
         }
 
         /// <summary>
         /// For the given interface, retrieve the region module which implements it.
         /// </summary>
-        /// <returns>null if there is no module implementing that interface</returns>
+        /// <returns>null if there is no registered module implementing that interface</returns>
         public override T RequestModuleInterface<T>()
         {
             if (ModuleInterfaces.ContainsKey(typeof(T)))
@@ -3333,6 +3318,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// For the given interface, retrieve an array of region modules that implement it.
+        /// </summary>
+        /// <returns>an empty array if there are no registered modules implementing that interface</returns>        
         public override T[] RequestModuleInterfaces<T>()
         {
             if (ModuleInterfaces.ContainsKey(typeof(T)))

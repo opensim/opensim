@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Gestures
                 m_log.ErrorFormat("[GESTURES]: Unable to find user {0}", client.Name);
         }
 
-        public virtual void DeactivateGesture(IClientAPI client,  UUID gestureId)
+        public virtual void DeactivateGesture(IClientAPI client, UUID gestureId)
         {
             CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(client.AgentId);
 

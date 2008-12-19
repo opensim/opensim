@@ -233,13 +233,15 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
         {
             position.Z = (float) m_scene.Heightmap[(int) position.X, (int) position.Y];
 
-            SceneObjectGroup tree =
-                m_scene.AddTree(uuid, UUID.Zero, new Vector3(0.1f, 0.1f, 0.1f),
-                                Quaternion.Identity,
-                                position,
-                                Tree.Cypress1,
-                                false);
-
+            IVegetationModule module = m_scene.RequestModuleInterface<IVegetationModule>();
+            
+            if (null == module)
+                return;
+            
+            SceneObjectGroup tree 
+                = module.AddTree(
+                    uuid, UUID.Zero, new Vector3(0.1f, 0.1f, 0.1f), Quaternion.Identity, position, Tree.Cypress1, false);
+            
             m_trees.Add(tree.UUID);
             tree.SendGroupFullUpdate();
         }
