@@ -60,7 +60,7 @@ namespace OpenSim.Region.Environment.Scenes
         public event PrimCrossing OnPrimCrossingIntoRegion;
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
-        public event RemoveKnownRegionsFromAvatarList OnRemoveKnownRegionFromAvatar;
+        //public event RemoveKnownRegionsFromAvatarList OnRemoveKnownRegionFromAvatar;
         public event LogOffUser OnLogOffUser;
         public event GetLandData OnGetLandData;
 
@@ -729,11 +729,22 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         // region is remote. see if it is up
                         destRegionUp = m_commsProvider.InterRegion.CheckRegion(reg.RemotingAddress, reg.RemotingPort);
+
                     }
                     else
                     {
                         // assume local regions are always up
                         destRegionUp = true;
+                    }
+
+                    // Let's do DNS resolution only once in this process, please!
+                    // This may be a costly operation. The reg.ExternalEndPoint field is not a passive field,
+                    // it's actually doing a lot of work.
+                    IPEndPoint endPoint = reg.ExternalEndPoint;
+                    if (endPoint.Address == null)
+                    {
+                        // Couldn't resolve the name. Can't TP, because the viewer wants IP addresses.
+                        destRegionUp = false;
                     }
 
                     if (destRegionUp)
@@ -760,6 +771,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
                         // once we reach here...
                         //avatar.Scene.RemoveCapsHandler(avatar.UUID);
+
 
                         // Let's close some agents
                         avatar.CloseChildAgents(newRegionX, newRegionY);
@@ -791,15 +803,15 @@ namespace OpenSim.Region.Environment.Scenes
 
                             if (eq != null)
                             {
-                                OSD Item = EventQueueHelper.EnableSimulator(reg.RegionHandle, reg.ExternalEndPoint);
+                                OSD Item = EventQueueHelper.EnableSimulator(reg.RegionHandle, endPoint);
                                 eq.Enqueue(Item, avatar.UUID);
 
-                                Item = EventQueueHelper.EstablishAgentCommunication(avatar.UUID, reg.ExternalEndPoint.ToString(), capsPath);
+                                Item = EventQueueHelper.EstablishAgentCommunication(avatar.UUID, endPoint.ToString(), capsPath);
                                 eq.Enqueue(Item, avatar.UUID);
                             }
                             else
                             {
-                                avatar.ControllingClient.InformClientOfNeighbour(reg.RegionHandle, reg.ExternalEndPoint);
+                                avatar.ControllingClient.InformClientOfNeighbour(reg.RegionHandle, endPoint);
                             }
                         }
                         else
@@ -829,13 +841,13 @@ namespace OpenSim.Region.Environment.Scenes
                         
                         if (eq != null)
                         {
-                            OSD Item = EventQueueHelper.TeleportFinishEvent(reg.RegionHandle, 13, reg.ExternalEndPoint,
+                            OSD Item = EventQueueHelper.TeleportFinishEvent(reg.RegionHandle, 13, endPoint,
                                                                              4, teleportFlags, capsPath, avatar.UUID);
                             eq.Enqueue(Item, avatar.UUID);
                         }
                         else
                         {
-                            avatar.ControllingClient.SendRegionTeleport(reg.RegionHandle, 13, reg.ExternalEndPoint, 4,
+                            avatar.ControllingClient.SendRegionTeleport(reg.RegionHandle, 13, endPoint, 4,
                                                                         teleportFlags, capsPath);
                         }
 

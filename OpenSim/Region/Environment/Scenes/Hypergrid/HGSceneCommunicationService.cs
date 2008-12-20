@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 
@@ -148,6 +149,16 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         destRegionUp = true;
                     }
 
+                    // Let's do DNS resolution only once in this process, please!
+                    // This may be a costly operation. The reg.ExternalEndPoint field is not a passive field,
+                    // it's actually doing a lot of work.
+                    IPEndPoint endPoint = reg.ExternalEndPoint;
+                    if (endPoint.Address == null)
+                    {
+                        // Couldn't resolve the name. Can't TP, because the viewer wants IP addresses.
+                        destRegionUp = false;
+                    }
+
                     if (destRegionUp)
                     {
 
@@ -206,15 +217,15 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
 
                             if (eq != null)
                             {
-                                OSD Item = EventQueueHelper.EnableSimulator(realHandle, reg.ExternalEndPoint);
+                                OSD Item = EventQueueHelper.EnableSimulator(realHandle, endPoint);
                                 eq.Enqueue(Item, avatar.UUID);
 
-                                Item = EventQueueHelper.EstablishAgentCommunication(avatar.UUID, reg.ExternalEndPoint.ToString(), capsPath);
+                                Item = EventQueueHelper.EstablishAgentCommunication(avatar.UUID, endPoint.ToString(), capsPath);
                                 eq.Enqueue(Item, avatar.UUID);
                             }
                             else
                             {
-                                avatar.ControllingClient.InformClientOfNeighbour(realHandle, reg.ExternalEndPoint);
+                                avatar.ControllingClient.InformClientOfNeighbour(realHandle, endPoint);
                                 // TODO: make Event Queue disablable!
                             }
                         }
@@ -252,13 +263,13 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         ///
                         if (eq != null)
                         {
-                            OSD Item = EventQueueHelper.TeleportFinishEvent(realHandle, 13, reg.ExternalEndPoint,
+                            OSD Item = EventQueueHelper.TeleportFinishEvent(realHandle, 13, endPoint,
                                                                              4, teleportFlags, capsPath, avatar.UUID);
                             eq.Enqueue(Item, avatar.UUID);
                         }
                         else
                         {
-                            avatar.ControllingClient.SendRegionTeleport(realHandle, 13, reg.ExternalEndPoint, 4,
+                            avatar.ControllingClient.SendRegionTeleport(realHandle, 13, endPoint, 4,
                                                                         teleportFlags, capsPath);
                         }
                         ///
