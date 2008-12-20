@@ -187,12 +187,6 @@ namespace OpenSim.Grid.UserServer
                 new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
             m_httpServer.AddXmlRPCHandler("update_user_profile", m_userManager.XmlRpcResponseXmlRPCUpdateUserProfile);
-
-            // Handler for OpenID avatar identity pages
-            m_httpServer.AddStreamHandler(new OpenIdStreamHandler("GET", "/users/", m_loginService));
-            // Handlers for the OpenID endpoint server
-            m_httpServer.AddStreamHandler(new OpenIdStreamHandler("POST", "/openid/server/", m_loginService));
-            m_httpServer.AddStreamHandler(new OpenIdStreamHandler("GET", "/openid/server/", m_loginService));
         }
 
         public void do_create(string[] args)
