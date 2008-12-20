@@ -845,6 +845,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -856,6 +857,7 @@
       <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
+      <Reference name="DotNetOpenId"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
