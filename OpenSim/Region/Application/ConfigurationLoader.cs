@@ -208,7 +208,7 @@ namespace OpenSim
             IConfig standaloneConfig = m_config.Source.Configs["StandAlone"];
             if (standaloneConfig != null)
             {
-                m_configSettings.StandaloneAuthenticate = standaloneConfig.GetBoolean("accounts_authenticate");
+                m_configSettings.StandaloneAuthenticate = standaloneConfig.GetBoolean("accounts_authenticate", true);
                 m_configSettings.StandaloneWelcomeMessage = standaloneConfig.GetString("welcome_message");
 
                 m_configSettings.StandaloneInventoryPlugin = standaloneConfig.GetString("inventory_plugin");
@@ -218,7 +218,7 @@ namespace OpenSim
                 m_configSettings.StandaloneAssetPlugin = standaloneConfig.GetString("asset_plugin");
                 m_configSettings.StandaloneAssetSource = standaloneConfig.GetString("asset_source");
 
-                m_configSettings.DumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file");
+                m_configSettings.DumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }
 
             m_networkServersInfo.loadFromConfiguration(m_config.Source);
