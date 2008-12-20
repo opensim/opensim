@@ -1425,7 +1425,7 @@ if (m_shape != null) {
                         PhysActor.delink();
                     }
 
-                    if (!UsePhysics)
+                    if (!UsePhysics && !isNew)
                     {
                         // reset velocity to 0 on physics switch-off. Without that, the client thinks the
                         // prim still has velocity and continues to interpolate its position along the old
