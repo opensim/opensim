@@ -32,7 +32,7 @@ namespace OpenSim
         /// <value>
         /// This is the OpenSim version string.  Change this if you are releasing a new OpenSim version.
         /// </value>        
-        public readonly static string Version = "OpenSimulator Server  0.6.0";  // stay with 27 chars (used in regioninfo)
+        public readonly static string Version = "OpenSimulator Server  0.6.1";  // stay with 27 chars (used in regioninfo)
         
         /// <value>
         /// This is the external interface version.  It is separate from the OpenSimulator project version.  
