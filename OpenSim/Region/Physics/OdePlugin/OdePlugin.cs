@@ -797,7 +797,25 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 #endregion
 
-                if (contacts[i].depth >= 0f && !checkDupe(contacts[i], p2.PhysicsActorType))
+                // Logic for collision handling
+                // Note, that if *all* contacts are skipped (VolumeDetect)
+                // The prim still detects (and forwards) collision events but 
+                // appears to be phantom for the world
+                Boolean skipThisContact = false;
+
+                if (contacts[i].depth < 0f)
+                    skipThisContact = true;
+
+                if (checkDupe(contacts[i], p2.PhysicsActorType))
+                    skipThisContact = true;
+
+                if ((p1 is OdePrim) && (((OdePrim)p1).m_isVolumeDetect))
+                    skipThisContact = true;   // No collision on volume detect prims
+
+                if ((p2 is OdePrim) && (((OdePrim)p2).m_isVolumeDetect))
+                    skipThisContact = true;   // No collision on volume detect prims
+
+                if (!skipThisContact)
                 {
                     // If we're colliding against terrain
                     if (name1 == "Terrain" || name2 == "Terrain")

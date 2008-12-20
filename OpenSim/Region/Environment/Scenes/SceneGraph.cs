@@ -1203,6 +1203,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="packet"></param>
         /// <param name="remoteClient"></param>
+        /// This routine seems to get called when a user changes object settings in the viewer.
+        /// If some one can confirm that, please change the comment according.
         protected internal void UpdatePrimFlags(uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
@@ -1210,7 +1212,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
                 {
-                    group.UpdatePrimFlags(localID, UsePhysics, IsTemporary, IsPhantom);
+                    group.UpdatePrimFlags(localID, UsePhysics, IsTemporary, IsPhantom, false); // VolumeDetect can't be set via UI and will always be off when a change is made there
                 }
             }
         }

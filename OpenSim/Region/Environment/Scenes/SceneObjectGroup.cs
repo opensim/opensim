@@ -1431,21 +1431,45 @@ namespace OpenSim.Region.Environment.Scenes
         {
             bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
             bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
-            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, IsPhantom);
+            bool IsVolumeDetect = RootPart.VolumeDetectActive;
+            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
         }
 
         public void ScriptSetTemporaryStatus(bool TemporaryStatus)
         {
             bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
             bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
-            UpdatePrimFlags(RootPart.LocalId, UsePhysics, TemporaryStatus, IsPhantom);
+            bool IsVolumeDetect = RootPart.VolumeDetectActive;
+            UpdatePrimFlags(RootPart.LocalId, UsePhysics, TemporaryStatus, IsPhantom, IsVolumeDetect);
         }
 
         public void ScriptSetPhantomStatus(bool PhantomStatus)
         {
             bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
             bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
-            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, PhantomStatus);
+            bool IsVolumeDetect = RootPart.VolumeDetectActive;
+            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, PhantomStatus, IsVolumeDetect);
+        }
+
+        public void ScriptSetVolumeDetect(bool VDStatus)
+        {
+            bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
+            bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
+            bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
+            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, IsPhantom, VDStatus);
+
+            /*
+            ScriptSetPhantomStatus(false);  // What ever it was before, now it's not phantom anymore
+
+            if (PhysActor != null) // Should always be the case now
+            {
+                PhysActor.SetVolumeDetect(param);
+            }
+            if (param != 0)
+                AddFlag(PrimFlags.Phantom);
+
+            ScheduleFullUpdate();
+            */
         }
 
         public void applyImpulse(PhysicsVector impulse)
@@ -2251,7 +2275,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="type"></param>
         /// <param name="inUse"></param>
         /// <param name="data"></param>
-        public void UpdatePrimFlags(uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom)
+        public void UpdatePrimFlags(uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, bool IsVolumeDetect)
         {
             SceneObjectPart selectionPart = GetChildPart(localID);
 
@@ -2279,7 +2303,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     foreach (SceneObjectPart part in m_parts.Values)
                     {
-                        part.UpdatePrimFlags(UsePhysics, IsTemporary, IsPhantom);
+                        part.UpdatePrimFlags(UsePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
                     }
                 }
             }

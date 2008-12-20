@@ -167,7 +167,11 @@ namespace OpenSim.Region.Environment.Scenes
         
         [XmlIgnore]
         public PhysicsVector RotationAxis = new PhysicsVector(1f,1f,1f);
-        
+
+        [XmlIgnore]
+        public bool VolumeDetectActive = false; // XmlIgnore set to avoid problems with persistance until I come to care for this
+                                                // Certainly this must be a persistant setting finally
+
         /// <summary>
         /// This part's inventory
         /// </summary>
@@ -2178,6 +2182,16 @@ if (m_shape != null) {
                 m_parentGroup.ScriptSetPhysicsStatus(UsePhysics);
         }
 
+        public void ScriptSetVolumeDetect(bool SetVD)
+        {
+
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.ScriptSetVolumeDetect(SetVD);
+            }
+        }
+
+
         public void SculptTextureCallback(UUID textureID, AssetBase texture)
         {
             if (m_shape.SculptEntry)
@@ -2481,14 +2495,6 @@ if (m_shape != null) {
             if (PhysActor != null)
             {
                 PhysActor.VehicleRotationParam(param, rotation);
-            }
-        }
-
-        public void SetVolumeDetect(int param)
-        {
-            if (PhysActor != null)
-            {
-                PhysActor.SetVolumeDetect(param);
             }
         }
 
@@ -3184,15 +3190,44 @@ if (m_shape != null) {
             }
         }
 
-        public void UpdatePrimFlags(bool UsePhysics, bool IsTemporary, bool IsPhantom)
+        public void UpdatePrimFlags(bool UsePhysics, bool IsTemporary, bool IsPhantom, bool IsVD)
         {
             bool wasUsingPhysics = ((ObjectFlags & (uint) PrimFlags.Physics) != 0);
             bool wasTemporary = ((ObjectFlags & (uint)PrimFlags.TemporaryOnRez) != 0);
             bool wasPhantom = ((ObjectFlags & (uint)PrimFlags.Phantom) != 0);
+            bool wasVD = VolumeDetectActive;
 
-            if ((UsePhysics == wasUsingPhysics) && (wasTemporary == IsTemporary) && (wasPhantom == IsPhantom))
+            if ((UsePhysics == wasUsingPhysics) && (wasTemporary == IsTemporary) && (wasPhantom == IsPhantom) && (IsVD==wasVD) )
             {
                 return;
+            }
+
+            // Special cases for VD. VD can only be called from a script 
+            // and can't be combined with changes to other states. So we can rely
+            // that...
+            // ... if VD is changed, all others are not.
+            // ... if one of the others is changed, VD is not.
+            if (IsVD) // VD is active, special logic applies
+            {
+                // State machine logic for VolumeDetect
+                // More logic below
+                bool phanReset = (IsPhantom != wasPhantom) && !IsPhantom;
+
+                if (phanReset) // Phantom changes from on to off switch VD off too
+                {
+                    IsVD = false;               // Switch it of for the course of this routine
+                    VolumeDetectActive = false; // and also permanently
+                    if (PhysActor != null)
+                        PhysActor.SetVolumeDetect(0);   // Let physics know about it too
+                }
+                else
+                {
+                    IsPhantom = false;  
+                    // If volumedetect is active we don't want phantom to be applied.
+                    // If this is a new call to VD out of the state "phantom"
+                    // this will also cause the prim to be visible to physics
+                }
+
             }
 
             if (UsePhysics)
@@ -3222,6 +3257,7 @@ if (m_shape != null) {
                 }
             }
 
+            
             if (IsPhantom || IsAttachment)
             {
                 AddFlag(PrimFlags.Phantom);
@@ -3232,11 +3268,13 @@ if (m_shape != null) {
                     PhysActor = null;
                 }
             }
-            else
+            else // Not phantom
             {
                 RemFlag(PrimFlags.Phantom);
+
                 if (PhysActor == null)
                 {
+                    // It's not phantom anymore. So make sure the physics engine get's knowledge of it
                     PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
                         Name,
                         Shape,
@@ -3261,10 +3299,11 @@ if (m_shape != null) {
                         }
                     }
                 }
-                else
+                else // it already has a physical representation
                 {
-                    PhysActor.IsPhysical = UsePhysics;
-                    DoPhysicsPropertyUpdate(UsePhysics, false);
+                    PhysActor.IsPhysical = UsePhysics;                    
+
+                    DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status. If it's phantom this will remove the prim
                     if (m_parentGroup != null)
                     {
                         if (!m_parentGroup.IsDeleted)
@@ -3278,6 +3317,32 @@ if (m_shape != null) {
                 }
             }
 
+            if (IsVD)
+            {
+                // If the above logic worked (this is urgent candidate to unit tests!)
+                // we now have a physicsactor.
+                // Defensive programming calls for a check here.
+                // Better would be throwing an exception that could be catched by a unit test as the internal 
+                // logic should make sure, this Physactor is always here.
+                if (this.PhysActor != null)
+                {
+                    PhysActor.SetVolumeDetect(1);
+                    AddFlag(PrimFlags.Phantom); // We set this flag also if VD is active
+                    this.VolumeDetectActive = true;
+                }
+
+            }
+            else
+            {   // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
+                // (mumbles, well, at least if you have infinte CPU powers :-) )
+                if (this.PhysActor != null)
+                {
+                    PhysActor.SetVolumeDetect(0);
+                }
+                this.VolumeDetectActive = false;
+            }
+
+
             if (IsTemporary)
             {
                 AddFlag(PrimFlags.TemporaryOnRez);
@@ -3287,6 +3352,7 @@ if (m_shape != null) {
                 RemFlag(PrimFlags.TemporaryOnRez);
             }
             //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
+
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }

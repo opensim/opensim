@@ -127,6 +127,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_isphysical = false;
         private bool m_isSelected = false;
 
+        internal bool m_isVolumeDetect = false; // If true, this prim only detects collisions but doesn't collide actively
+
         private bool m_throttleUpdates = false;
         private int throttleCounter = 0;
         public int m_interpenetrationcount = 0;
@@ -2226,7 +2228,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void SetVolumeDetect(int param)
         {
-
+            lock (_parent_scene.OdeLock)
+            {
+                m_isVolumeDetect = (param!=0);
+            }
         }
 
         public override PhysicsVector CenterOfMass

@@ -5736,7 +5736,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (!m_host.ParentGroup.IsDeleted)
                 {
-                    m_host.ParentGroup.RootPart.SetVolumeDetect(detect);
+                    m_host.ParentGroup.RootPart.ScriptSetVolumeDetect(detect!=0);
                 }
             }
         }
