@@ -183,13 +183,13 @@ namespace OpenSim
 
             if (startupConfig != null)
             {
-                m_configSettings.Standalone = !startupConfig.GetBoolean("gridmode");
+                m_configSettings.Standalone = !startupConfig.GetBoolean("gridmode", false);
                 m_configSettings.PhysicsEngine = startupConfig.GetString("physics");
                 m_configSettings.MeshEngineName = startupConfig.GetString("meshing");
 
-                m_configSettings.PhysicalPrim = startupConfig.GetBoolean("physical_prim");
+                m_configSettings.PhysicalPrim = startupConfig.GetBoolean("physical_prim", true);
 
-                m_configSettings.See_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor");
+                m_configSettings.See_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);
 
                 m_configSettings.StorageDll = startupConfig.GetString("storage_plugin");
                 if (m_configSettings.StorageDll == "OpenSim.DataStore.MonoSqlite.dll")
