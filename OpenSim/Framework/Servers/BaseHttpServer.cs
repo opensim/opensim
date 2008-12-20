@@ -222,6 +222,7 @@ namespace OpenSim.Framework.Servers
         {
             OSHttpRequest req = new OSHttpRequest(context, request);
             OSHttpResponse resp = new OSHttpResponse(new HttpServer.HttpResponse(context, request));
+            //resp.KeepAlive = req.KeepAlive;
             //m_log.Info("[Debug BASE HTTP SERVER]: Got Request");
             //HttpServerContextObj objstate= new HttpServerContextObj(req,resp);
             //ThreadPool.QueueUserWorkItem(new WaitCallback(ConvertIHttpClientContextToOSHttp), (object)objstate);
@@ -291,7 +292,7 @@ namespace OpenSim.Framework.Servers
                 }
 
                 IRequestHandler requestHandler;
-                response.KeepAlive = true;
+                //response.KeepAlive = true;
                 response.SendChunked = false;
 
                 string path = request.RawUrl;
@@ -1413,7 +1414,9 @@ namespace OpenSim.Framework.Servers
 
         public void httpServerException(object source, Exception exception)
         {
+            
             m_log.ErrorFormat("[HTTPSERVER]: {0} had an exception {1}", source.ToString(), exception.ToString());
+           /*
             if (HTTPDRunning)// && NotSocketErrors > 5)
             {
                 Stop();
@@ -1421,6 +1424,7 @@ namespace OpenSim.Framework.Servers
                 StartHTTP();
                 m_log.Warn("[HTTPSERVER]: Died.  Trying to kick.....");
             }
+            */
         }
 
         public void Stop()
@@ -1551,7 +1555,7 @@ namespace OpenSim.Framework.Servers
     }
     public class HttpServerLogWriter : HttpServer.ILogWriter
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public HttpServerLogWriter()
         {
@@ -1559,6 +1563,8 @@ namespace OpenSim.Framework.Servers
 
         public void Write(object source, HttpServer.LogPrio priority, string message)
         {
+            return;
+            /*
             switch (priority)
             {
                 case HttpServer.LogPrio.Debug:
@@ -1580,6 +1586,7 @@ namespace OpenSim.Framework.Servers
                     break;
 
             }
+           */
         }
 
     }
