@@ -821,7 +821,9 @@ namespace OpenSim.Region.Environment.Scenes
                                         + "/CAPS/" + agent.CapsPath + "0000/";
                         }
 
-
+                        // Expect avatar crossing is a heavy-duty function at the destination.
+                        // That is where MakeRoot is called, which fetches appearance and inventory.
+                        // Plus triggers OnMakeRoot, which spawns a series of asynchronous updates.
                         m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
                                                                               position, false);
                         //{
@@ -833,7 +835,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //    return;
                         //}
 
-                        Thread.Sleep(2000);
+                        Thread.Sleep(5000);
 
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);
@@ -864,6 +866,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
+                            Thread.Sleep(2000);
                             CloseConnection(avatar.UUID);
                         }
 

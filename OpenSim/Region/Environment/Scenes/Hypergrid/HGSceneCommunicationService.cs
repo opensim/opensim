@@ -251,7 +251,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         //    return;
                         //}
 
-                        Thread.Sleep(2000);
+                        Thread.Sleep(5000);
 
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", agent.CapsPath, avatar.UUID);
@@ -293,6 +293,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         /// 
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
                         {
+                            Thread.Sleep(2000);
                             CloseConnection(avatar.UUID);
                         }
                         // if (teleport success) // seems to be always success here
