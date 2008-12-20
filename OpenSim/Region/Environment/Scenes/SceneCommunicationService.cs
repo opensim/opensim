@@ -772,6 +772,8 @@ namespace OpenSim.Region.Environment.Scenes
                         agent.child = true;
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
+                            Thread.Sleep(1000);
+
                             // brand new agent
                             agent.CapsPath = Util.GetRandomCapsPath();
                             if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent))
@@ -779,6 +781,8 @@ namespace OpenSim.Region.Environment.Scenes
                                 avatar.ControllingClient.SendTeleportFailed("Destination is not accepting teleports.");
                                 return;
                             }
+
+                            Thread.Sleep(2000);
 
                             // TODO Should construct this behind a method
                             capsPath =
@@ -836,7 +840,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
 
                         avatar.MakeChildAgent();
-                        Thread.Sleep(5000);
+                        Thread.Sleep(3000);
                         avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
                         if (KiPrimitive != null)
                         {
