@@ -72,6 +72,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             SceneObjectPart part =
                     myScriptEngine.World.GetSceneObjectPart(objectID);
+            if (part.ParentGroup != null)
+                part = part.ParentGroup.RootPart;
 
             if (part != null)
             {
