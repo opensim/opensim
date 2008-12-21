@@ -221,9 +221,12 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <param name="restMethod"></param>
         public void DeregisterHandlers()
         {
-            foreach (string capsName in m_capsHandlers.Caps)
+            if (m_capsHandlers != null)
             {
-                m_capsHandlers.Remove(capsName);
+                foreach (string capsName in m_capsHandlers.Caps)
+                {
+                    m_capsHandlers.Remove(capsName);
+                }
             }
         }
 
