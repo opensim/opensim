@@ -246,7 +246,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     if (part.Shape == null)
                                         continue;
 
-                                    if (part.Shape.PCode == (byte)PCode.Tree || part.Shape.PCode == (byte)PCode.NewTree)
+                                    if (part.Shape.PCode == (byte)PCode.Tree || part.Shape.PCode == (byte)PCode.NewTree || part.Shape.PCode == (byte)PCode.Grass)
                                         continue; // eliminates trees from this since we don't really have a good tree representation
                                     // if you want tree blocks on the map comment the above line and uncomment the below line
                                     //mapdotspot = Color.PaleGreen;
