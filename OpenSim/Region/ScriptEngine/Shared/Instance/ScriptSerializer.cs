@@ -179,6 +179,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             rootElement.AppendChild(plugins);
 
+            if (instance.ScriptTask != null)
+            {
+                if (instance.ScriptTask.PermsMask != 0 && instance.ScriptTask.PermsGranter != UUID.Zero)
+                {
+                    XmlNode permissions = xmldoc.CreateElement("", "Permissions", "");
+                    XmlAttribute granter = xmldoc.CreateAttribute("", "granter", "");
+                    granter.Value = instance.ScriptTask.PermsGranter.ToString();
+                    permissions.Attributes.Append(granter);
+                    XmlAttribute mask = xmldoc.CreateAttribute("", "mask", "");
+                    mask.Value = instance.ScriptTask.PermsMask.ToString();
+                    permissions.Attributes.Append(mask);
+                    rootElement.AppendChild(permissions);
+                }
+            }
+
             return xmldoc.InnerXml;
         }
 
@@ -341,6 +356,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         break;
                     case "Plugins":
                         instance.PluginData = ReadList(part).Data;
+                        break;
+                    case "Permissions":
+                        string tmpPerm;
+                        int mask = 0;
+                        tmpPerm = part.Attributes.GetNamedItem("mask").Value;
+                        if (tmpPerm != null)
+                        {
+                            int.TryParse(tmpPerm, out mask);
+                            if (mask != 0)
+                            {
+                                tmpPerm = part.Attributes.GetNamedItem("granter").Value;
+                                if (tmpPerm != null)
+                                {
+                                    UUID granter = new UUID();
+                                    UUID.TryParse(tmpPerm, out granter);
+                                    if (granter != UUID.Zero)
+                                    {
+                                        instance.ScriptTask.PermsMask = mask;
+                                        instance.ScriptTask.PermsGranter = granter;
+                                    }
+                                }
+                            }
+                        }
                         break;
                     }
                 }

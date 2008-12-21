@@ -83,6 +83,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private int m_ControlEventsInQueue = 0;
         private int m_LastControlLevel = 0;
         private bool m_CollisionInQueue = false;
+        private TaskInventoryItem m_thisScriptTask;
+
         //private ISponsor m_ScriptSponsor;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 m_LineMap;
@@ -177,6 +179,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             set { m_StartParam = value; }
         }
 
+        public TaskInventoryItem ScriptTask
+        {
+            get { return m_thisScriptTask; }
+        }
+
         public ScriptInstance(IScriptEngine engine, SceneObjectPart part,
                 UUID itemID, UUID assetID, string assembly,
                 AppDomain dom, string primName, string scriptName,
@@ -194,6 +201,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_Assembly = assembly;
             m_StartParam = startParam;
             m_MaxScriptQueue = maxScriptQueue;
+
+            if (part != null && part.TaskInventory.ContainsKey(m_ItemID))
+            {
+                m_thisScriptTask = part.TaskInventory[m_ItemID];
+            }
 
             ApiManager am = new ApiManager();
 
