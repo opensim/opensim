@@ -267,7 +267,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
 
             Assert.That(rotEuler2.ApproxEquals(new Vector3(-180, 0, 0), 0.001f) || rotEuler2.ApproxEquals(new Vector3(180, 0, 0), 0.001f));
 
-            // Now we're linking the first group to the second group.  This will make the second group child parts of the first one.
+            // Now we're linking the first group to the second group.  This will make the first group child parts of the second one.
             grp3.LinkToGroup(grp1);
 
             // Delink part 2
