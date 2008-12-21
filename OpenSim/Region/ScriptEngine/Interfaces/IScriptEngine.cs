@@ -61,6 +61,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         bool PostObjectEvent(uint localID, EventParams parms);
 
         DetectParams GetDetectParams(UUID item, int number);
+        void SetMinEventDelay(UUID itemID, double delay);
         int GetStartParameter(UUID itemID);
 
         void SetScriptState(UUID itemID, bool state);

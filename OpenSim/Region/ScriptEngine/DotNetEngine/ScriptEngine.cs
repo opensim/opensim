@@ -240,6 +240,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             return m_ScriptManager.GetStartParameter(itemID);
         }
+
+        public void SetMinEventDelay(UUID itemID, double delay)
+        {
+            // TODO in DotNet, done in XEngine
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         public void SetState(UUID itemID, string state)

@@ -194,6 +194,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 }
             }
 
+            if (instance.MinEventDelay > 0.0)
+            {
+                XmlElement eventDelay = xmldoc.CreateElement("", "MinEventDelay", "");
+                eventDelay.AppendChild(xmldoc.CreateTextNode(instance.MinEventDelay.ToString()));
+                rootElement.AppendChild(eventDelay);
+            }
+
             return xmldoc.InnerXml;
         }
 
@@ -380,8 +387,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             }
                         }
                         break;
-                    }
+                    case "MinEventDelay":
+                        double minEventDelay = 0.0;
+                        double.TryParse(part.InnerText, out minEventDelay);
+                        instance.MinEventDelay = minEventDelay;
+                        break;
                 }
+              }
             }
         }
 

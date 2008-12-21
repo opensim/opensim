@@ -891,6 +891,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return null;
         }
 
+        public void SetMinEventDelay(UUID itemID, double delay)
+        {
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance != null)
+                instance.MinEventDelay = delay;
+        }
+
         public UUID GetDetectID(UUID itemID, int idx)
         {
             IScriptInstance instance = GetInstance(itemID);

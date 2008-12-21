@@ -102,5 +102,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         string GetAssemblyName();
         string GetXMLState();
+        double MinEventDelay { set; }
     }
 }

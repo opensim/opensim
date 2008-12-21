@@ -2756,7 +2756,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llMinEventDelay(double delay)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llMinEventDelay");
+            try
+            {
+                m_ScriptEngine.SetMinEventDelay(m_itemID, delay);
+            }
+            catch (NotImplementedException)
+            {
+                // Currently not implemented in DotNetEngine only XEngine
+                NotImplemented("llMinEventDelay in DotNetEngine");
+            }
         }
 
         /// <summary>

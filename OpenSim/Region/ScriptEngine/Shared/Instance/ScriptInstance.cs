@@ -84,6 +84,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private int m_LastControlLevel = 0;
         private bool m_CollisionInQueue = false;
         private TaskInventoryItem m_thisScriptTask;
+        // The following is for setting a minimum delay between events
+        private double m_minEventDelay = 0;
+        private long m_eventDelayTicks = 0;
+        private long m_nextEventTimeTicks = 0;
 
         //private ISponsor m_ScriptSponsor;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
@@ -102,6 +106,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private string m_State="default";
 
         public Object[] PluginData = new Object[0];
+
+        /// <summary>
+        /// Used by llMinEventDelay to suppress events happening any faster than this speed.
+        /// This currently restricts all events in one go. Not sure if each event type has
+        /// its own check so take the simple route first.
+        /// </summary>
+        public double MinEventDelay
+        {
+            get { return m_minEventDelay; }
+            set
+            {
+                if (value > 0.001)
+                    m_minEventDelay = value;
+                else 
+                    m_minEventDelay = 0.0;
+                m_eventDelayTicks = (long)(m_minEventDelay * 10000000L);
+                m_nextEventTimeTicks = DateTime.Now.Ticks;
+            }
+        }
 
         public bool Running
         {
@@ -497,6 +520,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             if (!Running)
                 return;
+
+            // If min event delay is set then ignore any events untill the time has expired
+            // This currently only allows 1 event of any type in the given time period.
+            // This may need extending to allow for a time for each individual event type.
+            if (m_eventDelayTicks != 0)
+            {
+                if (DateTime.Now.Ticks < m_nextEventTimeTicks)
+                    return;
+                m_nextEventTimeTicks = DateTime.Now.Ticks + m_eventDelayTicks;
+            }
 
             lock (m_EventQueue)
             {
