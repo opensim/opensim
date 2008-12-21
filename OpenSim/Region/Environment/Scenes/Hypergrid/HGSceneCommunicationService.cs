@@ -198,7 +198,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         agent.child = true;
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
                         {
-                            Thread.Sleep(1000);
+                            Thread.Sleep(2000);
 
                             // brand new agent
                             agent.CapsPath = Util.GetRandomCapsPath();
@@ -208,7 +208,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                                 return;
                             }
 
-                            Thread.Sleep(2000);
+                            Thread.Sleep(3000);
 
                             // TODO Should construct this behind a method
                             capsPath =
@@ -251,7 +251,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         //    return;
                         //}
 
-                        Thread.Sleep(5000);
+                        Thread.Sleep(7000);
 
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", agent.CapsPath, avatar.UUID);
@@ -293,7 +293,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         /// 
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
                         {
-                            Thread.Sleep(2000);
+                            Thread.Sleep(5000);
                             CloseConnection(avatar.UUID);
                         }
                         // if (teleport success) // seems to be always success here
