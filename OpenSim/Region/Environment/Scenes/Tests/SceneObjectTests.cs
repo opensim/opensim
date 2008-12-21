@@ -99,6 +99,79 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
             Assert.That(retrievedPart2, Is.Null);            
         }
+
+        [Test]
+        public void TestLinkDelink2SceneObjects()
+        {
+            bool debugtest = false; 
+
+            Scene scene = SceneTestUtils.SetupScene();
+            SceneObjectPart part1 = SceneTestUtils.AddSceneObject(scene);
+            SceneObjectGroup grp1 = part1.ParentGroup;
+            SceneObjectPart part2 = SceneTestUtils.AddSceneObject(scene);
+            SceneObjectGroup grp2 = part2.ParentGroup;
+
+
+            grp1.AbsolutePosition = new Vector3(10, 10, 10);
+            grp2.AbsolutePosition = Vector3.Zero;
+            
+            // <90,0,0>
+            grp1.Rotation = (Quaternion.CreateFromEulers(90 * Utils.DEG_TO_RAD, 0, 0));
+
+            // <180,0,0>
+            grp2.UpdateGroupRotation(Quaternion.CreateFromEulers(180 * Utils.DEG_TO_RAD, 0, 0));
+            
+            // Required for linking
+            grp1.RootPart.UpdateFlag = 0;
+            grp2.RootPart.UpdateFlag = 0;
+
+            // Link grp2 to grp1.   part2 becomes child prim to grp1. grp2 is eliminated.
+            grp1.LinkToGroup(grp2);
+
+            Assert.That(grp1.Children.Count == 2);
+
+            if (debugtest)
+            {
+                System.Console.WriteLine("parts: {0}", grp1.Children.Count);
+                System.Console.WriteLine("Group1: Pos:{0}, Rot:{1}", grp1.AbsolutePosition, grp1.Rotation);
+                System.Console.WriteLine("Group1: Prim1: OffsetPosition:{0}, OffsetRotation:{1}", part1.OffsetPosition, part1.RotationOffset);
+                System.Console.WriteLine("Group1: Prim2: OffsetPosition:{0}, OffsetRotation:{1}", part2.OffsetPosition, part2.RotationOffset);
+            }
+
+            // root part should have no offset position or rotation
+            Assert.That(part1.OffsetPosition == Vector3.Zero && part1.RotationOffset == Quaternion.Identity);
+
+            // offset position should be root part position - part2.absolute position.
+            Assert.That(part2.OffsetPosition == new Vector3(-10, -10, -10));
+
+            float roll = 0;
+            float pitch = 0;
+            float yaw = 0;
+
+            // There's a euler anomoly at 180, 0, 0 so expect 180 to turn into -180.
+            part1.RotationOffset.GetEulerAngles(out roll, out pitch, out yaw);
+            Vector3 rotEuler1 = new Vector3(roll * Utils.RAD_TO_DEG, pitch * Utils.RAD_TO_DEG, yaw * Utils.RAD_TO_DEG);
+            
+            if (debugtest)
+                System.Console.WriteLine(rotEuler1);
+
+            part2.RotationOffset.GetEulerAngles(out roll, out pitch, out yaw);
+            Vector3 rotEuler2 = new Vector3(roll * Utils.RAD_TO_DEG, pitch * Utils.RAD_TO_DEG, yaw * Utils.RAD_TO_DEG);
+             
+            if (debugtest)
+                System.Console.WriteLine(rotEuler2);
+
+            Assert.That(rotEuler2.ApproxEquals(new Vector3(-180, 0, 0), 0.001f) || rotEuler2.ApproxEquals(new Vector3(180, 0, 0), 0.001f));
+
+            // Delink part 2
+            grp1.DelinkFromGroup(part2.LocalId);
+
+            if (debugtest)
+                System.Console.WriteLine("Group2: Prim2: OffsetPosition:{0}, OffsetRotation:{1}", part2.AbsolutePosition, part2.RotationOffset);
+
+            Assert.That(part2.AbsolutePosition == Vector3.Zero);
+            
+        }
  
         /// <summary>
         /// Test deleting an object asynchronously to user inventory.
