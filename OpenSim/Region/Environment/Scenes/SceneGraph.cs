@@ -1690,6 +1690,9 @@ namespace OpenSim.Region.Environment.Scenes
                     copy.CreateScriptInstances(0, false, m_parentScene.DefaultScriptEngine, 0);
                     copy.HasGroupChanged = true;
                     copy.ScheduleGroupForFullUpdate();
+
+                    // required for physics to update it's position
+                    copy.AbsolutePosition = copy.AbsolutePosition;
                     return copy;
                 }
             }

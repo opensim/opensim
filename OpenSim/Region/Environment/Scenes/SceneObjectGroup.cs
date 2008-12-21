@@ -2132,6 +2132,21 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void LinkNonRootPart(SceneObjectPart part, Vector3 oldGroupPosition, Quaternion oldGroupRotation, int linkNum)
         {
+
+            Quaternion parentRot = oldGroupRotation;
+            Quaternion oldRot = part.RotationOffset;
+            Quaternion worldRot = parentRot * oldRot;
+
+            parentRot = oldGroupRotation;
+
+            Vector3 axPos = part.OffsetPosition;
+
+            axPos *= parentRot;
+            part.OffsetPosition = axPos;
+            part.GroupPosition = oldGroupPosition + part.OffsetPosition;
+            part.OffsetPosition = Vector3.Zero;
+            part.RotationOffset = worldRot;
+
             part.SetParent(this);
             part.ParentID = m_rootPart.LocalId;
 
@@ -2140,11 +2155,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             part.LinkNum = linkNum;
 
-            Vector3 oldPos = part.OffsetPosition;
-            oldPos *= oldGroupRotation;
-            oldPos += oldGroupPosition;
-            Vector3 oldAbsolutePosition = oldPos;
-            part.OffsetPosition = oldAbsolutePosition - AbsolutePosition;
+
+            part.OffsetPosition = part.GroupPosition - AbsolutePosition;
 
             Quaternion rootRotation = m_rootPart.RotationOffset;
 
@@ -2152,11 +2164,10 @@ namespace OpenSim.Region.Environment.Scenes
             pos *= Quaternion.Inverse(rootRotation);
             part.OffsetPosition = pos;
 
-            Quaternion partRotation = part.RotationOffset;
-
-            partRotation *= oldGroupRotation;
-            partRotation *= Quaternion.Inverse(rootRotation);
-            part.RotationOffset = partRotation;
+            parentRot = m_rootPart.RotationOffset;
+            oldRot = part.RotationOffset;
+            Quaternion newRot = Quaternion.Inverse(parentRot) * oldRot;
+            part.RotationOffset = newRot;
         }
 
         /// <summary>
