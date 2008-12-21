@@ -344,6 +344,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         public event StartLure OnStartLure;
         public event TeleportLureRequest OnTeleportLureRequest;
+        public event NetworkStats OnNetworkStatsUpdate;
 
 
 #pragma warning restore 67

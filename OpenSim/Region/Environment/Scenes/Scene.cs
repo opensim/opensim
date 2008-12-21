@@ -2346,6 +2346,9 @@ namespace OpenSim.Region.Environment.Scenes
                 client.OnSoundTrigger += soundModule.TriggerSound;
 
             client.OnObjectOwner += ObjectOwner;
+            
+            if (m_statsReporter != null)
+                client.OnNetworkStatsUpdate += m_statsReporter.AddPacketsFromClientStats;
 
             // EventManager.TriggerOnNewClient(client);
         }

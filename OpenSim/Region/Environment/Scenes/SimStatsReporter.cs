@@ -409,6 +409,14 @@ namespace OpenSim.Region.Environment.Scenes
             return lastReportedSimFPS;
         }
 
+        public void AddPacketsFromClientStats(int inPackets, int outPackets, int unAckedBytes)
+        {
+            AddInPackets(inPackets);
+            AddOutPackets(outPackets);
+            AddunAckedBytes(unAckedBytes);
+
+        }
+
         #endregion
     }
 }

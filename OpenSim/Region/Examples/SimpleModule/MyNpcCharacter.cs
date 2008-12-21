@@ -239,6 +239,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public event StartLure OnStartLure;
         public event TeleportLureRequest OnTeleportLureRequest;
+        public event NetworkStats OnNetworkStatsUpdate;
 
 #pragma warning restore 67
 

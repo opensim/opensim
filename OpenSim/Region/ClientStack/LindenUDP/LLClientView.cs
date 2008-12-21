@@ -272,6 +272,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private StartLure handlerStartLure;
         private TeleportLureRequest handlerTeleportLureRequest;
 
+        private NetworkStats handlerNetworkStatsUpdate;
+
         private readonly IGroupsModule m_GroupsModule;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
@@ -450,7 +452,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_PacketHandler = new LLPacketHandler(this, m_networkServer, userSettings);
             m_PacketHandler.SynchronizeClient = SynchronizeClient;
-
+            m_PacketHandler.OnPacketStats += PopulateStats;
+            
             RegisterLocalPacketHandlers();
 
             m_clientThread = new Thread(Start);
@@ -572,6 +575,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Terminate()
         {
+            m_PacketHandler.OnPacketStats -= PopulateStats;
             m_PacketHandler.Stop();
 
             // wait for thread stoped
@@ -584,6 +588,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #endregion
 
         # region Packet Handling
+
+        public void PopulateStats(int inPackets, int outPackets, int unAckedBytes)
+        {
+            handlerNetworkStatsUpdate = OnNetworkStatsUpdate;
+            if (handlerNetworkStatsUpdate != null)
+            {
+                handlerNetworkStatsUpdate(inPackets, outPackets, unAckedBytes);
+            }
+        }
 
         public static bool AddPacketHandler(PacketType packetType, PacketMethod handler)
         {
@@ -1017,6 +1030,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public event StartLure OnStartLure;
         public event TeleportLureRequest OnTeleportLureRequest;
+        public event NetworkStats OnNetworkStatsUpdate;
 
         
         public void ActivateGesture(UUID assetId, UUID gestureId)

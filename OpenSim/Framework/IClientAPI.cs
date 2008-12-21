@@ -47,9 +47,6 @@ namespace OpenSim.Framework
 
     public delegate void ImprovedInstantMessage(IClientAPI remoteclient, GridInstantMessage im);
 
-    // This shouldn't be cut down...
-    // especially if we're ever going to implement groups, presence, estate message dialogs...
-
     public delegate void RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
                                    UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                    bool RezSelected, bool RemoveItem, UUID fromTaskID);
@@ -62,6 +59,8 @@ namespace OpenSim.Framework
     public delegate void ModifyTerrain(UUID user, 
         float height, float seconds, byte size, byte action, float north, float west, float south, float east,
         UUID agentId);
+
+    public delegate void NetworkStats(int inPackets, int outPackets, int unAckedBytes);
 
     public delegate void SetAppearance(byte[] texture, List<byte> visualParamList);
 
@@ -722,6 +721,7 @@ namespace OpenSim.Framework
 
         event StartLure OnStartLure;
         event TeleportLureRequest OnTeleportLureRequest;
+        event NetworkStats OnNetworkStatsUpdate;
 
         //     void ActivateGesture(UUID assetId, UUID gestureId);
 
