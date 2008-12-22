@@ -46,7 +46,7 @@ using Timer=System.Timers.Timer;
 
 namespace OpenSim
 {
-    /// <summary>
+    /// <summary> 
     /// Interactive OpenSim region server
     /// </summary>
     public class OpenSim : OpenSimBase, conscmd_callback
