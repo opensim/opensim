@@ -196,7 +196,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         private void OnNewClient(IClientAPI client)
         {
-            client.OnLogout += ClientClosed;
+            //client.OnLogout += ClientClosed;
         }
 
         private void ClientClosed(IClientAPI client)
