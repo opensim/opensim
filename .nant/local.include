@@ -43,7 +43,6 @@
           <include name="./bin/OpenSim.Region.Environment.Tests.dll" />
           <include name="./bin/OpenSim.Data.SQLite.Tests.dll" />
           <include name="./bin/OpenSim.Data.MySQL.Tests.dll" />
-          <include name="./bin/OpenSim.Region.Physics.OdePlugin.dll" />  
         </assemblies>
       </test>
     </nunit2>
@@ -138,18 +137,7 @@
     <delete dir="./cov/OpenSim.Data.MySQL" />
     <exec program="monocov">
       <arg value="--export-html=./cov/OpenSim.Data.MySQL ./cov/OpenSim.Data.MySQL.cov" />
-    </exec>  
-
-    <exec program="mono">
-      <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.Physics.OdePlugin.cov,+[OpenSim.Region.Physics.OdePlugin]" />
-      <arg value="/usr/lib/nunit/nunit-console.exe" />
-      <arg value="./bin/OpenSim.Region.Physics.OdePlugin.dll" />
-    </exec>  
-    <delete dir="./cov/OpenSim.Region.Physics.OdePlugin" />
-    <exec program="monocov">
-      <arg value="--export-html=./cov/OpenSim.Region.Physics.OdePlugin ./cov/OpenSim.Region.Physics.OdePlugin.cov" />
-    </exec>    
+    </exec>     
 
     <delete file="C:\NUnitPrimaryTrace.txt" failonerror="false" />
     <delete file="TestResult.xml" failonerror="false" />
@@ -171,7 +159,6 @@
           <include name="./bin/OpenSim.Region.Environment.Tests.dll" />
           <include name="./bin/OpenSim.Data.SQLite.Tests.dll" />
           <include name="./bin/OpenSim.Data.MySQL.Tests.dll" />
-          <include name="./bin/OpenSim.Region.Physics.OdePlugin.dll" />  
         </assemblies>
       </test>
     </nunit2>
