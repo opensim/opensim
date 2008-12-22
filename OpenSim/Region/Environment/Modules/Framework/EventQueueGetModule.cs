@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Threading;
 using System.Xml;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -207,6 +208,9 @@ namespace OpenSim.Region.Environment.Modules.Framework
         private void ClientClosed(UUID AgentID)
         {
             m_log.DebugFormat("[EVENTQUEUE]: Closed client {0} in region {1}", AgentID, m_scene.RegionInfo.RegionName);
+            while (queues[AgentID].Count() > 0)
+                Thread.Sleep(1000);
+
             lock (queues)
             {
                 queues.Remove(AgentID);
