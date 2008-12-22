@@ -382,67 +382,101 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         {
             // Friend Requests go by Instant Message..    using the dialog param
             // https://wiki.secondlife.com/wiki/ImprovedInstantMessage
-            UUID fromAgentID = new UUID(im.fromAgentID);
-            UUID toAgentID = new UUID(im.toAgentID);
 
             if (im.dialog == (byte)InstantMessageDialog.FriendshipOffered) // 38
             {
-                // this is triggered by the initiating agent:
-                // A local agent offers friendship to some possibly remote friend.
-                // A IM is triggered, processed here and sent to the friend (possibly in a remote region).
-
-                // some properties are misused here:
-                // fromAgentName is the *destination* name (the friend we offer friendship to)
-
-                m_log.InfoFormat("[FRIEND]: Offer(38) - From: {0}, FromName: {1} To: {2}, Session: {3}, Message: {4}, Offline {5}",
-                           im.fromAgentID, im.fromAgentName, im.toAgentID, im.imSessionID, im.message, im.offline);
-
-                // 1.20 protocol sends an UUID in the message field, instead of the friendship offer text.
-                // For interoperability, we have to clear that
-                if (Util.isUUID(im.message)) im.message = "";
-
-                // be sneeky and use the initiator-UUID as transactionID. This means we can be stateless.
-                // we have to look up the agent name on friendship-approval, though.
-                im.imSessionID = im.fromAgentID;
-                im.fromAgentName = client.Name;
-
-                if (m_TransferModule != null)
-                {
-                    // Send it to whoever is the destination.
-                    // If new friend is local, it will send an IM to the viewer.
-                    // If new friend is remote, it will cause a OnGridInstantMessage on the remote server
-                    m_TransferModule.SendInstantMessage(im,
-                        delegate(bool success) {
-                            m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
-                        }
-                    );
-                }
+                FriendshipOffered(client, im);
             }
             else if (im.dialog == (byte)InstantMessageDialog.FriendshipAccepted) // 39
             {
-                m_log.DebugFormat("[FRIEND]: 39 - from client {0}, agent {2} {3}, imsession {4} to {5}: {6} (dialog {7})",
-                  client.AgentId, im.fromAgentID, im.fromAgentName, im.imSessionID, im.toAgentID, im.message, im.dialog);
-
+                FriendshipAccepted(client, im);
             }
             else if (im.dialog == (byte)InstantMessageDialog.FriendshipDeclined) // 40
             {
-                // declining the friendship offer causes a type 40 IM being sent to the (possibly remote) initiator
-                // toAgentID is initiator, fromAgentID declined friendship
-                m_log.DebugFormat("[FRIEND]: 40 - from client {0}, agent {1} {2}, imsession {3} to {4}: {5} (dialog {6})",
-                  client != null ? client.AgentId.ToString() : "<null>",
-                  fromAgentID, im.fromAgentName, im.imSessionID, im.toAgentID, im.message, im.dialog);
+                FriendshipDeclined(client, im);
+            }
+        }
+        
+        /// <summary>
+        /// Invoked when a user offers a friendship.
+        /// </summary>
+        /// May not currently be used - see OnApproveFriendRequest() instead
+        /// <param name="im"></param>    
+        /// <param name="client"></param>
+        private void FriendshipOffered(IClientAPI client, GridInstantMessage im)
+        {
+            // this is triggered by the initiating agent:
+            // A local agent offers friendship to some possibly remote friend.
+            // A IM is triggered, processed here and sent to the friend (possibly in a remote region).
 
-                // Send the decline to whoever is the destination.
-                GridInstantMessage msg = new GridInstantMessage(client.Scene, fromAgentID, client.Name, toAgentID,
-                                                                im.dialog, im.message, im.offline != 0, im.Position);
+            // some properties are misused here:
+            // fromAgentName is the *destination* name (the friend we offer friendship to)
+
+            m_log.DebugFormat("[FRIEND]: Offer(38) - From: {0}, FromName: {1} To: {2}, Session: {3}, Message: {4}, Offline {5}",
+                       im.fromAgentID, im.fromAgentName, im.toAgentID, im.imSessionID, im.message, im.offline);
+
+            // 1.20 protocol sends an UUID in the message field, instead of the friendship offer text.
+            // For interoperability, we have to clear that
+            if (Util.isUUID(im.message)) im.message = "";
+
+            // be sneeky and use the initiator-UUID as transactionID. This means we can be stateless.
+            // we have to look up the agent name on friendship-approval, though.
+            im.imSessionID = im.fromAgentID;
+            im.fromAgentName = client.Name;
+
+            if (m_TransferModule != null)
+            {
+                // Send it to whoever is the destination.
                 // If new friend is local, it will send an IM to the viewer.
                 // If new friend is remote, it will cause a OnGridInstantMessage on the remote server
-                m_TransferModule.SendInstantMessage(msg,
-                    delegate(bool success) {
+                m_TransferModule.SendInstantMessage(im,
+                    delegate(bool success) 
+                    {
                         m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
                     }
                 );
-            }
+            }            
+        }
+        
+        /// <summary>
+        /// Invoked when a user accepts a friendship offer.
+        /// </summary>
+        /// <param name="im"></param>
+        /// <param name="client"></param>
+        private void FriendshipAccepted(IClientAPI client, GridInstantMessage im)
+        {
+            m_log.DebugFormat("[FRIEND]: 39 - from client {0}, agent {2} {3}, imsession {4} to {5}: {6} (dialog {7})",
+              client.AgentId, im.fromAgentID, im.fromAgentName, im.imSessionID, im.toAgentID, im.message, im.dialog);            
+        }
+        
+        /// <summary>
+        /// Invoked when a user declines a friendship offer.
+        /// </summary>
+        /// May not currently be used - see OnDenyFriendRequest() instead
+        /// <param name="im"></param>
+        /// <param name="client"></param>
+        private void FriendshipDeclined(IClientAPI client, GridInstantMessage im)
+        {
+            UUID fromAgentID = new UUID(im.fromAgentID);
+            UUID toAgentID = new UUID(im.toAgentID);
+            
+            // declining the friendship offer causes a type 40 IM being sent to the (possibly remote) initiator
+            // toAgentID is initiator, fromAgentID declined friendship
+            m_log.DebugFormat("[FRIEND]: 40 - from client {0}, agent {1} {2}, imsession {3} to {4}: {5} (dialog {6})",
+              client != null ? client.AgentId.ToString() : "<null>",
+              fromAgentID, im.fromAgentName, im.imSessionID, im.toAgentID, im.message, im.dialog);
+
+            // Send the decline to whoever is the destination.
+            GridInstantMessage msg = new GridInstantMessage(client.Scene, fromAgentID, client.Name, toAgentID,
+                                                            im.dialog, im.message, im.offline != 0, im.Position);
+            
+            // If new friend is local, it will send an IM to the viewer.
+            // If new friend is remote, it will cause a OnGridInstantMessage on the remote server
+            m_TransferModule.SendInstantMessage(msg,
+                delegate(bool success) {
+                    m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
+                }
+            );            
         }
 
         private void OnGridInstantMessage(GridInstantMessage msg)
@@ -467,11 +501,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             if (msg.dialog == (byte)InstantMessageDialog.FriendshipAccepted)
             {
                 // for accept friendship, we have to do a bit more
-                approveFriendship(new UUID(msg.fromAgentID), new UUID(msg.toAgentID), msg.fromAgentName);
+                ApproveFriendship(new UUID(msg.fromAgentID), new UUID(msg.toAgentID), msg.fromAgentName);
             }
         }
 
-        private void approveFriendship(UUID fromAgentID, UUID toAgentID, string fromName)
+        private void ApproveFriendship(UUID fromAgentID, UUID toAgentID, string fromName)
         {
             m_log.DebugFormat("[FRIEND]: Approve friendship from {0} (ID: {1}) to {2}",
                               fromAgentID, fromName, toAgentID);
@@ -537,7 +571,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 friendPresence.ControllingClient.SendInstantMessage(agentID, agentID.ToString(), friendID, client.Name,
                                                                     (byte)InstantMessageDialog.FriendshipAccepted,
                                                                     (uint)Util.UnixTimeSinceEpoch());
-                approveFriendship(agentID, friendID, client.Name);
+                ApproveFriendship(agentID, friendID, client.Name);
             }
             else
             {
