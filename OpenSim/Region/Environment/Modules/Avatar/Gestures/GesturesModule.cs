@@ -46,6 +46,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Gestures
         public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
+            
+            m_scene.EventManager.OnNewClient += OnNewClient;
+            
             m_scene.RegisterModuleInterface<IGesturesModule>(this);
         }
         
@@ -53,6 +56,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Gestures
         public void Close() {}
         public string Name { get { return "Gestures Module"; } }
         public bool IsSharedModule { get { return false; } }
+        
+        private void OnNewClient(IClientAPI client)
+        {
+            client.OnActivateGesture += ActivateGesture;
+            client.OnDeactivateGesture += DeactivateGesture;
+        }
         
         public virtual void ActivateGesture(IClientAPI client, UUID assetId, UUID gestureId)
         {

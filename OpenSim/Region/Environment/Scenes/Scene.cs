@@ -2334,13 +2334,6 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRegionHandleRequest += RegionHandleRequest;
             client.OnUnackedTerrain += TerrainUnAcked;
 
-            IGesturesModule gesturesModule = RequestModuleInterface<IGesturesModule>();            
-            if (gesturesModule != null)
-            {
-                client.OnActivateGesture += gesturesModule.ActivateGesture;
-                client.OnDeactivateGesture += gesturesModule.DeactivateGesture;
-            }
-
             client.OnObjectOwner += ObjectOwner;
             
             if (m_statsReporter != null)
