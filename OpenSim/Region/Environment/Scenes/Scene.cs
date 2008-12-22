@@ -2558,7 +2558,9 @@ namespace OpenSim.Region.Environment.Scenes
                     //{
                     //    childknownRegions.Add(ckn[i]);
                     //}
-                    m_sceneGridService.SendCloseChildAgentConnections(agentID, avatar.KnownChildRegionHandles);
+                    List<ulong> regions = new List<ulong>(avatar.KnownChildRegionHandles);
+                    regions.Remove(RegionInfo.RegionHandle);
+                    m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
 
                 }
                 m_eventManager.TriggerClientClosed(agentID);
@@ -2725,11 +2727,12 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_log.DebugFormat("[CONNECTION DEBUGGING]: Updated agent {0} in {1}", agent.AgentID, RegionInfo.RegionName);
                 sp.AdjustKnownSeeds();
+                sp.AbsolutePosition = agent.startpos;
                 return;
             }
 
-            m_log.DebugFormat("[CONNECTION DEBUGGING]: Adding NewUserConnection for {0} in {1} with CC of {2}", agent.AgentID,
-                              RegionInfo.RegionName, agent.circuitcode);
+            m_log.DebugFormat("[CONNECTION DEBUGGING]: Adding NewUserConnection for {0} in {1} with CC of {2}, pos={3}", agent.AgentID,
+                              RegionInfo.RegionName, agent.circuitcode, agent.startpos.ToString());
 
             AddCapsHandler(agent.AgentID);
 
