@@ -879,6 +879,8 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "CollisionSound", typeof(String));
             createCol(prims, "CollisionSoundVolume", typeof(Double));
 
+            createCol(prims, "VolumeDetect", typeof(Int16));
+
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] {prims.Columns["UUID"]};
 
@@ -1240,6 +1242,9 @@ namespace OpenSim.Data.SQLite
             prim.CollisionSound = new UUID(row["CollisionSound"].ToString());
             prim.CollisionSoundVolume = Convert.ToSingle(row["CollisionSoundVolume"]);
 
+            if (Convert.ToInt16(row["VolumeDetect"]) != 0)
+                prim.VolumeDetectActive = true;
+
             return prim;
         }
 
@@ -1569,6 +1574,11 @@ namespace OpenSim.Data.SQLite
 
             row["CollisionSound"] = prim.CollisionSound.ToString();
             row["CollisionSoundVolume"] = prim.CollisionSoundVolume;
+            if (prim.VolumeDetectActive)
+                row["VolumeDetect"] = 1;
+            else
+                row["VolumeDetect"] = 0;
+
         }
 
         /// <summary>

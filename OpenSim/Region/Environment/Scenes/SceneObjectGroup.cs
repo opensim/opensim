@@ -858,7 +858,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.AttachedAvatar = UUID.Zero;
             m_rootPart.SetParentLocalId(0);
             SetAttachmentPoint((byte)0);
-            m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
+            m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive, m_scene.m_physicalPrim);
             HasGroupChanged = true;
             RootPart.Rezzed = DateTime.Now;
             RootPart.RemFlag(PrimFlags.TemporaryOnRez);
@@ -1161,12 +1161,12 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_parts.Count > 1)
                 {
-                    m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_physicalPrim);
+                    m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive, m_physicalPrim);
                     foreach (SceneObjectPart part in m_parts.Values)
                     {
                         if (part.LocalId != m_rootPart.LocalId)
                         {
-                            part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_physicalPrim);
+                            part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), part.VolumeDetectActive, m_physicalPrim);
                         }                                                  
                     }    
                     
@@ -1175,7 +1175,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_physicalPrim);
+                    m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive, m_physicalPrim);
                 }
             }
         }

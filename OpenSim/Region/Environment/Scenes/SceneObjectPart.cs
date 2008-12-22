@@ -1281,10 +1281,14 @@ if (m_shape != null) {
         /// </summary>
         /// <param name="rootObjectFlags"></param>
         /// <param name="m_physicalPrim"></param>
-        public void ApplyPhysics(uint rootObjectFlags, bool m_physicalPrim)
+        public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive, bool m_physicalPrim)
         {
             bool isPhysical = (((rootObjectFlags & (uint) PrimFlags.Physics) != 0) && m_physicalPrim);
             bool isPhantom = ((rootObjectFlags & (uint) PrimFlags.Phantom) != 0);
+
+            // Special case for VolumeDetection: If VolumeDetection is set, the phantom flag is locally ignored
+            if (VolumeDetectActive)
+                isPhantom = false;
 
             // Added clarification..   since A rigid body is an object that you can kick around, etc.
             bool RigidBody = isPhysical && !isPhantom;
@@ -1305,6 +1309,7 @@ if (m_shape != null) {
                 {
                     PhysActor.LocalID = LocalId;
                     DoPhysicsPropertyUpdate(RigidBody, true);
+                    PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
                 }
             }
         }
