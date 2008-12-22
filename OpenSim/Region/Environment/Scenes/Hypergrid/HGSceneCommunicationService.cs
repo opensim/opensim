@@ -196,20 +196,20 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         agent.InventoryFolder = UUID.Zero;
                         agent.startpos = position;
                         agent.child = true;
+                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        {
+                            // brand new agent, let's create a new caps seed
+                            agent.CapsPath = Util.GetRandomCapsPath();
+                        }
+
+                        if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent))
+                        {
+                            avatar.ControllingClient.SendTeleportFailed("Destination is not accepting teleports.");
+                            return;
+                        }
+
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
                         {
-                            Thread.Sleep(2000);
-
-                            // brand new agent
-                            agent.CapsPath = Util.GetRandomCapsPath();
-                            if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent))
-                            {
-                                avatar.ControllingClient.SendTeleportFailed("Destination is not accepting teleports.");
-                                return;
-                            }
-
-                            Thread.Sleep(3000);
-
                             // TODO Should construct this behind a method
                             capsPath =
                                 "http://" + reg.ExternalHostName + ":" + reg.HttpPort
@@ -219,6 +219,11 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                             {
                                 OSD Item = EventQueueHelper.EnableSimulator(realHandle, endPoint);
                                 eq.Enqueue(Item, avatar.UUID);
+
+                                // ES makes the client send a UseCircuitCode message to the destination, 
+                                // which triggers a bunch of things there.
+                                // So let's wait
+                                Thread.Sleep(2000);
 
                                 Item = EventQueueHelper.EstablishAgentCommunication(avatar.UUID, endPoint.ToString(), capsPath);
                                 eq.Enqueue(Item, avatar.UUID);
@@ -237,8 +242,8 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                                         + "/CAPS/" + agent.CapsPath + "0000/";
                         }
                         
-                        m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
-                                                                              position, false);
+                        //m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
+                        //                                                      position, false);
 
                         //if (!m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
                         //                                                      position, false))
@@ -251,7 +256,9 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         //    return;
                         //}
 
-                        Thread.Sleep(7000);
+                        avatar.MakeChildAgent();
+                        // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
+                        avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
 
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", agent.CapsPath, avatar.UUID);
@@ -276,9 +283,6 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         /// Hypergrid mod stop
                         /// 
 
-                        avatar.MakeChildAgent();
-                        Thread.Sleep(3000);
-                        avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
                         if (KiPrimitive != null)
                         {
                             KiPrimitive(avatar.LocalId);
@@ -293,7 +297,11 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         /// 
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
                         {
-                            Thread.Sleep(5000);
+                            // FinishTeleport makes the client send CompleteMovementIntoRegion (at the destination), which
+                            // trigers a whole shebang of things there. So let's wait plenty before we disconnect.
+                            // The user is already there anyway.
+                            Thread.Sleep(8000);
+                            avatar.Close();
                             CloseConnection(avatar.UUID);
                         }
                         // if (teleport success) // seems to be always success here
