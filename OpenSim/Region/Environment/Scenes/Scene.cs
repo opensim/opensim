@@ -2340,10 +2340,6 @@ namespace OpenSim.Region.Environment.Scenes
                 client.OnActivateGesture += gesturesModule.ActivateGesture;
                 client.OnDeactivateGesture += gesturesModule.DeactivateGesture;
             }
-            
-            ISoundModule soundModule = RequestModuleInterface<ISoundModule>();            
-            if (soundModule != null)
-                client.OnSoundTrigger += soundModule.TriggerSound;
 
             client.OnObjectOwner += ObjectOwner;
             

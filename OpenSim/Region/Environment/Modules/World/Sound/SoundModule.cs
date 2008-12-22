@@ -45,6 +45,9 @@ namespace OpenSim.Region.Environment.World.Sound
         public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
+            
+            m_scene.EventManager.OnNewClient += OnNewClient;
+            
             m_scene.RegisterModuleInterface<ISoundModule>(this);
         }
         
@@ -52,6 +55,11 @@ namespace OpenSim.Region.Environment.World.Sound
         public void Close() {}
         public string Name { get { return "Sound Module"; } }
         public bool IsSharedModule { get { return false; } }
+        
+        private void OnNewClient(IClientAPI client)
+        {
+            client.OnSoundTrigger += TriggerSound;
+        }
         
         public virtual void TriggerSound(
             UUID soundId, UUID ownerID, UUID objectID, UUID parentID, float gain, Vector3 position, UInt64 handle)
