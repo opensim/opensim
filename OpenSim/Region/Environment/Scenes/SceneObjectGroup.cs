@@ -2751,7 +2751,7 @@ namespace OpenSim.Region.Environment.Scenes
                         axPos *= Quaternion.Inverse(axRot);
                         prim.OffsetPosition = axPos;
                         Quaternion primsRot = prim.RotationOffset;
-                        Quaternion newRot = oldParentRot * primsRot;
+                        Quaternion newRot = primsRot * oldParentRot;
                         newRot *= Quaternion.Inverse(axRot);
                         prim.RotationOffset = newRot;
                         prim.ScheduleTerseUpdate();
