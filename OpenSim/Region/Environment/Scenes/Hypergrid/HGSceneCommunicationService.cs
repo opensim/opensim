@@ -257,8 +257,6 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         //}
 
                         avatar.MakeChildAgent();
-                        // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
-                        avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
 
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", agent.CapsPath, avatar.UUID);
@@ -288,8 +286,16 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                             KiPrimitive(avatar.LocalId);
                         }
 
+                        // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
+                        // trigers a whole shebang of things there, including MakeRoot. So let's wait plenty before 
+                        // we send the attachments and close things here.
+                        // It would be nice if the client would tell us when that whole thing is done, so we wouldn't have
+                        // to use this Thread.Sleep voodoo
+                        Thread.Sleep(3000);
 
-                        //avatar.Close();
+                        // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
+                        avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
+
                         
                         // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
                         ///
@@ -297,10 +303,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         /// 
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
                         {
-                            // FinishTeleport makes the client send CompleteMovementIntoRegion (at the destination), which
-                            // trigers a whole shebang of things there. So let's wait plenty before we disconnect.
-                            // The user is already there anyway.
-                            Thread.Sleep(8000);
+                            Thread.Sleep(5000);
                             avatar.Close();
                             CloseConnection(avatar.UUID);
                         }
