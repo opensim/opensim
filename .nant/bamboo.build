@@ -28,8 +28,10 @@
     <mkdir dir="../test-results" />
     <!-- Copy the OdePlugin dll to bin/ for testing. -->
     <copy file="../bin/Physics/OpenSim.Region.Physics.OdePlugin.dll" tofile="../bin/OpenSim.Region.Physics.OdePlugin.dll" />
+    
     <!-- Copy the 64 bit ode library to bin/ for testing. -->
     <copy file="/home/buildsystem/libode.so" tofile="../bin/libode.so" />
+    <exec program="chmod" useruntimeengine="false" commandline="755 ../bin/libode.so" />
 
     <!-- Run the tests. -->
     <nunit2 failonerror="false" verbose="true">
@@ -45,7 +47,7 @@
           <include name="../bin/OpenSim.Region.Environment.Tests.dll" />
           <include name="../bin/OpenSim.Data.SQLite.Tests.dll" />
           <include name="../bin/OpenSim.Data.MySQL.Tests.dll" />
-          
+          <include name="../bin/OpenSim.Region.Physics.OdePlugin.dll" />          
 
         </assemblies>
       </test>
