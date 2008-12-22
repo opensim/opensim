@@ -1328,9 +1328,6 @@ namespace PrimMesher
                     profile.MakeFaceUVs();
             }
 
-            if (this.sides == 4 && this.hollowSides == 3)
-                profile.DumpRaw("d:\\", "primProfile", "");
-
             Coord lastCutNormal1 = new Coord();
             Coord lastCutNormal2 = new Coord();
             float lastV = 1.0f;
