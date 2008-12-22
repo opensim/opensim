@@ -65,6 +65,7 @@ namespace OpenSim.Region.Communications.OGS1
             userData.FirstName = (string) data["firstname"];
             userData.SurName = (string) data["lastname"];
             userData.ID = new UUID((string) data["uuid"]);
+            userData.Created = Convert.ToInt32(data["profile_created"]);
             userData.UserInventoryURI = (string) data["server_inventory"];
             userData.UserAssetURI = (string) data["server_asset"];
             userData.FirstLifeAboutText = (string) data["profile_firstlife_about"];
