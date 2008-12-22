@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Globalization;
 using System.Reflection;
 using OpenMetaverse;
 using log4net;
@@ -108,7 +109,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
                 }
 
                 remoteClient.SendAvatarProperties(profile.ID, profile.AboutText,
-                                                  Util.ToDateTime(profile.Created).ToString(),
+                                                  Util.ToDateTime(profile.Created).ToString("M/d/yyyy", CultureInfo.InvariantCulture),
                                                   charterMember, profile.FirstLifeAboutText, (uint)(profile.UserFlags & 0xff),
                                                   profile.FirstLifeImage, profile.Image, String.Empty, profile.Partner);
             }
