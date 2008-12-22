@@ -651,7 +651,8 @@ namespace PrimMesher
             this.numOuterVerts = angles.angles.Count;
 
             // flag to create as few triangles as possible for 3 or 4 side profile
-            bool simpleFace = (sides < 5 && !(hasHollow || hasProfileCut));
+            //bool simpleFace = (sides < 5 && !(hasHollow || hasProfileCut));
+            bool simpleFace = (sides < 5 && !hasHollow && !hasProfileCut);
 
             if (hasHollow)
             {
@@ -709,7 +710,7 @@ namespace PrimMesher
 
             for (int i = 0; i < numAngles; i++)
             {
-                // int iNext = i == numAngles ? i + 1 : 0;
+                //int iNext = i == numAngles ? i + 1 : 0;
                 angle = angles.angles[i];
                 newVert.X = angle.X * xScale;
                 newVert.Y = angle.Y * yScale;
@@ -717,7 +718,6 @@ namespace PrimMesher
                 this.coords.Add(newVert);
                 if (this.calcVertexNormals)
                 {
-
                     if (sides < 5)
                     {
                         this.vertexNormals.Add(angles.normals[i]);
@@ -731,7 +731,7 @@ namespace PrimMesher
                     }
                 }
 
-                if (hollow > 0.0f)
+                if (hasHollow)
                 {
                     if (hollowSides == sides)
                     {
@@ -807,7 +807,7 @@ namespace PrimMesher
                             for (int i = 0; i < numHollowVerts; i++) // i is the index for inner vertices
                             {
                                 if (j < maxJ)
-                                    if (angles.angles[j + 1].angle - hollowAngles.angles[i].angle <= hollowAngles.angles[i].angle - angles.angles[j].angle)
+                                    if (angles.angles[j + 1].angle - hollowAngles.angles[i].angle < hollowAngles.angles[i].angle - angles.angles[j].angle + 0.000001f)
                                     {
                                         newFace.v1 = numTotalVerts - i - 1;
                                         newFace.v2 = j;
@@ -832,7 +832,7 @@ namespace PrimMesher
                             for (int i = 0; i < numOuterVerts; i++)
                             {
                                 if (j < maxJ)
-                                    if (hollowAngles.angles[j + 1].angle - angles.angles[i].angle <= angles.angles[i].angle - hollowAngles.angles[j].angle)
+                                    if (hollowAngles.angles[j + 1].angle - angles.angles[i].angle < angles.angles[i].angle - hollowAngles.angles[j].angle + 0.000001f)
                                     {
                                         newFace.v1 = i;
                                         newFace.v2 = numTotalVerts - j - 2;
@@ -853,6 +853,7 @@ namespace PrimMesher
                 }
 
                 this.coords.AddRange(hollowCoords);
+
                 if (this.calcVertexNormals)
                 {
                     this.vertexNormals.AddRange(hollowNormals);
@@ -1327,6 +1328,8 @@ namespace PrimMesher
                     profile.MakeFaceUVs();
             }
 
+            if (this.sides == 4 && this.hollowSides == 3)
+                profile.DumpRaw("d:\\", "primProfile", "");
 
             Coord lastCutNormal1 = new Coord();
             Coord lastCutNormal2 = new Coord();
@@ -1367,8 +1370,12 @@ namespace PrimMesher
                     {
                         Coord faceNormal = newLayer.faceNormal;
                         ViewerFace newViewerFace = new ViewerFace(0);
-                        foreach (Face face in newLayer.faces)
+                        int numFaces = newLayer.faces.Count;
+                        List<Face> faces = newLayer.faces;
+
+                        for (int i = 0; i < numFaces; i++)
                         {
+                            Face face = faces[i];
                             newViewerFace.v1 = newLayer.coords[face.v1];
                             newViewerFace.v2 = newLayer.coords[face.v2];
                             newViewerFace.v3 = newLayer.coords[face.v3];
@@ -1558,8 +1565,12 @@ namespace PrimMesher
                     Coord faceNormal = newLayer.faceNormal;
                     ViewerFace newViewerFace = new ViewerFace();
                     newViewerFace.primFaceNumber = newLayer.bottomFaceNumber;
-                    foreach (Face face in newLayer.faces)
+                    int numFaces = newLayer.faces.Count;
+                    List<Face> faces = newLayer.faces;
+
+                    for (int i = 0; i < numFaces; i++)
                     {
+                        Face face = faces[i];
                         newViewerFace.v1 = newLayer.coords[face.v1 - coordsLen];
                         newViewerFace.v2 = newLayer.coords[face.v2 - coordsLen];
                         newViewerFace.v3 = newLayer.coords[face.v3 - coordsLen];
