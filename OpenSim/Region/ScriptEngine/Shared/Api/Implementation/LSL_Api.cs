@@ -3644,7 +3644,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
 
                         partItemID = item.ItemID;
-                        linkNumber = m_host.LinkNum;
+                        int linkNumber = m_host.LinkNum;
                         if(m_host.ParentGroup.Children.Count == 1)
                             linkNumber = 0;
 
