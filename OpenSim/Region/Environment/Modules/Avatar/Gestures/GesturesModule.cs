@@ -37,7 +37,7 @@ using System.Reflection;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Gestures
 {
-    public class GesturesModule : IRegionModule, IGesturesModule
+    public class GesturesModule : IRegionModule
     { 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -48,8 +48,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Gestures
             m_scene = scene;
             
             m_scene.EventManager.OnNewClient += OnNewClient;
-            
-            m_scene.RegisterModuleInterface<IGesturesModule>(this);
         }
         
         public void PostInitialise() {}

@@ -2344,8 +2344,6 @@ if (m_shape != null) {
             Vector3 position = AbsolutePosition; // region local
             ulong regionHandle = m_parentGroup.Scene.RegionInfo.RegionHandle;
 
-            //byte flags = 0;
-
             if (!UUID.TryParse(sound, out soundID))
             {
                 // search sound file from inventory
