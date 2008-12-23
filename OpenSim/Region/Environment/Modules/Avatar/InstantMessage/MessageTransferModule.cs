@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         {
             UUID toAgentID = new UUID(im.toAgentID);
 
-            m_log.DebugFormat("[INSTANT MESSAGE]: Attempting delivery of IM fromn {0} to {1}", im.fromAgentName, toAgentID.ToString());
+            m_log.DebugFormat("[INSTANT MESSAGE]: Attempting delivery of IM from {0} to {1}", im.fromAgentName, toAgentID.ToString());
 
             // Try root avatar only first
             foreach (Scene scene in m_Scenes)

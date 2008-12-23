@@ -80,7 +80,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         - Terminate Friendship messages (single)
      */
 
-    public class FriendsModule : IRegionModule
+    public class FriendsModule : IRegionModule, IFriendsModule
     {
         private class Transaction
         {
@@ -125,6 +125,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 if (!m_scenes.ContainsKey(scene.RegionInfo.RegionHandle))
                     m_scenes[scene.RegionInfo.RegionHandle] = scene;
             }
+            
+            scene.RegisterModuleInterface<IFriendsModule>(this);
             
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
@@ -375,6 +377,24 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             }
             return returnAgent;
         }
+        
+        public void OfferFriendship(UUID fromUserId, IClientAPI toUserClient, string offerMessage)
+        {
+            CachedUserInfo userInfo = m_initialScene.CommsManager.UserProfileCacheService.GetUserDetails(fromUserId);
+                
+            if (userInfo != null)
+            {
+                GridInstantMessage msg = new GridInstantMessage(
+                    toUserClient.Scene, fromUserId, userInfo.UserProfile.Name, toUserClient.AgentId,
+                    (byte)InstantMessageDialog.FriendshipOffered, offerMessage, false, Vector3.Zero); 
+            
+                FriendshipOffered(msg);
+            }
+            else
+            {
+                m_log.ErrorFormat("[FRIENDS]: No user found for id {0} in OfferFriendship()", fromUserId);
+            }
+        }        
 
         #region FriendRequestHandling
 
@@ -385,7 +405,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
             if (im.dialog == (byte)InstantMessageDialog.FriendshipOffered) // 38
             {
-                FriendshipOffered(client, im);
+                FriendshipOffered(im);
             }
             else if (im.dialog == (byte)InstantMessageDialog.FriendshipAccepted) // 39
             {
@@ -403,7 +423,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         /// May not currently be used - see OnApproveFriendRequest() instead
         /// <param name="im"></param>    
         /// <param name="client"></param>
-        private void FriendshipOffered(IClientAPI client, GridInstantMessage im)
+        private void FriendshipOffered(GridInstantMessage im)
         {
             // this is triggered by the initiating agent:
             // A local agent offers friendship to some possibly remote friend.
@@ -422,7 +442,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // be sneeky and use the initiator-UUID as transactionID. This means we can be stateless.
             // we have to look up the agent name on friendship-approval, though.
             im.imSessionID = im.fromAgentID;
-            im.fromAgentName = client.Name;
 
             if (m_TransferModule != null)
             {

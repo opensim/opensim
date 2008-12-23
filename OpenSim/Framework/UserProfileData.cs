@@ -200,6 +200,14 @@ namespace OpenSim.Framework
             get { return _surname; }
             set { _surname = value; }
         }
+        
+        /// <value>
+        /// The concatentation of the various name components.
+        /// </value>
+        public string Name
+        {
+            get { return String.Format("{0} {1}", _firstname, _surname); }
+        }        
 
         public string Email
         {

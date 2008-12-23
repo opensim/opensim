@@ -2564,7 +2564,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if ((m_host.TaskInventory[InventorySelf()].PermsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                     {
                         presence.RegisterControlEventsToScript(controls, accept, pass_on, m_localID, m_itemID);
-
                     }
                 }
             }

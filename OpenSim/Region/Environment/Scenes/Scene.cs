@@ -2270,7 +2270,6 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnUpdatePrimGroupScale += m_sceneGraph.UpdatePrimGroupScale;
             client.OnUpdateExtraParams += m_sceneGraph.UpdateExtraParam;
             client.OnUpdatePrimShape += m_sceneGraph.UpdatePrimShape;
-            //client.OnRequestMapBlocks += RequestMapBlocks; // handled in a module now.
             client.OnUpdatePrimTexture += m_sceneGraph.UpdatePrimTexture;
             client.OnTeleportLocationRequest += RequestTeleportLocation;
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
