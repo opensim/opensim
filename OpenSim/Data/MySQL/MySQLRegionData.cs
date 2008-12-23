@@ -365,7 +365,7 @@ namespace OpenSim.Data.MySQL
 
                 for (int i = 0; i < uuids.Count; i++)
                 {
-                    cmd.Parameters.AddWithValue("UUID" + i, uuids[i].ToString());
+                    cmd.Parameters.AddWithValue("UUID" + i, Util.ToRawUuidString(uuids[i]));
                 }
 
                 ExecuteNonQuery(cmd);
@@ -1437,7 +1437,7 @@ namespace OpenSim.Data.MySQL
             s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
             s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
-byte[] textureEntry = (byte[]) row["Texture"];
+            byte[] textureEntry = (byte[]) row["Texture"];
             s.TextureEntry = textureEntry;
 
             s.ExtraParams = (byte[]) row["ExtraParams"];
