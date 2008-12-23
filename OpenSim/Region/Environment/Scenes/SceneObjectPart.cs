@@ -2330,6 +2330,13 @@ if (m_shape != null) {
             }
         }
 
+        /// <summary>
+        /// Trigger or play an attached sound in this part's inventory.
+        /// </summary>
+        /// <param name="sound"></param>
+        /// <param name="volume"></param>
+        /// <param name="triggered"></param>
+        /// <param name="flags"></param>
         public void SendSound(string sound, double volume, bool triggered, byte flags)
         {
             if (volume > 1)
