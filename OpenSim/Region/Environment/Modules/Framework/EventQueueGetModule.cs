@@ -199,11 +199,10 @@ namespace OpenSim.Region.Environment.Modules.Framework
             //client.OnLogout += ClientClosed;
         }
 
-        private void ClientClosed(IClientAPI client)
-        {
-
-            ClientClosed(client.AgentId);
-        }
+//        private void ClientClosed(IClientAPI client)
+//        {
+//            ClientClosed(client.AgentId);
+//        }
 
         private void ClientClosed(UUID AgentID)
         {
