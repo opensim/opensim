@@ -483,10 +483,8 @@ namespace OpenSim.Data.SQLite
                     user.WebLoginKey = WebLoginKey;
                     fillUserRow(row, user);
                     da.Update(ds, "users");
-
                 }
             }
-
         }
 
         private bool ExistsFirstLastName(String fname, String lname)
@@ -539,15 +537,16 @@ namespace OpenSim.Data.SQLite
                     row = users.NewRow();
                     fillUserRow(row, user);
                     users.Rows.Add(row);
+                
+                    m_log.Debug("[USER DB]: Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
+                    
+                    // save changes off to disk
+                    da.Update(ds, "users");
                 }
                 else
                 {
-                    fillUserRow(row, user);
-
+                    m_log.Warn("[USER DB]: Ignoring add since user with id {0} already exists", user.ID);
                 }
-                m_log.Info("[USER DB]: Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
-                // save changes off to disk
-                da.Update(ds, "users");
             }
         }
 
@@ -558,15 +557,23 @@ namespace OpenSim.Data.SQLite
         /// <returns>True on success, false on error</returns>
         override public bool UpdateUserProfile(UserProfileData user)
         {
-            try
+            DataTable users = ds.Tables["users"];
+            lock (ds)
             {
-                AddNewUserProfile(user);
-                return true;
+                DataRow row = users.Rows.Find(Util.ToRawUuidString(user.ID));
+                if (row == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    fillUserRow(row, user);
+                    da.Update(ds, "users");
+                }
             }
-            catch (Exception)
-            {
-                return false;
-            }
+            
+            //AddNewUserProfile(user);
+            return true;
         }
 
         /// <summary>
@@ -598,7 +605,6 @@ namespace OpenSim.Data.SQLite
                 // save changes off to disk
                 dua.Update(ds, "useragents");
             }
-
         }
 
         /// <summary>
@@ -858,7 +864,6 @@ namespace OpenSim.Data.SQLite
             row["email"] = user.Email;
             row["passwordHash"] = user.PasswordHash;
             row["passwordSalt"] = user.PasswordSalt;
-
 
             row["homeRegionX"] = user.HomeRegionX;
             row["homeRegionY"] = user.HomeRegionY;
