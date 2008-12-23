@@ -417,6 +417,10 @@ namespace OpenSim.Framework
     public delegate void ClassifiedInfoUpdate(UUID classifiedID, uint category, string name, string description, UUID parcelID, uint parentEstate, UUID snapshotID, Vector3 globalPos, byte classifiedFlags, int price, IClientAPI client);
     public delegate void ClassifiedDelete(UUID classifiedID, IClientAPI client);
 
+    public delegate void EventNotificationAddRequest(uint EventID, IClientAPI client);
+    public delegate void EventNotificationRemoveRequest(uint EventID, IClientAPI client);
+
+    public delegate void EventGodDelete(uint eventID, UUID queryID, string queryText, uint queryFlags, int queryStart, IClientAPI client);
 
     #endregion
 
@@ -732,6 +736,10 @@ namespace OpenSim.Framework
         event ClassifiedInfoUpdate OnClassifiedInfoUpdate;
         event ClassifiedDelete OnClassifiedDelete;
         event ClassifiedDelete OnClassifiedGodDelete;
+
+        event EventNotificationAddRequest OnEventNotificationAddRequest;
+        event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
+        event EventGodDelete OnEventGodDelete;
 
         //     void ActivateGesture(UUID assetId, UUID gestureId);
 

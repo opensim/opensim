@@ -279,6 +279,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ClassifiedDelete handlerClassifiedDelete;
         private ClassifiedDelete handlerClassifiedGodDelete;
 
+        private EventNotificationAddRequest handlerEventNotificationAddRequest;
+        private EventNotificationRemoveRequest handlerEventNotificationRemoveRequest;
+        private EventGodDelete handlerEventGodDelete;
+
         private readonly IGroupsModule m_GroupsModule;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
@@ -1042,6 +1046,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ClassifiedDelete OnClassifiedDelete;
         public event ClassifiedDelete OnClassifiedGodDelete;
         
+        public event EventNotificationAddRequest OnEventNotificationAddRequest;
+        public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
+        public event EventGodDelete OnEventGodDelete;
+
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
         }
@@ -7278,6 +7286,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerClassifiedGodDelete(
                                  classifiedGodDelete.Data.ClassifiedID,
                                  this);
+                    break;
+
+                case PacketType.EventGodDelete:
+                    EventGodDeletePacket eventGodDelete =
+                            (EventGodDeletePacket)Pack;
+
+                    handlerEventGodDelete = OnEventGodDelete;
+                    if (handlerEventGodDelete != null)
+                        handlerEventGodDelete(
+                                eventGodDelete.EventData.EventID,
+                                eventGodDelete.QueryData.QueryID,
+                                Utils.BytesToString(
+                                        eventGodDelete.QueryData.QueryText),
+                                eventGodDelete.QueryData.QueryFlags,
+                                eventGodDelete.QueryData.QueryStart,
+                                this);
+                    break;
+
+                case PacketType.EventNotificationAddRequest:
+                    EventNotificationAddRequestPacket eventNotificationAdd =
+                            (EventNotificationAddRequestPacket)Pack;
+
+                    handlerEventNotificationAddRequest = OnEventNotificationAddRequest;
+                    if (handlerEventNotificationAddRequest != null)
+                        handlerEventNotificationAddRequest(
+                                eventNotificationAdd.EventData.EventID, this);
+                    break;
+
+                case PacketType.EventNotificationRemoveRequest:
+                    EventNotificationRemoveRequestPacket eventNotificationRemove =
+                            (EventNotificationRemoveRequestPacket)Pack;
+
+                    handlerEventNotificationRemoveRequest = OnEventNotificationRemoveRequest;
+                    if (handlerEventNotificationRemoveRequest != null)
+                        handlerEventNotificationRemoveRequest(
+                                eventNotificationRemove.EventData.EventID, this);
                     break;
 
                 default:

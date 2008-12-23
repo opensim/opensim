@@ -351,6 +351,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event ClassifiedDelete OnClassifiedDelete;
         public event ClassifiedDelete OnClassifiedGodDelete;
 
+        public event EventNotificationAddRequest OnEventNotificationAddRequest;
+        public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
+        public event EventGodDelete OnEventGodDelete;
+
 #pragma warning restore 67
 
         #endregion
