@@ -545,7 +545,7 @@ namespace OpenSim.Data.SQLite
                 }
                 else
                 {
-                    m_log.Warn("[USER DB]: Ignoring add since user with id {0} already exists", user.ID);
+                    m_log.WarnFormat("[USER DB]: Ignoring add since user with id {0} already exists", user.ID);
                 }
             }
         }
