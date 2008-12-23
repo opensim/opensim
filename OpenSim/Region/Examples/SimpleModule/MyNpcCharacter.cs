@@ -241,6 +241,11 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event TeleportLureRequest OnTeleportLureRequest;
         public event NetworkStats OnNetworkStatsUpdate;
 
+        public event ClassifiedInfoRequest OnClassifiedInfoRequest;
+        public event ClassifiedInfoUpdate OnClassifiedInfoUpdate;
+        public event ClassifiedDelete OnClassifiedDelete;
+        public event ClassifiedDelete OnClassifiedGodDelete;
+
 #pragma warning restore 67
 
         private UUID myID = UUID.Random();
@@ -1005,6 +1010,14 @@ namespace OpenSim.Region.Examples.SimpleModule
         public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
         {
             return true;
+        }
+
+        public void SendAvatarClassifiedReply(UUID targetID, UUID[] classifiedID, string[] name)
+        {
+        }
+
+        public void SendClassifiedInfoReply(UUID classifiedID, UUID creatorID, uint creationDate, uint expirationDate, uint category, string name, string description, UUID parcelID, uint parentEstate, UUID snapshotID, string simName, Vector3 globalPos, string parcelName, byte classifiedFlags, int price)
+        {
         }
 
         #endregion

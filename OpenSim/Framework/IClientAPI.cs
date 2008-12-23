@@ -413,6 +413,11 @@ namespace OpenSim.Framework
     public delegate void StartLure(byte lureType, string message, UUID targetID, IClientAPI client);
     public delegate void TeleportLureRequest(UUID lureID, uint teleportFlags, IClientAPI client);
 
+    public delegate void ClassifiedInfoRequest(UUID classifiedID, IClientAPI client);
+    public delegate void ClassifiedInfoUpdate(UUID classifiedID, uint category, string name, string description, UUID parcelID, uint parentEstate, UUID snapshotID, Vector3 globalPos, byte classifiedFlags, int price, IClientAPI client);
+    public delegate void ClassifiedDelete(UUID classifiedID, IClientAPI client);
+
+
     #endregion
 
     public struct DirPlacesReplyData
@@ -722,6 +727,13 @@ namespace OpenSim.Framework
         event StartLure OnStartLure;
         event TeleportLureRequest OnTeleportLureRequest;
         event NetworkStats OnNetworkStatsUpdate;
+
+        event ClassifiedInfoRequest OnClassifiedInfoRequest;
+        event ClassifiedInfoUpdate OnClassifiedInfoUpdate;
+        event ClassifiedDelete OnClassifiedDelete;
+        event ClassifiedDelete OnClassifiedGodDelete;
+
+        //     void ActivateGesture(UUID assetId, UUID gestureId);
 
         /// <summary>
         /// Tell this client what items it should be wearing now
@@ -1053,6 +1065,9 @@ namespace OpenSim.Framework
         void SendDeclineCallingCard(UUID transactionID);
 
         void SendTerminateFriend(UUID exFriendID);
+
+        void SendAvatarClassifiedReply(UUID targetID, UUID[] classifiedID, string[] name);
+        void SendClassifiedInfoReply(UUID classifiedID, UUID creatorID, uint creationDate, uint expirationDate, uint category, string name, string description, UUID parcelID, uint parentEstate, UUID snapshotID, string simName, Vector3 globalPos, string parcelName, byte classifiedFlags, int price);
 
         void KillEndDone();
 

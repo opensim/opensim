@@ -274,6 +274,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private NetworkStats handlerNetworkStatsUpdate;
 
+        private ClassifiedInfoRequest handlerClassifiedInfoRequest;
+        private ClassifiedInfoUpdate handlerClassifiedInfoUpdate;
+        private ClassifiedDelete handlerClassifiedDelete;
+        private ClassifiedDelete handlerClassifiedGodDelete;
+
         private readonly IGroupsModule m_GroupsModule;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
@@ -1032,6 +1037,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event TeleportLureRequest OnTeleportLureRequest;
         public event NetworkStats OnNetworkStatsUpdate;
 
+        public event ClassifiedInfoRequest OnClassifiedInfoRequest;
+        public event ClassifiedInfoUpdate OnClassifiedInfoUpdate;
+        public event ClassifiedDelete OnClassifiedDelete;
+        public event ClassifiedDelete OnClassifiedGodDelete;
         
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
@@ -7215,6 +7224,62 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                  this);
                     break;
 
+                case PacketType.ClassifiedInfoRequest:
+                    ClassifiedInfoRequestPacket classifiedInfoRequest =
+                            (ClassifiedInfoRequestPacket)Pack;
+
+                    handlerClassifiedInfoRequest = OnClassifiedInfoRequest;
+                    if (handlerClassifiedInfoRequest != null)
+                        handlerClassifiedInfoRequest(
+                                 classifiedInfoRequest.Data.ClassifiedID,
+                                 this);
+                    break;
+
+                case PacketType.ClassifiedInfoUpdate:
+                    ClassifiedInfoUpdatePacket classifiedInfoUpdate =
+                            (ClassifiedInfoUpdatePacket)Pack;
+
+                    handlerClassifiedInfoUpdate = OnClassifiedInfoUpdate;
+                    if (handlerClassifiedInfoUpdate != null)
+                        handlerClassifiedInfoUpdate(
+                                classifiedInfoUpdate.Data.ClassifiedID,
+                                classifiedInfoUpdate.Data.Category,
+                                Utils.BytesToString(
+                                        classifiedInfoUpdate.Data.Name),
+                                Utils.BytesToString(
+                                        classifiedInfoUpdate.Data.Desc),
+                                classifiedInfoUpdate.Data.ParcelID,
+                                classifiedInfoUpdate.Data.ParentEstate,
+                                classifiedInfoUpdate.Data.SnapshotID,
+                                new Vector3(
+                                    classifiedInfoUpdate.Data.PosGlobal),
+                                classifiedInfoUpdate.Data.ClassifiedFlags,
+                                classifiedInfoUpdate.Data.PriceForListing,
+                                this);
+                    break;
+
+                case PacketType.ClassifiedDelete:
+                    ClassifiedDeletePacket classifiedDelete =
+                            (ClassifiedDeletePacket)Pack;
+
+                    handlerClassifiedDelete = OnClassifiedDelete;
+                    if (handlerClassifiedDelete != null)
+                        handlerClassifiedDelete(
+                                 classifiedDelete.Data.ClassifiedID,
+                                 this);
+                    break;
+
+                case PacketType.ClassifiedGodDelete:
+                    ClassifiedGodDeletePacket classifiedGodDelete =
+                            (ClassifiedGodDeletePacket)Pack;
+
+                    handlerClassifiedGodDelete = OnClassifiedGodDelete;
+                    if (handlerClassifiedGodDelete != null)
+                        handlerClassifiedGodDelete(
+                                 classifiedGodDelete.Data.ClassifiedID,
+                                 this);
+                    break;
+
                 default:
                     m_log.Warn("[CLIENT]: unhandled packet " + Pack);
                     break;
@@ -8042,6 +8107,59 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             p.GroupData.Success = success;
 
             OutPacket(p, ThrottleOutPacketType.Task);
+        }
+
+        public void SendAvatarClassifiedReply(UUID targetID, UUID[] classifiedID, string[] name)
+        {
+            if (classifiedID.Length != name.Length)
+                return;
+
+            AvatarClassifiedReplyPacket ac =
+                    (AvatarClassifiedReplyPacket)PacketPool.Instance.GetPacket(
+                    PacketType.AvatarClassifiedReply);
+
+            ac.AgentData = new AvatarClassifiedReplyPacket.AgentDataBlock();
+            ac.AgentData.AgentID = AgentId;
+            ac.AgentData.TargetID = targetID;
+
+            ac.Data = new AvatarClassifiedReplyPacket.DataBlock[classifiedID.Length];
+            int i;
+            for (i = 0 ; i < classifiedID.Length ; i++)
+            {
+                ac.Data[i].ClassifiedID = classifiedID[i];
+                ac.Data[i].Name = Utils.StringToBytes(name[i]);
+            }
+
+            OutPacket(ac, ThrottleOutPacketType.Task);
+        }
+
+        public void SendClassifiedInfoReply(UUID classifiedID, UUID creatorID, uint creationDate, uint expirationDate, uint category, string name, string description, UUID parcelID, uint parentEstate, UUID snapshotID, string simName, Vector3 globalPos, string parcelName, byte classifiedFlags, int price)
+        {
+            ClassifiedInfoReplyPacket cr =
+                    (ClassifiedInfoReplyPacket)PacketPool.Instance.GetPacket(
+                    PacketType.ClassifiedInfoReply);
+
+            cr.AgentData = new ClassifiedInfoReplyPacket.AgentDataBlock();
+            cr.AgentData.AgentID = AgentId;
+
+            cr.Data = new ClassifiedInfoReplyPacket.DataBlock();
+            cr.Data.ClassifiedID = classifiedID;
+            cr.Data.CreatorID = creatorID;
+            cr.Data.CreationDate = creationDate;
+            cr.Data.ExpirationDate = expirationDate;
+            cr.Data.Category = category;
+            cr.Data.Name = Utils.StringToBytes(name);
+            cr.Data.Desc = Utils.StringToBytes(description);
+            cr.Data.ParcelID = parcelID;
+            cr.Data.ParentEstate = parentEstate;
+            cr.Data.SnapshotID = snapshotID;
+            cr.Data.SimName = Utils.StringToBytes(simName);
+            cr.Data.PosGlobal = new Vector3d(globalPos);
+            cr.Data.ParcelName = Utils.StringToBytes(parcelName);
+            cr.Data.ClassifiedFlags = classifiedFlags;
+            cr.Data.PriceForListing = price;
+
+            OutPacket(cr, ThrottleOutPacketType.Task);
         }
 
         public void KillEndDone()
