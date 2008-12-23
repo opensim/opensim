@@ -406,9 +406,9 @@ namespace OpenSim.Framework
     public delegate void AcceptCallingCard(IClientAPI remoteClient, UUID transactionID, UUID folderID);
 
     public delegate void DeclineCallingCard(IClientAPI remoteClient, UUID transactionID);
-
     
-    public delegate void SoundTrigger(UUID soundId,UUID ownerid,UUID objid, UUID parentid,float Gain, Vector3 Position,UInt64 Handle);
+    public delegate void SoundTrigger(
+        UUID soundId, UUID ownerid, UUID objid, UUID parentid, double Gain, Vector3 Position, UInt64 Handle);
 
     public delegate void StartLure(byte lureType, string message, UUID targetID, IClientAPI client);
     public delegate void TeleportLureRequest(UUID lureID, uint teleportFlags, IClientAPI client);
@@ -722,8 +722,6 @@ namespace OpenSim.Framework
         event StartLure OnStartLure;
         event TeleportLureRequest OnTeleportLureRequest;
         event NetworkStats OnNetworkStatsUpdate;
-
-        //     void ActivateGesture(UUID assetId, UUID gestureId);
 
         /// <summary>
         /// Tell this client what items it should be wearing now

@@ -37,6 +37,7 @@ using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
 
@@ -2362,24 +2363,13 @@ if (m_shape != null) {
             if (soundID == UUID.Zero)
                 return;
 
-            List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
-            foreach (ScenePresence p in avatarts)
+            ISoundModule soundModule = m_parentGroup.Scene.RequestModuleInterface<ISoundModule>();
+            if (soundModule != null)
             {
-                double dis=Util.GetDistanceTo(p.AbsolutePosition, position);
-                if (dis > 100.0) // Max audio distance
-                    continue;
-
-                // Scale by distance
-                volume*=((100.0-dis)/100.0);
-
                 if (triggered)
-                {
-                    p.ControllingClient.SendTriggeredSound(soundID, ownerID, objectID, parentID, regionHandle, position, (float)volume);
-                }
+                    soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle);
                 else
-                {
-                    p.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)volume, flags);
-                }
+                    soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags);
             }
         }
 

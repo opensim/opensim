@@ -4597,6 +4597,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                    agentRequestSit.TargetObject.TargetID, agentRequestSit.TargetObject.Offset);
                     }
                     break;
+                
                 case PacketType.AgentSit:
                     if (OnAgentSit != null)
                     {
@@ -4609,13 +4610,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+                
                 case PacketType.SoundTrigger:
-                    // TODO: handle this packet
-                    // SM 200811
                     SoundTriggerPacket soundTriggerPacket = (SoundTriggerPacket)Pack;
                     handlerSoundTrigger = OnSoundTrigger;
                     if (handlerSoundTrigger != null)
-                    //UUID ownerID, UUID objectID, UUID parentID
                     {
                         handlerSoundTrigger(soundTriggerPacket.SoundData.SoundID, soundTriggerPacket.SoundData.OwnerID,
                             soundTriggerPacket.SoundData.ObjectID, soundTriggerPacket.SoundData.ParentID,
@@ -4623,9 +4622,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             soundTriggerPacket.SoundData.Handle);
 
                     }
-                    else
-                        m_log.Error("Null pointer for Soundtrigger");
                     break;
+                
                 case PacketType.AvatarPickerRequest:
                     AvatarPickerRequestPacket avRequestQuery = (AvatarPickerRequestPacket)Pack;
                     AvatarPickerRequestPacket.AgentDataBlock Requestdata = avRequestQuery.AgentData;
@@ -4639,6 +4637,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                    Utils.BytesToString(querydata.Name));
                     }
                     break;
+                
                 case PacketType.AgentDataUpdateRequest:
                     AgentDataUpdateRequestPacket avRequestDataUpdatePacket = (AgentDataUpdateRequestPacket)Pack;
 
