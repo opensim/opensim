@@ -620,7 +620,16 @@ namespace OpenSim.Region.Communications.Hypergrid
             string uri = "http://" + regInfo.ExternalHostName + ":" + regInfo.HttpPort + "/";
             //Console.WriteLine("XXX uri: " + uri);
             XmlRpcRequest request = new XmlRpcRequest("expect_hg_user", SendParams);
-            XmlRpcResponse reply = request.Send(uri, 6000);
+            XmlRpcResponse reply;
+            try
+            {
+                reply = request.Send(uri, 6000);
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[HGrid]: Failed to notify region about user. Reason: " + e.Message);
+                return false;
+            }
 
             if (!reply.IsFault)
             {
