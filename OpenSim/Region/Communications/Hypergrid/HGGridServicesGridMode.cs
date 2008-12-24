@@ -237,8 +237,8 @@ namespace OpenSim.Region.Communications.Hypergrid
                 Console.WriteLine("XXX Going local-grid region XXX");
                 RegionInfo regInfo = RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
-                    if (!InformRegionOfUser(regInfo, agentData))
-                        return false;
+                    // For now, don't test if this succeeds/fails; until someone complains, this is a feature :-)
+                    InformRegionOfUser(regInfo, agentData);
                 return m_remoteBackend.InformRegionOfChildAgent(regionHandle, agentData);
             }
 
