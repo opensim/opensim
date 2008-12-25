@@ -79,5 +79,10 @@ namespace OpenSim.Framework
 
         public InterregionGroupData[] Groups;
         public InterregionAnimationData[] Anims;
+
+        public UUID GranterID;
+        public Dictionary<string, string> NVPairs;
+
+        byte[] VisualParams;
     }
 }
