@@ -8206,6 +8206,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(cr, ThrottleOutPacketType.Task);
         }
 
+        public void SendAgentDropGroup(UUID groupID)
+        {
+            AgentDropGroupPacket dg =
+                    (AgentDropGroupPacket)PacketPool.Instance.GetPacket(
+                    PacketType.AgentDropGroup);
+
+            dg.AgentData = new AgentDropGroupPacket.AgentDataBlock();
+            dg.AgentData.AgentID = AgentId;
+            dg.AgentData.GroupID = groupID;
+            
+            OutPacket(dg, ThrottleOutPacketType.Task);
+        }
+
         public void KillEndDone()
         {
             KillPacket kp = new KillPacket();
