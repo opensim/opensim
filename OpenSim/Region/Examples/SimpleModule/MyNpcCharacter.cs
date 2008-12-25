@@ -1024,6 +1024,23 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void SendAgentDropGroup(UUID groupID)
+        {
+        }
+
+        public void SendAvatarNotesReply(UUID targetID, string text)
+        {
+        }
+
+        public void SendAvatarPicksReply(UUID targetID, Dictionary<UUID, string> picks)
+        {
+        }
+
+        public void SendAvatarClassifiedReply(UUID targetID, Dictionary<UUID, string> classifieds)
+        {
+        }
+
+
         #endregion
     }
 }

@@ -1077,6 +1077,11 @@ namespace OpenSim.Framework
         void SendAvatarClassifiedReply(UUID targetID, UUID[] classifiedID, string[] name);
         void SendClassifiedInfoReply(UUID classifiedID, UUID creatorID, uint creationDate, uint expirationDate, uint category, string name, string description, UUID parcelID, uint parentEstate, UUID snapshotID, string simName, Vector3 globalPos, string parcelName, byte classifiedFlags, int price);
 
+        void SendAgentDropGroup(UUID groupID);
+        void SendAvatarNotesReply(UUID targetID, string text);
+        void SendAvatarPicksReply(UUID targetID, Dictionary<UUID, string> picks);
+        void SendAvatarClassifiedReply(UUID targetID, Dictionary<UUID, string> classifieds);
+
         void KillEndDone();
 
         bool AddGenericPacketHandler(string MethodName, GenericMessage handler);

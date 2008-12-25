@@ -8219,6 +8219,70 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(dg, ThrottleOutPacketType.Task);
         }
 
+        public void SendAvatarNotesReply(UUID targetID, string text)
+        {
+            AvatarNotesReplyPacket an =
+                    (AvatarNotesReplyPacket)PacketPool.Instance.GetPacket(
+                    PacketType.AvatarNotesReply);
+
+            an.AgentData = new AvatarNotesReplyPacket.AgentDataBlock();
+            an.AgentData.AgentID = AgentId;
+            
+            an.Data = new AvatarNotesReplyPacket.DataBlock();
+            an.Data.TargetID = targetID;
+            an.Data.Notes = Utils.StringToBytes(text);
+
+            OutPacket(an, ThrottleOutPacketType.Task);
+        }
+
+        public void SendAvatarPicksReply(UUID targetID, Dictionary<UUID, string> picks)
+        {
+            AvatarPicksReplyPacket ap =
+                    (AvatarPicksReplyPacket)PacketPool.Instance.GetPacket(
+                    PacketType.AvatarPicksReply);
+
+            ap.AgentData = new AvatarPicksReplyPacket.AgentDataBlock();
+            ap.AgentData.AgentID = AgentId;
+            ap.AgentData.TargetID = targetID;
+            
+            ap.Data = new AvatarPicksReplyPacket.DataBlock[picks.Count];
+
+            int i = 0;
+            foreach(KeyValuePair<UUID, string> pick in picks)
+            {
+                ap.Data[i] = new AvatarPicksReplyPacket.DataBlock();
+                ap.Data[i].PickID = pick.Key;
+                ap.Data[i].PickName = Utils.StringToBytes(pick.Value);
+                i++;
+            }
+
+            OutPacket(ap, ThrottleOutPacketType.Task);
+        }
+
+        public void SendAvatarClassifiedReply(UUID targetID, Dictionary<UUID, string> classifieds)
+        {
+            AvatarClassifiedReplyPacket ac =
+                    (AvatarClassifiedReplyPacket)PacketPool.Instance.GetPacket(
+                    PacketType.AvatarClassifiedReply);
+
+            ac.AgentData = new AvatarClassifiedReplyPacket.AgentDataBlock();
+            ac.AgentData.AgentID = AgentId;
+            ac.AgentData.TargetID = targetID;
+            
+            ac.Data = new AvatarClassifiedReplyPacket.DataBlock[classifieds.Count];
+
+            int i = 0;
+            foreach(KeyValuePair<UUID, string> classified in classifieds)
+            {
+                ac.Data[i] = new AvatarClassifiedReplyPacket.DataBlock();
+                ac.Data[i].ClassifiedID = classified.Key;
+                ac.Data[i].Name = Utils.StringToBytes(classified.Value);
+                i++;
+            }
+
+            OutPacket(ac, ThrottleOutPacketType.Task);
+        }
+
         public void KillEndDone()
         {
             KillPacket kp = new KillPacket();
