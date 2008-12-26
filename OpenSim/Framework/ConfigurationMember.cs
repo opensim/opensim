@@ -285,6 +285,11 @@ namespace OpenSim.Framework
                         console_result = attribute;
                     }
 
+                    // if the first character is a "$", assume it's the name
+                    // of an environment variable and substitute with the value of that variable
+                    if (console_result.StartsWith("$"))
+                        console_result = System.Environment.GetEnvironmentVariable(console_result.Substring(1));
+
                     switch (configOption.configurationType)
                     {
                         case ConfigurationOption.ConfigurationTypes.TYPE_STRING:
