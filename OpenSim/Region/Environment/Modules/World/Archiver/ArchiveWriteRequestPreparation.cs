@@ -205,6 +205,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     // Get the prim's default texture.  This will be used for faces which don't have their own texture
                     assetUuids[textureEntry.DefaultTexture.TextureID] = 1;
 
+                    if (part.Shape.SculptTexture != UUID.Zero)
+                        assetUuids[part.Shape.SculptTexture] = 1;
                     // XXX: Not a great way to iterate through face textures, but there's no
                     // other method available to tell how many faces there actually are
                     //int i = 0;
