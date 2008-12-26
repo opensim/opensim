@@ -127,6 +127,9 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract bool Selected { set; }
 
+        public String SOPName { get; set; }
+        public String SOPDescription { get; set; }
+
         public abstract void CrossingFailure();
 
         public abstract void link(PhysicsActor obj);

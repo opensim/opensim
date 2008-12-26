@@ -434,6 +434,13 @@
     ;; append to existing physics logfile, or overwrite existing logfiles?
     ;physics_logging_append_existing_logfile = true
 
+    ; ##
+    ; ## Joint support
+    ; ##
+
+    ; if you would like physics joints to be enabled through a special naming convention in the client, set this to true. (see NINJA Physics documentation, http://opensimulator.org/wiki/NINJA_Physics)
+    ;use_NINJA_physics_joints = true
+
 
 [RemoteAdmin]
     enabled = false

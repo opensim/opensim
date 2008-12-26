@@ -73,6 +73,67 @@ namespace OpenSim.Region.Physics.Manager
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
                                                   PhysicsVector size, Quaternion rotation, bool isPhysical);
 
+        public virtual bool SupportsNINJAJoints
+        {
+            get { return false; }
+        }
+
+        public virtual PhysicsJoint RequestJointCreation(string objectNameInScene, PhysicsJointType jointType, PhysicsVector position,
+                                            Quaternion rotation, string parms, List<string> bodyNames, string trackedBodyName, Quaternion localRotation)
+        { return null; }
+
+        public virtual void RequestJointDeletion(string objectNameInScene)
+        { return; }
+
+        public virtual void RemoveAllJointsConnectedToActorThreadLocked(PhysicsActor actor)
+        { return; }
+
+        public virtual void DumpJointInfo()
+        { return; }
+
+        public event JointMoved OnJointMoved;
+
+        protected virtual void DoJointMoved(PhysicsJoint joint)
+        {
+            // We need this to allow subclasses (but not other classes) to invoke the event; C# does
+            // not allow subclasses to invoke the parent class event.
+            if (OnJointMoved != null)
+            {
+                OnJointMoved(joint);
+            }
+        }
+
+        public event JointDeactivated OnJointDeactivated;
+
+        protected virtual void DoJointDeactivated(PhysicsJoint joint)
+        {
+            // We need this to allow subclasses (but not other classes) to invoke the event; C# does
+            // not allow subclasses to invoke the parent class event.
+            if (OnJointDeactivated != null)
+            {
+                OnJointDeactivated(joint);
+            }
+        }
+
+        public event JointErrorMessage OnJointErrorMessage;
+
+        protected virtual void DoJointErrorMessage(PhysicsJoint joint, string message)
+        {
+            // We need this to allow subclasses (but not other classes) to invoke the event; C# does
+            // not allow subclasses to invoke the parent class event.
+            if (OnJointErrorMessage != null)
+            {
+                OnJointErrorMessage(joint, message);
+            }
+        }
+
+        public virtual PhysicsVector GetJointAnchor(PhysicsJoint joint)
+        { return null; }
+
+        public virtual PhysicsVector GetJointAxis(PhysicsJoint joint)
+        { return null; }
+
+
         public abstract void AddPhysicsActorTaint(PhysicsActor prim);
 
         public abstract float Simulate(float timeStep);
@@ -181,4 +242,7 @@ namespace OpenSim.Region.Physics.Manager
             }
         }
     }
+    public delegate void JointMoved(PhysicsJoint joint);
+    public delegate void JointDeactivated(PhysicsJoint joint);
+    public delegate void JointErrorMessage(PhysicsJoint joint, string message); // this refers to an "error message due to a problem", not "amount of joint constraint violation"
 }

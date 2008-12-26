@@ -50,6 +50,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _torque = new PhysicsVector(0,0,0);
         private PhysicsVector m_lastVelocity = new PhysicsVector(0.0f, 0.0f, 0.0f);
         private PhysicsVector m_lastposition = new PhysicsVector(0.0f, 0.0f, 0.0f);
+        private Quaternion m_lastorientation = new Quaternion();
         private PhysicsVector m_rotationalVelocity;
         private PhysicsVector _size;
         private PhysicsVector _acceleration;
@@ -1182,6 +1183,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // in between the disabling and the collision properties setting
                 // which would wake the physical body up from a soft disabling and potentially cause it to fall
                 // through the ground.
+                
+                // NOTE FOR JOINTS: this doesn't always work for jointed assemblies because if you select
+                // just one part of the assembly, the rest of the assembly is non-selected and still simulating,
+                // so that causes the selected part to wake up and continue moving.
+
+                // even if you select all parts of a jointed assembly, it is not guaranteed that the entire
+                // assembly will stop simulating during the selection, because of the lack of atomicity
+                // of select operations (their processing could be interrupted by a thread switch, causing
+                // simulation to continue before all of the selected object notifications trickle down to
+                // the physics engine).
+
+                // e.g. we select 100 prims that are connected by joints. non-atomically, the first 50 are
+                // selected and disabled. then, due to a thread switch, the selection processing is
+                // interrupted and the physics engine continues to simulate, so the last 50 items, whose
+                // selection was not yet processed, continues to simulate. this wakes up ALL of the 
+                // first 50 again. then the last 50 are disabled. then the first 50, which were just woken
+                // up, start simulating again, which in turn wakes up the last 50.
 
                 if (m_isphysical)
                 {
@@ -2398,7 +2416,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 PhysicsVector pv = new PhysicsVector(0, 0, 0);
                 bool lastZeroFlag = _zeroFlag;
-                if (Body != (IntPtr)0)
+                if (Body != (IntPtr)0) // FIXME -> or if it is a joint
                 {
                     d.Vector3 vec = d.BodyGetPosition(Body);
                     d.Quaternion ori = d.BodyGetQuaternion(Body);
@@ -2407,6 +2425,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.Vector3 torque = d.BodyGetTorque(Body);
                     _torque.setValues(torque.X, torque.Y, torque.Z);
                     PhysicsVector l_position = new PhysicsVector();
+                    Quaternion l_orientation = new Quaternion();
 
                     //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
                     //if (vec.X < 0.0f) { vec.X = 0.0f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
@@ -2415,10 +2434,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //if (vec.Y > 255.95f) { vec.Y = 255.95f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
 
                     m_lastposition = _position;
+                    m_lastorientation = _orientation;
 
                     l_position.X = vec.X;
                     l_position.Y = vec.Y;
                     l_position.Z = vec.Z;
+                    l_orientation.X = ori.X;
+                    l_orientation.Y = ori.Y;
+                    l_orientation.Z = ori.Z;
+                    l_orientation.W = ori.W;
 
                     if (l_position.X > 255.95f || l_position.X < 0f || l_position.Y > 255.95f || l_position.Y < 0f)
                     {
@@ -2474,7 +2498,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
                         && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
-                        && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02))
+                        && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02)
+                        && (1.0 - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation)) < 0.01 ))
                     {
                         _zeroFlag = true;
                         m_throttleUpdates = false;
