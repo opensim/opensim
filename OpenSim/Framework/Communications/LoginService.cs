@@ -379,7 +379,11 @@ namespace OpenSim.Framework.Communications
                             return logResponse.CreateLoginFailedResponseLLSD();
                         }
                     }
+                    else
+                        return logResponse.CreateLoginFailedResponseLLSD();
                 }
+                else
+                    return logResponse.CreateLoginFailedResponseLLSD();
 
                
                 if (userProfile.GodLevel < m_minLoginLevel)
