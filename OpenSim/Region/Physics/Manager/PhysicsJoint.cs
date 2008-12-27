@@ -41,15 +41,15 @@ namespace OpenSim.Region.Physics.Manager
     public class PhysicsJoint
     {
         public virtual bool IsInPhysicsEngine { get { return false; } } // set internally to indicate if this joint has already been passed to the physics engine or is still pending
-        public PhysicsJointType Type { get; set; }
-        public string RawParams { get; set; }
+        public virtual PhysicsJointType Type { get {return ((PhysicsJointType)(-1)); } set { return; } }
+        public virtual string RawParams { get { return string.Empty; } set { return; } }
         public List<string> BodyNames = new List<string>();
-        public PhysicsVector Position { get; set; } // global coords
-        public Quaternion Rotation { get; set; } // global coords
-        public string ObjectNameInScene { get; set; } // proxy object in scene that represents the joint position/orientation
-        public string TrackedBodyName { get; set; } // body name that this joint is attached to (ObjectNameInScene will follow TrackedBodyName)
-        public Quaternion LocalRotation { get; set; } // joint orientation relative to one of the involved bodies, the tracked body
-        public int ErrorMessageCount { get; set; } // total # of error messages printed for this joint since its creation. if too many, further error messages are suppressed to prevent flooding.
+        public virtual PhysicsVector Position { get { return PhysicsVector.Zero; } set { return; } } // global coords
+        public virtual Quaternion Rotation { get { return Quaternion.Identity; } set { return; } } // global coords
+        public virtual string ObjectNameInScene { get { return string.Empty; } set { return; } } // proxy object in scene that represents the joint position/orientation
+        public virtual string TrackedBodyName { get { return string.Empty; } set { return; } } // body name that this joint is attached to (ObjectNameInScene will follow TrackedBodyName)
+        public virtual Quaternion LocalRotation { get { return Quaternion.Identity; } set { return; } } // joint orientation relative to one of the involved bodies, the tracked body
+        public virtual int ErrorMessageCount { get { return 0; } set { return; } } // total # of error messages printed for this joint since its creation. if too many, further error messages are suppressed to prevent flooding.
         public const int maxErrorMessages = 100; // no more than this # of error messages will be printed for each joint
     }
 }

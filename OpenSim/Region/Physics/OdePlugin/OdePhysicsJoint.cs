@@ -44,6 +44,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return (jointID != IntPtr.Zero);
             }
         }
-        public IntPtr jointID { get; set; }
+        public virtual IntPtr jointID { get { return IntPtr.Zero; } set { return; } }
     }
 }
