@@ -70,6 +70,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private int m_SaveTime;
         private ThreadPriority m_Prio;
         private bool m_Enabled = false;
+        private bool m_InitialStartup = true;
 
 // disable warning: need to keep a reference to XEngine.EventManager
 // alive to avoid it being garbage collected
@@ -412,6 +413,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public Object DoOnRezScriptQueue(Object dummy)
         {
+            if (m_InitialStartup)
+            {
+                m_InitialStartup = false;
+                System.Threading.Thread.Sleep(15000);
+            }
+
             Object o;
             lock (m_CompileQueue)
             {
