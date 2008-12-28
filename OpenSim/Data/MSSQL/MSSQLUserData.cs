@@ -536,7 +536,6 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="user">The user.</param>
         /// <returns></returns>
-        /// TODO: stubs for now to get us to a compiling state gently
         override public AvatarAppearance GetUserAppearance(UUID user)
         {
             try
@@ -550,6 +549,12 @@ namespace OpenSim.Data.MSSQL
                     {
                         if (reader.Read())
                             appearance = readUserAppearance(reader);
+                        else
+                        {
+                            m_log.WarnFormat("[USER DB] No appearance found for user {0}", user.ToString());
+                            return null;
+                        }
+
                     }
                 }
 
