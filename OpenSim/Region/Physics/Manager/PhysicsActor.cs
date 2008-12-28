@@ -127,8 +127,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract bool Selected { set; }
 
-        public virtual String SOPName { get { return String.Empty; } set { return; } }
-        public virtual String SOPDescription { get { return String.Empty; } set { return; } }
+        public string SOPName;
+        public string SOPDescription;
 
         public abstract void CrossingFailure();
 
