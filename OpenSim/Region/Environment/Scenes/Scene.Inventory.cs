@@ -1765,6 +1765,26 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        private bool WaitForInventory(CachedUserInfo info)
+        {
+            // 200 Seconds wait. This is called in the context of the
+            // background delete thread, so we can afford to waste time
+            // here.
+            //
+            int count = 200;
+
+            while (count > 0)
+            {
+                System.Threading.Thread.Sleep(100);
+                count--;
+                if (info.HasReceivedInventory)
+                    return true;
+            }
+            m_log.DebugFormat("Timed out waiting for inventory of user {0}",
+                    info.UserProfile.ID.ToString());
+            return false;
+        }
+
         /// <summary>
         /// Delete a scene object from a scene and place in the given avatar's inventory.
         /// Returns the UUID of the newly created asset.
@@ -1780,55 +1800,66 @@ namespace OpenSim.Region.Environment.Scenes
 
             string sceneObjectXml = objectGroup.ToXmlString();
 
+            bool useOwner = false;
+
+            // Get the user info of the item destination
+            //
             CachedUserInfo userInfo;
 
-            if (remoteClient == null)
+            if (action == DeRezAction.Take || action == DeRezAction.TakeCopy || 
+                action == DeRezAction.SaveToExistingUserInventoryItem)
             {
-                userInfo = CommsManager.UserProfileCacheService.GetUserDetails(objectGroup.RootPart.OwnerID);
+                // Take or take copy require a taker
+                // Saving changes requires a local user
+                //
+                if (remoteClient == null)
+                    return UUID.Zero;
+
+                userInfo = CommsManager.UserProfileCacheService.GetUserDetails(
+                        remoteClient.AgentId);
             }
             else
             {
-                userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                // All returns / deletes go to the object owner
+                //
+                userInfo = CommsManager.UserProfileCacheService.GetUserDetails(
+                        objectGroup.RootPart.OwnerID);
+            }
+
+            if (userInfo == null) // Can't proceed
+            {
+                return UUID.Zero;
+            }
+
+            if (!userInfo.HasReceivedInventory)
+            {
+                // Async inventory requests will queue, but they will never
+                // execute unless inventory is actually fetched
+                //
+                CommsManager.UserProfileCacheService.RequestInventoryForUser(
+                        userInfo.UserProfile.ID);
             }
 
             if (userInfo != null)
             {
-                // If we're deleting someone else's item, it goes back to
-                // their deleted items folder
                 // If we're returning someone's item, it goes back to the
                 // owner's Lost And Found folder.
+                // Delete is treated like return in this case
+                // Deleting your own items makes them go to trash
+                //
 
-                if (folderID == UUID.Zero 
-                    || (action == DeRezAction.Delete && objectGroup.OwnerID != remoteClient.AgentId))
-                {
-                    InventoryFolderBase folder =
-                            userInfo.FindFolderForType(
-                            (int)AssetType.LostAndFoundFolder);
-
-                    if (folder != null)
-                    {
-                        folderID = folder.ID;
-                    }
-                    else
-                    {
-                        if (userInfo.RootFolder != null)
-                        {
-                            folderID = userInfo.RootFolder.ID;
-                        }
-                        else
-                        {
-                            CommsManager.UserProfileCacheService.RequestInventoryForUser(objectGroup.RootPart.OwnerID);
-                            m_log.WarnFormat("[SCENE] Can't find root folder for user, requesting inventory");
-                            return assetID;
-                        }
-                    }
-                }
-
+                InventoryFolderBase folder = null;
                 InventoryItemBase item = null;
                 
+
+                // No folder type needed
+                // We don't go here unless we have a user logged in
+                // so the skeleton is loaded
+                //
                 if (DeRezAction.SaveToExistingUserInventoryItem == action)
                 {
-                    item = userInfo.RootFolder.FindItem(objectGroup.RootPart.FromUserInventoryItemID);
+                    item = userInfo.RootFolder.FindItem(
+                            objectGroup.RootPart.FromUserInventoryItemID);
                     
                     if (null == item)
                     {
@@ -1837,6 +1868,83 @@ namespace OpenSim.Region.Environment.Scenes
                             objectGroup.Name, objectGroup.UUID);                        
                         return UUID.Zero;
                     }
+                }
+                else
+                {
+                    // Folder magic
+                    // 
+                    if (action == DeRezAction.Delete)
+                    {
+                        // Deleting someone else's item
+                        //
+                        if (remoteClient == null ||
+                            objectGroup.OwnerID != remoteClient.AgentId)
+                        {
+                            // Folder skeleton may not be loaded and we
+                            // have to wait for the inventory to find
+                            // the destination folder
+                            //
+                            if (!WaitForInventory(userInfo))
+                                return UUID.Zero;
+                            folder = userInfo.FindFolderForType(
+                                    (int)AssetType.LostAndFoundFolder);
+                        }
+                        else
+                        {
+                            // Assume inventory skeleton was loaded during login
+                            // and all folders can be found
+                            //
+                            folder = userInfo.FindFolderForType(
+                                    (int)AssetType.TrashFolder);
+                        }
+                    }
+                    else if (action == DeRezAction.Return)
+                    {
+                        // Wait if needed
+                        //
+                        if (!userInfo.HasReceivedInventory)
+                        {
+                            if (!WaitForInventory(userInfo))
+                                return UUID.Zero;
+                        }
+
+                        // Dump to lost + found unconditionally
+                        //
+                        folder = userInfo.FindFolderForType(
+                                (int)AssetType.LostAndFoundFolder);
+                    }
+
+                    if (folderID == UUID.Zero && folder == null)
+                    {
+                        // Catch all. Use lost & found
+                        //
+                        if (!userInfo.HasReceivedInventory)
+                        {
+                            if (!WaitForInventory(userInfo))
+                                return UUID.Zero;
+                        }
+
+                        folder = userInfo.FindFolderForType(
+                                (int)AssetType.LostAndFoundFolder);
+                    }
+
+                    if (folder == null) // None of the above
+                    {
+                        folder = userInfo.RootFolder.FindFolder(folderID);
+
+                        if (folder == null) // Nowhere to put it
+                        {
+                            return UUID.Zero;
+                        }
+                    }
+
+                    item = new InventoryItemBase();
+                    item.Creator = objectGroup.RootPart.CreatorID;
+                    item.ID = UUID.Random();
+                    item.InvType = (int)InventoryType.Object;
+                    item.Folder = folder.ID;
+                    item.Owner = userInfo.UserProfile.ID;
+                    
                 }
 
                 AssetBase asset = CreateAsset(
@@ -1854,22 +1962,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    item = new InventoryItemBase();
-                    item.Creator = objectGroup.RootPart.CreatorID;
-
-                    if (action == DeRezAction.TakeCopy || action == DeRezAction.Take)
-                        item.Owner = remoteClient.AgentId;
-                    else // Delete / Return
-                        item.Owner = objectGroup.OwnerID;
-
-                    item.ID = UUID.Random();
                     item.AssetID = asset.FullID;
-                    item.Description = asset.Description;
-                    item.Name = asset.Name;
-                    item.AssetType = asset.Type;
-                    item.InvType = (int)InventoryType.Object;
-                    item.Folder = folderID;
-                    
+
                     if (remoteClient != null && (remoteClient.AgentId != objectGroup.RootPart.OwnerID) && Permissions.PropagatePermissions())
                     {
                         uint perms=objectGroup.GetEffectivePermissions();
@@ -1899,6 +1993,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                     // TODO: add the new fields (Flags, Sale info, etc)
                     item.CreationDate = Util.UnixTimeSinceEpoch();
+                    item.Description = asset.Description;
+                    item.Name = asset.Name;
+                    item.AssetType = asset.Type;
 
                     userInfo.AddItem(item);
                     
