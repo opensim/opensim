@@ -31,8 +31,12 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
+    public delegate void InterregionDataReceived(InterregionData data);
+
     public interface IInterregionComms : IRegionModule
     {
+        event InterregionDataReceived OnInterregionData;
+
         bool SendInterregionData(UUID destination, InterregionData data);
     }
 }

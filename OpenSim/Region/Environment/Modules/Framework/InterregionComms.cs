@@ -47,13 +47,27 @@ namespace OpenSim.Region.Environment.Modules.Framework
     public class InterregionCommsModule : IInterregionComms
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private Scene m_Scene = null;
+        private List<Scene> m_SceneList = new List<Scene>();
         
+        public event InterregionDataReceived OnInterregionData;
+
         public void Initialise(Scene scene, IConfigSource config)
         {
-            m_Scene = scene;
+            if (m_SceneList.Count == 0)
+            {
+                // Do first-time only init here
+                //
+            }
 
-            m_Scene.RegisterModuleInterface<IInterregionComms>(this);
+            if (!m_SceneList.Contains(scene))
+            {
+                lock(m_SceneList)
+                {
+                    m_SceneList.Add(scene);
+                    scene.RegisterModuleInterface<IInterregionComms>(this);
+                }
+
+            }
         }
 
         public void PostInitialise()
@@ -71,11 +85,26 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         public bool IsSharedModule
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool SendInterregionData(UUID destination, InterregionData data)
         {
+            lock(m_SceneList)
+            {
+                foreach(Scene s in m_SceneList)
+                {
+                    if (s.RegionInfo.RegionID == destination)
+                    {
+                        if (OnInterregionData != null)
+                            OnInterregionData(data);
+                        return true;
+                    }
+                }
+            }
+
+            // Implement remote sending here
+            //
             return false;
         }
     }
