@@ -31,12 +31,17 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
-    public delegate void InterregionDataReceived(InterregionData data);
+    public delegate bool ChildAgentUpdateReceived(AgentData data);
 
-    public interface IInterregionComms : IRegionModule
+    public interface IInterregionCommsOut 
     {
-        event InterregionDataReceived OnInterregionData;
-
-        bool SendInterregionData(UUID destination, InterregionData data);
+        bool SendChildAgentUpdate(ulong regionHandle, AgentData data);
     }
+
+    // This may not be needed, but having it here for now.
+    public interface IInterregionCommsIn
+    {
+        event ChildAgentUpdateReceived OnChildAgentUpdate;
+    }
+
 }
