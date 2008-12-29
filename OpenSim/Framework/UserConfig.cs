@@ -47,6 +47,7 @@ namespace OpenSim.Framework
         public uint HttpPort = DefaultHttpPort;
         public bool HttpSSL = DefaultHttpSSL;
         public uint DefaultUserLevel = 0;
+        public string LibraryXmlfile = "";
 
         private Uri m_inventoryUrl;
 
@@ -109,6 +110,11 @@ namespace OpenSim.Framework
                                                 "Default Inventory Server URI",
                                                 "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort + "/",
                                                 false);
+            configMember.addConfigurationOption("library_location",
+                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+                                                "Path to library control file",
+                                                string.Format(".{0}inventory{0}Libraries.xml", System.IO.Path.DirectorySeparatorChar), false);            
+            
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
             configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
@@ -173,7 +179,10 @@ namespace OpenSim.Framework
 
                 case "default_loginLevel":
                     DefaultUserLevel = (uint)configuration_result;
-                     break;
+                    break;
+                case "library_location":
+                    LibraryXmlfile = (string)configuration_result;
+                    break;
             }
 
             return true;

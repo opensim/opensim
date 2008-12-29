@@ -106,11 +106,11 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        public virtual void LoadDefaultAssets()
+        public virtual void LoadDefaultAssets(string pAssetSetsXml)
         {
             m_log.Info("[ASSET SERVER]: Setting up asset database");
 
-            assetLoader.ForEachDefaultXmlAsset(StoreAsset);
+            assetLoader.ForEachDefaultXmlAsset(pAssetSetsXml, StoreAsset);
         }
 
         public AssetServerBase()

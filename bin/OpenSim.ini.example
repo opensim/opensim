@@ -178,7 +178,7 @@
 
     ;WorldMapModule = "WorldMap"
     ;MapImageModule = "MapImageModule"
-
+	
 
 [StandAlone]
     accounts_authenticate = true
@@ -224,6 +224,14 @@
     ; user_source = "SQLiteDialect;SqliteClientDriver;URI=file:User.db,version=3"
     ; User Source MySQL example
     ;user_source = "Data Source=localhost;Database=opensim;User ID=opensim;Password=****;"
+
+    ; Specifies the location and filename of the default inventory library control file.  The path can be relative or absolute
+    ; Default is ./inventory/Libraries.xml
+    ;LibrariesXMLFile="./inventory/Libraries.xml"
+    
+    ; Specifies the location and filename of the inventory library assets control file.  The path can be relative or absolute
+    ; Setting is optional. Default is ./assets/AssetSets.xml
+    ;AssetSetsXMLFile="./assets/AssetSets.xml"
 
     dump_assets_to_file = false
 

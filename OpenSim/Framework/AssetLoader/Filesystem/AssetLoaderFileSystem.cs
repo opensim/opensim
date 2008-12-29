@@ -86,12 +86,6 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             }
         }
 
-        public void ForEachDefaultXmlAsset(Action<AssetBase> action)
-        {
-            string assetSetFilename = Path.Combine(Util.assetsDir(), "AssetSets.xml");
-
-            ForEachDefaultXmlAsset(assetSetFilename, action);
-        }
 
         public void ForEachDefaultXmlAsset(string assetSetFilename, Action<AssetBase> action)
         {
@@ -99,16 +93,18 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             if (File.Exists(assetSetFilename))
             {
                 string assetSetPath = "ERROR";
-
+                string assetRootPath = "";
                 try
                 {
                     XmlConfigSource source = new XmlConfigSource(assetSetFilename);
+                    assetRootPath = Path.GetFullPath(source.SavePath);
+                    assetRootPath = Path.GetDirectoryName(assetRootPath);
 
                     for (int i = 0; i < source.Configs.Count; i++)
                     {
                         assetSetPath = source.Configs[i].GetString("file", String.Empty);
 
-                        LoadXmlAssetSet(Path.Combine(Util.assetsDir(), assetSetPath), assets);
+                        LoadXmlAssetSet(Path.Combine(assetRootPath, assetSetPath), assets);
                     }
                 }
                 catch (XmlException e)
@@ -118,7 +114,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             }
             else
             {
-                m_log.Error("[ASSETS]: Asset set control file assets/AssetSets.xml does not exist!  No assets loaded.");
+                m_log.ErrorFormat("[ASSETS]: Asset set control file {0} does not exist!  No assets loaded.", assetSetFilename);
             }
 
             assets.ForEach(action);

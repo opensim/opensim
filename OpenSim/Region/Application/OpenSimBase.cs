@@ -178,7 +178,7 @@ namespace OpenSim
             
             m_stats = StatsManager.StartCollectingSimExtraStats();
             
-            LibraryRootFolder libraryRootFolder = new LibraryRootFolder();
+            LibraryRootFolder libraryRootFolder = new LibraryRootFolder(m_configSettings.LibrariesXMLFile);
 
             // StandAlone mode? is determined by !startupConfig.GetBoolean("gridmode", false)
             if (m_configSettings.Standalone)
@@ -291,7 +291,7 @@ namespace OpenSim
             else
             {
                 SQLAssetServer sqlAssetServer = new SQLAssetServer(m_configSettings.StandaloneAssetPlugin, m_configSettings.StandaloneAssetSource);
-                sqlAssetServer.LoadDefaultAssets();
+                sqlAssetServer.LoadDefaultAssets(m_configSettings.AssetSetsXMLFile);
                 assetServer = sqlAssetServer;
             }
 

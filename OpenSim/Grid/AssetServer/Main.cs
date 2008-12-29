@@ -87,8 +87,8 @@ namespace OpenSim.Grid.AssetServer
             m_log.Info("[ASSET]: Setting up asset DB");
             setupDB(config);
 
-            m_log.Info("[ASSET]: Loading default asset set..");
-            LoadDefaultAssets();
+            m_log.Info("[ASSET]: Loading default asset set from '" + config.AssetSetsLocation + "'");
+            LoadDefaultAssets(config.AssetSetsLocation);
 
             m_log.Info("[ASSET]: Starting HTTP process");
             m_httpServer = new BaseHttpServer(config.HttpPort);
@@ -142,9 +142,9 @@ namespace OpenSim.Grid.AssetServer
             }
         }
 
-        public void LoadDefaultAssets()
+        public void LoadDefaultAssets(string pAssetSetsLocation)
         {
-            assetLoader.ForEachDefaultXmlAsset(StoreAsset);
+            assetLoader.ForEachDefaultXmlAsset(pAssetSetsLocation, StoreAsset);
         }
 
         protected void StoreAsset(AssetBase asset)

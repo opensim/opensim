@@ -43,8 +43,7 @@ namespace OpenSim
         protected NetworkServersInfo m_networkServersInfo;
 
         public ConfigurationLoader()
-        {
-           
+        {           
         }
 
         public OpenSimConfigSource LoadConfigSettings(IConfigSource configSource, out ConfigSettings configSettings, out NetworkServersInfo networkInfo)
@@ -149,7 +148,9 @@ namespace OpenSim
                 config.Set("userDatabase_plugin", "OpenSim.Data.SQLite.dll");
                 config.Set("user_source", "");
                 config.Set("asset_plugin", "OpenSim.Data.SQLite.dll");
-                config.Set("asset_source", "");
+                config.Set("asset_source", "");                
+                config.Set("LibrariesXMLFile", string.Format(".{0}inventory{0}Libraries.xml", Path.DirectorySeparatorChar));
+                config.Set("AssetSetsXMLFile", string.Format(".{0}assets{0}AssetSets.xml", Path.DirectorySeparatorChar));
                 config.Set("dump_assets_to_file", false);
             }
 
@@ -186,7 +187,6 @@ namespace OpenSim
                 m_configSettings.Standalone = !startupConfig.GetBoolean("gridmode", false);
                 m_configSettings.PhysicsEngine = startupConfig.GetString("physics");
                 m_configSettings.MeshEngineName = startupConfig.GetString("meshing");
-
                 m_configSettings.PhysicalPrim = startupConfig.GetBoolean("physical_prim", true);
 
                 m_configSettings.See_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);
@@ -218,7 +218,10 @@ namespace OpenSim
                 m_configSettings.StandaloneAssetPlugin = standaloneConfig.GetString("asset_plugin");
                 m_configSettings.StandaloneAssetSource = standaloneConfig.GetString("asset_source");
 
-                m_configSettings.DumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
+                m_configSettings.LibrariesXMLFile = standaloneConfig.GetString("LibrariesXMLFile");
+                m_configSettings.AssetSetsXMLFile = standaloneConfig.GetString("AssetSetsXMLFile");
+                
+                m_configSettings.DumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);                                
             }
 
             m_networkServersInfo.loadFromConfiguration(m_config.Source);

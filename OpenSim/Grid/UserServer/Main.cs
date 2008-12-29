@@ -137,7 +137,7 @@ namespace OpenSim.Grid.UserServer
         protected virtual void StartupLoginService(IInterServiceInventoryServices inventoryService)
         {
             m_loginService = new UserLoginService(
-                m_userManager, inventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
+                m_userManager, inventoryService, new LibraryRootFolder(Cfg.LibraryXmlfile), Cfg, Cfg.DefaultStartupMsg);
         }
 
         protected virtual void AddHttpHandlers()

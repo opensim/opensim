@@ -179,5 +179,30 @@ namespace OpenSim.Framework
             get { return m_dumpAssetsToFile; }
             set { m_dumpAssetsToFile = value; }
         }
+
+        protected string m_librariesXMLFile;
+        public string LibrariesXMLFile
+        {
+            get
+            {
+                return m_librariesXMLFile;
+            }
+            set
+            {
+                m_librariesXMLFile = value;
+            }
+        }
+        protected string m_assetSetsXMLFile;
+        public string AssetSetsXMLFile
+        {
+            get
+            {
+                return m_assetSetsXMLFile;
+            }
+            set
+            {
+                m_assetSetsXMLFile = value;
+            }
+        }
     }
 }

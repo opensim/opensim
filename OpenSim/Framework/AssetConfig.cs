@@ -40,6 +40,7 @@ namespace OpenSim.Framework
         public string DatabaseConnect = String.Empty;
         public string DatabaseProvider = String.Empty;
         public uint HttpPort = DefaultHttpPort;
+        public string AssetSetsLocation = string.Empty;
 
         public AssetConfig(string description, string filename)
         {
@@ -58,6 +59,10 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
+
+            configMember.addConfigurationOption("assetset_location", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                        "Location of 'AssetSets.xml'",
+                                        string.Format(".{0}assets{0}AssetSets.xml", System.IO.Path.DirectorySeparatorChar), false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -69,6 +74,9 @@ namespace OpenSim.Framework
                     break;
                 case "database_connect":
                     DatabaseConnect = (string) configuration_result;
+                    break;
+                case "assetset_location":
+                    AssetSetsLocation = (string) configuration_result;
                     break;
                 case "http_port":
                     HttpPort = (uint) configuration_result;
