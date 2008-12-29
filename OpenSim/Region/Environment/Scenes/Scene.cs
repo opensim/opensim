@@ -149,6 +149,8 @@ namespace OpenSim.Region.Environment.Scenes
         protected IAvatarFactory m_AvatarFactory;
         protected IConfigSource m_config;
         protected IRegionSerialiserModule m_serialiser;
+        protected IInterregionCommsOut m_interregionCommsOut;
+        protected IInterregionCommsIn m_interregionCommsIn;
 
         // Central Update Loop
 
@@ -757,6 +759,8 @@ namespace OpenSim.Region.Environment.Scenes
             XferManager = RequestModuleInterface<IXfer>();
             m_AvatarFactory = RequestModuleInterface<IAvatarFactory>();
             m_serialiser = RequestModuleInterface<IRegionSerialiserModule>();
+            m_interregionCommsOut = RequestModuleInterface<IInterregionCommsOut>();
+            m_interregionCommsIn = RequestModuleInterface<IInterregionCommsIn>();
         }
 
         #endregion
@@ -896,10 +900,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
                 }
-                catch (NullReferenceException e)
-                {
-                    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-                }
+                //catch (NullReferenceException e)
+                //{
+                //   m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                //}
                 catch (InvalidOperationException e)
                 {
                     m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
@@ -1145,7 +1149,7 @@ namespace OpenSim.Region.Environment.Scenes
             RegisterCommsEvents();
 
             // These two 'commands' *must be* next to each other or sim rebooting fails.
-            m_sceneGridService.RegisterRegion(RegionInfo);
+            m_sceneGridService.RegisterRegion(m_interregionCommsOut, RegionInfo);
             m_sceneGridService.InformNeighborsThatRegionisUp(RegionInfo);
 
             Dictionary<string, string> dGridSettings = m_sceneGridService.GetGridSettings();
@@ -2690,12 +2694,21 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection += CloseConnection;
             m_sceneGridService.OnRegionUp += OtherRegionUp;
-            m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
+            //m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
             m_sceneGridService.OnExpectPrim += IncomingInterRegionPrimGroup;
             //m_sceneGridService.OnRemoveKnownRegionFromAvatar += HandleRemoveKnownRegionsFromAvatar;
             m_sceneGridService.OnLogOffUser += HandleLogOffUserFromGrid;
             m_sceneGridService.KiPrimitive += SendKillObject;
             m_sceneGridService.OnGetLandData += GetLandData;
+
+            if (m_interregionCommsIn != null)
+            {
+                m_log.Debug("[SCENE]: Registering with InterregionCommsIn");
+                m_interregionCommsIn.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
+            }
+            else
+                m_log.Debug("[SCENE]: Unable to register with InterregionCommsIn");
+
         }
 
         /// <summary>
@@ -2707,12 +2720,15 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnLogOffUser -= HandleLogOffUserFromGrid;
             //m_sceneGridService.OnRemoveKnownRegionFromAvatar -= HandleRemoveKnownRegionsFromAvatar;
             m_sceneGridService.OnExpectPrim -= IncomingInterRegionPrimGroup;
-            m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
+            //m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
             m_sceneGridService.OnRegionUp -= OtherRegionUp;
             m_sceneGridService.OnExpectUser -= NewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion -= AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection -= CloseConnection;
             m_sceneGridService.OnGetLandData -= GetLandData;
+
+            if (m_interregionCommsIn != null)
+                m_interregionCommsIn.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
 
             m_sceneGridService.Close();
         }
@@ -2937,17 +2953,18 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public virtual bool IncomingChildAgentDataUpdate(ChildAgentDataUpdate cAgentData)
+        public virtual bool IncomingChildAgentDataUpdate(AgentData cAgentData)
         {
-            ScenePresence childAgentUpdate = GetScenePresence(new UUID(cAgentData.AgentID));
+            //Console.WriteLine(" XXX Scene IncomingChildAgentDataUpdate in " + RegionInfo.RegionName);
+            ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
                 // I can't imagine *yet* why we would get an update if the agent is a root agent..
                 // however to avoid a race condition crossing borders..
                 if (childAgentUpdate.IsChildAgent)
                 {
-                    uint rRegionX = (uint)(cAgentData.regionHandle >> 40);
-                    uint rRegionY = (((uint)(cAgentData.regionHandle)) >> 8);
+                    uint rRegionX = (uint)(cAgentData.RegionHandle >> 40);
+                    uint rRegionY = (((uint)(cAgentData.RegionHandle)) >> 8);
                     uint tRegionX = RegionInfo.RegionLocX;
                     uint tRegionY = RegionInfo.RegionLocY;
                     //Send Data to ScenePresence
@@ -3131,7 +3148,7 @@ namespace OpenSim.Region.Environment.Scenes
             return m_sceneGridService.CrossToNeighbouringRegion(regionHandle, agentID, position, isFlying);
         }
 
-        public void SendOutChildAgentUpdates(ChildAgentDataUpdate cadu, ScenePresence presence)
+        public void SendOutChildAgentUpdates(AgentData cadu, ScenePresence presence)
         {
             m_sceneGridService.SendChildAgentDataUpdate(cadu, presence);
         }

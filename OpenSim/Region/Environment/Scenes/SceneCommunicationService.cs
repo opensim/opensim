@@ -33,6 +33,7 @@ using System.Threading;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using log4net;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Interfaces;
@@ -49,6 +50,7 @@ namespace OpenSim.Region.Environment.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected CommunicationsManager m_commsProvider;
+        protected IInterregionCommsOut m_interregionCommsOut;
         protected RegionInfo m_regionInfo;
 
         protected RegionCommsListener regionCommsHost;
@@ -87,8 +89,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="regionInfos"></param>
         /// <exception cref="System.Exception">Thrown if region registration fails.</exception>
-        public void RegisterRegion(RegionInfo regionInfos)
+        public void RegisterRegion(IInterregionCommsOut comms_out, RegionInfo regionInfos)
         {
+            m_interregionCommsOut = comms_out;
+
             m_regionInfo = regionInfos;
             m_commsProvider.GridService.gdebugRegionName = regionInfos.RegionName;
             m_commsProvider.InterRegion.rdebugRegionName = regionInfos.RegionName;            
@@ -531,7 +535,7 @@ namespace OpenSim.Region.Environment.Scenes
             //bool val = m_commsProvider.InterRegion.RegionUp(new SerializableRegionInfo(region));
         }
 
-        public delegate void SendChildAgentDataUpdateDelegate(ChildAgentDataUpdate cAgentData, ulong regionHandle);
+        public delegate void SendChildAgentDataUpdateDelegate(AgentData cAgentData, ulong regionHandle);
 
         /// <summary>
         /// This informs all neighboring regions about the settings of it's child agent.
@@ -540,13 +544,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// This contains information, such as, Draw Distance, Camera location, Current Position, Current throttle settings, etc.
         ///
         /// </summary>
-        private void SendChildAgentDataUpdateAsync(ChildAgentDataUpdate cAgentData, ulong regionHandle)
+        private void SendChildAgentDataUpdateAsync(AgentData cAgentData, ulong regionHandle)
         {
-            //m_log.Info("[INTERGRID]: Informing neighbors about my agent in " + presence.Scene.RegionInfo.RegionName);
+            m_log.Info("[INTERGRID]: Informing neighbors about my agent in " + m_regionInfo.RegionName);
             //bool regionAccepted = m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
             try
             {
-                m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
+                //m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
+                m_interregionCommsOut.SendChildAgentUpdate(regionHandle, cAgentData);
             }
             catch
             {
@@ -570,18 +575,20 @@ namespace OpenSim.Region.Environment.Scenes
             icon.EndInvoke(iar);
         }
 
-        public void SendChildAgentDataUpdate(ChildAgentDataUpdate cAgentData, ScenePresence presence)
+        public void SendChildAgentDataUpdate(AgentData cAgentData, ScenePresence presence)
         {
             // This assumes that we know what our neighbors are.
             try
             {
                 foreach (ulong regionHandle in presence.KnownChildRegionHandles)
                 {
-
-                    SendChildAgentDataUpdateDelegate d = SendChildAgentDataUpdateAsync;
-                    d.BeginInvoke(cAgentData, regionHandle,
-                                  SendChildAgentDataUpdateCompleted,
-                                  d);
+                    if (regionHandle != m_regionInfo.RegionHandle)
+                    {
+                        SendChildAgentDataUpdateDelegate d = SendChildAgentDataUpdateAsync;
+                        d.BeginInvoke(cAgentData, regionHandle,
+                                      SendChildAgentDataUpdateCompleted,
+                                      d);
+                    }
                 }
             }
             catch (InvalidOperationException)

@@ -2326,7 +2326,11 @@ namespace OpenSim.Region.Environment.Scenes
                 //m_log.Info("[NeighborThrottle]: " + m_scene.GetInaccurateNeighborCount().ToString() + " - m: " + multiplier.ToString());
                 cadu.throttles = ControllingClient.GetThrottlesPacked(multiplier);
                 cadu.Velocity = new sLLVector3(Velocity);
-                m_scene.SendOutChildAgentUpdates(cadu,this);
+
+                AgentData agent = new AgentData();
+                agent.CopyFrom(cadu);
+
+                m_scene.SendOutChildAgentUpdates(agent, this);
                 
                 m_LastChildAgentUpdatePosition.X = AbsolutePosition.X;
                 m_LastChildAgentUpdatePosition.Y = AbsolutePosition.Y;
@@ -2571,7 +2575,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// This updates important decision making data about a child agent
         /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region
         /// </summary>
-        public void ChildAgentDataUpdate(ChildAgentDataUpdate cAgentData, uint tRegionX, uint tRegionY, uint rRegionX, uint rRegionY)
+        public void ChildAgentDataUpdate(AgentData cAgentData, uint tRegionX, uint tRegionY, uint rRegionX, uint rRegionY)
         {
             //
             if (!IsChildAgent)
@@ -2580,19 +2584,19 @@ namespace OpenSim.Region.Environment.Scenes
             int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
             int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
 
-            m_DrawDistance = cAgentData.drawdistance;
-            m_pos = new Vector3(cAgentData.Position.x + shiftx, cAgentData.Position.y + shifty, cAgentData.Position.z);
+            m_DrawDistance = cAgentData.Far;
+            m_pos = new Vector3(cAgentData.Position.X + shiftx, cAgentData.Position.Y + shifty, cAgentData.Position.Z);
 
             // It's hard to say here..   We can't really tell where the camera position is unless it's in world cordinates from the sending region
-            m_CameraCenter =
-                new Vector3(cAgentData.cameraPosition.x, cAgentData.cameraPosition.y, cAgentData.cameraPosition.z);
+            m_CameraCenter = cAgentData.Center;
+            //    new Vector3(cAgentData.cameraPosition.x, cAgentData.cameraPosition.y, cAgentData.cameraPosition.z);
 
 
-            m_godlevel = cAgentData.godlevel;
-            m_avHeight = cAgentData.AVHeight;
+            m_godlevel = cAgentData.GodLevel;
+            m_avHeight = cAgentData.Size.Z;
             //SetHeight(cAgentData.AVHeight);
 
-            ControllingClient.SetChildAgentThrottle(cAgentData.throttles);
+            ControllingClient.SetChildAgentThrottle(cAgentData.Throttles);
 
             // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
             if (m_scene.m_seeIntoRegionFromNeighbor)
