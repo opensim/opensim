@@ -49,7 +49,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IHyperlink m_hg;
+        public readonly IHyperlink m_hg;
 
         public HGSceneCommunicationService(CommunicationsManager commsMan, IHyperlink hg) : base(commsMan)
         {
