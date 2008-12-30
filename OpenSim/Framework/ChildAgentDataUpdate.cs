@@ -150,26 +150,16 @@ namespace OpenSim.Framework
             OSDMap args = new OSDMap();
             args["region_handle"] = OSD.FromString(RegionHandle.ToString());
             args["circuit_code"] = OSD.FromString(CircuitCode.ToString());
-            if (AgentID != null)
-                args["agent_uuid"] = OSD.FromUUID(AgentID);
-            if (SessionID != null)
-                args["session_uuid"] = OSD.FromUUID(SessionID);
+            args["agent_uuid"] = OSD.FromUUID(AgentID);
+            args["session_uuid"] = OSD.FromUUID(SessionID);
 
-            if (Position != null)
-                args["position"] = OSD.FromString(Position.ToString());
-
-            if (Velocity != null)
-                args["velocity"] = OSD.FromString(Velocity.ToString());
-            if (Center != null)
-                args["center"] = OSD.FromString(Center.ToString());
-            if (Size != null)
-                args["size"] = OSD.FromString(Size.ToString());
-            if (AtAxis != null)
-                args["at_axis"] = OSD.FromString(AtAxis.ToString());
-            if (LeftAxis != null)
-                args["left_axis"] = OSD.FromString(LeftAxis.ToString());
-            if (UpAxis != null)
-                args["up_axis"] = OSD.FromString(UpAxis.ToString());
+            args["position"] = OSD.FromString(Position.ToString());
+            args["velocity"] = OSD.FromString(Velocity.ToString());
+            args["center"] = OSD.FromString(Center.ToString());
+            args["size"] = OSD.FromString(Size.ToString());
+            args["at_axis"] = OSD.FromString(AtAxis.ToString());
+            args["left_axis"] = OSD.FromString(LeftAxis.ToString());
+            args["up_axis"] = OSD.FromString(UpAxis.ToString());
 
             args["changed_grid"] = OSD.FromBoolean(ChangedGrid);
             args["far"] = OSD.FromReal(Far);
@@ -179,17 +169,14 @@ namespace OpenSim.Framework
                 args["throttles"] = OSD.FromBinary(Throttles);
 
             args["locomotion_state"] = OSD.FromString(LocomotionState.ToString());
-            if (HeadRotation != null)
-                args["head_rotation"] = OSD.FromString(HeadRotation.ToString());
-            if (BodyRotation != null)
-                args["body_rotation"] = OSD.FromString(BodyRotation.ToString());
+            args["head_rotation"] = OSD.FromString(HeadRotation.ToString());
+            args["body_rotation"] = OSD.FromString(BodyRotation.ToString());
             args["control_flags"] = OSD.FromString(ControlFlags.ToString());
 
             args["energy_level"] = OSD.FromReal(EnergyLevel);
             args["god_level"] = OSD.FromString(GodLevel.ToString());
             args["always_run"] = OSD.FromBoolean(AlwaysRun);
-            if (PreyAgent != null)
-                args["prey_agent"] = OSD.FromUUID(PreyAgent);
+            args["prey_agent"] = OSD.FromUUID(PreyAgent);
             args["agent_access"] = OSD.FromString(AgentAccess.ToString());
 
             if ((AgentTextures != null) && (AgentTextures.Length > 0))
@@ -200,8 +187,7 @@ namespace OpenSim.Framework
                 args["agent_textures"] = textures;
             }
 
-            if (ActiveGroupID != null)
-                args["active_group_id"] = OSD.FromUUID(ActiveGroupID);
+            args["active_group_id"] = OSD.FromUUID(ActiveGroupID);
 
             // Last few fields are still missing
 
@@ -315,11 +301,9 @@ namespace OpenSim.Framework
         /// <param name="cAgent"></param>
         public void CopyFrom(ChildAgentDataUpdate cAgent)
         {
-            if (cAgent.ActiveGroupID != null)
-                ActiveGroupID = new UUID(cAgent.ActiveGroupID);
+            ActiveGroupID = new UUID(cAgent.ActiveGroupID);
             
-            if (cAgent.AgentID != null)
-                AgentID = new UUID(cAgent.AgentID);
+            AgentID = new UUID(cAgent.AgentID);
 
             AlwaysRun = cAgent.alwaysrun;
             
@@ -327,29 +311,23 @@ namespace OpenSim.Framework
             Size = new Vector3();
             Size.Z = cAgent.AVHeight;
             
-            if (cAgent.cameraPosition != null)
-                Center = new Vector3(cAgent.cameraPosition.x, cAgent.cameraPosition.y, cAgent.cameraPosition.z);
+            Center = new Vector3(cAgent.cameraPosition.x, cAgent.cameraPosition.y, cAgent.cameraPosition.z);
             
             Far = cAgent.drawdistance;
             
             // downcasting ???
             GodLevel = (byte)(cAgent.godlevel);
 
-            if (cAgent.ActiveGroupID != null)
-            {
-                Groups = new AgentGroupData[1];
-                Groups[0] = new AgentGroupData(new UUID(cAgent.ActiveGroupID), cAgent.GroupAccess, true);
-            }
+            Groups = new AgentGroupData[1];
+            Groups[0] = new AgentGroupData(new UUID(cAgent.ActiveGroupID), cAgent.GroupAccess, true);
             
-            if (cAgent.Position != null)
-                Position = new Vector3(cAgent.Position.x, cAgent.Position.y, cAgent.Position.z);
+            Position = new Vector3(cAgent.Position.x, cAgent.Position.y, cAgent.Position.z);
             
             RegionHandle = cAgent.regionHandle;
             
             Throttles = cAgent.throttles;
             
-            if (cAgent.Velocity != null)
-                Velocity = new Vector3(cAgent.Velocity.x, cAgent.Velocity.y, cAgent.Velocity.z);
+            Velocity = new Vector3(cAgent.Velocity.x, cAgent.Velocity.y, cAgent.Velocity.z);
         }
 
         public void Dump()
