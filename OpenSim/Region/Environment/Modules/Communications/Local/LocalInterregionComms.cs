@@ -64,9 +64,11 @@ namespace OpenSim.Region.Environment.Modules.Communications.Local
             {
                 IConfig startupConfig = config.Configs["Communications"];
 
-                if ((startupConfig == null) ||
-                    (startupConfig != null) && (startupConfig.GetString("InterregionComms", "RESTCommms") == "LocalComms"))
+                if ((startupConfig != null) && (startupConfig.GetString("InterregionComms", "RESTCommms") == "LocalComms"))
+                {
+                    m_log.Debug("[LOCAL COMMS]: Enabling InterregionComms LocalComms module");
                     m_enabled = true;
+                }
             }
 
             if (!m_enabled)
@@ -131,7 +133,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.Local
                     }
                 }
             }
-            m_log.Debug("[LOCAL COMMS]: region not found for ChildAgentUpdate");
+            //m_log.Debug("[LOCAL COMMS]: region not found for ChildAgentUpdate");
             return false;
         }
 

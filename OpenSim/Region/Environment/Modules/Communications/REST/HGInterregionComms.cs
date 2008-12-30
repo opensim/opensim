@@ -55,6 +55,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
                 IConfig startupConfig = config.Configs["Communications"];
                 if ((startupConfig != null) && (startupConfig.GetString("InterregionComms", "RESTCommms") == "HGRESTComms"))
                 {
+                    m_log.Debug("[HGREST COMMS]: Enabling InterregionComms HGRESTComms module");
                     m_enabled = true;
                     InitOnce(scene);
                 }

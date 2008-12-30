@@ -68,8 +68,10 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             {
                 initialized = true;
                 IConfig startupConfig = config.Configs["Communications"];
-                if ((startupConfig != null) && (startupConfig.GetString("InterregionComms", "RESTCommms") == "RESTComms"))
+                if ((startupConfig == null) || 
+                    (startupConfig != null) && (startupConfig.GetString("InterregionComms", "RESTCommms") == "RESTComms"))
                 {
+                    m_log.Debug("[REST COMMS]: Enabling InterregionComms RESTComms module");
                     m_enabled = true;
                     InitOnce(scene);
                 }
