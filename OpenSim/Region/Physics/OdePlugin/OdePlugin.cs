@@ -1366,28 +1366,28 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return m_NINJA_physics_joints_enabled; }
         }
 
-        // internal utility function: must be called within a lock(OdeLock)
+        // internal utility function: must be called within a lock (OdeLock)
         private void InternalAddActiveJoint(PhysicsJoint joint)
         {
             activeJoints.Add(joint);
             SOPName_to_activeJoint.Add(joint.ObjectNameInScene, joint);
         }
 
-        // internal utility function: must be called within a lock(OdeLock)
+        // internal utility function: must be called within a lock (OdeLock)
         private void InternalAddPendingJoint(OdePhysicsJoint joint)
         {
             pendingJoints.Add(joint);
             SOPName_to_pendingJoint.Add(joint.ObjectNameInScene, joint);
         }
 
-        // internal utility function: must be called within a lock(OdeLock)
+        // internal utility function: must be called within a lock (OdeLock)
         private void InternalRemovePendingJoint(PhysicsJoint joint)
         {
             pendingJoints.Remove(joint);
             SOPName_to_pendingJoint.Remove(joint.ObjectNameInScene);
         }
 
-        // internal utility function: must be called within a lock(OdeLock)
+        // internal utility function: must be called within a lock (OdeLock)
         private void InternalRemoveActiveJoint(PhysicsJoint joint)
         {
             activeJoints.Remove(joint);
@@ -1640,7 +1640,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        // normally called from within OnJointMoved, which is called from within a lock(OdeLock)
+        // normally called from within OnJointMoved, which is called from within a lock (OdeLock)
         public override PhysicsVector GetJointAnchor(PhysicsJoint joint)
         {
             Debug.Assert(joint.IsInPhysicsEngine);
@@ -1666,7 +1666,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             return new PhysicsVector(pos.X, pos.Y, pos.Z);
         }
 
-        // normally called from within OnJointMoved, which is called from within a lock(OdeLock)
+        // normally called from within OnJointMoved, which is called from within a lock (OdeLock)
         // WARNING: ODE sometimes returns <0,0,0> as the joint axis! Therefore this function
         // appears to be unreliable. Fortunately we can compute the joint axis ourselves by
         // keeping track of the joint's original orientation relative to one of the involved bodies.
@@ -2230,8 +2230,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (SupportsNINJAJoints)
             {
-                DeleteRequestedJoints(); // this must be outside of the lock(OdeLock) to avoid deadlocks
-                CreateRequestedJoints(); // this must be outside of the lock(OdeLock) to avoid deadlocks
+                DeleteRequestedJoints(); // this must be outside of the lock (OdeLock) to avoid deadlocks
+                CreateRequestedJoints(); // this must be outside of the lock (OdeLock) to avoid deadlocks
             }
 
             lock (OdeLock)

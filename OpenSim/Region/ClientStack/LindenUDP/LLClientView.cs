@@ -8248,7 +8248,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ap.Data = new AvatarPicksReplyPacket.DataBlock[picks.Count];
 
             int i = 0;
-            foreach(KeyValuePair<UUID, string> pick in picks)
+            foreach (KeyValuePair<UUID, string> pick in picks)
             {
                 ap.Data[i] = new AvatarPicksReplyPacket.DataBlock();
                 ap.Data[i].PickID = pick.Key;
@@ -8272,7 +8272,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ac.Data = new AvatarClassifiedReplyPacket.DataBlock[classifieds.Count];
 
             int i = 0;
-            foreach(KeyValuePair<UUID, string> classified in classifieds)
+            foreach (KeyValuePair<UUID, string> classified in classifieds)
             {
                 ac.Data[i] = new AvatarClassifiedReplyPacket.DataBlock();
                 ac.Data[i].ClassifiedID = classified.Key;

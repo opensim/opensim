@@ -4456,14 +4456,14 @@ namespace OpenSim.Region.Environment.Scenes
         // update non-physical objects like the joint proxy objects that represent the position
         // of the joints in the scene.
 
-        // This routine is normally called from within a lock(OdeLock) from within the OdePhysicsScene
+        // This routine is normally called from within a lock (OdeLock) from within the OdePhysicsScene
         // WARNING: be careful of deadlocks here if you manipulate the scene. Remember you are being called
         // from within the OdePhysicsScene. 
 
         protected internal void jointMoved(PhysicsJoint joint)
         {
 
-            // m_parentScene.PhysicsScene.DumpJointInfo(); // non-thread-locked version; we should already be in a lock(OdeLock) when this callback is invoked
+            // m_parentScene.PhysicsScene.DumpJointInfo(); // non-thread-locked version; we should already be in a lock (OdeLock) when this callback is invoked
             // FIXME: this causes a sequential lookup of all objects in the scene; use a dictionary
             SceneObjectPart jointProxyObject = GetSceneObjectPart(joint.ObjectNameInScene);
             if (jointProxyObject == null)
@@ -4521,7 +4521,7 @@ namespace OpenSim.Region.Environment.Scenes
         // update non-physical objects like the joint proxy objects that represent the position
         // of the joints in the scene.
 
-        // This routine is normally called from within a lock(OdeLock) from within the OdePhysicsScene
+        // This routine is normally called from within a lock (OdeLock) from within the OdePhysicsScene
         // WARNING: be careful of deadlocks here if you manipulate the scene. Remember you are being called
         // from within the OdePhysicsScene.
         protected internal void jointDeactivated(PhysicsJoint joint)
@@ -4547,7 +4547,7 @@ namespace OpenSim.Region.Environment.Scenes
         // alert the user of errors by using the debug channel in the same way that scripts alert
         // the user of compile errors.
 
-        // This routine is normally called from within a lock(OdeLock) from within the OdePhysicsScene
+        // This routine is normally called from within a lock (OdeLock) from within the OdePhysicsScene
         // WARNING: be careful of deadlocks here if you manipulate the scene. Remember you are being called
         // from within the OdePhysicsScene.
         public void jointErrorMessage(PhysicsJoint joint, string message)

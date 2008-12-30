@@ -533,7 +533,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             {
                 permission = true;
             }
-            else if(group.IsAttachment)
+            else if (group.IsAttachment)
             {
                 permission = false;
             }

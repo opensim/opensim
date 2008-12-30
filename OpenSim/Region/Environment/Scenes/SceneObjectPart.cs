@@ -1624,7 +1624,7 @@ if (m_shape != null) {
             part.m_fromUserInventoryItemID = fromUserInventoryItemId;
 
             // for tempOnRez objects, we have to fix the Expire date.
-            if((part.Flags & PrimFlags.TemporaryOnRez) != 0) part.ResetExpire();
+            if ((part.Flags & PrimFlags.TemporaryOnRez) != 0) part.ResetExpire();
 
             return part;
         }

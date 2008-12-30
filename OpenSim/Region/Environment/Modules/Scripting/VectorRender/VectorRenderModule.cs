@@ -325,7 +325,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                     int hex = 0;
 
                     Color newColour;
-                    if(Int32.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
+                    if (Int32.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
                     {
                         newColour = Color.FromArgb(hex);
                     } 
