@@ -223,7 +223,6 @@ namespace OpenSim.Region.Environment.Modules
                     //  Insert our event handling hooks
 
                     scene.EventManager.OnFrame     += SunUpdate;
-                    //scene.EventManager.OnNewClient += SunToClient;
                     scene.EventManager.OnMakeChildAgent += MakeChildAgent;
                     scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
                     scene.EventManager.OnClientClosed += ClientLoggedOut;
@@ -248,9 +247,9 @@ namespace OpenSim.Region.Environment.Modules
         public void Close()
         {
             ready = false;
-            //  Remove our hooks
+            
+            // Remove our hooks
             m_scene.EventManager.OnFrame     -= SunUpdate;
-           // m_scene.EventManager.OnNewClient -= SunToClient;
             m_scene.EventManager.OnMakeChildAgent -= MakeChildAgent;
             m_scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
             m_scene.EventManager.OnClientClosed -= ClientLoggedOut;

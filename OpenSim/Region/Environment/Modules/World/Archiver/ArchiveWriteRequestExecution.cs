@@ -56,20 +56,20 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         protected ITerrainModule m_terrainModule;
         protected IRegionSerialiserModule m_serialiser;
         protected List<SceneObjectGroup> m_sceneObjects;
-        protected string m_sceneName;
+        protected RegionInfo m_regionInfo;
         protected string m_savePath;
 
         public ArchiveWriteRequestExecution(
              List<SceneObjectGroup> sceneObjects,
              ITerrainModule terrainModule,
              IRegionSerialiserModule serialiser,
-             string sceneName,
+             RegionInfo regionInfo,
              string savePath)
         {
             m_sceneObjects = sceneObjects;
             m_terrainModule = terrainModule;
             m_serialiser = serialiser;
-            m_sceneName = sceneName;
+            m_regionInfo = regionInfo;
             m_savePath = savePath;
         }
 
@@ -90,9 +90,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             // Write out control file
             archive.AddFile(ArchiveConstants.CONTROL_FILE_PATH, CreateControlFile());
+            
+            // Write out region settings
+            string settingsPath = String.Format("{0}{1}.xml", ArchiveConstants.SETTINGS_PATH, m_regionInfo.RegionName);
+            archive.AddFile(settingsPath, RegionSettingsSerializer.Serialize(m_regionInfo.RegionSettings));
 
             // Write out terrain
-            string terrainPath = String.Format("{0}{1}.r32", ArchiveConstants.TERRAINS_PATH, m_sceneName);
+            string terrainPath = String.Format("{0}{1}.r32", ArchiveConstants.TERRAINS_PATH, m_regionInfo.RegionName);
             MemoryStream ms = new MemoryStream();
             m_terrainModule.SaveToStream(terrainPath, ms);
             archive.AddFile(terrainPath, ms.ToArray());
@@ -137,7 +141,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             xtw.WriteStartDocument();
             xtw.WriteStartElement("archive");
             xtw.WriteAttributeString("major_version", "0");
-            xtw.WriteAttributeString("minor_version", "1");
+            xtw.WriteAttributeString("minor_version", "2");
             xtw.WriteEndElement();
 
             xtw.Flush();

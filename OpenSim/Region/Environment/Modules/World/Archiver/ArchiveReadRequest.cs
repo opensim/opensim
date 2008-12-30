@@ -69,6 +69,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         private void DearchiveRegion()
         {
+            // The same code can handle dearchiving 0.1 and 0.2 OpenSim Archive versions
+            DearchiveRegion0DotStar();
+        }
+        
+        private void DearchiveRegion0DotStar()
+        {
             TarArchiveReader archive
                 = new TarArchiveReader(
                     new GZipStream(GetStream(m_loadPath), CompressionMode.Decompress));
@@ -106,6 +112,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 else if (filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
                 {
                     LoadTerrain(filePath, data);
+                }
+                else if (filePath.StartsWith(ArchiveConstants.SETTINGS_PATH))
+                {
+                    LoadRegionSettings(filePath, data);
                 }
             }
 
@@ -266,6 +276,68 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                 return false;
             }
+        }
+        
+        /// <summary>
+        /// Load region settings data
+        /// </summary>
+        /// <param name="settingsPath"></param>
+        /// <param name="data"></param>
+        /// <returns>
+        /// true if settings were loaded successfully, false otherwise
+        /// </returns>
+        private bool LoadRegionSettings(string settingsPath, byte[] data)
+        {
+            RegionSettings loadedRegionSettings;
+            
+            try
+            {
+                loadedRegionSettings = RegionSettingsSerializer.Deserialize(data);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[ARCHIVER]: Could not parse region settings file {0}.  Ignoring.  Exception was {1}", 
+                    settingsPath, e);
+                return false;
+            }
+                
+            RegionSettings currentRegionSettings = m_scene.RegionInfo.RegionSettings;
+            
+            currentRegionSettings.AgentLimit = loadedRegionSettings.AgentLimit;
+            currentRegionSettings.AllowDamage = loadedRegionSettings.AllowDamage;
+            currentRegionSettings.AllowLandJoinDivide = loadedRegionSettings.AllowLandJoinDivide;
+            currentRegionSettings.AllowLandResell = loadedRegionSettings.AllowLandResell;
+            currentRegionSettings.BlockFly = loadedRegionSettings.BlockFly;
+            currentRegionSettings.BlockShowInSearch = loadedRegionSettings.BlockShowInSearch;
+            currentRegionSettings.BlockTerraform = loadedRegionSettings.BlockTerraform;
+            currentRegionSettings.DisableCollisions = loadedRegionSettings.DisableCollisions;
+            currentRegionSettings.DisablePhysics = loadedRegionSettings.DisablePhysics;
+            currentRegionSettings.DisableScripts = loadedRegionSettings.DisableScripts;
+            currentRegionSettings.Elevation1NE = loadedRegionSettings.Elevation1NE;
+            currentRegionSettings.Elevation1NW = loadedRegionSettings.Elevation1NW;
+            currentRegionSettings.Elevation1SE = loadedRegionSettings.Elevation1SE;
+            currentRegionSettings.Elevation1SW = loadedRegionSettings.Elevation1SW;
+            currentRegionSettings.Elevation2NE = loadedRegionSettings.Elevation2NE;
+            currentRegionSettings.Elevation2NW = loadedRegionSettings.Elevation2NW;
+            currentRegionSettings.Elevation2SE = loadedRegionSettings.Elevation2SE;
+            currentRegionSettings.Elevation2SW = loadedRegionSettings.Elevation2SW;
+            currentRegionSettings.FixedSun = loadedRegionSettings.FixedSun;
+            currentRegionSettings.ObjectBonus = loadedRegionSettings.ObjectBonus;
+            currentRegionSettings.RestrictPushing = loadedRegionSettings.RestrictPushing;
+            currentRegionSettings.TerrainLowerLimit = loadedRegionSettings.TerrainLowerLimit;
+            currentRegionSettings.TerrainRaiseLimit = loadedRegionSettings.TerrainRaiseLimit;
+            currentRegionSettings.TerrainTexture1 = loadedRegionSettings.TerrainTexture1;
+            currentRegionSettings.TerrainTexture2 = loadedRegionSettings.TerrainTexture2;
+            currentRegionSettings.TerrainTexture3 = loadedRegionSettings.TerrainTexture3;
+            currentRegionSettings.TerrainTexture4 = loadedRegionSettings.TerrainTexture4;
+            currentRegionSettings.UseEstateSun = loadedRegionSettings.UseEstateSun;
+            currentRegionSettings.WaterHeight = loadedRegionSettings.WaterHeight;
+            
+            IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
+            estateModule.sendRegionHandshakeToAll();
+            
+            return true;
         }
 
         /// <summary>

@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment
 
         protected Dictionary<string, byte[]> m_files = new Dictionary<string, byte[]>();
 
-        protected static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
+        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
 
         /// <summary>
         /// Add a directory to the tar archive.  We can only handle one path level right now!

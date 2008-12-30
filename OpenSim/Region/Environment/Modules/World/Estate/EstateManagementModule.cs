@@ -562,7 +562,6 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         private void HandleRegionInfoRequest(IClientAPI remote_client)
         {
-
            RegionInfoForEstateMenuArgs args = new RegionInfoForEstateMenuArgs();
            args.billableFactor = m_scene.RegionInfo.EstateSettings.BillableFactor;
            args.estateID = m_scene.RegionInfo.EstateSettings.EstateID;
@@ -754,9 +753,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         public void sendRegionHandshakeToAll()
         {
-            m_scene.Broadcast(
-                sendRegionHandshake
-                );
+            m_scene.Broadcast(sendRegionHandshake);
         }
 
         public void handleEstateChangeInfo(IClientAPI remoteClient, UUID invoice, UUID senderID, UInt32 parms1, UInt32 parms2)

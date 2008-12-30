@@ -200,8 +200,6 @@ namespace OpenSim.Framework
         private EstateSettings m_estateSettings;
         private RegionSettings m_regionSettings;
 
-//        public bool m_allow_alternate_ports;
-
         public UUID MasterAvatarAssignedUUID = UUID.Zero;
         public string MasterAvatarFirstName = String.Empty;
         public string MasterAvatarLastName = String.Empty;

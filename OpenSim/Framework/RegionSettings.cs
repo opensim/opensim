@@ -38,6 +38,14 @@ namespace OpenSim.Framework
         public delegate void SaveDelegate(RegionSettings rs);
 
         public event SaveDelegate OnSave;
+        
+        /// <value>
+        /// These appear to be terrain textures that are shipped with the client.
+        /// </value>
+        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_1 = new UUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");
+        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_2 = new UUID("abb783e6-3e93-26c0-248a-247666855da3");
+        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_3 = new UUID("179cdabd-398a-9b6b-1391-4dc333ba321f");
+        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_4 = new UUID("beb169c7-11ea-fff2-efe5-0f24dc881df2");
 
         public RegionSettings()
         {
@@ -74,19 +82,19 @@ namespace OpenSim.Framework
 
              configMember.addConfigurationOption("terrain_base_0",
                      ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                     String.Empty, "b8d3965a-ad78-bf43-699b-bff8eca6c975",true);
+                     String.Empty, DEFAULT_TERRAIN_TEXTURE_1.ToString(), true);
 
              configMember.addConfigurationOption("terrain_base_1",
                      ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                     String.Empty, "abb783e6-3e93-26c0-248a-247666855da3",true);
+                     String.Empty, DEFAULT_TERRAIN_TEXTURE_2.ToString(), true);
 
              configMember.addConfigurationOption("terrain_base_2",
                      ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                     String.Empty, "179cdabd-398a-9b6b-1391-4dc333ba321f",true);
+                     String.Empty, DEFAULT_TERRAIN_TEXTURE_3.ToString(), true);
 
              configMember.addConfigurationOption("terrain_base_3",
                      ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                     String.Empty, "beb169c7-11ea-fff2-efe5-0f24dc881df2",true);
+                     String.Empty, DEFAULT_TERRAIN_TEXTURE_4.ToString(), true);
 
              configMember.addConfigurationOption("terrain_start_height_0",
                      ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
@@ -361,7 +369,7 @@ namespace OpenSim.Framework
             set
             {
                 if (value == UUID.Zero)
-                    m_TerrainTexture1 = new UUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");
+                    m_TerrainTexture1 = DEFAULT_TERRAIN_TEXTURE_1;
                 else
                     m_TerrainTexture1 = value;
             }
@@ -375,7 +383,7 @@ namespace OpenSim.Framework
             set
             {
                 if (value == UUID.Zero)
-                    m_TerrainTexture2 = new UUID("abb783e6-3e93-26c0-248a-247666855da3");
+                    m_TerrainTexture2 = DEFAULT_TERRAIN_TEXTURE_2;
                 else
                     m_TerrainTexture2 = value;
             }
@@ -389,7 +397,7 @@ namespace OpenSim.Framework
             set
             {
                 if (value == UUID.Zero)
-                    m_TerrainTexture3 = new UUID("179cdabd-398a-9b6b-1391-4dc333ba321f");
+                    m_TerrainTexture3 = DEFAULT_TERRAIN_TEXTURE_3;
                 else
                     m_TerrainTexture3 = value;
             }
@@ -403,7 +411,7 @@ namespace OpenSim.Framework
             set
             {
                 if (value == UUID.Zero)
-                    m_TerrainTexture4 = new UUID("beb169c7-11ea-fff2-efe5-0f24dc881df2");
+                    m_TerrainTexture4 = DEFAULT_TERRAIN_TEXTURE_4;
                 else
                     m_TerrainTexture4 = value;
             }

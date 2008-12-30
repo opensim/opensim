@@ -204,9 +204,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                     // Get the prim's default texture.  This will be used for faces which don't have their own texture
                     assetUuids[textureEntry.DefaultTexture.TextureID] = 1;
-
-                    if (part.Shape.SculptTexture != UUID.Zero)
-                        assetUuids[part.Shape.SculptTexture] = 1;
+                    
                     // XXX: Not a great way to iterate through face textures, but there's no
                     // other method available to tell how many faces there actually are
                     //int i = 0;
@@ -218,7 +216,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                             assetUuids[texture.TextureID] = 1;
                         }
                     }
+                    
+                    // If the prim is a sculpt then preserve this information too
+                    if (part.Shape.SculptTexture != UUID.Zero)
+                        assetUuids[part.Shape.SculptTexture] = 1;                    
 
+                    // Now analyze this prim's inventory items to preserve all the uuids that they reference
                     foreach (TaskInventoryItem tii in part.TaskInventory.Values)
                     {
                         //m_log.DebugFormat("[ARCHIVER]: Analysing item asset type {0}", tii.Type);
@@ -239,10 +242,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                             {
                                 GetSceneObjectAssetUuids(tii.AssetID, assetUuids);
                             }
-                            else
-                            {
+                            //else
+                            //{
                                 //m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tii.AssetID, part.UUID);
-                            }
+                            //}
                         }
                     }
                 }
@@ -283,6 +286,21 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_log.DebugFormat(
                 "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets",
                 sceneObjects.Count, assetUuids.Count);
+            
+            // Make sure that we also request terrain texture assets
+            RegionSettings regionSettings = m_scene.RegionInfo.RegionSettings;
+            
+            if (regionSettings.TerrainTexture1 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_1)
+                assetUuids[regionSettings.TerrainTexture1] = 1;
+            
+            if (regionSettings.TerrainTexture2 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_2)
+                assetUuids[regionSettings.TerrainTexture2] = 1;
+            
+            if (regionSettings.TerrainTexture3 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_3)
+                assetUuids[regionSettings.TerrainTexture3] = 1;
+            
+            if (regionSettings.TerrainTexture4 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_4)
+                assetUuids[regionSettings.TerrainTexture4] = 1;
 
             // Asynchronously request all the assets required to perform this archive operation
             ArchiveWriteRequestExecution awre
@@ -290,8 +308,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     sceneObjects,
                     m_scene.RequestModuleInterface<ITerrainModule>(),
                     m_scene.RequestModuleInterface<IRegionSerialiserModule>(),
-                    m_scene.RegionInfo.RegionName,
+                    m_scene.RegionInfo,
                     m_savePath);
+            
             new AssetsRequest(assetUuids.Keys, m_scene.AssetCache, awre.ReceivedAllAssets).Execute();
         }
     }
