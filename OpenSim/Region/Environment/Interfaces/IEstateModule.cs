@@ -37,7 +37,7 @@ namespace OpenSim.Region.Environment.Interfaces
         bool IsManager(UUID avatarID);
         
         /// <summary>
-        /// Tell all clients about the current state of the region (terrain textures, water height, etc.)
+        /// Tell all clients about the current state of the region (terrain textures, water height, etc.).
         /// </summary>
         void sendRegionHandshakeToAll();
     }

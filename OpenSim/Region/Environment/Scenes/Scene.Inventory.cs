@@ -1800,8 +1800,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             string sceneObjectXml = objectGroup.ToXmlString();
 
-            bool useOwner = false;
-
             // Get the user info of the item destination
             //
             CachedUserInfo userInfo;
@@ -1849,13 +1847,8 @@ namespace OpenSim.Region.Environment.Scenes
                 //
 
                 InventoryFolderBase folder = null;
-                InventoryItemBase item = null;
-                
+                InventoryItemBase item = null;                
 
-                // No folder type needed
-                // We don't go here unless we have a user logged in
-                // so the skeleton is loaded
-                //
                 if (DeRezAction.SaveToExistingUserInventoryItem == action)
                 {
                     item = userInfo.RootFolder.FindItem(

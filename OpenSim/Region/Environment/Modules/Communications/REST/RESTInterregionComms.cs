@@ -191,7 +191,8 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
                 os.Close();
                 //m_log.InfoFormat("[REST COMMS]: Posted ChildAgentUpdate request to remote sim {0}", uri);
             }
-            catch (WebException ex)
+            //catch (WebException ex)
+            catch                
             {
                 //m_log.InfoFormat("[REST COMMS]: Bad send on ChildAgentUpdate {0}", ex.Message);
 
@@ -200,7 +201,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
             // Let's wait for the response
             //m_log.Info("[REST COMMS]: Waiting for a reply after ChildAgentUpdate");
-            string reply = null;
+            
             try
             {
                 WebResponse webResponse = ChildUpdateRequest.GetResponse();
@@ -210,7 +211,8 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
                 }
 
                 StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                reply = sr.ReadToEnd().Trim();
+                //reply = sr.ReadToEnd().Trim();
+                sr.ReadToEnd().Trim();
                 sr.Close();
                 //m_log.InfoFormat("[REST COMMS]: ChilAgentUpdate reply was {0} ", reply);
 

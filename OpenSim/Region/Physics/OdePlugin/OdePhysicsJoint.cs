@@ -30,7 +30,6 @@ using OpenMetaverse;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Physics.OdePlugin;
 
 namespace OpenSim.Region.Physics.OdePlugin
