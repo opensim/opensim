@@ -41,6 +41,7 @@ using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -120,7 +121,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
         protected virtual void AddHTTPHandlers()
         {
-            m_aScene.AddHTTPHandler("/ChildAgentUpdate/", ChildAgentUpdateHandler);
+            m_aScene.AddHTTPHandler("/agent/", AgentHandler);
         }
 
         #endregion /* IRegionModule */
@@ -139,14 +140,16 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             {
                 return DoChildAgentUpdateCall(regInfo, cAgentData);
             }
-
+            //else
+            //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
 
         }
 
         protected bool DoChildAgentUpdateCall(RegionInfo region, AgentData cAgentData)
         {
-            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/ChildAgentUpdate/";
+            // Eventually, we want to use a caps url instead of the agentID
+            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + cAgentData.AgentID + "/";
             //Console.WriteLine("   >>> DoChildAgentUpdateCall <<< " + uri);
 
             WebRequest ChildUpdateRequest = WebRequest.Create(uri);
@@ -232,13 +235,66 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
         #region Called from remote instances on this instance
 
-        public Hashtable ChildAgentUpdateHandler(Hashtable request)
+        public Hashtable AgentHandler(Hashtable request)
         {
-            //m_log.Debug("[CONNECTION DEBUGGING]: ChildDataUpdateHandler Called");
+            //m_log.Debug("[CONNECTION DEBUGGING]: AgentHandler Called");
+
+            //Console.WriteLine("---------------------------");
+            //Console.WriteLine(" >> uri=" + request["uri"]);
+            //Console.WriteLine(" >> content-type=" + request["content-type"]);
+            //Console.WriteLine(" >> http-method=" + request["http-method"]);
+            //Console.WriteLine("---------------------------\n");
 
             Hashtable responsedata = new Hashtable();
             responsedata["content_type"] = "text/html";
 
+            UUID agentID;
+            string action;
+            if (!GetParams((string)request["uri"], out agentID, out action))
+            {
+                m_log.InfoFormat("[REST COMMS]: Invalid parameters for agent message {0}", request["uri"]);
+                responsedata["int_response_code"] = 404;
+                responsedata["str_response_string"] = "false";
+
+                return responsedata;
+            }
+
+            // Next, let's parse the verb
+            string method = (string)request["http-method"];
+            if (method.Equals("PUT"))
+            {
+                DoPut(request, responsedata);
+                return responsedata;
+            }
+            else if (method.Equals("POST"))
+            {
+                m_log.InfoFormat("[REST COMMS]: method {0} not implemented yet in agent message", method);
+                responsedata["int_response_code"] = 404;
+                responsedata["str_response_string"] = "false";
+
+                return responsedata;
+            }
+            else if (method.Equals("GET"))
+            {
+                m_log.InfoFormat("[REST COMMS]: method {0} not implemented yet in agent message", method);
+                responsedata["int_response_code"] = 404;
+                responsedata["str_response_string"] = "false";
+
+                return responsedata;
+            }
+            else
+            {
+                m_log.InfoFormat("[REST COMMS]: method {0} not supported in agent message", method);
+                responsedata["int_response_code"] = 404;
+                responsedata["str_response_string"] = "false";
+
+                return responsedata;
+            }
+
+        }
+
+        protected virtual void DoPut(Hashtable request, Hashtable responsedata)
+        {
             OSDMap args = null;
             try
             {
@@ -259,7 +315,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
                 responsedata["int_response_code"] = 400;
                 responsedata["str_response_string"] = "false";
 
-                return responsedata;
+                return ;
             }
 
             // retrieve the regionhandle
@@ -275,20 +331,49 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             catch (Exception ex)
             {
                 m_log.InfoFormat("[REST COMMS]: exception on unpacking ChildAgentUpdate message {0}", ex.Message);
+                return;
             }
             //agent.Dump();
 
+            // This is the meaning of PUT agent
             bool result = m_localBackend.SendChildAgentUpdate(regionhandle, agent);
 
 
             responsedata["int_response_code"] = 200;
             responsedata["str_response_string"] = result.ToString();
-            return responsedata;
         }
 
         #endregion 
 
         #region Misc
+        /// <summary>
+        /// Extract the param from an uri.
+        /// </summary>
+        /// <param name="uri">Something like this: /agent/uuid/ or /agent/uuid/release</param>
+        /// <param name="uri">uuid on uuid field</param>
+        /// <param name="action">optional action</param>
+        protected bool GetParams(string uri, out UUID uuid, out string action)
+        {
+            uuid = UUID.Zero;
+            action = "";
+
+            uri = uri.Trim(new char[] { '/' });
+            string[] parts = uri.Split('/');
+            if (parts.Length <= 1)
+            {
+                return false;
+            }
+            else
+            {
+                if (!UUID.TryParse(parts[1], out uuid))
+                    return false;
+
+                if (parts.Length >= 3)
+                    action = parts[2];
+
+                return true;
+            }
+        }
 
         protected virtual ulong GetRegionHandle(RegionInfo region)
         {
