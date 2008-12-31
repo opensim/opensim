@@ -44,6 +44,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Scenes.Hypergrid;
 using OpenSim.Region.Environment.Modules.Communications.Local;
 
 namespace OpenSim.Region.Environment.Modules.Communications.REST
@@ -291,6 +292,9 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
         protected virtual ulong GetRegionHandle(RegionInfo region)
         {
+            if (m_aScene.SceneGridService is HGSceneCommunicationService)
+                return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.FindRegionHandle(region.RegionHandle);
+
             return region.RegionHandle;
         }
 

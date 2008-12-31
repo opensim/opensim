@@ -183,7 +183,6 @@
 
 ;InterregionComms = "LocalComms"
 InterregionComms = "RESTComms"
-;InterregionComms = "HGRESTComms"
 
 [StandAlone]
     accounts_authenticate = true
