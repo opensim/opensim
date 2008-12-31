@@ -113,6 +113,8 @@ namespace OpenSim.Region.Communications.Hypergrid
             set { m_userProfileCache = value; }
         }
 
+        private Random random;
+
         /// <summary>
         /// Contructor.  Adds "expect_hg_user" and "check" xmlrpc method handlers
         /// </summary>
@@ -124,6 +126,8 @@ namespace OpenSim.Region.Communications.Hypergrid
             httpServer = httpServe;
             m_assetcache = asscache;
             m_sceneman = sman;
+
+            random = new Random();
 
             httpServer.AddXmlRPCHandler("link_region", LinkRegionRequest);
             httpServer.AddXmlRPCHandler("expect_hg_user", ExpectHGUser);
@@ -243,7 +247,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// <returns></returns>
         public virtual RegionInfo RequestNeighbourInfo(ulong regionHandle)
         {
-            //Console.WriteLine("RequestNeighbourInfo for " + regionHandle);
+            //Console.WriteLine(" >> RequestNeighbourInfo for " + regionHandle);
             foreach (RegionInfo info in m_hyperlinkRegions)
             {
                 //Console.WriteLine("    .. " + info.RegionHandle);
@@ -254,7 +258,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             {
                 if (info.RegionHandle == regionHandle)
                 {
-                    //Console.WriteLine("XXX------ Found known region " + info.RegionHandle);
+                    //Console.WriteLine("XXX------ known region " + info.RegionHandle);
                     return info;
                 }
             }
@@ -762,6 +766,12 @@ namespace OpenSim.Region.Communications.Hypergrid
                     // 1 - Preload the user data
                     m_userProfileCache.PreloadUserCache(userData.ID, userData);
 
+                    if (m_knownRegions.ContainsKey(userData.ID))
+                    {
+                        // This was left here when the user departed
+                        m_knownRegions.Remove(userData.ID);
+                    }
+
                     // 2 - Load the region info into list of known regions
                     RegionInfo rinfo = new RegionInfo();
                     rinfo.RegionID         = userData.HomeRegionID;
@@ -771,7 +781,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                     rinfo.RegionID = userData.HomeRegionID;
                     // X=0 on the map
                     rinfo.RegionLocX = 0;
-                    rinfo.RegionLocY = (uint)m_knownRegions.Count;
+                    rinfo.RegionLocY = (uint)(random.Next(0, Int32.MaxValue)); //(uint)m_knownRegions.Count;
                     rinfo.regionSecret = userRegionHandle.ToString();
                     //Console.WriteLine("XXX--- Here: handle = " + rinfo.regionSecret);
                     try
@@ -792,9 +802,6 @@ namespace OpenSim.Region.Communications.Hypergrid
 
                     if (!m_knownRegions.ContainsKey(userData.ID))
                         m_knownRegions.Add(userData.ID, rinfo);
-                    else
-                        // just update it. The previous one was left there when the user departed
-                        m_knownRegions[userData.ID] = rinfo;
 
                     // 3 - Send the reply
                     Hashtable respdata = new Hashtable();
@@ -950,8 +957,8 @@ namespace OpenSim.Region.Communications.Hypergrid
                        retValue.ToString());
 
                 // Remove the info from this region
-                if (m_knownRegions.ContainsKey(uinfo.UserProfile.ID))
-                    m_knownRegions.Remove(uinfo.UserProfile.ID);
+                //if (m_knownRegions.ContainsKey(uinfo.UserProfile.ID))
+                //    m_knownRegions.Remove(uinfo.UserProfile.ID);
 
                 return retValue;
             }
