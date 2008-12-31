@@ -987,8 +987,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                                 d.Matrix3 mat = new d.Matrix3();
                                 d.RfromQ(out mat, ref quat);
-                                d.MassRotate(out m2, ref mat);
-                                d.MassTranslate(out m2, Position.X - prm.Position.X, Position.Y - prm.Position.Y, Position.Z - prm.Position.Z);
+                                d.MassRotate(ref m2, ref mat);
+                                d.MassTranslate(ref m2, Position.X - prm.Position.X, Position.Y - prm.Position.Y, Position.Z - prm.Position.Z);
                                 d.MassAdd(ref pMass, ref m2);
                             }
                             foreach (OdePrim prm in childrenPrim)
@@ -1025,7 +1025,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     //    (Position.Z - prm.Position.Z) - pMass.c.Z);
                                     d.GeomSetOffsetWorldRotation(prm.prim_geom, ref mat);
                                     //d.GeomSetOffsetRotation(prm.prim_geom, ref mat);
-                                    d.MassTranslate(out pMass, -pMass.c.X, -pMass.c.Y, -pMass.c.Z);
+                                    d.MassTranslate(ref pMass, -pMass.c.X, -pMass.c.Y, -pMass.c.Z);
                                     d.BodySetMass(Body, ref pMass);
                                 }
                                 else
@@ -1069,9 +1069,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             //    (Position.Y - prm.Position.Y) - pMass.c.Y,
                             //    (Position.Z - prm.Position.Z) - pMass.c.Z);
                             //d.GeomSetOffsetRotation(prim_geom, ref mat2);
-                            d.MassTranslate(out pMass, -pMass.c.X, -pMass.c.Y, -pMass.c.Z);
+                            d.MassTranslate(ref pMass, -pMass.c.X, -pMass.c.Y, -pMass.c.Z);
                             d.BodySetMass(Body, ref pMass);
-                            
+
                             d.BodySetAutoDisableFlag(Body, true);
                             d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
 
