@@ -2571,6 +2571,7 @@ namespace OpenSim.Region.Environment.Scenes
             ControllingClient.SendAdminResponse(token, (uint)m_godlevel);
         }
 
+        #region Child Agent Updates
         /// <summary>
         /// This updates important decision making data about a child agent
         /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region
@@ -2581,22 +2582,34 @@ namespace OpenSim.Region.Environment.Scenes
             if (!IsChildAgent)
                 return;
 
+            //Console.WriteLine("   >>> ChildAgentDataUpdate <<<");
             int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
             int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
 
             m_DrawDistance = cAgentData.Far;
-            m_pos = new Vector3(cAgentData.Position.X + shiftx, cAgentData.Position.Y + shifty, cAgentData.Position.Z);
+            if (cAgentData.Position != new Vector3(-1, -1, -1)) // UGH!!
+                m_pos = new Vector3(cAgentData.Position.X + shiftx, cAgentData.Position.Y + shifty, cAgentData.Position.Z);
 
             // It's hard to say here..   We can't really tell where the camera position is unless it's in world cordinates from the sending region
-            m_CameraCenter = cAgentData.Center;
+            if (cAgentData.Center!= new Vector3(-1, -1, -1)) // UGH!
+                m_CameraCenter = cAgentData.Center;
             //    new Vector3(cAgentData.cameraPosition.x, cAgentData.cameraPosition.y, cAgentData.cameraPosition.z);
 
 
             m_godlevel = cAgentData.GodLevel;
-            m_avHeight = cAgentData.Size.Z;
+            if (cAgentData.Center != new Vector3(-1, -1, -1))
+                m_avHeight = cAgentData.Size.Z;
             //SetHeight(cAgentData.AVHeight);
 
-            ControllingClient.SetChildAgentThrottle(cAgentData.Throttles);
+            if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
+                ControllingClient.SetChildAgentThrottle(cAgentData.Throttles);
+
+            // ugh!!!
+            m_AgentControlFlags = cAgentData.ControlFlags;
+            if (m_physicsActor != null)
+            {
+                m_physicsActor.Flying = ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+            }
 
             // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
             if (m_scene.m_seeIntoRegionFromNeighbor)
@@ -2606,6 +2619,44 @@ namespace OpenSim.Region.Environment.Scenes
             //cAgentData.regionHandle;
             //m_velocity = cAgentData.Velocity;
         }
+
+        public void CopyTo(AgentData cAgent)
+        {
+            cAgent.AgentID = UUID;
+            cAgent.RegionHandle = m_scene.RegionInfo.RegionHandle;
+            cAgent.AlwaysRun = m_setAlwaysRun;
+            cAgent.Size = new Vector3(0, 0, m_avHeight);
+            cAgent.Center = m_CameraCenter;
+            cAgent.Far = m_DrawDistance;
+            cAgent.GodLevel = (byte)m_godlevel;
+            cAgent.Position = AbsolutePosition;
+            cAgent.Velocity = Velocity;
+            // Throttles 
+            float multiplier = 1;
+            int innacurateNeighbors = m_scene.GetInaccurateNeighborCount();
+            if (innacurateNeighbors != 0)
+            {
+                multiplier = 1f / (float)innacurateNeighbors;
+            }
+            if (multiplier <= 0f)
+            {
+                multiplier = 0.25f;
+            }
+            //m_log.Info("[NeighborThrottle]: " + m_scene.GetInaccurateNeighborCount().ToString() + " - m: " + multiplier.ToString());
+            cAgent.Throttles = ControllingClient.GetThrottlesPacked(multiplier);
+
+            if ((m_physicsActor != null) && (m_physicsActor.Flying))
+            {
+                m_AgentControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+            }
+            cAgent.ControlFlags = m_AgentControlFlags;
+
+            // Groups???
+            // Visual Params???
+            // Animations???
+        }
+
+        #endregion Child Agent Updates
 
         /// <summary>
         /// Handles part of the PID controller function for moving an avatar.

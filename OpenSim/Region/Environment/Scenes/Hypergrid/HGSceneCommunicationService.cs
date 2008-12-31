@@ -180,6 +180,24 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         // once we reach here...
                         //avatar.Scene.RemoveCapsHandler(avatar.UUID);
 
+                        string capsPath = String.Empty;
+                        AgentCircuitData agentCircuit = avatar.ControllingClient.RequestClientInfo();
+                        agentCircuit.BaseFolder = UUID.Zero;
+                        agentCircuit.InventoryFolder = UUID.Zero;
+                        agentCircuit.startpos = position;
+                        agentCircuit.child = true;
+                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        {
+                            // brand new agent, let's create a new caps seed
+                            agentCircuit.CapsPath = Util.GetRandomCapsPath();
+                        }
+
+                        if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))
+                        {
+                            avatar.ControllingClient.SendTeleportFailed("Destination is not accepting teleports.");
+                            return;
+                        }
+
                         // Let's close some agents
                         if (isHyperLink) // close them all except this one
                         {
@@ -190,30 +208,12 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         else // close just a few
                             avatar.CloseChildAgents(newRegionX, newRegionY);
 
-                        string capsPath = String.Empty;
-                        AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
-                        agent.BaseFolder = UUID.Zero;
-                        agent.InventoryFolder = UUID.Zero;
-                        agent.startpos = position;
-                        agent.child = true;
-                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
-                        {
-                            // brand new agent, let's create a new caps seed
-                            agent.CapsPath = Util.GetRandomCapsPath();
-                        }
-
-                        if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent))
-                        {
-                            avatar.ControllingClient.SendTeleportFailed("Destination is not accepting teleports.");
-                            return;
-                        }
-
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
                         {
                             // TODO Should construct this behind a method
                             capsPath =
                                 "http://" + reg.ExternalHostName + ":" + reg.HttpPort
-                                + "/CAPS/" + agent.CapsPath + "0000/";
+                                + "/CAPS/" + agentCircuit.CapsPath + "0000/";
 
                             if (eq != null)
                             {
@@ -237,9 +237,9 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         else
                         {
                             // child agent already there
-                            agent.CapsPath = avatar.Scene.GetChildSeed(avatar.UUID, reg.RegionHandle);
+                            agentCircuit.CapsPath = avatar.Scene.GetChildSeed(avatar.UUID, reg.RegionHandle);
                             capsPath = "http://" + reg.ExternalHostName + ":" + reg.HttpPort
-                                        + "/CAPS/" + agent.CapsPath + "0000/";
+                                        + "/CAPS/" + agentCircuit.CapsPath + "0000/";
                         }
                         
                         //m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
@@ -256,10 +256,17 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         //    return;
                         //}
 
+                        // Let's send a full update of the agent. This is a synchronous call.
+                        AgentData agent = new AgentData();
+                        avatar.CopyTo(agent);
+                        agent.Position = new Vector3(-1, -1, -1); // this means ignore position info; UGH!!!!
+
+                        m_interregionCommsOut.SendChildAgentUpdate(reg.RegionHandle, agent);
+
                         avatar.MakeChildAgent();
 
                         m_log.DebugFormat(
-                            "[CAPS]: Sending new CAPS seed url {0} to client {1}", agent.CapsPath, avatar.UUID);
+                            "[CAPS]: Sending new CAPS seed url {0} to client {1}", agentCircuit.CapsPath, avatar.UUID);
 
 
                         ///
@@ -291,7 +298,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         // we send the attachments and close things here.
                         // It would be nice if the client would tell us when that whole thing is done, so we wouldn't have
                         // to use this Thread.Sleep voodoo
-                        Thread.Sleep(3000);
+                        Thread.Sleep(4000);
 
                         // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
                         avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
@@ -303,7 +310,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         /// 
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
                         {
-                            Thread.Sleep(5000);
+                            Thread.Sleep(8000);
                             avatar.Close();
                             CloseConnection(avatar.UUID);
                         }
