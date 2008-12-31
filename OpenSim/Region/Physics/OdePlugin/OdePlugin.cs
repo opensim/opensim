@@ -817,17 +817,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // appears to be phantom for the world
                 Boolean skipThisContact = false;
 
-                if (contacts[i].depth < 0f)
-                    skipThisContact = true;
-
-                if (checkDupe(contacts[i], p2.PhysicsActorType))
-                    skipThisContact = true;
-
                 if ((p1 is OdePrim) && (((OdePrim)p1).m_isVolumeDetect))
                     skipThisContact = true;   // No collision on volume detect prims
 
-                if ((p2 is OdePrim) && (((OdePrim)p2).m_isVolumeDetect))
+                if (!skipThisContact && (p2 is OdePrim) && (((OdePrim)p2).m_isVolumeDetect))
                     skipThisContact = true;   // No collision on volume detect prims
+
+                if (!skipThisContact && contacts[i].depth < 0f)
+                    skipThisContact = true;
+
+                if (!skipThisContact && checkDupe(contacts[i], p2.PhysicsActorType))
+                    skipThisContact = true;
 
                 if (!skipThisContact)
                 {
