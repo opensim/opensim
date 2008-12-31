@@ -45,7 +45,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public PhysicsVector _position;
+        private PhysicsVector _position;
         private PhysicsVector _velocity;
         private PhysicsVector _torque = new PhysicsVector(0,0,0);
         private PhysicsVector m_lastVelocity = new PhysicsVector(0.0f, 0.0f, 0.0f);
@@ -962,6 +962,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (Body == IntPtr.Zero)
                 {
                     Body = d.BodyCreate(_parent_scene.world);
+                    setMass();
                 }
                 if (Body != IntPtr.Zero)
                 {
