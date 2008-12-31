@@ -1074,7 +1074,7 @@ namespace OpenSim.Framework.Servers
             keysvals.Add("body", requestBody);
             keysvals.Add("uri", request.RawUrl);
             keysvals.Add("content-type", request.ContentType);
-
+            keysvals.Add("http-method", request.HttpMethod);
 
             foreach (string queryname in querystringkeys)
             {
