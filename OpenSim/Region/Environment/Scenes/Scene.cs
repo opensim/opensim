@@ -2692,7 +2692,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_sceneGridService.OnExpectUser += NewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
-            m_sceneGridService.OnCloseAgentConnection += CloseConnection;
+            m_sceneGridService.OnCloseAgentConnection += IncomingCloseAgent;
             m_sceneGridService.OnRegionUp += OtherRegionUp;
             //m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
             m_sceneGridService.OnExpectPrim += IncomingInterRegionPrimGroup;
@@ -2724,7 +2724,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnRegionUp -= OtherRegionUp;
             m_sceneGridService.OnExpectUser -= NewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion -= AgentCrossing;
-            m_sceneGridService.OnCloseAgentConnection -= CloseConnection;
+            m_sceneGridService.OnCloseAgentConnection -= IncomingCloseAgent;
             m_sceneGridService.OnGetLandData -= GetLandData;
 
             if (m_interregionCommsIn != null)
@@ -2979,12 +2979,22 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
+        public virtual bool IncomingReleaseAgent(UUID id)
+        {
+            return m_sceneGridService.ReleaseAgent(id);
+        }
+
+        public void SendReleaseAgent(ulong regionHandle, UUID id, string uri)
+        {
+            m_interregionCommsOut.SendReleaseAgent(regionHandle, id, uri);
+        }
+
         /// <summary>
         /// Tell a single agent to disconnect from the region.
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>
-        public bool CloseConnection(UUID agentID)
+        public bool IncomingCloseAgent(UUID agentID)
         {
             ScenePresence presence = m_sceneGraph.GetScenePresence(agentID);
             if (presence != null)
@@ -3013,9 +3023,10 @@ namespace OpenSim.Region.Environment.Scenes
                         presence.ControllingClient.SendShutdownConnectionNotice();
                 }
                 presence.ControllingClient.Close(true);
-
+                return true;
             }
-            return true;
+            // Agent not here
+            return false;
         }
 
         /// <summary>

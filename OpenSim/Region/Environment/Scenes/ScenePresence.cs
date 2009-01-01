@@ -217,6 +217,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         private Dictionary<UUID, ScenePartUpdate> m_updateTimes = new Dictionary<UUID, ScenePartUpdate>();
 
+        // For teleports and crossings callbacks
+        string m_callbackURI;
+        ulong m_rootRegionHandle;
+
         #region Properties
 
         /// <summary>
@@ -1000,6 +1004,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void CompleteMovement()
         {
+            //Console.WriteLine("\n CompleteMovement \n");
             Vector3 look = Velocity;
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
             {
@@ -1013,6 +1018,12 @@ namespace OpenSim.Region.Environment.Scenes
                 m_isChildAgent = false;
 
                 MakeRootAgent(AbsolutePosition, false);
+
+                if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
+                {
+                    Scene.SendReleaseAgent(m_rootRegionHandle, UUID, m_callbackURI);
+                    m_callbackURI = null;
+                }
             }
         }
 
@@ -2582,7 +2593,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (!IsChildAgent)
                 return;
 
-            //Console.WriteLine("   >>> ChildAgentDataUpdate <<<");
+            //Console.WriteLine("   >>> ChildAgentDataUpdate <<< " + rRegionX + "-" + rRegionY);
             int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
             int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
 
@@ -2614,6 +2625,9 @@ namespace OpenSim.Region.Environment.Scenes
             // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
             if (m_scene.m_seeIntoRegionFromNeighbor)
                 m_pendingObjects = null;
+
+            m_callbackURI = cAgentData.CallbackURI;
+            m_rootRegionHandle = Util.UIntsToLong(rRegionX * Constants.RegionSize, rRegionY * Constants.RegionSize);
 
             //cAgentData.AVHeight;
             //cAgentData.regionHandle;

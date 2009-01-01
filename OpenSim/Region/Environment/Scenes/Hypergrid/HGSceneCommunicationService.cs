@@ -256,14 +256,15 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         //    return;
                         //}
 
+                        SetInTransit(avatar.UUID);
                         // Let's send a full update of the agent. This is a synchronous call.
                         AgentData agent = new AgentData();
                         avatar.CopyTo(agent);
                         agent.Position = new Vector3(-1, -1, -1); // this means ignore position info; UGH!!!!
+                        agent.CallbackURI = "http://" + m_regionInfo.ExternalHostName + ":" + m_regionInfo.HttpPort +
+                            "/agent/" + avatar.UUID.ToString() + "/" + avatar.Scene.RegionInfo.RegionHandle.ToString() + "/release/";
 
                         m_interregionCommsOut.SendChildAgentUpdate(reg.RegionHandle, agent);
-
-                        avatar.MakeChildAgent();
 
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", agentCircuit.CapsPath, avatar.UUID);
@@ -288,17 +289,32 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         /// Hypergrid mod stop
                         /// 
 
+
+                        // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
+                        // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
+                        // that the client contacted the destination before we send the attachments and close things here.
+                        if (!WaitForCallback(avatar.UUID))
+                        {
+                            // Client never contacted destination. Let's restore everything back
+                            avatar.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
+
+                            ResetFromTransit(avatar.UUID);
+                            // Yikes! We should just have a ref to scene here.
+                            avatar.Scene.InformClientOfNeighbours(avatar);
+
+                            // Finally, kill the agent we just created at the destination.
+                            m_interregionCommsOut.SendCloseAgent(reg.RegionHandle, avatar.UUID);
+
+                            return;
+                        }
+
+                        // Can't go back from here
                         if (KiPrimitive != null)
                         {
                             KiPrimitive(avatar.LocalId);
                         }
 
-                        // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
-                        // trigers a whole shebang of things there, including MakeRoot. So let's wait plenty before 
-                        // we send the attachments and close things here.
-                        // It would be nice if the client would tell us when that whole thing is done, so we wouldn't have
-                        // to use this Thread.Sleep voodoo
-                        Thread.Sleep(4000);
+                        avatar.MakeChildAgent();
 
                         // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
                         avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
@@ -310,7 +326,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         /// 
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
                         {
-                            Thread.Sleep(8000);
+                            Thread.Sleep(5000);
                             avatar.Close();
                             CloseConnection(avatar.UUID);
                         }

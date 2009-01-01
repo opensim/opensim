@@ -177,7 +177,7 @@ namespace OpenSim
                              presence.UUID,
                              regionInfo.RegionName));
 
-                    presence.Scene.CloseConnection(presence.UUID);
+                    presence.Scene.IncomingCloseAgent(presence.UUID);
                 }
             }
             m_console.Notice("");

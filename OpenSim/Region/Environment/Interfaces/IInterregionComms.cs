@@ -36,6 +36,8 @@ namespace OpenSim.Region.Environment.Interfaces
     public interface IInterregionCommsOut 
     {
         bool SendChildAgentUpdate(ulong regionHandle, AgentData data);
+        bool SendReleaseAgent(ulong regionHandle, UUID id, string uri);
+        bool SendCloseAgent(ulong regionHandle, UUID id);
     }
 
     // This may not be needed, but having it here for now.

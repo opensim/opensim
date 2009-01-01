@@ -120,20 +120,54 @@ namespace OpenSim.Region.Environment.Modules.Communications.Local
 
         public bool SendChildAgentUpdate(ulong regionHandle, AgentData cAgentData)
         {
-            lock (m_sceneList)
+            foreach (Scene s in m_sceneList)
             {
-                foreach (Scene s in m_sceneList)
+                if (s.RegionInfo.RegionHandle == regionHandle)
                 {
-                    if (s.RegionInfo.RegionHandle == regionHandle)
-                    {
-                        //m_log.Debug("[LOCAL COMMS]: Found region to send ChildAgentUpdate");
-                        return s.IncomingChildAgentDataUpdate(cAgentData);
-                        //if (OnChildAgentUpdate != null)
-                        //    return OnChildAgentUpdate(cAgentData);
-                    }
+                    //m_log.Debug("[LOCAL COMMS]: Found region to send ChildAgentUpdate");
+                    s.IncomingChildAgentDataUpdate(cAgentData);
+                    return true;
                 }
             }
             //m_log.Debug("[LOCAL COMMS]: region not found for ChildAgentUpdate");
+            return false;
+        }
+
+        public bool SendReleaseAgent(ulong regionHandle, UUID id, string uri)
+        {
+            //uint x, y;
+            //Utils.LongToUInts(regionHandle, out x, out y);
+            //x = x / Constants.RegionSize;
+            //y = y / Constants.RegionSize;
+            //Console.WriteLine("\n >>> Local SendReleaseAgent " + x + "-" + y);
+            foreach (Scene s in m_sceneList)
+            {
+                if (s.RegionInfo.RegionHandle == regionHandle)
+                {
+                    //m_log.Debug("[LOCAL COMMS]: Found region to SendReleaseAgent");
+                    return s.IncomingReleaseAgent(id);
+                }
+            }
+            //m_log.Debug("[LOCAL COMMS]: region not found in SendReleaseAgent");
+            return false;
+        }
+
+        public bool SendCloseAgent(ulong regionHandle, UUID id)
+        {
+            //uint x, y;
+            //Utils.LongToUInts(regionHandle, out x, out y);
+            //x = x / Constants.RegionSize;
+            //y = y / Constants.RegionSize;
+            //Console.WriteLine("\n >>> Local SendCloseAgent " + x + "-" + y);
+            foreach (Scene s in m_sceneList)
+            {
+                if (s.RegionInfo.RegionHandle == regionHandle)
+                {
+                    //m_log.Debug("[LOCAL COMMS]: Found region to SendCloseAgent");
+                    return s.IncomingCloseAgent(id);
+                }
+            }
+            //m_log.Debug("[LOCAL COMMS]: region not found in SendCloseAgent");
             return false;
         }
 

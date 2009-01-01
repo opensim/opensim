@@ -55,6 +55,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected RegionCommsListener regionCommsHost;
 
+        protected List<UUID> m_agentsInTransit;
+
         public event AgentCrossing OnAvatarCrossingIntoRegion;
         public event ExpectUserDelegate OnExpectUser;
         public event ExpectPrimDelegate OnExpectPrim;
@@ -82,6 +84,7 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneCommunicationService(CommunicationsManager commsMan)
         {
             m_commsProvider = commsMan;
+            m_agentsInTransit = new List<UUID>();
         }
 
         /// <summary>
@@ -546,8 +549,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         private void SendChildAgentDataUpdateAsync(AgentData cAgentData, ulong regionHandle)
         {
-            m_log.Info("[INTERGRID]: Informing neighbors about my agent in " + m_regionInfo.RegionName);
-            //bool regionAccepted = m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
+            //m_log.Info("[INTERGRID]: Informing neighbors about my agent in " + m_regionInfo.RegionName);
             try
             {
                 //m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
@@ -608,29 +610,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
 
             m_log.Debug("[INTERGRID]: Sending close agent to " + regionHandle);
-            //bool regionAccepted = m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
             // let's do our best, but there's not much we can do if the neighbour doesn't accept.
-            m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
 
-                //if (regionAccepted)
-                //{
-                //    m_log.Info("[INTERGRID]: Completed sending agent Close agent Request to neighbor");
-
-                //}
-                //else
-                //{
-                //    m_log.Info("[INTERGRID]: Failed sending agent Close agent Request to neighbor");
-
-                //}
-
-            //// We remove the list of known regions from the agent's known region list through an event
-            //// to scene, because, if an agent logged of, it's likely that there will be no scene presence
-            //// by the time we get to this part of the method.
-            //handlerRemoveKnownRegionFromAvatar = OnRemoveKnownRegionFromAvatar;
-            //if (handlerRemoveKnownRegionFromAvatar != null)
-            //{
-            //    handlerRemoveKnownRegionFromAvatar(agentID, regionlst);
-            //}
+            //m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
+            m_interregionCommsOut.SendCloseAgent(regionHandle, agentID);
         }
 
         private void SendCloseChildAgentCompleted(IAsyncResult iar)
@@ -860,14 +843,15 @@ namespace OpenSim.Region.Environment.Scenes
                         //    return;
                         //}
 
+                        SetInTransit(avatar.UUID);
                         // Let's send a full update of the agent. This is a synchronous call.
                         AgentData agent = new AgentData();
                         avatar.CopyTo(agent);
                         agent.Position = new Vector3(-1, -1, -1); // this means ignore position info; UGH!!!!
+                        agent.CallbackURI = "http://" + m_regionInfo.ExternalHostName + ":" + m_regionInfo.HttpPort + 
+                            "/agent/" + avatar.UUID.ToString() + "/" + avatar.Scene.RegionInfo.RegionHandle.ToString() + "/release/";
 
                         m_interregionCommsOut.SendChildAgentUpdate(reg.RegionHandle, agent);
-
-                        avatar.MakeChildAgent();
 
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);
@@ -885,17 +869,32 @@ namespace OpenSim.Region.Environment.Scenes
                                                                         teleportFlags, capsPath);
                         }
 
+
+                        // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
+                        // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
+                        // that the client contacted the destination before we send the attachments and close things here.
+                        if (!WaitForCallback(avatar.UUID))
+                        {
+                            // Client never contacted destination. Let's restore everything back
+                            avatar.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
+
+                            ResetFromTransit(avatar.UUID);
+                            // Yikes! We should just have a ref to scene here.
+                            avatar.Scene.InformClientOfNeighbours(avatar);
+
+                            // Finally, kill the agent we just created at the destination.
+                            m_interregionCommsOut.SendCloseAgent(reg.RegionHandle, avatar.UUID);
+
+                            return;
+                        }
+
+                        // Can't go back from here
                         if (KiPrimitive != null)
                         {
                             KiPrimitive(avatar.LocalId);
                         }
 
-                        // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
-                        // trigers a whole shebang of things there, including MakeRoot. So let's wait plenty before 
-                        // we send the attachments and close things here.
-                        // We need to change this part of the protocol. The receiving region should tell this region
-                        // when it's ok to continue.
-                        Thread.Sleep(4000);
+                        avatar.MakeChildAgent();
 
                         // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
                         avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
@@ -904,7 +903,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
-                            Thread.Sleep(8000);
+                            Thread.Sleep(5000);
                             avatar.Close();
                             CloseConnection(avatar.UUID);
                         }
@@ -945,6 +944,49 @@ namespace OpenSim.Region.Environment.Scenes
                     avatar.ControllingClient.SendMapBlock(blocks, 0);
                 }
             }
+        }
+
+        protected bool WaitForCallback(UUID id)
+        {
+            int count = 20;
+            while (m_agentsInTransit.Contains(id) && count-- > 0)
+            {
+                //Console.WriteLine("  >>> Waiting... " + count);
+                Thread.Sleep(1000);
+            }
+
+            if (count > 0)
+                return true;
+            else
+                return false;
+        }
+
+        public bool ReleaseAgent(UUID id)
+        {
+            //Console.WriteLine(" >>> ReleaseAgent called <<< ");
+            return ResetFromTransit(id);
+        }
+
+        protected void SetInTransit(UUID id)
+        {
+            lock (m_agentsInTransit)
+            {
+                if (!m_agentsInTransit.Contains(id))
+                    m_agentsInTransit.Add(id);
+            }
+        }
+
+        protected bool ResetFromTransit(UUID id)
+        {
+            lock (m_agentsInTransit)
+            {
+                if (m_agentsInTransit.Contains(id))
+                {
+                    m_agentsInTransit.Remove(id);
+                    return true;
+                }
+            }
+            return false;
         }
 
         private List<ulong> NeighbourHandles(List<SimpleRegionInfo> neighbours)

@@ -144,6 +144,7 @@ namespace OpenSim.Framework
 
         byte[] VisualParams;
 
+        public string CallbackURI;
 
         public OSDMap PackUpdateMessage()
         {
@@ -190,6 +191,9 @@ namespace OpenSim.Framework
             args["active_group_id"] = OSD.FromUUID(ActiveGroupID);
 
             // Last few fields are still missing
+
+            if ((CallbackURI != null) && (!CallbackURI.Equals("")))
+                args["callback_uri"] = OSD.FromString(CallbackURI);
 
             return args;
         }
@@ -284,6 +288,9 @@ namespace OpenSim.Framework
 
             if (args["active_group_id"] != null)
                 ActiveGroupID = args["active_group_id"].AsUUID();
+
+            if (args["callback_uri"] != null)
+                CallbackURI = args["callback_uri"].AsString();
         }
 
         public AgentData()

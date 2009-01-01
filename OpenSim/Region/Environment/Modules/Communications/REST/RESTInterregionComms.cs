@@ -146,6 +146,40 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
         }
 
+        public bool SendReleaseAgent(ulong regionHandle, UUID id, string uri)
+        {
+            // Try local first
+            if (m_localBackend.SendReleaseAgent(regionHandle, id, uri))
+                return true;
+
+            // else do the remote thing
+            return DoReleaseAgentCall(regionHandle, id, uri);
+        }
+
+        public bool SendCloseAgent(ulong regionHandle, UUID id)
+        {
+            // Try local first
+            if (m_localBackend.SendCloseAgent(regionHandle, id))
+                return true;
+
+            // else do the remote thing
+            RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+            if (regInfo != null)
+            {
+                return DoCloseAgentCall(regInfo, id);
+            }
+            //else
+            //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
+            return false;
+        }
+
+        #endregion /* IInterregionComms */
+
+        #region DoWork functions for the above public interface
+        //-------------------------------------------------------------------
+        // Internal  functions for the above public interface
+        //-------------------------------------------------------------------
+
         protected bool DoChildAgentUpdateCall(RegionInfo region, AgentData cAgentData)
         {
             // Eventually, we want to use a caps url instead of the agentID
@@ -168,7 +202,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
                 m_log.Debug("[REST COMMS]: PackUpdateMessage failed with exception: " + e.Message);
             }
             // Add the regionhandle of the destination region
-            ulong regionHandle = GetRegionHandle(region);
+            ulong regionHandle = GetRegionHandle(region.RegionHandle);
             args["destination_handle"] = OSD.FromString(regionHandle.ToString());
 
             string strBuffer = "";
@@ -231,9 +265,77 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
         }
 
-        #endregion /* IInterregionComms */
+        protected bool DoReleaseAgentCall(ulong regionHandle, UUID id, string uri)
+        {
+            //Console.WriteLine("   >>> DoReleaseAgentCall <<< " + uri);
 
-        #region Called from remote instances on this instance
+            WebRequest request = WebRequest.Create(uri);
+            request.Method = "DELETE";
+            request.Timeout = 10000;
+
+            try
+            {
+                WebResponse webResponse = request.GetResponse();
+                if (webResponse == null)
+                {
+                    m_log.Info("[REST COMMS]: Null reply on agent get ");
+                }
+
+                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                //reply = sr.ReadToEnd().Trim();
+                sr.ReadToEnd().Trim();
+                sr.Close();
+                //m_log.InfoFormat("[REST COMMS]: ChilAgentUpdate reply was {0} ", reply);
+
+            }
+            catch (WebException ex)
+            {
+                m_log.InfoFormat("[REST COMMS]: exception on reply of agent get {0}", ex.Message);
+                // ignore, really
+            }
+
+            return true;
+
+        }
+
+        protected bool DoCloseAgentCall(RegionInfo region, UUID id)
+        {
+            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + id + "/" + region.RegionHandle.ToString() +"/";
+
+            //Console.WriteLine("   >>> DoCloseAgentCall <<< " + uri);
+
+            WebRequest request = WebRequest.Create(uri);
+            request.Method = "DELETE";
+            request.Timeout = 10000;
+
+            try
+            {
+                WebResponse webResponse = request.GetResponse();
+                if (webResponse == null)
+                {
+                    m_log.Info("[REST COMMS]: Null reply on agent get ");
+                }
+
+                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                //reply = sr.ReadToEnd().Trim();
+                sr.ReadToEnd().Trim();
+                sr.Close();
+                //m_log.InfoFormat("[REST COMMS]: ChilAgentUpdate reply was {0} ", reply);
+
+            }
+            catch (WebException ex)
+            {
+                m_log.InfoFormat("[REST COMMS]: exception on reply of agent get {0}", ex.Message);
+                // ignore, really
+            }
+
+            return true;
+
+        }
+
+        #endregion /* DoWork */
+
+        #region Incoming calls from remote instances
 
         public Hashtable AgentHandler(Hashtable request)
         {
@@ -250,7 +352,8 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
             UUID agentID;
             string action;
-            if (!GetParams((string)request["uri"], out agentID, out action))
+            ulong regionHandle;
+            if (!GetParams((string)request["uri"], out agentID, out regionHandle, out action))
             {
                 m_log.InfoFormat("[REST COMMS]: Invalid parameters for agent message {0}", request["uri"]);
                 responsedata["int_response_code"] = 404;
@@ -274,11 +377,9 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
                 return responsedata;
             }
-            else if (method.Equals("GET"))
+            else if (method.Equals("DELETE"))
             {
-                m_log.InfoFormat("[REST COMMS]: method {0} not implemented yet in agent message", method);
-                responsedata["int_response_code"] = 404;
-                responsedata["str_response_string"] = "false";
+                DoDelete(request, responsedata, agentID, action, regionHandle);
 
                 return responsedata;
             }
@@ -293,7 +394,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
         }
 
-        protected virtual void DoPut(Hashtable request, Hashtable responsedata)
+        protected OSDMap GetOSDMap(Hashtable request)
         {
             OSDMap args = null;
             try
@@ -302,20 +403,32 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
                 // We should pay attention to the content-type, but let's assume we know it's Json
                 buffer = OSDParser.DeserializeJson((string)request["body"]);
                 if (buffer.Type == OSDType.Map)
+                {
                     args = (OSDMap)buffer;
+                    return args;
+                }
                 else
                 {
                     // uh?
                     m_log.Debug("[REST COMMS]: Got OSD of type " + buffer.Type.ToString());
+                    return null;
                 }
             }
             catch (Exception ex)
             {
                 m_log.InfoFormat("[REST COMMS]: exception on parse of ChildAgentUpdate message {0}", ex.Message);
+                return null;
+            }
+        }
+
+        protected virtual void DoPut(Hashtable request, Hashtable responsedata)
+        {
+            OSDMap args = GetOSDMap(request);
+            if (args == null)
+            {
                 responsedata["int_response_code"] = 400;
                 responsedata["str_response_string"] = "false";
-
-                return ;
+                return;
             }
 
             // retrieve the regionhandle
@@ -343,19 +456,34 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             responsedata["str_response_string"] = result.ToString();
         }
 
+        protected virtual void DoDelete(Hashtable request, Hashtable responsedata, UUID id, string action, ulong regionHandle)
+        {
+            //Console.WriteLine(" >>> DoDelete action:" + action + "; regionHandle:" + regionHandle);
+            bool result = true;
+            if (action.Equals("release"))
+            {
+                result = m_localBackend.SendReleaseAgent(regionHandle, id, "");
+            }
+            else
+                result = m_localBackend.SendCloseAgent(regionHandle, id);
+
+            responsedata["int_response_code"] = 200;
+            responsedata["str_response_string"] = "OpenSim agent " + id.ToString();
+        }
         #endregion 
 
         #region Misc
         /// <summary>
         /// Extract the param from an uri.
         /// </summary>
-        /// <param name="uri">Something like this: /agent/uuid/ or /agent/uuid/release</param>
+        /// <param name="uri">Something like this: /agent/uuid/ or /agent/uuid/handle/release</param>
         /// <param name="uri">uuid on uuid field</param>
         /// <param name="action">optional action</param>
-        protected bool GetParams(string uri, out UUID uuid, out string action)
+        protected bool GetParams(string uri, out UUID uuid, out ulong regionHandle, out string action)
         {
             uuid = UUID.Zero;
             action = "";
+            regionHandle = 0;
 
             uri = uri.Trim(new char[] { '/' });
             string[] parts = uri.Split('/');
@@ -369,20 +497,29 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
                     return false;
 
                 if (parts.Length >= 3)
-                    action = parts[2];
-
+                    UInt64.TryParse(parts[2], out regionHandle);
+                if (parts.Length >= 4)
+                    action = parts[3];
+                
                 return true;
             }
         }
 
-        protected virtual ulong GetRegionHandle(RegionInfo region)
+        protected virtual ulong GetRegionHandle(ulong handle)
         {
             if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.FindRegionHandle(region.RegionHandle);
+                return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.FindRegionHandle(handle);
 
-            return region.RegionHandle;
+            return handle;
         }
 
+        protected virtual bool IsHyperlink(ulong handle)
+        {
+            if (m_aScene.SceneGridService is HGSceneCommunicationService)
+                return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.IsHyperlinkRegion(handle);
+
+            return false;
+        }
         #endregion /* Misc */
 
     }
