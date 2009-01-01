@@ -115,8 +115,8 @@ namespace OpenSim.Region.Communications.Hypergrid
         public override List<SimpleRegionInfo> RequestNeighbours(uint x, uint y)
         {
             List<SimpleRegionInfo> neighbours = m_localBackend.RequestNeighbours(x, y);
-            List<SimpleRegionInfo> remotes = base.RequestNeighbours(x, y);
-            neighbours.AddRange(remotes);
+            //List<SimpleRegionInfo> remotes = base.RequestNeighbours(x, y);
+            //neighbours.AddRange(remotes);
     
             return neighbours;
         }
