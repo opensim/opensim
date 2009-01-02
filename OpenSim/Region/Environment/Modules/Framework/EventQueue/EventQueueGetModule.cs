@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -51,7 +52,7 @@ using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 using BlockingLLSDQueue = OpenSim.Framework.BlockingQueue<OpenMetaverse.StructuredData.OSD>;
 
-namespace OpenSim.Region.Environment.Modules.Framework
+namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
 {
     public struct QueueItem
     {
