@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml;
 using System.Threading;
 using System.IO;
 using OpenSim.Framework;
@@ -79,15 +80,41 @@ namespace OpenSim
             }
             else
             {
-                // check for a xml config file                
-                Application.iniFilePath = Path.Combine(Util.configDir(), "OpenSim.xml");
+                Uri configUri;
 
-                if (File.Exists(Application.iniFilePath))
+                if (Uri.TryCreate(startupConfig.GetString("inifile", "OpenSim.ini"), UriKind.Absolute, out configUri) && configUri.Scheme == Uri.UriSchemeHttp)
                 {
-                    iniFileExists = true;
+                    Console.WriteLine("[CONFIG] {0} is a URI, fetching ...", startupConfig.GetString("inifile", "OpenSim.ini"));
 
-                    m_config.Source = new XmlConfigSource();
-                    m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
+                    // The ini file path is a http URI
+                    // Try to read it
+                    //
+                    try
+                    {
+                        XmlReader r = XmlReader.Create(startupConfig.GetString("inifile", "OpenSim.ini"));
+                        XmlConfigSource cs = new XmlConfigSource(r);
+                        m_config.Source.Merge(cs);
+
+                        iniFileExists = true;
+                        Console.WriteLine("[CONFIG] Uri fetch complete");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Exception {0} reading config from URI {1}", e.ToString(), startupConfig.GetString("inifile", "OpenSim.ini"));
+                    }
+                }
+                else
+                {
+                    // check for a xml config file                
+                    Application.iniFilePath = Path.Combine(Util.configDir(), "OpenSim.xml");
+
+                    if (File.Exists(Application.iniFilePath))
+                    {
+                        iniFileExists = true;
+
+                        m_config.Source = new XmlConfigSource();
+                        m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
+                    }
                 }
             }
 
