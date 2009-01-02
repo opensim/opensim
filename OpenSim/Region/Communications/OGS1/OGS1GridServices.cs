@@ -39,7 +39,7 @@ using System.Security.Authentication;
 using System.Threading;
 using OpenMetaverse;
 using log4net;
-using Nini;
+using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
