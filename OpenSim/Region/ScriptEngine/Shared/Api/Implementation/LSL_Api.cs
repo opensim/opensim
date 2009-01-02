@@ -7665,7 +7665,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             catch(Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine("[LSL_API]: llRequestSimulatorData" + e.ToString());
                 return UUID.Zero.ToString();
             }
         }

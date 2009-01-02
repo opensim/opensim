@@ -530,7 +530,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.Message);
+                        Console.WriteLine("[SCENEOBJECTPART]: GROUP POSITION. " + e.Message);
                     }
                 }
                 
@@ -615,7 +615,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.Message);
+                        Console.WriteLine("[SCENEOBJECTPART]: ROTATIONOFFSET" + ex.Message);
                     }
                 }
 

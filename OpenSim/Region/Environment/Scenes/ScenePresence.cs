@@ -411,7 +411,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.Message);
+                        Console.WriteLine("[SCENEPRESENCE]: ABSOLUTE POSITION " + e.Message);
                     }
                 }
 
@@ -451,7 +451,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.Message);
+                        Console.WriteLine("[SCENEPRESENCE]: VELOCITY " + e.Message);
                     }
                 }
 
@@ -1374,7 +1374,7 @@ namespace OpenSim.Region.Environment.Scenes
             catch (Exception ex)
             {
                 //Why did I get this error?
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                Console.WriteLine("[SCENEPRESENCE]: DoMoveToPosition" + ex.ToString());
             }
         }
 
