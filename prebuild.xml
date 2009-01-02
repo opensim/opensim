@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Prebuild xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd" version="1.7">
-  <Solution name="OpenSim" activeConfig="Debug" path="./" version="0.5.0-$Rev: 7914 $">
+  <Solution name="OpenSim" activeConfig="Debug" path="./" version="0.5.0-$Rev$">
     <Configuration name="Debug">
       <Options>
         <CompilerDefines>TRACE;DEBUG</CompilerDefines>
@@ -731,6 +731,7 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Communications.Local" />
       <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
 
