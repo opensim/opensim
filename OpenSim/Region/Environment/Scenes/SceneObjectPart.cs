@@ -96,7 +96,11 @@ namespace OpenSim.Region.Environment.Scenes
     public class SceneObjectPart : IScriptHost, ISerializable
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
+        // use only one serializer to give the runtime a chance to optimize it (it won't do that if you
+        // use a new instance every time)
+        private static XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
+
         #region Fields
 
         [XmlIgnore]
@@ -1619,7 +1623,6 @@ if (m_shape != null) {
         /// <returns></returns>
         public static SceneObjectPart FromXml(UUID fromUserInventoryItemId, XmlReader xmlReader)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
             SceneObjectPart part = (SceneObjectPart)serializer.Deserialize(xmlReader);
             part.m_fromUserInventoryItemID = fromUserInventoryItemId;
 
@@ -3186,7 +3189,6 @@ if (m_shape != null) {
         /// <param name="xmlWriter"></param>
         public void ToXml(XmlWriter xmlWriter)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
             serializer.Serialize(xmlWriter, this);
         }
 

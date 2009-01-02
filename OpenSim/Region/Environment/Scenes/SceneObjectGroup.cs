@@ -401,9 +401,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SetRootPart(part);
         }
-        
+
         public SceneObjectGroup(string xmlData, bool isOriginalXmlFormat)
-            : this(UUID.Zero, xmlData, isOriginalXmlFormat)            
+            : this(UUID.Zero, xmlData, isOriginalXmlFormat)
         {
         }
 
@@ -423,7 +423,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (!isOriginalXmlFormat)
                 throw new Exception("This constructor must specify the xml is in OpenSim's original format");
-            
+
+            m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
+            int time = System.Environment.TickCount;
+
             // libomv.types changes UUID to Guid
             xmlData = xmlData.Replace("<UUID>", "<Guid>");
             xmlData = xmlData.Replace("</UUID>", "</Guid>");
@@ -475,6 +478,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             reader.Close();
             sr.Close();
+            m_log.DebugFormat("[SOG]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
         }
 
         /// <summary>
@@ -487,6 +491,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected void SetFromXml(string xmlData)
         {
+            m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
+            int time = System.Environment.TickCount;
+
             // libomv.types changes UUID to Guid
             xmlData = xmlData.Replace("<UUID>", "<Guid>");
             xmlData = xmlData.Replace("</UUID>", "</Guid>");
@@ -531,6 +538,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             reader.Close();
             sr.Close();
+
+            m_log.DebugFormat("[SOG]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
         }
 
         protected virtual SceneObjectPart CreatePartFromXml(XmlTextReader reader)
@@ -714,6 +723,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ToXml(XmlTextWriter writer)
         {
+            m_log.DebugFormat("[SOG]: Starting serialization of {0}", Name);
+            int time = System.Environment.TickCount;
+
             writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
             writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
             m_rootPart.ToXml(writer);
@@ -735,6 +747,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             writer.WriteEndElement();
             writer.WriteEndElement();
+
+            m_log.DebugFormat("[SOG]: Finished serialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
+
         }
 
         public string ToXmlString2()
@@ -752,6 +767,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ToXml2(XmlTextWriter writer)
         {
+            m_log.DebugFormat("[SOG]: Starting serialization of SOG {0} to XML2", Name);
+            int time = System.Environment.TickCount;
+
             writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
             m_rootPart.ToXml(writer);
             writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
@@ -769,6 +787,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             writer.WriteEndElement();
             writer.WriteEndElement();
+            m_log.DebugFormat("[SOG]: Finished serialization of SOG {0} to XML2, {1}ms", Name, System.Environment.TickCount - time);
         }
 
         /// <summary>
