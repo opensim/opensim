@@ -35,6 +35,10 @@ using OpenSim.Framework;
 using Nini;
 using Nini.Config;
 
+using System.Reflection;
+using log4net;
+
+
 namespace OpenSim
 {
     public class ConfigurationLoader
@@ -42,6 +46,8 @@ namespace OpenSim
         protected ConfigSettings m_configSettings;
         protected OpenSimConfigSource m_config;
         protected NetworkServersInfo m_networkServersInfo;
+
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public ConfigurationLoader()
         {           
@@ -65,14 +71,41 @@ namespace OpenSim
             m_config.Source = new IniConfigSource();
             m_config.Source.Merge(DefaultConfig());
 
-            //check for .INI file (either default or name passed in command line)
-            if (File.Exists(masterfilePath))
+            m_log.Info("Reading in config files now");
+
+            //check for master .INI file (name passed in command line, no default)
+            if (masterFileName.Length != 0) // If a master file name is given ...
             {
-                m_config.Source.Merge(new IniConfigSource(masterfilePath));
+                m_log.InfoFormat("[CONFIG] Reading config master file {0}", Path.GetFullPath(masterfilePath));
+                if (File.Exists(masterfilePath))
+                {
+                    m_config.Source.Merge(new IniConfigSource(masterfilePath));
+                }
+                else
+                {
+                    // IF(!) a master file is given it must exist, be readable, ......
+                    // Otherwise the application will hickup
+                    m_log.FatalFormat("[CONFIG] Could not open master config file {0}", masterfilePath);
+                    Environment.Exit(1);
+                }
             }
 
-            if (File.Exists(Application.iniFilePath))
+            // Check for .INI file (either default or name passed on command
+            // line) or XML config source 
+            //
+            String xmlPath = Path.Combine(Util.configDir(), "OpenSim.xml");
+            bool isUri = false;
+            Uri configUri;
+
+            if (Uri.TryCreate(startupConfig.GetString("inifile", "OpenSim.ini"), UriKind.Absolute, out configUri) && configUri.Scheme == Uri.UriSchemeHttp)
             {
+                isUri = true;
+            }
+
+            if (!isUri && File.Exists(Application.iniFilePath))
+            {
+                m_log.InfoFormat("[CONFIG] Reading configuration file {0}", Path.GetFullPath(Application.iniFilePath));
+
                 iniFileExists = true;
 
                 // From reading Nini's code, it seems that later merged keys replace earlier ones.                
@@ -80,11 +113,9 @@ namespace OpenSim
             }
             else
             {
-                Uri configUri;
-
-                if (Uri.TryCreate(startupConfig.GetString("inifile", "OpenSim.ini"), UriKind.Absolute, out configUri) && configUri.Scheme == Uri.UriSchemeHttp)
+                if (isUri)
                 {
-                    Console.WriteLine("[CONFIG] {0} is a URI, fetching ...", startupConfig.GetString("inifile", "OpenSim.ini"));
+                    m_log.InfoFormat("[CONFIG] {0} is a http:// URI, fetching ...", startupConfig.GetString("inifile", "OpenSim.ini"));
 
                     // The ini file path is a http URI
                     // Try to read it
@@ -96,20 +127,23 @@ namespace OpenSim
                         m_config.Source.Merge(cs);
 
                         iniFileExists = true;
-                        Console.WriteLine("[CONFIG] Uri fetch complete");
+                        m_log.InfoFormat("[CONFIG] Loaded config from {0}", startupConfig.GetString("inifile", "OpenSim.ini"));
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Exception {0} reading config from URI {1}", e.ToString(), startupConfig.GetString("inifile", "OpenSim.ini"));
+                        m_log.FatalFormat("[CONFIG] Exception reading config from URI {0}\n" + e.ToString(), startupConfig.GetString("inifile", "OpenSim.ini"));
+                        Environment.Exit(1);
                     }
                 }
                 else
                 {
                     // check for a xml config file                
-                    Application.iniFilePath = Path.Combine(Util.configDir(), "OpenSim.xml");
 
-                    if (File.Exists(Application.iniFilePath))
+                    if (File.Exists(xmlPath))
                     {
+                        Application.iniFilePath = xmlPath;
+
+                        m_log.InfoFormat("Reading XML configuration from {0}", Path.GetFullPath(xmlPath));
                         iniFileExists = true;
 
                         m_config.Source = new XmlConfigSource();
@@ -121,7 +155,17 @@ namespace OpenSim
             m_config.Source.Merge(configSource);
 
             if (!iniFileExists)
-                m_config.Save("OpenSim.ini");
+            {
+                m_log.FatalFormat("[CONFIG] Could not load any configuration");
+                if (!isUri)
+                    m_log.FatalFormat("[CONFIG] Tried to load {0}, ", Path.GetFullPath(Application.iniFilePath));
+                else
+                    m_log.FatalFormat("[CONFIG] Tried to load from URI {0}, ", startupConfig.GetString("inifile", "OpenSim.ini"));
+                m_log.FatalFormat("[CONFIG] and XML source {0}", Path.GetFullPath(xmlPath));
+
+                m_log.FatalFormat("[CONFIG] Did you copy the OpenSim.ini.example file to OpenSim.ini?");
+                Environment.Exit(1);
+            }
 
             ReadConfigSettings();
 
