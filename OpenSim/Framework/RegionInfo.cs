@@ -199,6 +199,7 @@ namespace OpenSim.Framework
         public bool isSandbox = false;
         private EstateSettings m_estateSettings;
         private RegionSettings m_regionSettings;
+        private IConfigSource m_configSource = null;
 
         public UUID MasterAvatarAssignedUUID = UUID.Zero;
         public string MasterAvatarFirstName = String.Empty;
@@ -212,6 +213,11 @@ namespace OpenSim.Framework
         public UUID lastMapUUID = UUID.Zero;
         public string lastMapRefresh = "0";
 
+        private int m_nonphysPrimMax = 0;
+        private int m_physPrimMax = 0;
+        private bool m_clampPrimSize = false;
+        private int m_objectCapacity = 0;
+
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 
         // MT: Yes. Estates can't span trust boundaries. Therefore, it can be
@@ -219,16 +225,18 @@ namespace OpenSim.Framework
         // access the same database server. Since estate settings are lodaed
         // from there, that should be sufficient for full remote administration
 
-        public RegionInfo(string description, string filename, bool skipConsoleConfig)
+        public RegionInfo(string description, string filename, bool skipConsoleConfig, IConfigSource configSource)
         {
+            m_configSource = configSource;
             configMember =
                 new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, !skipConsoleConfig);
             configMember.performConfigurationRetrieve();
             RegionFile = filename;
         }
 
-        public RegionInfo(string description, XmlNode xmlNode, bool skipConsoleConfig)
+        public RegionInfo(string description, XmlNode xmlNode, bool skipConsoleConfig, IConfigSource configSource)
         {
+            m_configSource = configSource;
             configMember =
                 new ConfigurationMember(xmlNode, description, loadConfigurationOptions, handleIncomingConfiguration, !skipConsoleConfig);
             configMember.performConfigurationRetrieve();
@@ -300,6 +308,26 @@ namespace OpenSim.Framework
             }
 
             set { m_regionSettings = value; }
+        }
+
+        public int NonphysPrimMax
+        {
+            get { return m_nonphysPrimMax; }
+        }
+
+        public int PhysPrimMax
+        {
+            get { return m_physPrimMax; }
+        }
+
+        public bool ClampPrimSize
+        {
+            get { return m_clampPrimSize; }
+        }
+
+        public int ObjectCapacity
+        {
+            get { return m_objectCapacity; }
         }
 
         public void SetEndPoint(string ipaddr, int port)
@@ -414,6 +442,17 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
 
+            configMember.addConfigurationOption("nonphysical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Maximum size for nonphysical prims", m_nonphysPrimMax.ToString(), true);
+            
+            configMember.addConfigurationOption("physical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Maximum size for physical prims", m_physPrimMax.ToString(), true);
+            
+            configMember.addConfigurationOption("clamp_prim_size", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+                                                "Clamp prims to max size", m_clampPrimSize.ToString(), true);
+            
+            configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Max objects this sim will hold", m_objectCapacity.ToString(), true);
         }
 
         public void loadConfigurationOptions()
@@ -462,6 +501,18 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
+            
+            configMember.addConfigurationOption("nonphysical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Maximum size for nonphysical prims", "0", true);
+            
+            configMember.addConfigurationOption("physical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Maximum size for physical prims", "0", true);
+            
+            configMember.addConfigurationOption("clamp_prim_size", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+                                                "Clamp prims to max size", "false", true);
+            
+            configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Max objects this sim will hold", "0", true);
         }
 
         public bool shouldMasterAvatarDetailsBeAsked(string configuration_key)
@@ -526,6 +577,18 @@ namespace OpenSim.Framework
                     break;
                 case "lastmap_refresh":
                     lastMapRefresh = (string)configuration_result;
+                    break;
+                case "nonphysical_prim_max":
+                    m_nonphysPrimMax = (int)configuration_result;
+                    break;
+                case "physical_prim_max":
+                    m_physPrimMax = (int)configuration_result;
+                    break;
+                case "clamp_prim_size":
+                    m_clampPrimSize = (bool)configuration_result;
+                    break;
+                case "object_capacity":
+                    m_objectCapacity = (int)configuration_result;
                     break;
             }
 

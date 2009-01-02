@@ -341,7 +341,7 @@ namespace OpenSim
                     if (cmdparams[1].StartsWith("/") || cmdparams[1].StartsWith("\\") || cmdparams[1].StartsWith(".."))
                         regionFile = cmdparams[1];
 
-                    CreateRegion(new RegionInfo(cmdparams[0], regionFile, false), true);
+                    CreateRegion(new RegionInfo(cmdparams[0], regionFile, false, ConfigSource.Source), true);
                     break;
 
                 case "remove-region":

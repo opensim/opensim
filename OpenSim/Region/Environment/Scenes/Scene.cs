@@ -370,10 +370,25 @@ namespace OpenSim.Region.Environment.Scenes
 
             try
             {
+                // Region config overrides global config
+                //
                 IConfig startupConfig = m_config.Configs["Startup"];
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", 65536.0f);
+                if (RegionInfo.NonphysPrimMax > 0)
+                    m_maxNonphys = RegionInfo.NonphysPrimMax;
+
                 m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", 10.0f);
+
+                if (RegionInfo.PhysPrimMax > 0)
+                    m_maxPhys = RegionInfo.PhysPrimMax;
+
+                // Here, if clamping is requested in either global or
+                // local config, it will be used
+                //
                 m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", false);
+                if (RegionInfo.ClampPrimSize)
+                    m_clampPrimSize = true;
+
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", false);
                 m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", false);
                 m_dontPersistBefore =
@@ -3290,6 +3305,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetObjectCapacity(int objects)
         {
+            // Region specific config overrides global
+            //
+            if (RegionInfo.ObjectCapacity != 0)
+                objects = RegionInfo.ObjectCapacity;
+
             if (m_statsReporter != null)
             {
                 m_statsReporter.SetObjectCapacity(objects);

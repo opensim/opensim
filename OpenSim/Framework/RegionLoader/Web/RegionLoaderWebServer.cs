@@ -39,23 +39,23 @@ namespace OpenSim.Framework.RegionLoader.Web
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IConfigSource m_configSouce;
+        private IConfigSource m_configSource;
 
         public void SetIniConfigSource(IConfigSource configSource)
         {
-            m_configSouce = configSource;
+            m_configSource = configSource;
         }
 
         public RegionInfo[] LoadRegions()
         {
-            if (m_configSouce == null)
+            if (m_configSource == null)
             {
                 m_log.Error("[WEBLOADER]: Unable to load configuration source!");
                 return null;
             }
             else
             {
-                IConfig startupConfig = (IConfig) m_configSouce.Configs["Startup"];
+                IConfig startupConfig = (IConfig) m_configSource.Configs["Startup"];
                 string url = startupConfig.GetString("regionload_webserver_url", String.Empty).Trim();
                 if (url == String.Empty)
                 {
@@ -89,7 +89,7 @@ namespace OpenSim.Framework.RegionLoader.Web
                         {
                             m_log.Debug(xmlDoc.FirstChild.ChildNodes[i].OuterXml);
                             regionInfos[i] =
-                                new RegionInfo("REGION CONFIG #" + (i + 1), xmlDoc.FirstChild.ChildNodes[i],false);
+                                new RegionInfo("REGION CONFIG #" + (i + 1), xmlDoc.FirstChild.ChildNodes[i],false,m_configSource);
                         }
 
                         return regionInfos;
