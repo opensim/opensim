@@ -70,8 +70,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private void HandleObjectPaid(UUID objectID, UUID agentID,
                 int amount)
         {
+            // Since this is an event from a shared module, all scenes will
+            // get it. But only one has the object in question. The others
+            // just ignore it.
+            //
             SceneObjectPart part =
                     myScriptEngine.World.GetSceneObjectPart(objectID);
+
+            if (part == null)
+                return;
+
+            Console.WriteLine("Paid: {0} from {1}, amount {2}", objectID,agentID,amount);
             if (part.ParentGroup != null)
                 part = part.ParentGroup.RootPart;
 
