@@ -858,7 +858,7 @@
       <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
-      <Reference name="DotNetOpenId"/>
+      <Reference name="DotNetOpenId.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
