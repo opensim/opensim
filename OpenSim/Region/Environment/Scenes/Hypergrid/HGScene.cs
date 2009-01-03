@@ -52,26 +52,32 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
             m_log.Debug("[HGScene]: TeleportClientHome " + client.FirstName + " " + client.LastName);
 
             CachedUserInfo uinfo = CommsManager.UserProfileCacheService.GetUserDetails(agentId);
-            UserProfileData UserProfile = uinfo.UserProfile;
-
-            if (UserProfile != null)
+            if (uinfo != null)
             {
-                RegionInfo regionInfo = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegion);
+                UserProfileData UserProfile = uinfo.UserProfile;
+
+                if (UserProfile != null)
+                {
+                    RegionInfo regionInfo = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegion);
                     //if (regionInfo != null)
                     //{
                     //    UserProfile.HomeRegionID = regionInfo.RegionID;
                     //    //CommsManager.UserService.UpdateUserProfile(UserProfile);
                     //}
-                if (regionInfo == null)
-                {
-                    // can't find the Home region: Tell viewer and abort
-                    client.SendTeleportFailed("Your home-region could not be found.");
-                    return;
+                    if (regionInfo == null)
+                    {
+                        // can't find the Home region: Tell viewer and abort
+                        client.SendTeleportFailed("Your home-region could not be found.");
+                        return;
+                    }
+                    RequestTeleportLocation(
+                        client, regionInfo.RegionHandle, UserProfile.HomeLocation, UserProfile.HomeLookAt,
+                        (uint)(TPFlags.SetLastToTarget | TPFlags.ViaHome));
                 }
-                RequestTeleportLocation(
-                    client, regionInfo.RegionHandle, UserProfile.HomeLocation, UserProfile.HomeLookAt,
-                    (uint)(TPFlags.SetLastToTarget | TPFlags.ViaHome));
             }
+            else
+                client.SendTeleportFailed("Sorry! I lost your home-region information.");
+
         }
 
     }
