@@ -28,6 +28,10 @@
 using System;
 using System.Collections.Generic;
 using OpenMetaverse;
+using OSD = OpenMetaverse.StructuredData.OSD;
+using OSDMap = OpenMetaverse.StructuredData.OSDMap;
+using OSDArray = OpenMetaverse.StructuredData.OSDArray;
+using OSDParser = OpenMetaverse.StructuredData.OSDParser;
 
 namespace OpenSim.Framework
 {
@@ -64,6 +68,86 @@ namespace OpenSim.Framework
             BaseFolder = new UUID(cAgent.BaseFolder);
             CapsPath = cAgent.CapsPath;
             ChildrenCapSeeds = cAgent.ChildrenCapSeeds;
+        }
+
+        public OSDMap PackAgentCircuitData()
+        {
+            OSDMap args = new OSDMap();
+            args["agent_id"] = OSD.FromUUID(AgentID);
+            args["base_folder"] = OSD.FromUUID(BaseFolder);
+            args["caps_path"] = OSD.FromString(CapsPath);
+
+            OSDArray childrenSeeds = new OSDArray(ChildrenCapSeeds.Count);
+            foreach (KeyValuePair<ulong, string> kvp in ChildrenCapSeeds)
+            {
+                OSDMap pair = new OSDMap();
+                pair["handle"] = OSD.FromString(kvp.Key.ToString());
+                pair["seed"] = OSD.FromString(kvp.Value);
+                childrenSeeds.Add(pair);
+            }
+            args["children_seeds"] = childrenSeeds;
+
+            args["child"] = OSD.FromBoolean(child);
+            args["circuit_code"] = OSD.FromString(circuitcode.ToString());
+            args["first_name"] = OSD.FromString(firstname);
+            args["last_name"] = OSD.FromString(lastname);
+            args["inventory_folder"] = OSD.FromUUID(InventoryFolder);
+            args["secure_session_id"] = OSD.FromUUID(SecureSessionID);
+            args["session_id"] = OSD.FromUUID(SessionID);
+            args["start_pos"] = OSD.FromString(startpos.ToString());
+
+            return args;
+        }
+
+        public void UnpackAgentCircuitData(OSDMap args)
+        {
+            if (args["agent_id"] != null)
+                AgentID = args["agent_id"].AsUUID();
+            if (args["base_folder"] != null)
+                BaseFolder = args["base_folder"].AsUUID();
+            if (args["caps_path"] != null)
+                CapsPath = args["caps_path"].AsString();
+
+            if ((args["children_seeds"] != null) && (args["children_seeds"].Type == OpenMetaverse.StructuredData.OSDType.Array))
+            {
+                OSDArray childrenSeeds = (OSDArray)(args["children_seeds"]);
+                ChildrenCapSeeds = new Dictionary<ulong, string>();
+                foreach (OSD o in childrenSeeds)
+                {
+                    if (o.Type == OpenMetaverse.StructuredData.OSDType.Map)
+                    {
+                        ulong handle = 0;
+                        string seed = "";
+                        OSDMap pair = (OSDMap)o;
+                        if (pair["handle"] != null)
+                            if (!UInt64.TryParse(pair["handle"].AsString(), out handle))
+                                continue;
+                        if (pair["seed"] != null)
+                            seed = pair["seed"].AsString();
+                        if (!ChildrenCapSeeds.ContainsKey(handle))
+                            ChildrenCapSeeds.Add(handle, seed);
+                    }
+                }
+            }
+
+            if (args["child"] != null)
+                child = args["child"].AsBoolean();
+            if (args["circuit_code"] != null)
+                UInt32.TryParse(args["circuit_code"].AsString(), out circuitcode);
+            if (args["first_name"] != null)
+                firstname = args["first_name"].AsString();
+            if (args["last_name"] != null)
+                lastname = args["last_name"].AsString();
+            if (args["inventory_folder"] != null)
+                InventoryFolder = args["inventory_folder"].AsUUID();
+            if (args["secure_session_id"] != null)
+                SecureSessionID = args["secure_session_id"].AsUUID();
+            if (args["session_id"] != null)
+                SessionID = args["session_id"].AsUUID();
+            if (args["start_pos"] != null)
+                Vector3.TryParse(args["start_pos"].AsString(), out startpos); 
+
+
         }
     }
 
