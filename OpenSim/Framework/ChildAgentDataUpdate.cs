@@ -60,26 +60,150 @@ namespace OpenSim.Framework
 
         public ChildAgentDataUpdate(AgentData agent)
         {
-            if (agent.ActiveGroupID != null)
-                ActiveGroupID = agent.ActiveGroupID.Guid;
-            if (agent.AgentID != null)
-                AgentID = agent.AgentID.Guid;
+            ActiveGroupID = agent.ActiveGroupID.Guid;
+            AgentID = agent.AgentID.Guid;
             alwaysrun = agent.AlwaysRun;
-            if (agent.Size != null)
-                AVHeight = agent.Size.Z;
-            if (agent.Center != null)
-                cameraPosition = new sLLVector3(agent.Center);
+            AVHeight = agent.Size.Z;
+            cameraPosition = new sLLVector3(agent.Center);
             drawdistance = agent.Far;
             godlevel = (float)agent.GodLevel;
             if (agent.Groups.Length > 0)
                 GroupAccess = (uint)agent.Groups[0].GroupPowers;
-            if (agent.Position != null)
-                Position = new sLLVector3(agent.Position);
+            Position = new sLLVector3(agent.Position);
             regionHandle = agent.RegionHandle;
             throttles = agent.Throttles;
-            if (agent.Velocity != null)
-                Velocity = new sLLVector3(agent.Velocity);
+            Velocity = new sLLVector3(agent.Velocity);
         }
+
+        public ChildAgentDataUpdate(AgentPosition agent)
+        {
+            AgentID = agent.AgentID.Guid;
+            AVHeight = agent.Size.Z;
+            cameraPosition = new sLLVector3(agent.Center);
+            drawdistance = agent.Far;
+            Position = new sLLVector3(agent.Position);
+            regionHandle = agent.RegionHandle;
+            throttles = agent.Throttles;
+            Velocity = new sLLVector3(agent.Velocity);
+        }
+    }
+
+    /// <summary>
+    /// Replacement for ChildAgentDataUpdate. Used over RESTComms and LocalComms.
+    /// </summary>
+    public class AgentPosition
+    {
+        public ulong RegionHandle;
+        public uint CircuitCode;
+        public UUID AgentID;
+        public UUID SessionID;
+
+        public float Far;
+        public Vector3 Position;
+        public Vector3 Velocity;
+        public Vector3 Center;
+        public Vector3 Size;
+        public Vector3 AtAxis;
+        public Vector3 LeftAxis;
+        public Vector3 UpAxis;
+        public bool ChangedGrid;
+
+        // This probably shouldn't be here
+        public byte[] Throttles;
+
+
+        public OSDMap PackUpdateMessage()
+        {
+            OSDMap args = new OSDMap();
+            args["message_type"] = OSD.FromString("AgentPosition");
+
+            args["region_handle"] = OSD.FromString(RegionHandle.ToString());
+            args["circuit_code"] = OSD.FromString(CircuitCode.ToString());
+            args["agent_uuid"] = OSD.FromUUID(AgentID);
+            args["session_uuid"] = OSD.FromUUID(SessionID);
+
+            args["position"] = OSD.FromString(Position.ToString());
+            args["velocity"] = OSD.FromString(Velocity.ToString());
+            args["center"] = OSD.FromString(Center.ToString());
+            args["size"] = OSD.FromString(Size.ToString());
+            args["at_axis"] = OSD.FromString(AtAxis.ToString());
+            args["left_axis"] = OSD.FromString(LeftAxis.ToString());
+            args["up_axis"] = OSD.FromString(UpAxis.ToString());
+
+            args["far"] = OSD.FromReal(Far);
+            args["changed_grid"] = OSD.FromBoolean(ChangedGrid);
+
+            if ((Throttles != null) && (Throttles.Length > 0))
+                args["throttles"] = OSD.FromBinary(Throttles);
+
+            return args;
+        }
+
+        public void UnpackUpdateMessage(OSDMap args)
+        {
+            if (args.ContainsKey("region_handle"))
+                UInt64.TryParse(args["region_handle"].AsString(), out RegionHandle);
+
+            if (args["circuit_code"] != null)
+                UInt32.TryParse((string)args["circuit_code"].AsString(), out CircuitCode);
+
+            if (args["agent_uuid"] != null)
+                AgentID = args["agent_uuid"].AsUUID();
+
+            if (args["session_uuid"] != null)
+                SessionID = args["session_uuid"].AsUUID();
+
+            if (args["position"] != null)
+                Vector3.TryParse(args["position"].AsString(), out Position);
+
+            if (args["velocity"] != null)
+                Vector3.TryParse(args["velocity"].AsString(), out Velocity);
+
+            if (args["center"] != null)
+                Vector3.TryParse(args["center"].AsString(), out Center);
+
+            if (args["size"] != null)
+                Vector3.TryParse(args["size"].AsString(), out Size);
+
+            if (args["at_axis"] != null)
+                Vector3.TryParse(args["at_axis"].AsString(), out AtAxis);
+
+            if (args["left_axis"] != null)
+                Vector3.TryParse(args["left_axis"].AsString(), out AtAxis);
+
+            if (args["up_axis"] != null)
+                Vector3.TryParse(args["up_axis"].AsString(), out AtAxis);
+
+            if (args["changed_grid"] != null)
+                ChangedGrid = args["changed_grid"].AsBoolean();
+
+            if (args["far"] != null)
+                Far = (float)(args["far"].AsReal());
+
+            if (args["throttles"] != null)
+                Throttles = args["throttles"].AsBinary();
+        }
+
+        /// <summary>
+        /// Soon to be decommissioned
+        /// </summary>
+        /// <param name="cAgent"></param>
+        public void CopyFrom(ChildAgentDataUpdate cAgent)
+        {
+            AgentID = new UUID(cAgent.AgentID);
+
+            // next: ???
+            Size = new Vector3();
+            Size.Z = cAgent.AVHeight;
+
+            Center = new Vector3(cAgent.cameraPosition.x, cAgent.cameraPosition.y, cAgent.cameraPosition.z);
+            Far = cAgent.drawdistance;
+            Position = new Vector3(cAgent.Position.x, cAgent.Position.y, cAgent.Position.z);
+            RegionHandle = cAgent.regionHandle;
+            Throttles = cAgent.throttles;
+            Velocity = new Vector3(cAgent.Velocity.x, cAgent.Velocity.y, cAgent.Velocity.z);
+        }
+
     }
 
     public class AgentGroupData
@@ -94,12 +218,58 @@ namespace OpenSim.Framework
             GroupPowers = powers;
             AcceptNotices = notices;
         }
+
+        public AgentGroupData(OSDMap args)
+        {
+            UnpackUpdateMessage(args);
+        }
+
+        public OSDMap PackUpdateMessage()
+        {
+            OSDMap groupdata = new OSDMap();
+            groupdata["group_id"] = OSD.FromUUID(GroupID);
+            groupdata["group_powers"] = OSD.FromString(GroupPowers.ToString());
+            groupdata["accept_notices"] = OSD.FromBoolean(AcceptNotices);
+
+            return groupdata;
+        }
+
+        public void UnpackUpdateMessage(OSDMap args)
+        {
+            if (args["group_id"] != null)
+                GroupID = args["group_id"].AsUUID();
+            if (args["group_powers"] != null)
+                UInt64.TryParse((string)args["group_powers"].AsString(), out GroupPowers);
+            if (args["accept_notices"] != null)
+                AcceptNotices = args["accept_notices"].AsBoolean();
+        }
     }
 
     public class AgentAnimationData
     {
         public UUID Animation;
         public UUID ObjectID;
+
+        public AgentAnimationData(OSDMap args)
+        {
+            UnpackUpdateMessage(args);
+        }
+
+        public OSDMap PackUpdateMessage()
+        {
+            OSDMap anim = new OSDMap();
+            anim["animation"] = OSD.FromUUID(Animation);
+            anim["object_id"] = OSD.FromUUID(ObjectID);
+            return anim;
+        }
+
+        public void UnpackUpdateMessage(OSDMap args)
+        {
+            if (args["animation"] != null)
+                Animation = args["animation"].AsUUID();
+            if (args["object_id"] != null)
+                ObjectID = args["object_id"].AsUUID();
+        }
     }
 
     public class AgentData
@@ -142,13 +312,15 @@ namespace OpenSim.Framework
         public UUID GranterID;
         public Dictionary<string, string> NVPairs;
 
-        byte[] VisualParams;
+        public byte[] VisualParams;
 
         public string CallbackURI;
 
         public OSDMap PackUpdateMessage()
         {
             OSDMap args = new OSDMap();
+            args["message_type"] = OSD.FromString("AgentData");
+
             args["region_handle"] = OSD.FromString(RegionHandle.ToString());
             args["circuit_code"] = OSD.FromString(CircuitCode.ToString());
             args["agent_uuid"] = OSD.FromUUID(AgentID);
@@ -190,7 +362,26 @@ namespace OpenSim.Framework
 
             args["active_group_id"] = OSD.FromUUID(ActiveGroupID);
 
-            // Last few fields are still missing
+            if ((Groups != null) && (Groups.Length > 0))
+            {
+                OSDArray groups = new OSDArray(Groups.Length);
+                foreach (AgentGroupData agd in Groups)
+                    groups.Add(agd.PackUpdateMessage());
+                args["groups"] = groups;
+            }
+
+            if ((Anims != null) && (Anims.Length > 0))
+            {
+                OSDArray anims = new OSDArray(Anims.Length);
+                foreach (AgentAnimationData aanim in Anims)
+                    anims.Add(aanim.PackUpdateMessage());
+                args["animations"] = anims;
+            }
+
+            if ((VisualParams != null) && (VisualParams.Length > 0))
+                args["visual_params"] = OSD.FromBinary(VisualParams);
+
+            // Last few fields are still missing: granter and NVPais
 
             if ((CallbackURI != null) && (!CallbackURI.Equals("")))
                 args["callback_uri"] = OSD.FromString(CallbackURI);
@@ -288,6 +479,37 @@ namespace OpenSim.Framework
 
             if (args["active_group_id"] != null)
                 ActiveGroupID = args["active_group_id"].AsUUID();
+
+            if ((args["groups"] != null) && (args["groups"]).Type == OpenMetaverse.StructuredData.OSDType.Array)
+            {
+                OSDArray groups = (OSDArray)(args["groups"]);
+                Groups = new AgentGroupData[groups.Count];
+                int i = 0;
+                foreach (OSD o in groups)
+                {
+                    if (o.Type == OpenMetaverse.StructuredData.OSDType.Map)
+                    {
+                        Groups[i++] = new AgentGroupData((OSDMap)o);
+                    }
+                }
+            }
+
+            if ((args["animations"] != null) && (args["animations"]).Type == OpenMetaverse.StructuredData.OSDType.Array)
+            {
+                OSDArray anims = (OSDArray)(args["animations"]);
+                Anims = new AgentAnimationData[anims.Count];
+                int i = 0;
+                foreach (OSD o in anims)
+                {
+                    if (o.Type == OpenMetaverse.StructuredData.OSDType.Map)
+                    {
+                        Anims[i++] = new AgentAnimationData((OSDMap)o);
+                    }
+                }
+            }
+
+            if (args["visual_params"] != null)
+                VisualParams = args["visual_params"].AsBinary();
 
             if (args["callback_uri"] != null)
                 CallbackURI = args["callback_uri"].AsString();
