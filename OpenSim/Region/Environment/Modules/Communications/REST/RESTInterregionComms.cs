@@ -712,7 +712,8 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
         {
             try
             {
-                if (IsHyperlink(regInfo.RegionHandle))
+                //if (IsHyperlink(regInfo.RegionHandle))
+                if (m_aScene.SceneGridService is HGSceneCommunicationService)
                 {
                     ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.SendUserInformation(regInfo, aCircuit);
                 }
