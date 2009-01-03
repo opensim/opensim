@@ -35,8 +35,38 @@ namespace OpenSim.Region.Environment.Interfaces
 
     public interface IInterregionCommsOut 
     {
+        /// <summary>
+        /// Full child agent update.
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
         bool SendChildAgentUpdate(ulong regionHandle, AgentData data);
+
+        /// <summary>
+        /// Short child agent update, mostly for position.
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        bool SendChildAgentUpdate(ulong regionHandle, AgentPosition data);
+
+        /// <summary>
+        /// Message from receiving region to departing region, telling it got contacted by the client.
+        /// When sent over REST, it invokes the opaque uri.
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="id"></param>
+        /// <param name="uri"></param>
+        /// <returns></returns>
         bool SendReleaseAgent(ulong regionHandle, UUID id, string uri);
+
+        /// <summary>
+        /// Close agent.
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         bool SendCloseAgent(ulong regionHandle, UUID id);
     }
 

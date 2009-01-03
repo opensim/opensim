@@ -538,7 +538,7 @@ namespace OpenSim.Region.Environment.Scenes
             //bool val = m_commsProvider.InterRegion.RegionUp(new SerializableRegionInfo(region));
         }
 
-        public delegate void SendChildAgentDataUpdateDelegate(AgentData cAgentData, ulong regionHandle);
+        public delegate void SendChildAgentDataUpdateDelegate(AgentPosition cAgentData, ulong regionHandle);
 
         /// <summary>
         /// This informs all neighboring regions about the settings of it's child agent.
@@ -547,7 +547,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// This contains information, such as, Draw Distance, Camera location, Current Position, Current throttle settings, etc.
         ///
         /// </summary>
-        private void SendChildAgentDataUpdateAsync(AgentData cAgentData, ulong regionHandle)
+        private void SendChildAgentDataUpdateAsync(AgentPosition cAgentData, ulong regionHandle)
         {
             //m_log.Info("[INTERGRID]: Informing neighbors about my agent in " + m_regionInfo.RegionName);
             try
@@ -577,7 +577,7 @@ namespace OpenSim.Region.Environment.Scenes
             icon.EndInvoke(iar);
         }
 
-        public void SendChildAgentDataUpdate(AgentData cAgentData, ScenePresence presence)
+        public void SendChildAgentDataUpdate(AgentPosition cAgentData, ScenePresence presence)
         {
             // This assumes that we know what our neighbors are.
             try
@@ -847,7 +847,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // Let's send a full update of the agent. This is a synchronous call.
                         AgentData agent = new AgentData();
                         avatar.CopyTo(agent);
-                        agent.Position = new Vector3(-1, -1, -1); // this means ignore position info; UGH!!!!
+                        agent.Position = position;
                         agent.CallbackURI = "http://" + m_regionInfo.ExternalHostName + ":" + m_regionInfo.HttpPort + 
                             "/agent/" + avatar.UUID.ToString() + "/" + avatar.Scene.RegionInfo.RegionHandle.ToString() + "/release/";
 

@@ -260,7 +260,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         // Let's send a full update of the agent. This is a synchronous call.
                         AgentData agent = new AgentData();
                         avatar.CopyTo(agent);
-                        agent.Position = new Vector3(-1, -1, -1); // this means ignore position info; UGH!!!!
+                        agent.Position = position;
                         agent.CallbackURI = "http://" + m_regionInfo.ExternalHostName + ":" + m_regionInfo.HttpPort +
                             "/agent/" + avatar.UUID.ToString() + "/" + avatar.Scene.RegionInfo.RegionHandle.ToString() + "/release/";
 

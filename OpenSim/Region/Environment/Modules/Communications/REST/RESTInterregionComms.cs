@@ -146,6 +146,23 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
         }
 
+        public bool SendChildAgentUpdate(ulong regionHandle, AgentPosition cAgentData)
+        {
+            // Try local first
+            if (m_localBackend.SendChildAgentUpdate(regionHandle, cAgentData))
+                return true;
+
+            // else do the remote thing
+            RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+            if (regInfo != null)
+            {
+                return DoChildAgentUpdateCall(regInfo, cAgentData);
+            }
+            //else
+            //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
+            return false;
+
+        }
         public bool SendReleaseAgent(ulong regionHandle, UUID id, string uri)
         {
             // Try local first
@@ -180,7 +197,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
         // Internal  functions for the above public interface
         //-------------------------------------------------------------------
 
-        protected bool DoChildAgentUpdateCall(RegionInfo region, AgentData cAgentData)
+        protected bool DoChildAgentUpdateCall(RegionInfo region, IAgentData cAgentData)
         {
             // Eventually, we want to use a caps url instead of the agentID
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + cAgentData.AgentID + "/";
@@ -436,20 +453,51 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             if (args["destination_handle"] != null)
                 UInt64.TryParse(args["destination_handle"].AsString(), out regionhandle);
 
-            AgentData agent = new AgentData();
-            try
+            string messageType;
+            if (args["message_type"] != null)
+                messageType = args["message_type"].AsString();
+            else
             {
-                agent.UnpackUpdateMessage(args);
+                m_log.Warn("[REST COMMS]: Agent Put Message Type not found. ");
+                messageType = "AgentData";
             }
-            catch (Exception ex)
-            {
-                m_log.InfoFormat("[REST COMMS]: exception on unpacking ChildAgentUpdate message {0}", ex.Message);
-                return;
-            }
-            //agent.Dump();
 
-            // This is the meaning of PUT agent
-            bool result = m_localBackend.SendChildAgentUpdate(regionhandle, agent);
+            bool result = true;
+            if ("AgentData".Equals(messageType))
+            {
+                AgentData agent = new AgentData();
+                try
+                {
+                    agent.UnpackUpdateMessage(args);
+                }
+                catch (Exception ex)
+                {
+                    m_log.InfoFormat("[REST COMMS]: exception on unpacking ChildAgentUpdate message {0}", ex.Message);
+                    return;
+                }
+                //agent.Dump();
+                // This is one of the meanings of PUT agent
+                result = m_localBackend.SendChildAgentUpdate(regionhandle, agent);
+
+            }
+            else if ("AgentPosition".Equals(messageType))
+            {
+                AgentPosition agent = new AgentPosition();
+                try
+                {
+                    agent.UnpackUpdateMessage(args);
+                }
+                catch (Exception ex)
+                {
+                    m_log.InfoFormat("[REST COMMS]: exception on unpacking ChildAgentUpdate message {0}", ex.Message);
+                    return;
+                }
+                //agent.Dump();
+                // This is one of the meanings of PUT agent
+                result = m_localBackend.SendChildAgentUpdate(regionhandle, agent);
+
+            }
+
 
 
             responsedata["int_response_code"] = 200;

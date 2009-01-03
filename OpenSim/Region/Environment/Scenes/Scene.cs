@@ -2970,7 +2970,19 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual bool IncomingChildAgentDataUpdate(AgentData cAgentData)
         {
-            //Console.WriteLine(" XXX Scene IncomingChildAgentDataUpdate in " + RegionInfo.RegionName);
+            //Console.WriteLine(" XXX Scene IncomingChildAgentDataUpdate FULL in " + RegionInfo.RegionName);
+            ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
+            if (childAgentUpdate != null)
+            {
+                childAgentUpdate.ChildAgentDataUpdate(cAgentData);
+                return true;
+            }
+            return false;
+        }
+
+        public virtual bool IncomingChildAgentDataUpdate(AgentPosition cAgentData)
+        {
+            //Console.WriteLine(" XXX Scene IncomingChildAgentDataUpdate POSITION in " + RegionInfo.RegionName);
             ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
@@ -3174,7 +3186,7 @@ namespace OpenSim.Region.Environment.Scenes
             return m_sceneGridService.CrossToNeighbouringRegion(regionHandle, agentID, position, isFlying);
         }
 
-        public void SendOutChildAgentUpdates(AgentData cadu, ScenePresence presence)
+        public void SendOutChildAgentUpdates(AgentPosition cadu, ScenePresence presence)
         {
             m_sceneGridService.SendChildAgentDataUpdate(cadu, presence);
         }

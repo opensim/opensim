@@ -2338,10 +2338,10 @@ namespace OpenSim.Region.Environment.Scenes
                 cadu.throttles = ControllingClient.GetThrottlesPacked(multiplier);
                 cadu.Velocity = new sLLVector3(Velocity);
 
-                AgentData agent = new AgentData();
-                agent.CopyFrom(cadu);
+                AgentPosition agentpos = new AgentPosition();
+                agentpos.CopyFrom(cadu);
 
-                m_scene.SendOutChildAgentUpdates(agent, this);
+                m_scene.SendOutChildAgentUpdates(agentpos, this);
                 
                 m_LastChildAgentUpdatePosition.X = AbsolutePosition.X;
                 m_LastChildAgentUpdatePosition.Y = AbsolutePosition.Y;
@@ -2583,17 +2583,27 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #region Child Agent Updates
+
+        public void ChildAgentDataUpdate(AgentData cAgentData)
+        {
+            //Console.WriteLine("   >>> ChildAgentDataUpdate <<< " + Scene.RegionInfo.RegionName);
+            if (!IsChildAgent)
+                return;
+
+            CopyFrom(cAgentData);
+        }
+
         /// <summary>
         /// This updates important decision making data about a child agent
         /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region
         /// </summary>
-        public void ChildAgentDataUpdate(AgentData cAgentData, uint tRegionX, uint tRegionY, uint rRegionX, uint rRegionY)
+        public void ChildAgentDataUpdate(AgentPosition cAgentData, uint tRegionX, uint tRegionY, uint rRegionX, uint rRegionY)
         {
             //
             if (!IsChildAgent)
                 return;
 
-            //Console.WriteLine("   >>> ChildAgentDataUpdate <<< " + rRegionX + "-" + rRegionY);
+            //Console.WriteLine("   >>> ChildAgentPositionUpdate <<< " + rRegionX + "-" + rRegionY);
             int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
             int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
 
@@ -2602,32 +2612,18 @@ namespace OpenSim.Region.Environment.Scenes
                 m_pos = new Vector3(cAgentData.Position.X + shiftx, cAgentData.Position.Y + shifty, cAgentData.Position.Z);
 
             // It's hard to say here..   We can't really tell where the camera position is unless it's in world cordinates from the sending region
-            if (cAgentData.Center!= new Vector3(-1, -1, -1)) // UGH!
-                m_CameraCenter = cAgentData.Center;
-            //    new Vector3(cAgentData.cameraPosition.x, cAgentData.cameraPosition.y, cAgentData.cameraPosition.z);
+            m_CameraCenter = cAgentData.Center;
 
-
-            m_godlevel = cAgentData.GodLevel;
-            if (cAgentData.Center != new Vector3(-1, -1, -1))
-                m_avHeight = cAgentData.Size.Z;
+            m_avHeight = cAgentData.Size.Z;
             //SetHeight(cAgentData.AVHeight);
 
             if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
                 ControllingClient.SetChildAgentThrottle(cAgentData.Throttles);
 
-            // ugh!!!
-            m_AgentControlFlags = cAgentData.ControlFlags;
-            if (m_physicsActor != null)
-            {
-                m_physicsActor.Flying = ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
-            }
 
             // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
             if (m_scene.m_seeIntoRegionFromNeighbor)
                 m_pendingObjects = null;
-
-            m_callbackURI = cAgentData.CallbackURI;
-            m_rootRegionHandle = Util.UIntsToLong(rRegionX * Constants.RegionSize, rRegionY * Constants.RegionSize);
 
             //cAgentData.AVHeight;
             //cAgentData.regionHandle;
@@ -2638,13 +2634,17 @@ namespace OpenSim.Region.Environment.Scenes
         {
             cAgent.AgentID = UUID;
             cAgent.RegionHandle = m_scene.RegionInfo.RegionHandle;
-            cAgent.AlwaysRun = m_setAlwaysRun;
-            cAgent.Size = new Vector3(0, 0, m_avHeight);
+
+            cAgent.Position = m_pos;
+            cAgent.Velocity = m_velocity;
             cAgent.Center = m_CameraCenter;
+            cAgent.Size = new Vector3(0, 0, m_avHeight);
+            cAgent.AtAxis = m_CameraAtAxis;
+            cAgent.LeftAxis = m_CameraLeftAxis;
+            cAgent.UpAxis = m_CameraUpAxis;
+
             cAgent.Far = m_DrawDistance;
-            cAgent.GodLevel = (byte)m_godlevel;
-            cAgent.Position = AbsolutePosition;
-            cAgent.Velocity = Velocity;
+
             // Throttles 
             float multiplier = 1;
             int innacurateNeighbors = m_scene.GetInaccurateNeighborCount();
@@ -2659,15 +2659,64 @@ namespace OpenSim.Region.Environment.Scenes
             //m_log.Info("[NeighborThrottle]: " + m_scene.GetInaccurateNeighborCount().ToString() + " - m: " + multiplier.ToString());
             cAgent.Throttles = ControllingClient.GetThrottlesPacked(multiplier);
 
+            cAgent.HeadRotation = m_headrotation;
+            cAgent.BodyRotation = m_bodyRot;
+            cAgent.ControlFlags = m_AgentControlFlags;
             if ((m_physicsActor != null) && (m_physicsActor.Flying))
             {
-                m_AgentControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+                cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
             }
-            cAgent.ControlFlags = m_AgentControlFlags;
 
+
+            cAgent.GodLevel = (byte)m_godlevel;
+            cAgent.AlwaysRun = m_setAlwaysRun;
+
+            //cAgent.AgentTextures = ???
+            //cAgent.GroupID = ??
             // Groups???
-            // Visual Params???
+
             // Animations???
+
+            cAgent.VisualParams = m_appearance.VisualParams;
+        }
+
+        public void CopyFrom(AgentData cAgent)
+        {
+            m_rootRegionHandle= cAgent.RegionHandle;
+            m_callbackURI = cAgent.CallbackURI;
+
+            m_pos = cAgent.Position;
+            m_velocity = cAgent.Velocity;
+            m_CameraCenter = cAgent.Center;
+            m_avHeight = cAgent.Size.Z;
+            m_CameraAtAxis = cAgent.AtAxis;
+            m_CameraLeftAxis = cAgent.LeftAxis;
+            m_CameraUpAxis = cAgent.UpAxis;
+
+            m_DrawDistance = cAgent.Far;
+
+            if ((cAgent.Throttles != null) && cAgent.Throttles.Length > 0)
+                ControllingClient.SetChildAgentThrottle(cAgent.Throttles);
+
+            m_headrotation = cAgent.HeadRotation;
+            m_bodyRot = cAgent.BodyRotation;
+            m_AgentControlFlags = cAgent.ControlFlags; // We need more flags!
+            if (m_physicsActor != null)
+            {
+                m_physicsActor.Flying = ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+            }
+
+            m_godlevel = cAgent.GodLevel;
+            m_setAlwaysRun = cAgent.AlwaysRun;
+
+            //cAgent.AgentTextures = ???
+
+            //cAgent.GroupID = ??
+            //Groups???
+
+            // Animations???
+
+            m_appearance.VisualParams = cAgent.VisualParams;
         }
 
         #endregion Child Agent Updates

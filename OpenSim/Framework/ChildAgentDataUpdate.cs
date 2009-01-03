@@ -88,14 +88,28 @@ namespace OpenSim.Framework
         }
     }
 
+    public interface IAgentData
+    {
+        UUID AgentID { get; set; }
+
+        OSDMap PackUpdateMessage();
+        void UnpackUpdateMessage(OSDMap map);
+    }
+
     /// <summary>
     /// Replacement for ChildAgentDataUpdate. Used over RESTComms and LocalComms.
     /// </summary>
-    public class AgentPosition
+    public class AgentPosition : IAgentData
     {
+        private UUID m_id;
+        public UUID AgentID
+        {
+            get { return m_id; }
+            set { m_id = value; }
+        }
+
         public ulong RegionHandle;
         public uint CircuitCode;
-        public UUID AgentID;
         public UUID SessionID;
 
         public float Far;
@@ -272,12 +286,16 @@ namespace OpenSim.Framework
         }
     }
 
-    public class AgentData
+    public class AgentData : IAgentData
     {
+        private UUID m_id;
+        public UUID AgentID
+        {
+            get { return m_id; }
+            set { m_id = value; }
+        }
         public ulong RegionHandle;
         public uint CircuitCode;
-
-        public UUID AgentID;
         public UUID SessionID;
 
         public Vector3 Position;
