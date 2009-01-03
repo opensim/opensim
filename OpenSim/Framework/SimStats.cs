@@ -72,11 +72,18 @@ namespace OpenSim.Framework
             get { return m_objectCapacity; }
         }
         private uint m_objectCapacity;
+
+        public OpenMetaverse.UUID RegionUUID
+        {
+            get { return regionUUID;}   
+        }
+        private OpenMetaverse.UUID regionUUID;
                 
         public SimStats(
             uint regionX, uint regionY, uint regionFlags, uint objectCapacity, 
-            SimStatsPacket.RegionBlock regionBlock, SimStatsPacket.StatBlock[] statsBlock)
+            SimStatsPacket.RegionBlock regionBlock, SimStatsPacket.StatBlock[] statsBlock, OpenMetaverse.UUID pRUUID)
         {
+            regionUUID = pRUUID;
             m_regionX = regionX;
             m_regionY = regionY;
             m_regionFlags = regionFlags;

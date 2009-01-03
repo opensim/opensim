@@ -69,7 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected Timer m_restartWaitTimer = new Timer();
 
-        protected SimStatsReporter m_statsReporter;
+        public SimStatsReporter StatsReporter;
 
         protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
         protected List<RegionInfo> m_neighbours = new List<RegionInfo>();
@@ -244,7 +244,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public float SimulatorFPS
         {
-            get { return m_statsReporter.getLastReportedSimFPS(); }
+            get { return StatsReporter.getLastReportedSimFPS(); }
         }
 
         public int TimePhase
@@ -358,10 +358,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_physics_enabled = !RegionInfo.RegionSettings.DisablePhysics;
 
-            m_statsReporter = new SimStatsReporter(this);
-            m_statsReporter.OnSendStatsResult += SendSimStatsPackets;
+            StatsReporter = new SimStatsReporter(this);
+            StatsReporter.OnSendStatsResult += SendSimStatsPackets;
 
-            m_statsReporter.SetObjectCapacity(objectCapacity);
+            StatsReporter.SetObjectCapacity(objectCapacity);
 
             m_simulatorVersion = simulatorVersion
                 + " (OS " + Util.GetOperatingSystemInformation() + ")"
@@ -814,7 +814,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (m_update_entities == 1)
                     {
                         m_update_entities = 5;
-                        m_statsReporter.SetUpdateMS(6000);
+                        StatsReporter.SetUpdateMS(6000);
                     }
                 }
                 else
@@ -822,7 +822,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (m_update_entities == 5)
                     {
                         m_update_entities = 1;
-                        m_statsReporter.SetUpdateMS(3000);
+                        StatsReporter.SetUpdateMS(3000);
                     }
                 }
 
@@ -891,20 +891,20 @@ namespace OpenSim.Region.Environment.Scenes
                         otherMS = System.Environment.TickCount - otherMS;
                         // if (m_frame%m_update_avatars == 0)
                         //   UpdateInWorldTime();
-                        m_statsReporter.AddPhysicsFPS(physicsFPS);
-                        m_statsReporter.AddTimeDilation(m_timedilation);
-                        m_statsReporter.AddFPS(1);
-                        m_statsReporter.AddInPackets(0);
-                        m_statsReporter.SetRootAgents(m_sceneGraph.GetRootAgentCount());
-                        m_statsReporter.SetChildAgents(m_sceneGraph.GetChildAgentCount());
-                        m_statsReporter.SetObjects(m_sceneGraph.GetTotalObjectsCount());
-                        m_statsReporter.SetActiveObjects(m_sceneGraph.GetActiveObjectsCount());
+                        StatsReporter.AddPhysicsFPS(physicsFPS);
+                        StatsReporter.AddTimeDilation(m_timedilation);
+                        StatsReporter.AddFPS(1);
+                        StatsReporter.AddInPackets(0);
+                        StatsReporter.SetRootAgents(m_sceneGraph.GetRootAgentCount());
+                        StatsReporter.SetChildAgents(m_sceneGraph.GetChildAgentCount());
+                        StatsReporter.SetObjects(m_sceneGraph.GetTotalObjectsCount());
+                        StatsReporter.SetActiveObjects(m_sceneGraph.GetActiveObjectsCount());
                         frameMS = System.Environment.TickCount - frameMS;
-                        m_statsReporter.addFrameMS(frameMS);
-                        m_statsReporter.addPhysicsMS(physicsMS);
-                        m_statsReporter.addOtherMS(otherMS);
-                        m_statsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
-                        m_statsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
+                        StatsReporter.addFrameMS(frameMS);
+                        StatsReporter.addPhysicsMS(physicsMS);
+                        StatsReporter.addOtherMS(otherMS);
+                        StatsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
+                        StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
                     }
                 }
                 catch (NotImplementedException)
@@ -2380,8 +2380,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnObjectOwner += ObjectOwner;
             
-            if (m_statsReporter != null)
-                client.OnNetworkStatsUpdate += m_statsReporter.AddPacketsFromClientStats;
+            if (StatsReporter != null)
+                client.OnNetworkStatsUpdate += StatsReporter.AddPacketsFromClientStats;
 
             // EventManager.TriggerOnNewClient(client);
         }
@@ -3027,14 +3027,14 @@ namespace OpenSim.Region.Environment.Scenes
             if (presence != null)
             {
                 // Nothing is removed here, so down count it as such
-                // if (presence.IsChildAgent)
-                // {
-                //    m_sceneGraph.removeUserCount(false);
-                // }
-                // else
-                // {
-                //    m_sceneGraph.removeUserCount(true);
-                // }
+                if (presence.IsChildAgent)
+                {
+                   m_sceneGraph.removeUserCount(false);
+                }
+                else
+                {
+                   m_sceneGraph.removeUserCount(true);
+                }
 
                 // Don't do this to root agents on logout, it's not nice for the viewer
                 if (presence.IsChildAgent) 
@@ -3322,9 +3322,9 @@ namespace OpenSim.Region.Environment.Scenes
             if (RegionInfo.ObjectCapacity != 0)
                 objects = RegionInfo.ObjectCapacity;
 
-            if (m_statsReporter != null)
+            if (StatsReporter != null)
             {
-                m_statsReporter.SetObjectCapacity(objects);
+                StatsReporter.SetObjectCapacity(objects);
             }
             objectCapacity = objects;
         }
@@ -3430,25 +3430,25 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddPacketStats(int inPackets, int outPackets, int unAckedBytes)
         {
-            m_statsReporter.AddInPackets(inPackets);
-            m_statsReporter.AddOutPackets(outPackets);
-            m_statsReporter.AddunAckedBytes(unAckedBytes);
+            StatsReporter.AddInPackets(inPackets);
+            StatsReporter.AddOutPackets(outPackets);
+            StatsReporter.AddunAckedBytes(unAckedBytes);
         }
 
         public void AddAgentTime(int ms)
         {
-            m_statsReporter.addFrameMS(ms);
-            m_statsReporter.addAgentMS(ms);
+            StatsReporter.addFrameMS(ms);
+            StatsReporter.addAgentMS(ms);
         }
 
         public void AddAgentUpdates(int count)
         {
-            m_statsReporter.AddAgentUpdates(count);
+            StatsReporter.AddAgentUpdates(count);
         }
 
         public void AddPendingDownloads(int count)
         {
-            m_statsReporter.addPendingDownload(count);
+            StatsReporter.addPendingDownload(count);
         }
 
         #endregion

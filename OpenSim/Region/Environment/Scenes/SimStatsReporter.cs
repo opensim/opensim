@@ -26,6 +26,7 @@
  */
 
 using System;
+//using System.Collections.Generic;
 using System.Timers;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -189,7 +190,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 
                 sb[0].StatID = (uint) Stats.TimeDilation;
-                sb[0].StatValue = m_timeDilation ; //((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
+                sb[0].StatValue = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation ; //((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
 
                 sb[1].StatID = (uint) Stats.SimFPS;
                 sb[1].StatValue = simfps/statsUpdateFactor;
@@ -253,7 +254,7 @@ namespace OpenSim.Region.Environment.Scenes
               
                 SimStats simStats 
                     = new SimStats(
-                        ReportingRegion.RegionLocX, ReportingRegion.RegionLocY, regionFlags, (uint)objectCapacity, rb, sb);
+                        ReportingRegion.RegionLocX, ReportingRegion.RegionLocY, regionFlags, (uint)objectCapacity, rb, sb, m_scene.RegionInfo.originRegionID);
 
                 handlerSendStatResult = OnSendStatsResult;
                 if (handlerSendStatResult != null)
@@ -309,7 +310,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetChildAgents(int childAgents)
         {
-            m_childAgents = childAgents;
+            m_childAgents = (childAgents > 0) ? childAgents : 0;
+            if (childAgents < 0)
+            {
+               //List<ScenePresence> avs=  m_scene.GetScenePresences();
+            }
         }
 
         public void SetObjects(int objects)
@@ -350,6 +355,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddunAckedBytes(int numBytes)
         {
             m_unAckedBytes += numBytes;
+            if (m_unAckedBytes < 0) m_unAckedBytes = 0;
         }
 
         public void addFrameMS(int ms)
@@ -383,6 +389,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void addPendingDownload(int count)
         {
             m_pendingDownloads += count;
+            if (m_pendingDownloads < 0) m_pendingDownloads = 0;
             //m_log.InfoFormat("[stats]: Adding {0} to pending downloads to make {1}", count, m_pendingDownloads);
         }
 

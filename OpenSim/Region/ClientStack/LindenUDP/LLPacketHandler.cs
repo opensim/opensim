@@ -603,10 +603,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Flush()
         {
             m_PacketQueue.Flush();
+            m_UnackedBytes = (-1 * m_UnackedBytes);
+            SendPacketStats();
         }
 
         public void Clear()
         {
+            m_UnackedBytes = (-1 * m_UnackedBytes);
+            SendPacketStats();
             m_NeedAck.Clear();
             m_PendingAcks.Clear();
             m_Sequence += 1000000;

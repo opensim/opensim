@@ -1091,6 +1091,7 @@ namespace OpenSim.Framework.Servers
             {
                 host = (string)headervals["Host"];
             }
+            keysvals.Add("headers",headervals);
 
             if (keysvals.Contains("method"))
             {
@@ -1238,7 +1239,7 @@ namespace OpenSim.Framework.Servers
 
             byte[] buffer;
 
-            if (!contentType.Contains("image"))
+            if (!(contentType.Contains("image") || contentType.Contains("x-shockwave-flash")))
             {
                 buffer = Encoding.UTF8.GetBytes(responseString);
             }

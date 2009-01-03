@@ -113,6 +113,7 @@ This software uses components from the following developers:
 * Prebuild (http://sourceforge.net/projects/dnpb/)
 * LibSecondLife (http://www.libsecondlife.org/wiki/Main_Page)
 * DotNetOpenMail v0.5.8b (http://dotnetopenmail.sourceforge.net)
+* Prototype JavaScript Framework ajax (http://www.prototypejs.org/)
 
 
 In addition, we would like to thank:

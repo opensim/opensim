@@ -306,8 +306,19 @@ namespace OpenSim.Region.Environment.Scenes
                 if (!resultOfObjectLinked)
                 {
                     m_numPrim -= ((SceneObjectGroup) Entities[uuid]).Children.Count;
+
+                    if ((((SceneObjectGroup)Entities[uuid]).RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
+                    {
+                        RemovePhysicalPrim(((SceneObjectGroup)Entities[uuid]).Children.Count);
+                    }
                 }
+
+                
+
                 Entities.Remove(uuid);
+                //SceneObjectGroup part;
+                //((part.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
+                
 
                 return true;
             }

@@ -51,27 +51,27 @@ namespace OpenSim.Framework.Statistics
         private long assetServiceRequestFailures;
         private long inventoryServiceRetrievalFailures;
 
-        private float timeDilation;
-        private float simFps;
-        private float physicsFps;
-        private float agentUpdates;
-        private float rootAgents;
-        private float childAgents;
-        private float totalPrims;
-        private float activePrims;
-        private float totalFrameTime;
-        private float netFrameTime;
-        private float physicsFrameTime;
-        private float otherFrameTime;
-        private float imageFrameTime;
-        private float inPacketsPerSecond;
-        private float outPacketsPerSecond;
-        private float unackedBytes;
-        private float agentFrameTime;
-        private float pendingDownloads;
-        private float pendingUploads;
-        private float activeScripts;
-        private float scriptLinesPerSecond;
+        private volatile float timeDilation;
+        private volatile float simFps;
+        private volatile float physicsFps;
+        private volatile float agentUpdates;
+        private volatile float rootAgents;
+        private volatile float childAgents;
+        private volatile float totalPrims;
+        private volatile float activePrims;
+        private volatile float totalFrameTime;
+        private volatile float netFrameTime;
+        private volatile float physicsFrameTime;
+        private volatile float otherFrameTime;
+        private volatile float imageFrameTime;
+        private volatile float inPacketsPerSecond;
+        private volatile float outPacketsPerSecond;
+        private volatile float unackedBytes;
+        private volatile float agentFrameTime;
+        private volatile float pendingDownloads;
+        private volatile float pendingUploads;
+        private volatile float activeScripts;
+        private volatile float scriptLinesPerSecond;
 
         /// <summary>
         /// Number of times that a client thread terminated because of an exception
@@ -87,7 +87,28 @@ namespace OpenSim.Framework.Statistics
         public long TexturesInCache { get { return texturesInCache; } }
         public long AssetCacheMemoryUsage { get { return assetCacheMemoryUsage; } }
         public long TextureCacheMemoryUsage { get { return textureCacheMemoryUsage; } }
-        
+
+        public float TimeDilation { get { return timeDilation; } }
+        public float SimFps { get { return simFps; } }
+        public float PhysicsFps { get { return physicsFps; } }
+        public float AgentUpdates { get { return agentUpdates; } }
+        public float RootAgents { get { return rootAgents; } }
+        public float ChildAgents { get { return childAgents; } }
+        public float TotalPrims { get { return totalPrims; } }
+        public float ActivePrims { get { return activePrims; } }
+        public float TotalFrameTime { get { return totalFrameTime; } }
+        public float NetFrameTime { get { return netFrameTime; } }
+        public float PhysicsFrameTime { get { return physicsFrameTime; } }
+        public float OtherFrameTime { get { return otherFrameTime; } }
+        public float ImageFrameTime { get { return imageFrameTime; } }
+        public float InPacketsPerSecond { get { return inPacketsPerSecond; } }
+        public float OutPacketsPerSecond { get { return outPacketsPerSecond; } }
+        public float UnackedBytes { get { return unackedBytes; } }
+        public float AgentFrameTime { get { return agentFrameTime; } }
+        public float PendingDownloads { get { return pendingDownloads; } }
+        public float PendingUploads { get { return pendingUploads; } }
+        public float ActiveScripts { get { return activeScripts; } }
+        public float ScriptLinesPerSecond { get { return scriptLinesPerSecond; } }
         /// <summary>
         /// This is the time it took for the last asset request made in response to a cache miss.
         /// </summary>
