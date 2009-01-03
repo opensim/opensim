@@ -120,6 +120,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             client.OnParcelGodForceOwner += new ParcelGodForceOwner(handleParcelGodForceOwner);
             client.OnParcelReclaim += new ParcelReclaim(handleParcelReclaim);
             client.OnParcelInfoRequest += new ParcelInfoRequest(handleParcelInfo);
+            client.OnParcelDwellRequest += new ParcelDwellRequest(handleParcelDwell);
             if (m_scene.Entities.ContainsKey(client.AgentId))
             {
                 SendLandUpdate((ScenePresence)m_scene.Entities[client.AgentId], true);
@@ -1260,6 +1261,18 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         }
 
         #endregion
+
+        private void handleParcelDwell(int localID, IClientAPI remoteClient)
+        {
+            ILandObject selectedParcel = null;
+            lock (m_landList)
+            {
+                if (!m_landList.TryGetValue(localID, out selectedParcel))
+                    return;
+            }
+            
+            remoteClient.SendParcelDwellReply(localID, selectedParcel.landData.GlobalID,  selectedParcel.landData.Dwell);
+        }
 
         private void handleParcelInfo(IClientAPI remoteClient, UUID parcelID)
         {
