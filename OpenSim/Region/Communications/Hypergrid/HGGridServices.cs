@@ -893,20 +893,31 @@ namespace OpenSim.Region.Communications.Hypergrid
         public bool SendUserInformation(RegionInfo regInfo, AgentCircuitData agentData)
         {
             CachedUserInfo uinfo = m_userProfileCache.GetUserDetails(agentData.AgentID);
-            if ((uinfo == null) || !IsGoingHome(uinfo, regInfo))
+
+            if ((IsLocalUser(uinfo) && IsHyperlinkRegion(regInfo.RegionHandle)) ||
+                (!IsLocalUser(uinfo) && !IsGoingHome(uinfo, regInfo)))
             {
-                m_log.Info("[HGrid]: User seems to be going to foreign region " + uinfo.UserProfile.FirstName + " " + uinfo.UserProfile.SurName);
+                m_log.Info("[HGrid]: Local user is going to foreign region or foreign user is going elsewhere");
                 if (!InformRegionOfUser(regInfo, agentData))
                 {
                     m_log.Warn("[HGrid]: Could not inform remote region of transferring user.");
                     return false;
                 }
             }
-            else
-                m_log.Info("[HGrid]: User seems to be going home " + uinfo.UserProfile.FirstName + " " + uinfo.UserProfile.SurName);
+            //if ((uinfo == null) || !IsGoingHome(uinfo, regInfo))
+            //{
+            //    m_log.Info("[HGrid]: User seems to be going to foreign region.");
+            //    if (!InformRegionOfUser(regInfo, agentData))
+            //    {
+            //        m_log.Warn("[HGrid]: Could not inform remote region of transferring user.");
+            //        return false;
+            //    }
+            //}
+            //else
+            //    m_log.Info("[HGrid]: User seems to be going home " + uinfo.UserProfile.FirstName + " " + uinfo.UserProfile.SurName);
 
             // May need to change agent's name
-            if (IsLocalUser(uinfo))
+            if (IsLocalUser(uinfo) && IsHyperlinkRegion(regInfo.RegionHandle))
             {
                 agentData.firstname = agentData.firstname + "." + agentData.lastname;
                 agentData.lastname = "@" + serversInfo.UserURL.Replace("http://", ""); ; //HGNetworkServersInfo.Singleton.LocalUserServerURI;
