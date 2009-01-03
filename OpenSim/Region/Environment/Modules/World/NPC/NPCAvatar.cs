@@ -355,6 +355,8 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
         public event EventGodDelete OnEventGodDelete;
 
+        public event ParcelDwellRequest OnParcelDwellRequest;
+
 #pragma warning restore 67
 
         #endregion
@@ -1039,6 +1041,9 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
+        public void SendParcelDwellReply(int localID, UUID parcelID, float dwell)
+        {
+        }
 
         #endregion
     }

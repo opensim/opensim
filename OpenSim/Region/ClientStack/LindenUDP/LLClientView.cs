@@ -283,6 +283,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private EventNotificationRemoveRequest handlerEventNotificationRemoveRequest;
         private EventGodDelete handlerEventGodDelete;
 
+        private ParcelDwellRequest handlerParcelDwellRequest;
+
         private readonly IGroupsModule m_GroupsModule;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
@@ -1049,6 +1051,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event EventNotificationAddRequest OnEventNotificationAddRequest;
         public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
         public event EventGodDelete OnEventGodDelete;
+
+        public event ParcelDwellRequest OnParcelDwellRequest;
 
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
@@ -6565,6 +6569,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                     break;
+                case PacketType.ParcelDwellRequest:
+                    ParcelDwellRequestPacket dwellrq =
+                            (ParcelDwellRequestPacket)Pack;
+
+                    handlerParcelDwellRequest = OnParcelDwellRequest;
+                    if (handlerParcelDwellRequest != null)
+                    {
+                        handlerParcelDwellRequest(dwellrq.Data.LocalID, this);
+                    }
+                    break;
                 case PacketType.TransferAbort:
                     // TODO: handle this packet
                     //m_log.Warn("[CLIENT]: unhandled TransferAbort packet");
@@ -6572,10 +6586,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.MuteListRequest:
                     // TODO: handle this packet
                     //m_log.Warn("[CLIENT]: unhandled MuteListRequest packet");
-                    break;
-                case PacketType.ParcelDwellRequest:
-                    // TODO: handle this packet
-                    //m_log.Warn("[CLIENT]: unhandled ParcelDwellRequest packet");
                     break;
                 case PacketType.UseCircuitCode:
                     // Don't display this one, we handle it at a lower level
@@ -8281,6 +8291,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             OutPacket(ac, ThrottleOutPacketType.Task);
+        }
+
+        public void SendParcelDwellReply(int localID, UUID parcelID, float dwell)
+        {
         }
 
         public void KillEndDone()

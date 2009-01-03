@@ -246,6 +246,8 @@ namespace OpenSim.Tests.Common.Mock
         public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
         public event EventGodDelete OnEventGodDelete;
 
+        public event ParcelDwellRequest OnParcelDwellRequest;
+
 #pragma warning restore 67
 
         /// <value>
@@ -986,6 +988,8 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-
+        public void SendParcelDwellReply(int localID, UUID parcelID, float dwell)
+        {
+        }
     }
 }

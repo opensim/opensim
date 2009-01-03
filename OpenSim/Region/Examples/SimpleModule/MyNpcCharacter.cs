@@ -250,6 +250,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
         public event EventGodDelete OnEventGodDelete;
 
+        public event ParcelDwellRequest OnParcelDwellRequest;
+
 #pragma warning restore 67
 
         private UUID myID = UUID.Random();
@@ -1040,6 +1042,9 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void SendParcelDwellReply(int localID, UUID parcelID, float dwell)
+        {
+        }
 
         #endregion
     }

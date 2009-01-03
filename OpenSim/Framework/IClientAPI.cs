@@ -422,6 +422,8 @@ namespace OpenSim.Framework
 
     public delegate void EventGodDelete(uint eventID, UUID queryID, string queryText, uint queryFlags, int queryStart, IClientAPI client);
 
+    public delegate void ParcelDwellRequest(int localID, IClientAPI client);
+
     #endregion
 
     public struct DirPlacesReplyData
@@ -740,6 +742,8 @@ namespace OpenSim.Framework
         event EventNotificationAddRequest OnEventNotificationAddRequest;
         event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
         event EventGodDelete OnEventGodDelete;
+
+        event ParcelDwellRequest OnParcelDwellRequest;
 
         //     void ActivateGesture(UUID assetId, UUID gestureId);
 
@@ -1081,6 +1085,8 @@ namespace OpenSim.Framework
         void SendAvatarNotesReply(UUID targetID, string text);
         void SendAvatarPicksReply(UUID targetID, Dictionary<UUID, string> picks);
         void SendAvatarClassifiedReply(UUID targetID, Dictionary<UUID, string> classifieds);
+
+        void SendParcelDwellReply(int localID, UUID parcelID, float dwell);
 
         void KillEndDone();
 
