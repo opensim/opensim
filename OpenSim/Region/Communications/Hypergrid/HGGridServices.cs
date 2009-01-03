@@ -890,17 +890,8 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         public virtual bool ExpectPrimCrossing(ulong regionHandle, UUID primID, Vector3 position, bool isFlying) { return false; }
 
-        public virtual bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData) 
+        public bool SendUserInformation(RegionInfo regInfo, AgentCircuitData agentData)
         {
-            // If we're here, it's because regionHandle is a remote, non-grided region
-            m_log.Info("[HGrid]: InformRegionOfChildAgent for " + regionHandle);
-
-            RegionInfo regInfo = GetHyperlinkRegion(regionHandle);
-            if (regInfo == null)
-                return false;
-                
-            //ulong realHandle = regionHandle;
-
             CachedUserInfo uinfo = m_userProfileCache.GetUserDetails(agentData.AgentID);
             if ((uinfo == null) || !IsGoingHome(uinfo, regInfo))
             {
@@ -913,6 +904,33 @@ namespace OpenSim.Region.Communications.Hypergrid
             }
             else
                 m_log.Info("[HGrid]: User seems to be going home " + uinfo.UserProfile.FirstName + " " + uinfo.UserProfile.SurName);
+
+            // May need to change agent's name
+            if (IsLocalUser(uinfo))
+            {
+                agentData.firstname = agentData.firstname + "." + agentData.lastname;
+                agentData.lastname = "@" + serversInfo.UserURL.Replace("http://", ""); ; //HGNetworkServersInfo.Singleton.LocalUserServerURI;
+            }
+
+            return true;
+        }
+
+        public virtual bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData) 
+        {
+            // If we're here, it's because regionHandle is a remote, non-grided region
+            m_log.Info("[HGrid]: InformRegionOfChildAgent for " + regionHandle);
+
+            RegionInfo regInfo = GetHyperlinkRegion(regionHandle);
+            if (regInfo == null)
+                return false;
+                
+            //ulong realHandle = regionHandle;
+
+            if (!SendUserInformation(regInfo, agentData))
+            {
+                m_log.Warn("[HGrid]: Failed to inform remote region of user.");
+                //return false;
+            }
 
             try
             {
@@ -939,12 +957,14 @@ namespace OpenSim.Region.Communications.Hypergrid
                 if (remObject != null)
                 {
                     sAgentCircuitData sag = new sAgentCircuitData(agentData);
-                    // May need to change agent's name
-                    if (IsLocalUser(uinfo))
-                    {
-                        sag.firstname = agentData.firstname + "." + agentData.lastname;
-                        sag.lastname = serversInfo.UserURL; //HGNetworkServersInfo.Singleton.LocalUserServerURI;
-                    }
+                    //CachedUserInfo uinfo = m_userProfileCache.GetUserDetails(agentData.AgentID);
+
+                    //// May need to change agent's name
+                    //if (IsLocalUser(uinfo))
+                    //{
+                    //    sag.firstname = agentData.firstname + "." + agentData.lastname;
+                    //    sag.lastname = serversInfo.UserURL; //HGNetworkServersInfo.Singleton.LocalUserServerURI;
+                    //}
                     retValue = remObject.InformRegionOfChildAgent(regionHandle, sag);
                 }
                 else
@@ -1158,7 +1178,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        protected bool HGIncomingChildAgent(ulong regionHandle, AgentCircuitData agentData)
+        public void AdjustUserInformation(AgentCircuitData agentData)
         {
             CachedUserInfo uinfo = m_userProfileCache.GetUserDetails(agentData.AgentID);
             if ((uinfo != null) && (uinfo.UserProfile != null) && 
@@ -1174,7 +1194,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             }
             //else
             //    Console.WriteLine("---------------> Foreign User!");
-            return true;
         }
         #endregion
 

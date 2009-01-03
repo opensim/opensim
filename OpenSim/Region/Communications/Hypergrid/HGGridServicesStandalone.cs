@@ -764,7 +764,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// <returns></returns>
         public bool IncomingChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
-            HGIncomingChildAgent(regionHandle, agentData);
+            AdjustUserInformation(agentData);
      
             m_log.Info("[HGrid]: " + gdebugRegionName + ": Incoming HGrid Agent " + agentData.firstname + " " + agentData.lastname);
 

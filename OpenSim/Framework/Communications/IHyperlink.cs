@@ -38,5 +38,7 @@ namespace OpenSim.Framework.Communications
         bool IsHyperlinkRegion(ulong handle);
         RegionInfo GetHyperlinkRegion(ulong handle);
         ulong FindRegionHandle(ulong handle);
+        bool SendUserInformation(RegionInfo region, AgentCircuitData aCircuit);
+        void AdjustUserInformation(AgentCircuitData aCircuit);
     }
 }

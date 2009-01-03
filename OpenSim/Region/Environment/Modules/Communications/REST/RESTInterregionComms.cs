@@ -128,6 +128,25 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
         #region IInterregionComms
 
+        public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit)
+        {
+            // Try local first
+            if (m_localBackend.SendCreateChildAgent(regionHandle, aCircuit))
+                return true;
+
+            // else do the remote thing
+            RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+            if (regInfo != null)
+            {
+                SendUserInformation(regInfo, aCircuit);
+
+                return DoCreateChildAgentCall(regInfo, aCircuit);
+            }
+            //else
+            //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
+            return false;
+        }
+
         public bool SendChildAgentUpdate(ulong regionHandle, AgentData cAgentData)
         {
             // Try local first
@@ -197,6 +216,91 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
         // Internal  functions for the above public interface
         //-------------------------------------------------------------------
 
+        protected bool DoCreateChildAgentCall(RegionInfo region, AgentCircuitData aCircuit)
+        {
+            // Eventually, we want to use a caps url instead of the agentID
+            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + aCircuit.AgentID + "/";
+            //Console.WriteLine("   >>> DoCreateChildAgentCall <<< " + uri);
+
+            WebRequest AgentCreateRequest = WebRequest.Create(uri);
+            AgentCreateRequest.Method = "POST";
+            AgentCreateRequest.ContentType = "application/json";
+            AgentCreateRequest.Timeout = 10000;
+
+            // Fill it in
+            OSDMap args = null;
+            try
+            {
+                args = aCircuit.PackAgentCircuitData();
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[REST COMMS]: PackAgentCircuitData failed with exception: " + e.Message);
+            }
+            // Add the regionhandle of the destination region
+            ulong regionHandle = GetRegionHandle(region.RegionHandle);
+            args["destination_handle"] = OSD.FromString(regionHandle.ToString());
+
+            string strBuffer = "";
+            byte[] buffer = new byte[1];
+            try
+            {
+                strBuffer = OSDParser.SerializeJsonString(args);
+                System.Text.UTF8Encoding str = new System.Text.UTF8Encoding();
+                buffer = str.GetBytes(strBuffer);
+
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[OSG2]: Exception thrown on serialization of ChildCreate: {0}", e.Message);
+                // ignore. buffer will be empty, caller should check.
+            }
+
+            Stream os = null;
+            try
+            { // send the Post
+                AgentCreateRequest.ContentLength = buffer.Length;   //Count bytes to send
+                os = AgentCreateRequest.GetRequestStream();
+                os.Write(buffer, 0, strBuffer.Length);         //Send it
+                os.Close();
+                //m_log.InfoFormat("[REST COMMS]: Posted ChildAgentUpdate request to remote sim {0}", uri);
+            }
+            //catch (WebException ex)
+            catch
+            {
+                //m_log.InfoFormat("[REST COMMS]: Bad send on ChildAgentUpdate {0}", ex.Message);
+
+                return false;
+            }
+
+            // Let's wait for the response
+            //m_log.Info("[REST COMMS]: Waiting for a reply after DoCreateChildAgentCall");
+
+            try
+            {
+                WebResponse webResponse = AgentCreateRequest.GetResponse();
+                if (webResponse == null)
+                {
+                    m_log.Info("[REST COMMS]: Null reply on DoCreateChildAgentCall post");
+                }
+
+                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                //reply = sr.ReadToEnd().Trim();
+                sr.ReadToEnd().Trim();
+                sr.Close();
+                //m_log.InfoFormat("[REST COMMS]: DoCreateChildAgentCall reply was {0} ", reply);
+
+            }
+            catch (WebException ex)
+            {
+                m_log.InfoFormat("[REST COMMS]: exception on reply of DoCreateChildAgentCall {0}", ex.Message);
+                // ignore, really
+            }
+
+            return true;
+
+        }
+
         protected bool DoChildAgentUpdateCall(RegionInfo region, IAgentData cAgentData)
         {
             // Eventually, we want to use a caps url instead of the agentID
@@ -233,7 +337,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[OSG2]: Exception thrown on serialization of ChildUpdate: {0}", e.Message);
+                m_log.WarnFormat("[REST COMMS]: Exception thrown on serialization of ChildUpdate: {0}", e.Message);
                 // ignore. buffer will be empty, caller should check.
             }
 
@@ -388,10 +492,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             }
             else if (method.Equals("POST"))
             {
-                m_log.InfoFormat("[REST COMMS]: method {0} not implemented yet in agent message", method);
-                responsedata["int_response_code"] = 404;
-                responsedata["str_response_string"] = "false";
-
+                DoPost(request, responsedata, agentID);
                 return responsedata;
             }
             else if (method.Equals("DELETE"))
@@ -436,6 +537,40 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
                 m_log.InfoFormat("[REST COMMS]: exception on parse of ChildAgentUpdate message {0}", ex.Message);
                 return null;
             }
+        }
+
+        protected virtual void DoPost(Hashtable request, Hashtable responsedata, UUID id)
+        {
+            OSDMap args = GetOSDMap(request);
+            if (args == null)
+            {
+                responsedata["int_response_code"] = 400;
+                responsedata["str_response_string"] = "false";
+                return;
+            }
+
+            // retrieve the regionhandle
+            ulong regionhandle = 0;
+            if (args["destination_handle"] != null)
+                UInt64.TryParse(args["destination_handle"].AsString(), out regionhandle);
+
+            AgentCircuitData aCircuit = new AgentCircuitData();
+            try
+            {
+                aCircuit.UnpackAgentCircuitData(args);
+            }
+            catch (Exception ex)
+            {
+                m_log.InfoFormat("[REST COMMS]: exception on unpacking ChildCreate message {0}", ex.Message);
+                return;
+            }
+
+            // This is the meaning of POST agent
+            AdjustUserInformation(aCircuit);
+            bool result = m_localBackend.SendCreateChildAgent(regionhandle, aCircuit);
+
+            responsedata["int_response_code"] = 200;
+            responsedata["str_response_string"] = result.ToString();
         }
 
         protected virtual void DoPut(Hashtable request, Hashtable responsedata)
@@ -553,6 +688,10 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             }
         }
 
+        #endregion Misc 
+
+        #region Hyperlinks
+
         protected virtual ulong GetRegionHandle(ulong handle)
         {
             if (m_aScene.SceneGridService is HGSceneCommunicationService)
@@ -568,7 +707,27 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
             return false;
         }
-        #endregion /* Misc */
+
+        protected virtual void SendUserInformation(RegionInfo regInfo, AgentCircuitData aCircuit)
+        {
+            try
+            {
+                if (IsHyperlink(regInfo.RegionHandle))
+                {
+                    ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.SendUserInformation(regInfo, aCircuit);
+                }
+            }
+            catch // Bad cast
+            { }
+
+        }
+
+        protected virtual void AdjustUserInformation(AgentCircuitData aCircuit)
+        {
+            if (m_aScene.SceneGridService is HGSceneCommunicationService)
+                ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.AdjustUserInformation(aCircuit);
+        }
+        #endregion /* Hyperlinks */
 
     }
 }

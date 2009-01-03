@@ -118,6 +118,21 @@ namespace OpenSim.Region.Environment.Modules.Communications.Local
 
         #region IInterregionComms
 
+        public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit)
+        {
+            foreach (Scene s in m_sceneList)
+            {
+                if (s.RegionInfo.RegionHandle == regionHandle)
+                {
+                    //m_log.Debug("[LOCAL COMMS]: Found region to send SendCreateChildAgent");
+                    s.NewUserConnection(aCircuit);
+                    return true;
+                }
+            }
+            //m_log.Debug("[LOCAL COMMS]: region not found for SendCreateChildAgent");
+            return false;
+        }
+
         public bool SendChildAgentUpdate(ulong regionHandle, AgentData cAgentData)
         {
             foreach (Scene s in m_sceneList)

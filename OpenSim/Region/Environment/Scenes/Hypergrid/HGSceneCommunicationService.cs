@@ -192,7 +192,8 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                             agentCircuit.CapsPath = Util.GetRandomCapsPath();
                         }
 
-                        if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))
+                        //if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))
+                        if (!m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, agentCircuit))
                         {
                             avatar.ControllingClient.SendTeleportFailed("Destination is not accepting teleports.");
                             return;
