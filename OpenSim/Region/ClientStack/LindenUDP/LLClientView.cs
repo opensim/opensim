@@ -3695,11 +3695,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerGenericMessage(sender, method, msg);
                         return true;
                     }
-                    catch
+                    catch(Exception e)
                     {
+                        m_log.Error("[GENERICMESSAGE] " + e);
                     }
                 }
             }
+            m_log.Error("[GENERICMESSAGE] Not handling GenericMessage with method-type of: " + method);
             return false;
         }
 
@@ -4195,12 +4197,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                     #region Scene/Avatar
 
-                      //                case PacketType.GenericMessage:
-                      //                    GenericMessagePacket gmpack = (GenericMessagePacket)Pack;
-
-                      //                    DecipherGenericMessage(Utils.BytesToString(gmpack.MethodData.Method), gmpack.MethodData.Invoice, gmpack.ParamList);
-
-                      //                    break;
                 case PacketType.AvatarPropertiesRequest:
                     AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
 
