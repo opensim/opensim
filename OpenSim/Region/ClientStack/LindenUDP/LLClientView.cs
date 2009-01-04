@@ -642,6 +642,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
         {
+            MethodName = MethodName.ToLower().Trim();
+
             bool result = false;
             lock (m_genericPacketHandlers)
             {
