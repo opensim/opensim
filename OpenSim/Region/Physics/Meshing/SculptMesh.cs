@@ -91,7 +91,8 @@ namespace PrimMesher
             normals = new List<Coord>();
             uvs = new List<UVCoord>();
 
-            float sourceScaleFactor = (float)lod / (float)Math.Max(sculptBitmap.Width, sculptBitmap.Height);
+            //float sourceScaleFactor = (float)lod / (float)Math.Max(sculptBitmap.Width, sculptBitmap.Height);
+            float sourceScaleFactor = (float)(lod * lod) / (float)(sculptBitmap.Width * sculptBitmap.Height);
             bool scaleSourceImage = sourceScaleFactor < 1.0f ? true : false;
 
             Bitmap bitmap;
