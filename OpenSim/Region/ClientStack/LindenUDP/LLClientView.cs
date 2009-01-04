@@ -111,6 +111,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected ulong m_activeGroupPowers;
         protected Dictionary<UUID,ulong> m_groupPowers = new Dictionary<UUID, ulong>();
 
+        // LLClientView Only
+        public delegate void BinaryGenericMessage(Object sender, string method, byte[][] args);
+
         /* Instantiated Designated Event Delegates */
         //- used so we don't create new objects for each incoming packet and then toss it out later */
 
@@ -866,6 +869,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         // Previously ClientView.API partial class
         public event GenericMessage OnGenericMessage;
+        public event BinaryGenericMessage OnBinaryGenericMessage;
         public event Action<IClientAPI> OnLogout;
         public event ObjectPermissions OnObjectPermissions;
         public event Action<IClientAPI> OnConnectionClosed;
@@ -3665,20 +3669,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             GenericMessagePacket gmpack = (GenericMessagePacket) pack;
             if (m_genericPacketHandlers.Count == 0) return false;
+
             handlerGenericMessage = null;
+
             string method = Util.FieldToString(gmpack.MethodData.Method).ToLower().Trim();
+
             if (m_genericPacketHandlers.TryGetValue(method, out handlerGenericMessage))
             {
                 List<string> msg = new List<string>();
+                List<byte[]> msgBytes = new List<byte[]>();
 
                 if (handlerGenericMessage != null)
                 {
                     foreach (GenericMessagePacket.ParamListBlock block in gmpack.ParamList)
                     {
                         msg.Add(Util.FieldToString(block.Parameter));
+                        msgBytes.Add(block.Parameter);
                     }
                     try
                     {
+                        if (OnBinaryGenericMessage != null)
+                        {
+                            OnBinaryGenericMessage(this, method, msgBytes.ToArray());
+                        }
                         handlerGenericMessage(sender, method, msg);
                         return true;
                     }
