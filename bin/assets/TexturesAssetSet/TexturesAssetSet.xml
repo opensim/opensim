@@ -355,4 +355,29 @@
     <Key Name="assetType" Value="0" />
     <Key Name="fileName" Value="cloud.jp2"/>
   </Section>
+
+  <Section Name="Terrain Dirt">
+    <Key Name="assetID" Value="b8d3965a-ad78-bf43-699b-bff8eca6c975"/>
+    <Key Name="name" Value="Terrain Dirt"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="Terrain Dirt-b8d3965a-ad78-bf43-699b-bff8eca6c975.texture" />
+  </Section>
+  <Section Name="Terrain Grass">
+    <Key Name="assetID" Value="abb783e6-3e93-26c0-248a-247666855da3"/>
+    <Key Name="name" Value="Terrain Grass"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="Terrain Grass-abb783e6-3e93-26c0-248a-247666855da3.texture" />
+  </Section>
+  <Section Name="Terrain Mountain">
+    <Key Name="assetID" Value="179cdabd-398a-9b6b-1391-4dc333ba321f"/>
+    <Key Name="name" Value="Terrain Mountain"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="Terrain Mountain-179cdabd-398a-9b6b-1391-4dc333ba321f.texture" />
+  </Section>
+  <Section Name="Terrain Rock">
+    <Key Name="assetID" Value="beb169c7-11ea-fff2-efe5-0f24dc881df2"/>
+    <Key Name="name" Value="Terrain Rock"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="Terrain Rock-beb169c7-11ea-fff2-efe5-0f24dc881df2.texture" />
+  </Section>
 </Nini>

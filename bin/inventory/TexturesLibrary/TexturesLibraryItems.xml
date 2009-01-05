@@ -653,4 +653,57 @@
     <Key Name="everyonePermissions" Value="2147483647" />
     <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
+  <Section Name="Terrain Dirt">
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000006"/>
+    <Key Name="assetID" Value="b8d3965a-ad78-bf43-699b-bff8eca6c975"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Terrain Dirt" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
+  </Section>
+  <Section Name="Terrain Grass">
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000007"/>
+    <Key Name="assetID" Value="abb783e6-3e93-26c0-248a-247666855da3"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Terrain Grass" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
+  </Section>
+  <Section Name="Terrain Mountain">
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000008"/>
+    <Key Name="assetID" Value="179cdabd-398a-9b6b-1391-4dc333ba321f"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Terrain Mountain" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
+  </Section>
+  <Section Name="Terrain Rock">
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000009"/>
+    <Key Name="assetID" Value="beb169c7-11ea-fff2-efe5-0f24dc881df2"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Terrain Rock" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
+  </Section>
 </Nini>
