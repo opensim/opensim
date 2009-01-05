@@ -431,6 +431,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
             // some properties are misused here:
             // fromAgentName is the *destination* name (the friend we offer friendship to)
+            ScenePresence initiator = GetAnyPresenceFromAgentID(new UUID(im.fromAgentID));
+            im.fromAgentName = initiator != null ? initiator.Name : "(hippo)";
 
             m_log.DebugFormat("[FRIEND]: Offer(38) - From: {0}, FromName: {1} To: {2}, Session: {3}, Message: {4}, Offline {5}",
                        im.fromAgentID, im.fromAgentName, im.toAgentID, im.imSessionID, im.message, im.offline);
