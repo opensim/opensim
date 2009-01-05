@@ -160,7 +160,7 @@ namespace OpenSim.Framework.Communications
                 else
                 {
                     m_log.Info(
-                        "[LOGIN END]: XMLRPC  login_to_simulator login message did not contain all the required data");
+                        "[LOGIN END]: XMLRPC login_to_simulator login message did not contain all the required data");
 
                     return logResponse.CreateGridErrorResponse();
                 }
@@ -259,25 +259,25 @@ namespace OpenSim.Framework.Communications
                                 StatsManager.UserStats.AddSuccessfulLogin();
 
                             m_log.DebugFormat(
-                                "[LOGIN END]:  XMLRPC Authentication of user {0} {1} successful.  Sending response to client.",
+                                "[LOGIN END]: XMLRPC Authentication of user {0} {1} successful.  Sending response to client.",
                                 firstname, lastname);
 
                             return logResponse.ToXmlRpcResponse();
                         }
                         else
                         {
-                            m_log.ErrorFormat("[LOGIN END]:  XMLRPC informing user {0} {1} that login failed due to an unavailable region", firstname, lastname);
+                            m_log.ErrorFormat("[LOGIN END]: XMLRPC informing user {0} {1} that login failed due to an unavailable region", firstname, lastname);
                             return logResponse.CreateDeadRegionResponse();
                         }
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("[LOGIN END]:  XMLRPC Login failed, " + e);
+                        m_log.Error("[LOGIN END]: XMLRPC Login failed, " + e);
                         m_log.Error(e.StackTrace);
                     }
                 }
 
-                m_log.Info("[LOGIN END]:  XMLRPC Login failed.  Sending back blank XMLRPC response");
+                m_log.Info("[LOGIN END]: XMLRPC Login failed.  Sending back blank XMLRPC response");
                 return response;
             }
             finally
@@ -329,7 +329,7 @@ namespace OpenSim.Framework.Communications
             userProfile = GetTheUser(firstname, lastname);
             if (userProfile == null)
             {
-                m_log.Info("[LOGIN]:  LLSD Could not find a profile for " + firstname + " " + lastname);
+                m_log.Info("[LOGIN]: LLSD Could not find a profile for " + firstname + " " + lastname);
 
                 return false;
             }

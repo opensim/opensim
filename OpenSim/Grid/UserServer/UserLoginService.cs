@@ -316,6 +316,7 @@ namespace OpenSim.Grid.UserServer
                 m_log.InfoFormat(
                     "[LOGIN]: Telling {0} @ {1},{2} ({3}) to prepare for client connection",
                     regionInfo.regionName, response.RegionX, response.RegionY, regionInfo.httpServerURI);
+                
                 // Update agent with target sim
                 user.CurrentAgent.Region = regionInfo.UUID;
                 user.CurrentAgent.Handle = regionInfo.regionHandle;

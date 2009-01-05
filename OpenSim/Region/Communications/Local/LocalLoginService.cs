@@ -219,7 +219,7 @@ namespace OpenSim.Region.Communications.Local
 
             if ((regionInfo != null) && (PrepareLoginToRegion(regionInfo, theUser, response)))
             {
-                    return true;
+                return true;
             }
 
             // StartLocation not available, send him to a nearby region instead
@@ -303,11 +303,9 @@ namespace OpenSim.Region.Communications.Local
             
             string seedcap = "http://";
             
-
             if (serversInfo.HttpUsesSSL)
             {
                 seedcap = "https://" + serversInfo.HttpSSLCN + ":" + serversInfo.httpSSLPort + "/CAPS/" + capsPath + "0000/";
-
             }
             else
             {
@@ -320,9 +318,11 @@ namespace OpenSim.Region.Communications.Local
             m_log.InfoFormat(
                 "[LOGIN]: Telling {0} @ {1},{2} ({3}) to prepare for client connection",
                 regionInfo.RegionName, response.RegionX, response.RegionY, regionInfo.ServerURI);
+            
             // Update agent with target sim
             user.CurrentAgent.Region = regionInfo.RegionID;
             user.CurrentAgent.Handle = regionInfo.RegionHandle;
+            
             // Prepare notification
             Login loginParams = new Login();
             loginParams.Session = user.CurrentAgent.SessionID;

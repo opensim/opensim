@@ -2860,7 +2860,6 @@ namespace OpenSim.Region.Environment.Scenes
             if (RegionInfo.EstateSettings.IsBanned(agentId))
                 return;
 
-
             String capsObjectPath = GetCapsPath(agentId);
 
             m_log.DebugFormat(

@@ -36,7 +36,12 @@ namespace OpenSim.Tests.Common.Mock
     public class TestCommunicationsManager : CommunicationsManager
     {
         public TestCommunicationsManager()
-            : base(null, null, null, false, null)
+            : this(null)
+        {          
+        }
+        
+        public TestCommunicationsManager(NetworkServersInfo serversInfo)
+            : base(serversInfo, null, null, false, null)
         {
             LocalInventoryService lis = new LocalInventoryService();
             m_interServiceInventoryService = lis;
@@ -44,7 +49,7 @@ namespace OpenSim.Tests.Common.Mock
             
             LocalUserServices lus = new LocalUserServices(991, 992, lis);
             m_userService = lus;
-            m_userAdminService = lus;           
+            m_userAdminService = lus;             
         }
     }
 }
