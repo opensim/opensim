@@ -208,7 +208,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                     return;
                 }
             }
-            m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader availible for that format.");
+            m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader available for that format.");
             throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
         }
 
@@ -245,7 +245,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         {
             foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
             {
-                if (filename.EndsWith(loader.Key))
+                if (@filename.EndsWith(loader.Key))
                 {
                     lock (m_scene)
                     {
@@ -268,7 +268,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                     return;
                 }
             }
-            m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader availible for that format.");
+            m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader available for that format.");
             throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
         }
 
