@@ -50,7 +50,7 @@ namespace OpenSim.Framework.Servers
         private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
         
         private volatile int NotSocketErrors = 0;
-        private volatile bool HTTPDRunning = false;
+        public volatile bool HTTPDRunning = false;
 
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;

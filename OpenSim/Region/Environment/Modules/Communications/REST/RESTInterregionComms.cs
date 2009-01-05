@@ -642,13 +642,11 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
         protected virtual void DoDelete(Hashtable request, Hashtable responsedata, UUID id, string action, ulong regionHandle)
         {
             //Console.WriteLine(" >>> DoDelete action:" + action + "; regionHandle:" + regionHandle);
-            bool result = true;
+            
             if (action.Equals("release"))
-            {
-                result = m_localBackend.SendReleaseAgent(regionHandle, id, "");
-            }
+                m_localBackend.SendReleaseAgent(regionHandle, id, "");
             else
-                result = m_localBackend.SendCloseAgent(regionHandle, id);
+                m_localBackend.SendCloseAgent(regionHandle, id);
 
             responsedata["int_response_code"] = 200;
             responsedata["str_response_string"] = "OpenSim agent " + id.ToString();
