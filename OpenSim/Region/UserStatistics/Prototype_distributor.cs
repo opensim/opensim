@@ -46,6 +46,8 @@ namespace OpenSim.Region.UserStatistics
             {
                 StreamReader fs = new StreamReader(new FileStream(Util.dataDir() + "/data/prototype.js", FileMode.Open));
                 prototypejs = fs.ReadToEnd();
+                fs.Close();
+                fs.Dispose();
             }
             pResult["js"] = prototypejs;
             return pResult;

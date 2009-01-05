@@ -114,6 +114,7 @@ namespace OpenSim.Region.UserStatistics
                     reports.Add("activelogajax.ajax", ajLogLines);
 
                     scene.CommsManager.HttpServer.AddHTTPHandler("/SStats/", HandleStatsRequest);
+                    scene.CommsManager.HttpServer.AddHTTPHandler("/CAPS/VS/", HandleUnknownCAPSRequest);
 
 
                 }
@@ -135,7 +136,7 @@ namespace OpenSim.Region.UserStatistics
             {
                 // Ignore the update if there's a report running right now
                 // ignore the update if there hasn't been a hit in 30 seconds.
-                if (concurrencyCounter > 0 && System.Environment.TickCount - lastHit < 30000)
+                if (concurrencyCounter > 0 || System.Environment.TickCount - lastHit > 30000)
                     return;
 
                 if ((updateLogCounter++ % updateLogMod) == 0)
@@ -155,6 +156,20 @@ namespace OpenSim.Region.UserStatistics
             {
                
             }
+        }
+        public Hashtable HandleUnknownCAPSRequest(Hashtable request)
+        {
+            string regpath = request["uri"].ToString();
+            int response_code = 200;
+            string contenttype = "text/html";
+            UpdateUserStats(ParseViewerStats(request["body"].ToString(), UUID.Zero), dbConn);
+            Hashtable responsedata = new Hashtable();
+
+            responsedata["int_response_code"] = response_code;
+            responsedata["content_type"] = contenttype;
+            responsedata["keepalive"] = false;
+            responsedata["str_response_string"] = string.Empty;
+            return responsedata;
         }
 
         public Hashtable HandleStatsRequest(Hashtable request)
@@ -285,7 +300,7 @@ namespace OpenSim.Region.UserStatistics
 
         public void OnDeRegisterCaps(UUID agentID, Caps caps)
         {
-
+            
         }
 
         protected virtual void AddHandlers()
@@ -338,16 +353,7 @@ namespace OpenSim.Region.UserStatistics
 
         public void OnMakeChildAgent(ScenePresence agent)
         {
-            lock (m_sessions)
-            {
-                if (m_sessions.ContainsKey(agent.UUID))
-                {
-                    if (m_sessions[agent.UUID].region_id == GetRegionUUIDFromHandle(agent.RegionHandle))
-                    {
-                        m_sessions.Remove(agent.UUID);
-                    }
-                }
-            }
+            
         }
 
 
@@ -426,61 +432,109 @@ namespace OpenSim.Region.UserStatistics
         public string ViewerStatsReport(string request, string path, string param,
                                       UUID agentID, Caps caps)
         {
-            m_log.Debug(request);
-            UserSessionID uid;
-            UserSessionData usd;
+            //m_log.Debug(request);
+ 
+            UpdateUserStats(ParseViewerStats(request,agentID), dbConn);
 
+            return String.Empty;
+        }
+
+        public UserSessionID ParseViewerStats(string request, UUID agentID)
+        {
+            UserSessionID uid = new UserSessionID();
+            UserSessionData usd;
+            OSD message = OSDParser.DeserializeLLSDXml(request);
+            OSDMap mmap;
             lock (m_sessions)
             {
-                if (!m_sessions.ContainsKey(agentID))
+                if (agentID != UUID.Zero)
                 {
-                    m_log.Warn("[VS]: no session for stat disclosure");
-                    return string.Empty;
+                
+                    if (!m_sessions.ContainsKey(agentID))
+                    {
+                        m_log.Warn("[VS]: no session for stat disclosure");
+                        return new UserSessionID();
+                    }
+                    uid = m_sessions[agentID];
                 }
-                uid = m_sessions[agentID];
-            }
+                else
+                {
+                    // parse through the beginning to locate the session
+                    if (message.Type != OSDType.Map)
+                        return new UserSessionID();
 
+                    mmap = (OSDMap)message;
+                    {
+                        UUID sessionID = mmap["session_id"].AsUUID();
+
+                        if (sessionID == UUID.Zero)
+                            return new UserSessionID();
+
+
+                        // search through each session looking for the owner
+                        foreach (UUID usersessionid in m_sessions.Keys)
+                        {
+                            // got it!
+                            if (m_sessions[usersessionid].session_id == sessionID)
+                            {
+                                agentID = usersessionid;
+                                uid = m_sessions[usersessionid];
+                                break;
+                            }
+
+                        }
+
+                        // can't find a session
+                        if (agentID == UUID.Zero)
+                        {
+                            return new UserSessionID();
+                        }
+                    }
+                }
+            }
+           
             usd = uid.session_data;
 
-            OSD message = OSDParser.DeserializeLLSDXml(request);
-            if (message.Type != OSDType.Map)
-                return String.Empty;
+            
 
-            OSDMap mmap = (OSDMap) message;
+            if (message.Type != OSDType.Map)
+                return new UserSessionID();
+
+            mmap = (OSDMap)message;
             {
                 if (mmap["agent"].Type != OSDType.Map)
-                    return String.Empty;
-                OSDMap agent_map = (OSDMap) mmap["agent"];
+                    return new UserSessionID();
+                OSDMap agent_map = (OSDMap)mmap["agent"];
                 usd.agent_id = agentID;
                 usd.name_f = uid.name_f;
                 usd.name_l = uid.name_l;
                 usd.region_id = uid.region_id;
                 usd.a_language = agent_map["language"].AsString();
-                usd.mem_use = (float) agent_map["mem_use"].AsReal();
-                usd.meters_traveled = (float) agent_map["meters_traveled"].AsReal();
+                usd.mem_use = (float)agent_map["mem_use"].AsReal();
+                usd.meters_traveled = (float)agent_map["meters_traveled"].AsReal();
                 usd.regions_visited = agent_map["regions_visited"].AsInteger();
-                usd.run_time = (float) agent_map["run_time"].AsReal();
-                usd.start_time = (float) agent_map["start_time"].AsReal();
+                usd.run_time = (float)agent_map["run_time"].AsReal();
+                usd.start_time = (float)agent_map["start_time"].AsReal();
                 usd.client_version = agent_map["version"].AsString();
 
                 UserSessionUtil.UpdateMultiItems(ref usd, agent_map["agents_in_view"].AsInteger(),
-                                                 (float) agent_map["ping"].AsReal(),
-                                                 (float) agent_map["sim_fps"].AsReal(),
-                                                 (float) agent_map["fps"].AsReal());
+                                                 (float)agent_map["ping"].AsReal(),
+                                                 (float)agent_map["sim_fps"].AsReal(),
+                                                 (float)agent_map["fps"].AsReal());
 
                 if (mmap["downloads"].Type != OSDType.Map)
-                    return String.Empty;
-                OSDMap downloads_map = (OSDMap) mmap["downloads"];
-                usd.d_object_kb = (float) downloads_map["object_kbytes"].AsReal();
-                usd.d_texture_kb = (float) downloads_map["texture_kbytes"].AsReal();
-                usd.d_world_kb = (float) downloads_map["workd_kbytes"].AsReal();
+                    return new UserSessionID();
+                OSDMap downloads_map = (OSDMap)mmap["downloads"];
+                usd.d_object_kb = (float)downloads_map["object_kbytes"].AsReal();
+                usd.d_texture_kb = (float)downloads_map["texture_kbytes"].AsReal();
+                usd.d_world_kb = (float)downloads_map["workd_kbytes"].AsReal();
 
 
                 usd.session_id = mmap["session_id"].AsUUID();
 
                 if (mmap["system"].Type != OSDType.Map)
-                    return String.Empty;
-                OSDMap system_map = (OSDMap) mmap["system"];
+                    return new UserSessionID();
+                OSDMap system_map = (OSDMap)mmap["system"];
 
                 usd.s_cpu = system_map["cpu"].AsString();
                 usd.s_gpu = system_map["gpu"].AsString();
@@ -488,51 +542,53 @@ namespace OpenSim.Region.UserStatistics
                 usd.s_ram = system_map["ram"].AsInteger();
 
                 if (mmap["stats"].Type != OSDType.Map)
-                    return String.Empty;
+                    return new UserSessionID();
 
-                OSDMap stats_map = (OSDMap) mmap["stats"];
+                OSDMap stats_map = (OSDMap)mmap["stats"];
                 {
-                    if (mmap["failures"].Type != OSDType.Map)
-                        return String.Empty;
-                    OSDMap stats_failures = (OSDMap) stats_map["failures"];
+
+                    if (stats_map["failures"].Type != OSDType.Map)
+                        return new UserSessionID();
+                    OSDMap stats_failures = (OSDMap)stats_map["failures"];
                     usd.f_dropped = stats_failures["dropped"].AsInteger();
                     usd.f_failed_resends = stats_failures["failed_resends"].AsInteger();
                     usd.f_invalid = stats_failures["invalid"].AsInteger();
                     usd.f_resent = stats_failures["resent"].AsInteger();
                     usd.f_send_packet = stats_failures["send_packet"].AsInteger();
 
-                    if (mmap["net"].Type != OSDType.Map)
-                        return String.Empty;
-                    OSDMap stats_net = (OSDMap) stats_map["net"];
+                    if (stats_map["net"].Type != OSDType.Map)
+                        return new UserSessionID();
+                    OSDMap stats_net = (OSDMap)stats_map["net"];
                     {
-                        if (mmap["in"].Type != OSDType.Map)
-                            return String.Empty;
+                        if (stats_net["in"].Type != OSDType.Map)
+                            return new UserSessionID();
 
-                        OSDMap net_in = (OSDMap) stats_net["in"];
-                        usd.n_in_kb = (float) net_in["kbytes"].AsReal();
+                        OSDMap net_in = (OSDMap)stats_net["in"];
+                        usd.n_in_kb = (float)net_in["kbytes"].AsReal();
                         usd.n_in_pk = net_in["packets"].AsInteger();
 
-                        if (mmap["out"].Type != OSDType.Map)
-                            return String.Empty;
-                        OSDMap net_out = (OSDMap) stats_net["out"];
+                        if (stats_net["out"].Type != OSDType.Map)
+                            return new UserSessionID();
+                        OSDMap net_out = (OSDMap)stats_net["out"];
 
-                        usd.n_out_kb = (float) net_out["kbytes"].AsReal();
+                        usd.n_out_kb = (float)net_out["kbytes"].AsReal();
                         usd.n_out_pk = net_out["packets"].AsInteger();
                     }
 
 
                 }
             }
-            
+
             uid.session_data = usd;
             m_sessions[agentID] = uid;
-            UpdateUserStats(uid, dbConn);
-
-            return String.Empty;
+            return uid;
         }
 
         public void UpdateUserStats(UserSessionID uid, SqliteConnection db)
         {
+            if (uid.session_id == UUID.Zero)
+                return;
+
             lock (db)
             {
                 SqliteCommand updatecmd = new SqliteCommand(SQL_STATS_TABLE_UPDATE, db);
