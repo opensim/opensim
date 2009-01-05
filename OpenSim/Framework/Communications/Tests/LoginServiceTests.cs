@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Net;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using Nwc.XmlRpc;
@@ -43,9 +44,9 @@ namespace OpenSim.Framework.Communications.Tests
     /// </summary>
     [TestFixture]     
     public class LoginServiceTests
-    {        
+    {                
         /// <summary>
-        /// Test the normal response to a login.  Does not test authentication.  Doesn't yet do what it says on the tin.
+        /// Test the normal response to a login.  Does not test authentication.
         /// </summary>        
         [Test]
         public void TestNormalLoginResponse()
@@ -54,12 +55,14 @@ namespace OpenSim.Framework.Communications.Tests
             
             string firstName = "Timmy";
             string lastName = "Mallet";
+            string regionExternalName = "localhost";
+            IPEndPoint capsEndPoint = new IPEndPoint(IPAddress.Loopback, 9123);
 
             CommunicationsManager commsManager 
                 = new TestCommunicationsManager(new OpenSim.Framework.NetworkServersInfo(42, 43));
             
             commsManager.GridService.RegisterRegion(
-                new RegionInfo(42, 43, new IPEndPoint(IPAddress.Loopback, 9000), "localhost"));
+                new RegionInfo(42, 43, capsEndPoint, regionExternalName));
             commsManager.GridService.RegionLoginsEnabled = true;
             
             LoginService loginService 
@@ -84,10 +87,17 @@ namespace OpenSim.Framework.Communications.Tests
             // TODO: Not check inventory part of response yet.
             // TODO: Not checking all of login response thoroughly yet.
             
+            Assert.That(responseData["first_name"], Is.EqualTo(firstName));
+            Assert.That(responseData["last_name"], Is.EqualTo(lastName));
             Assert.That(
                 responseData["circuit_code"], Is.GreaterThanOrEqualTo(0) & Is.LessThanOrEqualTo(System.Int32.MaxValue));
-            Assert.That(responseData["first_name"], Is.EqualTo(firstName));
-            Assert.That(responseData["last_name"], Is.EqualTo(lastName));            
+            
+            Regex capsSeedPattern 
+                = new Regex("^http://" 
+                    + regionExternalName 
+                    + ":9000/CAPS/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{8}0000/$");
+
+            Assert.That(capsSeedPattern.IsMatch((string)responseData["seed_capability"]), Is.True);           
         }
     }
 }

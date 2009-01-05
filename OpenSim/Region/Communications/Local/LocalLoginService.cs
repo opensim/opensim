@@ -312,7 +312,7 @@ namespace OpenSim.Region.Communications.Local
                 seedcap = "http://" + regionInfo.ExternalHostName + ":" + serversInfo.HttpListenerPort + "/CAPS/" + capsPath + "0000/";
             }
 
-            response.SeedCapability = seedcap; //regionInfo.ExternalEndPoint.Address.ToString() + ":" + regionInfo.HttpPort + "/CAPS/" + capsPath + "0000/";
+            response.SeedCapability = seedcap;
 
             // Notify the target of an incoming user
             m_log.InfoFormat(
