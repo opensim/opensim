@@ -76,9 +76,9 @@ namespace OpenSim.Data.MySQL.Tests
             }
             if (database != null)
             {
-                database.ExecuteSql("drop table migrations");
                 database.ExecuteSql("drop table inventoryitems");
                 database.ExecuteSql("drop table inventoryfolders");
+                database.ExecuteSql("drop table migrations");
             }
         }
     }
