@@ -35,6 +35,18 @@ namespace OpenSim.Tests.Common.Mock
 {
     public class TestCommunicationsManager : CommunicationsManager
     {
+        public IUserDataPlugin UserDataPlugin
+        {
+            get { return m_userDataPlugin; }
+        }
+        private IUserDataPlugin m_userDataPlugin;
+        
+        public IInventoryDataPlugin InventoryDataPlugin
+        {
+            get { return m_inventoryDataPlugin; }
+        }
+        private IInventoryDataPlugin m_inventoryDataPlugin;
+        
         public TestCommunicationsManager()
             : this(null)
         {          
@@ -43,16 +55,21 @@ namespace OpenSim.Tests.Common.Mock
         public TestCommunicationsManager(NetworkServersInfo serversInfo)
             : base(serversInfo, null, null, false, null)
         {
+            m_userDataPlugin = new TestUserDataPlugin();
+            m_inventoryDataPlugin = new TestInventoryDataPlugin();
+                     
             LocalInventoryService lis = new LocalInventoryService();
+            lis.AddPlugin(m_inventoryDataPlugin);
             m_interServiceInventoryService = lis;
-            AddInventoryService(lis);
+            AddInventoryService(lis);      
             
             LocalUserServices lus = new LocalUserServices(991, 992, lis);
+            lus.AddPlugin(m_userDataPlugin);
             m_userService = lus;
-            m_userAdminService = lus;   
+            m_userAdminService = lus;         
             
             LocalBackEndServices gs = new LocalBackEndServices();
-            m_gridService = gs;
+            m_gridService = gs;          
         }
     }
 }

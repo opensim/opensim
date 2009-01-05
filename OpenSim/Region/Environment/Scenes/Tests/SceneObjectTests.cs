@@ -313,9 +313,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             TestScene scene = SceneTestUtils.SetupScene();                
             SceneObjectPart part = SceneTestUtils.AddSceneObject(scene, myObjectName);
             
-            ((LocalUserServices)scene.CommsManager.UserService).AddPlugin(new TestUserDataPlugin());
-            ((LocalInventoryService)scene.CommsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());
-            
             Assert.That(
                 scene.CommsManager.UserAdminService.AddUser(
                     "Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),

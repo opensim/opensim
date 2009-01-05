@@ -52,7 +52,7 @@ namespace OpenSim.Framework.Communications.Tests
             UUID nonExistingUserId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             UUID existingUserId = UUID.Parse("00000000-0000-0000-0000-000000000002");
             
-            CommunicationsManager commsManager = UserProfileTestUtils.SetupServices();
+            TestCommunicationsManager commsManager = new TestCommunicationsManager();
             CachedUserInfo existingUserInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager, existingUserId);
             
             Assert.That(existingUserInfo, Is.Not.Null, "Existing user info unexpectedly not found");
@@ -68,7 +68,7 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestRequestInventoryForUser()
         {
-            CommunicationsManager commsManager = UserProfileTestUtils.SetupServices();
+            TestCommunicationsManager commsManager = new TestCommunicationsManager();
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);          
             
             Assert.That(userInfo.HasReceivedInventory, Is.True);
@@ -80,7 +80,7 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestGetChildFolder()
         {
-            CommunicationsManager commsManager = UserProfileTestUtils.SetupServices();
+            TestCommunicationsManager commsManager = new TestCommunicationsManager();
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
             
             UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000011");
@@ -96,12 +96,12 @@ namespace OpenSim.Framework.Communications.Tests
         /// </summary>
         [Test]
         public void TestCreateFolder()
-        {
-            IUserDataPlugin userDataPlugin = new TestUserDataPlugin();
-            IInventoryDataPlugin inventoryDataPlugin = new TestInventoryDataPlugin();
+        {           
+            TestCommunicationsManager commsManager = new TestCommunicationsManager();
             
-            CommunicationsManager commsManager 
-                = UserProfileTestUtils.SetupServices(userDataPlugin, inventoryDataPlugin);
+            IUserDataPlugin userDataPlugin = commsManager.UserDataPlugin;
+            IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
+            
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
             
             UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000010");            
@@ -129,11 +129,11 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestUpdateFolder()
         {
-            IUserDataPlugin userDataPlugin = new TestUserDataPlugin();
-            IInventoryDataPlugin inventoryDataPlugin = new TestInventoryDataPlugin();
+            TestCommunicationsManager commsManager = new TestCommunicationsManager();
             
-            CommunicationsManager commsManager 
-                = UserProfileTestUtils.SetupServices(userDataPlugin, inventoryDataPlugin);
+            IUserDataPlugin userDataPlugin = commsManager.UserDataPlugin;
+            IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
+            
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
             
             UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
@@ -188,11 +188,11 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestMoveFolder()
         {
-            IUserDataPlugin userDataPlugin = new TestUserDataPlugin();
-            IInventoryDataPlugin inventoryDataPlugin = new TestInventoryDataPlugin();
+            TestCommunicationsManager commsManager = new TestCommunicationsManager();
             
-            CommunicationsManager commsManager 
-                = UserProfileTestUtils.SetupServices(userDataPlugin, inventoryDataPlugin);
+            IUserDataPlugin userDataPlugin = commsManager.UserDataPlugin;
+            IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
+            
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
 
             UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000020");
@@ -226,11 +226,11 @@ namespace OpenSim.Framework.Communications.Tests
         {
             //log4net.Config.XmlConfigurator.Configure();
             
-            IUserDataPlugin userDataPlugin = new TestUserDataPlugin();
-            IInventoryDataPlugin inventoryDataPlugin = new TestInventoryDataPlugin();
+            TestCommunicationsManager commsManager = new TestCommunicationsManager();
             
-            CommunicationsManager commsManager 
-                = UserProfileTestUtils.SetupServices(userDataPlugin, inventoryDataPlugin);
+            IUserDataPlugin userDataPlugin = commsManager.UserDataPlugin;
+            IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
+            
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
             
             UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000070");

@@ -50,16 +50,13 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestNormalLoginResponse()
         {
-            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
             
             string firstName = "Timmy";
             string lastName = "Mallet";
 
             CommunicationsManager commsManager 
                 = new TestCommunicationsManager(new OpenSim.Framework.NetworkServersInfo(42, 43));
-            
-            ((LocalUserServices)commsManager.UserService).AddPlugin(new TestUserDataPlugin());
-            ((LocalInventoryService)commsManager.InventoryService).AddPlugin(new TestInventoryDataPlugin());
             
             commsManager.GridService.RegisterRegion(
                 new RegionInfo(42, 43, new IPEndPoint(IPAddress.Loopback, 9000), "localhost"));

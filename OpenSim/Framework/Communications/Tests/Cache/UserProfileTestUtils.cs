@@ -37,33 +37,7 @@ namespace OpenSim.Framework.Communications.Tests
     /// Utility functions for carrying out user profile relate tests.
     /// </summary>
     public class UserProfileTestUtils
-    {
-        /// <summary>
-        /// Set up standard services required for user tests.
-        /// </summary>
-        /// <returns>CommunicationsManager used to access these services</returns>
-        public static CommunicationsManager SetupServices()
-        {
-            return SetupServices(new TestUserDataPlugin(), new TestInventoryDataPlugin());
-        }
-        
-        /// <summary>
-        /// Set up standard services required for user tests.
-        /// </summary>
-        /// <param name="userDataPlugin"></param>
-        /// <param name="inventoryDataPlugin"></param>
-        /// <returns>CommunicationsManager used to access these services</returns>
-        public static CommunicationsManager SetupServices(
-            IUserDataPlugin userDataPlugin, IInventoryDataPlugin inventoryDataPlugin)
-        {
-            CommunicationsManager commsManager = new TestCommunicationsManager();
-            
-            ((LocalUserServices)commsManager.UserService).AddPlugin(userDataPlugin);
-            ((LocalInventoryService)commsManager.InventoryService).AddPlugin(inventoryDataPlugin);
-            
-            return commsManager;
-        }
-        
+    {           
         /// <summary>
         /// Create a test user with a standard inventory
         /// </summary>
