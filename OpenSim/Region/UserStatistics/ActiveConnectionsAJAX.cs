@@ -14,6 +14,7 @@ namespace OpenSim.Region.UserStatistics
     {
         #region IStatsController Members
 
+        private Vector3 DefaultNeighborPosition = new Vector3(128, 128, 70);
         public Hashtable ProcessModel(Hashtable pParams)
         {
             
@@ -50,10 +51,20 @@ namespace OpenSim.Region.UserStatistics
                     output.Append(av.Name);
                     output.Append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
                     output.Append((av.IsChildAgent ? "Child" : "Root"));
-                    
+                    if (av.AbsolutePosition == DefaultNeighborPosition)
+                    {
+                        output.Append("<br />Position: ?");
+                    }
+                    else
+                    {
+                        output.Append(string.Format("<br /><NOBR>Position: <{0},{1},{2}></NOBR>", (int)av.AbsolutePosition.X,
+                                                    (int) av.AbsolutePosition.Y,
+                                                    (int) av.AbsolutePosition.Z));
+                    }
                     Dictionary<string, int> throttles = DecodeClientThrottles(av.ControllingClient.GetThrottlesPacked(1));
                     
                     HTMLUtil.UL_O(ref output, "");
+
                     foreach (string throttlename in throttles.Keys)
                     {
                         HTMLUtil.LI_O(ref output, "");

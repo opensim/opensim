@@ -76,9 +76,9 @@ TD.align_top { vertical-align: top; }
             HTMLUtil.HtmlHeaders_O(ref output);
             
             HTMLUtil.InsertProtoTypeAJAX(ref output);
-            string[] ajaxUpdaterDivs = new string[2];
-            int[] ajaxUpdaterSeconds = new int[2];
-            string[] ajaxUpdaterReportFragments = new string[2];
+            string[] ajaxUpdaterDivs = new string[3];
+            int[] ajaxUpdaterSeconds = new int[3];
+            string[] ajaxUpdaterReportFragments = new string[3];
 
             ajaxUpdaterDivs[0] = "activeconnections";
             ajaxUpdaterSeconds[0] = 10;
@@ -87,6 +87,10 @@ TD.align_top { vertical-align: top; }
             ajaxUpdaterDivs[1] = "activesimstats";
             ajaxUpdaterSeconds[1] = 20;
             ajaxUpdaterReportFragments[1] = "simstatsajax.ajax";
+
+            ajaxUpdaterDivs[2] = "activelog";
+            ajaxUpdaterSeconds[2] = 5;
+            ajaxUpdaterReportFragments[2] = "activelogajax.ajax";
 
             HTMLUtil.InsertPeriodicUpdaters(ref output, ajaxUpdaterDivs, ajaxUpdaterSeconds, ajaxUpdaterReportFragments);
             
@@ -152,11 +156,11 @@ TD.align_top { vertical-align: top; }
             HTMLUtil.TABLE_O(ref output, "");
             HTMLUtil.TR_O(ref output, "");
             HTMLUtil.TD_O(ref output, "align_top");
-            output.Append("<DIV id=\"activeconnections\">loading...</DIV>");
+            output.Append("<DIV id=\"activeconnections\">Active Connections loading...</DIV>");
             HTMLUtil.TD_C(ref output);
             HTMLUtil.TD_O(ref output, "align_top");
-            output.Append("<DIV id=\"activesimstats\">loading...</DIV>");
-
+            output.Append("<DIV id=\"activesimstats\">SimStats loading...</DIV>");
+            output.Append("<DIV id=\"activelog\">ActiveLog loading...</DIV>");
             HTMLUtil.TD_C(ref output);
             HTMLUtil.TR_C(ref output);
             HTMLUtil.TABLE_C(ref output);

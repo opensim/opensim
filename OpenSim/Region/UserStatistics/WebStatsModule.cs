@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Net; // to be used for REST-->Grid shortly
 using System.Reflection;
+using System.Text;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -25,14 +28,19 @@ namespace OpenSim.Region.UserStatistics
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private static SqliteConnection dbConn;
         private Dictionary<UUID, UserSessionID> m_sessions = new Dictionary<UUID, UserSessionID>();
         private List<Scene> m_scene = new List<Scene>();
         private Dictionary<string, IStatsController> reports = new Dictionary<string, IStatsController>();
         private Dictionary<UUID, USimStatsData> m_simstatsCounters = new Dictionary<UUID, USimStatsData>(); 
         private const int updateStatsMod = 6;
+        private int updateLogMod = 1;
+        private volatile int updateLogCounter = 0;
         private volatile int concurrencyCounter = 0;
         private bool enabled = false;
+        private string m_loglines = String.Empty;
+        private volatile int lastHit = 12000;
 
 
         public virtual void Initialise(Scene scene, IConfigSource config)
@@ -42,7 +50,8 @@ namespace OpenSim.Region.UserStatistics
             {
                 cnfg = config.Configs["WebStats"];
                 enabled = cnfg.GetBoolean("enabled", false);
-
+                
+                
             } 
             catch (Exception)
             {
@@ -68,12 +77,14 @@ namespace OpenSim.Region.UserStatistics
                     Updater_distributor updatedep = new Updater_distributor();
                     ActiveConnectionsAJAX ajConnections = new ActiveConnectionsAJAX();
                     SimStatsAJAX ajSimStats = new SimStatsAJAX();
+                    LogLinesAJAX ajLogLines = new LogLinesAJAX();
                     reports.Add("", rep);
                     reports.Add("index.aspx", rep);
                     reports.Add("prototype.js", protodep);
                     reports.Add("updater.js", updatedep);
                     reports.Add("activeconnectionsajax.ajax", ajConnections);
                     reports.Add("simstatsajax.ajax", ajSimStats);
+                    reports.Add("activelogajax.ajax", ajLogLines);
 
                     scene.CommsManager.HttpServer.AddHTTPHandler("/SStats/", HandleStatsRequest);
 
@@ -95,9 +106,16 @@ namespace OpenSim.Region.UserStatistics
 
             try
             {
-                
-                if (concurrencyCounter > 0)
+                // Ignore the update if there's a report running right now
+                // ignore the update if there hasn't been a hit in 30 seconds.
+                if (concurrencyCounter > 0 && System.Environment.TickCount - lastHit < 30000)
                     return;
+
+                if ((updateLogCounter++ % updateLogMod) == 0)
+                {
+                    m_loglines = readLogLines(10);
+                    if (updateLogCounter > 10000) updateLogCounter = 1;
+                }
 
                 USimStatsData ss = m_simstatsCounters[stats.RegionUUID];
 
@@ -114,6 +132,7 @@ namespace OpenSim.Region.UserStatistics
 
         public Hashtable HandleStatsRequest(Hashtable request)
         {
+            lastHit = System.Environment.TickCount;
             Hashtable responsedata = new Hashtable();
             string regpath = request["uri"].ToString();
             int response_code = 404;
@@ -130,6 +149,7 @@ namespace OpenSim.Region.UserStatistics
                 repParams["DatabaseConnection"] = dbConn;
                 repParams["Scenes"] = m_scene;
                 repParams["SimStats"] = m_simstatsCounters;
+                repParams["LogLines"] = m_loglines;
                 
                 concurrencyCounter++;
 
@@ -245,6 +265,7 @@ namespace OpenSim.Region.UserStatistics
         {
             lock (m_scene)
             {
+                updateLogMod = m_scene.Count * 2;
                 foreach (Scene scene in m_scene)
                 {
                     scene.EventManager.OnRegisterCaps += OnRegisterCaps;
@@ -312,6 +333,45 @@ namespace OpenSim.Region.UserStatistics
                     m_sessions.Remove(agentID);
                 }
             }
+
+        }
+
+        public string readLogLines( int amount)
+        {
+            Encoding encoding = Encoding.ASCII;
+            int sizeOfChar = encoding.GetByteCount("\n");
+            byte[] buffer = encoding.GetBytes("\n");
+            string logfile = Util.logDir() + "/" + "OpenSim.log"; 
+            FileStream fs = new FileStream(logfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            Int64 tokenCount = 0;
+            Int64 endPosition = fs.Length / sizeOfChar;
+
+            for (Int64 position = sizeOfChar; position < endPosition; position += sizeOfChar)
+            {
+                fs.Seek(-position, SeekOrigin.End);
+                fs.Read(buffer, 0, buffer.Length);
+
+                if (encoding.GetString(buffer) == "\n")
+                {
+                    tokenCount++;
+                    if (tokenCount == amount)
+                    {
+                        byte[] returnBuffer = new byte[fs.Length - fs.Position];
+                        fs.Read(returnBuffer, 0, returnBuffer.Length);
+                        fs.Close();
+                        fs.Dispose();
+                        return encoding.GetString(returnBuffer);
+                    }
+                }
+            }
+
+            // handle case where number of tokens in file is less than numberOfTokens
+            fs.Seek(0, SeekOrigin.Begin);
+            buffer = new byte[fs.Length];
+            fs.Read(buffer, 0, buffer.Length);
+            fs.Close();
+            fs.Dispose();
+            return encoding.GetString(buffer);
 
         }
 

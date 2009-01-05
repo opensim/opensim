@@ -21,7 +21,6 @@ namespace OpenSim.Region.UserStatistics
             Hashtable nh = new Hashtable();
             nh.Add("hdata", m_scene);
             nh.Add("simstats", pParams["SimStats"]);
-
             return nh;
         }
 
@@ -181,7 +180,9 @@ namespace OpenSim.Region.UserStatistics
                 HTMLUtil.TD_C(ref output);
                 HTMLUtil.TR_C(ref output);
                 HTMLUtil.TABLE_C(ref output);
+                
             }
+            
             return output.ToString();
         }
 
