@@ -49,7 +49,7 @@ namespace OpenSim.Data.NHibernate
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private NHibernateManager manager;
+        public NHibernateManager manager;
 
         public void Initialise(string connect)
         {

@@ -151,6 +151,12 @@ namespace OpenSim.Data.NHibernate
             return false;
         }
 
+        public void DropSchema()
+        {
+            SchemaExport export = new SchemaExport(this.cfg);
+            export.Drop(true, true);
+        }
+
         public ISession GetSession()
         {
             return session;
