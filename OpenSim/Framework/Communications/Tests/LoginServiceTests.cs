@@ -29,6 +29,8 @@ using System;
 using System.Collections;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Xml;
+using Nini;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using Nwc.XmlRpc;
