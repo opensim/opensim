@@ -129,7 +129,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         private static readonly Color defaultColor3 = Color.FromArgb(162, 154, 141);
         private static readonly UUID defaultTerrainTexture4 = new UUID("53a2f406-4895-1d13-d541-d2e3b86bc19c");
         private static readonly Color defaultColor4 = Color.FromArgb(200, 200, 200);
-        private static readonly UUID blankTerrainTexture = new UUID("5748decc-f629-461c-9a36-a35a221fe21f");
 
         #endregion
 
@@ -153,7 +152,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             m_mapping.Add(defaultTerrainTexture2, defaultColor2);
             m_mapping.Add(defaultTerrainTexture3, defaultColor3);
             m_mapping.Add(defaultTerrainTexture4, defaultColor4);
-            m_mapping.Add(blankTerrainTexture, Color.White);
+            m_mapping.Add(Util.BLANK_TEXTURE_UUID, Color.White);
         }
 
         #region Helpers

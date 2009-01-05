@@ -95,9 +95,8 @@ namespace OpenSim.Framework.Communications.Tests
                 responseData["circuit_code"], Is.GreaterThanOrEqualTo(0) & Is.LessThanOrEqualTo(System.Int32.MaxValue));
             
             Regex capsSeedPattern 
-                = new Regex("^http://" 
-                    + regionExternalName 
-                    + ":9000/CAPS/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{8}0000/$");
+                = new Regex("^http://" + regionExternalName + ":" + NetworkServersInfo.DefaultHttpListenerPort
+                    + "/CAPS/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{8}0000/$");
 
             Assert.That(capsSeedPattern.IsMatch((string)responseData["seed_capability"]), Is.True);           
         }

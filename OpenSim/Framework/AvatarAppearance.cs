@@ -298,8 +298,8 @@ namespace OpenSim.Framework
         {
             Primitive.TextureEntry textu = new Primitive.TextureEntry(new UUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
             textu.CreateFace(0).TextureID = new UUID("00000000-0000-1111-9999-000000000012");
-            textu.CreateFace(1).TextureID = new UUID("5748decc-f629-461c-9a36-a35a221fe21f");
-            textu.CreateFace(2).TextureID = new UUID("5748decc-f629-461c-9a36-a35a221fe21f");
+            textu.CreateFace(1).TextureID = Util.BLANK_TEXTURE_UUID;
+            textu.CreateFace(2).TextureID = Util.BLANK_TEXTURE_UUID;
             textu.CreateFace(3).TextureID = new UUID("6522E74D-1660-4E7F-B601-6F48C1659A77");
             textu.CreateFace(4).TextureID = new UUID("7CA39B4C-BD19-4699-AFF7-F93FD03D3E7B");
             textu.CreateFace(5).TextureID = new UUID("00000000-0000-1111-9999-000000000010");
@@ -319,8 +319,6 @@ namespace OpenSim.Framework
 
         protected AvatarAppearance(SerializationInfo info, StreamingContext context)
         {
-            //System.Console.WriteLine("AvatarAppearance Deserialize BGN");
-
             if (info == null)
             {
                 throw new ArgumentNullException("info");
