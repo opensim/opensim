@@ -117,8 +117,6 @@ namespace OpenSim.Framework.Communications
 
                 bool GoodXML = (requestData.Contains("first") && requestData.Contains("last") &&
                                 (requestData.Contains("passwd") || requestData.Contains("web_login_key")));
-                
-                //bool GoodLogin;
 
                 string startLocationRequest = "last";
 

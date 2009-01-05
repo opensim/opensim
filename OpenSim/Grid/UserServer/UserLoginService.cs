@@ -320,6 +320,7 @@ namespace OpenSim.Grid.UserServer
                 // Update agent with target sim
                 user.CurrentAgent.Region = regionInfo.UUID;
                 user.CurrentAgent.Handle = regionInfo.regionHandle;
+                
                 // Prepare notification
                 Hashtable loginParams = new Hashtable();
                 loginParams["session_id"] = user.CurrentAgent.SessionID.ToString();

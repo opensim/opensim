@@ -102,7 +102,10 @@ namespace OpenSim.Tests.Common.Mock
 
         public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms) {}
 
-        public List<FriendListItem> GetUserFriendList(UUID friendlistowner) { return null; }
+        public List<FriendListItem> GetUserFriendList(UUID friendlistowner) 
+        {
+            return new List<FriendListItem>();
+        }
         
         public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos(List<UUID> uuids) { return null; }
 

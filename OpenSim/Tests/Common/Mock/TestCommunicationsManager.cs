@@ -49,7 +49,10 @@ namespace OpenSim.Tests.Common.Mock
             
             LocalUserServices lus = new LocalUserServices(991, 992, lis);
             m_userService = lus;
-            m_userAdminService = lus;             
+            m_userAdminService = lus;   
+            
+            LocalBackEndServices gs = new LocalBackEndServices();
+            m_gridService = gs;
         }
     }
 }
