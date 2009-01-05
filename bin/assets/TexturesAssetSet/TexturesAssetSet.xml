@@ -380,4 +380,11 @@
     <Key Name="assetType" Value="0" />
     <Key Name="fileName" Value="Terrain Rock-beb169c7-11ea-fff2-efe5-0f24dc881df2.texture" />
   </Section>
+
+  <Section Name="Blank Texture">
+    <Key Name="assetID" Value="5748decc-f629-461c-9a36-a35a221fe21f"/>
+    <Key Name="name" Value="Blank Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="blank.jpc" />
+  </Section>
 </Nini>
