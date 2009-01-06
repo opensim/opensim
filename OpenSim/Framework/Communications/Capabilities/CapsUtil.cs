@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <returns></returns>
         public static string GetCapsSeedPath(string capsObjectPath)
         {
-            return "/CAPS/" + capsKey + "0000/";
+            return "/CAPS/" + capsObjectPath + "0000/";
         }
         
         public static string GetRandomCapsPath()
