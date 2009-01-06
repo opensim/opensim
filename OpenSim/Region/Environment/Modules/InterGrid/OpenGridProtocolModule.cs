@@ -147,8 +147,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     {
                         if (m_scene.Count == 0)
                         {
-                            scene.AddLLSDHandler("/agent/", ProcessAgentDomainMessage);
-                            scene.AddLLSDHandler("/", ProcessRegionDomainSeed);
+                            scene.CommsManager.HttpServer.AddLLSDHandler("/agent/", ProcessAgentDomainMessage);
+                            scene.CommsManager.HttpServer.AddLLSDHandler("/", ProcessRegionDomainSeed);
                             try
                             {
                                 ServicePointManager.ServerCertificateValidationCallback += customXertificateValidation;
@@ -173,7 +173,9 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                         // a zero length region name would conflict with are base region seed cap
                         if (!SceneListDuplicateCheck(scene.RegionInfo.RegionName) && scene.RegionInfo.RegionName.ToLower() != "agent" && scene.RegionInfo.RegionName.Length > 0)
                         {
-                            scene.AddLLSDHandler("/" + HttpUtility.UrlPathEncode(scene.RegionInfo.RegionName.ToLower()),ProcessRegionDomainSeed);
+                            scene.CommsManager.HttpServer.AddLLSDHandler(
+                                "/" + HttpUtility.UrlPathEncode(scene.RegionInfo.RegionName.ToLower()),
+                                ProcessRegionDomainSeed);
                         }
 
                         if (!m_scene.Contains(scene))

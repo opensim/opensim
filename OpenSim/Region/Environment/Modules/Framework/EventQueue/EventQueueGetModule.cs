@@ -91,7 +91,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
                 // Register fallback handler
                 // Why does EQG Fail on region crossings!
                 
-                //scene.AddLLSDHandler("/CAPS/EQG/", EventQueueFallBack);
+                //scene.CommsManager.HttpServer.AddLLSDHandler("/CAPS/EQG/", EventQueueFallBack);
 
                 scene.EventManager.OnNewClient += OnNewClient;
 

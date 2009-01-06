@@ -125,7 +125,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             m_log.Warn("[WORLD MAP]: JPEG Map location: http://" + m_scene.RegionInfo.ExternalEndPoint.Address.ToString() + ":" + m_scene.RegionInfo.HttpPort.ToString() + "/index.php?method=" + regionimage);
 
             m_scene.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
-            m_scene.AddLLSDHandler("/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(), HandleRemoteMapItemRequest);
+            m_scene.CommsManager.HttpServer.AddLLSDHandler(
+                "/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(), HandleRemoteMapItemRequest);
 
             m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
             m_scene.EventManager.OnNewClient += OnNewClient;

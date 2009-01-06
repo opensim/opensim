@@ -4190,11 +4190,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_httpListener.AddStreamHandler(handler);
         }
 
-        public bool AddLLSDHandler(string path, LLSDMethod handler)
-        {
-           return m_httpListener.AddLLSDHandler(path, handler);
-        }
-
         public void RemoveStreamHandler(string httpMethod, string path)
         {
             m_httpListener.RemoveStreamHandler(httpMethod, path);
@@ -4203,11 +4198,6 @@ namespace OpenSim.Region.Environment.Scenes
         public void RemoveHTTPHandler(string httpMethod, string path)
         {
             m_httpListener.RemoveHTTPHandler(httpMethod, path);
-        }
-
-        public bool RemoveLLSDHandler(string path, LLSDMethod handler)
-        {
-           return m_httpListener.RemoveLLSDHandler(path, handler);
         }
 
         #endregion
