@@ -59,7 +59,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             SQLAssetServer assetService = new SQLAssetServer(new TestAssetDataPlugin());
             AssetCache ac = new AssetCache(assetService);
             
-            StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");
+            StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");            
             IConfigSource configSource = new IniConfigSource();
             
             TestScene testScene = new TestScene(
