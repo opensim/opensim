@@ -36,6 +36,7 @@ using log4net;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Region.Interfaces;
 using OSD = OpenMetaverse.StructuredData.OSD;
 
@@ -393,7 +394,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (newRegions.Contains(neighbour.RegionHandle))
                     {
-                        agent.CapsPath = Util.GetRandomCapsPath();
+                        agent.CapsPath = CapsUtil.GetRandomCapsPath();
                         avatar.AddNeighbourRegion(neighbour.RegionHandle, agent.CapsPath);
                         seeds.Add(neighbour.RegionHandle, agent.CapsPath);
                     }
@@ -784,7 +785,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
                             // brand new agent, let's create a new caps seed
-                            agentCircuit.CapsPath = Util.GetRandomCapsPath();
+                            agentCircuit.CapsPath = CapsUtil.GetRandomCapsPath();
                         }
 
                         // Let's create an agent there if one doesn't exist yet. 

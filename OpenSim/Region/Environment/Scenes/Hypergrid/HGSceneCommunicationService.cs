@@ -31,17 +31,16 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Threading;
-
-using OpenMetaverse;
-
 using log4net;
+using OpenMetaverse;
+using OSD = OpenMetaverse.StructuredData.OSD;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Interfaces;
-using OSD = OpenMetaverse.StructuredData.OSD;
 
 namespace OpenSim.Region.Environment.Scenes.Hypergrid
 {
@@ -189,7 +188,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
                             // brand new agent, let's create a new caps seed
-                            agentCircuit.CapsPath = Util.GetRandomCapsPath();
+                            agentCircuit.CapsPath = CapsUtil.GetRandomCapsPath();
                         }
 
                         //if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))

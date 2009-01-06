@@ -42,6 +42,7 @@ using OpenMetaverse.Packets;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -377,7 +378,6 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
              */
         }
 
-
         public OSD RequestRezAvatarMethod(string path, OSD request)
         {
             //System.Console.WriteLine("[REQUESTREZAVATAR]: " + request.ToString());
@@ -468,28 +468,28 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             // Generate a dummy agent for the user so we can get back a CAPS path
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.AgentID = LocalAgentID;
-            agentData.BaseFolder=UUID.Zero;
-            agentData.CapsPath=Util.GetRandomCapsPath();
+            agentData.BaseFolder = UUID.Zero;
+            agentData.CapsPath = CapsUtil.GetRandomCapsPath();
             agentData.child = false;
             agentData.circuitcode = (uint)(Util.RandomClass.Next());
             agentData.firstname = FirstName;
             agentData.lastname = LastName;
-            agentData.SecureSessionID=UUID.Random();
-            agentData.SessionID=UUID.Random();
+            agentData.SecureSessionID = UUID.Random();
+            agentData.SessionID = UUID.Random();
             agentData.startpos = new Vector3(128f, 128f, 100f);
 
             // Pre-Fill our region cache with information on the agent.
             UserAgentData useragent = new UserAgentData();
-            useragent.AgentIP="unknown";
-            useragent.AgentOnline=true;
+            useragent.AgentIP = "unknown";
+            useragent.AgentOnline = true;
             useragent.AgentPort = (uint)0;
             useragent.Handle = regionhandle;
             useragent.InitialRegion = reg.originRegionID;
-            useragent.LoginTime=Util.UnixTimeSinceEpoch();
+            useragent.LoginTime = Util.UnixTimeSinceEpoch();
             useragent.LogoutTime = 0;
-            useragent.Position=agentData.startpos;
-            useragent.Region=reg.originRegionID;
-            useragent.SecureSessionID=agentData.SecureSessionID;
+            useragent.Position = agentData.startpos;
+            useragent.Region = reg.originRegionID;
+            useragent.SecureSessionID = agentData.SecureSessionID;
             useragent.SessionID = agentData.SessionID;
 
             UserProfileData userProfile = new UserProfileData();
@@ -565,7 +565,6 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             string httpaddr = reg.ExternalHostName;
             string urlport = reg.HttpPort.ToString();
 
-
             if (httpSSL)
             {
                 rezHttpProtocol = "https://";
@@ -576,8 +575,6 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     httpaddr = httpsCN;
             }
             
-
-
             // DEPRECIATED
             responseMap["seed_capability"] = OSD.FromString(regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
             

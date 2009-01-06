@@ -35,6 +35,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Communications.Capabilities;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -295,7 +296,7 @@ namespace OpenSim.Region.Communications.Local
             response.RegionX = regionInfo.RegionLocX;
             response.RegionY = regionInfo.RegionLocY;
 
-            string capsPath = Util.GetRandomCapsPath();
+            string capsPath = CapsUtil.GetRandomCapsPath();
 
             // Don't use the following!  It Fails for logging into any region not on the same port as the http server!
             // Kept here so it doesn't happen again!

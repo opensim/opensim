@@ -37,6 +37,7 @@ using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Communications.Capabilities;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -309,7 +310,7 @@ namespace OpenSim.Grid.UserServer
                 response.RegionY = regionInfo.regionLocY;
 
                 //Not sure if the + "/CAPS/" should in fact be +"CAPS/" depending if there is already a / as part of httpServerURI
-                string capsPath = Util.GetRandomCapsPath();
+                string capsPath = CapsUtil.GetRandomCapsPath();
                 response.SeedCapability = regionInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
 
                 // Notify the target of an incoming user

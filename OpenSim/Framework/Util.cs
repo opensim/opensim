@@ -334,14 +334,6 @@ namespace OpenSim.Framework
             return sb.ToString();
         }
 
-        public static string GetRandomCapsPath()
-        {
-            UUID caps = UUID.Random();
-            string capsPath = caps.ToString();
-            capsPath = capsPath.Remove(capsPath.Length - 4, 4);
-            return capsPath;
-        }
-
         public static int fast_distance2d(int x, int y)
         {
             x = Math.Abs(x);
