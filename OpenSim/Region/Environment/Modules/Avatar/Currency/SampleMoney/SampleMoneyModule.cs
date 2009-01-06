@@ -32,15 +32,16 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Xml;
-using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
+using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
 {
@@ -133,6 +134,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             if (m_enabled)
             {
                 scene.RegisterModuleInterface<IMoneyModule>(this);
+                BaseHttpServer httpServer = scene.CommsManager.HttpServer;
 
                 lock (m_scenel)
                 {
@@ -149,16 +151,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                         {
                             // Centralized grid structure using OpenSimWi Redux revision 9+
                             // https://opensimwiredux.svn.sourceforge.net/svnroot/opensimwiredux
-                            scene.AddXmlRPCHandler("balanceUpdateRequest", GridMoneyUpdate);
-                            scene.AddXmlRPCHandler("userAlert", UserAlert);
+                            httpServer.AddXmlRPCHandler("balanceUpdateRequest", GridMoneyUpdate);
+                            httpServer.AddXmlRPCHandler("userAlert", UserAlert);
                         }
                         else
                         {
                             // Local Server..  enables functionality only.
-                            scene.AddXmlRPCHandler("getCurrencyQuote", quote_func);
-                            scene.AddXmlRPCHandler("buyCurrency", buy_func);
-                            scene.AddXmlRPCHandler("preflightBuyLandPrep", preflightBuyLandPrep_func);
-                            scene.AddXmlRPCHandler("buyLandPrep", landBuy_func);
+                            httpServer.AddXmlRPCHandler("getCurrencyQuote", quote_func);
+                            httpServer.AddXmlRPCHandler("buyCurrency", buy_func);
+                            httpServer.AddXmlRPCHandler("preflightBuyLandPrep", preflightBuyLandPrep_func);
+                            httpServer.AddXmlRPCHandler("buyLandPrep", landBuy_func);
                         }
                     }
 

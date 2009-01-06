@@ -4185,11 +4185,6 @@ namespace OpenSim.Region.Environment.Scenes
             return m_httpListener.AddHTTPHandler(method, handler);
         }
 
-        public bool AddXmlRPCHandler(string method, XmlRpcMethod handler)
-        {
-            return m_httpListener.AddXmlRPCHandler(method, handler);
-        }
-
         public void AddStreamHandler(IRequestHandler handler)
         {
             m_httpListener.AddStreamHandler(handler);
