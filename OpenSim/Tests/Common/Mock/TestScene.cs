@@ -40,10 +40,10 @@ namespace OpenSim.Tests.Common.Mock
         public TestScene(
             RegionInfo regInfo, AgentCircuitManager authen,
             CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
-            AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
+            AssetCache assetCach, StorageManager storeManager,
             ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
             bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, commsMan, sceneGridService, assetCach, storeManager, httpServer, moduleLoader,
+            : base(regInfo, authen, commsMan, sceneGridService, assetCach, storeManager, moduleLoader,
                    dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
         {
         }

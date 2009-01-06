@@ -53,8 +53,8 @@ namespace OpenSim.Tests.Common.Mock
         }
         
         public TestCommunicationsManager(NetworkServersInfo serversInfo)
-            : base(serversInfo, null, null, false, null)
-        {
+            : base(serversInfo, new BaseHttpServer(666), null, false, null)
+        {           
             m_userDataPlugin = new TestUserDataPlugin();
             m_inventoryDataPlugin = new TestInventoryDataPlugin();
                      

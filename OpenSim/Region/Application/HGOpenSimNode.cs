@@ -129,11 +129,12 @@ namespace OpenSim
                                      AgentCircuitManager circuitManager)
         {
             HGSceneCommunicationService sceneGridService = new HGSceneCommunicationService(m_commsManager, HGServices);
+            
             return
-                new HGScene(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache,
-                          storageManager, m_httpServer,
-                          m_moduleLoader, m_configSettings.DumpAssetsToFile, m_configSettings.PhysicalPrim, m_configSettings.See_into_region_from_neighbor, m_config.Source,
-                          m_version);
+                new HGScene(
+                    regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache, storageManager,
+                    m_moduleLoader, m_configSettings.DumpAssetsToFile, m_configSettings.PhysicalPrim, 
+                    m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }
 
         public override void RunCmd(string command, string[] cmdparams)

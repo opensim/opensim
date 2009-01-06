@@ -120,8 +120,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected Dictionary<UUID, Caps> m_capsHandlers = new Dictionary<UUID, Caps>();
 
-        protected BaseHttpServer m_httpListener;
-
         /// <value>
         /// All the region modules attached to this scene.
         /// </value>        
@@ -300,7 +298,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
                      CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
-                     AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
+                     AssetCache assetCach, StorageManager storeManager,
                      ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
                      bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
         {
@@ -351,7 +349,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             RegisterDefaultSceneEvents();
 
-            m_httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
 
             m_scripts_enabled = !RegionInfo.RegionSettings.DisableScripts;
@@ -2874,8 +2871,11 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
-            cap = new Caps(AssetCache, m_httpListener, m_regInfo.ExternalHostName, m_httpListener.Port,
-                         capsObjectPath, agentId, m_dumpAssetsToFile, RegionInfo.RegionName);
+            cap 
+                = new Caps(
+                    AssetCache, CommsManager.HttpServer, m_regInfo.ExternalHostName, CommsManager.HttpServer.Port,
+                    capsObjectPath, agentId, m_dumpAssetsToFile, RegionInfo.RegionName);
+            
             cap.RegisterHandlers();
 
             EventManager.TriggerOnRegisterCaps(agentId, cap);

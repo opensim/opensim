@@ -60,11 +60,10 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             AssetCache ac = new AssetCache(assetService);
             
             StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");
-            BaseHttpServer httpServer = new BaseHttpServer(666);
             IConfigSource configSource = new IniConfigSource();
             
             TestScene testScene = new TestScene(
-                regInfo, acm, cm, scs, ac, sm, httpServer, null, false, false, false, configSource, null);
+                regInfo, acm, cm, scs, ac, sm, null, false, false, false, configSource, null);
             
             testScene.LandChannel = new TestLandChannel();
             testScene.LoadWorldMap();

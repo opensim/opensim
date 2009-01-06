@@ -467,11 +467,11 @@ namespace OpenSim
                                              AgentCircuitManager circuitManager)
         {
             SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
-            return
-                new Scene(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache,
-                          storageManager, m_httpServer,
-                          m_moduleLoader, m_configSettings.DumpAssetsToFile, m_configSettings.PhysicalPrim, m_configSettings.See_into_region_from_neighbor, m_config.Source,
-                          m_version);
+            
+            return new Scene(
+                regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache,
+                storageManager, m_moduleLoader, m_configSettings.DumpAssetsToFile, m_configSettings.PhysicalPrim, 
+                m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }
 
         public void handleRestartRegion(RegionInfo whichRegion)
