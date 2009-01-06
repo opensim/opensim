@@ -39,6 +39,12 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public delegate void PhysicsCrash();
 
+    public delegate void ObjectDuplicateDelegate(EntityBase original, EntityBase clone);
+
+    public delegate void ObjectCreateDelegate(EntityBase obj);
+
+    public delegate void ObjectDeleteDelegate(EntityBase obj);
+
     /// <summary>
     /// This class used to be called InnerScene and may not yet truly be a SceneGraph.  The non scene graph components
     /// should be migrated out over time.
@@ -51,6 +57,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected internal event PhysicsCrash UnRecoverableError;
         private PhysicsCrash handlerPhysicsCrash = null;
+
+        public event ObjectDuplicateDelegate OnObjectDuplicate;
+        public event ObjectCreateDelegate OnObjectCreate;
+        public event ObjectDeleteDelegate OnObjectRemove;
 
         #endregion
 
@@ -288,6 +298,9 @@ namespace OpenSim.Region.Environment.Scenes
                     if (attachToBackup)
                         sceneObject.AttachToBackup();
 
+                    if (OnObjectCreate != null)
+                        OnObjectCreate(sceneObject);
+
                     return true;
                 }
             }
@@ -313,12 +326,12 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
 
-                
+                if (OnObjectRemove != null)
+                    OnObjectRemove(Entities[uuid]);
 
                 Entities.Remove(uuid);
                 //SceneObjectGroup part;
                 //((part.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
-                
 
                 return true;
             }
@@ -1694,7 +1707,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal SceneObjectGroup DuplicateObject(uint originalPrim, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
         {
             //m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
-
+            
             List<EntityBase> EntityList = GetEntities();
 
             SceneObjectGroup originPrim = null;
@@ -1739,6 +1752,10 @@ namespace OpenSim.Region.Environment.Scenes
 
                     // required for physics to update it's position
                     copy.AbsolutePosition = copy.AbsolutePosition;
+
+                    if (OnObjectDuplicate != null)
+                        OnObjectDuplicate(originPrim, copy);
+
                     return copy;
                 }
             }
