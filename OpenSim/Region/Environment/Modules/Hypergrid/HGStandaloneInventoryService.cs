@@ -30,12 +30,9 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
-
 using log4net;
 using Nini.Config;
-
 using OpenMetaverse;
-
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
@@ -93,11 +90,13 @@ namespace OpenSim.Region.Environment.Modules.Hypergrid
         }
 
         #endregion
-
     }
 
     public class InventoryService 
     {
+        private static readonly ILog m_log
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private InventoryServiceBase m_inventoryService;
         private IUserService m_userService;
         private bool m_doLookup = false;
@@ -107,44 +106,43 @@ namespace OpenSim.Region.Environment.Modules.Hypergrid
             get { return m_doLookup; }
             set { m_doLookup = value; }
         }
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public InventoryService(Scene m_scene)
         {
             m_inventoryService = (InventoryServiceBase)m_scene.CommsManager.SecureInventoryService;
             m_userService = m_scene.CommsManager.UserService;
             AddHttpHandlers(m_scene);
-
         }
 
         protected void AddHttpHandlers(Scene m_scene)
         {
-            m_scene.AddStreamHandler(
+            BaseHttpServer httpServer = m_scene.CommsManager.HttpServer;
+            
+            httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<Guid, InventoryCollection>(
                     "POST", "/GetInventory/", GetUserInventory, CheckAuthSession));
 
-            m_scene.AddStreamHandler(
+            httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
                     "POST", "/NewFolder/", m_inventoryService.AddFolder, CheckAuthSession));
 
-            m_scene.AddStreamHandler(
+            httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
                     "POST", "/UpdateFolder/", m_inventoryService.UpdateFolder, CheckAuthSession));
 
-            m_scene.AddStreamHandler(
+            httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
                     "POST", "/MoveFolder/", m_inventoryService.MoveFolder, CheckAuthSession));
 
-            m_scene.AddStreamHandler(
+            httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
                     "POST", "/PurgeFolder/", m_inventoryService.PurgeFolder, CheckAuthSession));
 
-            m_scene.AddStreamHandler(
+            httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
                     "POST", "/NewItem/", m_inventoryService.AddItem, CheckAuthSession));
 
-            m_scene.AddStreamHandler(
+            httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
                     "POST", "/DeleteItem/", m_inventoryService.DeleteItem, CheckAuthSession));
 

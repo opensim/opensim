@@ -4185,16 +4185,6 @@ namespace OpenSim.Region.Environment.Scenes
             return m_httpListener.AddHTTPHandler(method, handler);
         }
 
-        public void AddStreamHandler(IRequestHandler handler)
-        {
-            m_httpListener.AddStreamHandler(handler);
-        }
-
-        public void RemoveStreamHandler(string httpMethod, string path)
-        {
-            m_httpListener.RemoveStreamHandler(httpMethod, path);
-        }
-
         public void RemoveHTTPHandler(string httpMethod, string path)
         {
             m_httpListener.RemoveHTTPHandler(httpMethod, path);

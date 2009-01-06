@@ -120,12 +120,12 @@ namespace OpenSim.Region.Environment.Modules.Hypergrid
         protected void AddHttpHandlers(Scene m_scene)
         {
             IAssetProviderPlugin m_assetProvider = ((AssetServerBase)m_scene.AssetCache.AssetServer).AssetProviderPlugin;
-
-            m_scene.AddStreamHandler(new GetAssetStreamHandler(m_assetProvider));
-            m_scene.AddStreamHandler(new PostAssetStreamHandler(m_assetProvider));
+            
+            BaseHttpServer httpServer = m_scene.CommsManager.HttpServer;            
+            httpServer.AddStreamHandler(new GetAssetStreamHandler(m_assetProvider));
+            httpServer.AddStreamHandler(new PostAssetStreamHandler(m_assetProvider));
 
         }
-
 
         ///// <summary>
         ///// Check that the source of an inventory request is one that we trust.
