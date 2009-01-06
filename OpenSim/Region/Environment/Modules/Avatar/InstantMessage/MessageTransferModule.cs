@@ -419,8 +419,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         /// <summary>
         /// Recursive SendGridInstantMessage over XMLRPC method.
+        /// This is called from within a dedicated thread.
+        /// The first time this is called, prevRegionHandle will be 0 Subsequent times this is called from 
+        /// itself, prevRegionHandle will be the last region handle that we tried to send.
+        /// If the handles are the same, we look up the user's location using the grid.
+        /// If the handles are still the same, we end.  The send failed.
         /// </summary>
-        /// <param name="prevRegionHandle"></param>
+        /// <param name="prevRegionHandle">
+        /// Pass in 0 the first time this method is called.  It will be called recursively with the last 
+        /// regionhandle tried
+        /// </param>
         protected virtual void SendGridInstantMessageViaXMLRPCAsync(GridInstantMessage im, MessageResultNotification result, ulong prevRegionHandle)
         {
             UUID toAgentID = new UUID(im.toAgentID);
