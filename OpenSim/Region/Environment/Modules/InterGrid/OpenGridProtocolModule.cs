@@ -469,7 +469,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.AgentID = LocalAgentID;
             agentData.BaseFolder = UUID.Zero;
-            agentData.CapsPath = CapsUtil.GetRandomCapsPath();
+            agentData.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             agentData.child = false;
             agentData.circuitcode = (uint)(Util.RandomClass.Next());
             agentData.firstname = FirstName;

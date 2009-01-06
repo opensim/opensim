@@ -45,7 +45,11 @@ namespace OpenSim.Framework.Communications.Capabilities
             return "/CAPS/" + capsObjectPath + "0000/";
         }
         
-        public static string GetRandomCapsPath()
+        /// <summary>
+        /// Get a random CAPS object path component that will be used as the identifying part of all future CAPS requests
+        /// </summary>
+        /// <returns></returns>
+        public static string GetRandomCapsObjectPath()
         {
             UUID caps = UUID.Random();
             string capsPath = caps.ToString();

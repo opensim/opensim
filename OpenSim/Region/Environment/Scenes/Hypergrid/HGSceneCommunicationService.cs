@@ -188,7 +188,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
                             // brand new agent, let's create a new caps seed
-                            agentCircuit.CapsPath = CapsUtil.GetRandomCapsPath();
+                            agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
                         }
 
                         //if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))

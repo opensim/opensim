@@ -309,7 +309,7 @@ namespace OpenSim.Grid.UserServer
                 response.RegionX = regionInfo.regionLocX;
                 response.RegionY = regionInfo.regionLocY;
 
-                string capsPath = CapsUtil.GetRandomCapsPath();
+                string capsPath = CapsUtil.GetRandomCapsObjectPath();
                 response.SeedCapability = regionInfo.httpServerURI + CapsUtil.GetCapsSeedPath(capsPath);
 
                 // Notify the target of an incoming user

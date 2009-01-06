@@ -394,7 +394,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (newRegions.Contains(neighbour.RegionHandle))
                     {
-                        agent.CapsPath = CapsUtil.GetRandomCapsPath();
+                        agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
                         avatar.AddNeighbourRegion(neighbour.RegionHandle, agent.CapsPath);
                         seeds.Add(neighbour.RegionHandle, agent.CapsPath);
                     }
@@ -682,7 +682,7 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void RequestTeleportToLocation(ScenePresence avatar, ulong regionHandle, Vector3 position,
                                                       Vector3 lookAt, uint teleportFlags)
         {
-            m_log.DebugFormat("[SCENE COMMUNICATION SERVICE] RequestTeleportToLocation {0} ", position.ToString());
+            m_log.DebugFormat("[SCENE COMMUNICATION SERVICE]: RequestTeleportToLocation {0} ", position.ToString());
 
             if (!avatar.Scene.Permissions.CanTeleport(avatar.UUID))
                 return;
@@ -732,7 +732,6 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         // region is remote. see if it is up
                         destRegionUp = m_commsProvider.InterRegion.CheckRegion(reg.RemotingAddress, reg.RemotingPort);
-
                     }
                     else
                     {
@@ -785,7 +784,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
                             // brand new agent, let's create a new caps seed
-                            agentCircuit.CapsPath = CapsUtil.GetRandomCapsPath();
+                            agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
                         }
 
                         // Let's create an agent there if one doesn't exist yet. 

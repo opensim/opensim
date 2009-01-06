@@ -296,7 +296,7 @@ namespace OpenSim.Region.Communications.Local
             response.RegionX = regionInfo.RegionLocX;
             response.RegionY = regionInfo.RegionLocY;
 
-            string capsPath = CapsUtil.GetRandomCapsPath();
+            string capsPath = CapsUtil.GetRandomCapsObjectPath();
             string capsSeedPath = CapsUtil.GetCapsSeedPath(capsPath);
 
             // Don't use the following!  It Fails for logging into any region not on the same port as the http server!
