@@ -93,7 +93,7 @@ namespace OpenSim.Region.UserStatistics
             {
                 if (m_scene.Count == 0)
                 {
-                    IConfig startupConfig = config.Configs["Startup"];
+                    //IConfig startupConfig = config.Configs["Startup"];
 
                     dbConn = new SqliteConnection("URI=file:LocalUserStatistics.db,version=3");
                     dbConn.Open();
@@ -159,7 +159,7 @@ namespace OpenSim.Region.UserStatistics
         }
         public Hashtable HandleUnknownCAPSRequest(Hashtable request)
         {
-            string regpath = request["uri"].ToString();
+            //string regpath = request["uri"].ToString();
             int response_code = 200;
             string contenttype = "text/html";
             UpdateUserStats(ParseViewerStats(request["body"].ToString(), UUID.Zero), dbConn);

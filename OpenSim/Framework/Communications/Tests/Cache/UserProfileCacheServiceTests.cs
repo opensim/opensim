@@ -98,8 +98,6 @@ namespace OpenSim.Framework.Communications.Tests
         public void TestCreateFolder()
         {           
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            
-            IUserDataPlugin userDataPlugin = commsManager.UserDataPlugin;
             IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
             
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
@@ -130,8 +128,6 @@ namespace OpenSim.Framework.Communications.Tests
         public void TestUpdateFolder()
         {
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            
-            IUserDataPlugin userDataPlugin = commsManager.UserDataPlugin;
             IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
             
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
@@ -189,8 +185,6 @@ namespace OpenSim.Framework.Communications.Tests
         public void TestMoveFolder()
         {
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            
-            IUserDataPlugin userDataPlugin = commsManager.UserDataPlugin;
             IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
             
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
@@ -227,8 +221,6 @@ namespace OpenSim.Framework.Communications.Tests
             //log4net.Config.XmlConfigurator.Configure();
             
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            
-            IUserDataPlugin userDataPlugin = commsManager.UserDataPlugin;
             IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
             
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
