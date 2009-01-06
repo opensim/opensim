@@ -124,7 +124,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             regionimage = regionimage.Replace("-", "");
             m_log.Warn("[WORLD MAP]: JPEG Map location: http://" + m_scene.RegionInfo.ExternalEndPoint.Address.ToString() + ":" + m_scene.RegionInfo.HttpPort.ToString() + "/index.php?method=" + regionimage);
 
-            m_scene.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
+            m_scene.CommsManager.HttpServer.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
             m_scene.CommsManager.HttpServer.AddLLSDHandler(
                 "/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(), HandleRemoteMapItemRequest);
 

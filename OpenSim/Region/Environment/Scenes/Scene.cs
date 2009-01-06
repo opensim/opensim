@@ -4178,20 +4178,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        #region BaseHTTPServer wrapper methods
-
-        public bool AddHTTPHandler(string method, GenericHTTPMethod handler)
-        {
-            return m_httpListener.AddHTTPHandler(method, handler);
-        }
-
-        public void RemoveHTTPHandler(string httpMethod, string path)
-        {
-            m_httpListener.RemoveHTTPHandler(httpMethod, path);
-        }
-
-        #endregion
-
         #region Avatar Appearance Default
 
         public static void GetDefaultAvatarAppearance(out AvatarWearable[] wearables, out byte[] visualParams)
@@ -4480,7 +4466,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected internal void jointMoved(PhysicsJoint joint)
         {
-
             // m_parentScene.PhysicsScene.DumpJointInfo(); // non-thread-locked version; we should already be in a lock (OdeLock) when this callback is invoked
             // FIXME: this causes a sequential lookup of all objects in the scene; use a dictionary
             SceneObjectPart jointProxyObject = GetSceneObjectPart(joint.ObjectNameInScene);

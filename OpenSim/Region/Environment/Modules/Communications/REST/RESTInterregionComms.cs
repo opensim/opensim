@@ -121,7 +121,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
 
         protected virtual void AddHTTPHandlers()
         {
-            m_aScene.AddHTTPHandler("/agent/", AgentHandler);
+            m_aScene.CommsManager.HttpServer.AddHTTPHandler("/agent/", AgentHandler);
         }
 
         #endregion /* IRegionModule */

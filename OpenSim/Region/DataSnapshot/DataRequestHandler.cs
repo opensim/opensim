@@ -53,7 +53,7 @@ namespace OpenSim.Region.DataSnapshot
             m_externalData = externalData;
 
             //Register HTTP handler
-            if (m_scene.AddHTTPHandler("collector", OnGetSnapshot))
+            if (m_scene.CommsManager.HttpServer.AddHTTPHandler("collector", OnGetSnapshot))
             {
                 m_log.Info("[DATASNAPSHOT]: Set up snapshot service");
             }
