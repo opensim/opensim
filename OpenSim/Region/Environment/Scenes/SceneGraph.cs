@@ -694,6 +694,24 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void RecalculateStats()
+        {
+            List<ScenePresence> SPList = GetScenePresences();
+            int rootcount = 0;
+            int childcount = 0;
+
+            foreach (ScenePresence user in SPList)
+            {
+                if (user.IsChildAgent)
+                    childcount++;
+                else
+                    rootcount++;
+            }
+            m_numRootAgents = rootcount;
+            m_numChildAgents = childcount;
+            
+        }
+
         public int GetChildAgentCount()
         {
             // some network situations come in where child agents get closed twice.
@@ -1748,5 +1766,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
+
+       
     }
 }

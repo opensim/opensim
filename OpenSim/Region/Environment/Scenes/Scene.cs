@@ -360,6 +360,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             StatsReporter = new SimStatsReporter(this);
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
+            StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
 
             StatsReporter.SetObjectCapacity(objectCapacity);
 

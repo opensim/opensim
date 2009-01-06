@@ -39,9 +39,15 @@ namespace OpenSim.Region.Environment.Scenes
     {
         public delegate void SendStatResult(SimStats stats);
 
+        public delegate void YourStatsAreWrong();
+
         public event SendStatResult OnSendStatsResult;
 
+        public event YourStatsAreWrong OnStatsIncorrect;
+
         private SendStatResult handlerSendStatResult = null;
+
+        private YourStatsAreWrong handlerStatsIncorrect = null;
 
         private enum Stats : uint
         {
@@ -306,15 +312,30 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetRootAgents(int rootAgents)
         {
             m_rootAgents = rootAgents;
+            CheckStatSanity();
+
+        }
+
+        internal void CheckStatSanity()
+        {
+            if (m_rootAgents < 0 || m_childAgents < 0)
+            {
+                handlerStatsIncorrect = OnStatsIncorrect;
+                if (handlerStatsIncorrect != null)
+                {
+                    handlerStatsIncorrect();
+                }
+            }
+            if (m_rootAgents == 0 && m_childAgents == 0)
+            {
+                m_unAckedBytes = 0;
+            }
         }
 
         public void SetChildAgents(int childAgents)
         {
-            m_childAgents = (childAgents > 0) ? childAgents : 0;
-            if (childAgents < 0)
-            {
-               //List<ScenePresence> avs=  m_scene.GetScenePresences();
-            }
+            m_childAgents = childAgents;
+            CheckStatSanity();
         }
 
         public void SetObjects(int objects)
