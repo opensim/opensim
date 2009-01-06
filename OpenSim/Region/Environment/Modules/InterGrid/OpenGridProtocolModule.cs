@@ -576,10 +576,14 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             }
             
             // DEPRECIATED
-            responseMap["seed_capability"] = OSD.FromString(regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
+            responseMap["seed_capability"] 
+                = OSD.FromString(
+                    regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + CapsUtil.GetCapsSeedPath(userCap.CapsObjectPath));
             
             // REPLACEMENT
-            responseMap["region_seed_capability"] = OSD.FromString(regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
+            responseMap["region_seed_capability"] 
+                = OSD.FromString(
+                    regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + CapsUtil.GetCapsSeedPath(userCap.CapsObjectPath));
 
             responseMap["rez_avatar"] = OSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + rezAvatarPath);
             responseMap["rez_avatar/rez"] = OSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + rezAvatarPath);

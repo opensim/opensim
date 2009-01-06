@@ -297,20 +297,21 @@ namespace OpenSim.Region.Communications.Local
             response.RegionY = regionInfo.RegionLocY;
 
             string capsPath = CapsUtil.GetRandomCapsPath();
+            string capsSeedPath = CapsUtil.GetCapsSeedPath(capsPath);
 
             // Don't use the following!  It Fails for logging into any region not on the same port as the http server!
             // Kept here so it doesn't happen again!
-            // response.SeedCapability = regionInfo.ServerURI + "/CAPS/" + capsPath + "0000/";
+            // response.SeedCapability = regionInfo.ServerURI + capsSeedPath;
             
             string seedcap = "http://";
             
             if (serversInfo.HttpUsesSSL)
             {
-                seedcap = "https://" + serversInfo.HttpSSLCN + ":" + serversInfo.httpSSLPort + "/CAPS/" + capsPath + "0000/";
+                seedcap = "https://" + serversInfo.HttpSSLCN + ":" + serversInfo.httpSSLPort + capsSeedPath;
             }
             else
             {
-                seedcap = "http://" + regionInfo.ExternalHostName + ":" + serversInfo.HttpListenerPort + "/CAPS/" + capsPath + "0000/";
+                seedcap = "http://" + regionInfo.ExternalHostName + ":" + serversInfo.HttpListenerPort + capsSeedPath;
             }
 
             response.SeedCapability = seedcap;

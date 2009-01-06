@@ -309,9 +309,8 @@ namespace OpenSim.Grid.UserServer
                 response.RegionX = regionInfo.regionLocX;
                 response.RegionY = regionInfo.regionLocY;
 
-                //Not sure if the + "/CAPS/" should in fact be +"CAPS/" depending if there is already a / as part of httpServerURI
                 string capsPath = CapsUtil.GetRandomCapsPath();
-                response.SeedCapability = regionInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
+                response.SeedCapability = regionInfo.httpServerURI + CapsUtil.GetCapsSeedPath(capsPath);
 
                 // Notify the target of an incoming user
                 m_log.InfoFormat(

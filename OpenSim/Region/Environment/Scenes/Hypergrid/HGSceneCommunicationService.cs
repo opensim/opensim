@@ -210,10 +210,12 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
 
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY) || isHyperLink)
                         {
-                            // TODO Should construct this behind a method
-                            capsPath =
-                                "http://" + reg.ExternalHostName + ":" + reg.HttpPort
-                                + "/CAPS/" + agentCircuit.CapsPath + "0000/";
+                            capsPath 
+                                = "http://" 
+                                    + reg.ExternalHostName 
+                                    + ":"
+                                    + reg.HttpPort 
+                                    + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
 
                             if (eq != null)
                             {

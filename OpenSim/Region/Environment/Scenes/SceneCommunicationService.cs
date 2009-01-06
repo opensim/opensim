@@ -801,10 +801,12 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
-                            // TODO Should construct this behind a method
-                            capsPath =
-                                "http://" + reg.ExternalHostName + ":" + reg.HttpPort
-                                + "/CAPS/" + agentCircuit.CapsPath + "0000/";
+                            capsPath 
+                                = "http://" 
+                                    + reg.ExternalHostName 
+                                    + ":" 
+                                    + reg.HttpPort 
+                                    + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
 
                             if (eq != null)
                             {

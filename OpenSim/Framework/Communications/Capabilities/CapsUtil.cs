@@ -35,6 +35,16 @@ namespace OpenSim.Framework.Communications.Capabilities
     /// </summary>
     public class CapsUtil
     {
+        /// <summary>
+        /// Generate a CAPS seed path using a previously generated CAPS object path component
+        /// </summary>
+        /// <param name="capsKey"></param>
+        /// <returns></returns>
+        public static string GetCapsSeedPath(string capsObjectPath)
+        {
+            return "/CAPS/" + capsKey + "0000/";
+        }
+        
         public static string GetRandomCapsPath()
         {
             UUID caps = UUID.Random();
