@@ -436,12 +436,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                     upd = new UserAgentData();
                     upd.AgentOnline = true;
                     upd.Handle = m_UserRegionMap[toAgentID];
+
+                    // We need to compare the current regionhandle with the previous region handle
+                    // or the recursive loop will never end because it will never try to lookup the agent again
+                    if (prevRegionHandle == upd.Handle)
+                    {
+                        lookupAgent = true;
+                    }
                 }
                 else
                 {
                     lookupAgent = true;
                 }
             }
+            
 
             // Are we needing to look-up an agent?
             if (lookupAgent)
