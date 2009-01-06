@@ -305,7 +305,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 if (m_rootAgents.ContainsKey(AgentId))
                 {
                     m_rootAgents.Remove(AgentId);
-                    m_log.Info("[FRIEND]: Removing " + AgentId + ". Agent was closed.");
                 }
             }
         }
@@ -315,7 +314,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             lock (m_rootAgents)
             {
                 m_rootAgents[avatar.UUID] = avatar.RegionHandle;
-                m_log.Info("[FRIEND]: Claiming " + avatar.Firstname + " " + avatar.Lastname + " in region:" + avatar.RegionHandle + ".");
                 // Claim User! my user!  Mine mine mine!
             }
         }
@@ -331,7 +329,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     if (m_rootAgents[avatar.UUID] == avatar.RegionHandle)
                     {
                         m_rootAgents.Remove(avatar.UUID);
-                        m_log.Info("[FRIEND]: Removing " + avatar.Firstname + " " + avatar.Lastname + " as a root agent");
+                        m_log.Debug("[FRIEND]: Removing " + avatar.Firstname + " " + avatar.Lastname + " as a root agent");
                     }
                 }
             }
@@ -799,11 +797,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         /// <param name="iAmOnline"></param>
         private void SendPresenceState(IClientAPI client, List<FriendListItem> friendList, bool iAmOnline)
         {
-            m_log.DebugFormat("[FRIEND]: {0} logged {1}; sending presence updates", client.Name, iAmOnline ? "in" : "out");
+            //m_log.DebugFormat("[FRIEND]: {0} logged {1}; sending presence updates", client.Name, iAmOnline ? "in" : "out");
 
             if (friendList == null || friendList.Count == 0)
             {
-                m_log.DebugFormat("[FRIEND]: {0} doesn't have friends.", client.Name);
+                //m_log.DebugFormat("[FRIEND]: {0} doesn't have friends.", client.Name);
                 return; // nothing we can do if she doesn't have friends...
             }
 
@@ -984,8 +982,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
         private void OnLogout(IClientAPI remoteClient)
         {
-            m_log.DebugFormat("[FRIEND]: Client {0} logged out", remoteClient.Name);
-
             List<FriendListItem> fl;
             lock (m_friendLists)
             {

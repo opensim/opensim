@@ -547,9 +547,6 @@ namespace OpenSim.Framework.Communications
 
             if (userProfile != null)
             {
-                // This line needs to be in side the above if statement or the UserServer will crash on some logouts.
-                m_log.Info("[LOGOUT]: " + userProfile.FirstName + " " + userProfile.SurName + " from " + regionhandle + "(" + position.X + "," + position.Y + "," + position.Z + ")");
-
                 UserAgentData userAgent = userProfile.CurrentAgent;
                 if (userAgent != null)
                 {

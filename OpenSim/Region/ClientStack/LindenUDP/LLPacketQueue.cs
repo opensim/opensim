@@ -258,7 +258,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void WipeClean()
         {
-            m_log.Info("[PACKETQUEUE] Wiping Packet Queues Clean");
             lock (this)
             {
                 ResendOutgoingPacketQueue.Clear();
@@ -275,7 +274,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Close()
         {
-            m_log.Info("[PACKETQUEUE] Close called");
             Flush();
             WipeClean(); // I'm sure there's a dirty joke in here somewhere. -AFrisby
 

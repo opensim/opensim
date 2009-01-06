@@ -71,12 +71,10 @@ namespace OpenSim.Framework
 
         public void Remove(uint id)
         {
-            //m_log.InfoFormat("[CLIENT]: Removing client with code {0}, current count {1}", id, m_clients.Count);
             lock (m_clients)
             {
                 m_clients.Remove(id);
             }
-            m_log.InfoFormat("[CLIENT]: Removed client with code {0}, new client count {1}", id, m_clients.Count);
         }
 
         public void Add(uint id, IClientAPI client)

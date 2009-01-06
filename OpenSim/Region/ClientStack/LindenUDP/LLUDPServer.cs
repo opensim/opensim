@@ -407,9 +407,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="epSender"></param>
         /// <param name="epProxy"></param>
         protected virtual void AddNewClient(UseCircuitCodePacket useCircuit, EndPoint epSender, EndPoint epProxy)
-        {
-            m_log.Debug("[CONNECTION DEBUGGING] AddNewClient Called");
-
+        {            
             //Slave regions don't accept new clients
             if (m_localScene.Region_Status != RegionStatus.SlaveScene)
             {                
@@ -426,7 +424,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    m_log.Info("[CLIENT]: Got authenticated connection from " + epSender);
+                    m_log.Debug("[CLIENT]: Got authenticated connection from " + epSender);
                 }
                 
                 lock (clientCircuits)

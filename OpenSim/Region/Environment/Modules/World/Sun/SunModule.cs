@@ -144,22 +144,20 @@ namespace OpenSim.Region.Environment.Modules
             //m_log.Debug("[OFFSET]: " + hour + " - " + LindenHour + " - " + offsethours.ToString());
 
             LindenHourOffset = (long)((float)offsethours * (36000000000/m_day_length));
-            m_log.Info("[SUN]: Directive from the Estate Tools to set the sun phase to LindenHour " + GetLindenEstateHourFromCurrentTime().ToString());
+            m_log.Debug("[SUN]: Directive from the Estate Tools to set the sun phase to LindenHour " + GetLindenEstateHourFromCurrentTime().ToString());
         }
 
         // Called immediately after the module is loaded for a given region
         // i.e. Immediately after instance creation.
         public void Initialise(Scene scene, IConfigSource config)
         {
-            m_log.Debug("[SUN] Initializing");
-
             m_scene = scene;
 
             m_frame = 0;
 
             TimeZone local = TimeZone.CurrentTimeZone;
             TicksOffset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Ticks;
-            m_log.Debug("[SUN] localtime offset is " + TicksOffset);
+            m_log.Debug("[SUN]: localtime offset is " + TicksOffset);
 
             // Align ticks with Second Life
 
@@ -185,7 +183,7 @@ namespace OpenSim.Region.Environment.Modules
             }
             catch (Exception e)
             {
-                m_log.Debug("[SUN] Configuration access failed, using defaults. Reason: "+e.Message);
+                m_log.Debug("[SUN]: Configuration access failed, using defaults. Reason: "+e.Message);
                 m_mode        = d_mode;
                 m_year_length = d_year_length;
                 m_day_length  = d_day_length;
@@ -231,10 +229,10 @@ namespace OpenSim.Region.Environment.Modules
 
                     ready = true;
 
-                    m_log.Debug("[SUN] Mode is "+m_mode);
-                    m_log.Debug("[SUN] Initialization completed. Day is "+SecondsPerSunCycle+" seconds, and year is "+m_year_length+" days");
-                    m_log.Debug("[SUN] Axis offset is "+m_day_night);
-                    m_log.Debug("[SUN] Positional data updated every "+m_frame_mod+" frames");
+                    m_log.Debug("[SUN]: Mode is "+m_mode);
+                    m_log.Debug("[SUN]: Initialization completed. Day is "+SecondsPerSunCycle+" seconds, and year is "+m_year_length+" days");
+                    m_log.Debug("[SUN]: Axis offset is "+m_day_night);
+                    m_log.Debug("[SUN]: Positional data updated every "+m_frame_mod+" frames");
 
                     break;
             }
@@ -276,7 +274,6 @@ namespace OpenSim.Region.Environment.Modules
                     if (!sunFixed)
                         GenSunPos();    // Generate shared values once
                     client.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
-                    m_log.Debug("[SUN] Initial update for new client");
                 }
             }
         }
@@ -383,7 +380,6 @@ namespace OpenSim.Region.Environment.Modules
                 if (m_rootAgents.ContainsKey(AgentId))
                 {
                     m_rootAgents.Remove(AgentId);
-                    m_log.Info("[SUN]: Removing " + AgentId + ". Agent logged out.");
                 }
             }
         }

@@ -80,7 +80,7 @@ namespace OpenSim.Framework.Communications.Cache
             if (userID == UUID.Zero)
                 return;
             
-            m_log.DebugFormat("[USER CACHE]: Adding user profile for {0}", userID);
+            //m_log.DebugFormat("[USER CACHE]: Adding user profile for {0}", userID);
             GetUserDetails(userID);
         }
 
@@ -95,7 +95,6 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (m_userProfiles.ContainsKey(userId))
                 {
-                    m_log.DebugFormat("[USER CACHE]: Removing user {0}", userId);
                     m_userProfiles.Remove(userId);
                     return true;
                 }

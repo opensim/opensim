@@ -64,21 +64,19 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
 
             if (groupsConfig == null)
             {
-                m_log.Info("[GROUPS] No configuration found. Using defaults");
+                m_log.Info("[GROUPS]: No configuration found. Using defaults");
             }
             else
             {
                 if (!groupsConfig.GetBoolean("Enabled", false))
                 {
-                    m_log.Info("[GROUPS] Groups disabled in configuration");
+                    m_log.Info("[GROUPS]: Groups disabled in configuration");
                     return;
                 }
 
                 if (groupsConfig.GetString("Module", "Default") != "Default")
                     return;
             }
-
-            m_log.Info("[GROUPS] Activated default groups module");
 
             lock (m_SceneList)
             {
@@ -109,7 +107,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
 
         public void Close()
         {
-            m_log.Info("[GROUP]: Shutting down group module.");
+//            m_log.Debug("[GROUPS]: Shutting down group module.");
+            
             lock (m_ClientMap)
             {
                 m_ClientMap.Clear();
@@ -135,7 +134,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
 
         private void OnNewClient(IClientAPI client)
         {
-
             // Subscribe to instant messages
             client.OnInstantMessage += OnInstantMessage;
             client.OnAgentDataUpdateRequest += OnAgentDataUpdateRequest;
@@ -147,9 +145,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                     m_ClientMap.Add(client.AgentId, client);
                 }
             }
-
-            m_log.Info("[GROUP]: Adding " + client.Name + " to " +
-                    osGroup.GroupName + " ");
 
             GroupMembershipData[] updateGroups = new GroupMembershipData[1];
             updateGroups[0] = osGroup;
@@ -211,17 +206,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             {
                 if (m_ClientMap.ContainsKey(agentID))
                 {
-                    IClientAPI cli = m_ClientMap[agentID];
-                    if (cli != null)
-                    {
-                        m_log.Info("[GROUP]: Removing all reference to groups "+
-                                "for " + cli.Name);
-                    }
-                    else
-                    {
-                        m_log.Info("[GROUP]: Removing all reference to groups "+
-                                "for " + agentID.ToString());
-                    }
+//                    IClientAPI cli = m_ClientMap[agentID];
+//                    if (cli != null)
+//                    {
+//                        //m_log.Info("[GROUPS]: Removing all reference to groups for " + cli.Name);
+//                    }
+//                    else
+//                    {
+//                        //m_log.Info("[GROUPS]: Removing all reference to groups for " + agentID.ToString());
+//                    }
                     m_ClientMap.Remove(agentID);
                 }
             }

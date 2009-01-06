@@ -57,13 +57,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
                 if (appearance != null)
                 {
                     //SetAppearanceAssets(profile, ref appearance);
-                    m_log.InfoFormat("[APPEARANCE]: Found : {0}", appearance.ToString());
+                    //m_log.DebugFormat("[APPEARANCE]: Found : {0}", appearance.ToString());
                     return true;
                 }
             }
 
             appearance = CreateDefault(avatarId);
-            m_log.InfoFormat("[APPEARANCE]: Appearance not found for {0}, creating default", avatarId);
+            m_log.ErrorFormat("[APPEARANCE]: Appearance not found for {0}, creating default", avatarId);
             return false;
         }
 
@@ -172,11 +172,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
             AvatarAppearance avatAppearance = null;
             if (!TryGetAvatarAppearance(clientView.AgentId, out avatAppearance)) 
             {
-                m_log.Info("[APPEARANCE]: We didn't seem to find the appearance, falling back to ScenePresence");
+                m_log.Warn("[APPEARANCE]: We didn't seem to find the appearance, falling back to ScenePresence");
                 avatAppearance = avatar.Appearance;
             }
             
-            m_log.DebugFormat("[APPEARANCE]: Received wearables for {0}", clientView.Name);
+            //m_log.DebugFormat("[APPEARANCE]: Received wearables for {0}", clientView.Name);
             
             if (profile != null)
             {

@@ -72,7 +72,6 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
         private Dictionary<UUID, BlockingLLSDQueue> queues = new Dictionary<UUID, BlockingLLSDQueue>();
         private Dictionary<UUID, UUID> m_QueueUUIDAvatarMapping = new Dictionary<UUID, UUID>();
         private Dictionary<UUID, UUID> m_AvatarQueueUUIDMapping = new Dictionary<UUID, UUID>();
-
             
         #region IRegionModule methods
         public void Initialise(Scene scene, IConfigSource config)
@@ -101,11 +100,8 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
                 // circuit is there.
 
                 scene.EventManager.OnClientClosed += ClientClosed;
-                scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
                 scene.EventManager.OnMakeChildAgent += MakeChildAgent;
                 scene.EventManager.OnRegisterCaps += OnRegisterCaps;
-                
-                m_log.DebugFormat("[EVENTQUEUE]: Enabled EventQueueGetModule for region {0}", scene.RegionInfo.RegionName);
             }
             else
             {
@@ -149,10 +145,13 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
             {
                 if (!queues.ContainsKey(agentId))
                 {
-                    m_log.DebugFormat("[EVENTQUEUE]: Adding new queue for agent {0} in region {1}", agentId,
-                                      m_scene.RegionInfo.RegionName);
+                    m_log.DebugFormat(
+                        "[EVENTQUEUE]: Adding new queue for agent {0} in region {1}", 
+                        agentId, m_scene.RegionInfo.RegionName);
+                    
                     queues[agentId] = new BlockingLLSDQueue();
                 }
+                
                 return queues[agentId];
             }
         }
@@ -179,17 +178,19 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
 
         public bool Enqueue(OSD ev, UUID avatarID)
         {
-            m_log.DebugFormat("[EVENTQUEUE]: Enqueuing event for {0} in region {1}", avatarID, m_scene.RegionInfo.RegionName);
+            //m_log.DebugFormat("[EVENTQUEUE]: Enqueuing event for {0} in region {1}", avatarID, m_scene.RegionInfo.RegionName);
             try
             {
                 BlockingLLSDQueue queue = GetQueue(avatarID);
                 if (queue != null)
                     queue.Enqueue(ev);
-            } catch(NullReferenceException e)
+            } 
+            catch(NullReferenceException e)
             {
-                m_log.Debug("[EVENTQUEUE] Caught exception: " + e);
+                m_log.Error("[EVENTQUEUE] Caught exception: " + e);
                 return false;
             }
+            
             return true;
         }
 
@@ -234,7 +235,6 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
                 {
                     m_AvatarQueueUUIDMapping.Remove(ky);
                     m_scene.CommsManager.HttpServer.RemoveHTTPHandler("","/CAPS/EQG/" + ky.ToString() + "/");
-                    m_log.Debug("[EVENTQUEUE]: Removing " + "/CAPS/EQG/" + ky.ToString() + "/");
                 }
 
             }
@@ -258,14 +258,6 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
                     m_QueueUUIDAvatarMapping.Remove(ky);
 
             }
-
-            m_log.DebugFormat("[EVENTQUEUE]: Client {0} deregistered in region {1}.", AgentID, m_scene.RegionInfo.RegionName);
-        }
-        
-        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
-        {
-            m_log.DebugFormat("[EVENTQUEUE]: Avatar {0} entering parcel {1} in region {2}.",
-                              avatar.UUID, localLandID, m_scene.RegionInfo.RegionName);
         }
 
         private void MakeChildAgent(ScenePresence avatar)
@@ -283,7 +275,11 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            m_log.DebugFormat("[EVENTQUEUE] OnRegisterCaps: agentID {0} caps {1} region {2}", agentID, caps, m_scene.RegionInfo.RegionName);
+            // Register an event queue for the client
+            
+            //m_log.DebugFormat(
+            //    "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}", 
+            //    agentID, caps, m_scene.RegionInfo.RegionName);
 
             // Let's instantiate a Queue for this agent right now
             TryGetQueue(agentID);
@@ -302,7 +298,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
                 else
                 {
                     EventQueueGetUUID = UUID.Random();
-                    m_log.DebugFormat("[EVENTQUEUE]: Using random UUID!");
+                    //m_log.DebugFormat("[EVENTQUEUE]: Using random UUID!");
                 }
             }
 
@@ -318,13 +314,12 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
                     m_AvatarQueueUUIDMapping.Add(agentID, EventQueueGetUUID);
             }
 
-            m_log.DebugFormat("[EVENTQUEUE]: CAPS URL: {0}", capsBase + EventQueueGetUUID.ToString() + "/");
             // Register this as a caps handler
             caps.RegisterHandler("EventQueueGet",
                                  new RestHTTPHandler("POST", capsBase + EventQueueGetUUID.ToString() + "/",
                                                        delegate(Hashtable m_dhttpMethod)
                                                        {
-                                                           return ProcessQueue(m_dhttpMethod,agentID, caps);
+                                                           return ProcessQueue(m_dhttpMethod, agentID, caps);
                                                        }));
             
             // This will persist this beyond the expiry of the caps handlers
@@ -339,7 +334,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
             }
         }
 
-        public Hashtable ProcessQueue(Hashtable request,UUID agentID, Caps caps)
+        public Hashtable ProcessQueue(Hashtable request, UUID agentID, Caps caps)
         {
             // TODO: this has to be redone to not busy-wait (and block the thread),
             // TODO: as soon as we have a non-blocking way to handle HTTP-requests.
@@ -382,9 +377,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
                 responsedata["error_status_text"] = "Upstream error:";
                 responsedata["http_protocol_version"] = "HTTP/1.0";
                 return responsedata;
-            }
-
-            
+            }            
 
             OSDArray array = new OSDArray();
             if (element == null) // didn't have an event in 15s
@@ -416,7 +409,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
             responsedata["content_type"] = "application/xml";
             responsedata["keepalive"] = false;
             responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(events);
-            m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
+            //m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
 
             return responsedata;
         }
@@ -561,6 +554,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
             {
                 //return new LLSD();
             }
+            
             return new OSDString("shutdown404!");
         }
     }

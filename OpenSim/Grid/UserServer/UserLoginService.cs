@@ -277,7 +277,7 @@ namespace OpenSim.Grid.UserServer
         private void AddActiveGestures(LoginResponse response, UserProfileData theUser)
         {
             List<InventoryItemBase> gestures = m_inventoryService.GetActiveGestures(theUser.ID);
-            m_log.DebugFormat("[LOGIN]: AddActiveGestures, found {0}", gestures == null ? 0 : gestures.Count);
+            //m_log.DebugFormat("[LOGIN]: AddActiveGestures, found {0}", gestures == null ? 0 : gestures.Count);
             ArrayList list = new ArrayList();
             if (gestures != null)
             {

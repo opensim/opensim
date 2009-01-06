@@ -2576,7 +2576,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (avatar.Scene.NeedSceneCacheClear(avatar.UUID))
                 {
-                    m_log.InfoFormat("[SCENE]: User {0} is going to another region, profile cache removed in {1}", avatar.UUID, RegionInfo.RegionName);
                     CommsManager.UserProfileCacheService.RemoveUser(agentID);
                 }
 
@@ -2860,10 +2859,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             String capsObjectPath = GetCapsPath(agentId);
 
-            m_log.DebugFormat(
-                "[CAPS]: Setting up CAPS handler for agent {0} in {1}",
-                agentId, RegionInfo.RegionName);
-
             Caps cap = null;
             if (m_capsHandlers.TryGetValue(agentId, out cap))
             {
@@ -2908,7 +2903,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (childrenSeeds.ContainsKey(agentId))
             {
-                //Console.WriteLine(" !!! Removing seeds for {0} in {1}", agentId, RegionInfo.RegionName);
                 childrenSeeds.Remove(agentId);
             }
 
@@ -2916,10 +2910,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_capsHandlers.ContainsKey(agentId))
                 {
-                    m_log.DebugFormat(
-                        "[CAPS]: Removing CAPS handler for root agent {0} in {1}",
-                        agentId, RegionInfo.RegionName);
-
                     m_capsHandlers[agentId].DeregisterHandlers();
                     EventManager.TriggerOnDeregisterCaps(agentId, m_capsHandlers[agentId]);
 

@@ -122,7 +122,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
             string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
-            m_log.Warn("[WORLD MAP]: JPEG Map location: http://" + m_scene.RegionInfo.ExternalEndPoint.Address.ToString() + ":" + m_scene.RegionInfo.HttpPort.ToString() + "/index.php?method=" + regionimage);
+            m_log.Info("[WORLD MAP]: JPEG Map location: http://" + m_scene.RegionInfo.ExternalEndPoint.Address.ToString() + ":" + m_scene.RegionInfo.HttpPort.ToString() + "/index.php?method=" + regionimage);
 
             m_scene.CommsManager.HttpServer.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
             m_scene.CommsManager.HttpServer.AddLLSDHandler(
@@ -137,7 +137,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            m_log.DebugFormat("[WORLD MAP]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
+            //m_log.DebugFormat("[WORLD MAP]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
             caps.RegisterHandler("MapLayer",
                                  new RestStreamHandler("POST", capsBase + m_mapLayerPath,
@@ -286,7 +286,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         {
             if (threadrunning) return;
             threadrunning = true;
-            m_log.Warn("[WORLD MAP]: Starting remote MapItem request thread");
+            m_log.Debug("[WORLD MAP]: Starting remote MapItem request thread");
             mapItemReqThread = new Thread(new ThreadStart(process));
             mapItemReqThread.IsBackground = true;
             mapItemReqThread.Name = "MapItemRequestThread";
@@ -419,7 +419,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             }
             
             threadrunning = false;
-            m_log.Debug("[WORLD MAP]: Remote request thread exiting");
         }
 
         /// <summary>
@@ -557,7 +556,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                         if (!m_blacklistedregions.ContainsKey(regionhandle))
                             m_blacklistedregions.Add(regionhandle, System.Environment.TickCount);
                     }
-                    m_log.WarnFormat("[WORLD MAP]: Blacklisted region {0}", regionhandle.ToString());
+                    m_log.InfoFormat("[WORLD MAP]: Blacklisted region {0}", regionhandle.ToString());
                 }
             }
 
@@ -606,7 +605,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             }
             catch (WebException ex)
             {
-                m_log.InfoFormat("[WORLD MAP]: Bad send on GetMapItems {0}", ex.Message);
+                m_log.WarnFormat("[WORLD MAP]: Bad send on GetMapItems {0}", ex.Message);
                 responseMap["connect"] = OSD.FromBoolean(false);
                 lock (m_blacklistedurls)
                 {
@@ -716,7 +715,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         public Hashtable OnHTTPGetMapImage(Hashtable keysvals)
         {
-            m_log.Info("[WORLD MAP]: Sending map image jpeg");
+            m_log.Debug("[WORLD MAP]: Sending map image jpeg");
             Hashtable reply = new Hashtable();
             int statuscode = 200;
             byte[] jpeg = new byte[0];
@@ -857,8 +856,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             // You may ask, why this is in a threadpool to start with..   
             // The reason is so we don't cause the thread to freeze waiting 
             // for the 1 second it costs to start a thread manually.
-            
-            m_log.Warn("[WORLD MAP]: MakeRootAgent Works!");
             if (!threadrunning)
                 ThreadPool.QueueUserWorkItem(new WaitCallback(this.StartThread));
 

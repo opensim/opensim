@@ -505,7 +505,6 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_knownChildRegions; }
             set 
             {
-                //Console.WriteLine(" !! Setting known regions in {0} to {1}", Scene.RegionInfo.RegionName, value.Count);
                 m_knownChildRegions = value; 
             }
         }
@@ -587,8 +586,6 @@ namespace OpenSim.Region.Environment.Scenes
             CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid);
             if (userInfo != null)
                 userInfo.OnItemReceived += ItemReceived;
-
-            m_log.Info("[AVATAR]: New ScenePresence in " + Scene.RegionInfo.RegionName);
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,
@@ -803,7 +800,7 @@ namespace OpenSim.Region.Environment.Scenes
                 "[SCENE]: Upgrading child to root agent for {0} in {1}",
                 Name, m_scene.RegionInfo.RegionName);
 
-            m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
+            //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
@@ -2172,9 +2169,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="client"></param>
         public void SendWearables()
-        {
-            m_log.DebugFormat("[APPEARANCE]: Sending wearables to {0}", Name);
-            
+        {   
             ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 
@@ -2183,8 +2178,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendAppearanceToAllOtherAgents()
         {
-            m_log.DebugFormat("[APPEARANCE]: Sending appearance to all other agents for {0}", Name);
-            
             m_perfMonMS = System.Environment.TickCount;
 
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
@@ -2215,8 +2208,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="visualParam"></param>
         public void SetAppearance(byte[] texture, List<byte> visualParam)
         {
-            m_log.DebugFormat("[APPEARANCE]: Receiving appearance for {0}", Name);
-            
             m_appearance.SetAppearance(texture, visualParam);
             SetHeight(m_appearance.AvatarHeight);
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
@@ -2232,8 +2223,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
         {
-            m_log.DebugFormat("[APPEARANCE]: Setting wearable for {0}", Name);
-            
             m_appearance.SetWearable(wearableId, wearable);
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
             m_controllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
@@ -2466,8 +2455,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     IEventQueue eq = m_scene.RequestModuleInterface<IEventQueue>();
                     if (eq != null)
-                    {
-                        
+                    {                        
                         OSD Item = EventQueueHelper.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                     capsPath, UUID, ControllingClient.SessionId);
                         eq.Enqueue(Item, UUID);

@@ -622,12 +622,12 @@ namespace OpenSim.Region.Communications.OGS1
 
             if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
             {
-                m_log.Debug("[CLIENT]: Child agent detected");
+                //m_log.Debug("[CLIENT]: Child agent detected");
                 agentData.child = true;
             }
             else
             {
-                m_log.Debug("[CLIENT]: Main agent detected");
+                //m_log.Debug("[CLIENT]: Main agent detected");
                 agentData.startpos =
                     new Vector3((float)Convert.ToDecimal((string)requestData["startpos_x"]),
                                   (float)Convert.ToDecimal((string)requestData["startpos_y"]),

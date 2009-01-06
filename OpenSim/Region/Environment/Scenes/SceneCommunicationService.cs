@@ -355,8 +355,6 @@ namespace OpenSim.Region.Environment.Scenes
             neighbours =
                 m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
 
-            m_log.Debug("[SCM]: EnableChildAgents from " + avatar.Scene.RegionInfo.RegionName);
-
             /// We need to find the difference between the new regions where there are no child agents
             /// and the regions where there are already child agents. We only send notification to the former.
             List<ulong> neighbourHandles = NeighbourHandles(neighbours); // on this region

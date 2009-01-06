@@ -37,7 +37,6 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class WindModule : IWindModule
     {
-
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private int m_frame = 0;
@@ -46,40 +45,14 @@ namespace OpenSim.Region.Environment.Modules
         private Scene m_scene = null;
         private bool ready = false;
         private Vector2[] windSpeeds = new Vector2[16 * 16];
-
         private Dictionary<UUID, ulong> m_rootAgents = new Dictionary<UUID, ulong>();
-
-        // Current time in elpased seconds since Jan 1st 1970
-  
-      
+     
         public void Initialise(Scene scene, IConfigSource config)
         {
-            m_log.Debug("[WIND] Initializing");
-
             m_scene = scene;
-
             m_frame = 0;
 
-
-
-            // Align ticks with Second Life
-
-
-
-            // Just in case they don't have the stanzas
-            try
-            {
-                
-            }
-            catch (Exception e)
-            {
-                m_log.Debug("[WIND] Configuration access failed, using defaults. Reason: " + e.Message);
-                
-            }
-
-            
-            scene.EventManager.OnFrame += WindUpdate;
-            
+            scene.EventManager.OnFrame += WindUpdate;            
             scene.EventManager.OnMakeChildAgent += MakeChildAgent;
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
             scene.EventManager.OnClientClosed += ClientLoggedOut;
@@ -88,9 +61,6 @@ namespace OpenSim.Region.Environment.Modules
             GenWindPos();
 
             ready = true;
-
-
-            
         }
 
         public void PostInitialise()
@@ -125,13 +95,12 @@ namespace OpenSim.Region.Environment.Modules
 
         public void WindToClient(IClientAPI client)
         {
-                if (ready)
-                {
-                    //if (!sunFixed)
-                        //GenWindPos();    // Generate shared values once
-                    client.SendWindData(windSpeeds);
-                    m_log.Debug("[WIND] Initial update for new client");
-                }
+            if (ready)
+            {
+                //if (!sunFixed)
+                    //GenWindPos();    // Generate shared values once
+                client.SendWindData(windSpeeds);
+            }
         }
 
         public void WindUpdate()
@@ -199,7 +168,6 @@ namespace OpenSim.Region.Environment.Modules
                 if (m_rootAgents.ContainsKey(AgentId))
                 {
                     m_rootAgents.Remove(AgentId);
-                    m_log.Info("[WIND]: Removing " + AgentId + ". Agent logged out.");
                 }
             }
         }

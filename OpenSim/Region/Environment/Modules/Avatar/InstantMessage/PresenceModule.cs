@@ -245,7 +245,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         // Triggered when the user logs off.
         public void OnLogout(IClientAPI client)
         {
-            m_log.DebugFormat("[PRESENCE]: Got OnLogout from {0}", client.Name);
             if (!(client.Scene is Scene))
                 return;
             Scene scene = (Scene)client.Scene;
@@ -343,12 +342,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 Hashtable responseData = (Hashtable)resp.Value;
                 if (responseData == null || (!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
                 {
-                    m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region startup for region {0}", scene.RegionInfo.RegionName);
+                    m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of region startup for region {0}", scene.RegionInfo.RegionName);
                 }
             }
             catch (System.Net.WebException)
             {
-                m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region startup for region {0}", scene.RegionInfo.RegionName);
+                m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of region startup for region {0}", scene.RegionInfo.RegionName);
             }
         }
 
@@ -366,12 +365,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 Hashtable responseData = (Hashtable)resp.Value;
                 if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
                 {
-                    m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region shutdown for region {0}", scene.RegionInfo.RegionName);
+                    m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of region shutdown for region {0}", scene.RegionInfo.RegionName);
                 }
             }
             catch (System.Net.WebException)
             {
-                m_log.ErrorFormat("[PRESENCE] Failed to notify message server of region shutdown for region {0}", scene.RegionInfo.RegionName);
+                m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of region shutdown for region {0}", scene.RegionInfo.RegionName);
             }
         }
 
@@ -391,12 +390,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 Hashtable responseData = (Hashtable)resp.Value;
                 if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
                 {
-                    m_log.ErrorFormat("[PRESENCE] Failed to notify message server of agent location for {0}", agentID.ToString());
+                    m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of agent location for {0}", agentID.ToString());
                 }
             }
             catch (System.Net.WebException)
             {
-                m_log.ErrorFormat("[PRESENCE] Failed to notify message server of agent location for {0}", agentID.ToString());
+                m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of agent location for {0}", agentID.ToString());
             }
         }
 
@@ -416,12 +415,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 Hashtable responseData = (Hashtable)resp.Value;
                 if ((!responseData.ContainsKey("success")) || (string)responseData["success"] != "TRUE")
                 {
-                    m_log.ErrorFormat("[PRESENCE] Failed to notify message server of agent leaving for {0}", agentID.ToString());
+                    m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of agent leaving for {0}", agentID.ToString());
                 }
             }
             catch (System.Net.WebException)
             {
-                m_log.ErrorFormat("[PRESENCE] Failed to notify message server of agent leaving for {0}", agentID.ToString());
+                m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of agent leaving for {0}", agentID.ToString());
             }
         }
     }

@@ -534,8 +534,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientPingTimer.Enabled = false;
 
             m_log.DebugFormat(
-                "[CLIENT]: Close has been called with shutdownCircuit = {0} on scene {1}",
-                shutdownCircuit, m_scene.RegionInfo.RegionName);
+                "[CLIENT]: Close has been called with shutdownCircuit = {0} for {1} attached to scene {2}",
+                shutdownCircuit, Name, m_scene.RegionInfo.RegionName);
 
             m_PacketHandler.Flush();
 
@@ -724,7 +724,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void ClientLoop()
         {
             m_log.DebugFormat(
-                "[CLIENT]: Entered main packet processing loop for {0} {1}", FirstName, LastName);
+                "[CLIENT]: Entered main packet processing loop for {0} in {1}", Name, Scene.RegionInfo.RegionName);
 
             while (IsActive)
             {
@@ -3807,7 +3807,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns></returns>
         protected virtual bool Logout(IClientAPI client)
         {
-            m_log.Info("[CLIENT]: Got a logout request");
+            m_log.InfoFormat("[CLIENT]: Got a logout request for {0} in {1}", Name, Scene.RegionInfo.RegionName);
 
             handlerLogout = OnLogout;
 
@@ -4419,8 +4419,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (handlerRequestWearables != null)
                     {
-                        m_log.DebugFormat("[APPEARANCE]: Wearables requested by {0}", Name);
-                        
                         handlerRequestWearables();
                     }
 
