@@ -79,7 +79,7 @@ namespace OpenSim.Region.UserStatistics
             lock (dbConn)
             {
                 string sql =
-                    "SELECT distinct a.name_f, a.name_l, a.Agent_ID, b.Session_ID, b.client_version, b.last_updated FROM stats_session_data a LEFT OUTER JOIN stats_session_data b ON a.Agent_ID = b.Agent_ID";
+                    "SELECT distinct a.name_f, a.name_l, a.Agent_ID, b.Session_ID, b.client_version, b.last_updated, b.start_time FROM stats_session_data a LEFT OUTER JOIN stats_session_data b ON a.Agent_ID = b.Agent_ID";
 
                 if (puserUUID.Length > 0)
                 {
@@ -136,6 +136,7 @@ namespace OpenSim.Region.UserStatistics
                         ShortSessionData ssd = new ShortSessionData();
                         
                         ssd.last_update = Utils.UnixTimeToDateTime((uint)Convert.ToInt32(sdr["last_updated"]));
+                        ssd.start_time = Utils.UnixTimeToDateTime((uint)Convert.ToInt32(sdr["start_time"]));
                         ssd.session_id = UUID.Parse(sdr["session_id"].ToString());
                         ssd.client_version = sdr["client_version"].ToString();
                         activeSessionList.sessions.Add(ssd);
@@ -192,13 +193,16 @@ TD.align_top { vertical-align: top; }
             output.Append("SessionEnd");
             HTMLUtil.TD_C(ref output);
             HTMLUtil.TD_O(ref output, "header");
+            output.Append("SessionLength");
+            HTMLUtil.TD_C(ref output);
+            HTMLUtil.TD_O(ref output, "header");
             output.Append("Client");
             HTMLUtil.TD_C(ref output);
             HTMLUtil.TR_C(ref output);
             if (lstSession.Count == 0)
             {
                 HTMLUtil.TR_O(ref output, "");
-                HTMLUtil.TD_O(ref output, "align_top", 1, 4);
+                HTMLUtil.TD_O(ref output, "align_top", 1, 5);
                 output.Append("No results for that query");
                 HTMLUtil.TD_C(ref output);
                 HTMLUtil.TR_C(ref output);
@@ -224,13 +228,31 @@ TD.align_top { vertical-align: top; }
                     output.Append(sesdata.last_update.ToShortTimeString());
                     HTMLUtil.TD_C(ref output);
                     HTMLUtil.TD_O(ref output, "content");
+                    TimeSpan dtlength = sesdata.last_update.Subtract(sesdata.start_time);
+                    if (dtlength.Days > 0)
+                    {
+                        output.Append(dtlength.Days);
+                        output.Append(" Days ");
+                    }
+                    if (dtlength.Hours > 0)
+                    {
+                        output.Append(dtlength.Hours);
+                        output.Append(" Hours ");
+                    }
+                    if (dtlength.Minutes > 0)
+                    {
+                        output.Append(dtlength.Minutes);
+                        output.Append(" Minutes");
+                    }
+                    HTMLUtil.TD_C(ref output);
+                    HTMLUtil.TD_O(ref output, "content");
                     output.Append(sesdata.client_version);
                     HTMLUtil.TD_C(ref output);
                     HTMLUtil.TR_C(ref output);
                     
                 }
                 HTMLUtil.TR_O(ref output, "");
-                HTMLUtil.TD_O(ref output, "align_top", 1, 4);
+                HTMLUtil.TD_O(ref output, "align_top", 1, 5);
                 HTMLUtil.HR(ref output, "");
                 HTMLUtil.TD_C(ref output);
                 HTMLUtil.TR_C(ref output);
@@ -253,6 +275,7 @@ TD.align_top { vertical-align: top; }
             public UUID session_id;
             public string client_version;
             public DateTime last_update;
+            public DateTime start_time;
         }
 
         #endregion
