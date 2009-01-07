@@ -37,7 +37,8 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class WindModule : IWindModule
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly log4net.ILog m_log 
+//            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private int m_frame = 0;
         private int m_frame_mod = 150;
