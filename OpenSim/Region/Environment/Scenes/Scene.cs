@@ -414,7 +414,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected virtual void RegisterDefaultSceneEvents()
         {
-            m_eventManager.OnPermissionError += SendPermissionAlert;
+            IDialogModule dm = RequestModuleInterface<IDialogModule>();
+            
+            if (dm != null)
+                m_eventManager.OnPermissionError += dm.SendAlertToUser;
         }
 
         public override string GetSimulatorVersion()
@@ -3429,11 +3432,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Alert Methods
 
-        private void SendPermissionAlert(UUID user, string reason)
-        {
-            SendAlertToUser(user, reason, false);
-        }
-
         /// <summary>
         /// Send an alert messages to all avatars in this scene.
         /// </summary>
@@ -3446,23 +3444,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (!presence.IsChildAgent)
                     presence.ControllingClient.SendAlertMessage(message);
-            }
-        }
-
-        /// <summary>
-        /// Send an alert message to a particular agent.
-        /// </summary>
-        /// <param name="agentID"></param>
-        /// <param name="message"></param>
-        /// <param name="modal"></param>
-        public void SendAlertToUser(UUID agentID, string message, bool modal)
-        {
-            lock (m_scenePresences)
-            {
-                if (m_scenePresences.ContainsKey(agentID))
-                {
-                    m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage(message, modal);
-                }
             }
         }
 
@@ -3626,27 +3607,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
-        /// </summary>
-        /// <param name="firstName"></param>
-        /// <param name="lastName"></param>
-        /// <param name="message"></param>
-        /// <param name="modal"></param>
-        public void SendAlertToUser(string firstName, string lastName, string message, bool modal)
-        {
-            List<ScenePresence> presenceList = GetScenePresences();
-
-            foreach (ScenePresence presence in presenceList)
-            {
-                if (presence.Firstname == firstName && presence.Lastname == lastName)
-                {
-                    presence.ControllingClient.SendAgentAlertMessage(message, modal);
-                    break;
-                }
-            }
-        }
-
-        /// <summary>
         /// Handle an alert command from the console.
         /// FIXME: Command parsing code really shouldn't be in this core Scene class.
         /// </summary>
@@ -3660,8 +3620,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                string message = CombineParams(commandParams, 2);
-                SendAlertToUser(commandParams[0], commandParams[1], message, false);
+                IDialogModule dm = RequestModuleInterface<IDialogModule>();
+                
+                if (dm != null)     
+                {
+                    string message = CombineParams(commandParams, 2);
+                    dm.SendAlertToUser(commandParams[0], commandParams[1], message, false);
+                }
             }
         }
 
