@@ -837,7 +837,11 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal ScenePresence GetScenePresence(UUID agentID)
         {
             ScenePresence sp;
-            ScenePresences.TryGetValue(agentID, out sp);
+            
+            lock (ScenePresences)
+            {                
+                ScenePresences.TryGetValue(agentID, out sp);
+            }
 
             return sp;
         }
@@ -968,22 +972,26 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal bool TryGetAvatar(UUID avatarId, out ScenePresence avatar)
         {
             ScenePresence presence;
-            if (ScenePresences.TryGetValue(avatarId, out presence))
+            
+            lock (ScenePresences)
             {
-                avatar = presence;
-                return true;
+                if (ScenePresences.TryGetValue(avatarId, out presence))
+                {
+                    avatar = presence;
+                    return true;
 
-                //if (!presence.IsChildAgent)
-                //{
-                //    avatar = presence;
-                //    return true;
-                //}
-                //else
-                //{
-                //    m_log.WarnFormat(
-                //        "[INNER SCENE]: Requested avatar {0} could not be found in scene {1} since it is only registered as a child agent!",
-                //        avatarId, m_parentScene.RegionInfo.RegionName);
-                //}
+                    //if (!presence.IsChildAgent)
+                    //{
+                    //    avatar = presence;
+                    //    return true;
+                    //}
+                    //else
+                    //{
+                    //    m_log.WarnFormat(
+                    //        "[INNER SCENE]: Requested avatar {0} could not be found in scene {1} since it is only registered as a child agent!",
+                    //        avatarId, m_parentScene.RegionInfo.RegionName);
+                    //}
+                }
             }
 
             avatar = null;
@@ -1477,13 +1485,13 @@ namespace OpenSim.Region.Environment.Scenes
 
             // We need to explicitly resend the newly link prim's object properties since no other actions
             // occur on link to invoke this elsewhere (such as object selection)
-           parenPrim.RootPart.AddFlag(PrimFlags.CreateSelected);
+            parenPrim.RootPart.AddFlag(PrimFlags.CreateSelected);
             parenPrim.TriggerScriptChangedEvent(Changed.LINK);
             if (client != null)
                 parenPrim.GetProperties(client);
             else
             {
-                foreach (ScenePresence p in ScenePresences.Values)
+                foreach (ScenePresence p in GetScenePresences())
                 {
                     parenPrim.GetProperties(p.ControllingClient);
                 }
