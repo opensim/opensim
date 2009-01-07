@@ -141,7 +141,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public IXfer XferManager;
 
-        protected IHttpRequests m_httpRequestModule;
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
@@ -766,7 +765,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SetModuleInterfaces()
         {
-            m_httpRequestModule = RequestModuleInterface<IHttpRequests>();
             m_xmlrpcModule = RequestModuleInterface<IXMLRPC>();
             m_worldCommModule = RequestModuleInterface<IWorldComm>();
             XferManager = RequestModuleInterface<IXfer>();
@@ -3385,22 +3383,6 @@ namespace OpenSim.Region.Environment.Scenes
                         objectName, objectID, ownerID, message, TextureID, ch, buttonlabels);
                 }
             }
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="url"></param>
-        /// <param name="type"></param>
-        /// <param name="body"></param>
-        /// <returns></returns>
-        public UUID MakeHttpRequest(string url, string type, string body)
-        {
-            if (m_httpRequestModule != null)
-            {
-                return m_httpRequestModule.MakeHttpRequest(url, type, body);
-            }
-            return UUID.Zero;
         }
 
         public virtual void StoreAddFriendship(UUID ownerID, UUID friendID, uint perms)
