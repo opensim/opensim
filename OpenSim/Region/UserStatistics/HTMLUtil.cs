@@ -208,5 +208,33 @@ namespace OpenSim.Region.UserStatistics
             o.Append("</HEAD>");
             o.Append("<BODY>");
         }
+
+        public static void AddReportLinks( ref StringBuilder o, Dictionary<string, IStatsController> reports, string pClass)
+        {
+            int repcount = 0;
+            foreach (string str in reports.Keys)
+            {
+                if (reports[str].ReportName.Length > 0)
+                {
+                    if (repcount > 0)
+                    {
+                        o.Append("|&nbsp;&nbsp;");
+                    }
+
+                    o.Append("<A");
+                    if (pClass.Length > 0)
+                    {
+                        GenericClass(ref o, pClass);
+                        
+                    }
+                    o.Append(" href=\"");
+                    o.Append(str);
+                    o.Append("\">");
+                    o.Append(reports[str].ReportName);
+                    o.Append("</A>&nbsp;&nbsp;");
+                    repcount++;
+                }
+            }
+        }
     }
 }

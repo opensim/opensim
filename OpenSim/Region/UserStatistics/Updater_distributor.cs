@@ -38,6 +38,10 @@ namespace OpenSim.Region.UserStatistics
     {
         private string updaterjs = string.Empty;
 
+        public string ReportName
+        {
+            get { return ""; }
+        }
 
         public Hashtable ProcessModel(Hashtable pParams)
         {

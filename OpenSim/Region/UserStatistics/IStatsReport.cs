@@ -31,6 +31,7 @@ namespace OpenSim.Region.UserStatistics
 {
     public interface IStatsController
     {
+        string ReportName { get; }
         Hashtable ProcessModel(Hashtable pParams);
         string RenderView(Hashtable pModelResult);
     }

@@ -105,13 +105,15 @@ namespace OpenSim.Region.UserStatistics
                     ActiveConnectionsAJAX ajConnections = new ActiveConnectionsAJAX();
                     SimStatsAJAX ajSimStats = new SimStatsAJAX();
                     LogLinesAJAX ajLogLines = new LogLinesAJAX();
+                    Clients_report clientReport = new Clients_report();
+
                     reports.Add("", rep);
-                    reports.Add("index.aspx", rep);
                     reports.Add("prototype.js", protodep);
                     reports.Add("updater.js", updatedep);
                     reports.Add("activeconnectionsajax.ajax", ajConnections);
                     reports.Add("simstatsajax.ajax", ajSimStats);
                     reports.Add("activelogajax.ajax", ajLogLines);
+                    reports.Add("clients.report", clientReport);
 
                     scene.CommsManager.HttpServer.AddHTTPHandler("/SStats/", HandleStatsRequest);
                     scene.CommsManager.HttpServer.AddHTTPHandler("/CAPS/VS/", HandleUnknownCAPSRequest);
@@ -192,6 +194,7 @@ namespace OpenSim.Region.UserStatistics
                 repParams["Scenes"] = m_scene;
                 repParams["SimStats"] = m_simstatsCounters;
                 repParams["LogLines"] = m_loglines;
+                repParams["Reports"] = reports;
                 
                 concurrencyCounter++;
 

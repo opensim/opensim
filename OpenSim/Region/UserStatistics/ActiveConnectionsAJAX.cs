@@ -39,9 +39,15 @@ namespace OpenSim.Region.UserStatistics
 {
     public class ActiveConnectionsAJAX : IStatsController
     {
+        private Vector3 DefaultNeighborPosition = new Vector3(128, 128, 70);
+
         #region IStatsController Members
 
-        private Vector3 DefaultNeighborPosition = new Vector3(128, 128, 70);
+        public string ReportName
+        {
+            get { return ""; }
+        }
+
         public Hashtable ProcessModel(Hashtable pParams)
         {
             

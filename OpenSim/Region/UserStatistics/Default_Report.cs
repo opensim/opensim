@@ -41,9 +41,9 @@ namespace OpenSim.Region.UserStatistics
     public class Default_Report : IStatsController
     {
 
-        public Default_Report()
+        public string ReportName
         {
-
+            get { return "Home"; }
         }
 
         #region IStatsController Members
@@ -55,9 +55,11 @@ namespace OpenSim.Region.UserStatistics
 
             stats_default_page_values mData = rep_DefaultReport_data(conn, m_scene);
             mData.sim_stat_data = (Dictionary<UUID,USimStatsData>)pParams["SimStats"];
+            mData.stats_reports = (Dictionary<string, IStatsController>) pParams["Reports"];
 
             Hashtable nh = new Hashtable();
             nh.Add("hdata", mData);
+            nh.Add("Reports", pParams["Reports"]);
             
             return nh;
         }
@@ -73,6 +75,7 @@ namespace OpenSim.Region.UserStatistics
         public string rep_Default_report_view(stats_default_page_values values)
         {
 
+            
             StringBuilder output = new StringBuilder();
 
 
@@ -123,7 +126,7 @@ TD.align_top { vertical-align: top; }
             
             output.Append(STYLESHEET);
             HTMLUtil.HtmlHeaders_C(ref output);
-            
+            HTMLUtil.AddReportLinks(ref output, values.stats_reports, "");
             HTMLUtil.TABLE_O(ref output, TableClass);
             HTMLUtil.TR_O(ref output, TRClass);
             HTMLUtil.TD_O(ref output, TDHeaderClass);
@@ -242,5 +245,6 @@ TD.align_top { vertical-align: top; }
         public float avg_client_resends;
         public Scene[] all_scenes;
         public Dictionary<UUID, USimStatsData> sim_stat_data;
+        public Dictionary<string, IStatsController> stats_reports;
     }
 }
