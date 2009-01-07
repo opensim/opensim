@@ -245,7 +245,7 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
+                Dictionary<string, object> param = new Dictionary<string, object>();
                     param["?xmin"] = xmin.ToString();
                     param["?ymin"] = ymin.ToString();
                     param["?xmax"] = xmax.ToString();
@@ -294,7 +294,7 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
+                Dictionary<string, object> param = new Dictionary<string, object>();
                 param["?name"] = namePrefix + "%";
 
                 IDbCommand result =
@@ -339,7 +339,7 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
+                Dictionary<string, object> param = new Dictionary<string, object>();
                     param["?handle"] = handle.ToString();
 
                     IDbCommand result = dbm.Manager.Query("SELECT * FROM regions WHERE regionHandle = ?handle", param);
@@ -374,7 +374,7 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
+                Dictionary<string, object> param = new Dictionary<string, object>();
                     param["?uuid"] = uuid.ToString();
 
                     IDbCommand result = dbm.Manager.Query("SELECT * FROM regions WHERE uuid = ?uuid", param);
@@ -409,7 +409,7 @@ namespace OpenSim.Data.MySQL
 
                 try
                 {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    Dictionary<string, object> param = new Dictionary<string, object>();
                     // Add % because this is a like query.
                     param["?regionName"] = regionName + "%";
                     // Order by statement will return shorter matches first.  Only returns one record or no record.
@@ -546,7 +546,7 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
+                Dictionary<string, object> param = new Dictionary<string, object>();
                     param["?x"] = x.ToString();
                     param["?y"] = y.ToString();
                     IDbCommand result =

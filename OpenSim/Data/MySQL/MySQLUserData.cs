@@ -176,7 +176,7 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
+                Dictionary<string, object> param = new Dictionary<string, object>();
                 param["?first"] = user;
                 param["?second"] = last;
 
@@ -209,7 +209,7 @@ namespace OpenSim.Data.MySQL
         {
             int dtvalue = Util.UnixTimeSinceEpoch();
 
-            Dictionary<string, string> param = new Dictionary<string, string>();
+            Dictionary<string, object> param = new Dictionary<string, object>();
             param["?ownerID"] = friendlistowner.ToString();
             param["?friendID"] = friend.ToString();
             param["?friendPerms"] = perms.ToString();
@@ -251,7 +251,7 @@ namespace OpenSim.Data.MySQL
 
         public override void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
-            Dictionary<string, string> param = new Dictionary<string, string>();
+            Dictionary<string, object> param = new Dictionary<string, object>();
             param["?ownerID"] = friendlistowner.ToString();
             param["?friendID"] = friend.ToString();
 
@@ -285,7 +285,7 @@ namespace OpenSim.Data.MySQL
 
         public override void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
-            Dictionary<string, string> param = new Dictionary<string, string>();
+            Dictionary<string, object> param = new Dictionary<string, object>();
             param["?ownerID"] = friendlistowner.ToString();
             param["?friendID"] = friend.ToString();
             param["?friendPerms"] = perms.ToString();
@@ -318,7 +318,7 @@ namespace OpenSim.Data.MySQL
         {
             List<FriendListItem> Lfli = new List<FriendListItem>();
 
-            Dictionary<string, string> param = new Dictionary<string, string>();
+            Dictionary<string, object> param = new Dictionary<string, object>();
             param["?ownerID"] = friendlistowner.ToString();
 
             MySQLSuperManager dbm = GetLockedConnection("GetUserFriendList");
@@ -373,7 +373,7 @@ namespace OpenSim.Data.MySQL
             {
                 foreach (UUID uuid in uuids)
                 {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    Dictionary<string, object> param = new Dictionary<string, object>();
                     param["?uuid"] = uuid.ToString();
                     IDbCommand result =
                         dbm.Manager.Query("select agentOnline,currentHandle from " + m_agentsTableName +
@@ -419,7 +419,7 @@ namespace OpenSim.Data.MySQL
             querysplit = query.Split(' ');
             if (querysplit.Length > 1 && querysplit[1].Trim() != String.Empty)
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
+                Dictionary<string, object> param = new Dictionary<string, object>();
                 param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], String.Empty) + "%";
                 param["?second"] = objAlphaNumericPattern.Replace(querysplit[1], String.Empty) + "%";
                 MySQLSuperManager dbm = GetLockedConnection("GeneratePickerResults");
@@ -461,7 +461,7 @@ namespace OpenSim.Data.MySQL
 
                 try
                 {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    Dictionary<string, object> param = new Dictionary<string, object>();
                     param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], String.Empty) + "%";
 
                     IDbCommand result =
@@ -506,7 +506,7 @@ namespace OpenSim.Data.MySQL
             MySQLSuperManager dbm = GetLockedConnection("GetUserByUUID");
             try
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
+                Dictionary<string, object> param = new Dictionary<string, object>();
                 param["?uuid"] = uuid.ToString();
 
                 IDbCommand result = dbm.Manager.Query("SELECT * FROM " + m_usersTableName + " WHERE UUID = ?uuid", param);
@@ -596,7 +596,7 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
+                Dictionary<string, object> param = new Dictionary<string, object>();
                 param["?uuid"] = uuid.ToString();
 
                 IDbCommand result = dbm.Manager.Query("SELECT * FROM " + m_agentsTableName + " WHERE UUID = ?uuid",
@@ -744,7 +744,7 @@ namespace OpenSim.Data.MySQL
             MySQLSuperManager dbm = GetLockedConnection("GetUserAppearance");
             try
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
+                Dictionary<string, object> param = new Dictionary<string, object>();
                 param["?owner"] = user.ToString();
 
                 IDbCommand result = dbm.Manager.Query(
@@ -825,7 +825,7 @@ namespace OpenSim.Data.MySQL
 
         public Hashtable GetUserAttachments(UUID agentID)
         {
-            Dictionary<string, string> param = new Dictionary<string, string>();
+            Dictionary<string, object> param = new Dictionary<string, object>();
             param["?uuid"] = agentID.ToString();
 
             MySQLSuperManager dbm = GetLockedConnection("GetUserAttachments");

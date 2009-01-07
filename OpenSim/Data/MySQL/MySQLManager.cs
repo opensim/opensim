@@ -340,7 +340,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="sql">The SQL string - replace any variables such as WHERE x = "y" with WHERE x = @y</param>
         /// <param name="parameters">The parameters - index so that @y is indexed as 'y'</param>
         /// <returns>A MySQL DB Command</returns>
-        public IDbCommand Query(string sql, Dictionary<string, string> parameters)
+        public IDbCommand Query(string sql, Dictionary<string, object> parameters)
         {
             try
             {
@@ -348,7 +348,7 @@ namespace OpenSim.Data.MySQL
 
                 MySqlCommand dbcommand = (MySqlCommand) dbcon.CreateCommand();
                 dbcommand.CommandText = sql;
-                foreach (KeyValuePair<string, string> param in parameters)
+                foreach (KeyValuePair<string, object> param in parameters)
                 {
                     dbcommand.Parameters.AddWithValue(param.Key, param.Value);
                 }
@@ -714,7 +714,7 @@ namespace OpenSim.Data.MySQL
             string sql = "INSERT INTO logs (`target`, `server`, `method`, `arguments`, `priority`, `message`) VALUES ";
             sql += "(?target, ?server, ?method, ?arguments, ?priority, ?message)";
 
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["?server"] = serverDaemon;
             parameters["?target"] = target;
             parameters["?method"] = methodCall;
@@ -793,34 +793,34 @@ namespace OpenSim.Data.MySQL
                 "?lastLogin, ?userInventoryURI, ?userAssetURI, ?profileCanDoMask, ?profileWantDoMask, ?profileAboutText, ";
             sql += "?profileFirstText, ?profileImage, ?profileFirstImage, ?webLoginKey, ?userFlags, ?godLevel, ?customType, ?partner)";
 
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["?UUID"] = uuid.ToString();
             parameters["?username"] = username;
             parameters["?lastname"] = lastname;
             parameters["?email"] = email;
             parameters["?passwordHash"] = passwordHash;
             parameters["?passwordSalt"] = passwordSalt;
-            parameters["?homeRegion"] = homeRegion.ToString();
+            parameters["?homeRegion"] = homeRegion;
             parameters["?homeRegionID"] = homeRegionID.ToString();
-            parameters["?homeLocationX"] = homeLocX.ToString();
-            parameters["?homeLocationY"] = homeLocY.ToString();
-            parameters["?homeLocationZ"] = homeLocZ.ToString();
-            parameters["?homeLookAtX"] = homeLookAtX.ToString();
-            parameters["?homeLookAtY"] = homeLookAtY.ToString();
-            parameters["?homeLookAtZ"] = homeLookAtZ.ToString();
-            parameters["?created"] = created.ToString();
-            parameters["?lastLogin"] = lastlogin.ToString();
+            parameters["?homeLocationX"] = homeLocX;
+            parameters["?homeLocationY"] = homeLocY;
+            parameters["?homeLocationZ"] = homeLocZ;
+            parameters["?homeLookAtX"] = homeLookAtX;
+            parameters["?homeLookAtY"] = homeLookAtY;
+            parameters["?homeLookAtZ"] = homeLookAtZ;
+            parameters["?created"] = created;
+            parameters["?lastLogin"] = lastlogin;
             parameters["?userInventoryURI"] = inventoryURI;
             parameters["?userAssetURI"] = assetURI;
-            parameters["?profileCanDoMask"] = canDoMask.ToString();
-            parameters["?profileWantDoMask"] = wantDoMask.ToString();
+            parameters["?profileCanDoMask"] = canDoMask;
+            parameters["?profileWantDoMask"] = wantDoMask;
             parameters["?profileAboutText"] = aboutText;
             parameters["?profileFirstText"] = firstText;
             parameters["?profileImage"] = profileImage.ToString();
             parameters["?profileFirstImage"] = firstImage.ToString();
             parameters["?webLoginKey"] = webLoginKey.ToString();
-            parameters["?userFlags"] = userFlags.ToString();
-            parameters["?godLevel"] = godLevel.ToString();
+            parameters["?userFlags"] = userFlags;
+            parameters["?godLevel"] = godLevel;
             parameters["?customType"] = customType == null ? "" : customType;
             parameters["?partner"] = partner.ToString();
             bool returnval = false;
@@ -892,35 +892,35 @@ namespace OpenSim.Data.MySQL
             sql += "`customType` = ?customType , `partner` = ?partner , ";
             sql += "`webLoginKey` = ?webLoginKey WHERE UUID = ?UUID";
 
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["?UUID"] = uuid.ToString();
             parameters["?username"] = username;
             parameters["?lastname"] = lastname;
             parameters["?email"] = email;
             parameters["?passwordHash"] = passwordHash;
             parameters["?passwordSalt"] = passwordSalt;
-            parameters["?homeRegion"] = homeRegion.ToString();
+            parameters["?homeRegion"] = homeRegion;
             parameters["?homeRegionID"] = homeRegionID.ToString();
-            parameters["?homeLocationX"] = homeLocX.ToString();
-            parameters["?homeLocationY"] = homeLocY.ToString();
-            parameters["?homeLocationZ"] = homeLocZ.ToString();
-            parameters["?homeLookAtX"] = homeLookAtX.ToString();
-            parameters["?homeLookAtY"] = homeLookAtY.ToString();
-            parameters["?homeLookAtZ"] = homeLookAtZ.ToString();
-            parameters["?created"] = created.ToString();
-            parameters["?lastLogin"] = lastlogin.ToString();
+            parameters["?homeLocationX"] = homeLocX;
+            parameters["?homeLocationY"] = homeLocY;
+            parameters["?homeLocationZ"] = homeLocZ;
+            parameters["?homeLookAtX"] = homeLookAtX;
+            parameters["?homeLookAtY"] = homeLookAtY;
+            parameters["?homeLookAtZ"] = homeLookAtZ;
+            parameters["?created"] = created;
+            parameters["?lastLogin"] = lastlogin;
             parameters["?userInventoryURI"] = inventoryURI;
             parameters["?userAssetURI"] = assetURI;
-            parameters["?profileCanDoMask"] = canDoMask.ToString();
-            parameters["?profileWantDoMask"] = wantDoMask.ToString();
+            parameters["?profileCanDoMask"] = canDoMask;
+            parameters["?profileWantDoMask"] = wantDoMask;
             parameters["?profileAboutText"] = aboutText;
             parameters["?profileFirstText"] = firstText;
             parameters["?profileImage"] = profileImage.ToString();
             parameters["?profileFirstImage"] = firstImage.ToString();
             parameters["?webLoginKey"] = webLoginKey.ToString();
-            parameters["?userFlags"] = userFlags.ToString();
-            parameters["?godLevel"] = godLevel.ToString();
-            parameters["?customType"] = customType == null ? "" : customType.ToString();
+            parameters["?userFlags"] = userFlags;
+            parameters["?godLevel"] = godLevel;
+            parameters["?customType"] = customType == null ? "" : customType;
             parameters["?partner"] = partner.ToString();
 
             bool returnval = false;
@@ -993,7 +993,7 @@ namespace OpenSim.Data.MySQL
                 sql += ";";
             }
 
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
 
             parameters["?regionHandle"] = regiondata.regionHandle.ToString();
             parameters["?regionName"] = regiondata.regionName.ToString();
@@ -1063,7 +1063,7 @@ namespace OpenSim.Data.MySQL
 
             string sql = "DELETE FROM regions WHERE uuid = ?uuid;";
 
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
 
             try
             {
@@ -1102,7 +1102,7 @@ namespace OpenSim.Data.MySQL
             sql += "REPLACE INTO ";
             sql += "agents (UUID, sessionID, secureSessionID, agentIP, agentPort, agentOnline, loginTime, logoutTime, currentRegion, currentHandle, currentPos, currentLookAt) VALUES ";
             sql += "(?UUID, ?sessionID, ?secureSessionID, ?agentIP, ?agentPort, ?agentOnline, ?loginTime, ?logoutTime, ?currentRegion, ?currentHandle, ?currentPos, ?currentLookAt);";
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
 
             parameters["?UUID"] = agentdata.ProfileID.ToString();
             parameters["?sessionID"] = agentdata.SessionID.ToString();
@@ -1114,8 +1114,8 @@ namespace OpenSim.Data.MySQL
             parameters["?logoutTime"] = agentdata.LogoutTime.ToString();
             parameters["?currentRegion"] = agentdata.Region.ToString();
             parameters["?currentHandle"] = agentdata.Handle.ToString();
-            parameters["?currentPos"] = "<" + (agentdata.Position.X).ToString() + "," + (agentdata.Position.Y).ToString() + "," + (agentdata.Position.Z).ToString() + ">";
-            parameters["?currentLookAt"] = "<" + (agentdata.LookAt.X).ToString() + "," + (agentdata.LookAt.Y).ToString() + "," + (agentdata.LookAt.Z).ToString() + ">";
+            parameters["?currentPos"] = "<" + (agentdata.Position.X).ToString().Replace(",", ".") + "," + (agentdata.Position.Y).ToString().Replace(",", ".") + "," + (agentdata.Position.Z).ToString().Replace(",", ".") + ">";
+            parameters["?currentLookAt"] = "<" + (agentdata.LookAt.X).ToString().Replace(",", ".") + "," + (agentdata.LookAt.Y).ToString().Replace(",", ".") + "," + (agentdata.LookAt.Z).ToString().Replace(",", ".") + ">";
 
             bool returnval = false;
 
