@@ -106,6 +106,7 @@ namespace OpenSim.Region.UserStatistics
                     SimStatsAJAX ajSimStats = new SimStatsAJAX();
                     LogLinesAJAX ajLogLines = new LogLinesAJAX();
                     Clients_report clientReport = new Clients_report();
+                    Sessions_Report sessionsReport = new Sessions_Report();
 
                     reports.Add("", rep);
                     reports.Add("prototype.js", protodep);
@@ -114,6 +115,18 @@ namespace OpenSim.Region.UserStatistics
                     reports.Add("simstatsajax.ajax", ajSimStats);
                     reports.Add("activelogajax.ajax", ajLogLines);
                     reports.Add("clients.report", clientReport);
+                    reports.Add("sessions.report", sessionsReport);
+
+
+
+                    ////
+                    // Add Your own Reports here (Do Not Modify Lines here Devs!)
+                    ////
+
+                    ////
+                    // End Own reports section
+                    //// 
+
 
                     scene.CommsManager.HttpServer.AddHTTPHandler("/SStats/", HandleStatsRequest);
                     scene.CommsManager.HttpServer.AddHTTPHandler("/CAPS/VS/", HandleUnknownCAPSRequest);
@@ -189,6 +202,9 @@ namespace OpenSim.Region.UserStatistics
             {
                 IStatsController rep = reports[regpath];
                 Hashtable repParams = new Hashtable();
+
+                repParams["RequestVars"] = request["requestvars"];
+                repParams["QueryStringKeys"] = request["querystringkeys"];
 
                 repParams["DatabaseConnection"] = dbConn;
                 repParams["Scenes"] = m_scene;

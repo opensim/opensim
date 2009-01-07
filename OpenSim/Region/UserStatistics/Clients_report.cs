@@ -71,6 +71,8 @@ namespace OpenSim.Region.UserStatistics
                     totalregions = Convert.ToInt32(sdr["regcnt"]);
                 }
 
+                sdr.Close();
+                sdr.Dispose();
 
                 sql =
                     "select client_version, count(*) as cnt, avg(avg_sim_fps) as simfps from stats_session_data group by client_version order by count(*) desc LIMIT 10;";
@@ -197,7 +199,8 @@ TD.align_top { vertical-align: top; }
             {
                 HTMLUtil.TR_O(ref output, "");
                 HTMLUtil.TD_O(ref output, "content");
-                output.Append(cvd.version);
+                string linkhref = "sessions.report?VersionString=" + cvd.version;
+                HTMLUtil.A(ref output, cvd.version, linkhref, "");
                 HTMLUtil.TD_C(ref output);
                 HTMLUtil.TD_O(ref output, "content");
                 output.Append(cvd.count);

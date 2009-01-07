@@ -50,10 +50,26 @@ namespace OpenSim.Region.UserStatistics
 
         public static void TD_O(ref StringBuilder o, string pclass)
         {
+            TD_O(ref o, pclass, 0, 0);
+        }
+        public static void TD_O(ref StringBuilder o, string pclass, int rowspan, int colspan)
+        {
             o.Append("<td");
             if (pclass.Length > 0)
             {
                 GenericClass(ref o, pclass);
+            }
+            if (rowspan > 1)
+            {
+                o.Append(" rowspan=\"");
+                o.Append(rowspan);
+                o.Append("\"");
+            }
+            if (colspan > 1)
+            {
+                o.Append(" colspan=\"");
+                o.Append(colspan);
+                o.Append("\"");
             }
             o.Append(">");
         }
@@ -220,21 +236,25 @@ namespace OpenSim.Region.UserStatistics
                     {
                         o.Append("|&nbsp;&nbsp;");
                     }
-
-                    o.Append("<A");
-                    if (pClass.Length > 0)
-                    {
-                        GenericClass(ref o, pClass);
-                        
-                    }
-                    o.Append(" href=\"");
-                    o.Append(str);
-                    o.Append("\">");
-                    o.Append(reports[str].ReportName);
-                    o.Append("</A>&nbsp;&nbsp;");
+                    A(ref o, reports[str].ReportName, str, pClass);
+                    o.Append("&nbsp;&nbsp;");
                     repcount++;
                 }
             }
+        }
+        public static void A( ref StringBuilder o, string linktext, string linkhref, string pClass)
+        {
+            o.Append("<A");
+            if (pClass.Length > 0)
+            {
+                GenericClass(ref o, pClass);
+            }
+            o.Append(" href=\"");
+            o.Append(linkhref);
+            o.Append("\">");
+            o.Append(linktext);
+            o.Append("</A>");
+
         }
     }
 }
