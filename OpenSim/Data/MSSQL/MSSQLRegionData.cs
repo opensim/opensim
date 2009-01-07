@@ -54,19 +54,7 @@ namespace OpenSim.Data.MSSQL
         /// The database manager
         /// </summary>
         private MSSQLManager _Database;
-
-        /// <summary>
-        /// Const for the prim store..
-        /// </summary>
-        private const string _PrimSelect = "SELECT * FROM PRIMS WHERE RegionUUID = @RegionUUID"; //" AND UUID IN (@UUID)"; //SceneGroupID LIKE @SceneGroupID OR 
-        private const string _ShapeSelect = "SELECT * FROM PRIMSHAPES WHERE UUID in (SELECT UUID FROM PRIMS WHERE RegionUUID = @RegionUUID)"; // AND UUID IN (@UUID))"; //(SceneGroupID LIKE @SceneGroupID OR 
-        private const string _ItemsSelect = "SELECT * FROM PRIMITEMS WHERE primID in (SELECT UUID FROM PRIMS WHERE RegionUUID = @RegionUUID)"; // AND UUID IN (@UUID))"; //(SceneGroupID LIKE @SceneGroupID OR 
-
-        private DataSet _PrimsDataSet;
-        private SqlDataAdapter _PrimDataAdapter;
-        private SqlDataAdapter _ShapeDataAdapter;
-        private SqlDataAdapter _ItemsDataAdapter;
-
+      
         /// <summary>
         /// Initialises the region datastore
         /// </summary>
@@ -75,7 +63,6 @@ namespace OpenSim.Data.MSSQL
         {
             if (!string.IsNullOrEmpty(connectionString))
             {
-                //Add MSSQLManager (dont know if we need it)
                 _Database = new MSSQLManager(connectionString);
             }
             else
@@ -93,66 +80,14 @@ namespace OpenSim.Data.MSSQL
             //Migration settings
             _Database.CheckMigration(_migrationStore);
 
-            using (SqlConnection connection = _Database.DatabaseConnection())
-            {
-                //Create Dataset. Not filled!!!
-                _PrimsDataSet = new DataSet("primsdata");
-
-                using (SqlCommand primSelectCmd = new SqlCommand(_PrimSelect, connection))
-                {
-                    primSelectCmd.Parameters.AddWithValue("@RegionUUID", "");
-                    _PrimDataAdapter = new SqlDataAdapter(primSelectCmd);
-
-                    DataTable primDataTable = new DataTable("prims");
-                    _PrimDataAdapter.Fill(primDataTable);
-                    primDataTable.PrimaryKey = new DataColumn[] { primDataTable.Columns["UUID"] };
-                    _PrimsDataSet.Tables.Add(primDataTable);
-
-                    SetupCommands(_PrimDataAdapter); 
-
-                    primDataTable.Clear();
-                }
-
-                using (SqlCommand shapeSelectCmd = new SqlCommand(_ShapeSelect, connection))
-                {
-                    shapeSelectCmd.Parameters.AddWithValue("@RegionUUID", "");
-                    _ShapeDataAdapter = new SqlDataAdapter(shapeSelectCmd);
-
-                    DataTable shapeDataTable = new DataTable("primshapes");
-                    _ShapeDataAdapter.Fill(shapeDataTable);
-                    shapeDataTable.PrimaryKey = new DataColumn[] { shapeDataTable.Columns["UUID"] };
-                    _PrimsDataSet.Tables.Add(shapeDataTable);
-
-                    SetupCommands(_ShapeDataAdapter); 
-
-                    shapeDataTable.Clear();
-                }
-
-                using (SqlCommand itemSelectCmd = new SqlCommand(_ItemsSelect, connection))
-                {
-                    itemSelectCmd.Parameters.AddWithValue("@RegionUUID", "");
-                    _ItemsDataAdapter = new SqlDataAdapter(itemSelectCmd);
-
-                    DataTable itemsDataTable = new DataTable("primitems");
-                    _ItemsDataAdapter.Fill(itemsDataTable);
-                    itemsDataTable.PrimaryKey = new DataColumn[] { itemsDataTable.Columns["itemID"] };
-                    _PrimsDataSet.Tables.Add(itemsDataTable);
-
-                    SetupCommands(_ItemsDataAdapter);
-
-                    itemsDataTable.Clear();
-                }
-
-                connection.Close();
-            }
-
-            //After this we have a empty fully configured DataSet.
         }
 
         /// <summary>
         /// Dispose the database
         /// </summary>
         public void Dispose() { }
+
+        #region SceneObjectGroup region for loading and Store of the scene.
 
         /// <summary>
         /// Loads the objects present in the region.
@@ -161,152 +96,117 @@ namespace OpenSim.Data.MSSQL
         /// <returns></returns>
         public List<SceneObjectGroup> LoadObjects(UUID regionUUID)
         {
-            Dictionary<UUID, SceneObjectGroup> createdObjects = new Dictionary<UUID, SceneObjectGroup>();
+            UUID lastGroupID = UUID.Zero;
 
-            //Retrieve all values of current region
-            RetrievePrimsDataForRegion(regionUUID, UUID.Zero, "");
+            List<SceneObjectPart> sceneObjectParts = new List<SceneObjectPart>();
+            List<SceneObjectGroup> sceneObjectGroups = new List<SceneObjectGroup>();
+            SceneObjectGroup grp = null;
 
-            List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
 
-            DataTable prims = _PrimsDataSet.Tables["prims"];
-            DataTable shapes = _PrimsDataSet.Tables["primshapes"];
+            string query = "SELECT *, " +
+                           "sort = CASE WHEN prims.UUID = prims.SceneGroupID THEN 0 ELSE 1 END " +
+                           "FROM prims " +
+                           "LEFT JOIN primshapes ON prims.UUID = primshapes.UUID " +
+                           "WHERE RegionUUID = @RegionUUID " +
+                           "ORDER BY SceneGroupID asc, sort asc, LinkNumber asc";
 
-            lock (_PrimsDataSet)
+            using (AutoClosingSqlCommand command = _Database.Query(query))
             {
-                DataRow[] primsForRegion = prims.Select("", "ParentID ASC"); //.Select(byRegion, orderByParent);
+                command.Parameters.Add(_Database.CreateParameter("@regionUUID", regionUUID));
 
-                _Log.Info("[REGION DB]: " + "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
-
-                foreach (DataRow primRow in primsForRegion)
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
-                    try
+                    while (reader.Read())
                     {
-                        string uuid = (string)primRow["UUID"];
-                        string objID = (string)primRow["SceneGroupID"];
+                        SceneObjectPart sceneObjectPart = BuildPrim(reader);
+                        if (reader["Shape"] is DBNull)
+                            sceneObjectPart.Shape = PrimitiveBaseShape.Default;
+                        else
+                            sceneObjectPart.Shape = BuildShape(reader);
 
-                        SceneObjectPart prim = buildPrim(primRow);
+                        sceneObjectPart.FolderID = sceneObjectPart.UUID; // A relic from when we
+                        // we thought prims contained
+                        // folder objects. In
+                        // reality, prim == folder
+                        sceneObjectParts.Add(sceneObjectPart);
 
-                        if (uuid == objID) //is new SceneObjectGroup ?
+                        UUID groupID = new UUID(reader["SceneGroupID"].ToString());
+
+                        if (groupID != lastGroupID) // New SOG
                         {
-                            SceneObjectGroup group = new SceneObjectGroup();
+                            if (grp != null)
+                                sceneObjectGroups.Add(grp);
 
-                            DataRow shapeRow = shapes.Rows.Find(prim.UUID.ToString());
-                            if (shapeRow != null)
-                            {
-                                prim.Shape = buildShape(shapeRow);
-                            }
-                            else
-                            {
-                                _Log.Info(
-                                    "No shape found for prim in storage, so setting default box shape");
-                                prim.Shape = PrimitiveBaseShape.Default;
-                            }
-                            
-                            group.SetRootPart(prim);
+                            lastGroupID = groupID;
 
-                            createdObjects.Add(group.UUID, group);
-                            retvals.Add(group);
+                            grp = new SceneObjectGroup(sceneObjectPart);
                         }
                         else
                         {
-                            DataRow shapeRow = shapes.Rows.Find(prim.UUID.ToString());
-                            if (shapeRow != null)
-                            {
-                                prim.Shape = buildShape(shapeRow);
-                            }
-                            else
-                            {
-                                _Log.Info(
-                                    "No shape found for prim in storage, so setting default box shape");
-                                prim.Shape = PrimitiveBaseShape.Default;
-                            }
-                            createdObjects[new UUID(objID)].AddPart(prim);
-                        }
+                            // Black magic to preserve link numbers
+                            // Why is this needed, fix this in AddPart method.
+                            int link = sceneObjectPart.LinkNum;
 
-                        LoadItems(prim);
-                    }
-                    catch (Exception e)
-                    {
-                        _Log.Error("[REGION DB]: Failed create prim object, exception and data follows");
-                        _Log.Info("[REGION DB]: " + e.Message);
-                        foreach (DataColumn col in prims.Columns)
-                        {
-                            _Log.Info("[REGION DB]: Col: " + col.ColumnName + " => " + primRow[col]);
+                            grp.AddPart(sceneObjectPart);
+
+                            if (link != 0)
+                                sceneObjectPart.LinkNum = link;
                         }
                     }
                 }
-
-                _PrimsDataSet.Tables["prims"].Clear();
-                _PrimsDataSet.Tables["primshapes"].Clear();
-                _PrimsDataSet.Tables["primitems"].Clear();
             }
-            return retvals;
 
-            #region Experimental
+            if (grp != null)
+                sceneObjectGroups.Add(grp);
 
-            //
-            //            //Get all prims
-            //            string sql = "select * from prims where RegionUUID = @RegionUUID";
-            //
-            //            using (AutoClosingSqlCommand cmdPrims = _Database.Query(sql))
-            //            {
-            //                cmdPrims.Parameters.AddWithValue("@RegionUUID", regionUUID.ToString());
-            //                using (SqlDataReader readerPrims = cmdPrims.ExecuteReader())
-            //                {
-            //                    while (readerPrims.Read())
-            //                    {
-            //                        string uuid = (string)readerPrims["UUID"];
-            //                        string objID = (string)readerPrims["SceneGroupID"];
-            //                        SceneObjectPart prim = buildPrim(readerPrims);
-            //
-            //                        //Setting default shape, will change shape ltr
-            //                        prim.Shape = PrimitiveBaseShape.Default;
-            //
-            //                        //Load inventory items of prim
-            //                        //LoadItems(prim);
-            //
-            //                        if (uuid == objID)
-            //                        {
-            //                            SceneObjectGroup group = new SceneObjectGroup();
-            //
-            //                            group.AddPart(prim);
-            //                            group.RootPart = prim;
-            //
-            //                            createdObjects.Add(group.UUID, group);
-            //                            retvals.Add(group);
-            //                        }
-            //                        else
-            //                        {
-            //                            createdObjects[new UUID(objID)].AddPart(prim);
-            //                        }
-            //                    }
-            //                }
-            //            }
-            //            m_log.Info("[REGION DB]: Loaded " + retvals.Count + " prim objects for region: " + regionUUID);
-            //
-            //            //Find all shapes related with prims
-            //            sql = "select * from primshapes";
-            //            using (AutoClosingSqlCommand cmdShapes = _Database.Query(sql))
-            //            {
-            //                using (SqlDataReader readerShapes = cmdShapes.ExecuteReader())
-            //                {
-            //                    while (readerShapes.Read())
-            //                    {
-            //                        UUID UUID = new UUID((string) readerShapes["UUID"]);
-            //
-            //                        foreach (SceneObjectGroup objectGroup in createdObjects.Values)
-            //                        {
-            //                            if (objectGroup.Children.ContainsKey(UUID))
-            //                            {
-            //                                objectGroup.Children[UUID].Shape = buildShape(readerShapes);
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //            }
-            //            return retvals;
+            //Load the inventory off all sceneobjects within the region
+            LoadItems(sceneObjectParts);
 
-            #endregion
+            _Log.DebugFormat("[DATABASE] Loaded {0} objects using {1} prims", sceneObjectGroups.Count, sceneObjectParts.Count);
+
+            return sceneObjectGroups;
+
+        }
+
+        /// <summary>
+        /// Load in the prim's persisted inventory.
+        /// </summary>
+        /// <param name="allPrims">all prims on a region</param>
+        private void LoadItems(List<SceneObjectPart> allPrims)
+        {
+            using (AutoClosingSqlCommand command = _Database.Query("SELECT * FROM primitems WHERE PrimID = @PrimID"))
+            {
+                bool createParamOnce = true;
+
+                foreach (SceneObjectPart objectPart in allPrims)
+                {
+                    if (createParamOnce)
+                    {
+                        command.Parameters.Add(_Database.CreateParameter("@PrimID", objectPart.UUID));
+                        createParamOnce = false;
+                    }
+                    else
+                    {
+                        command.Parameters["@PrimID"].Value = objectPart.UUID.ToString();
+                    }
+
+                    List<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            TaskInventoryItem item = BuildItem(reader);
+
+                            item.ParentID = objectPart.UUID; // Values in database are
+                            // often wrong
+                            inventory.Add(item);
+                        }
+                    }
+
+                    objectPart.Inventory.RestoreInventoryItems(inventory);
+                }
+            }
         }
 
         /// <summary>
@@ -316,55 +216,184 @@ namespace OpenSim.Data.MSSQL
         /// <param name="regionUUID"></param>
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
-            //Retrieve all values of current region, and current scene/or prims
-            //Build primID's, we use IN so I can select all prims from objgroup
-            string primID = "";
+            _Log.InfoFormat("[REGION DB]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
 
-            lock (_Database)
+            using (SqlConnection conn = _Database.DatabaseConnection())
             {
-                RetrievePrimsDataForRegion(regionUUID, obj.UUID, primID);
+                SqlTransaction transaction = conn.BeginTransaction();
 
-                _Log.InfoFormat("[REGION DB]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
-
-                DataTable prims = _PrimsDataSet.Tables["prims"];
-                DataTable shapes = _PrimsDataSet.Tables["primshapes"];
-
-                foreach (SceneObjectPart prim in obj.Children.Values)
+                try
                 {
-                    if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
-                        && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) == 0)
+                    foreach (SceneObjectPart sceneObjectPart in obj.Children.Values)
                     {
+                        //Update prim
+                        using (SqlCommand sqlCommand = conn.CreateCommand())
+                        {
+                            sqlCommand.Transaction = transaction;
+                            try
+                            {
+                                StoreSceneObjectPrim(sceneObjectPart, sqlCommand, obj.UUID, regionUUID);
+                            }
+                            catch (SqlException sqlEx)
+                            {
+                                _Log.ErrorFormat("[REGION DB]: Store SceneObjectPrim SQL error: {0} at line {1}", sqlEx.Message, sqlEx.LineNumber);
+                                throw;
+                            }
+                        }
 
-                        DataRow primRow = prims.Rows.Find(prim.UUID.ToString());
-                        if (primRow == null)
+                        //Update primshapes
+                        using (SqlCommand sqlCommand = conn.CreateCommand())
                         {
-                            primRow = prims.NewRow();
-                            fillPrimRow(primRow, prim, obj.UUID, regionUUID);
-                            prims.Rows.Add(primRow);
-                        }
-                        else
-                        {
-                            fillPrimRow(primRow, prim, obj.UUID, regionUUID);
-                        }
-
-                        DataRow shapeRow = shapes.Rows.Find(prim.UUID.ToString());
-                        if (shapeRow == null)
-                        {
-                            shapeRow = shapes.NewRow();
-                            fillShapeRow(shapeRow, prim);
-                            shapes.Rows.Add(shapeRow);
-                        }
-                        else
-                        {
-                            fillShapeRow(shapeRow, prim);
+                            sqlCommand.Transaction = transaction;
+                            try
+                            {
+                                StoreSceneObjectPrimShapes(sceneObjectPart, sqlCommand, obj.UUID, regionUUID);
+                            }
+                            catch (SqlException sqlEx)
+                            {
+                                _Log.ErrorFormat("[REGION DB]: Store SceneObjectPrimShapes SQL error: {0} at line {1}", sqlEx.Message, sqlEx.LineNumber);
+                                throw;
+                            }
                         }
                     }
 
+                    transaction.Commit();
                 }
+                catch (Exception ex)
+                {
+                    _Log.ErrorFormat("[REGION DB]: Store SceneObjectGroup error: {0}, Rolling back...", ex.Message);
+                    try
+                    {
+                        transaction.Rollback();
+                    }
+                    catch (Exception ex2)
+                    {
+                        //Show error
+                        _Log.InfoFormat("[REGION DB]: Rollback of SceneObjectGroup store transaction failed with error: {0}", ex2.Message);
 
-                //Save changes
-                CommitDataSet();
+                    }
+                }
             }
+
+        }
+
+        /// <summary>
+        /// Stores the prim of the sceneobjectpart.
+        /// </summary>
+        /// <param name="sceneObjectPart">The sceneobjectpart or prim.</param>
+        /// <param name="sqlCommand">The SQL command with the transaction.</param>
+        /// <param name="sceneGroupID">The scenegroup UUID.</param>
+        /// <param name="regionUUID">The region UUID.</param>
+        private void StoreSceneObjectPrim(SceneObjectPart sceneObjectPart, SqlCommand sqlCommand, UUID sceneGroupID, UUID regionUUID)
+        {
+            //Big query to update or insert a new prim.
+            //Note for SQL Server 2008 this could be simplified
+            string queryPrims = @"
+IF EXISTS (SELECT UUID FROM prims WHERE UUID = @UUID)
+    BEGIN
+        UPDATE prims SET 
+            CreationDate = @CreationDate, Name = @Name, Text = @Text, Description = @Description, SitName = @SitName, 
+            TouchName = @TouchName, ObjectFlags = @ObjectFlags, OwnerMask = @OwnerMask, NextOwnerMask = @NextOwnerMask, GroupMask = @GroupMask, 
+            EveryoneMask = @EveryoneMask, BaseMask = @BaseMask, PositionX = @PositionX, PositionY = @PositionY, PositionZ = @PositionZ, 
+            GroupPositionX = @GroupPositionX, GroupPositionY = @GroupPositionY, GroupPositionZ = @GroupPositionZ, VelocityX = @VelocityX, 
+            VelocityY = @VelocityY, VelocityZ = @VelocityZ, AngularVelocityX = @AngularVelocityX, AngularVelocityY = @AngularVelocityY, 
+            AngularVelocityZ = @AngularVelocityZ, AccelerationX = @AccelerationX, AccelerationY = @AccelerationY, 
+            AccelerationZ = @AccelerationZ, RotationX = @RotationX, RotationY = @RotationY, RotationZ = @RotationZ, RotationW = @RotationW, 
+            SitTargetOffsetX = @SitTargetOffsetX, SitTargetOffsetY = @SitTargetOffsetY, SitTargetOffsetZ = @SitTargetOffsetZ, 
+            SitTargetOrientW = @SitTargetOrientW, SitTargetOrientX = @SitTargetOrientX, SitTargetOrientY = @SitTargetOrientY, 
+            SitTargetOrientZ = @SitTargetOrientZ, RegionUUID = @RegionUUID, CreatorID = @CreatorID, OwnerID = @OwnerID, GroupID = @GroupID, 
+            LastOwnerID = @LastOwnerID, SceneGroupID = @SceneGroupID, PayPrice = @PayPrice, PayButton1 = @PayButton1, PayButton2 = @PayButton2, 
+            PayButton3 = @PayButton3, PayButton4 = @PayButton4, LoopedSound = @LoopedSound, LoopedSoundGain = @LoopedSoundGain, 
+            TextureAnimation = @TextureAnimation, OmegaX = @OmegaX, OmegaY = @OmegaY, OmegaZ = @OmegaZ, CameraEyeOffsetX = @CameraEyeOffsetX, 
+            CameraEyeOffsetY = @CameraEyeOffsetY, CameraEyeOffsetZ = @CameraEyeOffsetZ, CameraAtOffsetX = @CameraAtOffsetX, 
+            CameraAtOffsetY = @CameraAtOffsetY, CameraAtOffsetZ = @CameraAtOffsetZ, ForceMouselook = @ForceMouselook, 
+            ScriptAccessPin = @ScriptAccessPin, AllowedDrop = @AllowedDrop, DieAtEdge = @DieAtEdge, SalePrice = @SalePrice, 
+            SaleType = @SaleType, ColorR = @ColorR, ColorG = @ColorG, ColorB = @ColorB, ColorA = @ColorA, ParticleSystem = @ParticleSystem, 
+            ClickAction = @ClickAction, Material = @Material, CollisionSound = @CollisionSound, CollisionSoundVolume = @CollisionSoundVolume, 
+            LinkNumber = @LinkNumber
+        WHERE UUID = @UUID
+    END
+ELSE
+    BEGIN
+        INSERT INTO 
+            prims (
+            UUID, CreationDate, Name, Text, Description, SitName, TouchName, ObjectFlags, OwnerMask, NextOwnerMask, GroupMask, 
+            EveryoneMask, BaseMask, PositionX, PositionY, PositionZ, GroupPositionX, GroupPositionY, GroupPositionZ, VelocityX, 
+            VelocityY, VelocityZ, AngularVelocityX, AngularVelocityY, AngularVelocityZ, AccelerationX, AccelerationY, AccelerationZ, 
+            RotationX, RotationY, RotationZ, RotationW, SitTargetOffsetX, SitTargetOffsetY, SitTargetOffsetZ, SitTargetOrientW, 
+            SitTargetOrientX, SitTargetOrientY, SitTargetOrientZ, RegionUUID, CreatorID, OwnerID, GroupID, LastOwnerID, SceneGroupID, 
+            PayPrice, PayButton1, PayButton2, PayButton3, PayButton4, LoopedSound, LoopedSoundGain, TextureAnimation, OmegaX, 
+            OmegaY, OmegaZ, CameraEyeOffsetX, CameraEyeOffsetY, CameraEyeOffsetZ, CameraAtOffsetX, CameraAtOffsetY, CameraAtOffsetZ, 
+            ForceMouselook, ScriptAccessPin, AllowedDrop, DieAtEdge, SalePrice, SaleType, ColorR, ColorG, ColorB, ColorA, 
+            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, LinkNumber
+            ) VALUES (
+            @UUID, @CreationDate, @Name, @Text, @Description, @SitName, @TouchName, @ObjectFlags, @OwnerMask, @NextOwnerMask, @GroupMask, 
+            @EveryoneMask, @BaseMask, @PositionX, @PositionY, @PositionZ, @GroupPositionX, @GroupPositionY, @GroupPositionZ, @VelocityX, 
+            @VelocityY, @VelocityZ, @AngularVelocityX, @AngularVelocityY, @AngularVelocityZ, @AccelerationX, @AccelerationY, @AccelerationZ, 
+            @RotationX, @RotationY, @RotationZ, @RotationW, @SitTargetOffsetX, @SitTargetOffsetY, @SitTargetOffsetZ, @SitTargetOrientW, 
+            @SitTargetOrientX, @SitTargetOrientY, @SitTargetOrientZ, @RegionUUID, @CreatorID, @OwnerID, @GroupID, @LastOwnerID, @SceneGroupID, 
+            @PayPrice, @PayButton1, @PayButton2, @PayButton3, @PayButton4, @LoopedSound, @LoopedSoundGain, @TextureAnimation, @OmegaX, 
+            @OmegaY, @OmegaZ, @CameraEyeOffsetX, @CameraEyeOffsetY, @CameraEyeOffsetZ, @CameraAtOffsetX, @CameraAtOffsetY, @CameraAtOffsetZ, 
+            @ForceMouselook, @ScriptAccessPin, @AllowedDrop, @DieAtEdge, @SalePrice, @SaleType, @ColorR, @ColorG, @ColorB, @ColorA, 
+            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @LinkNumber
+            )
+    END";
+
+            //Set commandtext.
+            sqlCommand.CommandText = queryPrims;
+            //Add parameters
+            sqlCommand.Parameters.AddRange(CreatePrimParameters(sceneObjectPart, sceneGroupID, regionUUID));
+
+            //Execute the query. If it fails then error is trapped in calling function
+            sqlCommand.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Stores the scene object prim shapes.
+        /// </summary>
+        /// <param name="sceneObjectPart">The sceneobjectpart containing prim shape.</param>
+        /// <param name="sqlCommand">The SQL command with the transaction.</param>
+        /// <param name="sceneGroupID">The scenegroup UUID.</param>
+        /// <param name="regionUUID">The region UUID.</param>
+        private void StoreSceneObjectPrimShapes(SceneObjectPart sceneObjectPart, SqlCommand sqlCommand, UUID sceneGroupID, UUID regionUUID)
+        {
+            //Big query to or insert or update primshapes
+            //Note for SQL Server 2008 this can be simplified
+            string queryPrimShapes = @"
+IF EXISTS (SELECT UUID FROM primshapes WHERE UUID = @UUID)
+    BEGIN
+        UPDATE primshapes SET 
+            Shape = @Shape, ScaleX = @ScaleX, ScaleY = @ScaleY, ScaleZ = @ScaleZ, PCode = @PCode, PathBegin = @PathBegin, 
+            PathEnd = @PathEnd, PathScaleX = @PathScaleX, PathScaleY = @PathScaleY, PathShearX = @PathShearX, PathShearY = @PathShearY, 
+            PathSkew = @PathSkew, PathCurve = @PathCurve, PathRadiusOffset = @PathRadiusOffset, PathRevolutions = @PathRevolutions, 
+            PathTaperX = @PathTaperX, PathTaperY = @PathTaperY, PathTwist = @PathTwist, PathTwistBegin = @PathTwistBegin, 
+            ProfileBegin = @ProfileBegin, ProfileEnd = @ProfileEnd, ProfileCurve = @ProfileCurve, ProfileHollow = @ProfileHollow, 
+            Texture = @Texture, ExtraParams = @ExtraParams, State = @State
+        WHERE UUID = @UUID
+    END
+ELSE
+    BEGIN
+        INSERT INTO 
+            primshapes (
+            UUID, Shape, ScaleX, ScaleY, ScaleZ, PCode, PathBegin, PathEnd, PathScaleX, PathScaleY, PathShearX, PathShearY, 
+            PathSkew, PathCurve, PathRadiusOffset, PathRevolutions, PathTaperX, PathTaperY, PathTwist, PathTwistBegin, ProfileBegin, 
+            ProfileEnd, ProfileCurve, ProfileHollow, Texture, ExtraParams, State
+            ) VALUES (
+            @UUID, @Shape, @ScaleX, @ScaleY, @ScaleZ, @PCode, @PathBegin, @PathEnd, @PathScaleX, @PathScaleY, @PathShearX, @PathShearY, 
+            @PathSkew, @PathCurve, @PathRadiusOffset, @PathRevolutions, @PathTaperX, @PathTaperY, @PathTwist, @PathTwistBegin, @ProfileBegin, 
+            @ProfileEnd, @ProfileCurve, @ProfileHollow, @Texture, @ExtraParams, @State
+            )
+    END";
+
+            //Set commandtext.
+            sqlCommand.CommandText = queryPrimShapes;
+
+            //Add parameters
+            sqlCommand.Parameters.AddRange(CreatePrimShapeParameters(sceneObjectPart, sceneGroupID, regionUUID));
+
+            //Execute the query. If it fails then error is trapped in calling function
+            sqlCommand.ExecuteNonQuery();
+
         }
 
         /// <summary>
@@ -405,7 +434,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="items"></param>
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
-            //_Log.InfoFormat("[REGION DB]: Persisting Prim Inventory with prim ID {0}", primID);
+            //_Log.InfoFormat("[REGION DB: Persisting Prim Inventory with prim ID {0}", primID);
 
             //Statement from MySQL section!
             // For now, we're just going to crudely remove all the previous inventory items
@@ -420,19 +449,25 @@ namespace OpenSim.Data.MSSQL
             }
 
             string sql =
-                "INSERT INTO [primitems] ([itemID],[primID],[assetID],[parentFolderID],[invType],[assetType],[name],[description],[creationDate],[creatorID],[ownerID],[lastOwnerID],[groupID],[nextPermissions],[currentPermissions],[basePermissions],[everyonePermissions],[groupPermissions],[flags]) VALUES (@itemID,@primID,@assetID,@parentFolderID,@invType,@assetType,@name,@description,@creationDate,@creatorID,@ownerID,@lastOwnerID,@groupID,@nextPermissions,@currentPermissions,@basePermissions,@everyonePermissions,@groupPermissions,@flags)";
+                @"INSERT INTO primitems (
+            itemID,primID,assetID,parentFolderID,invType,assetType,name,description,creationDate,creatorID,ownerID,lastOwnerID,groupID,
+            nextPermissions,currentPermissions,basePermissions,everyonePermissions,groupPermissions,flags) 
+            VALUES (@itemID,@primID,@assetID,@parentFolderID,@invType,@assetType,@name,@description,@creationDate,@creatorID,@ownerID,
+            @lastOwnerID,@groupID,@nextPermissions,@currentPermissions,@basePermissions,@everyonePermissions,@groupPermissions,@flags)";
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
                 foreach (TaskInventoryItem taskItem in items)
                 {
-                    cmd.Parameters.AddRange(CreatePrimInventoryParameters(taskItem));                   
+                    cmd.Parameters.AddRange(CreatePrimInventoryParameters(taskItem));
                     cmd.ExecuteNonQuery();
 
                     cmd.Parameters.Clear();
                 }
             }
         }
+
+        #endregion
 
         /// <summary>
         /// Loads the terrain map.
@@ -529,7 +564,7 @@ namespace OpenSim.Data.MSSQL
                 {
                     while (readerLandData.Read())
                     {
-                        landDataForRegion.Add(buildLandData(readerLandData));
+                        landDataForRegion.Add(BuildLandData(readerLandData));
                     }
                 }
             }
@@ -545,7 +580,7 @@ namespace OpenSim.Data.MSSQL
                     {
                         while (readerAccessList.Read())
                         {
-                            landData.ParcelAccessList.Add(buildLandAccessData(readerAccessList));
+                            landData.ParcelAccessList.Add(BuildLandAccessData(readerAccessList));
                         }
                     }
                 }
@@ -586,7 +621,7 @@ VALUES
             {
                 foreach (ParcelManager.ParcelAccessEntry parcelAccessEntry in parcel.landData.ParcelAccessList)
                 {
-                    cmd.Parameters.AddRange(CreateLandAccessParameters(parcelAccessEntry, parcel.regionUUID));                  
+                    cmd.Parameters.AddRange(CreateLandAccessParameters(parcelAccessEntry, parcel.regionUUID));
 
                     cmd.ExecuteNonQuery();
                     cmd.Parameters.Clear();
@@ -629,7 +664,7 @@ VALUES
                 {
                     if (reader.Read())
                     {
-                        regionSettings = buildRegionSettings(reader);
+                        regionSettings = BuildRegionSettings(reader);
                         regionSettings.OnSave += StoreRegionSettings;
 
                         return regionSettings;
@@ -698,37 +733,6 @@ VALUES
         #region Private Methods
 
         /// <summary>
-        /// Load in a prim's persisted inventory.
-        /// </summary>
-        /// <param name="prim">The prim</param>
-        private void LoadItems(SceneObjectPart prim)
-        {
-            DataTable dbItems = _PrimsDataSet.Tables["primitems"];
-
-            String sql = String.Format("primID = '{0}'", prim.UUID);
-            DataRow[] dbItemRows = dbItems.Select(sql);
-
-            IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
-
-            foreach (DataRow row in dbItemRows)
-            {
-                TaskInventoryItem item = buildItem(row);
-                inventory.Add(item);
-
-                //m_log.DebugFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID);
-            }
-
-            prim.Inventory.RestoreInventoryItems(inventory);
-
-            // XXX A nasty little hack to recover the folder id for the prim (which is currently stored in
-            // every item).  This data should really be stored in the prim table itself.
-            if (dbItemRows.Length > 0)
-            {
-                prim.FolderID = inventory[0].ParentID;
-            }
-        }
-
-        /// <summary>
         /// Serializes the terrain data for storage in DB.
         /// </summary>
         /// <param name="val">terrain data</param>
@@ -773,7 +777,7 @@ VALUES
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
-                cmd.Parameters.AddRange(CreateRegionSettingParameters(regionSettings));              
+                cmd.Parameters.AddRange(CreateRegionSettingParameters(regionSettings));
                 cmd.ExecuteNonQuery();
             }
         }
@@ -785,7 +789,7 @@ VALUES
         /// </summary>
         /// <param name="row">datarecord with regionsettings.</param>
         /// <returns></returns>
-        private static RegionSettings buildRegionSettings(IDataRecord row)
+        private static RegionSettings BuildRegionSettings(IDataRecord row)
         {
             //TODO change this is some more generic code so we doesnt have to change it every time a new field is added?
             RegionSettings newSettings = new RegionSettings();
@@ -838,7 +842,7 @@ VALUES
         /// </summary>
         /// <param name="row">datarecord with land data</param>
         /// <returns></returns>
-        private static LandData buildLandData(IDataRecord row)
+        private static LandData BuildLandData(IDataRecord row)
         {
             LandData newData = new LandData();
 
@@ -909,7 +913,7 @@ VALUES
         /// </summary>
         /// <param name="row">datarecord with landaccess data</param>
         /// <returns></returns>
-        private static ParcelManager.ParcelAccessEntry buildLandAccessData(IDataRecord row)
+        private static ParcelManager.ParcelAccessEntry BuildLandAccessData(IDataRecord row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
             entry.AgentID = new UUID((string)row["AccessUUID"]);
@@ -923,13 +927,14 @@ VALUES
         /// </summary>
         /// <param name="primRow">datarecord</param>
         /// <returns></returns>
-        private static SceneObjectPart buildPrim(DataRow primRow)
+        private static SceneObjectPart BuildPrim(IDataRecord primRow)
         {
             SceneObjectPart prim = new SceneObjectPart();
 
             prim.UUID = new UUID((String)primRow["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
+            //prim.ParentID = (uint)Convert.ToInt32(primRow["ParentID"]);
             prim.CreationDate = Convert.ToInt32(primRow["CreationDate"]);
             prim.Name = (String)primRow["Name"];
             // various text fields
@@ -1006,9 +1011,9 @@ VALUES
             prim.SoundGain = Convert.ToSingle(primRow["LoopedSoundGain"]);
             prim.SoundFlags = 1; // If it's persisted at all, it's looped
 
-            if (!primRow.IsNull("TextureAnimation") && primRow["TextureAnimation"] != DBNull.Value)
+            if (!(primRow["TextureAnimation"] is DBNull))
                 prim.TextureAnimation = (Byte[])primRow["TextureAnimation"];
-            if (!primRow.IsNull("ParticleSystem"))
+            if (!(primRow["ParticleSystem"] is DBNull))
                 prim.ParticleSystem = (Byte[])primRow["ParticleSystem"];
 
             prim.RotationalVelocity = new Vector3(
@@ -1044,11 +1049,13 @@ VALUES
 
             prim.Material = Convert.ToByte(primRow["Material"]);
 
-            if (!primRow.IsNull("ClickAction"))
+            if (!(primRow["ClickAction"] is DBNull))
                 prim.ClickAction = Convert.ToByte(primRow["ClickAction"]);
 
             prim.CollisionSound = new UUID(primRow["CollisionSound"].ToString());
             prim.CollisionSoundVolume = Convert.ToSingle(primRow["CollisionSoundVolume"]);
+
+            prim.LinkNum = Convert.ToInt32(primRow["LinkNumber"]);
 
             return prim;
         }
@@ -1056,85 +1063,86 @@ VALUES
         /// <summary>
         /// Builds the prim shape from a datarecord.
         /// </summary>
-        /// <param name="row">The row.</param>
+        /// <param name="shapeRow">The row.</param>
         /// <returns></returns>
-        private static PrimitiveBaseShape buildShape(DataRow row)
+        private static PrimitiveBaseShape BuildShape(IDataRecord shapeRow)
         {
-            PrimitiveBaseShape s = new PrimitiveBaseShape();
-            s.Scale = new Vector3(
-                        Convert.ToSingle(row["ScaleX"]),
-                        Convert.ToSingle(row["ScaleY"]),
-                        Convert.ToSingle(row["ScaleZ"]));
+            PrimitiveBaseShape baseShape = new PrimitiveBaseShape();
+
+            baseShape.Scale = new Vector3(
+                        Convert.ToSingle(shapeRow["ScaleX"]),
+                        Convert.ToSingle(shapeRow["ScaleY"]),
+                        Convert.ToSingle(shapeRow["ScaleZ"]));
 
             // paths
-            s.PCode = Convert.ToByte(row["PCode"]);
-            s.PathBegin = Convert.ToUInt16(row["PathBegin"]);
-            s.PathEnd = Convert.ToUInt16(row["PathEnd"]);
-            s.PathScaleX = Convert.ToByte(row["PathScaleX"]);
-            s.PathScaleY = Convert.ToByte(row["PathScaleY"]);
-            s.PathShearX = Convert.ToByte(row["PathShearX"]);
-            s.PathShearY = Convert.ToByte(row["PathShearY"]);
-            s.PathSkew = Convert.ToSByte(row["PathSkew"]);
-            s.PathCurve = Convert.ToByte(row["PathCurve"]);
-            s.PathRadiusOffset = Convert.ToSByte(row["PathRadiusOffset"]);
-            s.PathRevolutions = Convert.ToByte(row["PathRevolutions"]);
-            s.PathTaperX = Convert.ToSByte(row["PathTaperX"]);
-            s.PathTaperY = Convert.ToSByte(row["PathTaperY"]);
-            s.PathTwist = Convert.ToSByte(row["PathTwist"]);
-            s.PathTwistBegin = Convert.ToSByte(row["PathTwistBegin"]);
+            baseShape.PCode = Convert.ToByte(shapeRow["PCode"]);
+            baseShape.PathBegin = Convert.ToUInt16(shapeRow["PathBegin"]);
+            baseShape.PathEnd = Convert.ToUInt16(shapeRow["PathEnd"]);
+            baseShape.PathScaleX = Convert.ToByte(shapeRow["PathScaleX"]);
+            baseShape.PathScaleY = Convert.ToByte(shapeRow["PathScaleY"]);
+            baseShape.PathShearX = Convert.ToByte(shapeRow["PathShearX"]);
+            baseShape.PathShearY = Convert.ToByte(shapeRow["PathShearY"]);
+            baseShape.PathSkew = Convert.ToSByte(shapeRow["PathSkew"]);
+            baseShape.PathCurve = Convert.ToByte(shapeRow["PathCurve"]);
+            baseShape.PathRadiusOffset = Convert.ToSByte(shapeRow["PathRadiusOffset"]);
+            baseShape.PathRevolutions = Convert.ToByte(shapeRow["PathRevolutions"]);
+            baseShape.PathTaperX = Convert.ToSByte(shapeRow["PathTaperX"]);
+            baseShape.PathTaperY = Convert.ToSByte(shapeRow["PathTaperY"]);
+            baseShape.PathTwist = Convert.ToSByte(shapeRow["PathTwist"]);
+            baseShape.PathTwistBegin = Convert.ToSByte(shapeRow["PathTwistBegin"]);
             // profile
-            s.ProfileBegin = Convert.ToUInt16(row["ProfileBegin"]);
-            s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
-            s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
-            s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
+            baseShape.ProfileBegin = Convert.ToUInt16(shapeRow["ProfileBegin"]);
+            baseShape.ProfileEnd = Convert.ToUInt16(shapeRow["ProfileEnd"]);
+            baseShape.ProfileCurve = Convert.ToByte(shapeRow["ProfileCurve"]);
+            baseShape.ProfileHollow = Convert.ToUInt16(shapeRow["ProfileHollow"]);
 
-            byte[] textureEntry = (byte[])row["Texture"];
-            s.TextureEntry = textureEntry;
+            byte[] textureEntry = (byte[])shapeRow["Texture"];
+            baseShape.TextureEntry = textureEntry;
 
-            s.ExtraParams = (byte[])row["ExtraParams"];
+            baseShape.ExtraParams = (byte[])shapeRow["ExtraParams"];
 
             try
             {
-                s.State = Convert.ToByte(row["State"]);
+                baseShape.State = Convert.ToByte(shapeRow["State"]);
             }
             catch (InvalidCastException)
             {
             }
 
-            return s;
+            return baseShape;
         }
 
         /// <summary>
         /// Build a prim inventory item from the persisted data.
         /// </summary>
-        /// <param name="row"></param>
+        /// <param name="inventoryRow"></param>
         /// <returns></returns>
-        private static TaskInventoryItem buildItem(DataRow row)
+        private static TaskInventoryItem BuildItem(IDataRecord inventoryRow)
         {
             TaskInventoryItem taskItem = new TaskInventoryItem();
 
-            taskItem.ItemID = new UUID((String)row["itemID"]);
-            taskItem.ParentPartID = new UUID((String)row["primID"]);
-            taskItem.AssetID = new UUID((String)row["assetID"]);
-            taskItem.ParentID = new UUID((String)row["parentFolderID"]);
+            taskItem.ItemID = new UUID((String)inventoryRow["itemID"]);
+            taskItem.ParentPartID = new UUID((String)inventoryRow["primID"]);
+            taskItem.AssetID = new UUID((String)inventoryRow["assetID"]);
+            taskItem.ParentID = new UUID((String)inventoryRow["parentFolderID"]);
 
-            taskItem.InvType = Convert.ToInt32(row["invType"]);
-            taskItem.Type = Convert.ToInt32(row["assetType"]);
+            taskItem.InvType = Convert.ToInt32(inventoryRow["invType"]);
+            taskItem.Type = Convert.ToInt32(inventoryRow["assetType"]);
 
-            taskItem.Name = (String)row["name"];
-            taskItem.Description = (String)row["description"];
-            taskItem.CreationDate = Convert.ToUInt32(row["creationDate"]);
-            taskItem.CreatorID = new UUID((String)row["creatorID"]);
-            taskItem.OwnerID = new UUID((String)row["ownerID"]);
-            taskItem.LastOwnerID = new UUID((String)row["lastOwnerID"]);
-            taskItem.GroupID = new UUID((String)row["groupID"]);
+            taskItem.Name = (String)inventoryRow["name"];
+            taskItem.Description = (String)inventoryRow["description"];
+            taskItem.CreationDate = Convert.ToUInt32(inventoryRow["creationDate"]);
+            taskItem.CreatorID = new UUID((String)inventoryRow["creatorID"]);
+            taskItem.OwnerID = new UUID((String)inventoryRow["ownerID"]);
+            taskItem.LastOwnerID = new UUID((String)inventoryRow["lastOwnerID"]);
+            taskItem.GroupID = new UUID((String)inventoryRow["groupID"]);
 
-            taskItem.NextPermissions = Convert.ToUInt32(row["nextPermissions"]);
-            taskItem.CurrentPermissions = Convert.ToUInt32(row["currentPermissions"]);
-            taskItem.BasePermissions = Convert.ToUInt32(row["basePermissions"]);
-            taskItem.EveryonePermissions = Convert.ToUInt32(row["everyonePermissions"]);
-            taskItem.GroupPermissions = Convert.ToUInt32(row["groupPermissions"]);
-            taskItem.Flags = Convert.ToUInt32(row["flags"]);
+            taskItem.NextPermissions = Convert.ToUInt32(inventoryRow["nextPermissions"]);
+            taskItem.CurrentPermissions = Convert.ToUInt32(inventoryRow["currentPermissions"]);
+            taskItem.BasePermissions = Convert.ToUInt32(inventoryRow["basePermissions"]);
+            taskItem.EveryonePermissions = Convert.ToUInt32(inventoryRow["everyonePermissions"]);
+            taskItem.GroupPermissions = Convert.ToUInt32(inventoryRow["groupPermissions"]);
+            taskItem.Flags = Convert.ToUInt32(inventoryRow["flags"]);
 
             return taskItem;
         }
@@ -1149,31 +1157,30 @@ VALUES
         /// <returns></returns>
         private SqlParameter[] CreatePrimInventoryParameters(TaskInventoryItem taskItem)
         {
-            SqlParameter[] parameters = new SqlParameter[19];
+            List<SqlParameter> parameters = new List<SqlParameter>();
 
-            parameters[0] = _Database.CreateParameter("itemID", taskItem.ItemID);
-            parameters[1] = _Database.CreateParameter("primID", taskItem.ParentPartID);
-            parameters[2] = _Database.CreateParameter("assetID", taskItem.AssetID);
-            parameters[3] = _Database.CreateParameter("parentFolderID", taskItem.ParentID);
+            parameters.Add(_Database.CreateParameter("itemID", taskItem.ItemID));
+            parameters.Add(_Database.CreateParameter("primID", taskItem.ParentPartID));
+            parameters.Add(_Database.CreateParameter("assetID", taskItem.AssetID));
+            parameters.Add(_Database.CreateParameter("parentFolderID", taskItem.ParentID));
+            parameters.Add(_Database.CreateParameter("invType", taskItem.InvType));
+            parameters.Add(_Database.CreateParameter("assetType", taskItem.Type));
 
-            parameters[4] = _Database.CreateParameter("invType", taskItem.InvType);
-            parameters[5] = _Database.CreateParameter("assetType", taskItem.Type);
+            parameters.Add(_Database.CreateParameter("name", taskItem.Name));
+            parameters.Add(_Database.CreateParameter("description", taskItem.Description));
+            parameters.Add(_Database.CreateParameter("creationDate", taskItem.CreationDate));
+            parameters.Add(_Database.CreateParameter("creatorID", taskItem.CreatorID));
+            parameters.Add(_Database.CreateParameter("ownerID", taskItem.OwnerID));
+            parameters.Add(_Database.CreateParameter("lastOwnerID", taskItem.LastOwnerID));
+            parameters.Add(_Database.CreateParameter("groupID", taskItem.GroupID));
+            parameters.Add(_Database.CreateParameter("nextPermissions", taskItem.NextPermissions));
+            parameters.Add(_Database.CreateParameter("currentPermissions", taskItem.CurrentPermissions));
+            parameters.Add(_Database.CreateParameter("basePermissions", taskItem.BasePermissions));
+            parameters.Add(_Database.CreateParameter("everyonePermissions", taskItem.EveryonePermissions));
+            parameters.Add(_Database.CreateParameter("groupPermissions", taskItem.GroupPermissions));
+            parameters.Add(_Database.CreateParameter("flags", taskItem.Flags));
 
-            parameters[6] = _Database.CreateParameter("name", taskItem.Name);
-            parameters[7] = _Database.CreateParameter("description", taskItem.Description);
-            parameters[8] = _Database.CreateParameter("creationDate", taskItem.CreationDate);
-            parameters[9] = _Database.CreateParameter("creatorID", taskItem.CreatorID);
-            parameters[10] = _Database.CreateParameter("ownerID", taskItem.OwnerID);
-            parameters[11] = _Database.CreateParameter("lastOwnerID", taskItem.LastOwnerID);
-            parameters[12] = _Database.CreateParameter("groupID", taskItem.GroupID);
-            parameters[13] = _Database.CreateParameter("nextPermissions", taskItem.NextPermissions);
-            parameters[14] = _Database.CreateParameter("currentPermissions", taskItem.CurrentPermissions);
-            parameters[15] = _Database.CreateParameter("basePermissions", taskItem.BasePermissions);
-            parameters[16] = _Database.CreateParameter("everyonePermissions", taskItem.EveryonePermissions);
-            parameters[17] = _Database.CreateParameter("groupPermissions", taskItem.GroupPermissions);
-            parameters[18] = _Database.CreateParameter("flags", taskItem.Flags);
-
-            return parameters;
+            return parameters.ToArray();
         }
 
         /// <summary>
@@ -1183,47 +1190,47 @@ VALUES
         /// <returns></returns>
         private SqlParameter[] CreateRegionSettingParameters(RegionSettings settings)
         {
-            SqlParameter[] parameters = new SqlParameter[37];
+            List<SqlParameter> parameters = new List<SqlParameter>();
 
-            parameters[0] = _Database.CreateParameter("regionUUID", settings.RegionUUID);
-            parameters[1] = _Database.CreateParameter("block_terraform", settings.BlockTerraform);
-            parameters[2] = _Database.CreateParameter("block_fly", settings.BlockFly);
-            parameters[3] = _Database.CreateParameter("allow_damage", settings.AllowDamage);
-            parameters[4] = _Database.CreateParameter("restrict_pushing", settings.RestrictPushing);
-            parameters[5] = _Database.CreateParameter("allow_land_resell", settings.AllowLandResell);
-            parameters[6] = _Database.CreateParameter("allow_land_join_divide", settings.AllowLandJoinDivide);
-            parameters[7] = _Database.CreateParameter("block_show_in_search", settings.BlockShowInSearch);
-            parameters[8] = _Database.CreateParameter("agent_limit", settings.AgentLimit);
-            parameters[9] = _Database.CreateParameter("object_bonus", settings.ObjectBonus);
-            parameters[10] = _Database.CreateParameter("maturity", settings.Maturity);
-            parameters[11] = _Database.CreateParameter("disable_scripts", settings.DisableScripts);
-            parameters[12] = _Database.CreateParameter("disable_collisions", settings.DisableCollisions);
-            parameters[13] = _Database.CreateParameter("disable_physics", settings.DisablePhysics);
-            parameters[14] = _Database.CreateParameter("terrain_texture_1", settings.TerrainTexture1);
-            parameters[15] = _Database.CreateParameter("terrain_texture_2", settings.TerrainTexture2);
-            parameters[16] = _Database.CreateParameter("terrain_texture_3", settings.TerrainTexture3);
-            parameters[17] = _Database.CreateParameter("terrain_texture_4", settings.TerrainTexture4);
-            parameters[18] = _Database.CreateParameter("elevation_1_nw", settings.Elevation1NW);
-            parameters[19] = _Database.CreateParameter("elevation_2_nw", settings.Elevation2NW);
-            parameters[20] = _Database.CreateParameter("elevation_1_ne", settings.Elevation1NE);
-            parameters[21] = _Database.CreateParameter("elevation_2_ne", settings.Elevation2NE);
-            parameters[22] = _Database.CreateParameter("elevation_1_se", settings.Elevation1SE);
-            parameters[23] = _Database.CreateParameter("elevation_2_se", settings.Elevation2SE);
-            parameters[24] = _Database.CreateParameter("elevation_1_sw", settings.Elevation1SW);
-            parameters[25] = _Database.CreateParameter("elevation_2_sw", settings.Elevation2SW);
-            parameters[26] = _Database.CreateParameter("water_height", settings.WaterHeight);
-            parameters[27] = _Database.CreateParameter("terrain_raise_limit", settings.TerrainRaiseLimit);
-            parameters[28] = _Database.CreateParameter("terrain_lower_limit", settings.TerrainLowerLimit);
-            parameters[29] = _Database.CreateParameter("use_estate_sun", settings.UseEstateSun);
-            parameters[30] = _Database.CreateParameter("sandbox", settings.Sandbox);
-            parameters[31] = _Database.CreateParameter("fixed_sun", settings.FixedSun);
-            parameters[32] = _Database.CreateParameter("sun_position", settings.SunPosition);
-            parameters[33] = _Database.CreateParameter("sunvectorx", settings.SunVector.X);
-            parameters[34] = _Database.CreateParameter("sunvectory", settings.SunVector.Y);
-            parameters[35] = _Database.CreateParameter("sunvectorz", settings.SunVector.Z);
-            parameters[36] = _Database.CreateParameter("covenant", settings.Covenant);
+            parameters.Add(_Database.CreateParameter("regionUUID", settings.RegionUUID));
+            parameters.Add(_Database.CreateParameter("block_terraform", settings.BlockTerraform));
+            parameters.Add(_Database.CreateParameter("block_fly", settings.BlockFly));
+            parameters.Add(_Database.CreateParameter("allow_damage", settings.AllowDamage));
+            parameters.Add(_Database.CreateParameter("restrict_pushing", settings.RestrictPushing));
+            parameters.Add(_Database.CreateParameter("allow_land_resell", settings.AllowLandResell));
+            parameters.Add(_Database.CreateParameter("allow_land_join_divide", settings.AllowLandJoinDivide));
+            parameters.Add(_Database.CreateParameter("block_show_in_search", settings.BlockShowInSearch));
+            parameters.Add(_Database.CreateParameter("agent_limit", settings.AgentLimit));
+            parameters.Add(_Database.CreateParameter("object_bonus", settings.ObjectBonus));
+            parameters.Add(_Database.CreateParameter("maturity", settings.Maturity));
+            parameters.Add(_Database.CreateParameter("disable_scripts", settings.DisableScripts));
+            parameters.Add(_Database.CreateParameter("disable_collisions", settings.DisableCollisions));
+            parameters.Add(_Database.CreateParameter("disable_physics", settings.DisablePhysics));
+            parameters.Add(_Database.CreateParameter("terrain_texture_1", settings.TerrainTexture1));
+            parameters.Add(_Database.CreateParameter("terrain_texture_2", settings.TerrainTexture2));
+            parameters.Add(_Database.CreateParameter("terrain_texture_3", settings.TerrainTexture3));
+            parameters.Add(_Database.CreateParameter("terrain_texture_4", settings.TerrainTexture4));
+            parameters.Add(_Database.CreateParameter("elevation_1_nw", settings.Elevation1NW));
+            parameters.Add(_Database.CreateParameter("elevation_2_nw", settings.Elevation2NW));
+            parameters.Add(_Database.CreateParameter("elevation_1_ne", settings.Elevation1NE));
+            parameters.Add(_Database.CreateParameter("elevation_2_ne", settings.Elevation2NE));
+            parameters.Add(_Database.CreateParameter("elevation_1_se", settings.Elevation1SE));
+            parameters.Add(_Database.CreateParameter("elevation_2_se", settings.Elevation2SE));
+            parameters.Add(_Database.CreateParameter("elevation_1_sw", settings.Elevation1SW));
+            parameters.Add(_Database.CreateParameter("elevation_2_sw", settings.Elevation2SW));
+            parameters.Add(_Database.CreateParameter("water_height", settings.WaterHeight));
+            parameters.Add(_Database.CreateParameter("terrain_raise_limit", settings.TerrainRaiseLimit));
+            parameters.Add(_Database.CreateParameter("terrain_lower_limit", settings.TerrainLowerLimit));
+            parameters.Add(_Database.CreateParameter("use_estate_sun", settings.UseEstateSun));
+            parameters.Add(_Database.CreateParameter("sandbox", settings.Sandbox));
+            parameters.Add(_Database.CreateParameter("fixed_sun", settings.FixedSun));
+            parameters.Add(_Database.CreateParameter("sun_position", settings.SunPosition));
+            parameters.Add(_Database.CreateParameter("sunvectorx", settings.SunVector.X));
+            parameters.Add(_Database.CreateParameter("sunvectory", settings.SunVector.Y));
+            parameters.Add(_Database.CreateParameter("sunvectorz", settings.SunVector.Z));
+            parameters.Add(_Database.CreateParameter("covenant", settings.Covenant));
 
-            return parameters;
+            return parameters.ToArray();
         }
 
         /// <summary>
@@ -1234,47 +1241,47 @@ VALUES
         /// <returns></returns>
         private SqlParameter[] CreateLandParameters(LandData land, UUID regionUUID)
         {
-            SqlParameter[] parameters = new SqlParameter[34];
+            List<SqlParameter> parameters = new List<SqlParameter>();
 
-            parameters[0] = _Database.CreateParameter("UUID", land.GlobalID);
-            parameters[1] = _Database.CreateParameter("RegionUUID", regionUUID);
-            parameters[2] = _Database.CreateParameter("LocalLandID", land.LocalID);
+            parameters.Add(_Database.CreateParameter("UUID", land.GlobalID));
+            parameters.Add(_Database.CreateParameter("RegionUUID", regionUUID));
+            parameters.Add(_Database.CreateParameter("LocalLandID", land.LocalID));
 
             // Bitmap is a byte[512]
-            parameters[3] = _Database.CreateParameter("Bitmap", land.Bitmap);
+            parameters.Add(_Database.CreateParameter("Bitmap", land.Bitmap));
 
-            parameters[4] = _Database.CreateParameter("Name", land.Name);
-            parameters[5] = _Database.CreateParameter("Description", land.Description);
-            parameters[6] = _Database.CreateParameter("OwnerUUID", land.OwnerID);
-            parameters[7] = _Database.CreateParameter("IsGroupOwned", land.IsGroupOwned);
-            parameters[8] = _Database.CreateParameter("Area", land.Area);
-            parameters[9] = _Database.CreateParameter("AuctionID", land.AuctionID); //Unemplemented
-            parameters[10] = _Database.CreateParameter("Category", (int)land.Category); //Enum libsecondlife.Parcel.ParcelCategory
-            parameters[11] = _Database.CreateParameter("ClaimDate", land.ClaimDate);
-            parameters[12] = _Database.CreateParameter("ClaimPrice", land.ClaimPrice);
-            parameters[13] = _Database.CreateParameter("GroupUUID", land.GroupID);
-            parameters[14] = _Database.CreateParameter("SalePrice", land.SalePrice);
-            parameters[15] = _Database.CreateParameter("LandStatus", (int)land.Status); //Enum. libsecondlife.Parcel.ParcelStatus
-            parameters[16] = _Database.CreateParameter("LandFlags", land.Flags);
-            parameters[17] = _Database.CreateParameter("LandingType", land.LandingType);
-            parameters[18] = _Database.CreateParameter("MediaAutoScale", land.MediaAutoScale);
-            parameters[19] = _Database.CreateParameter("MediaTextureUUID", land.MediaID);
-            parameters[20] = _Database.CreateParameter("MediaURL", land.MediaURL);
-            parameters[21] = _Database.CreateParameter("MusicURL", land.MusicURL);
-            parameters[22] = _Database.CreateParameter("PassHours", land.PassHours);
-            parameters[23] = _Database.CreateParameter("PassPrice", land.PassPrice);
-            parameters[24] = _Database.CreateParameter("SnapshotUUID", land.SnapshotID);
-            parameters[25] = _Database.CreateParameter("UserLocationX", land.UserLocation.X);
-            parameters[26] = _Database.CreateParameter("UserLocationY", land.UserLocation.Y);
-            parameters[27] = _Database.CreateParameter("UserLocationZ", land.UserLocation.Z);
-            parameters[28] = _Database.CreateParameter("UserLookAtX", land.UserLookAt.X);
-            parameters[29] = _Database.CreateParameter("UserLookAtY", land.UserLookAt.Y);
-            parameters[30] = _Database.CreateParameter("UserLookAtZ", land.UserLookAt.Z);
-            parameters[31] = _Database.CreateParameter("AuthBuyerID", land.AuthBuyerID);
-            parameters[32] = _Database.CreateParameter("OtherCleanTime", land.OtherCleanTime);
-            parameters[33] = _Database.CreateParameter("Dwell", land.Dwell);
+            parameters.Add(_Database.CreateParameter("Name", land.Name));
+            parameters.Add(_Database.CreateParameter("Description", land.Description));
+            parameters.Add(_Database.CreateParameter("OwnerUUID", land.OwnerID));
+            parameters.Add(_Database.CreateParameter("IsGroupOwned", land.IsGroupOwned));
+            parameters.Add(_Database.CreateParameter("Area", land.Area));
+            parameters.Add(_Database.CreateParameter("AuctionID", land.AuctionID)); //Unemplemented
+            parameters.Add(_Database.CreateParameter("Category", (int)land.Category)); //Enum libsecondlife.Parcel.ParcelCategory
+            parameters.Add(_Database.CreateParameter("ClaimDate", land.ClaimDate));
+            parameters.Add(_Database.CreateParameter("ClaimPrice", land.ClaimPrice));
+            parameters.Add(_Database.CreateParameter("GroupUUID", land.GroupID));
+            parameters.Add(_Database.CreateParameter("SalePrice", land.SalePrice));
+            parameters.Add(_Database.CreateParameter("LandStatus", (int)land.Status)); //Enum. libsecondlife.Parcel.ParcelStatus
+            parameters.Add(_Database.CreateParameter("LandFlags", land.Flags));
+            parameters.Add(_Database.CreateParameter("LandingType", land.LandingType));
+            parameters.Add(_Database.CreateParameter("MediaAutoScale", land.MediaAutoScale));
+            parameters.Add(_Database.CreateParameter("MediaTextureUUID", land.MediaID));
+            parameters.Add(_Database.CreateParameter("MediaURL", land.MediaURL));
+            parameters.Add(_Database.CreateParameter("MusicURL", land.MusicURL));
+            parameters.Add(_Database.CreateParameter("PassHours", land.PassHours));
+            parameters.Add(_Database.CreateParameter("PassPrice", land.PassPrice));
+            parameters.Add(_Database.CreateParameter("SnapshotUUID", land.SnapshotID));
+            parameters.Add(_Database.CreateParameter("UserLocationX", land.UserLocation.X));
+            parameters.Add(_Database.CreateParameter("UserLocationY", land.UserLocation.Y));
+            parameters.Add(_Database.CreateParameter("UserLocationZ", land.UserLocation.Z));
+            parameters.Add(_Database.CreateParameter("UserLookAtX", land.UserLookAt.X));
+            parameters.Add(_Database.CreateParameter("UserLookAtY", land.UserLookAt.Y));
+            parameters.Add(_Database.CreateParameter("UserLookAtZ", land.UserLookAt.Z));
+            parameters.Add(_Database.CreateParameter("AuthBuyerID", land.AuthBuyerID));
+            parameters.Add(_Database.CreateParameter("OtherCleanTime", land.OtherCleanTime));
+            parameters.Add(_Database.CreateParameter("Dwell", land.Dwell));
 
-            return parameters;
+            return parameters.ToArray();
         }
 
         /// <summary>
@@ -1285,264 +1292,202 @@ VALUES
         /// <returns></returns>
         private SqlParameter[] CreateLandAccessParameters(ParcelManager.ParcelAccessEntry parcelAccessEntry, UUID parcelID)
         {
-            SqlParameter[] parameters = new SqlParameter[3];
+            List<SqlParameter> parameters = new List<SqlParameter>();
 
-            parameters[0] = _Database.CreateParameter("LandUUID", parcelID);
-            parameters[1] = _Database.CreateParameter("AccessUUID", parcelAccessEntry.AgentID);
-            parameters[2] = _Database.CreateParameter("Flags", parcelAccessEntry.Flags);
+            parameters.Add(_Database.CreateParameter("LandUUID", parcelID));
+            parameters.Add(_Database.CreateParameter("AccessUUID", parcelAccessEntry.AgentID));
+            parameters.Add(_Database.CreateParameter("Flags", parcelAccessEntry.Flags));
 
-            return parameters;
+            return parameters.ToArray();
         }
 
         /// <summary>
-         /// <summary>
-        /// Fills/Updates the prim datarow.
+        /// Creates the prim parameters for storing in DB.
         /// </summary>
-        /// <param name="row">datarow.</param>
-        /// <param name="prim">prim data.</param>
-        /// <param name="sceneGroupID">scenegroup ID.</param>
-        /// <param name="regionUUID">regionUUID.</param>
-        private static void fillPrimRow(DataRow row, SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
+        /// <param name="prim">Basic data of SceneObjectpart prim.</param>
+        /// <param name="sceneGroupID">The scenegroup ID.</param>
+        /// <param name="regionUUID">The region ID.</param>
+        /// <returns></returns>
+        private SqlParameter[] CreatePrimParameters(SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
-            row["UUID"] = prim.UUID.ToString();
-            row["RegionUUID"] = regionUUID.ToString();
-            row["CreationDate"] = prim.CreationDate;
-            row["Name"] = prim.Name;
-            row["SceneGroupID"] = sceneGroupID.ToString();
+            List<SqlParameter> parameters = new List<SqlParameter>();
+
+            parameters.Add(_Database.CreateParameter("UUID", prim.UUID));
+            parameters.Add(_Database.CreateParameter("RegionUUID", regionUUID));
+            //parameters.Add(_Database.CreateParameter("ParentID", (int)prim.ParentID));
+            parameters.Add(_Database.CreateParameter("CreationDate", prim.CreationDate));
+            parameters.Add(_Database.CreateParameter("Name", prim.Name));
+            parameters.Add(_Database.CreateParameter("SceneGroupID", sceneGroupID));
             // the UUID of the root part for this SceneObjectGroup
             // various text fields
-            row["Text"] = prim.Text;
-            row["ColorR"] = prim.Color.R;
-            row["ColorG"] = prim.Color.G;
-            row["ColorB"] = prim.Color.B;
-            row["ColorA"] = prim.Color.A;
-            row["Description"] = prim.Description;
-            row["SitName"] = prim.SitName;
-            row["TouchName"] = prim.TouchName;
+            parameters.Add(_Database.CreateParameter("Text", prim.Text));
+            parameters.Add(_Database.CreateParameter("ColorR", prim.Color.R));
+            parameters.Add(_Database.CreateParameter("ColorG", prim.Color.G));
+            parameters.Add(_Database.CreateParameter("ColorB", prim.Color.B));
+            parameters.Add(_Database.CreateParameter("ColorA", prim.Color.A));
+            parameters.Add(_Database.CreateParameter("Description", prim.Description));
+            parameters.Add(_Database.CreateParameter("SitName", prim.SitName));
+            parameters.Add(_Database.CreateParameter("TouchName", prim.TouchName));
             // permissions
-            row["ObjectFlags"] = prim.ObjectFlags;
-            row["CreatorID"] = prim.CreatorID.ToString();
-            row["OwnerID"] = prim.OwnerID.ToString();
-            row["GroupID"] = prim.GroupID.ToString();
-            row["LastOwnerID"] = prim.LastOwnerID.ToString();
-            row["OwnerMask"] = prim.OwnerMask;
-            row["NextOwnerMask"] = prim.NextOwnerMask;
-            row["GroupMask"] = prim.GroupMask;
-            row["EveryoneMask"] = prim.EveryoneMask;
-            row["BaseMask"] = prim.BaseMask;
+            parameters.Add(_Database.CreateParameter("ObjectFlags", prim.ObjectFlags));
+            parameters.Add(_Database.CreateParameter("CreatorID", prim.CreatorID));
+            parameters.Add(_Database.CreateParameter("OwnerID", prim.OwnerID));
+            parameters.Add(_Database.CreateParameter("GroupID", prim.GroupID));
+            parameters.Add(_Database.CreateParameter("LastOwnerID", prim.LastOwnerID));
+            parameters.Add(_Database.CreateParameter("OwnerMask", prim.OwnerMask));
+            parameters.Add(_Database.CreateParameter("NextOwnerMask", prim.NextOwnerMask));
+            parameters.Add(_Database.CreateParameter("GroupMask", prim.GroupMask));
+            parameters.Add(_Database.CreateParameter("EveryoneMask", prim.EveryoneMask));
+            parameters.Add(_Database.CreateParameter("BaseMask", prim.BaseMask));
             // vectors
-            row["PositionX"] = prim.OffsetPosition.X;
-            row["PositionY"] = prim.OffsetPosition.Y;
-            row["PositionZ"] = prim.OffsetPosition.Z;
-            row["GroupPositionX"] = prim.GroupPosition.X;
-            row["GroupPositionY"] = prim.GroupPosition.Y;
-            row["GroupPositionZ"] = prim.GroupPosition.Z;
-            row["VelocityX"] = prim.Velocity.X;
-            row["VelocityY"] = prim.Velocity.Y;
-            row["VelocityZ"] = prim.Velocity.Z;
-            row["AngularVelocityX"] = prim.AngularVelocity.X;
-            row["AngularVelocityY"] = prim.AngularVelocity.Y;
-            row["AngularVelocityZ"] = prim.AngularVelocity.Z;
-            row["AccelerationX"] = prim.Acceleration.X;
-            row["AccelerationY"] = prim.Acceleration.Y;
-            row["AccelerationZ"] = prim.Acceleration.Z;
+            parameters.Add(_Database.CreateParameter("PositionX", prim.OffsetPosition.X));
+            parameters.Add(_Database.CreateParameter("PositionY", prim.OffsetPosition.Y));
+            parameters.Add(_Database.CreateParameter("PositionZ", prim.OffsetPosition.Z));
+            parameters.Add(_Database.CreateParameter("GroupPositionX", prim.GroupPosition.X));
+            parameters.Add(_Database.CreateParameter("GroupPositionY", prim.GroupPosition.Y));
+            parameters.Add(_Database.CreateParameter("GroupPositionZ", prim.GroupPosition.Z));
+            parameters.Add(_Database.CreateParameter("VelocityX", prim.Velocity.X));
+            parameters.Add(_Database.CreateParameter("VelocityY", prim.Velocity.Y));
+            parameters.Add(_Database.CreateParameter("VelocityZ", prim.Velocity.Z));
+            parameters.Add(_Database.CreateParameter("AngularVelocityX", prim.AngularVelocity.X));
+            parameters.Add(_Database.CreateParameter("AngularVelocityY", prim.AngularVelocity.Y));
+            parameters.Add(_Database.CreateParameter("AngularVelocityZ", prim.AngularVelocity.Z));
+            parameters.Add(_Database.CreateParameter("AccelerationX", prim.Acceleration.X));
+            parameters.Add(_Database.CreateParameter("AccelerationY", prim.Acceleration.Y));
+            parameters.Add(_Database.CreateParameter("AccelerationZ", prim.Acceleration.Z));
             // quaternions
-            row["RotationX"] = prim.RotationOffset.X;
-            row["RotationY"] = prim.RotationOffset.Y;
-            row["RotationZ"] = prim.RotationOffset.Z;
-            row["RotationW"] = prim.RotationOffset.W;
+            parameters.Add(_Database.CreateParameter("RotationX", prim.RotationOffset.X));
+            parameters.Add(_Database.CreateParameter("RotationY", prim.RotationOffset.Y));
+            parameters.Add(_Database.CreateParameter("RotationZ", prim.RotationOffset.Z));
+            parameters.Add(_Database.CreateParameter("RotationW", prim.RotationOffset.W));
 
             // Sit target
             Vector3 sitTargetPos = prim.SitTargetPositionLL;
-            row["SitTargetOffsetX"] = sitTargetPos.X;
-            row["SitTargetOffsetY"] = sitTargetPos.Y;
-            row["SitTargetOffsetZ"] = sitTargetPos.Z;
+            parameters.Add(_Database.CreateParameter("SitTargetOffsetX", sitTargetPos.X));
+            parameters.Add(_Database.CreateParameter("SitTargetOffsetY", sitTargetPos.Y));
+            parameters.Add(_Database.CreateParameter("SitTargetOffsetZ", sitTargetPos.Z));
 
             Quaternion sitTargetOrient = prim.SitTargetOrientationLL;
-            row["SitTargetOrientW"] = sitTargetOrient.W;
-            row["SitTargetOrientX"] = sitTargetOrient.X;
-            row["SitTargetOrientY"] = sitTargetOrient.Y;
-            row["SitTargetOrientZ"] = sitTargetOrient.Z;
+            parameters.Add(_Database.CreateParameter("SitTargetOrientW", sitTargetOrient.W));
+            parameters.Add(_Database.CreateParameter("SitTargetOrientX", sitTargetOrient.X));
+            parameters.Add(_Database.CreateParameter("SitTargetOrientY", sitTargetOrient.Y));
+            parameters.Add(_Database.CreateParameter("SitTargetOrientZ", sitTargetOrient.Z));
 
-            row["PayPrice"] = prim.PayPrice[0];
-            row["PayButton1"] = prim.PayPrice[1];
-            row["PayButton2"] = prim.PayPrice[2];
-            row["PayButton3"] = prim.PayPrice[3];
-            row["PayButton4"] = prim.PayPrice[4];
+            parameters.Add(_Database.CreateParameter("PayPrice", prim.PayPrice[0]));
+            parameters.Add(_Database.CreateParameter("PayButton1", prim.PayPrice[1]));
+            parameters.Add(_Database.CreateParameter("PayButton2", prim.PayPrice[2]));
+            parameters.Add(_Database.CreateParameter("PayButton3", prim.PayPrice[3]));
+            parameters.Add(_Database.CreateParameter("PayButton4", prim.PayPrice[4]));
 
             if ((prim.SoundFlags & 1) != 0) // Looped
             {
-                row["LoopedSound"] = prim.Sound.ToString();
-                row["LoopedSoundGain"] = prim.SoundGain;
+                parameters.Add(_Database.CreateParameter("LoopedSound", prim.Sound));
+                parameters.Add(_Database.CreateParameter("LoopedSoundGain", prim.SoundGain));
             }
             else
             {
-                row["LoopedSound"] = UUID.Zero;
-                row["LoopedSoundGain"] = 0.0f;
+                parameters.Add(_Database.CreateParameter("LoopedSound", UUID.Zero));
+                parameters.Add(_Database.CreateParameter("LoopedSoundGain", 0.0f));
             }
 
-            row["TextureAnimation"] = prim.TextureAnimation;
-            row["ParticleSystem"] = prim.ParticleSystem;
+            parameters.Add(_Database.CreateParameter("TextureAnimation", prim.TextureAnimation));
+            parameters.Add(_Database.CreateParameter("ParticleSystem", prim.ParticleSystem));
 
-            row["OmegaX"] = prim.RotationalVelocity.X;
-            row["OmegaY"] = prim.RotationalVelocity.Y;
-            row["OmegaZ"] = prim.RotationalVelocity.Z;
+            parameters.Add(_Database.CreateParameter("OmegaX", prim.RotationalVelocity.X));
+            parameters.Add(_Database.CreateParameter("OmegaY", prim.RotationalVelocity.Y));
+            parameters.Add(_Database.CreateParameter("OmegaZ", prim.RotationalVelocity.Z));
 
-            row["CameraEyeOffsetX"] = prim.GetCameraEyeOffset().X;
-            row["CameraEyeOffsetY"] = prim.GetCameraEyeOffset().Y;
-            row["CameraEyeOffsetZ"] = prim.GetCameraEyeOffset().Z;
+            parameters.Add(_Database.CreateParameter("CameraEyeOffsetX", prim.GetCameraEyeOffset().X));
+            parameters.Add(_Database.CreateParameter("CameraEyeOffsetY", prim.GetCameraEyeOffset().Y));
+            parameters.Add(_Database.CreateParameter("CameraEyeOffsetZ", prim.GetCameraEyeOffset().Z));
 
-            row["CameraAtOffsetX"] = prim.GetCameraAtOffset().X;
-            row["CameraAtOffsetY"] = prim.GetCameraAtOffset().Y;
-            row["CameraAtOffsetZ"] = prim.GetCameraAtOffset().Z;
+            parameters.Add(_Database.CreateParameter("CameraAtOffsetX", prim.GetCameraAtOffset().X));
+            parameters.Add(_Database.CreateParameter("CameraAtOffsetY", prim.GetCameraAtOffset().Y));
+            parameters.Add(_Database.CreateParameter("CameraAtOffsetZ", prim.GetCameraAtOffset().Z));
 
             if (prim.GetForceMouselook())
-                row["ForceMouselook"] = 1;
+                parameters.Add(_Database.CreateParameter("ForceMouselook", 1));
             else
-                row["ForceMouselook"] = 0;
+                parameters.Add(_Database.CreateParameter("ForceMouselook", 0));
 
-            row["ScriptAccessPin"] = prim.ScriptAccessPin;
+            parameters.Add(_Database.CreateParameter("ScriptAccessPin", prim.ScriptAccessPin));
 
             if (prim.AllowedDrop)
-                row["AllowedDrop"] = 1;
+                parameters.Add(_Database.CreateParameter("AllowedDrop", 1));
             else
-                row["AllowedDrop"] = 0;
+                parameters.Add(_Database.CreateParameter("AllowedDrop", 0));
 
             if (prim.DIE_AT_EDGE)
-                row["DieAtEdge"] = 1;
+                parameters.Add(_Database.CreateParameter("DieAtEdge", 1));
             else
-                row["DieAtEdge"] = 0;
+                parameters.Add(_Database.CreateParameter("DieAtEdge", 0));
 
-            row["SalePrice"] = prim.SalePrice;
-            row["SaleType"] = Convert.ToInt16(prim.ObjectSaleType);
+            parameters.Add(_Database.CreateParameter("SalePrice", prim.SalePrice));
+            parameters.Add(_Database.CreateParameter("SaleType", prim.ObjectSaleType));
 
             byte clickAction = prim.ClickAction;
-            row["ClickAction"] = clickAction;
+            parameters.Add(_Database.CreateParameter("ClickAction", clickAction));
 
-            row["Material"] = prim.Material;
+            parameters.Add(_Database.CreateParameter("Material", prim.Material));
 
-            row["CollisionSound"] = prim.CollisionSound.ToString();
-            row["CollisionSoundVolume"] = prim.CollisionSoundVolume;
+            parameters.Add(_Database.CreateParameter("CollisionSound", prim.CollisionSound));
+            parameters.Add(_Database.CreateParameter("CollisionSoundVolume", prim.CollisionSoundVolume));
+            parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
+
+            return parameters.ToArray();
         }
 
         /// <summary>
-        /// Fills/Updates the shape datarow.
+        /// Creates the primshape parameters for stroing in DB.
         /// </summary>
-        /// <param name="row">datarow to fill/update.</param>
-        /// <param name="prim">prim shape data.</param>
-        private static void fillShapeRow(DataRow row, SceneObjectPart prim)
+        /// <param name="prim">Basic data of SceneObjectpart prim.</param>
+        /// <param name="sceneGroupID">The scene group ID.</param>
+        /// <param name="regionUUID">The region UUID.</param>
+        /// <returns></returns>
+        private SqlParameter[] CreatePrimShapeParameters(SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
+            List<SqlParameter> parameters = new List<SqlParameter>();
+
             PrimitiveBaseShape s = prim.Shape;
-            row["UUID"] = prim.UUID.ToString();
+            parameters.Add(_Database.CreateParameter("UUID", prim.UUID));
             // shape is an enum
-            row["Shape"] = 0;
+            parameters.Add(_Database.CreateParameter("Shape", 0));
             // vectors
-            row["ScaleX"] = s.Scale.X;
-            row["ScaleY"] = s.Scale.Y;
-            row["ScaleZ"] = s.Scale.Z;
+            parameters.Add(_Database.CreateParameter("ScaleX", s.Scale.X));
+            parameters.Add(_Database.CreateParameter("ScaleY", s.Scale.Y));
+            parameters.Add(_Database.CreateParameter("ScaleZ", s.Scale.Z));
             // paths
-            row["PCode"] = s.PCode;
-            row["PathBegin"] = s.PathBegin;
-            row["PathEnd"] = s.PathEnd;
-            row["PathScaleX"] = s.PathScaleX;
-            row["PathScaleY"] = s.PathScaleY;
-            row["PathShearX"] = s.PathShearX;
-            row["PathShearY"] = s.PathShearY;
-            row["PathSkew"] = s.PathSkew;
-            row["PathCurve"] = s.PathCurve;
-            row["PathRadiusOffset"] = s.PathRadiusOffset;
-            row["PathRevolutions"] = s.PathRevolutions;
-            row["PathTaperX"] = s.PathTaperX;
-            row["PathTaperY"] = s.PathTaperY;
-            row["PathTwist"] = s.PathTwist;
-            row["PathTwistBegin"] = s.PathTwistBegin;
+            parameters.Add(_Database.CreateParameter("PCode", s.PCode));
+            parameters.Add(_Database.CreateParameter("PathBegin", s.PathBegin));
+            parameters.Add(_Database.CreateParameter("PathEnd", s.PathEnd));
+            parameters.Add(_Database.CreateParameter("PathScaleX", s.PathScaleX));
+            parameters.Add(_Database.CreateParameter("PathScaleY", s.PathScaleY));
+            parameters.Add(_Database.CreateParameter("PathShearX", s.PathShearX));
+            parameters.Add(_Database.CreateParameter("PathShearY", s.PathShearY));
+            parameters.Add(_Database.CreateParameter("PathSkew", s.PathSkew));
+            parameters.Add(_Database.CreateParameter("PathCurve", s.PathCurve));
+            parameters.Add(_Database.CreateParameter("PathRadiusOffset", s.PathRadiusOffset));
+            parameters.Add(_Database.CreateParameter("PathRevolutions", s.PathRevolutions));
+            parameters.Add(_Database.CreateParameter("PathTaperX", s.PathTaperX));
+            parameters.Add(_Database.CreateParameter("PathTaperY", s.PathTaperY));
+            parameters.Add(_Database.CreateParameter("PathTwist", s.PathTwist));
+            parameters.Add(_Database.CreateParameter("PathTwistBegin", s.PathTwistBegin));
             // profile
-            row["ProfileBegin"] = s.ProfileBegin;
-            row["ProfileEnd"] = s.ProfileEnd;
-            row["ProfileCurve"] = s.ProfileCurve;
-            row["ProfileHollow"] = s.ProfileHollow;
-            row["Texture"] = s.TextureEntry;
-            row["ExtraParams"] = s.ExtraParams;
-            row["State"] = s.State;
+            parameters.Add(_Database.CreateParameter("ProfileBegin", s.ProfileBegin));
+            parameters.Add(_Database.CreateParameter("ProfileEnd", s.ProfileEnd));
+            parameters.Add(_Database.CreateParameter("ProfileCurve", s.ProfileCurve));
+            parameters.Add(_Database.CreateParameter("ProfileHollow", s.ProfileHollow));
+            parameters.Add(_Database.CreateParameter("Texture", s.TextureEntry));
+            parameters.Add(_Database.CreateParameter("ExtraParams", s.ExtraParams));
+            parameters.Add(_Database.CreateParameter("State", s.State));
+
+            return parameters.ToArray();
         }
+
+    
 
         #endregion
 
-        /// <summary>
-        /// Retrieves the prims data for region.
-        /// </summary>
-        /// <param name="regionUUID">The region UUID.</param>
-        /// <param name="sceneGroupID">The scene group ID.</param>
-        /// <param name="primID">The prim ID.</param>
-        private void RetrievePrimsDataForRegion(UUID regionUUID, UUID sceneGroupID, string primID)
-        {
-            using (SqlConnection connection = _Database.DatabaseConnection())
-            {
-                _PrimDataAdapter.SelectCommand.Connection = connection;
-                _PrimDataAdapter.SelectCommand.Parameters["@RegionUUID"].Value = regionUUID.ToString();
-                _PrimDataAdapter.Fill(_PrimsDataSet, "prims");
-
-                _Log.Debug("Prim row count: " + _PrimsDataSet.Tables["prims"].Rows.Count);
-
-                _ShapeDataAdapter.SelectCommand.Connection = connection;
-                _ShapeDataAdapter.SelectCommand.Parameters["@RegionUUID"].Value = regionUUID.ToString();
-                _ShapeDataAdapter.Fill(_PrimsDataSet, "primshapes");
-
-                _ItemsDataAdapter.SelectCommand.Connection = connection;
-                _ItemsDataAdapter.SelectCommand.Parameters["@RegionUUID"].Value = regionUUID.ToString();
-                _ItemsDataAdapter.Fill(_PrimsDataSet, "primitems");
-            }
-        }
-
-        /// <summary>
-        /// Commits the dataset.
-        /// </summary>
-        private void CommitDataSet()
-        {
-            try
-            {
-                using (SqlConnection connection = _Database.DatabaseConnection())
-                {
-                    _PrimDataAdapter.InsertCommand.Connection = connection;
-                    _PrimDataAdapter.UpdateCommand.Connection = connection;
-                    _PrimDataAdapter.DeleteCommand.Connection = connection;
-
-                    _ShapeDataAdapter.InsertCommand.Connection = connection;
-                    _ShapeDataAdapter.UpdateCommand.Connection = connection;
-                    _ShapeDataAdapter.DeleteCommand.Connection = connection;
-
-                    _ItemsDataAdapter.InsertCommand.Connection = connection;
-                    _ItemsDataAdapter.UpdateCommand.Connection = connection;
-                    _ItemsDataAdapter.DeleteCommand.Connection = connection;
-
-                    _PrimDataAdapter.Update(_PrimsDataSet.Tables["prims"]);
-                    _ShapeDataAdapter.Update(_PrimsDataSet.Tables["primshapes"]);
-                    _ItemsDataAdapter.Update(_PrimsDataSet.Tables["primitems"]);
-                }
-            }
-            finally
-            {
-                _PrimsDataSet.AcceptChanges();
-
-                _PrimsDataSet.Tables["prims"].Clear();
-                _PrimsDataSet.Tables["primshapes"].Clear();
-                _PrimsDataSet.Tables["primitems"].Clear();
-                
-            }
-        }
-
-        /// <summary>
-        /// Create commands for a dataadapter.
-        /// </summary>
-        /// <param name="dataAdapter">The data adapter.</param>
-        private static void SetupCommands(SqlDataAdapter dataAdapter)
-        {
-            SqlCommandBuilder commandBuilder = new SqlCommandBuilder(dataAdapter);
-
-            dataAdapter.InsertCommand = commandBuilder.GetInsertCommand(true);
-            dataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand(true);
-            dataAdapter.DeleteCommand = commandBuilder.GetDeleteCommand(true);
-        }
         #endregion
     }
 }
