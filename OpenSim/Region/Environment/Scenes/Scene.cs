@@ -2506,11 +2506,11 @@ namespace OpenSim.Region.Environment.Scenes
                 CommsManager.UserService.UpdateUserProfile(UserProfile);
 
                 // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
-                remoteClient.SendAgentAlertMessage("Home position set.",false);
+                m_dialogModule.SendAlertToUser(remoteClient, "Home position set.");
             }
             else
             {
-                remoteClient.SendAgentAlertMessage("Set Home request Failed",false);
+                m_dialogModule.SendAlertToUser(remoteClient, "Set Home request Failed.");
             }
         }
 
@@ -3469,7 +3469,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage("Request for god powers denied", false);
+                        m_dialogModule.SendAlertToUser(agentID, "Request for god powers denied");
                     }
                 }
             }
@@ -3567,8 +3567,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        if (m_scenePresences.ContainsKey(godID))
-                            m_scenePresences[godID].ControllingClient.SendAgentAlertMessage("Kick request denied", false);
+                        m_dialogModule.SendAlertToUser(godID, "Kick request denied");
                     }
                 }
             }
@@ -4209,7 +4208,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if ((effectivePerms & (uint)PermissionMask.Transfer) == 0)
                 {
-                    remoteClient.SendAgentAlertMessage("This item doesn't appear to be for sale", false);
+                    m_dialogModule.SendAlertToUser(remoteClient, "This item doesn't appear to be for sale");
                     return false;
                 }
 
@@ -4250,7 +4249,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if ((perms & (uint)PermissionMask.Transfer) == 0)
                     {
-                        remoteClient.SendAgentAlertMessage("This item doesn't appear to be for sale", false);
+                        m_dialogModule.SendAlertToUser(remoteClient, "This item doesn't appear to be for sale");
                         return false;
                     }
 
@@ -4296,7 +4295,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    remoteClient.SendAgentAlertMessage("Cannot buy now. Your inventory is unavailable", false);
+                    m_dialogModule.SendAlertToUser(remoteClient, "Cannot buy now. Your inventory is unavailable");
                     return false;
                 }
                 break;
@@ -4319,7 +4318,8 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (!okToSell)
                 {
-                    remoteClient.SendAgentAlertMessage("This item's inventory doesn't appear to be for sale", false);
+                    m_dialogModule.SendAlertToUser(
+                        remoteClient, "This item's inventory doesn't appear to be for sale");                 
                     return false;
                 }
 

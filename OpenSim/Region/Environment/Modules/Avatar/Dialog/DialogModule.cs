@@ -53,6 +53,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Dialog
         public string Name { get { return "Dialog Module"; } }
         public bool IsSharedModule { get { return false; } }
         
+        public void SendAlertToUser(IClientAPI client, string message)
+        {
+            SendAlertToUser(client, message, false);
+        }          
+        
+        public void SendAlertToUser(IClientAPI client, string message, bool modal)
+        {
+            client.SendAgentAlertMessage(message, modal);
+        } 
+        
         public void SendAlertToUser(UUID agentID, string message)
         {
             SendAlertToUser(agentID, message, false);
@@ -64,7 +74,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Dialog
             
             if (sp != null)
                 sp.ControllingClient.SendAgentAlertMessage(message, modal);
-        }   
+        }           
         
         public void SendAlertToUser(string firstName, string lastName, string message, bool modal)
         {

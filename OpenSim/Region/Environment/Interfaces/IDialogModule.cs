@@ -27,11 +27,27 @@
 
 using System;
 using OpenMetaverse;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IDialogModule
     {
+        /// <summary>
+        /// Send a non-modal alert message to a particular user.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="message"></param>        
+        void SendAlertToUser(IClientAPI client, string message);      
+        
+        /// <summary>
+        /// Send an alert message to a particular user.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="message"></param>
+        /// <param name="modal"></param>        
+        void SendAlertToUser(IClientAPI client, string message, bool modal);
+        
         /// <summary>
         /// Send a non-modal alert message to a particular user.
         /// </summary>
