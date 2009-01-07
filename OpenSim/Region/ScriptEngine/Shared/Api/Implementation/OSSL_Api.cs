@@ -329,7 +329,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryHigh, "osRegionNotice");
 
             m_host.AddScriptLPS(1);
-            World.SendGeneralAlert(msg);
+            
+            IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
+            
+            if (dm != null)
+                dm.SendGeneralAlert(msg);
         }
 
         public void osSetRot(UUID target, Quaternion rotation)

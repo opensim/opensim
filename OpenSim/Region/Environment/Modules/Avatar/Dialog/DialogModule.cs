@@ -78,6 +78,21 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Dialog
                     break;
                 }
             }
+        }     
+        
+        /// <summary>
+        /// Send an alert messages to all avatars in this scene.
+        /// </summary>
+        /// <param name="message"></param>
+        public void SendGeneralAlert(string message)
+        {
+            List<ScenePresence> presenceList = m_scene.GetScenePresences();
+
+            foreach (ScenePresence presence in presenceList)
+            {
+                if (!presence.IsChildAgent)
+                    presence.ControllingClient.SendAlertMessage(message);
+            }
         }        
     }
 }

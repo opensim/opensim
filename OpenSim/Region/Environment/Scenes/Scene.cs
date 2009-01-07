@@ -148,6 +148,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected IRegionSerialiserModule m_serialiser;
         protected IInterregionCommsOut m_interregionCommsOut;
         protected IInterregionCommsIn m_interregionCommsIn;
+        protected IDialogModule m_dialogModule;
 
         // Central Update Loop
 
@@ -549,7 +550,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (seconds < 15)
             {
                 m_restartTimer.Stop();
-                SendGeneralAlert("Restart Aborted");
+                m_dialogModule.SendGeneralAlert("Restart Aborted");
             }
             else
             {
@@ -775,6 +776,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_serialiser = RequestModuleInterface<IRegionSerialiserModule>();
             m_interregionCommsOut = RequestModuleInterface<IInterregionCommsOut>();
             m_interregionCommsIn = RequestModuleInterface<IInterregionCommsIn>();
+            m_dialogModule = RequestModuleInterface<IDialogModule>();
         }
 
         #endregion
@@ -3428,24 +3430,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        #region Console Commands
-
         #region Alert Methods
-
-        /// <summary>
-        /// Send an alert messages to all avatars in this scene.
-        /// </summary>
-        /// <param name="message"></param>
-        public void SendGeneralAlert(string message)
-        {
-            List<ScenePresence> presenceList = GetScenePresences();
-
-            foreach (ScenePresence presence in presenceList)
-            {
-                if (!presence.IsChildAgent)
-                    presence.ControllingClient.SendAlertMessage(message);
-            }
-        }
 
         /// <summary>
         /// Handle a request for admin rights
@@ -3616,17 +3601,12 @@ namespace OpenSim.Region.Environment.Scenes
             if (commandParams[0] == "general")
             {
                 string message = CombineParams(commandParams, 1);
-                SendGeneralAlert(message);
+                m_dialogModule.SendGeneralAlert(message);
             }
             else
             {
-                IDialogModule dm = RequestModuleInterface<IDialogModule>();
-                
-                if (dm != null)     
-                {
-                    string message = CombineParams(commandParams, 2);
-                    dm.SendAlertToUser(commandParams[0], commandParams[1], message, false);
-                }
+                string message = CombineParams(commandParams, 2);
+                m_dialogModule.SendAlertToUser(commandParams[0], commandParams[1], message, false);
             }
         }
 
@@ -3726,8 +3706,6 @@ namespace OpenSim.Region.Environment.Scenes
                     break;
             }
         }
-
-        #endregion
 
         #region Script Handling Methods
 

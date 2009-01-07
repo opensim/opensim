@@ -54,6 +54,12 @@ namespace OpenSim.Region.Environment.Interfaces
         /// <param name="lastName"></param>
         /// <param name="message"></param>
         /// <param name="modal"></param>
-        void SendAlertToUser(string firstName, string lastName, string message, bool modal); 
+        void SendAlertToUser(string firstName, string lastName, string message, bool modal);
+        
+        /// <summary>
+        /// Send an alert messages to all avatars in the scene.
+        /// </summary>
+        /// <param name="message"></param>
+        void SendGeneralAlert(string message);        
     }
 }

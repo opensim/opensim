@@ -310,7 +310,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendGeneralMessage(string msg)
         {
-            ForEachCurrentScene(delegate(Scene scene) { scene.SendGeneralAlert(msg); });
+            ForEachCurrentScene(delegate(Scene scene) { scene.HandleAlertCommand(new string[] { "general", msg }); });
         }
 
         public bool TrySetCurrentScene(string regionName)
