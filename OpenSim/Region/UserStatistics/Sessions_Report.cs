@@ -120,7 +120,7 @@ namespace OpenSim.Region.UserStatistics
 
                     SessionList activeSessionList = new SessionList();
                     activeSessionList.user_id=UUID.Random();
-                    while(sdr.Read())
+                    while (sdr.Read())
                     {
                         UUID readUUID = UUID.Parse(sdr["agent_id"].ToString());
                         if (readUUID != userUUID)
