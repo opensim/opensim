@@ -101,6 +101,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Dialog
             }
         }    
         
+        public void SendDialogToUser(
+            UUID avatarID, string objectName, UUID objectID, UUID ownerID, 
+            string message, UUID textureID, int ch, string[] buttonlabels)
+        {
+            ScenePresence sp = m_scene.GetScenePresence(avatarID);
+            
+            if (sp != null)
+                sp.ControllingClient.SendDialog(objectName, objectID, ownerID, message, textureID, ch, buttonlabels);
+        }        
+        
         public void SendNotificationToUsersInEstate(
             UUID fromAvatarID, string fromAvatarName, string message)
         {

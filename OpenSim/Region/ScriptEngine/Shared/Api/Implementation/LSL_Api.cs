@@ -5722,6 +5722,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llDialog(string avatar, string message, LSL_List buttons, int chat_channel)
         {
+            IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
+            
+            if (dm == null)
+                return;
+                
             m_host.AddScriptLPS(1);
             UUID av = new UUID();
             if (!UUID.TryParse(avatar,out av))
@@ -5749,7 +5754,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 buts[i] = buttons.Data[i].ToString();
             }
-            World.SendDialogToUser(av, m_host.Name, m_host.UUID, m_host.OwnerID, message, new UUID("00000000-0000-2222-3333-100000001000"), chat_channel, buts);
+            
+            dm.SendDialogToUser(
+                av, m_host.Name, m_host.UUID, m_host.OwnerID, 
+                message, new UUID("00000000-0000-2222-3333-100000001000"), chat_channel, buts);
+            
             // ScriptSleep(1000);
         }
 

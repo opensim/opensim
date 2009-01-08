@@ -80,6 +80,21 @@ namespace OpenSim.Region.Environment.Interfaces
         void SendGeneralAlert(string message);
         
         /// <summary>
+        /// Send a dialog box to a particular user.
+        /// </summary>
+        /// <param name="avatarID"></param>
+        /// <param name="objectName"></param>
+        /// <param name="objectID"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="message"></param>
+        /// <param name="textureID"></param>
+        /// <param name="ch"></param>
+        /// <param name="buttonlabels"></param>
+        void SendDialogToUser(
+            UUID avatarID, string objectName, UUID objectID, UUID ownerID, 
+            string message, UUID textureID, int ch, string[] buttonlabels);     
+        
+        /// <summary>
         /// Send a notification to all users in the scene.  This notification should remain around until the 
         /// user explicitly dismisses it.
         /// </summary>

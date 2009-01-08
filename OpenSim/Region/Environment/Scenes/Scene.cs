@@ -3377,18 +3377,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void SendDialogToUser(UUID avatarID, string objectName, UUID objectID, UUID ownerID, string message, UUID TextureID, int ch, string[] buttonlabels)
-        {
-            lock (m_scenePresences)
-            {
-                if (m_scenePresences.ContainsKey(avatarID))
-                {
-                    m_scenePresences[avatarID].ControllingClient.SendDialog(
-                        objectName, objectID, ownerID, message, TextureID, ch, buttonlabels);
-                }
-            }
-        }
-
         public virtual void StoreAddFriendship(UUID ownerID, UUID friendID, uint perms)
         {
             m_sceneGridService.AddNewUserFriend(ownerID, friendID, perms);
