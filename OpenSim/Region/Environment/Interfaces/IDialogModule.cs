@@ -90,6 +90,19 @@ namespace OpenSim.Region.Environment.Interfaces
         /// <param name="fromAvatarID">The user sending the message</param>
         /// <param name="fromAvatarName">The name of the user doing the sending</param>
         /// <param name="message">The message being sent to the user</param>       
-        void SendNotificationToUsersInRegion(UUID fromAvatarID, string fromAvatarName, string message);        
+        void SendNotificationToUsersInRegion(UUID fromAvatarID, string fromAvatarName, string message);
+        
+        /// <summary>
+        /// Send a notification to all users in the estate.  This notification should remain around until the 
+        /// user explicitly dismisses it.
+        /// </summary>
+        /// 
+        /// On the Linden Labs Second Client (as of 1.21), this is a big blue box message on the upper right of the 
+        /// screen.
+        /// 
+        /// <param name="fromAvatarID">The user sending the message</param>
+        /// <param name="fromAvatarName">The name of the user doing the sending</param>
+        /// <param name="message">The message being sent to the user</param>  
+        void SendNotificationToUsersInEstate(UUID fromAvatarID, string fromAvatarName, string message);
     }
 }

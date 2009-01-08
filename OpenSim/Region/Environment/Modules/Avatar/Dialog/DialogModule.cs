@@ -99,7 +99,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Dialog
                 if (!presence.IsChildAgent)
                     presence.ControllingClient.SendAlertMessage(message);
             }
-        }      
+        }    
+        
+        public void SendNotificationToUsersInEstate(
+            UUID fromAvatarID, string fromAvatarName, string message)
+        {
+            // TODO: This does not yet do what it says on the tin - it only sends the message to users in the same
+            // region as the sending avatar.
+            SendNotificationToUsersInRegion(fromAvatarID, fromAvatarName, message);
+        }        
         
         public void SendNotificationToUsersInRegion(
             UUID fromAvatarID, string fromAvatarName, string message)

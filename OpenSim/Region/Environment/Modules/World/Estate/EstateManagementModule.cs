@@ -352,7 +352,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             }
         }
 
-        private void SendSimulatorBlueBoxMessage(IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
+        private void SendSimulatorBlueBoxMessage(
+            IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
         {
             IDialogModule dm = m_scene.RequestModuleInterface<IDialogModule>();
             
@@ -360,9 +361,13 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 dm.SendNotificationToUsersInRegion(senderID, senderName, message);
         }
 
-        private void SendEstateBlueBoxMessage(IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
+        private void SendEstateBlueBoxMessage(
+            IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
         {
-            m_scene.SendEstateMessageFromEstateTools(senderID, sessionID, senderName, message);
+            IDialogModule dm = m_scene.RequestModuleInterface<IDialogModule>();
+            
+            if (dm != null)
+                dm.SendNotificationToUsersInEstate(senderID, senderName, message);
         }
 
         private void handleEstateDebugRegionRequest(IClientAPI remote_client, UUID invoice, UUID senderID, bool scripted, bool collisionEvents, bool physics)
