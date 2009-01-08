@@ -3463,24 +3463,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Sends a Big Blue Box message on the upper right of the screen to the client
-        /// for all agents in the estate
-        /// </summary>
-        /// <param name="FromAvatarID">The person sending the message</param>
-        /// <param name="fromSessionID">The session of the person sending the message</param>
-        /// <param name="FromAvatarName">The name of the person doing the sending</param>
-        /// <param name="Message">The Message being sent to the user</param>
-        public void SendEstateMessageFromEstateTools(UUID FromAvatarID, UUID fromSessionID, String FromAvatarName, String Message)
-        {
-
-            ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                        {
-                                            controller.SendBlueBoxMessage(FromAvatarID, FromAvatarName, Message);
-                                        }
-                );
-        }
-
-        /// <summary>
         /// Kicks User specified from the simulator. This logs them off of the grid
         /// If the client gets the UUID: 44e87126e7944ded05b37c42da3d5cdb it assumes
         /// that you're kicking it even if the avatar's UUID isn't the UUID that the
