@@ -110,6 +110,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Dialog
             if (sp != null)
                 sp.ControllingClient.SendDialog(objectName, objectID, ownerID, message, textureID, ch, buttonlabels);
         }        
+
+        public void SendUrlToUser(
+            UUID avatarID, string objectName, UUID objectID, UUID ownerID, bool groupOwned, string message, string url)
+        {
+            ScenePresence sp = m_scene.GetScenePresence(avatarID);
+            
+            if (sp != null)            
+                sp.ControllingClient.SendLoadURL(objectName, objectID, ownerID, groupOwned, message, url);
+        }        
         
         public void SendNotificationToUsersInEstate(
             UUID fromAvatarID, string fromAvatarName, string message)

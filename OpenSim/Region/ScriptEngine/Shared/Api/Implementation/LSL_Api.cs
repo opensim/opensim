@@ -7799,9 +7799,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llLoadURL(string avatar_id, string message, string url)
         {
             m_host.AddScriptLPS(1);
-            UUID avatarId = new UUID(avatar_id);
-            m_ScriptEngine.World.SendUrlToUser(avatarId, m_host.Name, m_host.UUID, m_host.ObjectOwner, false, message,
-                                               url);
+            
+            IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
+            if (null != dm)
+                dm.SendUrlToUser(
+                    new UUID(avatar_id), m_host.Name, m_host.UUID, m_host.ObjectOwner, false, message, url);
+
             // ScriptSleep(10000);
         }
 

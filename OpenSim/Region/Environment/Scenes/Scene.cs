@@ -3354,29 +3354,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_timePhase = phase;
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="avatarID"></param>
-        /// <param name="objectName"></param>
-        /// <param name="objectID"></param>
-        /// <param name="ownerID"></param>
-        /// <param name="groupOwned"></param>
-        /// <param name="message"></param>
-        /// <param name="url"></param>
-        public void SendUrlToUser(UUID avatarID, string objectName, UUID objectID, UUID ownerID, bool groupOwned,
-                                  string message, string url)
-        {
-            lock (m_scenePresences)
-            {
-                if (m_scenePresences.ContainsKey(avatarID))
-                {
-                    m_scenePresences[avatarID].ControllingClient.SendLoadURL(objectName, objectID, ownerID, groupOwned,
-                                                                             message, url);
-                }
-            }
-        }
-
         public virtual void StoreAddFriendship(UUID ownerID, UUID friendID, uint perms)
         {
             m_sceneGridService.AddNewUserFriend(ownerID, friendID, perms);
