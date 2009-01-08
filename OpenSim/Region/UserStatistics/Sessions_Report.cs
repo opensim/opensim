@@ -53,27 +53,31 @@ namespace OpenSim.Region.UserStatistics
             List<SessionList> lstSessions = new List<SessionList>();
             Hashtable requestvars = (Hashtable) pParams["RequestVars"];
             
+
             string puserUUID = string.Empty;
             string clientVersionString = string.Empty;
             int queryparams = 0;
 
-            if (requestvars.ContainsKey("UserID"))
+            if (requestvars != null)
             {
-                UUID testUUID = UUID.Zero;
-                if (UUID.TryParse(requestvars["UserID"].ToString(), out testUUID))
+                if (requestvars.ContainsKey("UserID"))
                 {
-                    puserUUID = requestvars["UserID"].ToString();
-                    
+                    UUID testUUID = UUID.Zero;
+                    if (UUID.TryParse(requestvars["UserID"].ToString(), out testUUID))
+                    {
+                        puserUUID = requestvars["UserID"].ToString();
+
+                    }
                 }
-            }
 
-            if (requestvars.ContainsKey("VersionString"))
-            {
-                UUID testUUID = UUID.Zero;
+                if (requestvars.ContainsKey("VersionString"))
+                {
+                    UUID testUUID = UUID.Zero;
 
-                clientVersionString = requestvars["VersionString"].ToString();
+                    clientVersionString = requestvars["VersionString"].ToString();
 
-               
+
+                }
             }
 
             lock (dbConn)

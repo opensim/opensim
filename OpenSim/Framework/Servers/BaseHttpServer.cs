@@ -1066,6 +1066,9 @@ namespace OpenSim.Framework.Servers
 
             Hashtable keysvals = new Hashtable();
             Hashtable headervals = new Hashtable();
+
+            Hashtable requestVars = new Hashtable();
+
             string host = String.Empty;
 
             string[] querystringkeys = request.QueryString.AllKeys;
@@ -1079,6 +1082,7 @@ namespace OpenSim.Framework.Servers
             foreach (string queryname in querystringkeys)
             {
                 keysvals.Add(queryname, request.QueryString[queryname]);
+                requestVars.Add(queryname, keysvals[queryname]);
             }
 
             foreach (string headername in rHeaders)
@@ -1091,7 +1095,10 @@ namespace OpenSim.Framework.Servers
             {
                 host = (string)headervals["Host"];
             }
+
             keysvals.Add("headers",headervals);
+            keysvals.Add("querystringkeys", querystringkeys);
+            keysvals.Add("requestvars", requestVars);
 
             if (keysvals.Contains("method"))
             {

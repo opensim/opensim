@@ -203,8 +203,16 @@ namespace OpenSim.Region.UserStatistics
                 IStatsController rep = reports[regpath];
                 Hashtable repParams = new Hashtable();
 
-                repParams["RequestVars"] = request["requestvars"];
-                repParams["QueryStringKeys"] = request["querystringkeys"];
+                if (request.ContainsKey("requestvars"))
+                    repParams["RequestVars"] = request["requestvars"];
+                else
+                    repParams["RequestVars"] = new Hashtable();
+
+                if (request.ContainsKey("querystringkeys"))
+                    repParams["QueryStringKeys"] = request["querystringkeys"];
+                else
+                    repParams["QueryStringKeys"] = new string[0];
+
 
                 repParams["DatabaseConnection"] = dbConn;
                 repParams["Scenes"] = m_scene;
