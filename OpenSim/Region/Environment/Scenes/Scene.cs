@@ -559,11 +559,11 @@ namespace OpenSim.Region.Environment.Scenes
                 m_incrementsof15seconds = (int)seconds / 15;
                 m_RestartTimerCounter = 0;
                 m_restartTimer.AutoReset = true;
-                m_restartTimer.Elapsed += new ElapsedEventHandler(RestartTimer_Elapsed);
-                m_log.Error("[REGION]: Restarting Region in " + (seconds / 60) + " minutes");
+                m_restartTimer.Elapsed += new ElapsedEventHandler(RestartTimer_Elapsed);                
+                m_log.Info("[REGION]: Restarting Region in " + (seconds / 60) + " minutes");
                 m_restartTimer.Start();
-                SendRegionMessageFromEstateTools(UUID.Random(), UUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in 2 Minutes");
-                //SendGeneralAlert(RegionInfo.RegionName + ": Restarting in 2 Minutes");
+                m_dialogModule.SendNotificationToUsersInRegion(
+                    UUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in 2 Minutes");
             }
         }
 
@@ -577,11 +577,10 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_RestartTimerCounter <= m_incrementsof15seconds)
             {
                 if (m_RestartTimerCounter == 4 || m_RestartTimerCounter == 6 || m_RestartTimerCounter == 7)
-                    SendRegionMessageFromEstateTools(UUID.Random(), UUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in " +
-                                                     ((8 - m_RestartTimerCounter) * 15) + " seconds");
-
-                // SendGeneralAlert(RegionInfo.RegionName + ": Restarting in " + ((8 - m_RestartTimerCounter)*15) +
-                //" seconds");
+                    m_dialogModule.SendNotificationToUsersInRegion(
+                        UUID.Random(), 
+                        String.Empty, 
+                        RegionInfo.RegionName + ": Restarting in " + ((8 - m_RestartTimerCounter) * 15) + " seconds");
             }
             else
             {
@@ -3472,25 +3471,6 @@ namespace OpenSim.Region.Environment.Scenes
                         m_dialogModule.SendAlertToUser(agentID, "Request for god powers denied");
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Sends a Big Blue Box message on the upper right of the screen to the client
-        /// for all agents in the region
-        /// </summary>
-        /// <param name="FromAvatarID">The person sending the message</param>
-        /// <param name="fromSessionID">The session of the person sending the message</param>
-        /// <param name="FromAvatarName">The name of the person doing the sending</param>
-        /// <param name="Message">The Message being sent to the user</param>
-        public void SendRegionMessageFromEstateTools(UUID FromAvatarID, UUID fromSessionID, String FromAvatarName, String Message)
-        {
-            List<ScenePresence> presenceList = GetScenePresences();
-
-            foreach (ScenePresence presence in presenceList)
-            {
-                if (!presence.IsChildAgent)
-                    presence.ControllingClient.SendBlueBoxMessage(FromAvatarID, FromAvatarName, Message);
             }
         }
 

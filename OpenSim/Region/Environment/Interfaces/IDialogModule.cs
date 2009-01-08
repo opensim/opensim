@@ -34,7 +34,8 @@ namespace OpenSim.Region.Environment.Interfaces
     public interface IDialogModule
     {
         /// <summary>
-        /// Send a non-modal alert message to a particular user.
+        /// Send a non-modal alert message to a particular user.  This can disappear from the user's view after a
+        /// small interval.
         /// </summary>
         /// <param name="client"></param>
         /// <param name="message"></param>        
@@ -73,9 +74,22 @@ namespace OpenSim.Region.Environment.Interfaces
         void SendAlertToUser(string firstName, string lastName, string message, bool modal);
         
         /// <summary>
-        /// Send an alert messages to all avatars in the scene.
+        /// Send an alert message to all users in the scene.  
         /// </summary>
         /// <param name="message"></param>
-        void SendGeneralAlert(string message);        
+        void SendGeneralAlert(string message);
+        
+        /// <summary>
+        /// Send a notification to all users in the scene.  This notification should remain around until the 
+        /// user explicitly dismisses it.
+        /// </summary>
+        /// 
+        /// On the Linden Labs Second Client (as of 1.21), this is a big blue box message on the upper right of the 
+        /// screen.
+        /// 
+        /// <param name="fromAvatarID">The user sending the message</param>
+        /// <param name="fromAvatarName">The name of the user doing the sending</param>
+        /// <param name="message">The message being sent to the user</param>       
+        void SendNotificationToUsersInRegion(UUID fromAvatarID, string fromAvatarName, string message);        
     }
 }

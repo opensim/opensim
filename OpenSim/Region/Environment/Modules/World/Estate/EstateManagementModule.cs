@@ -51,8 +51,6 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         private void sendDetailedEstateData(IClientAPI remote_client, UUID invoice)
         {
-        //SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant)
-
             uint sun = 0;
 
             if (!m_scene.RegionInfo.EstateSettings.UseGlobalTime)
@@ -356,7 +354,10 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         private void SendSimulatorBlueBoxMessage(IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
         {
-            m_scene.SendRegionMessageFromEstateTools(senderID, sessionID, senderName, message);
+            IDialogModule dm = m_scene.RequestModuleInterface<IDialogModule>();
+            
+            if (dm != null)
+                dm.SendNotificationToUsersInRegion(senderID, senderName, message);
         }
 
         private void SendEstateBlueBoxMessage(IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)

@@ -6056,9 +6056,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                         (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[5].Parameter)),
                                                         Convert.ToInt16(Utils.BytesToString(messagePacket.ParamList[6].Parameter)),
                                                         convertParamStringToBool(messagePacket.ParamList[7].Parameter), convertParamStringToBool(messagePacket.ParamList[8].Parameter));
-
                             }
-
                             break;
 //                            case "texturebase":
 //                                if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
