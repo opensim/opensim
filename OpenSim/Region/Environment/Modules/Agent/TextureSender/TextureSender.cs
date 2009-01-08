@@ -134,9 +134,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         /// <summary>
         /// Load up the texture data to send.
         /// </summary>
-        /// <param name="asset">
-        /// A <see cref="AssetBase"/>
-        /// </param>
+        /// <param name="asset"></param>
         public void TextureReceived(AssetBase asset)
         {
             m_asset = asset;

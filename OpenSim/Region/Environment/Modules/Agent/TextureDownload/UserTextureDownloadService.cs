@@ -35,7 +35,6 @@ using OpenSim.Framework.Statistics;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-
 namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 {
     /// <summary>
