@@ -845,6 +845,12 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
+            // If the sender is an object, check owner instead
+            //
+            SceneObjectPart part = startScene.GetSceneObjectPart(user);
+            if (part != null)
+                user = part.OwnerID;
+
             return GenericCommunicationPermission(user, target);
         }
 
