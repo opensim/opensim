@@ -2786,6 +2786,7 @@
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
       <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Tests.Common"/>
 
       <Files>
         <Match pattern="*.cs" recurse="false"/>
