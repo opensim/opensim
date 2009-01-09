@@ -98,7 +98,6 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event ViewerEffectEventHandler OnViewerEffect;
 
         public event FetchInventory OnAgentDataUpdateRequest;
-        public event FetchInventory OnUserInfoRequest;
         public event TeleportLocationRequest OnSetStartLocationRequest;
 
         public event UpdateShape OnUpdatePrimShape;
@@ -251,6 +250,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event EventGodDelete OnEventGodDelete;
 
         public event ParcelDwellRequest OnParcelDwellRequest;
+        public event UserInfoRequest OnUserInfoRequest;
+        public event UpdateUserInfo OnUpdateUserInfo;
 
 #pragma warning restore 67
 
@@ -1043,6 +1044,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public void SendParcelDwellReply(int localID, UUID parcelID, float dwell)
+        {
+        }
+
+        public void SendUserInfoReply(bool imViaEmail, bool visible, string email)
         {
         }
 

@@ -147,7 +147,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private AgentSit handlerAgentSit; //OnAgentSit;
         private AvatarPickerRequest handlerAvatarPickerRequest; //OnAvatarPickerRequest;
         private FetchInventory handlerAgentDataUpdateRequest; //OnAgentDataUpdateRequest;
-        private FetchInventory handlerUserInfoRequest; //OnUserInfoRequest;
         private TeleportLocationRequest handlerSetStartLocationRequest; //OnSetStartLocationRequest;
         private TeleportLandmarkRequest handlerTeleportLandmarkRequest; //OnTeleportLandmarkRequest;
         private LinkObjects handlerLinkObjects; //OnLinkObjects;
@@ -287,6 +286,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private EventGodDelete handlerEventGodDelete;
 
         private ParcelDwellRequest handlerParcelDwellRequest;
+
+        private UserInfoRequest handlerUserInfoRequest;
+        private UpdateUserInfo handlerUpdateUserInfo;
 
         private readonly IGroupsModule m_GroupsModule;
 
@@ -939,7 +941,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event RequestAvatarProperties OnRequestAvatarProperties;
         public event SetAlwaysRun OnSetAlwaysRun;
         public event FetchInventory OnAgentDataUpdateRequest;
-        public event FetchInventory OnUserInfoRequest;
         public event TeleportLocationRequest OnSetStartLocationRequest;
         public event UpdateAvatarProperties OnUpdateAvatarProperties;
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
@@ -1059,6 +1060,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event EventGodDelete OnEventGodDelete;
 
         public event ParcelDwellRequest OnParcelDwellRequest;
+
+        public event UserInfoRequest OnUserInfoRequest;
+        public event UpdateUserInfo OnUpdateUserInfo;
 
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
@@ -4680,15 +4684,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     break;
                 case PacketType.UserInfoRequest:
-                    UserInfoRequestPacket avUserInfoRequestPacket = (UserInfoRequestPacket)Pack;
-
                     handlerUserInfoRequest = OnUserInfoRequest;
                     if (handlerUserInfoRequest != null)
                     {
-                        handlerUserInfoRequest(this, avUserInfoRequestPacket.AgentData.AgentID, avUserInfoRequestPacket.AgentData.SessionID);
+                        handlerUserInfoRequest(this);
+                    }
+                    else
+                    {
+                        SendUserInfoReply(false, true, "");
                     }
                     break;
+                case PacketType.UpdateUserInfo:
+                    UpdateUserInfoPacket updateUserInfo = (UpdateUserInfoPacket)Pack;
+                    handlerUpdateUserInfo = OnUpdateUserInfo;
+                    if (handlerUpdateUserInfo != null)
+                    {
+                        bool visible = true;
+                        string DirectoryVisibility =
+                                Utils.BytesToString(updateUserInfo.UserData.DirectoryVisibility);
+                        if (DirectoryVisibility == "hidden")
+                            visible = false;
 
+                        handlerUpdateUserInfo(
+                                updateUserInfo.UserData.IMViaEMail,
+                                visible, this);
+                    }
+                    break;
                 case PacketType.SetStartLocationRequest:
                     SetStartLocationRequestPacket avSetStartLocationRequestPacket = (SetStartLocationRequestPacket)Pack;
 
@@ -8302,6 +8323,40 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendParcelDwellReply(int localID, UUID parcelID, float dwell)
         {
+            ParcelDwellReplyPacket pd =
+                    (ParcelDwellReplyPacket)PacketPool.Instance.GetPacket(
+                    PacketType.ParcelDwellReply);
+
+            pd.AgentData = new ParcelDwellReplyPacket.AgentDataBlock();
+            pd.AgentData.AgentID = AgentId;
+            
+            pd.Data = new ParcelDwellReplyPacket.DataBlock();
+            pd.Data.LocalID = localID;
+            pd.Data.ParcelID = parcelID;
+            pd.Data.Dwell = dwell;
+
+            OutPacket(pd, ThrottleOutPacketType.Land);
+        }
+
+        public void SendUserInfoReply(bool imViaEmail, bool visible, string email)
+        {
+            UserInfoReplyPacket ur =
+                    (UserInfoReplyPacket)PacketPool.Instance.GetPacket(
+                    PacketType.UserInfoReply);
+
+            string Visible = "hidden";
+            if (visible)
+                Visible = "default";
+
+            ur.AgentData = new UserInfoReplyPacket.AgentDataBlock();
+            ur.AgentData.AgentID = AgentId;
+            
+            ur.UserData = new UserInfoReplyPacket.UserDataBlock();
+            ur.UserData.IMViaEMail = imViaEmail;
+            ur.UserData.DirectoryVisibility = Utils.StringToBytes(Visible);
+            ur.UserData.EMail = Utils.StringToBytes(email);
+
+            OutPacket(ur, ThrottleOutPacketType.Task);
         }
 
         public void KillEndDone()

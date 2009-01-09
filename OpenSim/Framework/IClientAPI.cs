@@ -424,6 +424,9 @@ namespace OpenSim.Framework
 
     public delegate void ParcelDwellRequest(int localID, IClientAPI client);
 
+    public delegate void UserInfoRequest(IClientAPI client);
+    public delegate void UpdateUserInfo(bool imViaEmail, bool visible, IClientAPI client);
+
     #endregion
 
     public struct DirPlacesReplyData
@@ -577,7 +580,6 @@ namespace OpenSim.Framework
         event AddNewPrim OnAddPrim;
 
         event FetchInventory OnAgentDataUpdateRequest;
-        event FetchInventory OnUserInfoRequest;
         event TeleportLocationRequest OnSetStartLocationRequest;
 
         event RequestGodlikePowers OnRequestGodlikePowers;
@@ -744,6 +746,9 @@ namespace OpenSim.Framework
         event EventGodDelete OnEventGodDelete;
 
         event ParcelDwellRequest OnParcelDwellRequest;
+
+        event UserInfoRequest OnUserInfoRequest;
+        event UpdateUserInfo OnUpdateUserInfo;
 
         //     void ActivateGesture(UUID assetId, UUID gestureId);
 
@@ -1087,6 +1092,8 @@ namespace OpenSim.Framework
         void SendAvatarClassifiedReply(UUID targetID, Dictionary<UUID, string> classifieds);
 
         void SendParcelDwellReply(int localID, UUID parcelID, float dwell);
+
+        void SendUserInfoReply(bool imViaEmail, bool visible, string email);
 
         void KillEndDone();
 

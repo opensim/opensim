@@ -204,7 +204,6 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event ViewerEffectEventHandler OnViewerEffect;
 
         public event FetchInventory OnAgentDataUpdateRequest;
-        public event FetchInventory OnUserInfoRequest;
         public event TeleportLocationRequest OnSetStartLocationRequest;
 
         public event UpdateShape OnUpdatePrimShape;
@@ -356,6 +355,9 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event EventGodDelete OnEventGodDelete;
 
         public event ParcelDwellRequest OnParcelDwellRequest;
+
+        public event UserInfoRequest OnUserInfoRequest;
+        public event UpdateUserInfo OnUpdateUserInfo;
 
 #pragma warning restore 67
 
@@ -1042,6 +1044,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         }
 
         public void SendParcelDwellReply(int localID, UUID parcelID, float dwell)
+        {
+        }
+
+        public void SendUserInfoReply(bool imViaEmail, bool visible, string email)
         {
         }
 
