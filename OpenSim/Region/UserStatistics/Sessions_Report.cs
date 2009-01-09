@@ -72,11 +72,7 @@ namespace OpenSim.Region.UserStatistics
 
                 if (requestvars.ContainsKey("VersionString"))
                 {
-                    UUID testUUID = UUID.Zero;
-
                     clientVersionString = requestvars["VersionString"].ToString();
-
-
                 }
             }
 
