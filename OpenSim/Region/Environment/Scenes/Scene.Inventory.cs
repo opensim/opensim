@@ -31,7 +31,6 @@ using System.Reflection;
 using System.Text;
 using System.Timers;
 using OpenMetaverse;
-using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;

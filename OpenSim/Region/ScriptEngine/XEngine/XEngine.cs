@@ -544,11 +544,21 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             Evidence baseEvidence = AppDomain.CurrentDomain.Evidence;
                             Evidence evidence = new Evidence(baseEvidence);
 
-                            m_AppDomains[appDomain] =
+                            AppDomain sandbox =
                                 AppDomain.CreateDomain(
                                     m_Scene.RegionInfo.RegionID.ToString(),
                                     evidence, appSetup);
                             
+                            PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
+                            AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
+                            PermissionSet sandboxPermissionSet = sandboxPolicy.GetNamedPermissionSet("Internet");
+                            PolicyStatement sandboxPolicyStatement = new PolicyStatement(sandboxPermissionSet);
+                            CodeGroup sandboxCodeGroup = new UnionCodeGroup(sandboxMembershipCondition, sandboxPolicyStatement);
+                            sandboxPolicy.RootCodeGroup = sandboxCodeGroup;
+                            sandbox.SetAppDomainPolicy(sandboxPolicy);
+
+                            m_AppDomains[appDomain] = sandbox;
+
                             m_AppDomains[appDomain].AssemblyResolve +=
                                 new ResolveEventHandler(
                                     AssemblyResolver.OnAssemblyResolve);

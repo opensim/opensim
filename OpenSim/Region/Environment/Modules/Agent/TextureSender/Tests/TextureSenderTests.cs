@@ -53,7 +53,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
             agent.startpos = Vector3.Zero;
             agent.CapsPath = "http://wibble.com";
             
-            new TextureSender(new TestClient(agent), 0, 0);
+            new TextureSender(new TestClient(agent), 0, 0, 1.0f);
         }
     }
 }
