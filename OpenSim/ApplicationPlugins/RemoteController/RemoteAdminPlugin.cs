@@ -40,6 +40,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
+using System.Collections.Generic;
 
 namespace OpenSim.ApplicationPlugins.RemoteController
 {
@@ -84,24 +85,44 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     requiredPassword = m_config.GetString("access_password", String.Empty);
 
                     m_app = openSim;
-                    m_httpd = openSim.HttpServer;
+                    m_httpd = openSim.HttpServer;                    
 
-                    m_httpd.AddXmlRPCHandler("admin_create_region", XmlRpcCreateRegionMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_delete_region", XmlRpcDeleteRegionMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_shutdown", XmlRpcShutdownMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_broadcast", XmlRpcAlertMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_load_heightmap", XmlRpcLoadHeightmapMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_create_user", XmlRpcCreateUserMethod, false);
-                    //This handler creates a user with a email, 
-                    m_httpd.AddXmlRPCHandler("admin_create_user_email", XmlRpcCreateUserMethodEmail, false);
-                    m_httpd.AddXmlRPCHandler("admin_exists_user", XmlRpcUserExistsMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_update_user", XmlRpcUpdateUserAccountMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_load_xml", XmlRpcLoadXMLMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_save_xml", XmlRpcSaveXMLMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_load_oar", XmlRpcLoadOARMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_save_oar", XmlRpcSaveOARMethod, false);
-                    m_httpd.AddXmlRPCHandler("admin_region_query", XmlRpcRegionQueryMethod, false);
+                    Dictionary<string, XmlRpcMethod> availableMethods = new Dictionary<string, XmlRpcMethod>();
+                    availableMethods["admin_create_region"] = XmlRpcCreateRegionMethod;
+                    availableMethods["admin_delete_region"] = XmlRpcDeleteRegionMethod;
+                    availableMethods["admin_shutdown"] = XmlRpcShutdownMethod;
+                    availableMethods["admin_broadcast"] = XmlRpcAlertMethod;
+                    availableMethods["admin_restart"] = XmlRpcRestartMethod;
+                    availableMethods["admin_load_heightmap"] = XmlRpcLoadHeightmapMethod;
+                    availableMethods["admin_create_user"] = XmlRpcCreateUserMethod;
+                    availableMethods["admin_create_user_email"] = XmlRpcCreateUserMethodEmail;
+                    availableMethods["admin_exists_user"] = XmlRpcUserExistsMethod;
+                    availableMethods["admin_update_user"] = XmlRpcUpdateUserAccountMethod;
+                    availableMethods["admin_load_xml"] = XmlRpcLoadXMLMethod;
+                    availableMethods["admin_save_xml"] = XmlRpcSaveXMLMethod;
+                    availableMethods["admin_load_oar"] = XmlRpcLoadOARMethod;
+                    availableMethods["admin_save_oar"] = XmlRpcSaveOARMethod;
+                    availableMethods["admin_region_query"] = XmlRpcRegionQueryMethod;
+
+                    // Either enable full remote functionality or just selected features                    
+                    string enabledMethods = m_config.GetString("enabled_methods", "all");
+
+                    // The assumption here is that simply enabling Remote Admin as before will produce the same
+                    // behavior - enable all methods unless the whitelist is in place for backward-compatibility.
+                    if (enabledMethods.ToLower() == "all" || String.IsNullOrEmpty(enabledMethods))
+                    {
+                        foreach (string method in availableMethods.Keys)
+                        {
+                            m_httpd.AddXmlRPCHandler(method, availableMethods[method]);
+                        }
+                    }
+                    else
+                    {
+                        foreach (string enabledMethod in enabledMethods.Split('|'))
+                        {
+                            m_httpd.AddXmlRPCHandler(enabledMethod, availableMethods[enabledMethod]);
+                        }
+                    }
                 }
             }
             catch (NullReferenceException)
@@ -871,8 +892,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 m_log.ErrorFormat("[RADMIN] UserExists: failed: {0}", e.Message);
                 m_log.DebugFormat("[RADMIN] UserExists: failed: {0}", e.ToString());
 
-                responseData["success"]     = "false";
-                responseData["error"]       = e.Message;
+                responseData["success"] = "false";
+                responseData["error"] = e.Message;
 
                 response.Value = responseData;
             }
@@ -987,7 +1008,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
                         throw new Exception("did not manage to update user profile");
 
-                    responseData["success"]     = "true";
+                    responseData["success"] = "true";
 
                     response.Value = responseData;
 
@@ -999,8 +1020,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_log.ErrorFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.Message);
                     m_log.DebugFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.ToString());
 
-                    responseData["success"]     = "false";
-                    responseData["error"]       = e.Message;
+                    responseData["success"] = "false";
+                    responseData["error"] = e.Message;
 
                     response.Value = responseData;
                 }
@@ -1088,19 +1109,19 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     else 
                         throw new Exception("Archiver module not present for scene");
                     
-                    responseData["loaded"]   = "true";
+                    responseData["loaded"] = "true";
                     
-                    response.Value           = responseData;
+                    response.Value = responseData;
                 }
                 catch (Exception e)
                 {
                     m_log.InfoFormat("[RADMIN] LoadOAR: {0}", e.Message);
                     m_log.DebugFormat("[RADMIN] LoadOAR: {0}", e.ToString());
 
-                    responseData["loaded"]  = "false";
-                    responseData["error"]   = e.Message;
+                    responseData["loaded"] = "false";
+                    responseData["error"] = e.Message;
 
-                    response.Value          = responseData;
+                    response.Value = responseData;
                 }
 
                 return response;
@@ -1184,19 +1205,19 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 else 
                     throw new Exception("Archiver module not present for scene");                
 
-                responseData["saved"]   = "true";
+                responseData["saved"] = "true";
 
-                response.Value           = responseData;
+                response.Value = responseData;
             }
             catch (Exception e)
             {
                 m_log.InfoFormat("[RADMIN] SaveOAR: {0}", e.Message);
                 m_log.DebugFormat("[RADMIN] SaveOAR: {0}", e.ToString());
 
-                responseData["saved"]  = "false";
-                responseData["error"]   = e.Message;
+                responseData["saved"] = "false";
+                responseData["error"] = e.Message;
 
-                response.Value          = responseData;
+                response.Value = responseData;
             }
 
             return response;
@@ -1266,8 +1287,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             throw new Exception(String.Format("unknown Xml{0} format", xml_version));
                     }
 
-                    responseData["loaded"]   = "true";
-                    response.Value           = responseData;
+                    responseData["loaded"] = "true";
+                    response.Value = responseData;
                 }
                 catch (Exception e)
                 {
@@ -1276,9 +1297,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     responseData["loaded"]  = "false";
                     responseData["switched"] = "false";
-                    responseData["error"]   = e.Message;
+                    responseData["error"] = e.Message;
 
-                    response.Value          = responseData;
+                    response.Value = responseData;
                 }
 
                 return response;
@@ -1354,10 +1375,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
             catch (Exception e)
             {
-                m_log.InfoFormat("[RADMIN] LoadXml: {0}", e.Message);
-                m_log.DebugFormat("[RADMIN] LoadXml: {0}", e.ToString());
+                m_log.InfoFormat("[RADMIN] SaveXml: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] SaveXml: {0}", e.ToString());
 
-                responseData["loaded"] = "false";
+                responseData["saved"] = "false";
                 responseData["switched"] = "false";
                 responseData["error"] = e.Message;
 
