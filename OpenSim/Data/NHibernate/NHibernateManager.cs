@@ -42,9 +42,8 @@ namespace OpenSim.Data.NHibernate
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string dialect;
-        private Configuration cfg;
-        private ISessionFactory factory;
-        private ISession session;
+        private Configuration configuration;
+        private ISessionFactory sessionFactory;
 
         public NHibernateManager(string connect, string store)
         {
@@ -61,41 +60,53 @@ namespace OpenSim.Data.NHibernate
             dialect = parts[0];
 
             // NHibernate setup
-            cfg = new Configuration();
-            cfg.SetProperty(Environment.ConnectionProvider,
+            configuration = new Configuration();
+            configuration.SetProperty(Environment.ConnectionProvider,
                             "NHibernate.Connection.DriverConnectionProvider");
-            cfg.SetProperty(Environment.Dialect,
+            configuration.SetProperty(Environment.Dialect,
                             "NHibernate.Dialect." + dialect);
-            cfg.SetProperty(Environment.ConnectionDriver,
+            configuration.SetProperty(Environment.ConnectionDriver,
                             "NHibernate.Driver." + parts[1]);
-            cfg.SetProperty(Environment.ConnectionString, parts[2]);
-            cfg.AddAssembly("OpenSim.Data.NHibernate");
+            configuration.SetProperty(Environment.ConnectionString, parts[2]);
+            configuration.AddAssembly("OpenSim.Data.NHibernate");
 
-            //To create sql file uncomment code below and write the name of the file            
+            //To create sql file uncomment code below and write the name of the file
             //SchemaExport exp = new SchemaExport(cfg);
             //exp.SetOutputFile("nameofthefile.sql");
             //exp.Create(false, true);
 
-            factory = cfg.BuildSessionFactory();
-            session = factory.OpenSession();
+            sessionFactory = configuration.BuildSessionFactory();
 
-            Assembly assem = GetType().Assembly;
-            Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, store);
-            m.Update();
+            Assembly assembly = GetType().Assembly;
+
+            // Migration subtype is the folder name under which migrations are stored. For mysql this folder is
+            // MySQLDialect instead of MySQL5Dialect which is the dialect currently in use. To avoid renaming 
+            // this folder each time the mysql version changes creating simple mapping:
+            String migrationSubType = dialect;
+            if (dialect.StartsWith("MySQL"))
+            {
+                migrationSubType="MySQLDialect";
+            }
+
+            Migration migration = new Migration((System.Data.Common.DbConnection)sessionFactory.ConnectionProvider.GetConnection(), assembly, migrationSubType, store);
+            migration.Update();
         }
 
         public object Load(Type type, UUID uuid)
         {
-            object obj = null;
-            try
+            using (IStatelessSession session = sessionFactory.OpenStatelessSession())
             {
-                obj = session.Load(type, uuid);
+                object obj = null;
+                try
+                {
+                    obj = session.Get(type.FullName, uuid);
+                }
+                catch (Exception)
+                {
+                    m_log.ErrorFormat("[NHIBERNATE] {0} not found with ID {1} ", type.Name, uuid);
+                }
+                return obj;
             }
-            catch (Exception)
-            {
-                m_log.ErrorFormat("[NHIBERNATE] {0} not found with ID {1} ", type.Name, uuid);
-            }
-            return obj;
             
         }
 
@@ -103,63 +114,80 @@ namespace OpenSim.Data.NHibernate
         {
             try
             {
-                session.BeginTransaction();
-                session.Save(obj);
-                session.Transaction.Commit();
-                session.Flush();
-                return true;
+                using (IStatelessSession session = sessionFactory.OpenStatelessSession())
+                {
+                    using (ITransaction transaction=session.BeginTransaction())
+                    {
+                        session.Insert(obj);
+                        transaction.Commit();
+                        return true;
+                    }
+                }
             }
             catch (Exception e)
             {
-               m_log.Error("[NHIBERNATE] issue saving object ", e);
+                m_log.Error("[NHIBERNATE] issue inserting object ", e);
+                return false;
             }
-            return false;
         }
 
         public bool Update(object obj)
         {
             try
             {
-                session.BeginTransaction();
-                session.Update(obj);
-                session.Transaction.Commit();
-                session.Flush();
-                return true;
+                using (IStatelessSession session = sessionFactory.OpenStatelessSession())
+                {
+                    using (ITransaction transaction = session.BeginTransaction())
+                    {
+                        session.Update(obj);
+                        transaction.Commit();
+                        return true;
+                    }
+                }
             }
             catch (Exception e)
             {
                 m_log.Error("[NHIBERNATE] issue updating object ", e);
+                return false;
             }
-            return false;
         }
 
         public bool Delete(object obj)
         {
             try
             {
-                session.BeginTransaction();
-                session.Delete(obj);
-                session.Transaction.Commit();
-                session.Flush();
-                return true;
+                using (IStatelessSession session = sessionFactory.OpenStatelessSession())
+                {
+                    using (ITransaction transaction = session.BeginTransaction())
+                    {
+                        session.Delete(obj);
+                        transaction.Commit();
+                        return true;
+                    }
+                }
             }
             catch (Exception e)
             {
-                
                 m_log.Error("[NHIBERNATE] issue deleting object ", e);
+                return false;
             }
-            return false;
         }
 
         public void DropSchema()
         {
-            SchemaExport export = new SchemaExport(this.cfg);
+            SchemaExport export = new SchemaExport(this.configuration);
             export.Drop(true, true);
+
+            using (ISession session = sessionFactory.OpenSession())
+            {
+                ISQLQuery sqlQuery=session.CreateSQLQuery("drop table migrations");
+                sqlQuery.ExecuteUpdate();
+            }
         }
 
         public ISession GetSession()
         {
-            return session;
+            return sessionFactory.OpenSession();
         }
     }
 }
