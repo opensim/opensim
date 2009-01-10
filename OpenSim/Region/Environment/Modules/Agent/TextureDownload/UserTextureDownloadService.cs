@@ -56,10 +56,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// <summary>
         /// We will allow the client to request the same texture n times before dropping further requests
         ///
-        /// This number contains repeated requests for the same texture at different resolutions (which
-        /// are handled since r7368).  However, this situation should be handled in a more sophisticated way.
+        /// This number includes repeated requests for the same texture at different resolutions (which we don't
+        /// currently handle properly as far as I know).  However, this situation should be handled in a more
+        /// sophisticated way.
         /// </summary>
-        private static readonly int MAX_ALLOWED_TEXTURE_REQUESTS = 15;
+        private static readonly int MAX_ALLOWED_TEXTURE_REQUESTS = 5;
 
         /// <summary>
         /// XXX Also going to limit requests for found textures.
@@ -119,13 +120,13 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                     }
                     else
                     {
-//                        m_log.DebugFormat("[TEXTURE]: Received a request for texture {0}", e.RequestedAssetID);
-                        
+                        //                        m_log.DebugFormat("[TEXTURE]: Received a request for texture {0}", e.RequestedAssetID);
+
                         if (!foundTextureLimitStrategy.AllowRequest(e.RequestedAssetID))
                         {
-//                            m_log.DebugFormat(
-//                                "[TEXTURE]: Refusing request for {0} from client {1}",
-//                                e.RequestedAssetID, m_client.AgentId);
+                            //                            m_log.DebugFormat(
+                            //                                "[TEXTURE]: Refusing request for {0} from client {1}",
+                            //                                e.RequestedAssetID, m_client.AgentId);
 
                             return;
                         }
@@ -138,9 +139,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 
                                 // Commenting out this message for now as it causes too much noise with other
                                 // debug messages.
-//                                m_log.DebugFormat(
-//                                    "[TEXTURE]: Dropping requests for notified missing texture {0} for client {1} since we have received more than {2} requests",
-//                                    e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
+                                //                                m_log.DebugFormat(
+                                //                                    "[TEXTURE]: Dropping requests for notified missing texture {0} for client {1} since we have received more than {2} requests",
+                                //                                    e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
                             }
 
                             return;
@@ -148,7 +149,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 
                         m_scene.AddPendingDownloads(1);
 
-                        TextureSender.TextureSender requestHandler = new TextureSender.TextureSender(m_client, e.DiscardLevel, e.PacketNumber, e.Priority);
+                        TextureSender.TextureSender requestHandler = new TextureSender.TextureSender(m_client, e.DiscardLevel, e.PacketNumber);
                         m_textureSenders.Add(e.RequestedAssetID, requestHandler);
 
                         m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback, true);
@@ -195,9 +196,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                         {
                             missingTextureLimitStrategy.MonitorRequests(textureID);
 
-//                            m_log.DebugFormat(
-//                                "[TEXTURE]: Queueing first TextureNotFoundSender for {0}, client {1}",
-//                                textureID, m_client.AgentId);
+                            //                            m_log.DebugFormat(
+                            //                                "[TEXTURE]: Queueing first TextureNotFoundSender for {0}, client {1}",
+                            //                                textureID, m_client.AgentId);
                         }
 
                         ITextureSender textureNotFoundSender = new TextureNotFoundSender(m_client, textureID);

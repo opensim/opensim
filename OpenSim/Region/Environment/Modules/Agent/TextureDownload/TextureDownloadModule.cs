@@ -204,14 +204,14 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// <param name="e"></param>
         public void TextureRequest(Object sender, TextureRequestArgs e)
         {
-            IClientAPI client = (IClientAPI) sender;
+            IClientAPI client = (IClientAPI)sender;
 
             if (e.Priority == 1016001f) // Preview
             {
                 if (client.Scene is Scene)
                 {
                     Scene scene = (Scene)client.Scene;
-                    
+
                     CachedUserInfo profile = scene.CommsManager.UserProfileCacheService.GetUserDetails(client.AgentId);
                     if (profile == null) // Deny unknown user
                         return;
@@ -241,52 +241,44 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         {
             ITextureSender sender = null;
 
-//            try
-//            {
+            try
+            {
                 while (true)
                 {
-                    try
-                    {
-                        sender = m_queueSenders.Dequeue();
+                    sender = m_queueSenders.Dequeue();
 
-                        if (sender.Cancel)
+                    if (sender.Cancel)
+                    {
+                        TextureSent(sender);
+
+                        sender.Cancel = false;
+                    }
+                    else
+                    {
+                        bool finished = sender.SendTexturePacket();
+                        if (finished)
                         {
                             TextureSent(sender);
-
-                            sender.Cancel = false;
                         }
                         else
                         {
-                            bool finished = sender.SendTexturePacket();
-                            if (finished)
-                            {
-                                TextureSent(sender);
-                            }
-                            else
-                            {
-                                m_queueSenders.Enqueue(sender);
-                            }
+                            m_queueSenders.Enqueue(sender);
                         }
-
-                        // Make sure that any sender we currently have can get garbage collected
-                        sender = null;
-
-                        //m_log.InfoFormat("[TEXTURE] Texture sender queue size: {0}", m_queueSenders.Count());
                     }
-                    catch(Exception e)
-                    {
-                        m_log.ErrorFormat(
-                            "[TEXTURE]: Texture send thread caught exception. The texture send was aborted. Exception is {0}", e);
-                    }
+
+                    // Make sure that any sender we currently have can get garbage collected
+                    sender = null;
+
+                    //m_log.InfoFormat("[TEXTURE] Texture sender queue size: {0}", m_queueSenders.Count());
                 }
-//            }
-//            catch (Exception e)
-//            {
-//                // TODO: Let users in the sim and those entering it and possibly an external watchdog know what has happened
-//                m_log.ErrorFormat(
-//                    "[TEXTURE]: Texture send thread terminating with exception.  PLEASE REBOOT YOUR SIM - TEXTURES WILL NOT BE AVAILABLE UNTIL YOU DO.  Exception is {0}", 
-//                    e);                
-//            }            
+            }
+            catch (Exception e)
+            {
+                // TODO: Let users in the sim and those entering it and possibly an external watchdog know what has happened
+                m_log.ErrorFormat(
+                    "[TEXTURE]: Texture send thread terminating with exception.  PLEASE REBOOT YOUR SIM - TEXTURES WILL NOT BE AVAILABLE UNTIL YOU DO.  Exception is {0}",
+                    e);
+            }
         }
 
         /// <summary>

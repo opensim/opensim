@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Text;
 using System.Timers;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -42,12 +43,12 @@ namespace OpenSim.Region.Environment.Scenes
     public partial class Scene
     {
         private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);   
-        
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Allows asynchronous derezzing of objects from the scene into a client's inventory.
         /// </summary>
-        protected AsyncSceneObjectGroupDeleter m_asyncSceneObjectDeleter;    
+        protected AsyncSceneObjectGroupDeleter m_asyncSceneObjectDeleter;
 
         /// <summary>
         /// Start all the scripts in the scene which should be started.
@@ -60,14 +61,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (group is SceneObjectGroup)
                 {
-                    ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
+                    ((SceneObjectGroup)group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
                 }
             }
         }
 
         public void AddUploadedInventoryItem(UUID agentID, InventoryItemBase item)
         {
-            IMoneyModule money=RequestModuleInterface<IMoneyModule>();
+            IMoneyModule money = RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
                 money.ApplyUploadCharge(agentID);
@@ -145,9 +146,9 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not resolve user {0} for adding an inventory item", 
+                    "[AGENT INVENTORY]: Could not resolve user {0} for adding an inventory item",
                     remoteClient.AgentId);
-            }            
+            }
         }
 
         /// <summary>
@@ -175,7 +176,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 remoteClient.SendAgentAlertMessage("Insufficient permissions to edit notecard", false);
                                 return UUID.Zero;
                             }
-                            
+
                             remoteClient.SendAgentAlertMessage("Notecard saved", false);
                         }
                         else if ((InventoryType)item.InvType == InventoryType.LSL)
@@ -185,7 +186,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
                                 return UUID.Zero;
                             }
-                            
+
                             remoteClient.SendAgentAlertMessage("Script saved", false);
                         }
 
@@ -204,10 +205,10 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not resolve user {0} for caps inventory update", 
+                    "[AGENT INVENTORY]: Could not resolve user {0} for caps inventory update",
                     remoteClient.AgentId);
-            }  
-            
+            }
+
             return UUID.Zero;
         }
 
@@ -283,7 +284,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 part.Inventory.RemoveScriptInstance(item.ItemID);
             }
-            
+
             // Update item with new asset
             item.AssetID = asset.FullID;
             group.UpdateInventoryItem(item);
@@ -335,9 +336,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="name">The name of the updated item</param>
         /// <param name="description">The description of the updated item</param>
         /// <param name="nextOwnerMask">The permissions of the updated item</param>
-/*        public void UpdateInventoryItemAsset(IClientAPI remoteClient, UUID transactionID,
-                                             UUID itemID, string name, string description,
-                                             uint nextOwnerMask)*/
+        /*        public void UpdateInventoryItemAsset(IClientAPI remoteClient, UUID transactionID,
+                                                     UUID itemID, string name, string description,
+                                                     uint nextOwnerMask)*/
         public void UpdateInventoryItemAsset(IClientAPI remoteClient, UUID transactionID,
                                              UUID itemID, InventoryItemBase itemUpd)
         {
@@ -426,7 +427,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return GiveInventoryItem(recipient, senderId, itemId, UUID.Zero);
         }
-        
+
         /// <summary>
         /// Give an inventory item from one user to another
         /// </summary>
@@ -485,7 +486,7 @@ namespace OpenSim.Region.Environment.Scenes
                         itemCopy.AssetType = item.AssetType;
                         itemCopy.InvType = item.InvType;
                         itemCopy.Folder = recipientFolderId;
-                        
+
                         if (Permissions.PropagatePermissions())
                         {
                             if (item.InvType == 6)
@@ -502,7 +503,7 @@ namespace OpenSim.Region.Environment.Scenes
                             if ((item.CurrentPermissions & 8) != 0) // Propagate slam bit
                             {
                                 itemCopy.CurrentPermissions = item.NextPermissions;
-                                itemCopy.BasePermissions=itemCopy.CurrentPermissions;
+                                itemCopy.BasePermissions = itemCopy.CurrentPermissions;
                                 itemCopy.CurrentPermissions |= 8;
                             }
 
@@ -557,10 +558,10 @@ namespace OpenSim.Region.Environment.Scenes
                 m_log.Error("[AGENT INVENTORY]: Failed to find item " + itemId.ToString() + ", no root folder");
                 return null;
             }
-            
+
             return null;
         }
-        
+
         /// <summary>
         /// Give an entire inventory folder from one user to another.  The entire contents (including all descendent 
         /// folders) is given.
@@ -588,24 +589,24 @@ namespace OpenSim.Region.Environment.Scenes
 
                 return null;
             }
-            
+
             if (!senderUserInfo.HasReceivedInventory)
             {
                 m_log.DebugFormat(
                      "[AGENT INVENTORY]: Could not give inventory folder - have not yet received inventory for {0}",
                      senderId);
-                
+
                 return null;
             }
-            
+
             InventoryFolderImpl folder = senderUserInfo.RootFolder.FindFolder(folderId);
-            
+
             if (null == folder)
             {
                 m_log.ErrorFormat(
                      "[AGENT INVENTORY]: Could not find inventory folder {0} to give", folderId);
 
-                return null;                
+                return null;
             }
 
             CachedUserInfo recipientUserInfo
@@ -618,30 +619,30 @@ namespace OpenSim.Region.Environment.Scenes
 
                 return null;
             }
-            
+
             if (recipientParentFolderId == UUID.Zero)
                 recipientParentFolderId = recipientUserInfo.RootFolder.ID;
-            
+
             UUID newFolderId = UUID.Random();
             recipientUserInfo.CreateFolder(folder.Name, newFolderId, (ushort)folder.Type, recipientParentFolderId);
-            
+
             // XXX: Messy - we should really get this back in the CreateFolder call
             InventoryFolderImpl copiedFolder = recipientUserInfo.RootFolder.FindFolder(newFolderId);
-            
+
             // Give all the subfolders
             List<InventoryFolderImpl> subFolders = folder.RequestListOfFolderImpls();
             foreach (InventoryFolderImpl childFolder in subFolders)
             {
                 GiveInventoryFolder(recipientId, senderId, childFolder.ID, copiedFolder.ID);
-            }              
-             
+            }
+
             // Give all the items
             List<InventoryItemBase> items = folder.RequestListOfItems();
             foreach (InventoryItemBase item in items)
             {
                 GiveInventoryItem(recipientId, senderId, item.ID, copiedFolder.ID);
             }
-            
+
             return copiedFolder;
         }
 
@@ -879,7 +880,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
-                
+
             if (transactionID == UUID.Zero)
             {
                 CachedUserInfo userInfo
@@ -890,7 +891,7 @@ namespace OpenSim.Region.Environment.Scenes
                     ScenePresence presence;
                     TryGetAvatar(remoteClient.AgentId, out presence);
                     byte[] data = null;
-                    
+
                     if (invType == 3 && presence != null) // OpenMetaverse.asset.assettype.landmark = 3 - needs to be turned into an enum
                     {
                         Vector3 pos = presence.AbsolutePosition;
@@ -989,8 +990,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    if (((SceneObjectGroup) ent).HasChildPrim(localID))
-                        return (SceneObjectGroup) ent;
+                    if (((SceneObjectGroup)ent).HasChildPrim(localID))
+                        return (SceneObjectGroup)ent;
                 }
             }
             return null;
@@ -1425,7 +1426,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
                 else // Updating existing item with new perms etc
-                {                    
+                {
                     IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
                     if (agentTransactions != null)
                     {
@@ -1507,7 +1508,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             else  // script has been rezzed directly into a prim's inventory
-            {                
+            {
                 SceneObjectPart part = GetSceneObjectPart(itemBase.Folder);
                 if (part == null)
                     return;
@@ -1517,10 +1518,10 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                     return;
-                
+
                 if (!Permissions.CanCreateObjectInventory(
-                    itemBase.InvType, part.UUID, remoteClient.AgentId))               
-                    return;             
+                    itemBase.InvType, part.UUID, remoteClient.AgentId))
+                    return;
 
                 AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType, Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"));
                 AssetCache.AddAsset(asset);
@@ -1733,7 +1734,7 @@ namespace OpenSim.Region.Environment.Scenes
                             grp.UUID,
                             remoteClient.AgentId);
                     permissionToDelete = permissionToTake;
-                    
+
                     if (permissionToDelete)
                     {
                         AddReturn(grp.OwnerID, grp.Name, grp.AbsolutePosition, "parcel owner return");
@@ -1803,7 +1804,7 @@ namespace OpenSim.Region.Environment.Scenes
             //
             CachedUserInfo userInfo;
 
-            if (action == DeRezAction.Take || action == DeRezAction.TakeCopy || 
+            if (action == DeRezAction.Take || action == DeRezAction.TakeCopy ||
                 action == DeRezAction.SaveToExistingUserInventoryItem)
             {
                 // Take or take copy require a taker
@@ -1846,18 +1847,18 @@ namespace OpenSim.Region.Environment.Scenes
                 //
 
                 InventoryFolderBase folder = null;
-                InventoryItemBase item = null;                
+                InventoryItemBase item = null;
 
                 if (DeRezAction.SaveToExistingUserInventoryItem == action)
                 {
                     item = userInfo.RootFolder.FindItem(
                             objectGroup.RootPart.FromUserInventoryItemID);
-                    
+
                     if (null == item)
                     {
                         m_log.DebugFormat(
-                            "[AGENT INVENTORY]: Object {0} {1} scheduled for save to inventory has already been deleted.", 
-                            objectGroup.Name, objectGroup.UUID);                        
+                            "[AGENT INVENTORY]: Object {0} {1} scheduled for save to inventory has already been deleted.",
+                            objectGroup.Name, objectGroup.UUID);
                         return UUID.Zero;
                     }
                 }
@@ -1936,7 +1937,7 @@ namespace OpenSim.Region.Environment.Scenes
                     item.InvType = (int)InventoryType.Object;
                     item.Folder = folder.ID;
                     item.Owner = userInfo.UserProfile.ID;
-                    
+
                 }
 
                 AssetBase asset = CreateAsset(
@@ -1946,10 +1947,10 @@ namespace OpenSim.Region.Environment.Scenes
                     Utils.StringToBytes(sceneObjectXml));
                 AssetCache.AddAsset(asset);
                 assetID = asset.FullID;
-                
+
                 if (DeRezAction.SaveToExistingUserInventoryItem == action)
-                {                                   
-                    item.AssetID = asset.FullID;                    
+                {
+                    item.AssetID = asset.FullID;
                     userInfo.UpdateItem(item);
                 }
                 else
@@ -1958,8 +1959,8 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (remoteClient != null && (remoteClient.AgentId != objectGroup.RootPart.OwnerID) && Permissions.PropagatePermissions())
                     {
-                        uint perms=objectGroup.GetEffectivePermissions();
-                        uint nextPerms=(perms & 7) << 13;
+                        uint perms = objectGroup.GetEffectivePermissions();
+                        uint nextPerms = (perms & 7) << 13;
                         if ((nextPerms & (uint)PermissionMask.Copy) == 0)
                             perms &= ~(uint)PermissionMask.Copy;
                         if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
@@ -1990,7 +1991,7 @@ namespace OpenSim.Region.Environment.Scenes
                     item.AssetType = asset.Type;
 
                     userInfo.AddItem(item);
-                    
+
                     if (remoteClient != null && item.Owner == remoteClient.AgentId)
                     {
                         remoteClient.SendInventoryItemCreateUpdate(item);
@@ -2002,10 +2003,10 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
                         }
-                    }                    
+                    }
                 }
             }
-            
+
             return assetID;
         }
 
@@ -2019,11 +2020,11 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.InfoFormat("[ATTACHMENT]: Save request for {0} which is unchanged", grp.UUID);
                     return;
                 }
-                
+
                 m_log.InfoFormat(
-                    "[ATTACHMENT]: Updating asset for attachment {0}, attachpoint {1}", 
+                    "[ATTACHMENT]: Updating asset for attachment {0}, attachpoint {1}",
                     grp.UUID, grp.GetAttachmentPoint());
-                
+
                 string sceneObjectXml = objectGroup.ToXmlString();
 
                 CachedUserInfo userInfo =
@@ -2213,7 +2214,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             Vector3 pos = GetNewRezLocation(
                       RayStart, RayEnd, RayTargetID, Quaternion.Identity,
-                      BypassRayCast, bRayEndIsIntersection,true,scale, false);
+                      BypassRayCast, bRayEndIsIntersection, true, scale, false);
 
             // Rez object
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -2235,20 +2236,20 @@ namespace OpenSim.Region.Environment.Scenes
                         if (rezAsset != null)
                         {
                             UUID itemId = UUID.Zero;
-                            
+
                             // If we have permission to copy then link the rezzed object back to the user inventory
                             // item that it came from.  This allows us to enable 'save object to inventory'
                             if (!Permissions.BypassPermissions())
                             {
                                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == (uint)PermissionMask.Copy)
-                                {       
+                                {
                                     itemId = item.ID;
                                 }
                             }
-                            
+
                             string xmlData = Utils.BytesToString(rezAsset.Data);
                             SceneObjectGroup group = new SceneObjectGroup(itemId, xmlData, true);
-                            
+
                             if (!Permissions.CanRezObject(
                                 group.Children.Count, remoteClient.AgentId, pos)
                                 && !attachment)
@@ -2345,12 +2346,12 @@ namespace OpenSim.Region.Environment.Scenes
                                     group.ClearPartAttachmentData();
                                 }
                             }
-                            
+
                             if (!attachment)
                             {
                                 // Fire on_rez
                                 group.CreateScriptInstances(0, true, DefaultScriptEngine, 0);
-                                
+
                                 rootPart.ScheduleFullUpdate();
                             }
 
@@ -2489,7 +2490,7 @@ namespace OpenSim.Region.Environment.Scenes
                 DeRezObject(null, grp.RootPart.LocalId,
                         grp.RootPart.GroupID, DeRezAction.Return, UUID.Zero);
             }
-            
+
             return true;
         }
 
@@ -2621,7 +2622,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
             }
-            
+
             m_sceneGraph.DetachSingleAttachmentToInv(itemID, remoteClient);
         }
 

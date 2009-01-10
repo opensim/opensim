@@ -28,6 +28,7 @@
 using System.Reflection;
 using log4net;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 
@@ -38,11 +39,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
     /// </summary>
     public class TextureNotFoundSender : ITextureSender
     {
-//        private static readonly log4net.ILog m_log
-//            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //        private static readonly log4net.ILog m_log
+        //            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-//        private IClientAPI m_client;
-//        private UUID m_textureId;
+        //        private IClientAPI m_client;
+        //        private UUID m_textureId;
 
         public TextureNotFoundSender(IClientAPI client, UUID textureID)
         {
@@ -55,13 +56,13 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         public bool Sending
         {
             get { return false; }
-            set {}
+            set { }
         }
 
         public bool Cancel
         {
             get { return false; }
-            set {}
+            set { }
         }
 
         // See ITextureSender
@@ -73,13 +74,13 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         // See ITextureSender
         public bool SendTexturePacket()
         {
-//            m_log.DebugFormat(
-//                "[TEXTURE NOT FOUND SENDER]: Informing the client that texture {0} cannot be found",
-//                m_textureId);
+            //            m_log.DebugFormat(
+            //                "[TEXTURE NOT FOUND SENDER]: Informing the client that texture {0} cannot be found",
+            //                m_textureId);
 
             // XXX Temporarily disabling as this appears to be causing client crashes on at least
             // 1.19.0(5) of the Linden Second Life client.
-//            m_client.SendImageNotFound(m_textureId);
+            //            m_client.SendImageNotFound(m_textureId);
 
             return true;
         }
