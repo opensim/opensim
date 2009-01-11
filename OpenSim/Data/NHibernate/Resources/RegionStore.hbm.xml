@@ -13,18 +13,26 @@
         <property name="Description" type="String" length="255" />
         <property name="SitName" type="String" length="255" />
         <property name="TouchName" type="String" length="255" />
-        
+        <property name="Color" type="OpenSim.Data.NHibernate.ColorUserType, OpenSim.Data.NHibernate" />
+
         <property name="ObjectFlags" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
         <property name="CreatorID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="OwnerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="GroupID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
-        <property name="LastOwnerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
+        <property name="LastOwnerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="LinkNum" type="System.Int32" />
 
         <property name="OwnerMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
         <property name="NextOwnerMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
         <property name="GroupMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
         <property name="EveryoneMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
         <property name="BaseMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
+
+        <property name="Material" type="Byte" />
+        <property name="ScriptAccessPin" type="System.Int32" />
+        <property name="TextureAnimation" type="binary" />
+        <property name="ParticleSystem" type="binary" />
+        <property name="ClickAction" type="Byte" />
 
         <property name="OffsetPosition" type="OpenSim.Data.NHibernate.Vector3UserType, OpenSim.Data.NHibernate" >
           <column name="PositionX" />

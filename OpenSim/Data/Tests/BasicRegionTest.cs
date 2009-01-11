@@ -130,8 +130,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T010_StoreSimpleObject()
         {
-            SceneObjectGroup sog = NewSOG("object1", prim1);
-            SceneObjectGroup sog2 = NewSOG("object2", prim2);
+            SceneObjectGroup sog = NewSOG("object1", prim1, region1);
+            SceneObjectGroup sog2 = NewSOG("object2", prim2, region1);
 
             // in case the objects don't store
             try 
@@ -183,7 +183,7 @@ namespace OpenSim.Data.Tests
             SceneObjectPart p1 = NewSOP("SoP 1",tmp1);
             SceneObjectPart p2 = NewSOP("SoP 2",tmp2);
             SceneObjectPart p3 = NewSOP("SoP 3",tmp3);
-            SceneObjectGroup sog = NewSOG("Sop 0",tmp0);
+            SceneObjectGroup sog = NewSOG("Sop 0", tmp0, newregion);
             sog.AddPart(p1);
             sog.AddPart(p2);
             sog.AddPart(p3);
@@ -246,7 +246,14 @@ namespace OpenSim.Data.Tests
             pbshap = PrimitiveBaseShape.Default;
             Vector3 scale = new Vector3(random.Next(),random.Next(),random.Next());
             byte updatef = (byte) random.Next(127);
-            
+
+            RegionInfo regionInfo = new RegionInfo();
+            regionInfo.RegionID = region3;
+            regionInfo.RegionLocX = 0;
+            regionInfo.RegionLocY = 0;
+
+            Scene scene = new Scene(regionInfo);
+
             SceneObjectPart sop = new SceneObjectPart();
             sop.RegionHandle = regionh;
             sop.UUID = uuid;
@@ -313,9 +320,10 @@ namespace OpenSim.Data.Tests
             Assert.That(updatef,Is.EqualTo(sop.UpdateFlag));
             
             // This is necessary or object will not be inserted in DB            
-            sop.ObjectFlags = 0;            
-                        
+            sop.ObjectFlags = 0;
+
             SceneObjectGroup sog = new SceneObjectGroup();
+            sog.SetScene(scene); // Reguired by nhibernate database module.
             sog.SetRootPart(sop);
             
             // Inserts group in DB
@@ -365,7 +373,6 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T014_UpdateObject()
         {
-                        
             string text1 = "object1 text";
             SceneObjectGroup sog = FindSOG("object1", region1);
             sog.RootPart.Text = text1;
@@ -373,8 +380,7 @@ namespace OpenSim.Data.Tests
 
             sog = FindSOG("object1", region1);
             Assert.That(text1, Is.EqualTo(sog.RootPart.Text));
-            
-               
+
             // Creates random values
             UUID creator = new UUID();
             creator = UUID.Random();
@@ -474,7 +480,7 @@ namespace OpenSim.Data.Tests
         {
             UUID id = UUID.Random();
             Dictionary<UUID, SceneObjectPart> mydic = new Dictionary<UUID, SceneObjectPart>();
-            SceneObjectGroup sog = NewSOG("Test SOG",id);
+            SceneObjectGroup sog = NewSOG("Test SOG", id, region4);
             mydic.Add(sog.RootPart.UUID,sog.RootPart);
             for (int i=0;i<30;i++) 
             {
@@ -888,9 +894,18 @@ namespace OpenSim.Data.Tests
             {
                 SceneObjectPart p = sog.RootPart;
                 if (p.Name == name) {
+                    RegionInfo regionInfo = new RegionInfo();
+                    regionInfo.RegionID = r;
+                    regionInfo.RegionLocX = 0;
+                    regionInfo.RegionLocY = 0;
+
+                    Scene scene = new Scene(regionInfo);
+                    sog.SetScene(scene);
+
                     return sog;
                 }
             }
+
             return null;
         }
 
@@ -906,8 +921,15 @@ namespace OpenSim.Data.Tests
         //                   causes the application to crash at the database layer because of null values 
         //                   in NOT NULL fields
         //
-        private SceneObjectGroup NewSOG(string name, UUID uuid)
+        private SceneObjectGroup NewSOG(string name, UUID uuid, UUID regionId)
         {
+            RegionInfo regionInfo = new RegionInfo();
+            regionInfo.RegionID = regionId;
+            regionInfo.RegionLocX = 0;
+            regionInfo.RegionLocY = 0;
+
+            Scene scene = new Scene(regionInfo);
+
             SceneObjectPart sop = new SceneObjectPart();
             sop.Name = name;
             sop.Description = name;
@@ -916,9 +938,11 @@ namespace OpenSim.Data.Tests
             sop.TouchName = RandomName();
             sop.UUID = uuid;
             sop.Shape = PrimitiveBaseShape.Default;
-            
+
             SceneObjectGroup sog = new SceneObjectGroup();
+            sog.SetScene(scene);
             sog.SetRootPart(sop); 
+
             return sog;
         }
         

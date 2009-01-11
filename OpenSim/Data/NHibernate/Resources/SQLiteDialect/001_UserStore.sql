@@ -12,15 +12,24 @@ create table UserAgents (
    LoginTime INTEGER,
    LogoutTime INTEGER,
    Handle INTEGER,
+   PositionX NUMERIC,
+   PositionY NUMERIC,
+   PositionZ NUMERIC,
+   LookAtX NUMERIC,
+   LookAtY NUMERIC,
+   LookAtZ NUMERIC,     
    primary key (ProfileID)
 );
+
 create table UserProfiles (
   ID TEXT not null,
+   WebLoginKey TEXT,
    FirstName TEXT,
    SurName TEXT,
+   Email TEXT,
    PasswordHash TEXT,
    PasswordSalt TEXT,
-   WebLoginKey TEXT,
+   HomeRegionID TEXT,
    HomeRegionX INTEGER,
    HomeRegionY INTEGER,
    HomeLocationX NUMERIC,
@@ -31,15 +40,22 @@ create table UserProfiles (
    HomeLookAtZ NUMERIC,
    Created INTEGER,
    LastLogin INTEGER,
-   RootInventoryFolderID TEXT,
    UserInventoryURI TEXT,
    UserAssetURI TEXT,
    Image TEXT,
    FirstLifeImage TEXT,
    AboutText TEXT,
    FirstLifeAboutText TEXT,
+   RootInventoryFolderID TEXT,
+  `CanDoMask` INTEGER,
+  `WantDoMask` INTEGER,
+  `UserFlags` INTEGER,
+  `GodLevel` INTEGER,  
+  `CustomType` TEXT,
+  `Partner` TEXT,   
    primary key (ID)
 );
+
 create table UserAppearances (
   Owner TEXT not null,
    BodyItem TEXT,
@@ -71,9 +87,22 @@ create table UserAppearances (
    Texture BLOB,
    VisualParams BLOB,
    Serial INTEGER,
+   AvatarHeight NUMERIC,     
    primary key (Owner)
 );
-create index user_firstname on UserProfiles (FirstName);
-create index user_surname on UserProfiles (SurName);
+
+
+CREATE TABLE UserFriends (
+   UserFriendID TEXT,
+   OwnerID TEXT,
+   FriendID TEXT,
+   FriendPermissions INTEGER,
+   primary key (UserFriendID) 
+);
+
+create index UserFirstNameIndex on UserProfiles (FirstName);
+create index UserSurnameIndex on UserProfiles (SurName);
+create unique index UserFullNameIndex on UserProfiles (FirstName,SurName);
+create unique index UserFriendsOwnerFriendIndex on UserFriends (OwnerID,FriendID);
 
 COMMIT;

@@ -67,11 +67,31 @@ namespace OpenSim.Data.NHibernate
 
         public void StoreRegionSettings(RegionSettings rs)
         {
+            RegionSettings oldRegionSettings = (RegionSettings)manager.Load(typeof(RegionSettings), rs.RegionUUID);
+            if (oldRegionSettings != null)
+            {
+                manager.Update(rs);
+            }
+            else
+            {
+                manager.Save(rs);
+            }
         }
 
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
-            return null;
+            RegionSettings regionSettings = (RegionSettings) manager.Load(typeof(RegionSettings), regionUUID);
+
+            if (regionSettings == null)
+            {
+                regionSettings = new RegionSettings();
+                regionSettings.RegionUUID = regionUUID;
+                manager.Save(regionSettings);
+            }
+
+            regionSettings.OnSave += StoreRegionSettings;
+            
+            return regionSettings;
         }
 
         // This looks inefficient, but it turns out that it isn't
@@ -84,7 +104,7 @@ namespace OpenSim.Data.NHibernate
                 if (old != null)
                 {
                     m_log.InfoFormat("[NHIBERNATE] updating object {0}", p.UUID);
-                    manager.Update(old);
+                    manager.Update(p);
                 } 
                 else
                 {
@@ -108,7 +128,7 @@ namespace OpenSim.Data.NHibernate
                 if (old != null)
                 {
                     m_log.InfoFormat("[NHIBERNATE] updating terrain {0}", t.RegionID);
-                    manager.Update(old);
+                    manager.Update(t);
                 }
                 else
                 {
@@ -131,6 +151,14 @@ namespace OpenSim.Data.NHibernate
         /// <param name="regionUUID">the region UUID</param>
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
+            uint flags = obj.RootPart.GetEffectiveObjectFlags();
+
+            // Eligibility check
+            if ((flags & (uint)PrimFlags.Temporary) != 0)
+                return;
+            if ((flags & (uint)PrimFlags.TemporaryOnRez) != 0)
+                return;
+
             try
             {
                 foreach (SceneObjectPart part in obj.Children.Values)
@@ -199,7 +227,8 @@ namespace OpenSim.Data.NHibernate
 
             ICriteria criteria = manager.GetSession().CreateCriteria(typeof(SceneObjectPart));
             criteria.Add(Expression.Eq("RegionID", regionUUID));
-            criteria.AddOrder( Order.Asc("ParentID") );
+            criteria.AddOrder(Order.Asc("ParentID"));
+            criteria.AddOrder(Order.Asc("LinkNum"));
             foreach (SceneObjectPart p in criteria.List())
             {
                 // root part

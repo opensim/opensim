@@ -4,6 +4,7 @@
         <id name="ProfileID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id>
+      
         <property name="AgentIP" type="String" length="24" />
         <property name="AgentPort" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
         <property name="AgentOnline" type="boolean" />
@@ -14,8 +15,18 @@
         <property name="LoginTime" type="Int32" />
         <property name="LogoutTime" type="Int32" />
         <property name="Handle" type="OpenSim.Data.NHibernate.UInt64Type, OpenSim.Data.NHibernate" />
-        <!-- <property name="PositionX" type="Single" />
-        <property name="PositionY" type="Single" />
-        <property name="PositionZ" type="Single" /> -->
+
+        <property name="Position" type="OpenSim.Data.NHibernate.Vector3UserType, OpenSim.Data.NHibernate" >
+          <column name="PositionX" />
+          <column name="PositionY" />
+          <column name="PositionZ" />
+        </property>
+        
+        <property name="LookAt" type="OpenSim.Data.NHibernate.Vector3UserType, OpenSim.Data.NHibernate" >
+          <column name="LookAtX" />
+          <column name="LookAtY" />
+          <column name="LookAtZ" />
+        </property>
+        
     </class>
 </hibernate-mapping>

@@ -97,11 +97,18 @@ namespace OpenSim.Data.NHibernate
 
         override public void AddNewUserProfile(UserProfileData profile)
         {
+            if (profile.ID == UUID.Zero)
+            {
+                m_log.ErrorFormat("[NHIBERNATE] Attempted to add User {0} {1} with zero UUID, throwintg exception as this is programming error ", profile.FirstName, profile.SurName);
+                return;
+            }
+
             if (!ExistsUser(profile.ID))
             {
                 m_log.InfoFormat("[NHIBERNATE] AddNewUserProfile {0}", profile.ID);
                 manager.Save(profile);
-                SetAgentData(profile.ID, profile.CurrentAgent);
+                // Agent should not be saved according to BasicUserTest.T015_UserPersistency()
+                // SetAgentData(profile.ID, profile.CurrentAgent);
 
             }
             else
@@ -131,7 +138,8 @@ namespace OpenSim.Data.NHibernate
             if (ExistsUser(profile.ID))
             {
                 manager.Update(profile);
-                SetAgentData(profile.ID, profile.CurrentAgent);
+                // Agent should not be saved according to BasicUserTest.T015_UserPersistency()
+                // SetAgentData(profile.ID, profile.CurrentAgent);
                 return true;
             }
             else
@@ -144,6 +152,19 @@ namespace OpenSim.Data.NHibernate
 
         override public void AddNewUserAgent(UserAgentData agent)
         {
+            if (agent.ProfileID == UUID.Zero)
+            {
+                m_log.ErrorFormat("[NHIBERNATE] Attempted to add new user agent with zero user id. Agent session id: {0}", agent.SessionID);
+                return;
+            }
+
+            if (agent.SessionID == UUID.Zero)
+            {
+                m_log.ErrorFormat("[NHIBERNATE] Attempted to add new user agent with zero session id. User profile id: {0}", agent.SessionID);
+                return;
+            }
+
+
             UserAgentData old = (UserAgentData)manager.Load(typeof(UserAgentData), agent.ProfileID);
             if (old != null)
             {
@@ -214,12 +235,163 @@ namespace OpenSim.Data.NHibernate
         }
 
         // TODO: actually implement these
-        public override void StoreWebLoginKey(UUID agentID, UUID webLoginKey) { return; }
-        public override void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms) { return; }
-        public override void RemoveUserFriend(UUID friendlistowner, UUID friend) { return; }
-        public override void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms) { return; }
-        public override List<FriendListItem> GetUserFriendList(UUID friendlistowner) { return new List<FriendListItem>(); }
-        public override Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> uuids) { return new Dictionary<UUID, FriendRegionInfo>(); }
+        public override void StoreWebLoginKey(UUID agentID, UUID webLoginKey) 
+        {
+            UserProfileData user=GetUserByUUID(agentID);
+            user.WebLoginKey = webLoginKey;
+            UpdateUserProfile(user);
+            return;         
+        }
+
+        public override void AddNewUserFriend(UUID ownerId, UUID friendId, uint perms) 
+        {
+            if (!FriendRelationExists(ownerId,friendId))
+            {
+                manager.Save(new UserFriend(UUID.Random(), ownerId, friendId, perms));
+            }
+            if (!FriendRelationExists(friendId, ownerId))
+            {
+                manager.Save(new UserFriend(UUID.Random(), friendId, ownerId, perms));
+            }
+            return;         
+        }
+
+        private bool FriendRelationExists(UUID ownerId, UUID friendId)
+        {
+            using (ISession session = manager.GetSession())
+            {
+                ICriteria criteria = session.CreateCriteria(typeof(UserFriend));
+                criteria.Add(Expression.Eq("OwnerID", ownerId));
+                criteria.Add(Expression.Eq("FriendID", friendId));
+                return criteria.List().Count > 0;
+            }
+        }
+        
+        public override void RemoveUserFriend(UUID ownerId, UUID friendId) 
+        {
+            using (ISession session = manager.GetSession())
+            {
+                using (ITransaction transaction = session.BeginTransaction())
+                {
+
+                    {
+                        ICriteria criteria = session.CreateCriteria(typeof(UserFriend));
+                        criteria.Add(Expression.Eq("OwnerID", ownerId));
+                        criteria.Add(Expression.Eq("FriendID", friendId));
+
+                        foreach (UserFriend userFriend in criteria.List())
+                        {
+                            session.Delete(userFriend);
+                        }
+                    }
+
+                    {
+                        ICriteria criteria = session.CreateCriteria(typeof(UserFriend));
+                        criteria.Add(Expression.Eq("OwnerID", friendId));
+                        criteria.Add(Expression.Eq("FriendID", ownerId));
+
+                        foreach (UserFriend userFriend in criteria.List())
+                        {
+                            session.Delete(userFriend);
+                        }
+                    }
+
+                    transaction.Commit();
+                }
+            }
+            return; 
+        }
+
+
+        public override void UpdateUserFriendPerms(UUID ownerId, UUID friendId, uint perms) 
+        {
+            using (ISession session = manager.GetSession())
+            {
+                using (ITransaction transaction = session.BeginTransaction())
+                {
+                    {
+                        ICriteria criteria = session.CreateCriteria(typeof(UserFriend));
+                        criteria.Add(Expression.Eq("OwnerID", ownerId));
+                        criteria.Add(Expression.Eq("FriendID", friendId));
+
+                        foreach (UserFriend userFriend in criteria.List())
+                        {
+                            userFriend.FriendPermissions = perms;
+                            session.Update(userFriend);
+                        }
+                    }
+                    transaction.Commit();
+                }
+            }
+            return; 
+        }
+
+        public override List<FriendListItem> GetUserFriendList(UUID ownerId) 
+        {
+            List<FriendListItem> friendList=new List<FriendListItem>();
+            Dictionary<UUID, FriendListItem> friendListItemDictionary = new Dictionary<UUID, FriendListItem>();
+
+            using (ISession session = manager.GetSession())
+            {
+                    ICriteria criteria = session.CreateCriteria(typeof(UserFriend));
+                    criteria.Add(Expression.Or(
+                        Expression.Eq("OwnerID", ownerId),
+                        Expression.Eq("FriendID", ownerId)
+                        ));
+
+                    foreach (UserFriend userFriend in criteria.List())
+                    {
+                        if (userFriend.OwnerID == ownerId)
+                        {
+                            FriendListItem friendListItem = new FriendListItem();
+                            friendListItem.FriendListOwner = userFriend.OwnerID;
+                            friendListItem.Friend = userFriend.FriendID;
+                            friendListItem.FriendPerms = userFriend.FriendPermissions;
+                            friendListItemDictionary.Add(userFriend.FriendID, friendListItem);
+                            friendList.Add(friendListItem);
+                        }
+                    }
+
+                    // Reading permissions to other direction
+                    foreach (UserFriend userFriend in criteria.List())
+                    {
+                        if (userFriend.FriendID == ownerId)
+                        {
+                            //Ignore if there is no reverse relation existing.
+                            //if (friendListItemDictionary.ContainsKey(userFriend.OwnerID))
+                            {
+                                FriendListItem friendListItem = friendListItemDictionary[userFriend.OwnerID];
+                                friendListItem.FriendListOwnerPerms = userFriend.FriendPermissions;
+                            }
+                        }
+                    }
+
+            }
+
+            return friendList; 
+        }
+
+
+        public override Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> friendsIds) 
+        { 
+            Dictionary<UUID, FriendRegionInfo> friendRegionInfos=new Dictionary<UUID, FriendRegionInfo>();
+
+            foreach(UUID friendId in friendsIds)
+            {
+                UserAgentData agent=GetAgentByUUID(friendId);
+                if (agent != null)
+                {
+                    FriendRegionInfo fri = new FriendRegionInfo();
+                    fri.isOnline = agent.AgentOnline;
+                    fri.regionHandle = agent.Handle;
+
+                    friendRegionInfos[friendId] = fri;
+                }
+            }
+
+            return friendRegionInfos;
+        }
+
         public override bool MoneyTransferRequest(UUID from, UUID to, uint amount) { return true; }
         public override bool InventoryTransferRequest(UUID from, UUID to, UUID inventory) { return true; }
 

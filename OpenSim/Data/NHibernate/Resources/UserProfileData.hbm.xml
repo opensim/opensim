@@ -4,11 +4,13 @@
         <id name="ID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id>
-        <property name="FirstName" index="user_firstname" type="String" length="32" />
-        <property name="SurName" index="user_surname" type="String" length="32" />
+        <property name="WebLoginKey" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="FirstName" index="UserFirstNameIndex" type="String" length="32" />
+        <property name="SurName" index="UserSurnameIndex" type="String" length="32" />
+        <property name="Email" type="String" length="250" />
         <property name="PasswordHash" type="String" length="32" />
         <property name="PasswordSalt" type="String" length="32" />
-        <property name="WebLoginKey" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="HomeRegionID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         <property name="HomeRegionX" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
         <property name="HomeRegionY" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
         <property name="HomeLocationX" type="Single" />
@@ -19,12 +21,18 @@
         <property name="HomeLookAtZ" type="Single" />
         <property name="Created" type="Int32" />
         <property name="LastLogin" type="Int32" />
-        <property name="RootInventoryFolderID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         <property name="UserInventoryURI" type="String" length="255"/>
         <property name="UserAssetURI" type="String" length="255"/>
         <property name="Image" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         <property name="FirstLifeImage" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         <property name="AboutText" type="String" length="255" />
         <property name="FirstLifeAboutText" type="String" length="255" />
+        <property name="CanDoMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
+        <property name="WantDoMask" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
+        <property name="UserFlags" type="Int32" />
+        <property name="GodLevel" type="Int32" />
+        <property name="CustomType" type="String" length="32" />
+        <property name="Partner" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="RootInventoryFolderID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
     </class>
 </hibernate-mapping>

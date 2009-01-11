@@ -404,6 +404,17 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Mock constructor for scene group persistency unit tests.
+        /// SceneObjectGroup RegionId property is delegated to Scene.
+        /// </summary>
+        /// <param name="regInfo"></param>
+        public Scene(RegionInfo regInfo)
+        {
+            m_regInfo = regInfo;
+            m_eventManager = new EventManager();
+        }
+
         #endregion
 
         #region Startup / Close Methods

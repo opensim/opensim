@@ -344,7 +344,14 @@ namespace OpenSim.Data.NHibernate
         // See IInventoryDataPlugin
         public List<InventoryFolderBase> getFolderHierarchy(UUID parentID)
         {
+            if (parentID == UUID.Zero)
+            {
+                // Zero UUID is not a real parent folder.
+                return new List<InventoryFolderBase>();
+            }
+
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+            
             getInventoryFolders(ref folders, parentID);
 
             for (int i = 0; i < folders.Count; i++)
