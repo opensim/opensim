@@ -1150,6 +1150,7 @@ VALUES
         #endregion
 
         #region Create parameters methods
+        
         /// <summary>
         /// Creates the prim inventory parameters.
         /// </summary>
