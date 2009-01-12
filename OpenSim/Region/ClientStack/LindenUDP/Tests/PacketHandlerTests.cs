@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Threading;
 using Nini.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -46,7 +47,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         /// <summary>
         /// More a placeholder, really
         /// </summary>        
-        public void DummyTest()
+        public void InPacketTest()
         {
             AgentCircuitData agent = new AgentCircuitData();
             agent.AgentID = UUID.Random();
@@ -65,11 +66,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             AgentCircuitManager acm;
             SetupStack(new MockScene(), out testLLUDPServer, out testLLPacketServer, out acm);
             
+            TestClient testClient = new TestClient(agent);
+            
             ILLPacketHandler packetHandler 
-                = new LLPacketHandler(new TestClient(agent), testLLPacketServer, new ClientStackUserSettings());
+                = new LLPacketHandler(testClient, testLLPacketServer, new ClientStackUserSettings());
             
             packetHandler.InPacket(new AgentAnimationPacket());
-            //Assert.That(Is.Not.Null(packetHandler.PacketQueue.Dequeue()));
+            LLQueItem receivedPacket = packetHandler.PacketQueue.Dequeue();
+            
+            Assert.That(receivedPacket, Is.Not.Null);
+            Assert.That(receivedPacket.Incoming, Is.True);
+            Assert.That(receivedPacket.Packet, Is.TypeOf(typeof(AgentAnimationPacket)));
         }
         
         /// <summary>
