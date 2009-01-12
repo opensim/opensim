@@ -55,7 +55,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 
         /// <summary>
-        /// Dictionary of files to be sent to clients
+        /// Dictionary of files ready to be sent to clients
         /// </summary>
         protected static Dictionary<string, byte[]> m_files;
 
@@ -71,7 +71,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientAPI = clientAPI;
 
             m_clientAPI.OnXferReceive += XferReceive;
-            m_clientAPI.OnAbortXfer += AbortXferHandler;
+            m_clientAPI.OnAbortXfer += AbortXferUploadHandler;
         }
 
         public void Close()
@@ -79,10 +79,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_clientAPI != null)
             {
                 m_clientAPI.OnXferReceive -= XferReceive;
-                m_clientAPI.OnAbortXfer -= AbortXferHandler;
+                m_clientAPI.OnAbortXfer -= AbortXferUploadHandler;
                 m_clientAPI = null;
             }
         }
+
+        #region Upload Handling
 
         public bool RequestUpload(string clientFileName, UploadComplete uploadCompleteCallback, UploadAborted abortCallback)
         {
@@ -111,7 +113,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool StartUpload(XferUploadHandler uploader, UploadComplete uploadCompleteCallback, UploadAborted abortCallback)
         {
             uploader.UploadDone += uploadCompleteCallback;
-            uploader.UploadDone += RemoveXferHandler;
+            uploader.UploadDone += RemoveXferUploadHandler;
 
             if (abortCallback != null)
             {
@@ -130,7 +132,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     // something went wrong with the xferID allocation
                     uploader.UploadDone -= uploadCompleteCallback;
-                    uploader.UploadDone -= RemoveXferHandler;
+                    uploader.UploadDone -= RemoveXferUploadHandler;
                     if (abortCallback != null)
                     {
                         uploader.UploadAborted -= abortCallback;
@@ -140,7 +142,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        protected void AbortXferHandler(IClientAPI remoteClient, ulong xferID)
+        protected void AbortXferUploadHandler(IClientAPI remoteClient, ulong xferID)
         {
             lock (m_uploadHandlersLock)
             {
@@ -163,10 +165,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        protected void RemoveXferHandler(string filename, UUID fileID, ulong transferID, byte[] fileData, IClientAPI remoteClient)
+        protected void RemoveXferUploadHandler(string filename, UUID fileID, ulong transferID, byte[] fileData, IClientAPI remoteClient)
         {
 
         }
+        #endregion
+
     }
 
     public class XferUploadHandler
