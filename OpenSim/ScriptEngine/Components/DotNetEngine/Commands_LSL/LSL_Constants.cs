@@ -451,7 +451,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Commands_LSL
 
         // Can not be public const?
         public static readonly vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
-        public static readonly rotation ZERO_ROTATION = new rotation(0.0, 0, 0.0, 1.0);
+        public static readonly rotation ZERO_ROTATION = new rotation(0.0, 0.0, 0.0, 1.0);
 
         // constants for llSetCameraParams
         public const int CAMERA_PITCH = 0;
