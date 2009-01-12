@@ -46,7 +46,7 @@ using Timer=System.Timers.Timer;
 
 namespace OpenSim
 {
-    /// <summary> 
+    /// <summary>
     /// Interactive OpenSim region server
     /// </summary>
     public class OpenSim : OpenSimBase, conscmd_callback
@@ -137,7 +137,7 @@ namespace OpenSim
             }
             base.ShutdownSpecific();
         }
-        
+
         private void RunAutoTimerScript(object sender, EventArgs e)
         {
             if (m_timedScript != "disabled")
@@ -188,11 +188,11 @@ namespace OpenSim
         /// </summary>
         /// <param name="fileName"></param>
         private void RunCommandScript(string fileName)
-        {                        
+        {
             if (File.Exists(fileName))
             {
                 m_log.Info("[COMMANDFILE]: Running " + fileName);
-                
+
                 StreamReader readFile = File.OpenText(fileName);
                 string currentCommand;
                 while ((currentCommand = readFile.ReadLine()) != null)
@@ -335,6 +335,12 @@ namespace OpenSim
                         m_log.Info("[ Login ]  Login are enabled");
                     break;
                 case "create-region":
+                    if (cmdparams.Length < 2)
+                    {
+                        m_console.Error("Usage: create-region <region name> <region_file.xml>");
+                        break;
+                    }
+
                     string regionsDir = ConfigSource.Source.Configs["Startup"].GetString("regionload_regionsdir", "Regions").Trim();
                     string regionFile = String.Format("{0}/{1}", regionsDir, cmdparams[1]);
                     // Allow absolute and relative specifiers
@@ -422,7 +428,7 @@ namespace OpenSim
                                 }
                                 else
                                 {
-                                    IConfig c = m_config.Source.Configs[cmdparams[1]]; // DefaultConfig().Configs[cmdparams[1]]; 
+                                    IConfig c = m_config.Source.Configs[cmdparams[1]]; // DefaultConfig().Configs[cmdparams[1]];
                                     if (c == null)
                                     {
                                         m_console.Notice(n, "Section \"" + cmdparams[1] + "\" does not exist.");
@@ -490,10 +496,10 @@ namespace OpenSim
                         m_commsManager.AddInventoryService(cmdparams[0]);
                     }
                     break;
-                                    
+
                 case "reset":
                     Reset(cmdparams);
-                    break;                
+                    break;
 
                 default:
                     string[] tmpPluginArgs = new string[cmdparams.Length + 1];
@@ -551,7 +557,7 @@ namespace OpenSim
                     break;
             }
         }
-        
+
         /// <summary>
         /// Execute switch for some of the reset commands
         /// </summary>
@@ -564,7 +570,7 @@ namespace OpenSim
             switch (args[0])
             {
                 case "user":
-                
+
                     switch (args[1])
                     {
                         case "password":
@@ -578,10 +584,10 @@ namespace OpenSim
                             }
                             break;
                     }
-                
+
                     break;
             }
-        }        
+        }
 
         /// <summary>
         /// Turn on some debugging values for OpenSim.
@@ -708,7 +714,7 @@ namespace OpenSim
                 case "assets":
                     m_assetCache.ShowState();
                     break;
-              
+
                 case "users":
                     IList agents;
                     if (showParams.Length > 1 && showParams[1] == "full")
@@ -860,7 +866,7 @@ namespace OpenSim
                 m_log.ErrorFormat("[CONSOLE]: A user with the name {0} {1} already exists!", firstName, lastName);
             }
         }
-        
+
         /// <summary>
         /// Reset a user password.
         /// </summary>
@@ -870,7 +876,7 @@ namespace OpenSim
             string firstName;
             string lastName;
             string newPassword;
-            
+
             if (cmdparams.Length < 3)
                 firstName = MainConsole.Instance.CmdPrompt("First name");
             else firstName = cmdparams[2];
@@ -882,9 +888,9 @@ namespace OpenSim
             if ( cmdparams.Length < 5 )
                 newPassword = MainConsole.Instance.PasswdPrompt("New password");
             else newPassword = cmdparams[4];
-            
+
             m_commsManager.UserAdminService.ResetUserPassword(firstName, lastName, newPassword);
-        }                        
+        }
 
         protected void SaveXml(string[] cmdparams)
         {
@@ -933,7 +939,14 @@ namespace OpenSim
             }
             else
             {
-                m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME, false, loadOffset);
+                try
+                {
+                    m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME, false, loadOffset);
+                }
+                catch
+                {
+                    m_console.Error("Default xml not found. Usage: load-xml <filename>");
+                }
             }
         }
 
@@ -957,7 +970,14 @@ namespace OpenSim
             }
             else
             {
-                m_sceneManager.LoadCurrentSceneFromXml2(DEFAULT_PRIM_BACKUP_FILENAME);
+                try
+                {
+                    m_sceneManager.LoadCurrentSceneFromXml2(DEFAULT_PRIM_BACKUP_FILENAME);
+                }
+                catch
+                {
+                    m_console.Error("Default xml not found. Usage: load-xml2 <filename>");
+                }
             }
         }
 
@@ -973,7 +993,14 @@ namespace OpenSim
             }
             else
             {
-                m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);
+                try
+                {
+                    m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);
+                }
+                catch
+                {
+                    m_console.Error("Default oar not found. Usage: load-oar <filename>");
+                }
             }
         }
 
@@ -992,7 +1019,7 @@ namespace OpenSim
                 m_sceneManager.SaveCurrentSceneToArchive(DEFAULT_OAR_BACKUP_FILENAME);
             }
         }
-        
+
         /// <summary>
         /// Load inventory from an inventory file archive
         /// </summary>
@@ -1005,16 +1032,16 @@ namespace OpenSim
                 m_log.Error("[CONSOLE]: usage is load-inv <first name> <last name> <inventory path> [<load file path>]");
                 return;
             }
-            
+
             string firstName = cmdparams[0];
             string lastName = cmdparams[1];
             string invPath = cmdparams[2];
             string loadPath = (cmdparams.Length > 3 ? cmdparams[3] : DEFAULT_INV_BACKUP_FILENAME);
-            
+
             new InventoryArchiveReadRequest(
                 m_sceneManager.CurrentOrFirstScene, m_commsManager).execute(
                     firstName, lastName, invPath, loadPath);
-        }        
+        }
 
         /// <summary>
         /// Save inventory to a file archive
@@ -1028,17 +1055,17 @@ namespace OpenSim
                 m_log.Error("[CONSOLE]: usage is save-inv <first name> <last name> <inventory path> [<save file path>]");
                 return;
             }
-            
+
             string firstName = cmdparams[0];
             string lastName = cmdparams[1];
             string invPath = cmdparams[2];
             string savePath = (cmdparams.Length > 3 ? cmdparams[3] : DEFAULT_INV_BACKUP_FILENAME);
-            
+
             new InventoryArchiveWriteRequest(
                 m_sceneManager.CurrentOrFirstScene,m_commsManager).execute(
                     firstName, lastName, invPath, savePath);
         }
-        
+
         private static string CombineParams(string[] commandParams, int pos)
         {
             string result = String.Empty;
