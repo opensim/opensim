@@ -36,6 +36,10 @@ using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
+    /// <summary>
+    /// This class sets up new client stacks.  It also handles the immediate distribution of incoming packets to
+    /// client stacks
+    /// </summary>
     public class LLPacketServer
     {
 //        private static readonly log4net.ILog m_log
@@ -185,9 +189,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public virtual void CloseCircuit(uint circuitcode)
         {
             m_networkHandler.RemoveClientCircuit(circuitcode);
-
-            // XXX: Why is this commented out?  Possibly because close mechanisms are so tangled right now
-            //m_scene.ClientManager.CloseAllAgents(circuitcode);
         }
 
         /// <summary>

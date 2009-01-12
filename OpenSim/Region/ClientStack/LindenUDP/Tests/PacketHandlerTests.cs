@@ -27,7 +27,9 @@
 
 using Nini.Config;
 using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Tests.Common.Mock;
@@ -63,7 +65,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             AgentCircuitManager acm;
             SetupStack(new MockScene(), out testLLUDPServer, out testLLPacketServer, out acm);
             
-            new LLPacketHandler(new TestClient(agent), testLLPacketServer, new ClientStackUserSettings());
+            ILLPacketHandler packetHandler 
+                = new LLPacketHandler(new TestClient(agent), testLLPacketServer, new ClientStackUserSettings());
+            
+            packetHandler.InPacket(new AgentAnimationPacket());
+            //Assert.That(Is.Not.Null(packetHandler.PacketQueue.Dequeue()));
         }
         
         /// <summary>

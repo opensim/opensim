@@ -4109,7 +4109,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler.InPacket((Packet) NewPack);
         }
 
-
         /// <summary>
         /// This is the starting point for sending a simulator packet out to the client.
         /// 
@@ -4185,8 +4184,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Entryway from the client to the simulator
-        /// all UDP packets from the client will end up here
+        /// Entryway from the client to the simulator.  All UDP packets from the client will end up here
         /// </summary>
         /// <param name="Pack">OpenMetaverse.packet</param>
         public void ProcessInPacket(Packet Pack)
@@ -4483,6 +4481,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+                
                 case PacketType.RezSingleAttachmentFromInv:
                     handlerRezSingleAttachment = OnRezSingleAttachmentFromInv;
                     if (handlerRezSingleAttachment != null)
@@ -4493,6 +4492,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+                
                 case PacketType.DetachAttachmentIntoInv:
                     handlerDetachAttachmentIntoInv = OnDetachAttachmentIntoInv;
                     if (handlerDetachAttachmentIntoInv != null)
@@ -4505,6 +4505,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerDetachAttachmentIntoInv(itemID, this);
                     }
                     break;
+                
                 case PacketType.ObjectAttach:
                     if (OnObjectAttach != null)
                     {
@@ -4520,10 +4521,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                         }
                     }
-
                     break;
+                
                 case PacketType.ObjectDetach:
-
                     ObjectDetachPacket dett = (ObjectDetachPacket)Pack;
                     for (int j = 0; j < dett.ObjectData.Length; j++)
                     {
@@ -4535,8 +4535,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
 
                     }
-
                     break;
+                
                 case PacketType.ObjectDrop:
                     ObjectDropPacket dropp = (ObjectDropPacket)Pack;
                     for (int j = 0; j < dropp.ObjectData.Length; j++)
@@ -4549,6 +4549,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+                
                 case PacketType.SetAlwaysRun:
                     SetAlwaysRunPacket run = (SetAlwaysRunPacket)Pack;
 
@@ -4557,6 +4558,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerSetAlwaysRun(this, run.AgentData.AlwaysRun);
 
                     break;
+                
                 case PacketType.CompleteAgentMovement:
                     handlerCompleteMovementToRegion = OnCompleteMovementToRegion;
                     if (handlerCompleteMovementToRegion != null)
@@ -4566,6 +4568,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     handlerCompleteMovementToRegion = null;
 
                     break;
+                
                 case PacketType.AgentUpdate:
                     if (OnAgentUpdate != null)
                     {
@@ -4594,6 +4597,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         //agenUpdate.AgentData.ControlFlags, agenUpdate.AgentData.BodyRotationa);
                     }
                     break;
+                
                 case PacketType.AgentAnimation:
                     AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
 
@@ -4620,6 +4624,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+                
                 case PacketType.AgentRequestSit:
                     if (OnAgentRequestSit != null)
                     {

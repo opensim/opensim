@@ -36,6 +36,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     public delegate void PacketDrop(Packet pack, Object id);
     public delegate bool SynchronizeClientHandler(IScene scene, Packet packet, UUID agentID, ThrottleOutPacketType throttlePacketType);
 
+    /// <summary>
+    /// Interface to a class that handles all the activity involved with maintaining the client circuit (handling acks,
+    /// resends, pings, etc.)
+    /// </summary>
     public interface ILLPacketHandler
     {
         event PacketStats OnPacketStats;
@@ -48,8 +52,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         bool ReliableIsImportant { get; set; }
         int MaxReliableResends { get; set; }
 
+        /// <summary>
+        /// Initial handling of a received packet.  It will be processed later in ProcessInPacket()
+        /// </summary>
+        /// <param name="packet"></param>
         void InPacket(Packet packet);
+        
+        /// <summary>
+        /// Take action depending on the type and contents of an received packet.
+        /// </summary>
+        /// <param name="item"></param>        
         void ProcessInPacket(LLQueItem item);
+        
         void ProcessOutPacket(LLQueItem item);
         void OutPacket(Packet NewPack,
                        ThrottleOutPacketType throttlePacketType);

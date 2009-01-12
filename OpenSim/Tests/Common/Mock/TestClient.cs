@@ -343,6 +343,14 @@ namespace OpenSim.Tests.Common.Mock
             set { }
         }
         
+        private uint m_circuitCode;
+
+        public uint CircuitCode
+        {
+            get { return m_circuitCode; }
+            set { m_circuitCode = value; }
+        }        
+        
         /// <summary>
         /// Constructor
         /// </summary>
@@ -751,14 +759,6 @@ namespace OpenSim.Tests.Common.Mock
 
         public void Stop()
         {
-        }
-
-        private uint m_circuitCode;
-
-        public uint CircuitCode
-        {
-            get { return m_circuitCode; }
-            set { m_circuitCode = value; }
         }
 
         public void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message)

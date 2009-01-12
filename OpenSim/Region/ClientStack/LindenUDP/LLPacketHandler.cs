@@ -524,7 +524,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else if (packet.Type == PacketType.StartPingCheck)
             {
                 StartPingCheckPacket startPing = (StartPingCheckPacket)packet;
-                CompletePingCheckPacket endPing = (CompletePingCheckPacket)PacketPool.Instance.GetPacket(PacketType.CompletePingCheck);
+                CompletePingCheckPacket endPing 
+                    = (CompletePingCheckPacket)PacketPool.Instance.GetPacket(PacketType.CompletePingCheck);
 
                 endPing.PingID.PingID = startPing.PingID.PingID;
                 OutPacket(endPing, ThrottleOutPacketType.Task);
