@@ -42,40 +42,7 @@ using log4net;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
-    public delegate void PacketDrop(Packet pack, Object id);
-    public delegate bool SynchronizeClientHandler(IScene scene, Packet packet, UUID agentID, ThrottleOutPacketType throttlePacketType);
-
-    public interface IPacketHandler
-    {
-        event PacketStats OnPacketStats;
-        event PacketDrop OnPacketDrop;
-        SynchronizeClientHandler SynchronizeClient { set; }
-
-        int PacketsReceived { get; }
-        int PacketsReceivedReported { get; }
-        uint ResendTimeout { get; set; }
-        bool ReliableIsImportant { get; set; }
-        int MaxReliableResends { get; set; }
-
-        void InPacket(Packet packet);
-        void ProcessInPacket(LLQueItem item);
-        void ProcessOutPacket(LLQueItem item);
-        void OutPacket(Packet NewPack,
-                       ThrottleOutPacketType throttlePacketType);
-        void OutPacket(Packet NewPack,
-                       ThrottleOutPacketType throttlePacketType, Object id);
-        LLPacketQueue PacketQueue { get; }
-        void Stop();
-        void Flush();
-        void Clear();
-        ClientInfo GetClientInfo();
-        void SetClientInfo(ClientInfo info);
-        void AddImportantPacket(PacketType type);
-        void RemoveImportantPacket(PacketType type);
-    }
-
-    public class LLPacketHandler : IPacketHandler
+    public class LLPacketHandler : ILLPacketHandler
     {
         //private static readonly ILog m_log 
         //    = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

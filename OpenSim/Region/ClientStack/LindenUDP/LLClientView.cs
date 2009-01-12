@@ -75,7 +75,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly UUID m_agentId;
         private readonly uint m_circuitCode;
         private int m_moneyBalance;
-        private readonly IPacketHandler m_PacketHandler;
+        private readonly ILLPacketHandler m_PacketHandler;
 
         private int m_animationSequenceNumber = 1;
 
@@ -402,7 +402,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_animationSequenceNumber++; }
         }
 
-        public IPacketHandler PacketHandler
+        public ILLPacketHandler PacketHandler
         {
             get { return m_PacketHandler; }
         }
