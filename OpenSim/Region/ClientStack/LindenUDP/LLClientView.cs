@@ -471,12 +471,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler.OnPacketStats += PopulateStats;
             
             RegisterLocalPacketHandlers();
-
-            m_clientThread = new Thread(Start);
-            m_clientThread.Name = "ClientThread";
-            m_clientThread.IsBackground = true;
-            m_clientThread.Start();
-            ThreadTracker.Add(m_clientThread);
         }
 
         public void SetDebugPacketLevel(int newDebugPacketLevel)
@@ -813,11 +807,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RefreshGroupMembership();
         }
 
-        /// <summary>
-        /// Start a user session.  This method lies at the base of the entire client thread.
-        /// </summary>
-        protected virtual void Start()
+        public virtual void Start()
         {
+            m_clientThread = new Thread(RunUserSession);
+            m_clientThread.Name = "ClientThread";
+            m_clientThread.IsBackground = true;
+            m_clientThread.Start();
+            ThreadTracker.Add(m_clientThread);            
+        }
+        
+        /// <summary>
+        /// Run a user session.  This method lies at the base of the entire client thread.
+        /// </summary>
+        protected virtual void RunUserSession()
+        {            
             //tell this thread we are using the culture set up for the sim (currently hardcoded to en_US)
             //otherwise it will override this and use the system default
             Culture.SetCurrentCulture();

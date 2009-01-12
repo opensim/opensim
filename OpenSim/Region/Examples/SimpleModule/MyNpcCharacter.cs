@@ -800,6 +800,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void Start()
+        {
+        }
+        
         public void Stop()
         {
         }

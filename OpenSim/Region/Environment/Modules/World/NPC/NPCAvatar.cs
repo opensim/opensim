@@ -812,6 +812,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
+        public void Start()
+        {
+        }
+        
         public void Stop()
         {
         }

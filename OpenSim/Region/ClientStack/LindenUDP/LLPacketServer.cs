@@ -160,6 +160,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             newuser.OnViewerEffect += m_scene.ClientManager.ViewerEffectHandler;
             newuser.OnLogout += LogoutHandler;
             newuser.OnConnectionClosed += CloseClient;
+            
+            newuser.Start();
 
             return true;
         }

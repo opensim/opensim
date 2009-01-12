@@ -527,6 +527,9 @@ namespace OpenSim.Framework
         /// </summary>
         string Name { get; }
 
+        /// <value>
+        /// Determines whether the client thread is doing anything or not.
+        /// </value>
         bool IsActive { get; set; }
 
         bool SendLogoutPacketWhenClosing { set; }
@@ -749,6 +752,23 @@ namespace OpenSim.Framework
 
         event UserInfoRequest OnUserInfoRequest;
         event UpdateUserInfo OnUpdateUserInfo;
+        
+        /// <summary>
+        /// Set the debug level at which packet output should be printed to console.
+        /// </summary>
+        void SetDebugPacketLevel(int newDebug);
+
+        void InPacket(object NewPack);
+        void ProcessInPacket(Packet NewPack);
+        void Close(bool ShutdownCircuit);
+        void Kick(string message);
+        
+        /// <summary>
+        /// Start processing for this client.
+        /// </summary>
+        void Start();
+        
+        void Stop();        
 
         //     void ActivateGesture(UUID assetId, UUID gestureId);
 
@@ -1034,16 +1054,6 @@ namespace OpenSim.Framework
 
         byte[] GetThrottlesPacked(float multiplier);
 
-        /// <summary>
-        /// Set the debug level at which packet output should be printed to console.
-        /// </summary>
-        void SetDebugPacketLevel(int newDebug);
-
-        void InPacket(object NewPack);
-        void ProcessInPacket(Packet NewPack);
-        void Close(bool ShutdownCircuit);
-        void Kick(string message);
-        void Stop();
         event ViewerEffectEventHandler OnViewerEffect;
         event Action<IClientAPI> OnLogout;
         event Action<IClientAPI> OnConnectionClosed;

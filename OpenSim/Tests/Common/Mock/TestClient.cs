@@ -757,6 +757,10 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
+        public void Start()
+        {
+        }
+        
         public void Stop()
         {
         }
