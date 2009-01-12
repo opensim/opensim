@@ -97,9 +97,13 @@ namespace OpenSim.Grid.AssetServer
 
                     result = ms.GetBuffer();
 
-                    m_log.InfoFormat(
-                        "[REST]: GET:/asset found {0} with name {1}, size {2} bytes",
-                        assetID, asset.Name, result.Length);
+//Ckrinke 1/11/09 Commenting out the succesful REST message as under heavy use there
+//are multiple messages in a second and that is usually (in my experience) meaning 
+//the logging itself is slowing down the program. Leaving the unsuccesful message
+//as we need to know about that path.
+//                    m_log.InfoFormat(
+//                        "[REST]: GET:/asset found {0} with name {1}, size {2} bytes",
+//                        assetID, asset.Name, result.Length);
 
                     Array.Resize<byte>(ref result, (int) ms.Length);
                 }
