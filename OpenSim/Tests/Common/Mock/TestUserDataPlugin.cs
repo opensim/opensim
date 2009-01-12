@@ -38,7 +38,7 @@ namespace OpenSim.Tests.Common.Mock
     /// tests are single threaded.
     /// </summary>
     public class TestUserDataPlugin : IUserDataPlugin
-    {        
+    {
         public string Version { get { return "0"; } }
         public string Name { get { return "TestUserDataPlugin"; } }
 
@@ -49,64 +49,146 @@ namespace OpenSim.Tests.Common.Mock
 
         /// <summary>
         /// User profiles keyed by uuid
-        /// </summary>        
+        /// </summary>
         private Dictionary<UUID, UserProfileData> m_userProfilesByUuid = new Dictionary<UUID, UserProfileData>();
+
+        /// <summary>
+        /// User profiles and their agents
+        /// </summary>
+        private Dictionary<UUID, UserAgentData> m_agentByProfileUuid = new Dictionary<UUID, UserAgentData>();
+
+        /// <summary>
+        /// Friends list by uuid
+        /// </summary>
+        private Dictionary<UUID, List<FriendListItem>> m_friendsListByUuid = new Dictionary<UUID, List<FriendListItem>>();
 
         public void Initialise() {}
         public void Dispose() {}
-        
-        public void AddNewUserProfile(UserProfileData user) 
+
+        public void AddNewUserProfile(UserProfileData user)
         {
             UpdateUserProfile(user);
         }
-        
-        public UserProfileData GetUserByUUID(UUID user) 
+
+        public UserProfileData GetUserByUUID(UUID user)
         {
             UserProfileData userProfile = null;
             m_userProfilesByUuid.TryGetValue(user, out userProfile);
-            
-            return userProfile;            
+
+            return userProfile;
         }
 
-        public UserProfileData GetUserByName(string fname, string lname) 
-        { 
+        public UserProfileData GetUserByName(string fname, string lname)
+        {
             UserProfileData userProfile = null;
             m_userProfilesByName.TryGetValue(fname + " " + lname, out userProfile);
-            
-            return userProfile;
-        }                
 
-        public bool UpdateUserProfile(UserProfileData user) 
-        { 
+            return userProfile;
+        }
+
+        public bool UpdateUserProfile(UserProfileData user)
+        {
             m_userProfilesByUuid[user.ID] = user;
             m_userProfilesByName[user.FirstName + " " + user.SurName] = user;
-            
+
             return true;
         }
 
         public List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query) { return null; }
 
-        public UserAgentData GetAgentByUUID(UUID user) { return null; }
+        public UserAgentData GetAgentByUUID(UUID user)
+        {
+            UserAgentData userAgent = null;
+            m_agentByProfileUuid.TryGetValue(user, out userAgent);
 
-        public UserAgentData GetAgentByName(string name) { return null; }
+            return userAgent;
+        }
 
-        public UserAgentData GetAgentByName(string fname, string lname) { return null; }
+        public UserAgentData GetAgentByName(string name)
+        {
+            UserProfileData userProfile = null;
+            m_userProfilesByName.TryGetValue(name, out userProfile);
+            UserAgentData userAgent = null;
+            m_agentByProfileUuid.TryGetValue(userProfile.ID, out userAgent);
+
+            return userAgent;
+        }
+
+        public UserAgentData GetAgentByName(string fname, string lname)
+        {
+            UserProfileData userProfile = GetUserByName(fname,lname);
+            UserAgentData userAgent = null;
+            m_agentByProfileUuid.TryGetValue(userProfile.ID, out userAgent);
+
+            return userAgent;
+        }
 
         public void StoreWebLoginKey(UUID agentID, UUID webLoginKey) {}
 
-        public void AddNewUserAgent(UserAgentData agent) {}
-
-        public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms) {}
-        
-        public void RemoveUserFriend(UUID friendlistowner, UUID friend) {}
-
-        public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms) {}
-
-        public List<FriendListItem> GetUserFriendList(UUID friendlistowner) 
+        public void AddNewUserAgent(UserAgentData agent)
         {
-            return new List<FriendListItem>();
+            m_agentByProfileUuid[agent.ProfileID] = agent;
         }
-        
+        public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
+        {
+            FriendListItem newfriend = new FriendListItem();
+            newfriend.FriendPerms = perms;
+            newfriend.Friend = friend;
+            newfriend.FriendListOwner = friendlistowner;
+
+            if (!m_friendsListByUuid.ContainsKey(friendlistowner))
+            {
+                List<FriendListItem> friendslist = new List<FriendListItem>();
+                m_friendsListByUuid[friendlistowner] = friendslist;
+
+            }
+            m_friendsListByUuid[friendlistowner].Add(newfriend);
+        }
+
+        public void RemoveUserFriend(UUID friendlistowner, UUID friend)
+        {
+            if (m_friendsListByUuid.ContainsKey(friendlistowner))
+            {
+                List<FriendListItem> friendslist = m_friendsListByUuid[friendlistowner];
+                foreach (FriendListItem frienditem in friendslist)
+                {
+                    if (frienditem.Friend == friend)
+                    {
+                        friendslist.Remove(frienditem);
+                        break;
+                    }
+                }
+            }
+        }
+
+        public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
+        {
+            if (m_friendsListByUuid.ContainsKey(friendlistowner))
+            {
+                List<FriendListItem> friendslist = m_friendsListByUuid[friendlistowner];
+                foreach (FriendListItem frienditem in friendslist)
+                {
+                    if (frienditem.Friend == friend)
+                    {
+                        frienditem.FriendPerms = perms;
+                        break;
+                    }
+                }
+            }
+        }
+
+        public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
+        {
+            if (m_friendsListByUuid.ContainsKey(friendlistowner))
+            {
+                return m_friendsListByUuid[friendlistowner];
+            }
+            else
+                return new List<FriendListItem>();
+
+
+        }
+
         public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos(List<UUID> uuids) { return null; }
 
         public bool MoneyTransferRequest(UUID from, UUID to, uint amount) { return false; }
