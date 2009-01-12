@@ -502,8 +502,8 @@ namespace OpenSim.Region.Environment.Scenes
                             itemCopy.CurrentPermissions = itemCopy.BasePermissions;
                             if ((item.CurrentPermissions & 8) != 0) // Propagate slam bit
                             {
-                                itemCopy.CurrentPermissions = item.NextPermissions;
-                                itemCopy.BasePermissions = itemCopy.CurrentPermissions;
+                                itemCopy.BasePermissions &= item.NextPermissions;
+                                itemCopy.CurrentPermissions = itemCopy.BasePermissions;
                                 itemCopy.CurrentPermissions |= 8;
                             }
 
@@ -1091,8 +1091,12 @@ namespace OpenSim.Region.Environment.Scenes
 
             if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
             {
-                agentItem.BasePermissions = taskItem.NextPermissions;
-                agentItem.CurrentPermissions = taskItem.NextPermissions | 8;
+                if (taskItem.InvType == 6)
+                    agentItem.BasePermissions = taskItem.BasePermissions & ((taskItem.CurrentPermissions & 7) << 13);
+                else
+                    agentItem.BasePermissions = taskItem.BasePermissions;
+                agentItem.BasePermissions &= taskItem.NextPermissions;
+                agentItem.CurrentPermissions = agentItem.BasePermissions | 8;
                 agentItem.NextPermissions = taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = taskItem.EveryonePermissions & taskItem.NextPermissions;
                 agentItem.GroupPermissions = taskItem.GroupPermissions & taskItem.NextPermissions;
@@ -1982,6 +1986,8 @@ namespace OpenSim.Region.Environment.Scenes
                         item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
                         item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
                         item.GroupPermissions = objectGroup.RootPart.GroupMask;
+
+                        item.CurrentPermissions |= 8; // Slam!
                     }
 
                     // TODO: add the new fields (Flags, Sale info, etc)
