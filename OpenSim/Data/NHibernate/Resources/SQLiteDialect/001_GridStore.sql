@@ -1,38 +1,35 @@
-BEGIN TRANSACTION;
-
-create table Regions (
-  Uuid NVARCHAR(255) not null,
-   RegionHandle BIGINT null,
-   RegionName NVARCHAR(32) null,
-   RegionRecvKey NVARCHAR(128) null,
-   RegionSendKey NVARCHAR(128) null,
-   RegionSecret NVARCHAR(128) null,
-   RegionDataURI NVARCHAR(255) null,
-   ServerIP NVARCHAR(64) null,
-   ServerPort INT null,
-   ServerURI NVARCHAR(255) null,
-   RegionLocX INT null,
-   RegionLocY INT null,
-   RegionLocZ INT null,
-   EastOverrideHandle BIGINT null,
-   WestOverrideHandle BIGINT null,
-   SouthOverrideHandle BIGINT null,
-   NorthOverrideHandle BIGINT null,
-   RegionAssetURI NVARCHAR(255) null,
-   RegionAssetRecvKey NVARCHAR(128) null,
-   RegionAssetSendKey NVARCHAR(128) null,
-   RegionUserURI NVARCHAR(255) null,
-   RegionUserRecvKey NVARCHAR(128) null,
-   RegionUserSendKey NVARCHAR(128) null,
-   ServerHttpPort INT null,
-   ServerRemotingPort INT null,
-   RegionMapTextureID NVARCHAR(255) null,
-   Owner_uuid NVARCHAR(255) null,
-   OriginUUID NVARCHAR(255) null,
-   primary key (Uuid)
+CREATE TABLE Regions (
+  RegionId VARCHAR(36) NOT NULL,
+  RegionHandle BIGINT UNSIGNED NOT NULL,
+  RegionName VARCHAR(32) DEFAULT NULL,
+  RegionRecvKey VARCHAR(128) DEFAULT NULL,
+  RegionSendKey VARCHAR(128) DEFAULT NULL,
+  RegionSecret VARCHAR(128) DEFAULT NULL,
+  RegionDataURI VARCHAR(255) DEFAULT NULL,
+  ServerIP VARCHAR(64) DEFAULT NULL,
+  ServerPort INT UNSIGNED DEFAULT NULL,
+  ServerURI VARCHAR(255) DEFAULT NULL,
+  RegionLocX INT UNSIGNED DEFAULT NULL,
+  RegionLocY INT UNSIGNED DEFAULT NULL,
+  RegionLocZ INT UNSIGNED DEFAULT NULL,
+  EastOverrideHandle BIGINT UNSIGNED DEFAULT NULL,
+  WestOverrideHandle BIGINT UNSIGNED DEFAULT NULL,
+  SouthOverrideHandle BIGINT UNSIGNED DEFAULT NULL,
+  NorthOverrideHandle BIGINT UNSIGNED DEFAULT NULL,
+  RegionAssetURI VARCHAR(255) DEFAULT NULL,
+  RegionAssetRecvKey VARCHAR(128) DEFAULT NULL,
+  RegionAssetSendKey VARCHAR(128) DEFAULT NULL,
+  RegionUserURI VARCHAR(255) DEFAULT NULL,
+  RegionUserRecvKey VARCHAR(128) DEFAULT NULL,
+  RegionUserSendKey VARCHAR(128) DEFAULT NULL, 
+  regionMapTexture VARCHAR(36) DEFAULT NULL,
+  ServerHttpPort INT DEFAULT NULL, 
+  ServerRemotingPort INT DEFAULT NULL,
+  OwnerID VARCHAR(36) DEFAULT NULL,
+  OriginID VARCHAR(36) DEFAULT NULL,
+  PRIMARY KEY  (uuid),
 );
 
-create index region_handle on Regions (RegionHandle);
-create index region_name on Regions (RegionName);
-
-COMMIT;
+CREATE INDEX RegionNameIndex ON Regions (RegionName);
+CREATE INDEX RegionHandleIndex ON Regions (RegionHandle);
+CREATE INDEX RegionHandlesIndex ON Regions (EastOverrideHandle,WestOverrideHandle,SouthOverrideHandle,NorthOverrideHandle);

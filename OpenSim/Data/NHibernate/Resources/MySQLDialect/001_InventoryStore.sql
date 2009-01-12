@@ -1,41 +1,39 @@
-START TRANSACTION;
+CREATE TABLE InventoryFolders (
+  ID VARCHAR(36) NOT NULL,
+  Type SMALLINT DEFAULT NULL,
+  Version SMALLINT DEFAULT NULL,
+  ParentID VARCHAR(36) DEFAULT NULL,
+  Owner VARCHAR(36) DEFAULT NULL,
+  Name VARCHAR(64) DEFAULT NULL,
+  PRIMARY KEY (ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
 
-CREATE TABLE `InventoryFolders` (
-  `ID` char(36) NOT NULL,
-  `Type` int(11) default NULL,
-  `Version` int(11) default NULL,
-  `ParentID` char(36) default NULL,
-  `Owner` char(36) default NULL,
-  `Name` varchar(64) default NULL,
-  PRIMARY KEY  (`ID`),
-  KEY `folder_owner_id` (`Owner`),
-  KEY `folder_parent_id` (`ParentID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE INDEX InventoryFoldersOwnerIdIndex ON InventoryFolders (Owner);
+CREATE INDEX InventoryFoldersParentIdIndex ON InventoryFolders (ParentID);
 
-CREATE TABLE `InventoryItems` (
-  `ID` char(36) NOT NULL,
-  `InvType` smallint(6) default NULL,
-  `AssetType` smallint(6) default NULL,
-  `AssetID` char(36) default NULL,
-  `Folder` char(36) default NULL,
-  `Owner` char(36) default NULL,
-  `Creator` char(36) default NULL,
-  `Name` varchar(64) default NULL,
-  `Description` varchar(64) default NULL,
-  `NextPermissions` int(11) default NULL,
-  `CurrentPermissions` int(11) default NULL,
-  `BasePermissions` int(11) default NULL,
-  `EveryOnePermissions` int(11) default NULL,
-  `GroupID` char(36) default NULL,
-  `GroupOwned` tinyint(1) default NULL,
-  `SalePrice` int(11) default NULL,
-  `SaleType` smallint(6) default NULL,
-  `Flags` int(11) default NULL,
-  `CreationDate` int(11) default NULL,
-  PRIMARY KEY  (`ID`),
-  KEY `item_group_id` (`GroupID`),
-  KEY `item_owner_id` (`Owner`),
-  KEY `item_folder_id` (`Folder`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE InventoryItems (
+  ID VARCHAR(36) NOT NULL,
+  InvType SMALLINT DEFAULT NULL,
+  AssetType SMALLINT DEFAULT NULL,
+  AssetID VARCHAR(36) DEFAULT NULL,
+  Folder VARCHAR(36) DEFAULT NULL,
+  Owner VARCHAR(36) DEFAULT NULL,
+  Creator VARCHAR(36) DEFAULT NULL,
+  Name VARCHAR(64) DEFAULT NULL,
+  Description VARCHAR(64) DEFAULT NULL,
+  NextPermissions INT DEFAULT NULL,
+  CurrentPermissions INT DEFAULT NULL,
+  BasePermissions INT DEFAULT NULL,
+  EveryOnePermissions INT DEFAULT NULL,
+  GroupID VARCHAR(36) DEFAULT NULL,
+  GroupOwned BIT DEFAULT NULL,
+  SalePrice INT DEFAULT NULL,
+  SaleType TINYINT DEFAULT NULL,
+  Flags INT DEFAULT NULL,
+  CreationDate INT DEFAULT NULL,
+  PRIMARY KEY (ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
 
-COMMIT;
+CREATE INDEX InventoryItemsGroupIdIndex ON InventoryItems (GroupID);
+CREATE INDEX InventoryItemsOwnerIdIndex ON InventoryItems (Owner);
+CREATE INDEX InventoryItemsFolderIdIndex ON InventoryItems (Folder);

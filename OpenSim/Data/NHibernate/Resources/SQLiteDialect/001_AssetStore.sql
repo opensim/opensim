@@ -1,14 +1,10 @@
-BEGIN TRANSACTION;
-
-create table Assets(
-       ID varchar(36) not null primary key,
-       Type int default 0,
-       InvType int default 0,
-       Name varchar(64),
-       Description varchar(64),
-       Local boolean,
-       Temporary boolean,
-       Data blob
+CREATE TABLE Assets (
+  ID VARCHAR(36) NOT NULL,
+  Type TINYINT DEFAULT NULL,
+  Name VARCHAR(64) DEFAULT NULL,
+  Description VARCHAR(64) DEFAULT NULL,
+  Local BIT DEFAULT NULL,
+  Temporary BIT DEFAULT NULL,
+  Data BLOB,
+  PRIMARY KEY (ID)
 );
-
-END;

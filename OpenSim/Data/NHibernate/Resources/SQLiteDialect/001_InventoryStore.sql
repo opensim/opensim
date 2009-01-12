@@ -1,40 +1,39 @@
-BEGIN TRANSACTION;
-
 CREATE TABLE InventoryFolders (
-       ID varchar(36) not null primary key, 
-       Type int,
-       Version int,
-       ParentID varchar(36),
-       Owner varchar(36),
-       Name varchar(64)
+  ID VARCHAR(36) NOT NULL,
+  Type SMALLINT DEFAULT NULL,
+  Version SMALLINT DEFAULT NULL,
+  ParentID VARCHAR(36) DEFAULT NULL,
+  Owner VARCHAR(36) DEFAULT NULL,
+  Name VARCHAR(64) DEFAULT NULL,
+  PRIMARY KEY (ID)
 );
 
-create table InventoryItems (
-   ID varchar(36) not null primary key,
-   InvType int,
-   AssetType int,
-   AssetID varchar(36),
-   Folder varchar(36),
-   Owner varchar(36),
-   Creator varchar(36),
-   Name varchar(64),
-   Description varchar(64),
-   NextPermissions int,
-   CurrentPermissions int,
-   BasePermissions int,
-   EveryOnePermissions int,
-   GroupID varchar(36),
-   GroupOwned int,
-   SalePrice int,
-   SaleType int,
-   Flags int,
-   CreationDate int
+CREATE INDEX InventoryFoldersOwnerIdIndex ON InventoryFolders (Owner);
+CREATE INDEX InventoryFoldersParentIdIndex ON InventoryFolders (ParentID);
+
+CREATE TABLE InventoryItems (
+  ID VARCHAR(36) NOT NULL,
+  InvType SMALLINT DEFAULT NULL,
+  AssetType SMALLINT DEFAULT NULL,
+  AssetID VARCHAR(36) DEFAULT NULL,
+  Folder VARCHAR(36) DEFAULT NULL,
+  Owner VARCHAR(36) DEFAULT NULL,
+  Creator VARCHAR(36) DEFAULT NULL,
+  Name VARCHAR(64) DEFAULT NULL,
+  Description VARCHAR(64) DEFAULT NULL,
+  NextPermissions INT DEFAULT NULL,
+  CurrentPermissions INT DEFAULT NULL,
+  BasePermissions INT DEFAULT NULL,
+  EveryOnePermissions INT DEFAULT NULL,
+  GroupID VARCHAR(36) DEFAULT NULL,
+  GroupOwned BIT DEFAULT NULL,
+  SalePrice INT DEFAULT NULL,
+  SaleType TINYINT DEFAULT NULL,
+  Flags INT DEFAULT NULL,
+  CreationDate INT DEFAULT NULL,
+  PRIMARY KEY (ID)
 );
 
-CREATE INDEX folder_owner_id on InventoryFolders (Owner);
-CREATE INDEX folder_parent_id on InventoryFolders (ParentID);
-CREATE INDEX item_group_id on InventoryItems (GroupID);
-CREATE INDEX item_owner_id on InventoryItems (Owner);
-CREATE INDEX item_folder_id on InventoryItems (Folder);
-
-COMMIT;
+CREATE INDEX InventoryItemsGroupIdIndex ON InventoryItems (GroupID);
+CREATE INDEX InventoryItemsOwnerIdIndex ON InventoryItems (Owner);
+CREATE INDEX InventoryItemsFolderIdIndex ON InventoryItems (Folder);
