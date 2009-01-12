@@ -171,6 +171,10 @@ namespace OpenSim.Data.MSSQL
             {
                 return SqlDbType.Float;
             }
+            if (type == typeof(Single))
+            {
+                return SqlDbType.Float;
+            }
             if (type == typeof(int))
             {
                 return SqlDbType.Int;
