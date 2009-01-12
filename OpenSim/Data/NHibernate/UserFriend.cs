@@ -19,10 +19,10 @@ namespace OpenSim.Data.NHibernate
             this.FriendPermissions = friendPermissions;
         }
 
-        public UUID UserFriendID { get; set; }
-        public UUID OwnerID { get; set; }
-        public UUID FriendID { get; set; }
-        public uint FriendPermissions { get; set; }
+        public UUID UserFriendID;
+        public UUID OwnerID;
+        public UUID FriendID;
+        public uint FriendPermissions;
 
     }
 }
