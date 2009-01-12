@@ -125,5 +125,119 @@
     <Key Name="assetType" Value="10" />
     <Key Name="fileName" Value="GrafittiBoard.lsl" />
   </Section>
-     
+  
+  <!-- Adding the Kan-ED tests to the Assets -->
+
+  <Section Name="Kan-Ed Test1">
+    <Key Name="assetID" Value="42b6ac70-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test1" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test01.lsl" />
+  </Section>
+	 
+  <Section Name="Kan-Ed Test2">
+    <Key Name="assetID" Value="42b6ac71-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test2" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test02.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test3">
+    <Key Name="assetID" Value="42b6ac72-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test3" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test03.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test4">
+    <Key Name="assetID" Value="42b6ac73-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test4" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test04.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test5">
+    <Key Name="assetID" Value="42b6ac74-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test5" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test05.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test6">
+    <Key Name="assetID" Value="42b6ac75-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test6" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test06.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test7">
+    <Key Name="assetID" Value="42b6ac76-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test7" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test07.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test8">
+    <Key Name="assetID" Value="42b6ac77-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test8" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test08.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test9">
+    <Key Name="assetID" Value="42b6ac78-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test9" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test09.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test10">
+    <Key Name="assetID" Value="42b6ac79-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test10" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test10.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test11">
+    <Key Name="assetID" Value="42b6ac7a-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test11" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test11.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test12">
+    <Key Name="assetID" Value="42b6ac7b-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test12" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test12.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test13">
+    <Key Name="assetID" Value="42b6ac7c-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test13" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test13.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test14">
+    <Key Name="assetID" Value="42b6ac7d-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test14" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test14.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test15">
+    <Key Name="assetID" Value="42b6ac7e-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test15" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test15.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test16">
+    <Key Name="assetID" Value="42b6ac7f-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test16" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test16.lsl" />
+  </Section>
+
 </Nini>
