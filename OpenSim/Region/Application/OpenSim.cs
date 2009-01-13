@@ -235,10 +235,6 @@ namespace OpenSim
                     m_assetCache.Clear();
                     break;
 
-                case "set-time":
-                    m_sceneManager.SetCurrentSceneTimePhase(Convert.ToInt32(cmdparams[0]));
-                    break;
-
                 case "force-update":
                     m_console.Notice("Updating all clients");
                     m_sceneManager.ForceCurrentSceneClientUpdate();
@@ -679,7 +675,6 @@ namespace OpenSim
             m_console.Notice("load-oar [filename] - load an OpenSimulator region archive.  This replaces everything in the current region.");
             m_console.Notice("save-oar [filename] - Save the current region to an OpenSimulator region archive.");
             m_console.Notice("script - manually trigger scripts? or script commands?");
-            m_console.Notice("set-time [x] - set the current scene time phase");
             m_console.Notice("show assets - show state of asset cache.");
             m_console.Notice("show modules - shows info about loaded modules.");
             m_console.Notice("show queues - show packet queues length for all clients.");

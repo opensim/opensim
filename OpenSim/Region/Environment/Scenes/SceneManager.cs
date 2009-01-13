@@ -483,16 +483,6 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
-        public void SetCurrentSceneTimePhase(int timePhase)
-        {
-            ForEachCurrentScene(delegate(Scene scene)
-                                {
-                                    scene.SetTimePhase(
-                                        timePhase)
-                                        ;
-                                });
-        }
-
         public void ForceCurrentSceneClientUpdate()
         {
             ForEachCurrentScene(delegate(Scene scene) { scene.ForceClientUpdate(); });

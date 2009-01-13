@@ -80,8 +80,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// TODO: Possibly stop other classes being able to manipulate this directly.
         public SceneGraph m_sceneGraph;
 
-        private int m_timePhase = 24;
-
         /// <summary>
         /// Are we applying physics to any of the prims in this scene?
         /// </summary>
@@ -243,11 +241,6 @@ namespace OpenSim.Region.Environment.Scenes
         public float SimulatorFPS
         {
             get { return StatsReporter.getLastReportedSimFPS(); }
-        }
-
-        public int TimePhase
-        {
-            get { return m_timePhase; }
         }
 
         public string DefaultScriptEngine
@@ -3355,15 +3348,6 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Other Methods
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="phase"></param>
-        public void SetTimePhase(int phase)
-        {
-            m_timePhase = phase;
-        }
 
         public virtual void StoreAddFriendship(UUID ownerID, UUID friendID, uint perms)
         {
