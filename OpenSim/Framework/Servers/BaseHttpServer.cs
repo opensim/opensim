@@ -97,10 +97,8 @@ namespace OpenSim.Framework.Servers
         public BaseHttpServer(uint port, bool ssl)
         {
             m_ssl = ssl;
-            m_port = port;
-            
+            m_port = port;            
         }
-
 
         public BaseHttpServer(uint port, bool ssl, uint sslport, string CN)
         {
@@ -264,9 +262,7 @@ namespace OpenSim.Framework.Servers
             //request.QueryString = objstate.req.QueryString;
 
              */
-            HandleRequest(request,resp);
-            
-
+            HandleRequest(request,resp);           
         }
 
         public virtual void HandleRequest(OSHttpRequest request, OSHttpResponse response)
@@ -280,7 +276,7 @@ namespace OpenSim.Framework.Servers
                 //  the request can be passed through to the other handlers. This is a low
                 //  probability event; if a request is matched it is normally expected to be
                 //  handled
-                //m_log.Info("[Debug BASE HTTP SERVER]: Handling Request" + request.RawUrl);
+                //m_log.Debug("[BASE HTTP SERVER]: Handling Request" + request.RawUrl);
                 IHttpAgentHandler agentHandler;
 
                 if (TryGetAgentHandler(request, response, out agentHandler))
@@ -302,7 +298,7 @@ namespace OpenSim.Framework.Servers
 
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {
-                    //m_log.Info("[Debug BASE HTTP SERVER]: Found Stream Handler");
+                    //m_log.Debug("[BASE HTTP SERVER]: Found Stream Handler");
                     // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
                     byte[] buffer;
                     if (requestHandler is IStreamedRequestHandler)
@@ -313,7 +309,7 @@ namespace OpenSim.Framework.Servers
                     }
                     else if (requestHandler is IGenericHTTPHandler)
                     {
-                        //m_log.Info("[Debug BASE HTTP SERVER]: Found Caps based HTTP Handler");
+                        //m_log.Debug("[BASE HTTP SERVER]: Found Caps based HTTP Handler");
                         IGenericHTTPHandler HTTPRequestHandler = requestHandler as IGenericHTTPHandler;
                         Stream requestStream = request.InputStream;
 
@@ -321,7 +317,6 @@ namespace OpenSim.Framework.Servers
                         StreamReader reader = new StreamReader(requestStream, encoding);
 
                         string requestBody = reader.ReadToEnd();
-
 
                         reader.Close();
                         requestStream.Close();
@@ -1414,7 +1409,7 @@ namespace OpenSim.Framework.Servers
         }
 
         public void httpServerDisconnectMonitor(HttpServer.IHttpClientContext source, SocketError err)
-        {
+        {            
             switch (err)
             {
                 case SocketError.NotSocket:

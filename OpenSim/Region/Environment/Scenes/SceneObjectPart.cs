@@ -688,7 +688,6 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_acceleration = value; }
         }
 
-
         public string Description
         {
             get { return m_description; }
