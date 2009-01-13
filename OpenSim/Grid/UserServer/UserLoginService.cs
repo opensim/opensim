@@ -106,7 +106,7 @@ namespace OpenSim.Grid.UserServer
             Hashtable SimParams = new Hashtable();
             SimParams["agent_id"] = theUser.ID.ToString();
             SimParams["region_secret"] = theUser.CurrentAgent.SecureSessionID.ToString();
-            //SimParams["region_secret"] = SimInfo.regionSecret;
+            SimParams["region_secret2"] = SimInfo.regionSecret;
             //m_log.Info(SimInfo.regionSecret);
             SimParams["regionhandle"] = theUser.CurrentAgent.Handle.ToString();
             SimParams["message"] = message;
@@ -135,6 +135,37 @@ namespace OpenSim.Grid.UserServer
                 m_log.Error("[LOGIN]: Error telling region to logout user!");
             }
 
+            // Prepare notification
+            SimParams = new Hashtable();
+            SimParams["agent_id"] = theUser.ID.ToString();
+            SimParams["region_secret"] = SimInfo.regionSecret;
+            //m_log.Info(SimInfo.regionSecret);
+            SimParams["regionhandle"] = theUser.CurrentAgent.Handle.ToString();
+            SimParams["message"] = message;
+            SendParams = new ArrayList();
+            SendParams.Add(SimParams);
+
+            m_log.InfoFormat(
+                "[ASSUMED CRASH]: Telling region {0} @ {1},{2} ({3}) that their agent is dead: {4}",
+                SimInfo.regionName, SimInfo.regionLocX, SimInfo.regionLocY, SimInfo.httpServerURI,
+                theUser.FirstName + " " + theUser.SurName);
+
+            try
+            {
+                XmlRpcRequest GridReq = new XmlRpcRequest("logoff_user", SendParams);
+                XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
+
+                if (GridResp.IsFault)
+                {
+                    m_log.ErrorFormat(
+                        "[LOGIN]: XMLRPC request for {0} failed, fault code: {1}, reason: {2}, This is likely an old region revision.",
+                        SimInfo.httpServerURI, GridResp.FaultCode, GridResp.FaultString);
+                }
+            }
+            catch (Exception)
+            {
+                m_log.Error("[LOGIN]: Error telling region to logout user!");
+            }
             //base.LogOffUser(theUser);
         }
 
