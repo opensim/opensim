@@ -1381,8 +1381,12 @@ namespace OpenSim.Framework.Servers
                     m_httpListener2 = new HttpServer.HttpListener(IPAddress.Any, (int)m_port);
                     m_httpListener2.ExceptionThrown += httpServerException;
                     m_httpListener2.LogWriter = httpserverlog;
-                    m_httpListener2.DisconnectHandler = httpServerDisconnectMonitor;
                     
+                    // Uncomment this line in addition to those in HttpServerLogWriter 
+                    // if you want more detailed trace information from the HttpServer
+                    //m_httpListener2.UseTraceLogs = true;
+                    
+                    m_httpListener2.DisconnectHandler = httpServerDisconnectMonitor;                    
                 }
                 else
                 {
@@ -1559,19 +1563,18 @@ namespace OpenSim.Framework.Servers
             oreq = osreq;
             oresp = osresp;
         }
-
     }
+    
+    /// <summary>
+    /// Relays HttpServer log messages to our own logging mechanism.
+    /// </summary>
+    /// There is also a UseTraceLogs line in this file that can be uncommented for more detailed log information
     public class HttpServerLogWriter : HttpServer.ILogWriter
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        public HttpServerLogWriter()
-        {
-        }
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public void Write(object source, HttpServer.LogPrio priority, string message)
         {
-            return;
             /*
             switch (priority)
             {
@@ -1592,9 +1595,10 @@ namespace OpenSim.Framework.Servers
                     break;
                 default:
                     break;
-
             }
-           */
+            */
+            
+            return;
         }
 
     }
