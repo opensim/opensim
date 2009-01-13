@@ -25,9 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections;
 using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
+
 using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
@@ -35,11 +39,17 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
     [TestFixture]
     public class UserTextureSenderTests
     {
-        [Test]
-        /// <summary>
-        /// More a placeholder, really
-        /// </summary>
-        public void DummyTest()
+        public UUID uuid1;
+        public UUID uuid2;
+        public UUID uuid3;
+        public UUID uuid4;
+        public int npackets, testsize;
+        public TestClient client;
+        public TextureSender ts;
+        public static Random random = new Random();
+
+        [TestFixtureSetUp]
+        public void Init()
         {
             AgentCircuitData agent = new AgentCircuitData();
             agent.AgentID = UUID.Random();
@@ -52,8 +62,116 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = Vector3.Zero;
             agent.CapsPath = "http://wibble.com";
-            
-            new TextureSender(new TestClient(agent), 0, 0);
+            client = new TestClient(agent);
+            ts = new TextureSender(client, 0, 0);
+            testsize = random.Next(5000,15000);
+            npackets = CalculateNumPackets(testsize);
+            uuid1 = UUID.Random();
+            uuid2 = UUID.Random();
+            uuid3 = UUID.Random();
+            uuid4 = UUID.Random();
+        }
+
+        /// <summary>
+        /// Test sending package
+        /// </summary>
+        [Test]
+        public void T010_SendPkg()
+        {
+            // Normal sending
+            AssetBase abase = new AssetBase(uuid1, "asset one");
+            byte[] abdata = new byte[testsize];
+            random.NextBytes(abdata);
+            abase.Data = abdata;
+            bool isdone = false;
+            ts.TextureReceived(abase);
+            for (int i = 0; i < npackets; i++) {
+                isdone = ts.SendTexturePacket();
+            }
+
+            Assert.That(isdone,Is.False);
+            isdone = ts.SendTexturePacket();
+            Assert.That(isdone,Is.True);
+        }
+
+        [Test]
+        public void T011_UpdateReq()
+        {
+            // Test packet number start
+            AssetBase abase = new AssetBase(uuid2, "asset two");
+            byte[] abdata = new byte[testsize];
+            random.NextBytes(abdata);
+            abase.Data = abdata;
+
+            bool isdone = false;
+            ts.TextureReceived(abase);
+            ts.UpdateRequest(0,3);
+
+            for (int i = 0; i < npackets-3; i++) {
+                isdone = ts.SendTexturePacket();
+            }
+
+            Assert.That(isdone,Is.False);
+            isdone = ts.SendTexturePacket();
+            Assert.That(isdone,Is.True);
+
+            // Test discard level
+            abase = new AssetBase(uuid3, "asset three");
+            abdata = new byte[testsize];
+            random.NextBytes(abdata);
+            abase.Data = abdata;
+            isdone = false;
+            ts.TextureReceived(abase);
+            ts.UpdateRequest(-1,0);
+
+            Assert.That(ts.SendTexturePacket(),Is.True);
+
+            abase = new AssetBase(uuid4, "asset four");
+            abdata = new byte[testsize];
+            random.NextBytes(abdata);
+            abase.Data = abdata;
+            isdone = false;
+            ts.TextureReceived(abase);
+            ts.UpdateRequest(0,5);
+
+            for (int i = 0; i < npackets-5; i++) {
+                isdone = ts.SendTexturePacket();
+            }
+            Assert.That(isdone,Is.False);
+            isdone = ts.SendTexturePacket();
+            Assert.That(isdone,Is.True);
+        }
+
+        [Test]
+        public void T999_FinishStatus()
+        {
+            // Of the 4 assets "sent", only 2 sent the first part.
+            Assert.That(client.sentdatapkt.Count,Is.EqualTo(2));
+
+            // Sum of all packets sent:
+            int totalpkts = (npackets) + (npackets - 2) + (npackets - 4);
+            Assert.That(client.sentpktpkt.Count,Is.EqualTo(totalpkts));
+        }
+        /// <summary>
+        /// Calculate the number of packets that will be required to send the texture loaded into this sender
+        /// This is actually the number of 1000 byte packets not including an initial 600 byte packet...
+        /// Borrowed from TextureSender.cs
+        /// </summary>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        private int CalculateNumPackets(int length)
+        {
+            int numPackets = 0;
+
+            if (length > 600)
+            {
+                //over 600 bytes so split up file
+                int restData = (length - 600);
+                int restPackets = ((restData + 999) / 1000);
+                numPackets = restPackets;
+            }
+
+            return numPackets;
         }
     }
 }

@@ -39,6 +39,10 @@ namespace OpenSim.Tests.Common.Mock
     {
         private Scene m_scene;
 
+        // Mock testing variables
+        public List<ImageDataPacket> sentdatapkt = new List<ImageDataPacket>();
+        public List<ImagePacketPacket> sentpktpkt = new List<ImagePacketPacket>();
+
 // disable warning: public events, part of the public API
 #pragma warning disable 67
 
@@ -215,7 +219,7 @@ namespace OpenSim.Tests.Common.Mock
         public event ActivateGesture OnActivateGesture;
         public event DeactivateGesture OnDeactivateGesture;
         public event ObjectOwner OnObjectOwner;
- 
+
         public event DirPlacesQuery OnDirPlacesQuery;
         public event DirFindQuery OnDirFindQuery;
         public event DirLandQuery OnDirLandQuery;
@@ -229,7 +233,7 @@ namespace OpenSim.Tests.Common.Mock
         public event OfferCallingCard OnOfferCallingCard;
         public event AcceptCallingCard OnAcceptCallingCard;
         public event DeclineCallingCard OnDeclineCallingCard;
-        
+
         public event SoundTrigger OnSoundTrigger;
 
         public event StartLure OnStartLure;
@@ -284,7 +288,7 @@ namespace OpenSim.Tests.Common.Mock
         {
             get { return m_firstName; }
         }
-        private string m_firstName;        
+        private string m_firstName;
 
         public virtual string LastName
         {
@@ -359,7 +363,7 @@ namespace OpenSim.Tests.Common.Mock
         {
             myID = agentData.AgentID;
             m_firstName = agentData.firstname;
-            m_lastName = agentData.lastname;            
+            m_lastName = agentData.lastname;
         }
 
         public virtual void ActivateGesture(UUID assetId, UUID gestureId)
@@ -420,12 +424,12 @@ namespace OpenSim.Tests.Common.Mock
 
         public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp)
         {
-            
+
         }
 
         public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp, UUID transactionID, bool fromGroup, byte[] binaryBucket)
         {
-            
+
         }
 
         public void SendGenericMessage(string method, List<string> message)
@@ -563,7 +567,7 @@ namespace OpenSim.Tests.Common.Mock
         public virtual void SendBulkUpdateInventory(InventoryItemBase item)
         {
         }
-        
+
         public void SendBulkUpdateInventory(InventoryFolderBase folderBase)
         {}
 
@@ -590,7 +594,7 @@ namespace OpenSim.Tests.Common.Mock
             int PricePublicObjectDelete, int PriceRentLight, int PriceUpload, int TeleportMinPrice, float TeleportPriceExponent)
         {
         }
-        
+
         public virtual void SendNameReply(UUID profileId, string firstname, string lastname)
         {
         }
@@ -660,16 +664,34 @@ namespace OpenSim.Tests.Common.Mock
 
         public void SendImageFirstPart(ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
         {
+            ImageDataPacket im = new ImageDataPacket();
+            im.Header.Reliable = false;
+            im.ImageID.Packets = numParts;
+            im.ImageID.ID = ImageUUID;
+
+            if (ImageSize > 0)
+                im.ImageID.Size = ImageSize;
+
+            im.ImageData.Data = ImageData;
+            im.ImageID.Codec = imageCodec;
+            im.Header.Zerocoded = true;
+            sentdatapkt.Add(im);
         }
-        
+
         public void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData)
         {
+            ImagePacketPacket im = new ImagePacketPacket();
+            im.Header.Reliable = false;
+            im.ImageID.Packet = partNumber;
+            im.ImageID.ID = imageUuid;
+            im.ImageData.Data = imageData;
+            sentpktpkt.Add(im);
         }
-         
+
         public void SendImageNotFound(UUID imageid)
         {
         }
-        
+
         public void SendShutdownConnectionNotice()
         {
         }
@@ -726,10 +748,10 @@ namespace OpenSim.Tests.Common.Mock
         public void SendSunPos(Vector3 sunPos, Vector3 sunVel, ulong time, uint dlen, uint ylen, float phase)
         {
         }
-        
+
         public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
         {
-        }        
+        }
 
         public void SendViewerTime(int phase)
         {
@@ -804,11 +826,11 @@ namespace OpenSim.Tests.Common.Mock
         public void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
         {
         }
-        
+
         public void SendEstateCovenantInformation(UUID covenant)
         {
         }
-        
+
         public void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, string abuseEmail, UUID estateOwner)
         {
         }
@@ -816,19 +838,19 @@ namespace OpenSim.Tests.Common.Mock
         public void SendLandProperties(int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
         }
-        
+
         public void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID)
         {
         }
-        
+
         public void SendForceClientSelectObjects(List<uint> objectIDs)
         {
         }
-        
+
         public void SendLandObjectOwners(Dictionary<UUID, int> ownersAndCount)
         {
         }
-        
+
         public void SendLandParcelOverlay(byte[] data, int sequence_id)
         {
         }
