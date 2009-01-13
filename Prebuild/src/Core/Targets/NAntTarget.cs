@@ -92,27 +92,62 @@ namespace Prebuild.Core.Targets
         private static string BuildReference(SolutionNode solution, ProjectNode currentProject, ReferenceNode refr)
         {
             string ret = "";
+            string referencePath = ((ReferencePathNode)currentProject.ReferencePaths[0]).Path;
+
             if (solution.ProjectsTable.ContainsKey(refr.Name))
             {
                 ProjectNode project = (ProjectNode)solution.ProjectsTable[refr.Name];
-                string finalPath = Helper.NormalizePath(((ReferencePathNode)currentProject.ReferencePaths[0]).Path + refr.Name + GetProjectExtension(project), '/');
+                string finalPath = Helper.NormalizePath(referencePath + refr.Name + GetProjectExtension(project), '/');
                 return finalPath;
             }
             else
             {
-                ProjectNode project = (ProjectNode)refr.Parent;
-                string fileRef = FindFileReference(refr.Name, project);
-
-                if (refr.Path != null || fileRef != null)
+                if (refr.Name == "Pootface.exe")
                 {
-                    string finalPath = (refr.Path != null) ? Helper.NormalizePath(refr.Path + "/" + refr.Name + GetProjectExtension(project), '/') : fileRef;
-                    ret += finalPath;
-                    return ret;
+                    Console.WriteLine("Poot!");
                 }
 
-                ret += (refr.Name + ".dll");
+                ProjectNode project = (ProjectNode) refr.Parent;
+
+                // Do we have an explicit file reference?
+                string fileRef = FindFileReference(refr.Name, project);
+                if( fileRef != null )
+                {
+                    return fileRef;
+                }
+
+                // Is there an explicit path in the project ref?
+                if (refr.Path != null)
+                {
+                    return Helper.NormalizePath( refr.Path + "/" + refr.Name + GetProjectExtension(project), '/');
+                }
+
+                // Is it a specified extension (dll or exe?)
+                if (ExtensionSpecified(refr.Name))
+                {
+                    return Helper.NormalizePath( referencePath + GetRefFileName(refr.Name), '/');
+                }
+
+                // No, it's an extensionless GAC ref, but nant needs the .dll extension anyway
+                return refr.Name + ".dll";
             }
-            return ret;
+        }
+
+        public static string GetRefFileName(string refName)
+        {
+            if (ExtensionSpecified(refName))
+            {
+                return refName;
+            }
+            else
+            {
+                return refName + ".dll";                    
+            }
+        }
+
+        private static bool ExtensionSpecified(string refName)
+        {
+            return refName.EndsWith(".dll") || refName.EndsWith(".exe");
         }
 
         private static string GetProjectExtension(ProjectNode project)
@@ -172,6 +207,13 @@ namespace Prebuild.Core.Targets
             foreach (ReferencePathNode refPath in project.ReferencePaths)
             {
                 string fullPath = Helper.MakeFilePath(refPath.Path, refName, "dll");
+
+                if (File.Exists(fullPath))
+                {
+                    return fullPath;
+                }
+
+                fullPath = Helper.MakeFilePath(refPath.Path, refName, "exe");
 
                 if (File.Exists(fullPath))
                 {
