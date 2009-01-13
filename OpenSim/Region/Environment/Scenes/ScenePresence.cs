@@ -1434,6 +1434,9 @@ namespace OpenSim.Region.Environment.Scenes
                             foreach (UUID taskID in taskIDict.Keys)
                             {
                                 UnRegisterControlEventsToScript(LocalId, taskID);
+				taskIDict[taskID].PermsMask &= ~(
+					2048 | //PERMISSION_CONTROL_CAMERA
+					4); // PERMISSION_TAKE_CONTROLS
                             }
                         }
 
