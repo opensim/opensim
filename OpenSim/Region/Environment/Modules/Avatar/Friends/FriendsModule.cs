@@ -671,6 +671,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 {
                     // wasn't sent, so ex-friend wasn't around on this region-server. Fetch info and try to send
                     UserAgentData data = m_initialScene.CommsManager.UserService.GetAgentByUUID(exfriendID);
+                    
+                    if (null == data)
+                        break;
+                    
                     if (!data.AgentOnline)
                     {
                         m_log.DebugFormat("[FRIEND]: {0} is offline, so not sending TerminateFriend", exfriendID);
