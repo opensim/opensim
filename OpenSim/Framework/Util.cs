@@ -806,8 +806,19 @@ namespace OpenSim.Framework
             {
                 (byte)regionHandle, (byte)(regionHandle >> 8), (byte)(regionHandle >> 16), (byte)(regionHandle >> 24),
                 (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle << 56),
-                (byte)x, (byte)(x >> 8), (byte)(x >> 16), (byte)(x >> 24),
-                (byte)y, (byte)(y >> 8), (byte)(y >> 16), (byte)(y >> 24) };
+                (byte)x, (byte)(x >> 8), 0, 0,
+                (byte)y, (byte)(y >> 8), 0, 0 };
+            return new UUID(bytes, 0);
+        }
+
+        public static UUID BuildFakeParcelID(ulong regionHandle, uint x, uint y, uint z)
+        {
+            byte[] bytes =
+            {
+                (byte)regionHandle, (byte)(regionHandle >> 8), (byte)(regionHandle >> 16), (byte)(regionHandle >> 24),
+                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle << 56),
+                (byte)x, (byte)(x >> 8), (byte)z, (byte)(z >> 8),
+                (byte)y, (byte)(y >> 8), 0, 0 };
             return new UUID(bytes, 0);
         }
 
@@ -815,8 +826,17 @@ namespace OpenSim.Framework
         {
             byte[] bytes = parcelID.GetBytes();
             regionHandle = Utils.BytesToUInt64(bytes);
-            x = Utils.BytesToUInt(bytes, 8);
-            y = Utils.BytesToUInt(bytes, 12);
+            x = Utils.BytesToUInt(bytes, 8) & 0xffff;
+            y = Utils.BytesToUInt(bytes, 12) & 0xffff;
+        }
+
+        public static void ParseFakeParcelID(UUID parcelID, out ulong regionHandle, out uint x, out uint y, out uint z)
+        {
+            byte[] bytes = parcelID.GetBytes();
+            regionHandle = Utils.BytesToUInt64(bytes);
+            x = Utils.BytesToUInt(bytes, 8) & 0xffff;
+            z = (Utils.BytesToUInt(bytes, 8) & 0xffff0000) >> 16;
+            y = Utils.BytesToUInt(bytes, 12) & 0xffff;
         }
 
         public static void FakeParcelIDToGlobalPosition(UUID parcelID, out uint x, out uint y)

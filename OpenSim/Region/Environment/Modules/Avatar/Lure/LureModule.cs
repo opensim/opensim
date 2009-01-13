@@ -119,7 +119,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Lure
             UUID dest = Util.BuildFakeParcelID(
                     scene.RegionInfo.RegionHandle,
                     (uint)presence.AbsolutePosition.X,
-                    (uint)presence.AbsolutePosition.Y);
+                    (uint)presence.AbsolutePosition.Y,
+                    (uint)presence.AbsolutePosition.Z);
 
             m_log.DebugFormat("TP invite with message {0}", message);
 
@@ -146,13 +147,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Lure
             ulong handle = 0;
             uint x = 128;
             uint y = 128;
+            uint z = 70;
 
-            Util.ParseFakeParcelID(lureID, out handle, out x, out y);
+            Util.ParseFakeParcelID(lureID, out handle, out x, out y, out z);
 
             Vector3 position = new Vector3();
             position.X = (float)x;
             position.Y = (float)y;
-            position.Z = 0.0f;
+            position.Z = (float)z;
 
             scene.RequestTeleportLocation(client, handle, position,
                     Vector3.Zero, teleportFlags);
