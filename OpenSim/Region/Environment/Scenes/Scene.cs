@@ -2776,6 +2776,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_log.DebugFormat("[CONNECTION DEBUGGING]: Updated agent {0} in {1}", agent.AgentID, RegionInfo.RegionName);
                 sp.AdjustKnownSeeds();
                 sp.AbsolutePosition = agent.startpos;
+                m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
                 return;
             }
 
@@ -2829,7 +2830,13 @@ namespace OpenSim.Region.Environment.Scenes
             loggingOffUser = GetScenePresence(AvatarID);
             if (loggingOffUser != null)
             {
-                if (RegionSecret == loggingOffUser.ControllingClient.SecureSessionId)
+                UUID localRegionSecret = UUID.Zero;
+                bool parsedsecret = UUID.TryParse(m_regInfo.regionSecret, out localRegionSecret);
+
+                // Region Secret is used here in case a new sessionid overwrites an old one on the user server.
+                // Will update the user server in a few revisions to use it.
+
+                if (RegionSecret == loggingOffUser.ControllingClient.SecureSessionId || (parsedsecret && RegionSecret == localRegionSecret))
                 {
                     m_sceneGridService.SendCloseChildAgentConnections(loggingOffUser.UUID, new List<ulong>(loggingOffUser.KnownRegions.Keys));
                     loggingOffUser.ControllingClient.Kick(message);
@@ -2869,7 +2876,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_capsHandlers.TryGetValue(agentId, out cap))
             {
                 m_log.DebugFormat("[CAPS] Attempt at registering twice for the same agent {0}. {1}. Ignoring.", agentId, capsObjectPath);
-                return;
+                //return;
             }
 
             cap 
