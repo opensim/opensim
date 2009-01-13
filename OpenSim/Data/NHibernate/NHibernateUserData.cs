@@ -118,6 +118,7 @@ namespace OpenSim.Data.NHibernate
             }
         }
 
+        /*
         private void SetAgentData(UUID uuid, UserAgentData agent)
         {
             UserAgentData old = (UserAgentData)manager.Load(typeof(UserAgentData), uuid);
@@ -131,8 +132,9 @@ namespace OpenSim.Data.NHibernate
                 m_log.InfoFormat("[NHIBERNATE] SetAgentData: {0} ", agent.ProfileID);
                 manager.Save(agent);
             }
-
         }
+        */
+        
         override public bool UpdateUserProfile(UserProfileData profile)
         {
             if (ExistsUser(profile.ID))

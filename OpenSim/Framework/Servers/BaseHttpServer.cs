@@ -1566,7 +1566,7 @@ namespace OpenSim.Framework.Servers
     /// There is also a UseTraceLogs line in this file that can be uncommented for more detailed log information
     public class HttpServerLogWriter : HttpServer.ILogWriter
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public void Write(object source, HttpServer.LogPrio priority, string message)
         {

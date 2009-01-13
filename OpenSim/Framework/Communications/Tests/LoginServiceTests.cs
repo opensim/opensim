@@ -212,7 +212,7 @@ namespace OpenSim.Framework.Communications.Tests
                                          "If this is not the case please wait for your session to timeout. " +
                                          "If this takes longer than a few minutes please contact the grid owner. " +
                                          "Please wait 5 minutes if you are going to connect to a region nearby to the region you were at previously.";
-            string error_region_unavailable = "The region you are attempting to log into is not responding. Please select another region and try again.";
+            //string error_region_unavailable = "The region you are attempting to log into is not responding. Please select another region and try again.";
             // 2.1) Test for wrong user name
             loginParams = new Hashtable();
             loginParams["first"] = lastName;

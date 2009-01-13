@@ -199,7 +199,7 @@ namespace OpenSim.Framework
         public bool isSandbox = false;
         private EstateSettings m_estateSettings;
         private RegionSettings m_regionSettings;
-        private IConfigSource m_configSource = null;
+        //private IConfigSource m_configSource = null;
 
         public UUID MasterAvatarAssignedUUID = UUID.Zero;
         public string MasterAvatarFirstName = String.Empty;
@@ -227,7 +227,7 @@ namespace OpenSim.Framework
 
         public RegionInfo(string description, string filename, bool skipConsoleConfig, IConfigSource configSource)
         {
-            m_configSource = configSource;
+            //m_configSource = configSource;
             configMember =
                 new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, !skipConsoleConfig);
             configMember.performConfigurationRetrieve();
@@ -236,7 +236,7 @@ namespace OpenSim.Framework
 
         public RegionInfo(string description, XmlNode xmlNode, bool skipConsoleConfig, IConfigSource configSource)
         {
-            m_configSource = configSource;
+            //m_configSource = configSource;
             configMember =
                 new ConfigurationMember(xmlNode, description, loadConfigurationOptions, handleIncomingConfiguration, !skipConsoleConfig);
             configMember.performConfigurationRetrieve();
