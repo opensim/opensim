@@ -916,10 +916,10 @@ namespace OpenSim.Region.Environment.Scenes
                         if (avatar.Scene.NeedSceneCacheClear(avatar.UUID))
                         {
                             m_commsProvider.UserProfileCacheService.RemoveUser(avatar.UUID);
-                            m_log.InfoFormat("User {0} is going to another region, profile cache removed", avatar.UUID);
+                            m_log.DebugFormat(
+                                "[SCENE COMMUNICATION SERVICE]: User {0} is going to another region, profile cache removed",
+                                avatar.UUID);
                         }
-
-
                     }
                     else
                     {

@@ -2483,7 +2483,8 @@ namespace OpenSim.Region.Environment.Scenes
                     if (m_scene.NeedSceneCacheClear(UUID))
                     {
                         m_scene.CommsManager.UserProfileCacheService.RemoveUser(UUID);
-                        m_log.InfoFormat("[AVATAR]: User {0} is going to another region, profile cache removed", UUID);
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: User {0} is going to another region, profile cache removed", UUID);
                     }
                 }
                 else
@@ -2510,7 +2511,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void CloseChildAgents(uint newRegionX, uint newRegionY)
         {
             List<ulong> byebyeRegions = new List<ulong>();
-            m_log.DebugFormat("[AVATAR]: Closing child agents. Checking {0} regions in {1}", m_knownChildRegions.Keys.Count, Scene.RegionInfo.RegionName);
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Closing child agents. Checking {0} regions in {1}", 
+                m_knownChildRegions.Keys.Count, Scene.RegionInfo.RegionName);
             //DumpKnownRegions();
 
             lock (m_knownChildRegions)
@@ -2534,11 +2537,13 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
+            
             if (byebyeRegions.Count > 0)
             {
-                m_log.Info("[AVATAR]: Closing " + byebyeRegions.Count + " child agents");
+                m_log.Debug("[SCENE PRESENCE]: Closing " + byebyeRegions.Count + " child agents");
                 m_scene.SceneGridService.SendCloseChildAgentConnections(m_controllingClient.AgentId, byebyeRegions);
             }
+            
             foreach (ulong handle in byebyeRegions)
             {
                 RemoveNeighbourRegion(handle);

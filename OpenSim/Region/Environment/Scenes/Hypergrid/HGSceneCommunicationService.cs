@@ -338,7 +338,9 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         if (avatar.Scene.NeedSceneCacheClear(avatar.UUID) || isHyperLink)
                         {
                             m_commsProvider.UserProfileCacheService.RemoveUser(avatar.UUID);
-                            m_log.InfoFormat("[HGSceneCommService]: User {0} is going to another region, profile cache removed", avatar.UUID);
+                            m_log.DebugFormat(
+                                "[HGSceneCommService]: User {0} is going to another region, profile cache removed",
+                                avatar.UUID);                            
                         }
                     }
                     else

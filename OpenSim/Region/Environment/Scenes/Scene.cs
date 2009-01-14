@@ -2759,15 +2759,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agent"></param>
         public void NewUserConnection(AgentCircuitData agent)
         {
-            // Don't disable this log messages - it's too useful
+            // Don't disable this log message - it's too helpful
             m_log.DebugFormat(
-                "[CONNECTION SETUP]: Scene {0} told of incoming client {1} {2} {3} (circuit code {4})", 
+                "[CONNECTION BEGIN]: Scene {0} told of incoming client {1} {2} {3} (circuit code {4})", 
                 RegionInfo.RegionName, agent.firstname, agent.lastname, agent.AgentID, agent.circuitcode);
             
             if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
             {
                 m_log.WarnFormat(
-               "[CONNECTION SETUP]: Denied access to: {0} at {1} because the user is on the region banlist",
+               "[CONNECTION BEGIN]: Denied access to: {0} at {1} because the user is on the region banlist",
                agent.AgentID, RegionInfo.RegionName);
             }
 
@@ -2778,11 +2778,22 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence sp = m_sceneGraph.GetScenePresence(agent.AgentID);
             if (sp != null)
             {
-                m_log.DebugFormat(
-                    "[CONNECTION SETUP]: Updated existing agent {0} in {1}", agent.AgentID, RegionInfo.RegionName);
+                if (sp.IsChildAgent)
+                    m_log.DebugFormat(
+                        "[CONNECTION BEGIN]: Incoming client for {0} is existing child agent {1}", 
+                        RegionInfo.RegionName, agent.AgentID);
+                else
+                    m_log.DebugFormat(
+                        "[CONNECTION BEGIN]: Incoming client for {0} is existing root agent {1}", 
+                        RegionInfo.RegionName, agent.AgentID);
+                    
+//                m_log.DebugFormat(
+//                    "[CONNECTION BEGIN]: Updated existing agent {0} in {1}", agent.AgentID, RegionInfo.RegionName);
+                
                 sp.AdjustKnownSeeds();
                 sp.AbsolutePosition = agent.startpos;
                 m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+                
                 return;
             }
 
@@ -2813,7 +2824,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.WarnFormat(
-                    "[CONNECTION SETUP]: We couldn't find a User Info record for {0}.  This is usually an indication that the UUID we're looking up is invalid", agent.AgentID);
+                    "[CONNECTION BEGIN]: We couldn't find a User Info record for {0}.  This is usually an indication that the UUID we're looking up is invalid", agent.AgentID);
             }
         }
 

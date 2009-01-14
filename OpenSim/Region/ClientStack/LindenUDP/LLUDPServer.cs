@@ -445,8 +445,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 
                 m_log.DebugFormat(
-                    "[CONNECTION SUCCESS]: Incoming client {0} (circuit code {1}) received and authenticated", 
-                    useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);                
+                    "[CONNECTION SUCCESS]: Incoming client {0} (circuit code {1}) received and authenticated for {2}", 
+                    useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code, m_localScene.RegionInfo.RegionName);                
             }            
             
             // Ack the UseCircuitCode packet

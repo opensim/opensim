@@ -1378,7 +1378,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                     if (m_rootAgents[avatar.UUID] == avatar.Scene.RegionInfo.originRegionID)
                     {
                         m_rootAgents.Remove(avatar.UUID);
-                        m_log.Info("[MONEY]: Removing " + avatar.Firstname + " " + avatar.Lastname + " as a root agent");
+//                        m_log.Debug("[MONEY]: Removing " + avatar.Firstname + " " + avatar.Lastname + " as a root agent");
                     }
                 }
             }

@@ -329,7 +329,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     if (m_rootAgents[avatar.UUID] == avatar.RegionHandle)
                     {
                         m_rootAgents.Remove(avatar.UUID);
-                        m_log.Debug("[FRIEND]: Removing " + avatar.Firstname + " " + avatar.Lastname + " as a root agent");
+//                        m_log.Debug("[FRIEND]: Removing " + avatar.Firstname + " " + avatar.Lastname + " as a root agent");
                     }
                 }
             }
