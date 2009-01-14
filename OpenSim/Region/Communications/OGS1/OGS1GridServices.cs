@@ -1567,12 +1567,13 @@ namespace OpenSim.Region.Communications.OGS1
 
             AsyncCallback callback = delegate(IAsyncResult iar)
             {
+                timed_out = false;
+                
                 Socket s = (Socket)iar.AsyncState;
                 try
                 {
                     s.EndConnect(iar);
-                    available = true;
-                    timed_out = false;
+                    available = true;                    
                 }
                 catch (Exception e)
                 {
@@ -1583,10 +1584,12 @@ namespace OpenSim.Region.Communications.OGS1
                 s.Close();
             };
 
+            IAsyncResult ar;
+            
             try
             {
                 Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                IAsyncResult ar = socket.BeginConnect(m_EndPoint, callback, socket);
+                ar = socket.BeginConnect(m_EndPoint, callback, socket);
                 ar.AsyncWaitHandle.WaitOne(timeOut * 1000, false);
             }
             catch (Exception e)
@@ -1596,9 +1599,11 @@ namespace OpenSim.Region.Communications.OGS1
 
                 return false;
             }
+            
+            ar.AsyncWaitHandle.Close();
 
             if (timed_out)
-            {
+            {                                
                 m_log.DebugFormat(
                     "[OGS1 GRID SERVICES]: socket [{0}] timed out ({1}) waiting to obtain a connection.",
                     m_EndPoint, timeOut * 1000);
