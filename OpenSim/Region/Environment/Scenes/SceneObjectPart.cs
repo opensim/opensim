@@ -1470,7 +1470,7 @@ if (m_shape != null) {
 
                     List<string> bodyNames = new List<string>();
                     string RawParams = Description;
-                    string[] jointParams = RawParams.Split(' ');
+                    string[] jointParams = RawParams.Split(" ".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
                     string trackedBodyName = null;
                     if (jointParams.Length >= 2)
                     {

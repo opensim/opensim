@@ -2318,7 +2318,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                             foreach (PhysicsJoint joint in pendingJoints)
                                             {
                                                 //DoJointErrorMessage(joint, "taint: time to create joint with parms: " + joint.RawParams);
-                                                string[] jointParams = joint.RawParams.Split(' ');
+                                                string[] jointParams = joint.RawParams.Split(" ".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
                                                 List<IntPtr> jointBodies = new List<IntPtr>();
                                                 bool allJointBodiesAreReady = true;
                                                 foreach (string jointParam in jointParams)
