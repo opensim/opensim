@@ -2791,8 +2791,6 @@ namespace OpenSim.Region.Environment.Scenes
 //                    "[CONNECTION BEGIN]: Updated existing agent {0} in {1}", agent.AgentID, RegionInfo.RegionName);
                 
                 sp.AdjustKnownSeeds();
-                sp.AbsolutePosition = agent.startpos;
-                m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
                 
                 return;
             }
