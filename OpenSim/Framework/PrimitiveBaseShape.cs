@@ -247,6 +247,18 @@ namespace OpenSim.Framework
             return shape;
         }
 
+        public static PrimitiveBaseShape CreateSphere()
+        {
+            PrimitiveBaseShape shape = Create();
+
+            shape._pathCurve = (byte) Extrusion.Curve1;
+            shape._profileShape = ProfileShape.HalfCircle;
+            shape._pathScaleX = 100;
+            shape._pathScaleY = 100;
+
+            return shape;
+        }
+
         public static PrimitiveBaseShape CreateCylinder()
         {
             PrimitiveBaseShape shape = Create();
