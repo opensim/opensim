@@ -3139,13 +3139,16 @@ namespace OpenSim.Region.Environment.Scenes
         public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, Vector3 position,
                                             Vector3 lookAt, uint teleportFlags)
         {
+            ScenePresence sp = null;
             lock (m_scenePresences)
             {
                 if (m_scenePresences.ContainsKey(remoteClient.AgentId))
-                {
-                    m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], regionHandle,
-                                                                 position, lookAt, teleportFlags);
-                }
+                    sp = m_scenePresences[remoteClient.AgentId];
+            }
+            if (sp!= null)
+            {
+                m_sceneGridService.RequestTeleportToLocation(sp, regionHandle,
+                                                             position, lookAt, teleportFlags);
             }
         }
 
