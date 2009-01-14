@@ -482,8 +482,8 @@ namespace OpenSim.Data.MSSQL
                             while (reader.Read())
                             {
                                 FriendRegionInfo fri = new FriendRegionInfo();
-                                fri.isOnline = (sbyte)reader["agentOnline"] != 0;
-                                fri.regionHandle = (ulong)reader["currentHandle"];
+                                fri.isOnline = (byte)reader["agentOnline"] != 0;
+                                fri.regionHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
 
                                 infos[uuid] = fri;
                             }
