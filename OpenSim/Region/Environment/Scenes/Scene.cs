@@ -2759,6 +2759,22 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agent"></param>
         public void NewUserConnection(AgentCircuitData agent)
         {
+            /// Diva: Horrible stuff!
+            capsPaths[agent.AgentID] = agent.CapsPath;
+            childrenSeeds[agent.AgentID] = ((agent.ChildrenCapSeeds == null) ? new Dictionary<ulong, string>() : agent.ChildrenCapSeeds);
+
+            ScenePresence sp = m_sceneGraph.GetScenePresence(agent.AgentID);
+            if (sp != null)
+            {                    
+                m_log.DebugFormat(
+                    "[SCENE]: Adjusting known seeds for existing agent {0} in {1}", 
+                    agent.AgentID, RegionInfo.RegionName);
+                
+                sp.AdjustKnownSeeds();
+                
+                return;
+            }
+            
             // Don't disable this log message - it's too helpful
             m_log.DebugFormat(
                 "[CONNECTION BEGIN]: Scene {0} told of incoming client {1} {2} {3} (circuit code {4})", 
@@ -2770,31 +2786,7 @@ namespace OpenSim.Region.Environment.Scenes
                "[CONNECTION BEGIN]: Denied access to: {0} at {1} because the user is on the region banlist",
                agent.AgentID, RegionInfo.RegionName);
             }
-
-            /// Diva: Horrible stuff!
-            capsPaths[agent.AgentID] = agent.CapsPath;
-            childrenSeeds[agent.AgentID] = ((agent.ChildrenCapSeeds == null) ? new Dictionary<ulong, string>() : agent.ChildrenCapSeeds);
-
-            ScenePresence sp = m_sceneGraph.GetScenePresence(agent.AgentID);
-            if (sp != null)
-            {
-                if (sp.IsChildAgent)
-                    m_log.DebugFormat(
-                        "[CONNECTION BEGIN]: Incoming client for {0} is existing child agent {1}", 
-                        RegionInfo.RegionName, agent.AgentID);
-                else
-                    m_log.DebugFormat(
-                        "[CONNECTION BEGIN]: Incoming client for {0} is existing root agent {1}", 
-                        RegionInfo.RegionName, agent.AgentID);
-                    
-//                m_log.DebugFormat(
-//                    "[CONNECTION BEGIN]: Updated existing agent {0} in {1}", agent.AgentID, RegionInfo.RegionName);
-                
-                sp.AdjustKnownSeeds();
-                
-                return;
-            }
-
+            
             AddCapsHandler(agent.AgentID);
 
             if (!agent.child)
