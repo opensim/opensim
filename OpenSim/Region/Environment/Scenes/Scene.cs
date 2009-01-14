@@ -2294,7 +2294,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.DebugFormat(
-                    "[SCENE]: Adding new child agent {0} for new user connection in {1}",
+                    "[SCENE]: Adding new child agent for {0} in {1}",
                     client.Name, RegionInfo.RegionName);
 
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
@@ -2759,10 +2759,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agent"></param>
         public void NewUserConnection(AgentCircuitData agent)
         {
+            // Don't disable this log messages - it's too useful
+            m_log.DebugFormat(
+                "[CONNECTION SETUP]: Scene {0} told of incoming client {1} {2} {3} (circuit code {4})", 
+                RegionInfo.RegionName, agent.firstname, agent.lastname, agent.AgentID, agent.circuitcode);
+            
             if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
             {
                 m_log.WarnFormat(
-               "[CONNECTION DEBUGGING]: Denied access to: {0} at {1} because the user is on the region banlist",
+               "[CONNECTION SETUP]: Denied access to: {0} at {1} because the user is on the region banlist",
                agent.AgentID, RegionInfo.RegionName);
             }
 
@@ -2773,21 +2778,18 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence sp = m_sceneGraph.GetScenePresence(agent.AgentID);
             if (sp != null)
             {
-                m_log.DebugFormat("[CONNECTION DEBUGGING]: Updated agent {0} in {1}", agent.AgentID, RegionInfo.RegionName);
+                m_log.DebugFormat(
+                    "[CONNECTION SETUP]: Updated existing agent {0} in {1}", agent.AgentID, RegionInfo.RegionName);
                 sp.AdjustKnownSeeds();
                 sp.AbsolutePosition = agent.startpos;
                 m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
                 return;
             }
 
-            m_log.DebugFormat("[CONNECTION DEBUGGING]: Adding NewUserConnection for {0} in {1} with CC of {2}, pos={3}", agent.AgentID,
-                              RegionInfo.RegionName, agent.circuitcode, agent.startpos.ToString());
-
             AddCapsHandler(agent.AgentID);
 
             if (!agent.child)
             {
-
                 // Honor parcel landing type and position.
                 ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
                 if (land != null)
@@ -2810,7 +2812,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.WarnFormat("[USERINFO CACHE]: We couldn't find a User Info record for {0}.  This is usually an indication that the UUID we're looking up is invalid", agent.AgentID);
+                m_log.WarnFormat(
+                    "[CONNECTION SETUP]: We couldn't find a User Info record for {0}.  This is usually an indication that the UUID we're looking up is invalid", agent.AgentID);
             }
         }
 
