@@ -2339,6 +2339,8 @@ if (m_shape != null) {
                         PrimitiveBaseShape m_newshape = m_shape.Copy();
                         PhysActor.Shape = m_newshape;
                         m_shape = m_newshape;
+
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
                 }
             }
