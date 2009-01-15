@@ -3175,13 +3175,16 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
+            ScenePresence sp = null;
             lock (m_scenePresences)
             {
                 if (m_scenePresences.ContainsKey(remoteClient.AgentId))
-                {
-                    m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], info.RegionHandle,
-                        position, Vector3.Zero, (uint)(TPFlags.SetLastToTarget | TPFlags.ViaLandmark));
-                }
+                    sp = m_scenePresences[remoteClient.AgentId];
+            }
+            if (sp != null)
+            {
+                m_sceneGridService.RequestTeleportToLocation(sp, info.RegionHandle,
+                    position, Vector3.Zero, (uint)(TPFlags.SetLastToTarget | TPFlags.ViaLandmark));
             }
         }
 
@@ -3417,36 +3420,40 @@ namespace OpenSim.Region.Environment.Scenes
         public void handleRequestGodlikePowers(UUID agentID, UUID sessionID, UUID token, bool godLike,
                                                IClientAPI controllingClient)
         {
+            ScenePresence sp = null;
+
             lock (m_scenePresences)
             {
                 // User needs to be logged into this sim
-                if (m_scenePresences.ContainsKey(agentID))
-                {
-                    if (godLike == false)
-                    {
-                        m_scenePresences[agentID].GrantGodlikePowers(agentID, sessionID, token, godLike);
-                        return;
-                    }
+                m_scenePresences.TryGetValue(agentID, out sp);
+            }
 
-                    // First check that this is the sim owner
-                    if (Permissions.IsGod(agentID))
+            if (sp != null)
+            {
+                if (godLike == false)
+                {
+                    sp.GrantGodlikePowers(agentID, sessionID, token, godLike);
+                    return;
+                }
+
+                // First check that this is the sim owner
+                if (Permissions.IsGod(agentID))
+                {
+                    // Next we check for spoofing.....
+                    UUID testSessionID = sp.ControllingClient.SessionId;
+                    if (sessionID == testSessionID)
                     {
-                        // Next we check for spoofing.....
-                        UUID testSessionID = m_scenePresences[agentID].ControllingClient.SessionId;
-                        if (sessionID == testSessionID)
+                        if (sessionID == controllingClient.SessionId)
                         {
-                            if (sessionID == controllingClient.SessionId)
-                            {
-                                //m_log.Info("godlike: " + godLike.ToString());
-                                m_scenePresences[agentID].GrantGodlikePowers(agentID, testSessionID, token, godLike);
-                            }
+                            //m_log.Info("godlike: " + godLike.ToString());
+                            sp.GrantGodlikePowers(agentID, testSessionID, token, godLike);
                         }
                     }
-                    else
-                    {
-                        m_dialogModule.SendAlertToUser(agentID, "Request for god powers denied");
-                    }
                 }
+                else
+                {
+                    m_dialogModule.SendAlertToUser(agentID, "Request for god powers denied");
+                }         
             }
         }
 

@@ -774,7 +774,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         protected internal List<ScenePresence> GetScenePresences()
         {
-            return new List<ScenePresence>(ScenePresences.Values);
+            lock (ScenePresences)
+            {
+                return new List<ScenePresence>(ScenePresences.Values);
+            }
         }
 
         protected internal List<ScenePresence> GetAvatars()
@@ -1085,11 +1088,17 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected internal void ForEachClient(Action<IClientAPI> action)
         {
-            lock (ScenePresences)
+            List<ScenePresence> splist = GetScenePresences();
+            foreach (ScenePresence presence in splist)
             {
-                foreach (ScenePresence presence in ScenePresences.Values)
+                try
                 {
                     action(presence.ControllingClient);
+                }
+                catch (Exception e)
+                {
+                    // Catch it and move on. This includes situations where splist has inconsistent info
+                    m_log.WarnFormat("[SCENE]: Problem processing action in ForEachClient: ", e.Message);
                 }
             }
         }
