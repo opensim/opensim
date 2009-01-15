@@ -1,0 +1,87 @@
+/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSim Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+using Nini.Config;
+using NUnit.Framework;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications;
+using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules.Communications.REST;
+using OpenSim.Tests.Common.Mock;
+
+namespace OpenSim.Region.Environment.Scenes.Tests
+{
+    /// <summary>
+    /// Teleport tests in a standalone OpenSim
+    /// </summary>    
+    [TestFixture]
+    public class StandaloneTeleportTests
+    {
+        /// <summary>
+        /// Test a teleport between two regions that are not neighbours and do not share any neighbours in common.
+        /// </summary>
+        /// Does not yet do what is says on the tin.
+        [Test]        
+        public void TestSimpleNotNeighboursTeleport()
+        {
+            log4net.Config.XmlConfigurator.Configure();
+            
+            UUID sceneAId = UUID.Parse("00000000-0000-0000-0000-000000000100");
+            UUID sceneBId = UUID.Parse("00000000-0000-0000-0000-000000000200");
+            CommunicationsManager cm = new TestCommunicationsManager();
+
+            // shared module
+            IRegionModule interregionComms = new RESTInterregionComms();
+            
+            // TODO: Clean this up
+            Scene sceneA = SceneTestUtils.SetupScene("sceneA", sceneAId, 1000, 1000, cm);            
+            interregionComms.Initialise(sceneA, new IniConfigSource());          
+            sceneA.AddModule(interregionComms.Name, interregionComms);
+            sceneA.SetModuleInterfaces();                        
+            sceneA.RegisterRegionWithGrid();
+            
+            // TODO: Clean this up
+            Scene sceneB = SceneTestUtils.SetupScene("sceneB", sceneBId, 1010, 1010, cm);
+            interregionComms.Initialise(sceneB, new IniConfigSource()); 
+            sceneB.AddModule(interregionComms.Name, interregionComms);
+            sceneB.SetModuleInterfaces();
+            sceneB.RegisterRegionWithGrid();
+ 
+            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000041");
+            
+            TestClient client = SceneTestUtils.AddRootAgent(sceneA, agentId);
+            
+            client.Teleport(sceneB.RegionInfo.RegionHandle, new Vector3(100, 100, 100), new Vector3(40, 40, 40));                  
+            
+            // TODO: Check that everything is as it should be
+            
+            // TODO: test what happens if we try to teleport to a region that doesn't exist
+        }
+    }
+}
