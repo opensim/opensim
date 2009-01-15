@@ -145,19 +145,49 @@ namespace OpenSim
                 // link-region <Xloc> <Yloc> <HostName> <HttpPort> <LocalName>
                 if (cmdparams.Length < 4)
                 {
-                    if (cmdparams.Length == 1)
+                    if ((cmdparams.Length == 1) || (cmdparams.Length ==2))
                     {
                         try
                         {
                             XmlReader r = XmlReader.Create(cmdparams[0]);
                             XmlConfigSource cs = new XmlConfigSource(r);
+                            string[] excludeSections = null;
+
+                            if (cmdparams.Length == 2)
+                            {
+                                if (cmdparams[1].StartsWith("excludeList:"))
+                                {
+                                    string excludeString = cmdparams[1];
+                                    excludeString = excludeString.Remove(0, 12);
+                                    char[] splitter = { ';' };
+
+                                    excludeSections = excludeString.Split(splitter);
+                                }
+                            }
+
                             for (int i = 0; i < cs.Configs.Count; i++)
                             {
-                                ReadLinkFromConfig(cs.Configs[i]);
+                                bool skip = false;
+                                if ((excludeSections != null) &&(excludeSections.Length > 0 ))
+                                {
+                                    for (int n = 0; n < excludeSections.Length; n++)
+                                    {
+                                        if (excludeSections[n] == cs.Configs[i].Name)
+                                        {
+                                            skip = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (!skip)
+                                {
+                                    ReadLinkFromConfig(cs.Configs[i]);
+                                }
                             }
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
+                            Console.WriteLine(e.ToString());
                         }
                     }
                     else
