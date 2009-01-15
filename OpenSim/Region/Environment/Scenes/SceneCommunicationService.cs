@@ -701,6 +701,7 @@ namespace OpenSim.Region.Environment.Scenes
                         position, avatar.Name, avatar.UUID, emergencyPos);
                     position = emergencyPos;
                 }
+                
                 // TODO: Get proper AVG Height
                 float localAVHeight = 1.56f;
                 float posZLimit = (float)avatar.Scene.GetLandHeight((int)position.X, (int)position.Y);
@@ -713,7 +714,6 @@ namespace OpenSim.Region.Environment.Scenes
                 // Only send this if the event queue is null
                 if (eq == null)
                     avatar.ControllingClient.SendTeleportLocationStart();
-
                 
                 avatar.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
                 avatar.Teleport(position);

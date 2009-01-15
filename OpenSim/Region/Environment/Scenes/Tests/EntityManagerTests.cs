@@ -25,17 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using NUnit.Framework.SyntaxHelpers;
 using System;
 using System.Threading;
 using System.Text;
 using System.Collections.Generic;
 using Nini.Config;
 using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Scenes;
-using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {

@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -32,6 +33,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Tests.Common.Mock;
 
@@ -48,18 +50,31 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         /// <returns></returns>
         public static TestScene SetupScene()
         {
-            RegionInfo regInfo = new RegionInfo(1000, 1000, null, null);
-            regInfo.RegionName = "Unit test region";
-            regInfo.ExternalHostName = "1.2.3.4";
+            return SetupScene("Unit test region", UUID.Random(), 1000, 1000, new TestCommunicationsManager());
+        }
+        
+        /// <summary>
+        /// Set up a test scene
+        /// </summary>
+        /// <param name="name">Name of the region</param>
+        /// <param name="id">ID of the region</param>
+        /// <param name="x">X co-ordinate of the region</param>
+        /// <param name="y">Y co-ordinate of the region</param>
+        /// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
+        /// <returns></returns>
+        public static TestScene SetupScene(string name, UUID id, uint x, uint y, CommunicationsManager cm)
+        {
+            RegionInfo regInfo = new RegionInfo(x, y, new IPEndPoint(IPAddress.Loopback, 9000), "127.0.0.1");
+            regInfo.RegionName = name;
+            regInfo.RegionID = id;
             
             AgentCircuitManager acm = new AgentCircuitManager();
-            CommunicationsManager cm = new TestCommunicationsManager();
             SceneCommunicationService scs = new SceneCommunicationService(cm);
             
             SQLAssetServer assetService = new SQLAssetServer(new TestAssetDataPlugin());
             AssetCache ac = new AssetCache(assetService);
             
-            StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");            
+            StorageManager sm = new StorageManager("OpenSim.Data.Null.dll", "", "");            
             IConfigSource configSource = new IniConfigSource();
             
             TestScene testScene = new TestScene(
@@ -70,7 +85,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             PhysicsPluginManager physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPluginsFromAssembly("Physics/OpenSim.Region.Physics.BasicPhysicsPlugin.dll");
-            testScene.PhysicsScene = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", configSource, "test");            
+            testScene.PhysicsScene 
+                = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", configSource, "test");            
                         
             return testScene;
         }
@@ -81,7 +97,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         /// <param name="scene"></param>
         /// <param name="agentId"></param>
         /// <returns></returns>        
-        public static IClientAPI AddRootAgent(Scene scene, UUID agentId)
+        public static TestClient AddRootAgent(Scene scene, UUID agentId)
         {
             string firstName = "testfirstname";
             
@@ -102,7 +118,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             scene.NewUserConnection(agent);
             
             // Stage 2: add the new client as a child agent to the scene
-            IClientAPI client = new TestClient(agent);
+            TestClient client = new TestClient(agent);
             scene.AddNewClient(client);
             
             // Stage 3: Invoke agent crossing, which converts the child agent into a root agent (with appearance,

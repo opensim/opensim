@@ -365,6 +365,17 @@ namespace OpenSim.Tests.Common.Mock
             m_firstName = agentData.firstname;
             m_lastName = agentData.lastname;
         }
+        
+        /// <summary>
+        /// Attempt a teleport to the given region.
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="position"></param>
+        /// <param name="lookAt"></param>
+        public void Teleport(ulong regionHandle, Vector3 position, Vector3 lookAt)
+        {
+            OnTeleportLocationRequest(this, regionHandle, position, lookAt, 16);      
+        }
 
         public virtual void ActivateGesture(UUID assetId, UUID gestureId)
         {

@@ -42,7 +42,6 @@ using OpenSim.Region.Interfaces;
 using OpenSim.Region.Physics.Manager;
 using OSD = OpenMetaverse.StructuredData.OSD;
 
-
 namespace OpenSim.Region.Environment.Scenes
 {
     enum ScriptControlled : uint
@@ -2757,7 +2756,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         static ScenePresence()
         {
-
             Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
             DefaultTexture = textu.ToBytes();
         }

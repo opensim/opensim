@@ -250,6 +250,7 @@ namespace OpenSim.Region.Communications.Local
             {
                 return m_regionListeners[regionHandle].TriggerTellRegionToCloseChildConnection(agentID);
             }
+            
             return false;
         }
 

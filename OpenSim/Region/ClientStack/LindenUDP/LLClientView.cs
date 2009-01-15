@@ -5824,6 +5824,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                     break;
+                
                 case PacketType.TeleportLocationRequest:
                     TeleportLocationRequestPacket tpLocReq = (TeleportLocationRequestPacket)Pack;
                     // Console.WriteLine(tpLocReq.ToString());

@@ -69,7 +69,8 @@ namespace OpenSim.Tests.Common.Mock
             m_userAdminService = lus;         
             
             LocalBackEndServices gs = new LocalBackEndServices();
-            m_gridService = gs;          
+            m_gridService = gs;      
+            m_interRegion = gs;
         }
     }
 }

@@ -3129,6 +3129,7 @@ namespace OpenSim.Region.Environment.Scenes
                 remoteClient.SendTeleportFailed("The region '" + regionName + "' could not be found.");
                 return;
             }
+            
             RequestTeleportLocation(remoteClient, regionInfo.RegionHandle, position, lookat, teleportFlags);
         }
 
@@ -3149,7 +3150,8 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_scenePresences.ContainsKey(remoteClient.AgentId))
                     sp = m_scenePresences[remoteClient.AgentId];
             }
-            if (sp!= null)
+            
+            if (sp != null)
             {
                 m_sceneGridService.RequestTeleportToLocation(sp, regionHandle,
                                                              position, lookAt, teleportFlags);
