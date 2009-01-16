@@ -179,7 +179,7 @@ namespace OpenSim.Framework
                 return;
             }
 
-            m_log.Info("[CONFIG]: Calling Configuration Load Function...");
+            //m_log.Debug("[CONFIG]: Calling Configuration Load Function...");
             loadFunction();
 
             if (configurationOptions.Count <= 0)

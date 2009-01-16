@@ -27,6 +27,7 @@
 
 using Nini.Config;
 using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -77,9 +78,14 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             TestClient client = SceneTestUtils.AddRootAgent(sceneA, agentId);
             
-            client.Teleport(sceneB.RegionInfo.RegionHandle, new Vector3(100, 100, 100), new Vector3(40, 40, 40));                  
+            // FIXME: This is a hack to get the test working - really the normal OpenSim mechanisms should be used.
+            client.TeleportTargetScene = sceneB;
             
-            // TODO: Check that everything is as it should be
+            client.Teleport(sceneB.RegionInfo.RegionHandle, new Vector3(100, 100, 100), new Vector3(40, 40, 40));
+            Assert.That(sceneB.GetScenePresence(agentId), Is.Not.Null, "Client does not have an agent in sceneB");                                   
+            Assert.That(sceneA.GetScenePresence(agentId), Is.Null, "Client still had an agent in sceneA");
+            
+            // TODO: Check that more of everything is as it should be
             
             // TODO: test what happens if we try to teleport to a region that doesn't exist
         }

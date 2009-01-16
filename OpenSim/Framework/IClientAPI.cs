@@ -814,7 +814,12 @@ namespace OpenSim.Framework
         void SendWindData(Vector2[] windSpeeds);
 
         void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look);
-        void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint);        
+        void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint);
+        
+        /// <summary>
+        /// Return circuit information for this client.
+        /// </summary>
+        /// <returns></returns>
         AgentCircuitData RequestClientInfo();
 
         void CrossRegion(ulong newRegionHandle, Vector3 pos, Vector3 lookAt, IPEndPoint newRegionExternalEndPoint,

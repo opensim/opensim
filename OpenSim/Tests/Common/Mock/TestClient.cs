@@ -28,6 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -37,11 +39,18 @@ namespace OpenSim.Tests.Common.Mock
 {
     public class TestClient : IClientAPI
     {
-        private Scene m_scene;
-
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         // Mock testing variables
         public List<ImageDataPacket> sentdatapkt = new List<ImageDataPacket>();
         public List<ImagePacketPacket> sentpktpkt = new List<ImagePacketPacket>();
+        
+        // TODO: This is a really nasty (and temporary) means of telling the test client which scene to invoke setup
+        // methods on when a teleport is requested
+        public Scene TeleportTargetScene;        
+        private TestClient TeleportSceneClient;
+        
+        private IScene m_scene;
 
 // disable warning: public events, part of the public API
 #pragma warning disable 67
@@ -259,7 +268,7 @@ namespace OpenSim.Tests.Common.Mock
         /// <value>
         /// This agent's UUID
         /// </value>
-        private UUID myID;
+        private UUID m_agentId;
 
         private Vector3 startPos = new Vector3(128, 128, 2);
 
@@ -271,7 +280,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public virtual UUID AgentId
         {
-            get { return myID; }
+            get { return m_agentId; }
         }
 
         public UUID SessionId
@@ -359,11 +368,14 @@ namespace OpenSim.Tests.Common.Mock
         /// Constructor
         /// </summary>
         /// <param name="agentData"></param>
-        public TestClient(AgentCircuitData agentData)
+        /// <param name="scene"></param>
+        public TestClient(AgentCircuitData agentData, IScene scene)
         {
-            myID = agentData.AgentID;
+            m_agentId = agentData.AgentID;
             m_firstName = agentData.firstname;
             m_lastName = agentData.lastname;
+            m_circuitCode = agentData.circuitcode;
+            m_scene = scene;
         }
         
         /// <summary>
@@ -375,6 +387,11 @@ namespace OpenSim.Tests.Common.Mock
         public void Teleport(ulong regionHandle, Vector3 position, Vector3 lookAt)
         {
             OnTeleportLocationRequest(this, regionHandle, position, lookAt, 16);      
+        }
+        
+        public void CompleteMovement()
+        {
+            OnCompleteMovementToRegion();
         }
 
         public virtual void ActivateGesture(UUID assetId, UUID gestureId)
@@ -465,14 +482,48 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public virtual void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint)
-        {
-        }
-
         public virtual AgentCircuitData RequestClientInfo()
         {
-            return new AgentCircuitData();
+            AgentCircuitData agentData = new AgentCircuitData();
+            agentData.AgentID = AgentId;
+            agentData.SessionID = UUID.Zero;
+            agentData.SecureSessionID = UUID.Zero;
+            agentData.circuitcode = m_circuitCode;
+            agentData.child = false;
+            agentData.firstname = m_firstName;
+            agentData.lastname = m_lastName;
+            agentData.CapsPath = m_scene.GetCapsPath(m_agentId);
+            agentData.ChildrenCapSeeds = new Dictionary<ulong,string>(m_scene.GetChildrenSeeds(m_agentId));
+            
+            return agentData;
         }
+        
+        public virtual void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint)
+        {
+            m_log.DebugFormat("[TEST CLIENT]: Processing inform client of neighbour");
+            
+            // In response to this message, we are going to make a teleport to the scene we've previous been told
+            // about by test code (this needs to be improved).
+            AgentCircuitData newAgent = RequestClientInfo();                       
+            
+            // Stage 2: add the new client as a child agent to the scene
+            TeleportSceneClient = new TestClient(newAgent, TeleportTargetScene);
+            TeleportTargetScene.AddNewClient(TeleportSceneClient);                       
+        }
+        
+        public virtual void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
+                                               uint locationID, uint flags, string capsURL)
+        {           
+            m_log.DebugFormat("[TEST CLIENT]: Received SendRegionTeleport");
+            
+            TeleportSceneClient.CompleteMovement();
+            //TeleportTargetScene.AgentCrossing(newAgent.AgentID, new Vector3(90, 90, 90), false);              
+        }
+
+        public virtual void SendTeleportFailed(string reason)
+        {
+            m_log.DebugFormat("[TEST CLIENT]: Teleport failed with reason {0}", reason);
+        }        
 
         public virtual void CrossRegion(ulong newRegionHandle, Vector3 pos, Vector3 lookAt,
                                         IPEndPoint newRegionExternalEndPoint, string capsURL)
@@ -484,15 +535,6 @@ namespace OpenSim.Tests.Common.Mock
         }
 
         public virtual void SendLocalTeleport(Vector3 position, Vector3 lookAt, uint flags)
-        {
-        }
-
-        public virtual void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
-                                               uint locationID, uint flags, string capsURL)
-        {
-        }
-
-        public virtual void SendTeleportFailed(string reason)
         {
         }
 
@@ -788,6 +830,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public void Close(bool ShutdownCircuit)
         {
+            m_scene.RemoveClient(AgentId);
         }
 
         public void Start()

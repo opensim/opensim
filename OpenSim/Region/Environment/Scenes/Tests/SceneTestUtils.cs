@@ -118,7 +118,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             scene.NewUserConnection(agent);
             
             // Stage 2: add the new client as a child agent to the scene
-            TestClient client = new TestClient(agent);
+            TestClient client = new TestClient(agent, scene);
             scene.AddNewClient(client);
             
             // Stage 3: Invoke agent crossing, which converts the child agent into a root agent (with appearance,

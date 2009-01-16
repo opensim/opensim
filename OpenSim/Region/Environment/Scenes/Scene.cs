@@ -2777,7 +2777,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             // Don't disable this log message - it's too helpful
             m_log.DebugFormat(
-                "[CONNECTION BEGIN]: Scene {0} told of incoming client {1} {2} {3} (circuit code {4})", 
+                "[CONNECTION BEGIN]: Region {0} told of incoming client {1} {2} {3} (circuit code {4})", 
                 RegionInfo.RegionName, agent.firstname, agent.lastname, agent.AgentID, agent.circuitcode);
             
             if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
@@ -2977,13 +2977,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual bool IncomingChildAgentDataUpdate(AgentData cAgentData)
         {
-            //Console.WriteLine(" XXX Scene IncomingChildAgentDataUpdate FULL in " + RegionInfo.RegionName);
+//            m_log.DebugFormat(
+//                "[SCENE]: Incoming child agent update for {0} in {1}", cAgentData.AgentID, RegionInfo.RegionName);
+            
             ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
                 childAgentUpdate.ChildAgentDataUpdate(cAgentData);
                 return true;
             }
+            
             return false;
         }
 
@@ -3030,6 +3033,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentID"></param>
         public bool IncomingCloseAgent(UUID agentID)
         {
+            //m_log.DebugFormat("[SCENE]: Processing incoming close agent for {0}", agentID);
+            
             ScenePresence presence = m_sceneGraph.GetScenePresence(agentID);
             if (presence != null)
             {
@@ -3056,9 +3061,11 @@ namespace OpenSim.Region.Environment.Scenes
                     else
                         presence.ControllingClient.SendShutdownConnectionNotice();
                 }
+                
                 presence.ControllingClient.Close(true);
                 return true;
             }
+            
             // Agent not here
             return false;
         }

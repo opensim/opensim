@@ -758,6 +758,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // both regions
                         if (avatar.ParentID != (uint)0)
                             avatar.StandUp();
+                        
                         if (!avatar.ValidateAttachments())
                         {
                             avatar.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
@@ -772,13 +773,13 @@ namespace OpenSim.Region.Environment.Scenes
                         // once we reach here...
                         //avatar.Scene.RemoveCapsHandler(avatar.UUID);
 
-
                         string capsPath = String.Empty;
                         AgentCircuitData agentCircuit = avatar.ControllingClient.RequestClientInfo();
                         agentCircuit.BaseFolder = UUID.Zero;
                         agentCircuit.InventoryFolder = UUID.Zero;
                         agentCircuit.startpos = position;
                         agentCircuit.child = true;
+                        
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
                             // brand new agent, let's create a new caps seed
@@ -870,7 +871,6 @@ namespace OpenSim.Region.Environment.Scenes
                             avatar.ControllingClient.SendRegionTeleport(reg.RegionHandle, 13, endPoint, 4,
                                                                         teleportFlags, capsPath);
                         }
-
 
                         // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
                         // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation

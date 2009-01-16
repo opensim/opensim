@@ -1017,9 +1017,12 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
                 {
+                    //m_log.DebugFormat("Found callback URI {0}", m_callbackURI);
                     Scene.SendReleaseAgent(m_rootRegionHandle, UUID, m_callbackURI);
                     m_callbackURI = null;
                 }
+                
+                //m_log.DebugFormat("Completed movement");
             }
         }
 
@@ -2594,7 +2597,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ChildAgentDataUpdate(AgentPosition cAgentData, uint tRegionX, uint tRegionY, uint rRegionX, uint rRegionY)
         {
-            //
             if (!IsChildAgent)
                 return;
 
@@ -2614,7 +2616,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
                 ControllingClient.SetChildAgentThrottle(cAgentData.Throttles);
-
 
             // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
             if (m_scene.m_seeIntoRegionFromNeighbor)
@@ -2661,7 +2662,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
             }
-
 
             cAgent.GodLevel = (byte)m_godlevel;
             cAgent.AlwaysRun = m_setAlwaysRun;

@@ -128,6 +128,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.Local
                     return true;
                 }
             }
+            
 //            m_log.DebugFormat("[LOCAL COMMS]: Did not find region {0} for SendCreateChildAgent", regionHandle);
             return false;
         }
@@ -138,12 +139,16 @@ namespace OpenSim.Region.Environment.Modules.Communications.Local
             {
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
-                    //m_log.Debug("[LOCAL COMMS]: Found region to send ChildAgentUpdate");
+                    //m_log.DebugFormat(
+                    //    "[LOCAL COMMS]: Found region {0} {1} to send ChildAgentUpdate", 
+                    //    s.RegionInfo.RegionName, regionHandle);
+                    
                     s.IncomingChildAgentDataUpdate(cAgentData);
                     return true;
                 }
             }
-            //m_log.Debug("[LOCAL COMMS]: region not found for ChildAgentUpdate");
+            
+//            m_log.DebugFormat("[LOCAL COMMS]: Did not find region {0} for ChildAgentUpdate", regionHandle);
             return false;
         }
 

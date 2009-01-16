@@ -64,9 +64,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             TestLLUDPServer testLLUDPServer;
             TestLLPacketServer testLLPacketServer;
             AgentCircuitManager acm;
-            SetupStack(new MockScene(), out testLLUDPServer, out testLLPacketServer, out acm);
+            IScene scene = new MockScene();
+            SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);
             
-            TestClient testClient = new TestClient(agent);
+            TestClient testClient = new TestClient(agent, scene);
             
             ILLPacketHandler packetHandler 
                 = new LLPacketHandler(testClient, testLLPacketServer, new ClientStackUserSettings());

@@ -1366,10 +1366,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(enablesimpacket, ThrottleOutPacketType.Task);
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <returns></returns>
         public AgentCircuitData RequestClientInfo()
         {
             AgentCircuitData agentData = new AgentCircuitData();

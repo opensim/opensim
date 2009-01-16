@@ -61,7 +61,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = Vector3.Zero;
             agent.CapsPath = "http://wibble.com";
-            client = new TestClient(agent);
+            client = new TestClient(agent, null);
             ts = new TextureSender(client, 0, 0);
             testsize = random.Next(5000,15000);
             npackets = CalculateNumPackets(testsize);
