@@ -378,7 +378,7 @@ namespace OpenSim.Data.NHibernate
         { 
             Dictionary<UUID, FriendRegionInfo> friendRegionInfos=new Dictionary<UUID, FriendRegionInfo>();
 
-            foreach(UUID friendId in friendsIds)
+            foreach (UUID friendId in friendsIds)
             {
                 UserAgentData agent=GetAgentByUUID(friendId);
                 if (agent != null)
