@@ -57,6 +57,10 @@ namespace OpenSim
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IHyperlink HGServices = null;
 
+        private uint m_autoMappingX = 0;
+        private uint m_autoMappingY = 0;
+        private bool m_enableAutoMapping = false;
+
         public HGOpenSimNode(IConfigSource configSource) : base(configSource)
         {
         }
@@ -140,7 +144,25 @@ namespace OpenSim
 
         public override void RunCmd(string command, string[] cmdparams)
         {
-            if (command.Equals("link-region"))
+            if (command.Equals("link-mapping"))
+            {
+                if (cmdparams.Length == 2)
+                {
+                    try
+                    {
+                        m_autoMappingX = Convert.ToUInt32(cmdparams[0]);
+                        m_autoMappingY = Convert.ToUInt32(cmdparams[1]);
+                        m_enableAutoMapping = true;
+                    }
+                    catch (Exception)
+                    {
+                        m_autoMappingX = 0;
+                        m_autoMappingY = 0;
+                        m_enableAutoMapping = false;
+                    }
+                }
+            }
+            else if (command.Equals("link-region"))
             {
                 // link-region <Xloc> <Yloc> <HostName> <HttpPort> <LocalName>
                 if (cmdparams.Length < 4)
@@ -203,9 +225,9 @@ namespace OpenSim
 
                 if (cmdparams.Length == 2)
                 {
-                    if (cmdparams[1].StartsWith("excludeList:"))
+                    if (cmdparams[1].ToLower().StartsWith("excludelist:"))
                     {
-                        string excludeString = cmdparams[1];
+                        string excludeString = cmdparams[1].ToLower();
                         excludeString = excludeString.Remove(0, 12);
                         char[] splitter = { ';' };
 
@@ -220,7 +242,7 @@ namespace OpenSim
                     {
                         for (int n = 0; n < excludeSections.Length; n++)
                         {
-                            if (excludeSections[n] == cs.Configs[i].Name)
+                            if (excludeSections[n] == cs.Configs[i].Name.ToLower())
                             {
                                 skip = true;
                                 break;
@@ -250,6 +272,12 @@ namespace OpenSim
             yloc = Convert.ToUInt32(config.GetString("yloc", "0"));
             externalPort = Convert.ToUInt32(config.GetString("externalPort", "0"));
             externalHostName = config.GetString("externalHostName", "");
+
+            if (m_enableAutoMapping)
+            {
+                xloc = (uint)((xloc % 100) + m_autoMappingX);
+                yloc = (uint)((yloc % 100) + m_autoMappingY);
+            }
 
             if (TryCreateLink(xloc, yloc, externalPort, externalHostName, out regInfo))
             {
