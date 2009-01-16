@@ -267,11 +267,14 @@ namespace OpenSim
             uint xloc, yloc;
             uint externalPort;
             string externalHostName;
+            uint realXLoc, realYLoc;
 
             xloc = Convert.ToUInt32(config.GetString("xloc", "0"));
             yloc = Convert.ToUInt32(config.GetString("yloc", "0"));
             externalPort = Convert.ToUInt32(config.GetString("externalPort", "0"));
             externalHostName = config.GetString("externalHostName", "");
+            realXLoc = Convert.ToUInt32(config.GetString("real-xloc", "0"));
+            realYLoc = Convert.ToUInt32(config.GetString("real-yloc", "0"));
 
             if (m_enableAutoMapping)
             {
@@ -279,9 +282,12 @@ namespace OpenSim
                 yloc = (uint)((yloc % 100) + m_autoMappingY);
             }
 
-            if (TryCreateLink(xloc, yloc, externalPort, externalHostName, out regInfo))
+            if (((realXLoc == 0) && (realYLoc == 0)) || (((realXLoc - xloc < 3896) || (xloc - realXLoc < 3896)) && ((realYLoc - yloc < 3896) || (yloc - realYLoc < 3896))))
             {
-                regInfo.RegionName = config.GetString("localName", "");
+                if (TryCreateLink(xloc, yloc, externalPort, externalHostName, out regInfo))
+                {
+                    regInfo.RegionName = config.GetString("localName", "");
+                }
             }
         }
 
