@@ -2758,6 +2758,7 @@
       <Files>
         <!-- SADLY the way this works means you need to keep adding these paths -->
         <Match path="Modules/World/Terrain/Tests" pattern="*.cs" recurse="true" />
+        <Match path="Modules/World/Archiver/Tests" pattern="*.cs" recurse="true" />
         <Match path="Modules/Agent/TextureSender/Tests" pattern="*.cs" recurse="true" />
         <Match path="Scenes/Tests" pattern="*.cs" recurse="false" />
       </Files>

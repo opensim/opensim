@@ -31,7 +31,6 @@ using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
-
 using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
@@ -152,6 +151,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
             int totalpkts = (npackets) + (npackets - 2) + (npackets - 4);
             Assert.That(client.sentpktpkt.Count,Is.EqualTo(totalpkts));
         }
+        
         /// <summary>
         /// Calculate the number of packets that will be required to send the texture loaded into this sender
         /// This is actually the number of 1000 byte packets not including an initial 600 byte packet...
