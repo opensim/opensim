@@ -1164,6 +1164,18 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
             }
 
+            public override bool Equals(object o)
+            {
+                if (!(o is list))
+                    return false;
+
+                return Data.Length == ((list)o).Data.Length;
+            }
+
+            public override int GetHashCode()
+            {
+                return Data.GetHashCode();
+            }
         }
 
         //
