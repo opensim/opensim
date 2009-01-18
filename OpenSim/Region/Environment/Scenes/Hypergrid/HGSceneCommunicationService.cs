@@ -70,7 +70,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
             if (!avatar.Scene.Permissions.CanTeleport(avatar.UUID))
                 return;
 
-            bool destRegionUp = false;
+            bool destRegionUp = true;
 
             IEventQueue eq = avatar.Scene.RequestModuleInterface<IEventQueue>();
 
@@ -136,17 +136,6 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                     if (eq == null)
                         avatar.ControllingClient.SendTeleportLocationStart();
 
-
-                    if (reg.RemotingAddress != "" && reg.RemotingPort != 0)
-                    {
-                        // region is remote. see if it is up
-                        destRegionUp = m_commsProvider.InterRegion.CheckRegion(reg.RemotingAddress, reg.RemotingPort);
-                    }
-                    else
-                    {
-                        // assume local regions are always up
-                        destRegionUp = true;
-                    }
 
                     // Let's do DNS resolution only once in this process, please!
                     // This may be a costly operation. The reg.ExternalEndPoint field is not a passive field,
