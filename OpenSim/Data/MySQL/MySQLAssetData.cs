@@ -142,7 +142,14 @@ namespace OpenSim.Data.MySQL
                             asset.Data = (byte[]) dbReader["data"];
                             asset.Description = (string) dbReader["description"];
                             asset.FullID = assetID;
-                            asset.Local = (bool)dbReader["local"];
+                            try
+                            {
+                                asset.Local = (bool)dbReader["local"];
+                            }
+                            catch (System.InvalidCastException)
+                            {
+                                asset.Local = false;
+                            }
                             asset.Name = (string) dbReader["name"];
                             asset.Type = (sbyte) dbReader["assetType"];
                         }
