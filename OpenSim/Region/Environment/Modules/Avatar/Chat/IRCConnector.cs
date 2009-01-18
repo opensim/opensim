@@ -146,6 +146,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             get { return m_server; }
             set { m_server = value; }
         }
+        private string m_password = null;
+        public string Password
+        {
+            get { return m_password; }
+            set { m_password = value; }
+        }
 
         private string m_user = "USER OpenSimBot 8 * :I'm an OpenSim to IRC bot";
         public string User
@@ -183,6 +189,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             // Setup IRC session parameters
 
             m_server        = cs.Server;
+            m_password      = cs.Password;
             m_baseNick      = cs.BaseNickname;
             m_randomizeNick = cs.RandomizeNickname;
             m_ircChannel    = cs.IrcChannel;
@@ -346,7 +353,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     ThreadTracker.Add(m_listener);
 
                     // This is the message order recommended by RFC 2812
-
+                    if (m_password != null)
+                        m_writer.WriteLine(String.Format("PASS {0}", m_password));
                     m_writer.WriteLine(String.Format("NICK {0}", m_nick));
                     m_writer.Flush();
                     m_writer.WriteLine(m_user);

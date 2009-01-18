@@ -56,6 +56,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         // default values (retained for compatability).
 
         internal string Server               = null;
+        internal string Password             = null;
         internal string IrcChannel           = null;
         internal string BaseNickname         = "OSimBot";
         internal uint   Port                 = 6667;
@@ -118,6 +119,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         internal ChannelState(ChannelState model)
         {
             Server               = model.Server;
+            Password             = model.Password;
             IrcChannel           = model.IrcChannel;
             Port                 = model.Port;
             BaseNickname         = model.BaseNickname;
@@ -159,6 +161,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             cs.Server               = Substitute(rs, config.GetString("server", null));
             m_log.DebugFormat("[IRC-Channel-{0}] Server : <{1}>", cs.idn, cs.Server);
+            cs.Password             = Substitute(rs, config.GetString("password", null));
+            // probably not a good idea to put a password in the log file
             cs.IrcChannel           = Substitute(rs, config.GetString("channel", null));
             m_log.DebugFormat("[IRC-Channel-{0}] IrcChannel : <{1}>", cs.idn, cs.IrcChannel);
             cs.Port                 = Convert.ToUInt32(Substitute(rs, config.GetString("port", Convert.ToString(cs.Port))));
