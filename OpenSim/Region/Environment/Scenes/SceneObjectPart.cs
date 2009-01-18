@@ -3478,6 +3478,16 @@ if (m_shape != null) {
                                 }
                             }
                         }
+                        if (
+                            ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+                            (CollisionSound != UUID.Zero)
+                            )
+                        {
+                                PhysActor.OnCollisionUpdate += PhysicsCollision;
+                                PhysActor.SubscribeEvents(1000);
+                        }
                     }
                 }
                 else // it already has a physical representation
