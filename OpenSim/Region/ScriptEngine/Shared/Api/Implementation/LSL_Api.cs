@@ -2491,7 +2491,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (new_group.RootPart.PhysActor != null && new_group.RootPart.PhysActor.IsPhysical && llvel != Vector3.Zero)
                     {
-                        new_group.RootPart.ApplyImpulse(llvel, false);
                         //Recoil.
                         llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
                     }

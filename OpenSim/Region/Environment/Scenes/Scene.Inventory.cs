@@ -2472,7 +2472,12 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     group.UpdateGroupRotation(rot);
                     //group.ApplyPhysics(m_physicalPrim);
-                    group.Velocity = vel;
+                    if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
+                    {
+                        group.RootPart.ApplyImpulse(vel, false);
+                        group.Velocity = vel;
+                        rootPart.ScheduleFullUpdate();
+                    }
                     group.CreateScriptInstances(param, true, DefaultScriptEngine, 2);
                     rootPart.ScheduleFullUpdate();
 
