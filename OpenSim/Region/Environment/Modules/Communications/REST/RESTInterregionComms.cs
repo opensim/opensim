@@ -184,6 +184,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             return false;
 
         }
+        
         public bool SendReleaseAgent(ulong regionHandle, UUID id, string uri)
         {
             // Try local first
@@ -209,11 +210,12 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             //else
             //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
-        }
+        }              
 
         #endregion /* IInterregionComms */
 
         #region DoWork functions for the above public interface
+        
         //-------------------------------------------------------------------
         // Internal  functions for the above public interface
         //-------------------------------------------------------------------
@@ -385,7 +387,6 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             }
 
             return true;
-
         }
 
         protected bool DoReleaseAgentCall(ulong regionHandle, UUID id, string uri)
@@ -418,7 +419,6 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             }
 
             return true;
-
         }
 
         protected bool DoCloseAgentCall(RegionInfo region, UUID id)
@@ -453,10 +453,9 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             }
 
             return true;
-
         }
-
-        #endregion /* DoWork */
+        
+        #endregion /* Do Work */
 
         #region Incoming calls from remote instances
 
@@ -653,9 +652,11 @@ namespace OpenSim.Region.Environment.Modules.Communications.REST
             responsedata["int_response_code"] = 200;
             responsedata["str_response_string"] = "OpenSim agent " + id.ToString();
         }
+        
         #endregion 
 
         #region Misc
+        
         /// <summary>
         /// Extract the param from an uri.
         /// </summary>

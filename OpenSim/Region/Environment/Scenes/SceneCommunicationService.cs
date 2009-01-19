@@ -680,8 +680,6 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void RequestTeleportToLocation(ScenePresence avatar, ulong regionHandle, Vector3 position,
                                                       Vector3 lookAt, uint teleportFlags)
         {
-            m_log.DebugFormat("[SCENE COMMUNICATION SERVICE]: RequestTeleportToLocation {0} ", position.ToString());
-
             if (!avatar.Scene.Permissions.CanTeleport(avatar.UUID))
                 return;
 
@@ -691,6 +689,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (regionHandle == m_regionInfo.RegionHandle)
             {
+                m_log.DebugFormat(
+                    "[SCENE COMMUNICATION SERVICE]: RequestTeleportToLocation {0} within {1}", 
+                    position, m_regionInfo.RegionName);
+                
                 // Teleport within the same region
                 if (position.X < 0 || position.X > Constants.RegionSize || position.Y < 0 || position.Y > Constants.RegionSize || position.Z < 0)
                 {
@@ -723,6 +725,10 @@ namespace OpenSim.Region.Environment.Scenes
                 RegionInfo reg = RequestNeighbouringRegionInfo(regionHandle);
                 if (reg != null)
                 {
+                    m_log.DebugFormat(
+                        "[SCENE COMMUNICATION SERVICE]: RequestTeleportToLocation to {0} {1}", 
+                        position, reg.RegionName);
+                    
                     if (eq == null)
                         avatar.ControllingClient.SendTeleportLocationStart();
 
@@ -870,6 +876,7 @@ namespace OpenSim.Region.Environment.Scenes
                             avatar.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
 
                             ResetFromTransit(avatar.UUID);
+                            
                             // Yikes! We should just have a ref to scene here.
                             avatar.Scene.InformClientOfNeighbours(avatar);
 
