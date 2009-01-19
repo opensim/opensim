@@ -580,7 +580,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //    Console.WriteLine("ENdPacket");
             //Console.WriteLine(String.Format("srcLen:{0}, BytePos:{1}, desLen:{2}, pktsize{3}", m_asset_ref.Data.Length, CurrentBytePosition(),0, imagePacketSize));
 
-            
+            bool atEnd = false;
+
+            // edge case
+            if ((CurrentBytePosition() + IMAGE_PACKET_SIZE) > m_asset_ref.Data.Length)
+            {
+                imagePacketSize = LastPacketSize();
+                atEnd = true;
+                // edge case 2!
+                if ((CurrentBytePosition() + imagePacketSize) > m_asset_ref.Data.Length)
+                {
+                    imagePacketSize = m_asset_ref.Data.Length - CurrentBytePosition();
+                    atEnd = true;
+                }
+            }
+
             byte[] imageData = new byte[imagePacketSize];
             try { Buffer.BlockCopy(m_asset_ref.Data, CurrentBytePosition(), imageData, 0, imagePacketSize); }
             catch (Exception e)
@@ -596,7 +610,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Send next packet to the client
             client.SendImageNextPart((ushort)(CurrentPacket - 1), requestedUUID, imageData);
+            
             ++CurrentPacket;
+
+            if (atEnd)
+                CurrentPacket = StopPacket + 1;
+
             return true;
         }
         
