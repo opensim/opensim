@@ -404,13 +404,12 @@ namespace OpenSim.Data.SQLite
             DataTable shapes = ds.Tables["primshapes"];
 
             string byRegion = "RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
-            string orderByParent = "ParentID ASC";
 
             lock (ds)
             {
-                DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
-                m_log.Info("[REGION DB]: " +
-                                         "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
+                DataRow[] primsForRegion = prims.Select(byRegion);
+                m_log.Info("[REGION DB]: Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
+                
                 // First, create all groups 
                 foreach (DataRow primRow in primsForRegion)
                 {

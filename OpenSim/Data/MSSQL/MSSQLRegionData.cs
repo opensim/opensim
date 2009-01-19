@@ -934,7 +934,6 @@ VALUES
             prim.UUID = new UUID((String)primRow["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
-            //prim.ParentID = (uint)Convert.ToInt32(primRow["ParentID"]);
             prim.CreationDate = Convert.ToInt32(primRow["CreationDate"]);
             prim.Name = (String)primRow["Name"];
             // various text fields
@@ -1315,7 +1314,6 @@ VALUES
 
             parameters.Add(_Database.CreateParameter("UUID", prim.UUID));
             parameters.Add(_Database.CreateParameter("RegionUUID", regionUUID));
-            //parameters.Add(_Database.CreateParameter("ParentID", (int)prim.ParentID));
             parameters.Add(_Database.CreateParameter("CreationDate", prim.CreationDate));
             parameters.Add(_Database.CreateParameter("Name", prim.Name));
             parameters.Add(_Database.CreateParameter("SceneGroupID", sceneGroupID));
