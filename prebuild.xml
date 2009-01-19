@@ -1074,6 +1074,7 @@
       <Reference name="XMLRPC.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
+      <Reference name="C5.dll" />
 
       <Files>
         <Match pattern="*.cs" recurse="false"/>

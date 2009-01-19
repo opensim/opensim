@@ -99,6 +99,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected LLPacketServer m_networkServer;
 
+        protected LLImageManager m_imageManager;
+
         /* public variables */
         protected string m_firstName;
         protected string m_lastName;
@@ -471,6 +473,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler.OnPacketStats += PopulateStats;
             
             RegisterLocalPacketHandlers();
+            m_imageManager = new LLImageManager(this, m_assetCache,Scene.RequestModuleInterface<OpenSim.Region.Environment.Interfaces.IJ2KDecoder>());
         }
 
         public void SetDebugPacketLevel(int newDebugPacketLevel)
@@ -496,6 +499,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Shut down timers
             m_clientPingTimer.Stop();
 
+            
             // This is just to give the client a reasonable chance of
             // flushing out all it's packets.  There should probably
             // be a better mechanism here
@@ -510,7 +514,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!(shutdownCircuit))
             {
                 GC.Collect();
-
+                m_imageManager = null;
                 // Sends a KillPacket object, with which, the
                 // blockingqueue dequeues and sees it's a killpacket
                 // and terminates within the context of the client thread.
@@ -532,6 +536,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_log.DebugFormat(
                 "[CLIENT]: Close has been called with shutdownCircuit = {0} for {1} attached to scene {2}",
                 shutdownCircuit, Name, m_scene.RegionInfo.RegionName);
+            
+            m_imageManager.Close();
 
             m_PacketHandler.Flush();
 
@@ -2759,7 +2765,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
         {
             ImageDataPacket im = new ImageDataPacket();
-            im.Header.Reliable = false;
+            im.Header.Reliable = true;
             im.ImageID.Packets = numParts;
             im.ImageID.ID = ImageUUID;
 
@@ -2775,7 +2781,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData)
         {
             ImagePacketPacket im = new ImagePacketPacket();
-            im.Header.Reliable = false;
+            im.Header.Reliable = true;
             im.ImageID.Packet = partNumber;
             im.ImageID.ID = imageUuid;
             im.ImageData.Data = imageData;
@@ -4192,6 +4198,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (ProcessPacketMethod(Pack))
             {
                 //there is a handler registered that handled this packet type
+                
+                // in the end, we dereference this, so we have to check if it's null
+                if (m_imageManager != null)
+                    m_imageManager.ProcessImageQueue(3);
                 return;
             }
             
@@ -5232,10 +5242,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             args.PacketNumber = imageRequest.RequestImage[i].Packet;
                             args.Priority = imageRequest.RequestImage[i].DownloadPriority;
 
-                            handlerTextureRequest = OnRequestTexture;
+                            //handlerTextureRequest = OnRequestTexture;
 
-                            if (handlerTextureRequest != null)
-                                OnRequestTexture(this, args);
+                            //if (handlerTextureRequest != null)
+                                //OnRequestTexture(this, args);
+                            m_imageManager.EnqueueReq(args);
                         }
                     }
                     break;
@@ -7374,6 +7385,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     #endregion
             }
 
+            // in the end, we dereference this, so we have to check if it's null
+            if (m_imageManager != null )
+                m_imageManager.ProcessImageQueue(3);
             PacketPool.Instance.ReturnPacket(Pack);
         }
 

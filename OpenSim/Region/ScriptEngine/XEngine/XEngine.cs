@@ -63,7 +63,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private IConfig m_ScriptConfig;
         private ICompiler m_Compiler;
         private int m_MinThreads;
-        private int m_MaxThreads;
+        private int m_MaxThreads ;
         private int m_IdleTimeout;
         private int m_StackSize;
         private int m_SleepTime;
@@ -72,8 +72,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private bool m_Enabled = false;
         private bool m_InitialStartup = true;
 
-        // disable warning: need to keep a reference to XEngine.EventManager
-        // alive to avoid it being garbage collected
+// disable warning: need to keep a reference to XEngine.EventManager
+// alive to avoid it being garbage collected
 #pragma warning disable 414
         private EventManager m_EventManager;
 #pragma warning restore 414
@@ -85,8 +85,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         // Maps the local id to the script inventory items in it
 
-        private Dictionary<uint, List<UUID>> m_PrimObjects =
-                new Dictionary<uint, List<UUID>>();
+        private Dictionary<uint, List<UUID> > m_PrimObjects =
+                new Dictionary<uint, List<UUID> >();
 
         // Maps the UUID above to the script instance
 
@@ -105,8 +105,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         // List the scripts running in each appdomain
 
-        private Dictionary<UUID, List<UUID>> m_DomainScripts =
-                new Dictionary<UUID, List<UUID>>();
+        private Dictionary<UUID, List<UUID> > m_DomainScripts =
+                new Dictionary<UUID, List<UUID> >();
 
         private Queue m_CompileQueue = new Queue(100);
         IWorkItemResult m_CurrentCompile = null;
@@ -152,7 +152,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             if (m_ScriptConfig == null)
             {
-                //                m_log.ErrorFormat("[XEngine] No script configuration found. Scripts disabled");
+//                m_log.ErrorFormat("[XEngine] No script configuration found. Scripts disabled");
                 return;
             }
 
@@ -172,7 +172,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_MaxThreads = m_ScriptConfig.GetInt("MaxThreads", 100);
             m_IdleTimeout = m_ScriptConfig.GetInt("IdleTimeout", 60);
             string priority = m_ScriptConfig.GetString("Priority", "BelowNormal");
-            m_MaxScriptQueue = m_ScriptConfig.GetInt("MaxScriptEventQueue", 300);
+            m_MaxScriptQueue = m_ScriptConfig.GetInt("MaxScriptEventQueue",300);
             m_StackSize = m_ScriptConfig.GetInt("ThreadStackSize", 262144);
             m_SleepTime = m_ScriptConfig.GetInt("MaintenanceInterval", 10) * 1000;
 
@@ -239,7 +239,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (m_SleepTime > 0)
             {
                 m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoMaintenance),
-                                           new Object[] { m_SleepTime });
+                                           new Object[]{ m_SleepTime });
             }
 
             if (m_SaveTime > 0)
@@ -268,7 +268,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (saveTime > 0)
                 System.Threading.Thread.Sleep(saveTime);
 
-            //            m_log.Debug("[XEngine] Backing up script states");
+//            m_log.Debug("[XEngine] Backing up script states");
 
             List<IScriptInstance> instances = new List<IScriptInstance>();
 
@@ -319,7 +319,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             System.Threading.Thread.Sleep(sleepTime);
 
             m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoMaintenance),
-                                       new Object[] { sleepTime });
+                                       new Object[]{ sleepTime });
 
             return 0;
         }
@@ -351,12 +351,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 int colon = firstline.IndexOf(':');
                 if (firstline.Length > 2 && firstline.Substring(0, 2) == "//" && colon != -1)
                 {
-                    string engineName = firstline.Substring(2, colon - 2);
+                    string engineName = firstline.Substring(2, colon-2);
 
                     if (names.Contains(engineName))
                     {
                         engine = engineName;
-                        script = "//" + script.Substring(script.IndexOf(':') + 1);
+                        script = "//" + script.Substring(script.IndexOf(':')+1);
                     }
                     else
                     {
@@ -365,21 +365,21 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             SceneObjectPart part =
                                     m_Scene.GetSceneObjectPart(
                                     localID);
-
+                         
                             TaskInventoryItem item =
                                     part.Inventory.GetInventoryItem(itemID);
 
-                            ScenePresence presence =
+                            ScenePresence presence = 
                                     m_Scene.GetScenePresence(
                                     item.OwnerID);
 
                             if (presence != null)
                             {
-                                presence.ControllingClient.SendAgentAlertMessage(
-                                         "Selected engine unavailable. " +
-                                         "Running script on " +
-                                         ScriptEngineName,
-                                         false);
+                               presence.ControllingClient.SendAgentAlertMessage(
+                                        "Selected engine unavailable. "+
+                                        "Running script on "+
+                                        ScriptEngineName,
+                                        false);
                             }
                         }
                     }
@@ -389,7 +389,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (engine != ScriptEngineName)
                 return;
 
-            Object[] parms = new Object[] { localID, itemID, script, startParam, postOnRez, (StateSource)stateSource };
+            Object[] parms = new Object[]{localID, itemID, script, startParam, postOnRez, (StateSource)stateSource};
 
             if (stateSource == (int)StateSource.ScriptedRez)
             {
@@ -453,7 +453,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             Object[] p = (Object[])parm;
             uint localID = (uint)p[0];
             UUID itemID = (UUID)p[1];
-            string script = (string)p[2];
+            string script =(string)p[2];
             int startParam = (int)p[3];
             bool postOnRez = (bool)p[4];
             StateSource stateSource = (StateSource)p[5];
@@ -469,7 +469,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 Log.Error("[Script] SceneObjectPart unavailable. Script NOT started.");
                 return false;
-            }
+            }     
 
             TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
             if (item == null)
@@ -477,8 +477,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             UUID assetID = item.AssetID;
 
-            //            m_log.DebugFormat("[XEngine] Compiling script {0} ({1})",
-            //                    item.Name, itemID.ToString());
+//            m_log.DebugFormat("[XEngine] Compiling script {0} ({1})",
+//                    item.Name, itemID.ToString());
 
             ScenePresence presence = m_Scene.GetScenePresence(item.OwnerID);
 
@@ -509,7 +509,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
                 catch (Exception e2) // LEGIT: User Scripting
                 {
-                    m_log.Error("[XEngine]: " +
+                    m_log.Error("[XEngine]: "+
                             "Error displaying error in-world: " +
                             e2.ToString());
                     m_log.Error("[XEngine]: " +
@@ -537,17 +537,27 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         try
                         {
                             AppDomainSetup appSetup = new AppDomainSetup();
-                            //                            appSetup.ApplicationBase = Path.Combine(
-                            //                                    "ScriptEngines",
-                            //                                    m_Scene.RegionInfo.RegionID.ToString());
+//                            appSetup.ApplicationBase = Path.Combine(
+//                                    "ScriptEngines",
+//                                    m_Scene.RegionInfo.RegionID.ToString());
 
                             Evidence baseEvidence = AppDomain.CurrentDomain.Evidence;
                             Evidence evidence = new Evidence(baseEvidence);
 
-                            m_AppDomains[appDomain] =
+                            AppDomain sandbox =
                                 AppDomain.CreateDomain(
                                     m_Scene.RegionInfo.RegionID.ToString(),
                                     evidence, appSetup);
+/*                            
+                            PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
+                            AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
+                            PermissionSet sandboxPermissionSet = sandboxPolicy.GetNamedPermissionSet("Internet");
+                            PolicyStatement sandboxPolicyStatement = new PolicyStatement(sandboxPermissionSet);
+                            CodeGroup sandboxCodeGroup = new UnionCodeGroup(sandboxMembershipCondition, sandboxPolicyStatement);
+                            sandboxPolicy.RootCodeGroup = sandboxCodeGroup;
+                            sandbox.SetAppDomainPolicy(sandboxPolicy);
+*/
+                            m_AppDomains[appDomain] = sandbox;
 
                             m_AppDomains[appDomain].AssemblyResolve +=
                                 new ResolveEventHandler(
@@ -603,7 +613,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (!m_Scripts.ContainsKey(itemID))
                     return;
 
-                IScriptInstance instance = m_Scripts[itemID];
+                IScriptInstance instance=m_Scripts[itemID];
                 m_Scripts.Remove(itemID);
 
                 instance.ClearQueue();
@@ -675,17 +685,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             foreach (UUID assetID in assetIDList)
             {
-                //                m_log.DebugFormat("[XEngine] Removing unreferenced assembly {0}", m_Assemblies[assetID]);
+//                m_log.DebugFormat("[XEngine] Removing unreferenced assembly {0}", m_Assemblies[assetID]);
                 try
                 {
                     if (File.Exists(m_Assemblies[assetID]))
                         File.Delete(m_Assemblies[assetID]);
 
-                    if (File.Exists(m_Assemblies[assetID] + ".state"))
-                        File.Delete(m_Assemblies[assetID] + ".state");
+                    if (File.Exists(m_Assemblies[assetID]+".state"))
+                        File.Delete(m_Assemblies[assetID]+".state");
 
-                    if (File.Exists(m_Assemblies[assetID] + ".mdb"))
-                        File.Delete(m_Assemblies[assetID] + ".mdb");
+                    if (File.Exists(m_Assemblies[assetID]+".mdb"))
+                        File.Delete(m_Assemblies[assetID]+".mdb");
                 }
                 catch (Exception)
                 {
@@ -703,7 +713,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 AppDomain.Unload(domain);
                 domain = null;
-                //                m_log.DebugFormat("[XEngine] Unloaded app domain {0}", id.ToString());
+//                m_log.DebugFormat("[XEngine] Unloaded app domain {0}", id.ToString());
             }
         }
 
@@ -735,8 +745,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return new XWorkItem(m_ThreadPool.QueueWorkItem(
                                      new WorkItemCallback(this.ProcessEventHandler),
                                      parms));
-        }
-
+        }     
+        
         /// <summary>
         /// Process a previously posted script event.
         /// </summary>
@@ -747,8 +757,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             CultureInfo USCulture = new CultureInfo("en-US");
             Thread.CurrentThread.CurrentCulture = USCulture;
 
-            IScriptInstance instance = (ScriptInstance)parms;
-
+            IScriptInstance instance = (ScriptInstance) parms;
+            
             //m_log.DebugFormat("[XENGINE]: Processing event for {0}", instance);
 
             return instance.EventProcessor();
@@ -763,13 +773,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public bool PostObjectEvent(uint localID, EventParams p)
         {
             bool result = false;
-
+            
             lock (m_PrimObjects)
             {
                 if (!m_PrimObjects.ContainsKey(localID))
                     return false;
 
-
+            
                 foreach (UUID itemID in m_PrimObjects[localID])
                 {
                     if (m_Scripts.ContainsKey(itemID))
@@ -821,7 +831,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             foreach (string s in pathList)
             {
                 string path = Path.Combine(Directory.GetCurrentDirectory(),
-                                           Path.Combine(s, assemblyName)) + ".dll";
+                                           Path.Combine(s, assemblyName))+".dll";
 
                 if (File.Exists(path))
                     return Assembly.LoadFrom(path);
@@ -959,7 +969,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 i.Running = prevRunning;
             }
 
-            DoBackup(new Object[] { 0 });
+            DoBackup(new Object[] {0});
         }
 
         public IScriptApi GetApi(UUID itemID, string name)

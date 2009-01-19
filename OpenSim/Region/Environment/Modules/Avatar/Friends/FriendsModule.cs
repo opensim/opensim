@@ -30,7 +30,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenMetaverse;
-using OpenMetaverse.Packets;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -102,10 +101,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
         private Dictionary<UUID, ulong> m_rootAgents = new Dictionary<UUID, ulong>();
 
-        private Dictionary<UUID, UUID> m_pendingCallingcardRequests = new Dictionary<UUID, UUID>();
+        private Dictionary<UUID, UUID> m_pendingCallingcardRequests = new Dictionary<UUID,UUID>();
 
         private Scene m_initialScene; // saves a lookup if we don't have a specific scene
-        private Dictionary<ulong, Scene> m_scenes = new Dictionary<ulong, Scene>();
+        private Dictionary<ulong, Scene> m_scenes = new Dictionary<ulong,Scene>();
         private IMessageTransferModule m_TransferModule = null;
 
         #region IRegionModule Members
@@ -125,9 +124,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 if (!m_scenes.ContainsKey(scene.RegionInfo.RegionHandle))
                     m_scenes[scene.RegionInfo.RegionHandle] = scene;
             }
-
+            
             scene.RegisterModuleInterface<IFriendsModule>(this);
-
+            
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
@@ -180,7 +179,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             lock (m_rootAgents)
             {
                 List<ScenePresence> friendsHere = new List<ScenePresence>();
-
+                
                 try
                 {
                     UUID agentID = new UUID((string)requestData["agentID"]);
@@ -213,7 +212,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                         }
                     }
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     m_log.Warn("[FRIENDS]: Got exception while parsing presence_update_bulk request:", e);
                 }
@@ -375,24 +374,24 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             }
             return returnAgent;
         }
-
+        
         public void OfferFriendship(UUID fromUserId, IClientAPI toUserClient, string offerMessage)
         {
             CachedUserInfo userInfo = m_initialScene.CommsManager.UserProfileCacheService.GetUserDetails(fromUserId);
-
+                
             if (userInfo != null)
             {
                 GridInstantMessage msg = new GridInstantMessage(
                     toUserClient.Scene, fromUserId, userInfo.UserProfile.Name, toUserClient.AgentId,
-                    (byte)InstantMessageDialog.FriendshipOffered, offerMessage, false, Vector3.Zero);
-
+                    (byte)InstantMessageDialog.FriendshipOffered, offerMessage, false, Vector3.Zero); 
+            
                 FriendshipOffered(msg);
             }
             else
             {
                 m_log.ErrorFormat("[FRIENDS]: No user found for id {0} in OfferFriendship()", fromUserId);
             }
-        }
+        }        
 
         #region FriendRequestHandling
 
@@ -414,7 +413,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 FriendshipDeclined(client, im);
             }
         }
-
+        
         /// <summary>
         /// Invoked when a user offers a friendship.
         /// </summary>
@@ -449,14 +448,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 // If new friend is local, it will send an IM to the viewer.
                 // If new friend is remote, it will cause a OnGridInstantMessage on the remote server
                 m_TransferModule.SendInstantMessage(im,
-                    delegate(bool success)
+                    delegate(bool success) 
                     {
                         m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
                     }
                 );
-            }
+            }            
         }
-
+        
         /// <summary>
         /// Invoked when a user accepts a friendship offer.
         /// </summary>
@@ -465,9 +464,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         private void FriendshipAccepted(IClientAPI client, GridInstantMessage im)
         {
             m_log.DebugFormat("[FRIEND]: 39 - from client {0}, agent {2} {3}, imsession {4} to {5}: {6} (dialog {7})",
-              client.AgentId, im.fromAgentID, im.fromAgentName, im.imSessionID, im.toAgentID, im.message, im.dialog);
+              client.AgentId, im.fromAgentID, im.fromAgentName, im.imSessionID, im.toAgentID, im.message, im.dialog);            
         }
-
+        
         /// <summary>
         /// Invoked when a user declines a friendship offer.
         /// </summary>
@@ -478,7 +477,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         {
             UUID fromAgentID = new UUID(im.fromAgentID);
             UUID toAgentID = new UUID(im.toAgentID);
-
+            
             // declining the friendship offer causes a type 40 IM being sent to the (possibly remote) initiator
             // toAgentID is initiator, fromAgentID declined friendship
             m_log.DebugFormat("[FRIEND]: 40 - from client {0}, agent {1} {2}, imsession {3} to {4}: {5} (dialog {6})",
@@ -488,15 +487,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // Send the decline to whoever is the destination.
             GridInstantMessage msg = new GridInstantMessage(client.Scene, fromAgentID, client.Name, toAgentID,
                                                             im.dialog, im.message, im.offline != 0, im.Position);
-
+            
             // If new friend is local, it will send an IM to the viewer.
             // If new friend is remote, it will cause a OnGridInstantMessage on the remote server
             m_TransferModule.SendInstantMessage(msg,
-                delegate(bool success)
-                {
+                delegate(bool success) {
                     m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
                 }
-            );
+            );            
         }
 
         private void OnGridInstantMessage(GridInstantMessage msg)
@@ -512,8 +510,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             {
                 // this should succeed as we *know* the root agent is here.
                 m_TransferModule.SendInstantMessage(msg,
-                    delegate(bool success)
-                    {
+                    delegate(bool success) {
                         m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
                     }
                 );
@@ -569,7 +566,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                               client.Name, client.AgentId, agentID, friendID);
 
             // store the new friend persistently for both avatars
-            m_initialScene.StoreAddFriendship(friendID, agentID, (uint)FriendRights.CanSeeOnline);
+            m_initialScene.StoreAddFriendship(friendID, agentID, (uint) FriendRights.CanSeeOnline);
 
             // The cache entries aren't valid anymore either, as we just added a friend to both sides.
             lock (m_friendLists)
@@ -612,8 +609,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 if (m_TransferModule != null)
                 {
                     m_TransferModule.SendInstantMessage(msg,
-                        delegate(bool success)
-                        {
+                        delegate(bool success) {
                             m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
                         }
                     );
@@ -637,8 +633,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             if (m_TransferModule != null)
             {
                 m_TransferModule.SendInstantMessage(msg,
-                    delegate(bool success)
-                    {
+                    delegate(bool success) {
                         m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
                     }
                 );
@@ -818,16 +813,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // I can't believe that we have Dictionaries, but no Sets, considering Java introduced them years ago...
             List<UUID> friendIDsToSendTo = new List<UUID>();
             List<UUID> candidateFriendIDsToReceive = new List<UUID>();
-
+            
             foreach (FriendListItem item in friendList)
             {
                 if (((item.FriendListOwnerPerms | item.FriendPerms) & (uint)FriendRights.CanSeeOnline) != 0)
                 {
                     // friend is allowed to see my presence => add
-                    if ((item.FriendListOwnerPerms & (uint)FriendRights.CanSeeOnline) != 0)
+                    if ((item.FriendListOwnerPerms & (uint)FriendRights.CanSeeOnline) != 0) 
                         friendIDsToSendTo.Add(item.Friend);
 
-                    if ((item.FriendPerms & (uint)FriendRights.CanSeeOnline) != 0)
+                    if ((item.FriendPerms & (uint)FriendRights.CanSeeOnline) != 0) 
                         candidateFriendIDsToReceive.Add(item.Friend);
                 }
             }
@@ -866,7 +861,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 if (iAmOnline)
                 {
                     List<UUID> friendIDsToReceive = new List<UUID>();
-
+                    
                     for (int i = candidateFriendIDsToReceive.Count - 1; i >= 0; --i)
                     {
                         UUID uuid = candidateFriendIDsToReceive[i];
@@ -876,11 +871,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                             friendIDsToReceive.Add(uuid);
                         }
                     }
-
+                    
                     m_log.DebugFormat(
                         "[FRIEND]: Sending {0} online friends to {1}", friendIDsToReceive.Count, client.Name);
-
-                    if (friendIDsToReceive.Count > 0)
+                    
+                    if (friendIDsToReceive.Count > 0) 
                         client.SendAgentOnline(friendIDsToReceive.ToArray());
 
                     // clear them for a possible second iteration; we don't have to repeat this
@@ -923,7 +918,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 if (friendIDsToSendTo.Count > 0)
                 {
                     // sort them into regions
-                    Dictionary<ulong, List<UUID>> friendsInRegion = new Dictionary<ulong, List<UUID>>();
+                    Dictionary<ulong, List<UUID>> friendsInRegion = new Dictionary<ulong,List<UUID>>();
                     foreach (UUID uuid in friendIDsToSendTo)
                     {
                         ulong handle = friendRegions[uuid].regionHandle; // this can't fail as we filtered above already
@@ -1002,5 +997,5 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         }
     }
 
-        #endregion
+    #endregion
 }

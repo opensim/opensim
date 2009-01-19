@@ -114,7 +114,7 @@ This software uses components from the following developers:
 * LibSecondLife (http://www.libsecondlife.org/wiki/Main_Page)
 * DotNetOpenMail v0.5.8b (http://dotnetopenmail.sourceforge.net)
 * Prototype JavaScript Framework ajax (http://www.prototypejs.org/)
-
+* C5 GENERIC COLLECTION LIBRARY FOR C#/CLI
 
 In addition, we would like to thank:
 * The Mono Project
