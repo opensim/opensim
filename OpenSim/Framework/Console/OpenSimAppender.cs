@@ -37,6 +37,21 @@ namespace OpenSim.Framework.Console
     /// </summary>
     public class OpenSimAppender : AnsiColorTerminalAppender
     {
+        private static readonly ConsoleColor[] Colors = {
+            ConsoleColor.DarkBlue,
+            ConsoleColor.DarkGreen,
+            ConsoleColor.DarkCyan,
+            ConsoleColor.DarkMagenta,
+            ConsoleColor.DarkYellow,
+            ConsoleColor.Gray,
+            ConsoleColor.DarkGray,
+            ConsoleColor.Blue,
+            ConsoleColor.Green,
+            ConsoleColor.Cyan,
+            ConsoleColor.Magenta,
+            ConsoleColor.Yellow
+        };
+
         override protected void Append(LoggingEvent le)
         {
             try
@@ -108,8 +123,7 @@ namespace OpenSim.Framework.Console
 
         private static ConsoleColor DeriveColor(string input)
         {
-            int colIdx = (input.ToUpper().GetHashCode() % 6) + 9;
-            return (ConsoleColor) colIdx;
+            return Colors[(input.ToUpper().GetHashCode() % Colors.Length)];
         }
     }
 }
