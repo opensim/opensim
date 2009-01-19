@@ -56,8 +56,6 @@ namespace OpenSim.Framework.Communications.Cache
             RestClient rc = new RestClient(_assetServerUrl);
             rc.AddResourcePath("assets");
             rc.AddResourcePath(req.AssetID.ToString());
-            if (req.IsTexture)
-                rc.AddQueryParameter("texture");
 
             rc.RequestMethod = "GET";
 
