@@ -123,7 +123,8 @@ namespace OpenSim.Framework.Console
 
         private static ConsoleColor DeriveColor(string input)
         {
-            return Colors[(input.ToUpper().GetHashCode() % Colors.Length)];
+            // it is important to do Abs, hash values can be negative
+            return Colors[(Math.Abs(input.ToUpper().GetHashCode()) % Colors.Length)];
         }
     }
 }
