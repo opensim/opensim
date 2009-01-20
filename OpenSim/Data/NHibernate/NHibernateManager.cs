@@ -45,9 +45,12 @@ namespace OpenSim.Data.NHibernate
         private Configuration configuration;
         private ISessionFactory sessionFactory;
 
-        public NHibernateManager(string connect, string store)
+        /// <summary>
+        /// Parses the connection string and creates the NHibernate configuration
+        /// </summary>
+        /// <param name="connect">NHibernate dialect, driver and connection string separated by ';'</param>
+        private void parseConnectionString(string connect)
         {
-
             // Split out the dialect, driver, and connect string
             char[] split = { ';' };
             string[] parts = connect.Split(split, 3);
@@ -70,26 +73,62 @@ namespace OpenSim.Data.NHibernate
             configuration.SetProperty(Environment.ConnectionString, parts[2]);
             configuration.AddAssembly("OpenSim.Data.NHibernate");
 
-            //To create sql file uncomment code below and write the name of the file
-            //SchemaExport exp = new SchemaExport(cfg);
-            //exp.SetOutputFile("nameofthefile.sql");
-            //exp.Create(false, true);
-
             sessionFactory = configuration.BuildSessionFactory();
+        }
 
-            Assembly assembly = GetType().Assembly;
-
+        /// <summary>
+        /// Runs migration for the the store in assembly
+        /// </summary>
+        /// <param name="dialect">Dialect in use</param>
+        /// <param name="assembly">Assembly where migration files exist</param>
+        /// <param name="store">Name of the store in use</param>
+        private void runMigration(string dialect, Assembly assembly, string store)
+        {
             // Migration subtype is the folder name under which migrations are stored. For mysql this folder is
             // MySQLDialect instead of MySQL5Dialect which is the dialect currently in use. To avoid renaming 
             // this folder each time the mysql version changes creating simple mapping:
             String migrationSubType = dialect;
             if (dialect.StartsWith("MySQL"))
             {
-                migrationSubType="MySQLDialect";
+                migrationSubType = "MySQLDialect";
             }
 
             Migration migration = new Migration((System.Data.Common.DbConnection)sessionFactory.ConnectionProvider.GetConnection(), assembly, migrationSubType, store);
             migration.Update();
+        }
+
+        /// <summary>
+        /// Initiate NHibernate Manager
+        /// </summary>
+        /// <param name="connect">NHibernate dialect, driver and connection string separated by ';'</param>
+        /// <param name="store">Name of the store</param>
+        public NHibernateManager(string connect, string store)
+        {
+            parseConnectionString(connect);
+
+            //To create sql file uncomment code below and write the name of the file
+            //SchemaExport exp = new SchemaExport(cfg);
+            //exp.SetOutputFile("nameofthefile.sql");
+            //exp.Create(false, true); 
+
+            Assembly assembly = GetType().Assembly;
+
+            runMigration(dialect, assembly, store);
+        }
+
+        /// <summary>
+        /// Initiate NHibernate Manager with spesific assembly
+        /// </summary>
+        /// <param name="connect">NHibernate dialect, driver and connection string separated by ';'</param>
+        /// <param name="store">Name of the store</param>
+        /// <param name="assembly"></param>
+        public NHibernateManager(string connect, string store, Assembly assembly)
+        {
+            parseConnectionString(connect);
+
+            configuration.AddAssembly(assembly);
+
+            runMigration(dialect, assembly, store);
         }
 
         public object Load(Type type, UUID uuid)

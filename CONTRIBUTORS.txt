@@ -67,6 +67,7 @@ Patches
 * Mic Bowman
 * mikkopa/_someone - RealXtend
 * Mircea Kitsune
+* mpallari
 * nlin
 * nornalbion
 * openlifegrid.com
