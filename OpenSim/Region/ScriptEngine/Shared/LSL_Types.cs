@@ -538,6 +538,30 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return a;
             }
 
+            public static bool operator ==(list a, list b)
+            {
+                int la = -1;
+                int lb = -1;
+                try { la = a.Length; }
+                catch (NullReferenceException) { }
+                try { lb = b.Length; }
+                catch (NullReferenceException) { }
+
+                return la == lb;
+            }
+
+            public static bool operator !=(list a, list b)
+            {
+                int la = -1;
+                int lb = -1;
+                try { la = a.Length; }
+                catch (NullReferenceException) { }
+                try {lb = b.Length;}
+                catch (NullReferenceException) { }
+
+                return la != lb;
+            }
+
             public void Add(object o)
             {
                 object[] tmp;
