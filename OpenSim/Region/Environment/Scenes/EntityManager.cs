@@ -60,7 +60,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 catch(Exception e)
                 {
-                    m_log.ErrorFormat("Add Entity failed: ", e);
+                    m_log.ErrorFormat("Add Entity failed: {0}", e.Message);
                 }
             }
         }
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 catch(Exception e)
                 {
-                    m_log.ErrorFormat("Insert or Replace Entity failed: ", e);
+                    m_log.ErrorFormat("Insert or Replace Entity failed: {0}", e.Message);
                 }
             }
         }
