@@ -58,6 +58,7 @@ namespace OpenSim.Region.Interfaces
         void GroupRoleUpdate(IClientAPI remoteClient, UUID GroupID, UUID RoleID, string name, string description, string title, ulong powers, byte updateType);
         void GroupRoleChanges(IClientAPI remoteClient, UUID GroupID, UUID RoleID, UUID MemberID, uint changes);
         void GroupNoticeRequest(IClientAPI remoteClient, UUID groupNoticeID);
+        void SendGroupNoticeToClient(IClientAPI remoteClient, UUID groupNoticeID, byte dialog);
         void SendAgentGroupDataUpdate(IClientAPI remoteClient);
         void JoinGroupRequest(IClientAPI remoteClient, UUID GroupID);
         void LeaveGroupRequest(IClientAPI remoteClient, UUID GroupID);
