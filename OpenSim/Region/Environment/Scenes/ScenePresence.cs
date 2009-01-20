@@ -2313,7 +2313,8 @@ namespace OpenSim.Region.Environment.Scenes
                 sLLVector3 tempCameraCenter = new sLLVector3(new Vector3(m_CameraCenter.X, m_CameraCenter.Y, m_CameraCenter.Z));
                 cadu.cameraPosition = tempCameraCenter;
                 cadu.drawdistance = m_DrawDistance;
-                cadu.godlevel = m_godlevel;
+                if (m_scene.Permissions.IsGod(new UUID(cadu.AgentID)))
+                    cadu.godlevel = m_godlevel;
                 cadu.GroupAccess = 0;
                 cadu.Position = new sLLVector3(AbsolutePosition);
                 cadu.regionHandle = m_scene.RegionInfo.RegionHandle;
@@ -2663,7 +2664,11 @@ namespace OpenSim.Region.Environment.Scenes
                 cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
             }
 
-            cAgent.GodLevel = (byte)m_godlevel;
+            if (m_scene.Permissions.IsGod(new UUID(cAgent.AgentID)))
+                cAgent.GodLevel = (byte)m_godlevel;
+            else 
+                cAgent.GodLevel = (byte) 0;
+
             cAgent.AlwaysRun = m_setAlwaysRun;
 
             //cAgent.AgentTextures = ???
@@ -2700,8 +2705,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_physicsActor.Flying = ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
             }
-
-            m_godlevel = cAgent.GodLevel;
+            if (m_scene.Permissions.IsGod(new UUID(cAgent.AgentID)))
+                m_godlevel = cAgent.GodLevel;
             m_setAlwaysRun = cAgent.AlwaysRun;
 
             //cAgent.AgentTextures = ???
