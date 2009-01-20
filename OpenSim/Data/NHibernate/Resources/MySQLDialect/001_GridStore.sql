@@ -24,10 +24,10 @@ CREATE TABLE Regions (
   RegionUserURI VARCHAR(255) DEFAULT NULL,
   RegionUserRecvKey VARCHAR(128) DEFAULT NULL,
   RegionUserSendKey VARCHAR(128) DEFAULT NULL, 
-  RegionMapTexture VARCHAR(36) DEFAULT NULL,
+  RegionMapTextureId VARCHAR(36) DEFAULT NULL,
   ServerHttpPort INT DEFAULT NULL, 
   ServerRemotingPort INT DEFAULT NULL,
-  PRIMARY KEY  (uuid),
+  PRIMARY KEY (RegionID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
 
 CREATE INDEX RegionNameIndex ON Regions (RegionName);

@@ -140,9 +140,9 @@ namespace OpenSim.Data.NHibernate
                 {
                     obj = session.Get(type.FullName, uuid);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    m_log.ErrorFormat("[NHIBERNATE] {0} not found with ID {1} ", type.Name, uuid);
+                    m_log.ErrorFormat("[NHIBERNATE] {0} of id {1} loading threw exception: "+ e.ToString(), type.Name, uuid);
                 }
                 return obj;
             }

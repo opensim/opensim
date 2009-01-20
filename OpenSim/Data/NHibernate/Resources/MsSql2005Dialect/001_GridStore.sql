@@ -1,5 +1,5 @@
 create table Regions (
-  Uuid NVARCHAR(255) not null,
+   Uuid NVARCHAR(36) not null,
    RegionHandle BIGINT null,
    RegionName NVARCHAR(32) null,
    RegionRecvKey NVARCHAR(128) null,
@@ -24,9 +24,9 @@ create table Regions (
    RegionUserSendKey NVARCHAR(128) null,
    ServerHttpPort INT null,
    ServerRemotingPort INT null,
-   RegionMapTextureID NVARCHAR(255) null,
-   Owner_uuid NVARCHAR(255) null,
-   OriginUUID NVARCHAR(255) null,
+   RegionMapTextureID NVARCHAR(36) null,
+   Owner_uuid NVARCHAR(36) null,
+   OriginUUID NVARCHAR(36) null,
    primary key (Uuid)
 )
 create index region_handle on Regions (RegionHandle)

@@ -22,12 +22,12 @@ CREATE TABLE Regions (
   RegionUserURI VARCHAR(255) DEFAULT NULL,
   RegionUserRecvKey VARCHAR(128) DEFAULT NULL,
   RegionUserSendKey VARCHAR(128) DEFAULT NULL, 
-  regionMapTexture VARCHAR(36) DEFAULT NULL,
+  RegionMapTextureId VARCHAR(36) DEFAULT NULL,
   ServerHttpPort INT DEFAULT NULL, 
   ServerRemotingPort INT DEFAULT NULL,
   OwnerID VARCHAR(36) DEFAULT NULL,
   OriginID VARCHAR(36) DEFAULT NULL,
-  PRIMARY KEY  (uuid),
+  PRIMARY KEY (RegionId)
 );
 
 CREATE INDEX RegionNameIndex ON Regions (RegionName);
