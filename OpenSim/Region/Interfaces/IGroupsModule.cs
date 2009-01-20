@@ -32,8 +32,12 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Interfaces
 {
+    public delegate void NewGroupNotice(UUID groupID, UUID noticeID);
+
     public interface IGroupsModule
     {
+        event NewGroupNotice OnNewGroupNotice;
+
         void ActivateGroup(IClientAPI remoteClient, UUID groupID);
         List<GroupTitlesData> GroupTitlesRequest(IClientAPI remoteClient, UUID groupID);
         List<GroupMembersData> GroupMembersRequest(IClientAPI remoteClient, UUID groupID);
