@@ -38,13 +38,14 @@ namespace OpenSim.Framework.Console
     public class OpenSimAppender : AnsiColorTerminalAppender
     {
         private static readonly ConsoleColor[] Colors = {
-            ConsoleColor.DarkBlue,
-            ConsoleColor.DarkGreen,
-            ConsoleColor.DarkCyan,
-            ConsoleColor.DarkMagenta,
-            ConsoleColor.DarkYellow,
+            // the dark colors don't seem to be visible on some black background terminals like putty :(
+            //ConsoleColor.DarkBlue,
+            //ConsoleColor.DarkGreen,
+            //ConsoleColor.DarkCyan,
+            //ConsoleColor.DarkMagenta,
+            //ConsoleColor.DarkYellow,
             ConsoleColor.Gray,
-            ConsoleColor.DarkGray,
+            //ConsoleColor.DarkGray,
             ConsoleColor.Blue,
             ConsoleColor.Green,
             ConsoleColor.Cyan,
