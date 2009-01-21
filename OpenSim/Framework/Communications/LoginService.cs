@@ -685,10 +685,10 @@ namespace OpenSim.Framework.Communications
             responseString += "</div>";
             responseString += "<div id=\"connecting\" style=\"visibility:hidden\"> Connecting...</div>";
 
-            responseString += "<div id=\"helplinks\">";
+            responseString += "<div id=\"helplinks\"><!---";
             responseString += "<a href=\"#join now link\" target=\"_blank\"></a> | ";
             responseString += "<a href=\"#forgot password link\" target=\"_blank\"></a>";
-            responseString += "</div>";
+            responseString += "---></div>";
 
             responseString += "<div id=\"channelinfo\"> [$channel] | [$version]=[$lang]</div>";
             responseString += "</form>";

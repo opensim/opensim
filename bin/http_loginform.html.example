@@ -27,7 +27,7 @@
 </tr>
 <tr>
 <td valign="middle"><input type="checkbox" name="remember_password" id="remember_password" [$remember_password] style="margin-left:0px;"/></td>
-<td><label for="remember_password">Remember password</label></td>";
+<td><label for="remember_password">Remember password</label></td>
 </tr>
 </table>
 </fieldset>
