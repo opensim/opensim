@@ -436,9 +436,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
                 }
                 if (AvatarID != UUID.Zero)
                 {
-                    // m_scene.GetCapsHandlerForUser will return null if the agent doesn't have a caps handler
-                    // registered
-                    return ProcessQueue(request, AvatarID, m_scene.GetCapsHandlerForUser(AvatarID));
+                    return ProcessQueue(request, AvatarID, m_scene.CapsModule.GetCapsHandlerForUser(AvatarID));
                 }
                 else
                 {

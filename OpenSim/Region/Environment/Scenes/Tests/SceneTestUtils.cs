@@ -34,6 +34,8 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules.Agent.Capabilities;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Tests.Common.Mock;
 
@@ -79,6 +81,11 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             TestScene testScene = new TestScene(
                 regInfo, acm, cm, scs, ac, sm, null, false, false, false, configSource, null);
+                       
+            IRegionModule capsModule = new CapabilitiesModule();
+            capsModule.Initialise(testScene, new IniConfigSource());
+            testScene.AddModule(capsModule.Name, capsModule);            
+            testScene.SetModuleInterfaces();               
             
             testScene.LandChannel = new TestLandChannel();
             testScene.LoadWorldMap();

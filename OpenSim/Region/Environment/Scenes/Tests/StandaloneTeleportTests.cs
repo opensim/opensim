@@ -63,13 +63,13 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             // TODO: Clean this up
             Scene sceneA = SceneTestUtils.SetupScene("sceneA", sceneAId, 1000, 1000, cm);            
             interregionComms.Initialise(sceneA, new IniConfigSource());          
-            sceneA.AddModule(interregionComms.Name, interregionComms);
+            sceneA.AddModule(interregionComms.Name, interregionComms);            
             sceneA.SetModuleInterfaces();                        
             sceneA.RegisterRegionWithGrid();
             
             // TODO: Clean this up
             Scene sceneB = SceneTestUtils.SetupScene("sceneB", sceneBId, 1010, 1010, cm);
-            interregionComms.Initialise(sceneB, new IniConfigSource()); 
+            interregionComms.Initialise(sceneB, new IniConfigSource());
             sceneB.AddModule(interregionComms.Name, interregionComms);
             sceneB.SetModuleInterfaces();
             sceneB.RegisterRegionWithGrid();

@@ -113,11 +113,6 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_sceneGridService; }
         }
 
-        /// <summary>
-        /// Each agent has its own capabilities handler.
-        /// </summary>
-        protected Dictionary<UUID, Caps> m_capsHandlers = new Dictionary<UUID, Caps>();
-
         /// <value>
         /// All the region modules attached to this scene.
         /// </value>        
@@ -147,7 +142,8 @@ namespace OpenSim.Region.Environment.Scenes
         protected IInterregionCommsOut m_interregionCommsOut;
         protected IInterregionCommsIn m_interregionCommsIn;
         protected IDialogModule m_dialogModule;
-
+        protected internal ICapabilitiesModule CapsModule;
+        
         // Central Update Loop
 
         protected int m_fps = 10;
@@ -342,7 +338,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             RegisterDefaultSceneEvents();
 
-            m_dumpAssetsToFile = dumpAssetsToFile;
+            DumpAssetsToFile = dumpAssetsToFile;
 
             m_scripts_enabled = !RegionInfo.RegionSettings.DisableScripts;
 
@@ -780,6 +776,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_interregionCommsOut = RequestModuleInterface<IInterregionCommsOut>();
             m_interregionCommsIn = RequestModuleInterface<IInterregionCommsIn>();
             m_dialogModule = RequestModuleInterface<IDialogModule>();
+            CapsModule = RequestModuleInterface<ICapabilitiesModule>();
         }
 
         #endregion
@@ -2578,7 +2575,7 @@ namespace OpenSim.Region.Environment.Scenes
                     (childagentYN ? "child" : "root"), agentID, RegionInfo.RegionName);
 
                 m_sceneGraph.removeUserCount(!childagentYN);
-                RemoveCapsHandler(agentID);
+                CapsModule.RemoveCapsHandler(agentID);
 
                 if (avatar.Scene.NeedSceneCacheClear(avatar.UUID))
                 {
@@ -2759,9 +2756,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agent"></param>
         public void NewUserConnection(AgentCircuitData agent)
         {
-            /// Diva: Horrible stuff!
-            capsPaths[agent.AgentID] = agent.CapsPath;
-            childrenSeeds[agent.AgentID] = ((agent.ChildrenCapSeeds == null) ? new Dictionary<ulong, string>() : agent.ChildrenCapSeeds);
+            CapsModule.NewUserConnection(agent);
 
             ScenePresence sp = m_sceneGraph.GetScenePresence(agent.AgentID);
             if (sp != null)
@@ -2786,8 +2781,8 @@ namespace OpenSim.Region.Environment.Scenes
                "[CONNECTION BEGIN]: Denied access to: {0} at {1} because the user is on the region banlist",
                agent.AgentID, RegionInfo.RegionName);
             }
-            
-            AddCapsHandler(agent.AgentID);
+
+            CapsModule.AddCapsHandler(agent.AgentID);
 
             if (!agent.child)
             {
@@ -2856,88 +2851,6 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.InfoFormat("[USERLOGOFF]: Got a logoff request for {0} but the user isn't here.  The user might already have been logged out", AvatarID.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Add a caps handler for the given agent.  If the CAPS handler already exists for this agent,
-        /// then it is replaced by a new CAPS handler.
-        ///
-        /// FIXME: On login this is called twice, once for the login and once when the connection is made.
-        /// This is somewhat innefficient and should be fixed.  The initial login creation is necessary
-        /// since the client asks for capabilities immediately after being informed of the seed.
-        /// </summary>
-        /// <param name="agentId"></param>
-        /// <param name="capsObjectPath"></param>
-        public void AddCapsHandler(UUID agentId)
-        {
-            if (RegionInfo.EstateSettings.IsBanned(agentId))
-                return;
-
-            String capsObjectPath = GetCapsPath(agentId);
-
-            Caps cap = null;
-            if (m_capsHandlers.TryGetValue(agentId, out cap))
-            {
-                m_log.DebugFormat("[CAPS] Attempt at registering twice for the same agent {0}. {1}. Ignoring.", agentId, capsObjectPath);
-                //return;
-            }
-
-            cap 
-                = new Caps(
-                    AssetCache, CommsManager.HttpServer, m_regInfo.ExternalHostName, CommsManager.HttpServer.Port,
-                    capsObjectPath, agentId, m_dumpAssetsToFile, RegionInfo.RegionName);
-            
-            cap.RegisterHandlers();
-
-            EventManager.TriggerOnRegisterCaps(agentId, cap);
-
-            cap.AddNewInventoryItem = AddUploadedInventoryItem;
-            cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
-            cap.TaskScriptUpdatedCall = CapsUpdateTaskInventoryScriptAsset;
-            cap.CAPSFetchInventoryDescendents = HandleFetchInventoryDescendentsCAPS;
-            cap.GetClient = m_sceneGraph.GetControllingClient;
-            m_capsHandlers[agentId] = cap;
-        }
-
-        public Caps GetCapsHandlerForUser(UUID agentId)
-        {
-            lock (m_capsHandlers)
-            {
-                if (m_capsHandlers.ContainsKey(agentId))
-                {
-                    return m_capsHandlers[agentId];
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Remove the caps handler for a given agent.
-        /// </summary>
-        /// <param name="agentId"></param>
-        public void RemoveCapsHandler(UUID agentId)
-        {
-            if (childrenSeeds.ContainsKey(agentId))
-            {
-                childrenSeeds.Remove(agentId);
-            }
-
-            lock (m_capsHandlers)
-            {
-                if (m_capsHandlers.ContainsKey(agentId))
-                {
-                    m_capsHandlers[agentId].DeregisterHandlers();
-                    EventManager.TriggerOnDeregisterCaps(agentId, m_capsHandlers[agentId]);
-
-                    m_capsHandlers.Remove(agentId);
-                }
-                else
-                {
-                    m_log.WarnFormat(
-                        "[CAPS]: Received request to remove CAPS handler for root agent {0} in {1}, but no such CAPS handler found!",
-                        agentId, RegionInfo.RegionName);
-                }
             }
         }
 
@@ -3740,7 +3653,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Script Engine
 
         private List<ScriptEngineInterface> ScriptEngines = new List<ScriptEngineInterface>();
-        private bool m_dumpAssetsToFile;
+        public bool DumpAssetsToFile;
 
         /// <summary>
         ///

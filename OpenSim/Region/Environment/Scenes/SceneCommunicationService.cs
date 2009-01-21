@@ -359,7 +359,8 @@ namespace OpenSim.Region.Environment.Scenes
             /// and the regions where there are already child agents. We only send notification to the former.
             List<ulong> neighbourHandles = NeighbourHandles(neighbours); // on this region
             neighbourHandles.Add(avatar.Scene.RegionInfo.RegionHandle);  // add this region too
-            List<ulong> previousRegionNeighbourHandles = new List<ulong>(avatar.Scene.GetChildrenSeeds(avatar.UUID).Keys);
+            List<ulong> previousRegionNeighbourHandles 
+                = new List<ulong>(avatar.Scene.CapsModule.GetChildrenSeeds(avatar.UUID).Keys);
             List<ulong> newRegions = NewNeighbours(neighbourHandles, previousRegionNeighbourHandles);
             List<ulong> oldRegions = OldNeighbours(neighbourHandles, previousRegionNeighbourHandles);
            
@@ -372,7 +373,9 @@ namespace OpenSim.Region.Environment.Scenes
             avatar.DropOldNeighbours(oldRegions);
 
             /// Collect as many seeds as possible
-            Dictionary<ulong, string> seeds = new Dictionary<ulong, string>(avatar.Scene.GetChildrenSeeds(avatar.UUID));
+            Dictionary<ulong, string> seeds 
+                = new Dictionary<ulong, string>(avatar.Scene.CapsModule.GetChildrenSeeds(avatar.UUID));
+            
             //Console.WriteLine(" !!! No. of seeds: " + seeds.Count);
             if (!seeds.ContainsKey(avatar.Scene.RegionInfo.RegionHandle))
                 seeds.Add(avatar.Scene.RegionInfo.RegionHandle, avatar.ControllingClient.RequestClientInfo().CapsPath);
@@ -397,7 +400,7 @@ namespace OpenSim.Region.Environment.Scenes
                         seeds.Add(neighbour.RegionHandle, agent.CapsPath);
                     }
                     else
-                        agent.CapsPath = avatar.Scene.GetChildSeed(avatar.UUID, neighbour.RegionHandle);
+                        agent.CapsPath = avatar.Scene.CapsModule.GetChildSeed(avatar.UUID, neighbour.RegionHandle);
 
                     cagents.Add(agent);
                 }
@@ -409,7 +412,7 @@ namespace OpenSim.Region.Environment.Scenes
                 a.ChildrenCapSeeds = new Dictionary<ulong, string>(seeds);
             }
             // These two are the same thing!
-            avatar.Scene.SetChildrenSeed(avatar.UUID, seeds);
+            avatar.Scene.CapsModule.SetChildrenSeed(avatar.UUID, seeds);
             avatar.KnownRegions = seeds;
             //avatar.Scene.DumpChildrenSeeds(avatar.UUID);
             //avatar.DumpKnownRegions();
@@ -821,7 +824,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else
                         {
-                            agentCircuit.CapsPath = avatar.Scene.GetChildSeed(avatar.UUID, reg.RegionHandle);
+                            agentCircuit.CapsPath = avatar.Scene.CapsModule.GetChildSeed(avatar.UUID, reg.RegionHandle);
                             capsPath = "http://" + reg.ExternalHostName + ":" + reg.HttpPort
                                         + "/CAPS/" + agentCircuit.CapsPath + "0000/";
                         }

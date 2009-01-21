@@ -25,68 +25,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenMetaverse;
+using OpenSim.Framework;
+using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 
-namespace OpenSim.Framework
+namespace OpenSim.Region.Environment.Interfaces
 {
-    public delegate void restart(RegionInfo thisRegion);
-
-    //public delegate void regionup (RegionInfo thisRegion);
-
-    public enum RegionStatus : int
+    public interface ICapabilitiesModule
     {
-        Down = 0,
-        Up = 1,
-        Crashed = 2,
-        Starting = 3,
-        SlaveScene = 4
-    };
-            
-    /// <value>
-    /// Indicate what action to take on an object derez request
-    /// </value>
-    public enum DeRezAction : byte
-    {
-        SaveToExistingUserInventoryItem = 0,
-        TakeCopy = 1,
-        Take = 4,
-        GodTakeCopy = 5,
-        Delete = 6,
-        Return = 9
-    };     
-
-    public interface IScene
-    {
-        RegionInfo RegionInfo { get; }
-        RegionStatus Region_Status { get; set; }
-
-        ClientManager ClientManager { get; }
-        event restart OnRestart;
-
-        void AddNewClient(IClientAPI client);
-        void RemoveClient(UUID agentID);
-        void CloseAllAgents(uint circuitcode);
-
-        void Restart(int seconds);
-        bool OtherRegionUp(RegionInfo thisRegion);
-
-        string GetSimulatorVersion();
-
+        void NewUserConnection(AgentCircuitData agent);
+        
         /// <summary>
-        /// Is the agent denoted by the given agentID a child presence in this scene?
+        /// Add a caps handler for the given agent.  If the CAPS handler already exists for this agent,
+        /// then it is replaced by a new CAPS handler.
+        ///
+        /// FIXME: On login this is called twice, once for the login and once when the connection is made.
+        /// This is somewhat innefficient and should be fixed.  The initial login creation is necessary
+        /// since the client asks for capabilities immediately after being informed of the seed.
         /// </summary>
-        /// 
-        /// Used by ClientView when a 'kick everyone' or 'estate message' occurs
-        /// 
-        /// <param name="avatarID">AvatarID to lookup</param>
-        /// <returns>true if the presence is a child agent, false if the presence is a root exception</returns>
-        /// <exception cref="System.NullReferenceException">
-        /// Thrown if the agent does not exist.
-        /// </exception>
-        bool PresenceChildStatus(UUID agentId);
+        /// <param name="agentId"></param>
+        /// <param name="capsObjectPath"></param>
+        void AddCapsHandler(UUID agentId);
+        
+        /// <summary>
+        /// Remove the caps handler for a given agent.
+        /// </summary>
+        /// <param name="agentId"></param>
+        void RemoveCapsHandler(UUID agentId);
+        
+        /// <summary>
+        /// Will return null if the agent doesn't have a caps handler registered
+        /// </summary>
+        /// <param name="agentId"></param>
+        Caps GetCapsHandlerForUser(UUID agentId);
+        
+        Dictionary<ulong, string> GetChildrenSeeds(UUID agentID);
+        
+        string GetChildSeed(UUID agentID, ulong handle);
+        
+        void SetChildrenSeed(UUID agentID, Dictionary<ulong, string> seeds);
+        
+        void DropChildSeed(UUID agentID, ulong handle);
 
-        T RequestModuleInterface<T>();
-        T[] RequestModuleInterfaces<T>();
+        string GetCapsPath(UUID agentId);
     }
 }

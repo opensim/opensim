@@ -510,7 +510,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AdjustKnownSeeds()
         {
-            Dictionary<ulong, string> seeds = Scene.GetChildrenSeeds(UUID);
+            Dictionary<ulong, string> seeds = Scene.CapsModule.GetChildrenSeeds(UUID);
             List<ulong> old = new List<ulong>();
             foreach (ulong handle in seeds.Keys)
             {
@@ -524,7 +524,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             DropOldNeighbours(old);
-            Scene.SetChildrenSeed(UUID, seeds);
+            Scene.CapsModule.SetChildrenSeed(UUID, seeds);
             KnownRegions = seeds;
             //Console.WriteLine(" ++++++++++AFTER+++++++++++++ ");
             //DumpKnownRegions();
@@ -848,8 +848,8 @@ namespace OpenSim.Region.Environment.Scenes
             //SendAnimPack();
 
             m_scene.SwapRootAgentCount(false);
-            m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(m_uuid);
-            m_scene.AddCapsHandler(m_uuid);
+            m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(m_uuid);            
+            m_scene.CapsModule.AddCapsHandler(m_uuid);
 
             // On the next prim update, all objects will be sent
             //
@@ -969,7 +969,7 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (ulong handle in oldRegions)
             {
                 RemoveNeighbourRegion(handle);
-                Scene.DropChildSeed(UUID, handle);
+                Scene.CapsModule.DropChildSeed(UUID, handle);
             }
         }
 
@@ -2494,14 +2494,13 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     // Restore the user structures that we needed to delete before asking the receiving region to complete the crossing
                     m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(UUID);
-                    m_scene.AddCapsHandler(UUID);
+                    m_scene.CapsModule.AddCapsHandler(UUID);
                 }
             }
 
             //Console.WriteLine("AFTER CROSS");
             //Scene.DumpChildrenSeeds(UUID);
             //DumpKnownRegions();
-
         }
 
         /// <summary>

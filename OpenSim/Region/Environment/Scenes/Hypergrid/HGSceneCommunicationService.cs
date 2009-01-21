@@ -228,7 +228,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                         else
                         {
                             // child agent already there
-                            agentCircuit.CapsPath = avatar.Scene.GetChildSeed(avatar.UUID, reg.RegionHandle);
+                            agentCircuit.CapsPath = avatar.Scene.CapsModule.GetChildSeed(avatar.UUID, reg.RegionHandle);
                             capsPath = "http://" + reg.ExternalHostName + ":" + reg.HttpPort
                                         + "/CAPS/" + agentCircuit.CapsPath + "0000/";
                         }

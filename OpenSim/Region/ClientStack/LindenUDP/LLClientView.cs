@@ -41,6 +41,7 @@ using OpenSim.Framework.Client;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Interfaces;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using Timer = System.Timers.Timer;
 
@@ -1382,8 +1383,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             agentData.child = false;
             agentData.firstname = m_firstName;
             agentData.lastname = m_lastName;
-            agentData.CapsPath = m_scene.GetCapsPath(m_agentId);
-            agentData.ChildrenCapSeeds = new Dictionary<ulong,string>(m_scene.GetChildrenSeeds(m_agentId));
+            
+            ICapabilitiesModule capsModule = m_scene.RequestModuleInterface<ICapabilitiesModule>();
+            agentData.CapsPath = capsModule.GetCapsPath(m_agentId);
+            agentData.ChildrenCapSeeds = new Dictionary<ulong,string>(capsModule.GetChildrenSeeds(m_agentId));
+            
             return agentData;
         }
 

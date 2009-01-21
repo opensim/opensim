@@ -33,6 +33,7 @@ using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Tests.Common.Mock
@@ -492,8 +493,10 @@ namespace OpenSim.Tests.Common.Mock
             agentData.child = false;
             agentData.firstname = m_firstName;
             agentData.lastname = m_lastName;
-            agentData.CapsPath = m_scene.GetCapsPath(m_agentId);
-            agentData.ChildrenCapSeeds = new Dictionary<ulong,string>(m_scene.GetChildrenSeeds(m_agentId));
+            
+            ICapabilitiesModule capsModule = m_scene.RequestModuleInterface<ICapabilitiesModule>();
+            agentData.CapsPath = capsModule.GetCapsPath(m_agentId);
+            agentData.ChildrenCapSeeds = new Dictionary<ulong,string>(capsModule.GetChildrenSeeds(m_agentId));
             
             return agentData;
         }

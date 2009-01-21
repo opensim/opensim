@@ -214,7 +214,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// <see>CapsUpdatedInventoryItemAsset(IClientAPI, UUID, byte[])</see>
         /// </summary>
-        private UUID CapsUpdateInventoryItemAsset(UUID avatarId, UUID itemID, byte[] data)
+        public UUID CapsUpdateInventoryItemAsset(UUID avatarId, UUID itemID, byte[] data)
         {
             ScenePresence avatar;
 
@@ -305,7 +305,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// <see>CapsUpdateTaskInventoryScriptAsset(IClientAPI, UUID, UUID, bool, byte[])</see>
         /// </summary>
-        private void CapsUpdateTaskInventoryScriptAsset(UUID avatarId, UUID itemId,
+        public void CapsUpdateTaskInventoryScriptAsset(UUID avatarId, UUID itemId,
                                                         UUID primId, bool isScriptRunning, byte[] data)
         {
             ScenePresence avatar;
