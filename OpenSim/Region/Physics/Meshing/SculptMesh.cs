@@ -56,8 +56,8 @@ namespace PrimMesher
 
             int destX = 0;
             int destY = 0;
-            int destWidth = (int)(sourceWidth * scale);
-            int destHeight = (int)(sourceHeight * scale);
+            int destWidth = (int)(srcImage.Width * scale);
+            int destHeight = (int)(srcImage.Height * scale);
 
             Bitmap scaledImage = new Bitmap(destWidth, destHeight,
                                      PixelFormat.Format24bppRgb);
@@ -214,7 +214,7 @@ namespace PrimMesher
             uvs = new List<UVCoord>();
 
             //float sourceScaleFactor = (float)lod / (float)Math.Max(sculptBitmap.Width, sculptBitmap.Height);
-            float sourceScaleFactor = (float)(lod * lod) / (float)(sculptBitmap.Width * sculptBitmap.Height);
+            float sourceScaleFactor = (float)(lod) / (float)Math.Sqrt(sculptBitmap.Width * sculptBitmap.Height);
             bool scaleSourceImage = sourceScaleFactor < 1.0f ? true : false;
 
             Bitmap bitmap;
