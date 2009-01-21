@@ -169,7 +169,17 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
 
             GDIDraw(data, graph);
 
-            byte[] imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, true);
+            byte[] imageJ2000 = new byte[0];
+
+            try
+            {
+                imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, true);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine(
+                    "[VECTORRENDERMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
+            }
             m_textureManager.ReturnData(id, imageJ2000);
         }
 

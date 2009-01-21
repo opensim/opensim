@@ -49,6 +49,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         /// Cached Decoded Layers
         /// </summary>
         private readonly Dictionary<UUID, OpenJPEG.J2KLayerInfo[]> m_cacheddecode = new Dictionary<UUID, OpenJPEG.J2KLayerInfo[]>();
+        private bool OpenJpegFail = false;
 
         /// <summary>
         /// List of client methods to notify of results of decode
@@ -147,49 +148,64 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
             int DecodeTime = 0;
             DecodeTime = System.Environment.TickCount;
             OpenJPEG.J2KLayerInfo[] layers = new OpenJPEG.J2KLayerInfo[0]; // Dummy result for if it fails.  Informs that there's only full quality
-            try
+
+            if (!OpenJpegFail)
             {
-
-                AssetTexture texture = new AssetTexture(AssetId, j2kdata);
-                if (texture.DecodeLayerBoundaries())
+                try
                 {
-                    bool sane = true;
 
-                    // Sanity check all of the layers
-                    for (int i = 0; i < texture.LayerInfo.Length; i++)
+                    AssetTexture texture = new AssetTexture(AssetId, j2kdata);
+                    if (texture.DecodeLayerBoundaries())
                     {
-                        if (texture.LayerInfo[i].End > texture.AssetData.Length)
+                        bool sane = true;
+
+                        // Sanity check all of the layers
+                        for (int i = 0; i < texture.LayerInfo.Length; i++)
                         {
-                            sane = false;
-                            break;
+                            if (texture.LayerInfo[i].End > texture.AssetData.Length)
+                            {
+                                sane = false;
+                                break;
+                            }
+                        }
+
+                        if (sane)
+                        {
+                            layers = texture.LayerInfo;
+                        }
+                        else
+                        {
+                            m_log.WarnFormat(
+                                "[J2KDecoderModule]: JPEG2000 texture decoding succeeded, but sanity check failed for {0}",
+                                AssetId);
                         }
                     }
-                    
-                    if (sane)
-                    {
-                        layers = texture.LayerInfo;
-                    }
+
                     else
                     {
-                        m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding succeeded, but sanity check failed for {0}",
-                            AssetId);
+                        m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding failed for {0}", AssetId);
                     }
+                    texture = null; // dereference and dispose of ManagedImage
                 }
-                
-               else
-               {
-                   m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding failed for {0}", AssetId);
-               }
-               texture = null; // dereference and dispose of ManagedImage
-            }
-            catch (Exception ex)
-            {
-                m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding threw an exception for {0}, {1}", AssetId, ex);
+                catch (DllNotFoundException)
+                {
+                    m_log.Error(
+                        "[J2KDecoderModule]: OpenJpeg is not installed properly. Decoding disabled!  This will slow down texture performance!  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
+                    OpenJpegFail = true;
+                }
+                catch (Exception ex)
+                {
+                    m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding threw an exception for {0}, {1}",
+                                     AssetId, ex);
+                }
             }
 
-            // Write out decode time
-            m_log.InfoFormat("[J2KDecoderModule]: {0} Decode Time: {1}", System.Environment.TickCount - DecodeTime, AssetId);
-            
+            if (!OpenJpegFail)
+            {
+                // Write out decode time
+                m_log.InfoFormat("[J2KDecoderModule]: {0} Decode Time: {1}", System.Environment.TickCount - DecodeTime,
+                                 AssetId);
+            }
             // Cache Decoded layers
             lock (m_cacheddecode)
             {

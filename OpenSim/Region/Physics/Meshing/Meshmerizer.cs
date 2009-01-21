@@ -181,6 +181,17 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     ManagedImage managedImage;  // we never use this
                     OpenJPEG.DecodeToImage(primShape.SculptData, out managedImage, out idata);
+                    
+                }
+                catch (DllNotFoundException)
+                {
+                    System.Console.WriteLine("[PHYSICS]: OpenJpeg is not installed correctly on this system. Physics Proxy generation failed.  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
+                    return null;
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    System.Console.WriteLine("[PHYSICS]: OpenJpeg was unable to decode this.   Physics Proxy generation failed");
+                    return null;
                 }
                 catch (Exception)
                 {

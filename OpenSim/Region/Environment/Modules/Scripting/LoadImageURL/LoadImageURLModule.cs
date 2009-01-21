@@ -168,7 +168,17 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
                     }
 
                     Bitmap resize = new Bitmap(image, newsize);
-                    byte[] imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
+                    byte[] imageJ2000 = new byte[0];
+                    
+                    try
+                    {
+                        imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
+                    } 
+                    catch (Exception)
+                    {
+                        Console.WriteLine(
+                            "[LOADIMAGEURLMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
+                    }
 
                     m_textureManager.ReturnData(state.RequestID, imageJ2000);
                 }

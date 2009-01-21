@@ -275,7 +275,19 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
                         Bitmap joint = MergeBitMaps(image1, image2);
 
-                        return OpenJPEG.EncodeFromImage(joint, true);
+                        byte[] result = new byte[0];
+
+                        try
+                        {
+                            result = OpenJPEG.EncodeFromImage(joint, true);
+                        } 
+                        catch (Exception)
+                        {
+                            Console.WriteLine(
+                                "[DYNAMICTEXTUREMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
+                        }
+
+                        return result;
                     }
                 }
 
