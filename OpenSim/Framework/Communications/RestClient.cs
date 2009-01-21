@@ -283,6 +283,7 @@ namespace OpenSim.Framework.Communications
                 _request.KeepAlive = false;
                 _request.ContentType = "application/xml";
                 _request.Timeout = 200000;
+                _request.Method = RequestMethod;
                 _asyncException = null;
 
 //                IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
