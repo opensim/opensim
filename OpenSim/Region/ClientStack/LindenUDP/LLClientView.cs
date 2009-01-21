@@ -4243,6 +4243,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         args.Scene = Scene;
                         args.Sender = this;
+                        args.SenderUUID = this.AgentId;
 
                         handlerChatFromClient = OnChatFromClient;
                         if (handlerChatFromClient != null)
