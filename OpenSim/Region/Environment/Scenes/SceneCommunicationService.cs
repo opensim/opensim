@@ -726,7 +726,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (reg != null)
                 {
                     m_log.DebugFormat(
-                        "[SCENE COMMUNICATION SERVICE]: RequestTeleportToLocation to {0} {1}", 
+                        "[SCENE COMMUNICATION SERVICE]: RequestTeleportToLocation to {0} in {1}", 
                         position, reg.RegionName);
                     
                     if (eq == null)

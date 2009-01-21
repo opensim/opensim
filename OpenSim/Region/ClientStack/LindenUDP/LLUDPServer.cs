@@ -442,11 +442,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     
                     m_packetServer.AddNewClient(epSender, useCircuit, m_assetCache, sessionInfo, epProxy);
-                }
-                
-                m_log.DebugFormat(
-                    "[CONNECTION SUCCESS]: Incoming client {0} (circuit code {1}) received and authenticated for {2}", 
-                    useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code, m_localScene.RegionInfo.RegionName);                
+                                    
+                    m_log.DebugFormat(
+                        "[CONNECTION SUCCESS]: Incoming client {0} (circuit code {1}) received and authenticated for {2}", 
+                        useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code, m_localScene.RegionInfo.RegionName);                    
+                }                
             }            
             
             // Ack the UseCircuitCode packet
@@ -459,7 +459,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ack_it.Header.Sequence = ((useCircuit.Header.Sequence < uint.MaxValue) ? useCircuit.Header.Sequence : 0) + 1;
             ack_it.Header.Reliable = false;
 
-            byte[] ackmsg=ack_it.ToBytes();
+            byte[] ackmsg = ack_it.ToBytes();
 
             // Need some extra space in case we need to add proxy
             // information to the message later
