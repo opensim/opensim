@@ -99,40 +99,73 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         }
         
         /// <summary>
-        /// Add a root agent
+        /// Generate some standard agent connection data.
         /// </summary>
-        /// <param name="scene"></param>
         /// <param name="agentId"></param>
-        /// <returns></returns>        
-        public static TestClient AddRootAgent(Scene scene, UUID agentId)
+        /// <returns></returns>
+        public static AgentCircuitData GenerateAgentData(UUID agentId)
         {
             string firstName = "testfirstname";
             
-            AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = agentId;
-            agent.firstname = firstName;
-            agent.lastname = "testlastname";
-            agent.SessionID = UUID.Zero;
-            agent.SecureSessionID = UUID.Zero;
-            agent.circuitcode = 123;
-            agent.BaseFolder = UUID.Zero;
-            agent.InventoryFolder = UUID.Zero;
-            agent.startpos = Vector3.Zero;
-            agent.CapsPath = "http://wibble.com";
+            AgentCircuitData agentData = new AgentCircuitData();
+            agentData.AgentID = agentId;
+            agentData.firstname = firstName;
+            agentData.lastname = "testlastname";
+            agentData.SessionID = UUID.Zero;
+            agentData.SecureSessionID = UUID.Zero;
+            agentData.circuitcode = 123;
+            agentData.BaseFolder = UUID.Zero;
+            agentData.InventoryFolder = UUID.Zero;
+            agentData.startpos = Vector3.Zero;
+            agentData.CapsPath = "http://wibble.com";
             
+            return agentData;
+        }
+        
+        /// <summary>
+        /// Add a root agent where the details of the agent connection (apart from the id) are unimportant for the test
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="agentId"></param>
+        /// <returns></returns>
+        public static TestClient AddRootAgent(Scene scene, UUID agentId)
+        {            
+            return AddRootAgent(scene, GenerateAgentData(agentId));                      
+        }        
+        
+        /// <summary>
+        /// Add a root agent.  
+        /// </summary>
+        /// 
+        /// This function
+        /// 
+        /// 1)  Tells the scene that an agent is coming.  Normally, the login service (local if standalone, from the
+        /// userserver if grid) would give initial login data back to the client and separately tell the scene that the
+        /// agent was coming.
+        /// 
+        /// 2)  Connects the agent with the scene
+        ///   
+        /// This function performs actions equivalent with notifying the scene that an agent is
+        /// coming and then actually connecting the agent to the scene.  The one step missed out is the very first
+        ///  
+        /// <param name="scene"></param>
+        /// <param name="agentData"></param>
+        /// <returns></returns>         
+        public static TestClient AddRootAgent(Scene scene, AgentCircuitData agentData)
+        {            
             // We emulate the proper login sequence here by doing things in three stages            
             // Stage 1: simulate login by telling the scene to expect a new user connection
-            scene.NewUserConnection(agent);
+            scene.NewUserConnection(agentData);
             
             // Stage 2: add the new client as a child agent to the scene
-            TestClient client = new TestClient(agent, scene);
+            TestClient client = new TestClient(agentData, scene);
             scene.AddNewClient(client);
             
             // Stage 3: Invoke agent crossing, which converts the child agent into a root agent (with appearance,
             // inventory, etc.)
-            scene.AgentCrossing(agent.AgentID, new Vector3(90, 90, 90), false);
+            scene.AgentCrossing(agentData.AgentID, new Vector3(90, 90, 90), false);
             
-            return client;
+            return client;            
         }
 
         /// <summary>

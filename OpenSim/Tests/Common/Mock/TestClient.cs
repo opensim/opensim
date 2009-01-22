@@ -270,6 +270,11 @@ namespace OpenSim.Tests.Common.Mock
         /// This agent's UUID
         /// </value>
         private UUID m_agentId;
+        
+        /// <value>
+        /// The last caps seed url that this client was given.
+        /// </value>
+        public string CapsSeedUrl;
 
         private Vector3 startPos = new Vector3(128, 128, 2);
 
@@ -377,6 +382,7 @@ namespace OpenSim.Tests.Common.Mock
             m_lastName = agentData.lastname;
             m_circuitCode = agentData.circuitcode;
             m_scene = scene;
+            CapsSeedUrl = agentData.CapsPath;
         }
         
         /// <summary>
@@ -496,7 +502,7 @@ namespace OpenSim.Tests.Common.Mock
             
             ICapabilitiesModule capsModule = m_scene.RequestModuleInterface<ICapabilitiesModule>();
             agentData.CapsPath = capsModule.GetCapsPath(m_agentId);
-            agentData.ChildrenCapSeeds = new Dictionary<ulong,string>(capsModule.GetChildrenSeeds(m_agentId));
+            agentData.ChildrenCapSeeds = new Dictionary<ulong, string>(capsModule.GetChildrenSeeds(m_agentId));
             
             return agentData;
         }
@@ -518,6 +524,8 @@ namespace OpenSim.Tests.Common.Mock
                                                uint locationID, uint flags, string capsURL)
         {           
             m_log.DebugFormat("[TEST CLIENT]: Received SendRegionTeleport");
+            
+            CapsSeedUrl = capsURL;
             
             TeleportSceneClient.CompleteMovement();
             //TeleportTargetScene.AgentCrossing(newAgent.AgentID, new Vector3(90, 90, 90), false);              
