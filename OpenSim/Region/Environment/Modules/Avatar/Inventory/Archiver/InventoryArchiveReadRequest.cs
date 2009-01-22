@@ -187,9 +187,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
                     new FileStream(loadPath, FileMode.Open), CompressionMode.Decompress));
 
             byte[] data;
-            while ((data = archive.ReadEntry(out filePath)) != null)
+	    TarArchiveReader.TarEntryType entryType;
+            while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
             {
-                if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+		if (entryType==TarArchiveReader.TarEntryType.TYPE_DIRECTORY) {
+		    m_log.WarnFormat("[ARCHIVER]: Ignoring directory entry {0}",
+				     filePath);
+		} else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                 {
                     if (LoadAsset(filePath, data))
                         successfulAssetRestores++;

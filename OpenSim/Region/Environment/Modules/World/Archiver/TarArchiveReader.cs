@@ -39,6 +39,18 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     public class TarArchiveReader
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+	public enum TarEntryType 
+	{
+	    TYPE_UNKNOWN = 0,
+	    TYPE_NORMAL_FILE = 1,
+	    TYPE_HARD_LINK = 2,
+	    TYPE_SYMBOLIC_LINK = 3,
+	    TYPE_CHAR_SPECIAL = 4,
+	    TYPE_BLOCK_SPECIAL = 5,
+	    TYPE_DIRECTORY = 6,
+	    TYPE_FIFO = 7,
+	    TYPE_CONTIGUOUS_FILE = 8,
+	}
 
         protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
 
@@ -66,15 +78,16 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns>the data for the entry.  Returns null if there are no more entries</returns>
-        public byte[] ReadEntry(out string filePath)
+        public byte[] ReadEntry(out string filePath, out TarEntryType entryType)
         {
             filePath = String.Empty;
-
+	    entryType = TarEntryType.TYPE_UNKNOWN;
             TarHeader header = ReadHeader();
 
             if (null == header)
                 return null;
 
+	    entryType = header.EntryType;
             filePath = header.FilePath;
             byte[] data = m_br.ReadBytes(header.FileSize);
 
@@ -112,6 +125,36 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             tarHeader.FilePath = tarHeader.FilePath.Trim(m_nullCharArray);
             tarHeader.FileSize = ConvertOctalBytesToDecimal(header, 124, 11);
 
+	    switch (header[156]) 
+	    {
+	    case 0:
+		tarHeader.EntryType = TarEntryType.TYPE_NORMAL_FILE;
+		break;
+	    case (byte)'0':
+		tarHeader.EntryType = TarEntryType.TYPE_NORMAL_FILE;
+		break;
+	    case (byte)'1':
+		tarHeader.EntryType = TarEntryType.TYPE_HARD_LINK;
+		break;
+	    case (byte)'2':
+		tarHeader.EntryType = TarEntryType.TYPE_SYMBOLIC_LINK;
+		break;
+	    case (byte)'3':
+		tarHeader.EntryType = TarEntryType.TYPE_CHAR_SPECIAL;
+		break;
+	    case (byte)'4':
+		tarHeader.EntryType = TarEntryType.TYPE_BLOCK_SPECIAL;
+		break;
+	    case (byte)'5':
+		tarHeader.EntryType = TarEntryType.TYPE_DIRECTORY;
+		break;
+	    case (byte)'6':
+		tarHeader.EntryType = TarEntryType.TYPE_FIFO;
+		break;
+	    case (byte)'7':
+		tarHeader.EntryType = TarEntryType.TYPE_CONTIGUOUS_FILE;
+		break;
+	    }		
             return tarHeader;
         }
 
@@ -145,5 +188,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     {
         public string FilePath;
         public int FileSize;
+	public TarArchiveReader.TarEntryType EntryType;
     }
 }

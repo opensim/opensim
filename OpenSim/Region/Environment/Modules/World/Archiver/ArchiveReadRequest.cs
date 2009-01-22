@@ -88,12 +88,16 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             int failedAssetRestores = 0;
 
             byte[] data;
-            while ((data = archive.ReadEntry(out filePath)) != null)
+	    TarArchiveReader.TarEntryType entryType;
+            while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
             {
                 //m_log.DebugFormat(
                 //    "[ARCHIVER]: Successfully read {0} ({1} bytes)}", filePath, data.Length);
-
-                if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
+		if (entryType==TarArchiveReader.TarEntryType.TYPE_DIRECTORY) {
+		    m_log.WarnFormat("[ARCHIVER]: Ignoring directory entry {0}",
+				     filePath);
+		}
+                else if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
                 {
                     serialisedSceneObjects.Add(m_asciiEncoding.GetString(data));
                 }
