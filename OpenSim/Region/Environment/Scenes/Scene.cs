@@ -191,6 +191,11 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_authenticateHandler; }
         }
 
+        public SceneGraph SceneContents
+        {
+            get { return m_sceneGraph; }
+        }
+
         // an instance to the physics plugin's Scene object.
         public PhysicsScene PhysicsScene
         {
