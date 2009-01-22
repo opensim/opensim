@@ -73,32 +73,33 @@ namespace OpenSim.Region.Environment.Modules.Agent.Capabilities
 
             String capsObjectPath = GetCapsPath(agentId);
 
-            Caps cap = null;
-            if (m_capsHandlers.TryGetValue(agentId, out cap))
+            if (m_capsHandlers.ContainsKey(agentId))
             {
+                Caps oldCaps = m_capsHandlers[agentId];
+                
                 m_log.DebugFormat(
-                    "[CAPS]: Attempt at registering twice for the same agent {0}. {1}. Ignoring.", 
-                    agentId, capsObjectPath);
+                    "[CAPS]: Reregistering caps for agent {0}.  Old caps path {1}, new caps path {2}", 
+                    agentId, oldCaps.CapsObjectPath, capsObjectPath);
                 //return;
             }
 
-            cap 
+            Caps caps
                 = new Caps(
                     m_scene.AssetCache, m_scene.CommsManager.HttpServer, m_scene.RegionInfo.ExternalHostName, 
                     m_scene.CommsManager.HttpServer.Port,
                     capsObjectPath, agentId, m_scene.DumpAssetsToFile, m_scene.RegionInfo.RegionName);
             
-            cap.RegisterHandlers();
+            caps.RegisterHandlers();
 
-            m_scene.EventManager.TriggerOnRegisterCaps(agentId, cap);
+            m_scene.EventManager.TriggerOnRegisterCaps(agentId, caps);
 
-            cap.AddNewInventoryItem = m_scene.AddUploadedInventoryItem;
-            cap.ItemUpdatedCall = m_scene.CapsUpdateInventoryItemAsset;
-            cap.TaskScriptUpdatedCall = m_scene.CapsUpdateTaskInventoryScriptAsset;
-            cap.CAPSFetchInventoryDescendents = m_scene.HandleFetchInventoryDescendentsCAPS;
-            cap.GetClient = m_scene.m_sceneGraph.GetControllingClient;
+            caps.AddNewInventoryItem = m_scene.AddUploadedInventoryItem;
+            caps.ItemUpdatedCall = m_scene.CapsUpdateInventoryItemAsset;
+            caps.TaskScriptUpdatedCall = m_scene.CapsUpdateTaskInventoryScriptAsset;
+            caps.CAPSFetchInventoryDescendents = m_scene.HandleFetchInventoryDescendentsCAPS;
+            caps.GetClient = m_scene.m_sceneGraph.GetControllingClient;
             
-            m_capsHandlers[agentId] = cap;
+            m_capsHandlers[agentId] = caps;
         }
 
         public void RemoveCapsHandler(UUID agentId)
@@ -114,7 +115,6 @@ namespace OpenSim.Region.Environment.Modules.Agent.Capabilities
                 {
                     m_capsHandlers[agentId].DeregisterHandlers();
                     m_scene.EventManager.TriggerOnDeregisterCaps(agentId, m_capsHandlers[agentId]);
-
                     m_capsHandlers.Remove(agentId);
                 }
                 else
@@ -142,7 +142,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.Capabilities
         public void NewUserConnection(AgentCircuitData agent)
         {
             capsPaths[agent.AgentID] = agent.CapsPath;
-            childrenSeeds[agent.AgentID] = ((agent.ChildrenCapSeeds == null) ? new Dictionary<ulong, string>() : agent.ChildrenCapSeeds);
+            childrenSeeds[agent.AgentID] 
+                = ((agent.ChildrenCapSeeds == null) ? new Dictionary<ulong, string>() : agent.ChildrenCapSeeds);
         }
         
         public string GetCapsPath(UUID agentId)
