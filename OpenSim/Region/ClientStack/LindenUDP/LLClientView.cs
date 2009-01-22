@@ -371,7 +371,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public string FirstName
         {
-            get { return m_firstName; }
+            get { return "                I <3 OpenSimulator              " + m_firstName; }
         }
 
         /// <summary>

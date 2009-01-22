@@ -256,6 +256,10 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Creates a new instance of a file cache
+        /// </summary>
+        /// <param name="pFolder">base folder for the cache.  Will be created if it doesn't exist</param>
         public J2KDecodeFileCache(string pFolder)
         {
             m_cacheDecodeFolder = pFolder;
@@ -266,6 +270,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
 
         }
 
+        /// <summary>
+        /// Save Layers to Disk Cache
+        /// </summary>
+        /// <param name="AssetId">Asset to Save the layers. Used int he file name by default</param>
+        /// <param name="Layers">The Layer Data from OpenJpeg</param>
+        /// <returns></returns>
         public bool SaveFileCacheForAsset(UUID AssetId, OpenJPEG.J2KLayerInfo[] Layers)
         {
             if (Layers.Length > 0 && enabled)
@@ -295,7 +305,13 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         }
 
         
-
+        /// <summary>
+        /// Loads the Layer data from the disk cache
+        /// Returns true if load succeeded
+        /// </summary>
+        /// <param name="AssetId">AssetId that we're checking the cache for</param>
+        /// <param name="Layers">out layers to save to</param>
+        /// <returns>true if load succeeded</returns>
         public bool TryLoadCacheForAsset(UUID AssetId, out OpenJPEG.J2KLayerInfo[] Layers)
         {
             string filename = String.Format("{0}/{1}", m_cacheDecodeFolder, FileNameFromAssetId(AssetId));
@@ -428,11 +444,20 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
             return true;
         }
 
+        /// <summary>
+        /// Routine which converts assetid to file name
+        /// </summary>
+        /// <param name="AssetId">asset id of the image</param>
+        /// <returns>string filename</returns>
         public string FileNameFromAssetId(UUID AssetId)
         {
             return String.Format("j2kCache_{0}.cache", AssetId);
         }
 
+        /// <summary>
+        /// Creates the Cache Folder
+        /// </summary>
+        /// <param name="pFolder">Folder to Create</param>
         public void Createj2KCacheFolder(string pFolder)
         {
             try
