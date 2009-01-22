@@ -371,7 +371,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public string FirstName
         {
-            get { return "                I <3 OpenSimulator              " + m_firstName; }
+            get { return m_firstName; }
         }
 
         /// <summary>
@@ -2504,7 +2504,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objupdate.ObjectData[0].FullID = avatarID;
             objupdate.ObjectData[0].ParentID = parentID;
             objupdate.ObjectData[0].NameValue =
-                Utils.StringToBytes("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName + "\nTitle STRING RW SV " + grouptitle);
+                Utils.StringToBytes("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName + "\nTitle STRING RW SV I <3 OpenSimulator " + grouptitle);
 
             Vector3 pos2 = new Vector3(Pos.X, Pos.Y, Pos.Z);
             byte[] pb = pos2.GetBytes();
