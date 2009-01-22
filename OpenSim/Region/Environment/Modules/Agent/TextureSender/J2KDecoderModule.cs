@@ -26,13 +26,16 @@
  */
 
 using System;
+using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Collections.Generic;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -50,11 +53,18 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         /// </summary>
         private readonly Dictionary<UUID, OpenJPEG.J2KLayerInfo[]> m_cacheddecode = new Dictionary<UUID, OpenJPEG.J2KLayerInfo[]>();
         private bool OpenJpegFail = false;
+        private readonly string CacheFolder = Util.dataDir() + "/j2kDecodeCache";
+        private readonly J2KDecodeFileCache fCache;
 
         /// <summary>
         /// List of client methods to notify of results of decode
         /// </summary>
         private readonly Dictionary<UUID, List<DecodedCallback>> m_notifyList = new Dictionary<UUID, List<DecodedCallback>>();
+
+        public J2KDecoderModule()
+        {
+            fCache = new J2KDecodeFileCache(CacheFolder);
+        }
 
         public void Initialise(Scene scene, IConfigSource source)
         {
@@ -151,67 +161,76 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
 
             if (!OpenJpegFail)
             {
-                try
+                if (!fCache.TryLoadCacheForAsset(AssetId, out layers))
                 {
-
-                    AssetTexture texture = new AssetTexture(AssetId, j2kdata);
-                    if (texture.DecodeLayerBoundaries())
+                    try
                     {
-                        bool sane = true;
 
-                        // Sanity check all of the layers
-                        for (int i = 0; i < texture.LayerInfo.Length; i++)
+                        AssetTexture texture = new AssetTexture(AssetId, j2kdata);
+                        if (texture.DecodeLayerBoundaries())
                         {
-                            if (texture.LayerInfo[i].End > texture.AssetData.Length)
+                            bool sane = true;
+
+                            // Sanity check all of the layers
+                            for (int i = 0; i < texture.LayerInfo.Length; i++)
                             {
-                                sane = false;
-                                break;
+                                if (texture.LayerInfo[i].End > texture.AssetData.Length)
+                                {
+                                    sane = false;
+                                    break;
+                                }
+                            }
+
+                            if (sane)
+                            {
+                                layers = texture.LayerInfo;
+                                fCache.SaveFileCacheForAsset(AssetId, layers);
+                               
+
+                                    // Write out decode time
+                                    m_log.InfoFormat("[J2KDecoderModule]: {0} Decode Time: {1}", System.Environment.TickCount - DecodeTime,
+                                                     AssetId);
+                               
+                            }
+                            else
+                            {
+                                m_log.WarnFormat(
+                                    "[J2KDecoderModule]: JPEG2000 texture decoding succeeded, but sanity check failed for {0}",
+                                    AssetId);
                             }
                         }
 
-                        if (sane)
-                        {
-                            layers = texture.LayerInfo;
-                        }
                         else
                         {
-                            m_log.WarnFormat(
-                                "[J2KDecoderModule]: JPEG2000 texture decoding succeeded, but sanity check failed for {0}",
-                                AssetId);
+                            m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding failed for {0}", AssetId);
                         }
+                        texture = null; // dereference and dispose of ManagedImage
                     }
-
-                    else
+                    catch (DllNotFoundException)
                     {
-                        m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding failed for {0}", AssetId);
+                        m_log.Error(
+                            "[J2KDecoderModule]: OpenJpeg is not installed properly. Decoding disabled!  This will slow down texture performance!  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
+                        OpenJpegFail = true;
                     }
-                    texture = null; // dereference and dispose of ManagedImage
+                    catch (Exception ex)
+                    {
+                        m_log.WarnFormat(
+                            "[J2KDecoderModule]: JPEG2000 texture decoding threw an exception for {0}, {1}",
+                            AssetId, ex);
+                    }
                 }
-                catch (DllNotFoundException)
-                {
-                    m_log.Error(
-                        "[J2KDecoderModule]: OpenJpeg is not installed properly. Decoding disabled!  This will slow down texture performance!  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
-                    OpenJpegFail = true;
-                }
-                catch (Exception ex)
-                {
-                    m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding threw an exception for {0}, {1}",
-                                     AssetId, ex);
-                }
+               
             }
 
-            if (!OpenJpegFail)
-            {
-                // Write out decode time
-                m_log.InfoFormat("[J2KDecoderModule]: {0} Decode Time: {1}", System.Environment.TickCount - DecodeTime,
-                                 AssetId);
-            }
+
             // Cache Decoded layers
             lock (m_cacheddecode)
             {
                 m_cacheddecode.Add(AssetId, layers);
 
             }
+
+            
 
             // Notify Interested Parties
             lock (m_notifyList)
@@ -225,6 +244,253 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                     }
                     m_notifyList.Remove(AssetId);
                 }
+            }
+        }
+    }
+
+    public class J2KDecodeFileCache
+    {
+        private readonly string m_cacheDecodeFolder;
+        private bool enabled = true;
+        
+        private static readonly ILog m_log
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public J2KDecodeFileCache(string pFolder)
+        {
+            m_cacheDecodeFolder = pFolder;
+            if (!Directory.Exists(pFolder))
+            {
+                Createj2KCacheFolder(pFolder);
+            }
+
+        }
+
+        public bool SaveFileCacheForAsset(UUID AssetId, OpenJPEG.J2KLayerInfo[] Layers)
+        {
+            if (Layers.Length > 0 && enabled)
+            {
+                FileStream fsCache =
+                    new FileStream(String.Format("{0}/{1}", m_cacheDecodeFolder, FileNameFromAssetId(AssetId)),
+                                   FileMode.Create);
+                StreamWriter fsSWCache = new StreamWriter(fsCache);
+                StringBuilder stringResult = new StringBuilder();
+                string strEnd = "\n";
+                for (int i = 0; i < Layers.Length; i++)
+                {
+                    if (i == (Layers.Length - 1))
+                        strEnd = "";
+
+                    stringResult.AppendFormat("{0}|{1}|{2}{3}", Layers[i].Start, Layers[i].End, Layers[i].Size, strEnd);
+                }
+                fsSWCache.Write(stringResult.ToString());
+                fsSWCache.Close();
+                fsSWCache.Dispose();
+                fsCache.Dispose();
+                return true;
+            }
+
+
+            return false;
+        }
+
+        
+
+        public bool TryLoadCacheForAsset(UUID AssetId, out OpenJPEG.J2KLayerInfo[] Layers)
+        {
+            string filename = String.Format("{0}/{1}", m_cacheDecodeFolder, FileNameFromAssetId(AssetId));
+            Layers = new OpenJPEG.J2KLayerInfo[0];
+
+            if (!File.Exists(filename))
+                return false;
+
+            if (!enabled)
+            {
+                return false;
+            }
+
+            string readResult = string.Empty;
+
+            try
+            {
+                FileStream fsCachefile =
+                    new FileStream(filename,
+                                   FileMode.Open);
+
+                StreamReader sr = new StreamReader(fsCachefile);
+                readResult = sr.ReadToEnd();
+
+                sr.Close();
+                sr.Dispose();
+                fsCachefile.Dispose();
+
+            }
+            catch (IOException ioe)
+            {
+                if (ioe is PathTooLongException)
+                {
+                    m_log.Error(
+                        "[J2KDecodeCache]: Cache Read failed. Path is too long.");
+                }
+                else if (ioe is DirectoryNotFoundException)
+                {
+                    m_log.Error(
+                        "[J2KDecodeCache]: Cache Read failed. Cache Directory does not exist!");
+                    enabled = false;
+                }
+                else
+                {
+                    m_log.Error(
+                        "[J2KDecodeCache]: Cache Read failed. IO Exception.");
+                }
+                return false;
+
+            }
+            catch (UnauthorizedAccessException)
+            {
+                m_log.Error(
+                    "[J2KDecodeCache]: Cache Read failed. UnauthorizedAccessException Exception. Do you have the proper permissions on this file?");
+                return false;
+            }
+            catch (ArgumentException ae)
+            {
+                if (ae is ArgumentNullException)
+                {
+                    m_log.Error(
+                        "[J2KDecodeCache]: Cache Read failed. No Filename provided");
+                }
+                else
+                {
+                    m_log.Error(
+                   "[J2KDecodeCache]: Cache Read failed. Filname was invalid");
+                }
+                return false;
+            }
+            catch (NotSupportedException)
+            {
+                m_log.Error(
+                    "[J2KDecodeCache]: Cache Read failed, not supported. Cache disabled!");
+                enabled = false;
+
+                return false;
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[J2KDecodeCache]: Cache Read failed, unknown exception.  Error: {0}",
+                    e.ToString());
+                return false;
+            }
+
+            string[] lines = readResult.Split('\n');
+
+            if (lines.Length <= 0)
+                return false;
+
+            Layers = new OpenJPEG.J2KLayerInfo[lines.Length];
+            
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string[] elements = lines[i].Split('|');
+                if (elements.Length == 3)
+                {
+                    int element1, element2;
+
+                    try
+                    {
+                        element1 = Convert.ToInt32(elements[0]);
+                        element2 = Convert.ToInt32(elements[1]);
+                    }
+                    catch (FormatException)
+                    {
+                        m_log.WarnFormat("[J2KDecodeCache]: Cache Read failed with ErrorConvert for {0}", AssetId);
+                        Layers = new OpenJPEG.J2KLayerInfo[0];
+                        return false;
+                    }
+
+                    Layers[i] = new OpenJPEG.J2KLayerInfo();
+                    Layers[i].Start = element1;
+                    Layers[i].End = element2;
+
+                }
+                else
+                {
+                    // reading failed
+                    m_log.WarnFormat("[J2KDecodeCache]: Cache Read failed for {0}", AssetId);
+                    Layers = new OpenJPEG.J2KLayerInfo[0];
+                    return false;
+                }
+            }
+
+
+                
+
+            return true;
+        }
+
+        public string FileNameFromAssetId(UUID AssetId)
+        {
+            return String.Format("j2kCache_{0}.cache", AssetId);
+        }
+
+        public void Createj2KCacheFolder(string pFolder)
+        {
+            try
+            {
+                Directory.CreateDirectory(pFolder);
+            }
+            catch (IOException ioe)
+            {
+                if (ioe is PathTooLongException)
+                {
+                    m_log.Error(
+                        "[J2KDecodeCache]: Cache Directory does not exist and create failed because the path to the cache folder is too long.  Cache disabled!");
+                }
+                else if (ioe is DirectoryNotFoundException)
+                {
+                    m_log.Error(
+                        "[J2KDecodeCache]: Cache Directory does not exist and create failed because the supplied base of the directory folder does not exist.  Cache disabled!");
+                }
+                else
+                {
+                    m_log.Error(
+                        "[J2KDecodeCache]: Cache Directory does not exist and create failed because of an IO Exception.  Cache disabled!");
+                }
+                enabled = false;
+
+            }
+            catch (UnauthorizedAccessException)
+            {
+                m_log.Error(
+                    "[J2KDecodeCache]: Cache Directory does not exist and create failed because of an UnauthorizedAccessException Exception.  Cache disabled!");
+                enabled = false;
+            }
+            catch (ArgumentException ae)
+            {
+                if (ae is ArgumentNullException)
+                {
+                    m_log.Error(
+                        "[J2KDecodeCache]: Cache Directory does not exist and create failed because the folder provided is invalid!  Cache disabled!");
+                }
+                else
+                {
+                    m_log.Error(
+                   "[J2KDecodeCache]: Cache Directory does not exist and create failed because no cache folder was provided!  Cache disabled!");
+                }
+                enabled = false;
+            }
+            catch (NotSupportedException)
+            {
+                m_log.Error(
+                    "[J2KDecodeCache]: Cache Directory does not exist and create failed because it's not supported.  Cache disabled!");
+                enabled = false;
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[J2KDecodeCache]: Cache Directory does not exist and create failed because of an unknown exception.  Cache disabled!  Error: {0}",
+                    e.ToString());
+                enabled = false;
             }
         }
     }
