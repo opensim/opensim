@@ -2452,6 +2452,11 @@ namespace OpenSim.Region.Environment.Scenes
                     //Scene.DumpChildrenSeeds(UUID);
                     //DumpKnownRegions();
 
+                    if (!m_knownChildRegions.ContainsKey(neighbourRegion.RegionHandle))
+                    {
+                        m_log.ErrorFormat("[SCENE PRESENCE]: No CAPS information for region handle {0}, exiting CrossToNewRegion.",
+                                         neighbourRegion.RegionHandle);
+                    }
                     // TODO Should construct this behind a method
                     string capsPath =
                         "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort

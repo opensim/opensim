@@ -175,9 +175,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.Capabilities
         public string GetChildSeed(UUID agentID, ulong handle)
         {
             Dictionary<ulong, string> seeds;
+            string returnval;
             if (childrenSeeds.TryGetValue(agentID, out seeds))
             {
-                return seeds[handle];
+                if (seeds.TryGetValue(handle, out returnval))
+                    return returnval;
             }
             return null;
         }
