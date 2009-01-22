@@ -88,15 +88,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             int failedAssetRestores = 0;
 
             byte[] data;
-	    TarArchiveReader.TarEntryType entryType;
+            TarArchiveReader.TarEntryType entryType;
             while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
             {
                 //m_log.DebugFormat(
                 //    "[ARCHIVER]: Successfully read {0} ({1} bytes)}", filePath, data.Length);
-		if (entryType==TarArchiveReader.TarEntryType.TYPE_DIRECTORY) {
-		    m_log.WarnFormat("[ARCHIVER]: Ignoring directory entry {0}",
-				     filePath);
-		}
+                if (entryType==TarArchiveReader.TarEntryType.TYPE_DIRECTORY) {
+                    m_log.WarnFormat("[ARCHIVER]: Ignoring directory entry {0}",
+                                     filePath);
+                }
                 else if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
                 {
                     serialisedSceneObjects.Add(m_asciiEncoding.GetString(data));
@@ -122,7 +122,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     LoadRegionSettings(filePath, data);
                 }
             }
-
+            
             //m_log.Debug("[ARCHIVER]: Reached end of archive");
 
             archive.Close();
@@ -131,10 +131,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             if (failedAssetRestores > 0)
                 m_log.ErrorFormat("[ARCHIVER]: Failed to load {0} assets", failedAssetRestores);
-
+            
             m_log.Info("[ARCHIVER]: Clearing all existing scene objects");
             m_scene.DeleteAllSceneObjects();
-
+            
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
