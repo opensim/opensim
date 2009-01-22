@@ -133,8 +133,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             pq[PQHandles[assetID]].data.asset = asset;
             
-            lock (pq[PQHandles[assetID]].data)
-                pq[PQHandles[assetID]].data.Update((int)pq[PQHandles[assetID]].data.Priority, (int)pq[PQHandles[assetID]].data.CurrentPacket);
+            //lock (pq[PQHandles[assetID]].data)
+            pq[PQHandles[assetID]].data.Update((int)pq[PQHandles[assetID]].data.Priority, pq[PQHandles[assetID]].data.CurrentPacket);
             
             
             
@@ -280,8 +280,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     pq[PQHandles[AssetId]].data.Layers = layers;
                     pq[PQHandles[AssetId]].data.J2KDecode = true;
                     pq[PQHandles[AssetId]].data.J2KDecodeWaiting = false;
-                    lock (pq[PQHandles[AssetId]].data)
-                        pq[PQHandles[AssetId]].data.Update((int)pq[PQHandles[AssetId]].data.Priority, (int)pq[PQHandles[AssetId]].data.CurrentPacket);
+                    //lock (pq[PQHandles[AssetId]].data)
+                    pq[PQHandles[AssetId]].data.Update((int)pq[PQHandles[AssetId]].data.Priority, (int)pq[PQHandles[AssetId]].data.CurrentPacket);
 
                     // Send the first packet
                     pq[PQHandles[AssetId]].data.SendPacket(m_client);
@@ -601,7 +601,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 Console.WriteLine(String.Format("Err: srcLen:{0}, BytePos:{1}, desLen:{2}, pktsize:{3}, currpak:{4}, stoppak:{5}, totalpak:{6}", m_asset_ref.Data.Length, CurrentBytePosition(), 
                     imageData.Length, imagePacketSize, CurrentPacket,StopPacket,TexturePacketCount()));
-                System.Console.WriteLine(e.ToString());
+                Console.WriteLine(e.ToString());
                 //m_log.Error("Texture data copy failed for " + m_asset_ref.FullID.ToString());
                 //m_cancel = true;
                 //m_sending = false;
@@ -639,12 +639,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public int CompareTo(Prio<D> that)
         {
-            return this.priority.CompareTo(that.priority);
+            return priority.CompareTo(that.priority);
         }
 
         public bool Equals(Prio<D> that)
         {
-            return this.priority == that.priority;
+            return priority == that.priority;
         }
 
         public static Prio<D> operator +(Prio<D> tp, int delta)
