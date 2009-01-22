@@ -2451,16 +2451,17 @@ namespace OpenSim.Region.Environment.Scenes
                     //Console.WriteLine("BEFORE CROSS");
                     //Scene.DumpChildrenSeeds(UUID);
                     //DumpKnownRegions();
-
-                    if (!m_knownChildRegions.ContainsKey(neighbourRegion.RegionHandle))
+                    string agentcaps;
+                    if (!m_knownChildRegions.TryGetValue(neighbourRegion.RegionHandle, out agentcaps))
                     {
                         m_log.ErrorFormat("[SCENE PRESENCE]: No CAPS information for region handle {0}, exiting CrossToNewRegion.",
                                          neighbourRegion.RegionHandle);
+                        return;
                     }
                     // TODO Should construct this behind a method
                     string capsPath =
                         "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
-                         + "/CAPS/" + m_knownChildRegions[neighbourRegion.RegionHandle] /*circuitdata.CapsPath*/ + "0000/";
+                         + "/CAPS/" + agentcaps /*circuitdata.CapsPath*/ + "0000/";
 
                     m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, m_uuid);
 
