@@ -507,5 +507,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int TOUCH_INVALID_FACE = -1;
         public static readonly vector TOUCH_INVALID_TEXCOORD = new vector(-1.0, -1.0, 0.0);
         public static readonly vector TOUCH_INVALID_VECTOR = ZERO_VECTOR;
+
+        // Constants for default textures
+        public const string TEXTURE_BLANK = "5748decc-f629-461c-9a36-a35a221fe21f";
+        public const string TEXTURE_DEFAULT = "89556747-24cb-43ed-920b-47caed15465f";
+        public const string TEXTURE_PLYWOOD = "89556747-24cb-43ed-920b-47caed15465f";
+        public const string TEXTURE_TRANSPARENT = "8dcd4a48-2d37-4909-9f78-f7a9eb4ef903";
+        public const string TEXTURE_MEDIA = "8b5fec65-8d8d-9dc5-cda8-8fdf2716e361";
+
     }
 }

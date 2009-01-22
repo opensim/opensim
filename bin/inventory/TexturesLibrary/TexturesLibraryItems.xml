@@ -720,4 +720,32 @@
     <Key Name="everyonePermissions" Value="2147483647" />
     <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
+  <Section Name="Default Media Texture">
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000011"/>
+    <Key Name="assetID" Value="8b5fec65-8d8d-9dc5-cda8-8fdf2716e361"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Default Media Texture" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
+  </Section>
+
+  <Section Name="Default Transparent Texture">
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000012"/>
+    <Key Name="assetID" Value="8dcd4a48-2d37-4909-9f78-f7a9eb4ef903"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Default Transparent Texture" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
+  </Section>
 </Nini>
