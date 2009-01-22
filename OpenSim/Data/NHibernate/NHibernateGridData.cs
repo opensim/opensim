@@ -207,7 +207,7 @@ namespace OpenSim.Data.NHibernate
                 IList regions = criteria.List();
                 RegionProfileData[] regionArray = new RegionProfileData[regions.Count];
 
-                for(int i=0;i<regionArray.Length;i++)
+                for (int i=0;i<regionArray.Length;i++)
                 {
                     regionArray[i] = (RegionProfileData)regions[i];
                 }
