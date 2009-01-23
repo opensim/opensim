@@ -1857,6 +1857,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition;
         }
 
+        /// <summary>
+        /// See http://lslwiki.net/lslwiki/wakka.php?wakka=ChildRotation
+        /// </summary>
         public LSL_Rotation llGetRot()
         {
             // unlinked or root prim then use llRootRotation
@@ -1866,7 +1869,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return llGetRootRotation();
             }
             m_host.AddScriptLPS(1);
-            Quaternion q = m_host.RotationOffset;
+            Quaternion q = m_host.GetWorldRotation();
             return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
         }
 
@@ -6816,10 +6819,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_ROTATION:
-                        res.Add(new LSL_Rotation(m_host.RotationOffset.X,
-                                                         m_host.RotationOffset.Y,
-                                                         m_host.RotationOffset.Z,
-                                                         m_host.RotationOffset.W));
+                        res.Add(llGetRot());
                         break;
 
                     case (int)ScriptBaseClass.PRIM_TYPE:
