@@ -28,6 +28,7 @@
 using System;
 using System.Net;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Region.Environment
@@ -191,6 +192,88 @@ namespace OpenSim.Region.Environment
         public static OSD KeepAliveEvent()
         {
             return buildEvent("FAKEEVENT", new OSDMap());
+        }
+
+        public static OSD AgentParams(UUID agentID, bool checkEstate, int godLevel, bool limitedToEstate)
+        {
+            OSDMap body = new OSDMap(4);
+
+            body.Add("agent_id", new OSDUUID(agentID));
+            body.Add("check_estate", new OSDInteger(checkEstate ? 1 : 0));
+            body.Add("god_level", new OSDInteger(godLevel));
+            body.Add("limited_to_estate", new OSDInteger(limitedToEstate ? 1 : 0));
+
+            return body;
+        }
+
+        public static OSD InstantMessageParams(UUID fromAgent, string message, UUID toAgent,
+            string fromName, byte dialog, uint timeStamp, bool offline, int parentEstateID,
+            Vector3 position, uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket)
+        {
+            OSDMap messageParams = new OSDMap(15);
+            messageParams.Add("type", new OSDInteger((int)dialog));
+            
+            OSDArray positionArray = new OSDArray(3);
+            positionArray.Add(OSD.FromReal(position.X));
+            positionArray.Add(OSD.FromReal(position.Y));
+            positionArray.Add(OSD.FromReal(position.Z));
+            messageParams.Add("position", positionArray);
+
+            messageParams.Add("region_id", new OSDUUID(UUID.Zero));
+            messageParams.Add("to_id", new OSDUUID(toAgent));
+            messageParams.Add("source", new OSDInteger(0));
+
+            OSDMap data = new OSDMap(1);
+            data.Add("binary_bucket", OSD.FromBinary(binaryBucket));
+            messageParams.Add("data", data);
+            messageParams.Add("message", new OSDString(message));
+            messageParams.Add("id", new OSDUUID(transactionID));
+            messageParams.Add("from_name", new OSDString(fromName));
+            messageParams.Add("timestamp", new OSDInteger((int)timeStamp));
+            messageParams.Add("offline", new OSDInteger(offline ? 1 : 0));
+            messageParams.Add("parent_estate_id", new OSDInteger(parentEstateID));
+            messageParams.Add("ttl", new OSDInteger((int)ttl));
+            messageParams.Add("from_id", new OSDUUID(fromAgent));
+            messageParams.Add("from_group", new OSDInteger(fromGroup ? 1 : 0));
+
+            return messageParams;
+        }
+
+        public static OSD InstantMessage(UUID fromAgent, string message, UUID toAgent,
+            string fromName, byte dialog, uint timeStamp, bool offline, int parentEstateID,
+            Vector3 position, uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket,
+            bool checkEstate, int godLevel, bool limitedToEstate)
+        {
+            OSDMap im = new OSDMap(2);
+            im.Add("message_params", InstantMessageParams(fromAgent, message, toAgent,
+            fromName, dialog, timeStamp, offline, parentEstateID,
+            position, ttl, transactionID, fromGroup, binaryBucket));
+
+            im.Add("agent_params", AgentParams(fromAgent, checkEstate, godLevel, limitedToEstate));
+
+            return im;
+        }
+
+
+        public static OSD ChatterboxInvitation(UUID sessionID, string sessionName,
+            UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog,
+            uint timeStamp, bool offline, int parentEstateID, Vector3 position,
+            uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket)
+        {
+            OSDMap body = new OSDMap(5);
+            body.Add("session_id", new OSDUUID(sessionID));
+            body.Add("from_name", new OSDString(fromName));
+            body.Add("session_name", new OSDString(sessionName));
+            body.Add("from_id", new OSDUUID(fromAgent));
+
+            body.Add("instantmessage", InstantMessage(fromAgent, message, toAgent,
+            fromName, dialog, timeStamp, offline, parentEstateID, position,
+            ttl, transactionID, fromGroup, binaryBucket, true, 0, true));
+
+            OSDMap chatterboxInvitation = new OSDMap(2);
+            chatterboxInvitation.Add("message", new OSDString("ChatterBoxInvitation"));
+            chatterboxInvitation.Add("body", body);
+            return chatterboxInvitation;
         }
     }
 }

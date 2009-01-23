@@ -35,6 +35,7 @@ using System.Timers;
 using System.Xml;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
+using OpenMetaverse.StructuredData;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
@@ -1182,6 +1183,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                        string fromName, byte dialog, uint timeStamp,
                                        UUID transactionID, bool fromGroup, byte[] binaryBucket)
         {
+
             if (((Scene)(m_scene)).Permissions.CanInstantMessage(fromAgent, toAgent))
             {
                 ImprovedInstantMessagePacket msg
@@ -1205,8 +1207,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 msg.MessageBlock.Message = Utils.StringToBytes(message);
                 msg.MessageBlock.BinaryBucket = binaryBucket;
 
-                //System.Console.WriteLine("SendInstantMessage: " + msg);               
-                OutPacket(msg, ThrottleOutPacketType.Task);
+                if (message.StartsWith("[grouptest]"))
+                { // this block is test code for implementing group IM - delete when group IM is finished
+                    IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+                    if (eq != null)
+                    {
+                        dialog = 17;
+
+                        //OSD Item = Environment.EventQueueHelper.ChatterboxInvitation(
+                        //    new UUID("00000000-68f9-1111-024e-222222111123"),
+                        //    "Test Group", fromAgent, message, toAgent, fromName, dialog, 0,
+                        //    false, 0, new Vector3(), 1, transactionID, fromGroup,
+                        //    Utils.StringToBytes("Test Group"));
+
+                        OSD Item = Environment.EventQueueHelper.ChatterboxInvitation(
+                            new UUID("00000000-68f9-1111-024e-222222111123"),
+                            "Test Group", fromAgent, message, toAgent, fromName, dialog, 0,
+                            false, 0, new Vector3(), 1, transactionID, fromGroup, binaryBucket);
+
+                        eq.Enqueue(Item, toAgent);
+                        m_log.Info("########### eq chatterbox invitation #############\n" + Item);
+                    }
+
+                    System.Console.WriteLine("SendInstantMessage: " + msg);
+                }
+                else
+                    OutPacket(msg, ThrottleOutPacketType.Task);
             }
         }
 
