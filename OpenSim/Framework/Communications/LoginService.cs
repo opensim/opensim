@@ -108,6 +108,7 @@ namespace OpenSim.Framework.Communications
         {
             // Temporary fix
             m_loginMutex.WaitOne();
+            
             try
             {
                 //CFK: CustomizeResponse contains sufficient strings to alleviate the need for this.

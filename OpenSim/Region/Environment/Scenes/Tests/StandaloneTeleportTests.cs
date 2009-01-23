@@ -52,7 +52,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         [Test]        
         public void TestSimpleNotNeighboursTeleport()
         {
-            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
             
             UUID sceneAId = UUID.Parse("00000000-0000-0000-0000-000000000100");
             UUID sceneBId = UUID.Parse("00000000-0000-0000-0000-000000000200");

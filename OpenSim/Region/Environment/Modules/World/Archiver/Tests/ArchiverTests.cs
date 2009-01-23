@@ -25,8 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.IO;
 using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Archiver;
+using OpenSim.Region.Environment.Modules.World.Terrain;
+using OpenSim.Region.Environment.Scenes;
+using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests
 {
@@ -38,11 +44,37 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests
         /// </summary>
         [Test]        
         public void TestSaveOarV0p2()
-        {            
-            // Create an archive containing only a terrain
-            //TarArchiveWriter taw = new TarArchiveWriter();
+        {        
+            //log4net.Config.XmlConfigurator.Configure();
             
-            //System.Console.WriteLine("wibble");
+            ArchiverModule archiverModule = new ArchiverModule();
+            TerrainModule terrainModule = new TerrainModule();
+            
+            Scene scene = SceneSetupHelpers.SetupScene();
+            SceneSetupHelpers.SetupSceneModules(scene, archiverModule, terrainModule);
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            archiverModule.ArchiveRegion(archiveWriteStream);
+
+            // If there are no assets to fetch, then the entire archive region code path will execute in this thread,
+            // so no need to worry about signalling.
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
+            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
+        
+            bool gotControlFile = false;            
+            
+            string filePath;
+            TarArchiveReader.TarEntryType tarEntryType;
+            
+            while (tar.ReadEntry(out filePath, out tarEntryType) != null)
+            {
+                if (ArchiveConstants.CONTROL_FILE_PATH == filePath)
+                    gotControlFile = true;
+            }
+
+            Assert.That(gotControlFile, Is.True, "No control file in archive");
+            
+            // TODO: Test presence of more files and contents of files.
         }
     }
 }

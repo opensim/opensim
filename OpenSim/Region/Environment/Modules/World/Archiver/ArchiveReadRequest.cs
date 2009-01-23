@@ -94,11 +94,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             byte[] data;
             TarArchiveReader.TarEntryType entryType;
+            
             while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
             {
                 //m_log.DebugFormat(
                 //    "[ARCHIVER]: Successfully read {0} ({1} bytes)}", filePath, data.Length);
-                if (entryType==TarArchiveReader.TarEntryType.TYPE_DIRECTORY) {
+                if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType) 
+                {
                     m_log.WarnFormat("[ARCHIVER]: Ignoring directory entry {0}",
                                      filePath);
                 }
@@ -407,7 +409,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         private static Stream URIFetch(Uri uri)
         {
-
             HttpWebRequest request  = (HttpWebRequest)  WebRequest.Create(uri);
 
             // request.Credentials = credentials;
@@ -425,8 +426,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             // return new BufferedStream(file, (int) response.ContentLength);
             return new BufferedStream(file, 1000000);
-
         }
-
     }
 }

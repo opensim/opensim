@@ -96,10 +96,20 @@ namespace OpenSim.Tests.Common.Setup
                 = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", configSource, "test");            
                         
             return testScene;
-        }
+        }    
         
         /// <summary>
-        /// Setup the given modules for a given scene.
+        /// Setup modules for a scene using their default settings.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="modules"></param>
+        public static void SetupSceneModules(Scene scene, params IRegionModule[] modules)
+        {
+            SetupSceneModules(scene, null, modules);              
+        }        
+        
+        /// <summary>
+        /// Setup modules for a scene.
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="config"></param>

@@ -41,7 +41,7 @@ namespace OpenSim.Framework.Communications
         private byte m_completed;
 
         /// <summary>
-        /// Did process complete synchroneously?
+        /// Did process complete synchronously?
         /// </summary>
         /// <remarks>I have a hard time imagining a scenario where this is the case, again, same issue about
         /// booleans and VolatileRead as m_completed
@@ -87,6 +87,7 @@ namespace OpenSim.Framework.Communications
                         }
                     }
                 }
+                
                 return m_waitHandle;
             }
         }
