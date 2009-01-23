@@ -52,7 +52,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         private static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
 
         private Scene m_scene;
-        private string m_loadPath;
+        private Stream m_loadStream;
 
         /// <summary>
         /// Used to cache lookups for valid uuids.
@@ -62,12 +62,19 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         public ArchiveReadRequest(Scene scene, string loadPath)
         {
             m_scene = scene;
-            m_loadPath = loadPath;
-
-            DearchiveRegion();
+            m_loadStream = new GZipStream(GetStream(loadPath), CompressionMode.Decompress);
         }
+        
+        public ArchiveReadRequest(Scene scene, Stream loadStream)
+        {
+            m_scene = scene;
+            m_loadStream = loadStream;
+        }        
 
-        private void DearchiveRegion()
+        /// <summary>
+        /// Dearchive the region embodied in this request.
+        /// </summary>
+        public void DearchiveRegion()
         {
             // The same code can handle dearchiving 0.1 and 0.2 OpenSim Archive versions
             DearchiveRegion0DotStar();
@@ -75,9 +82,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         
         private void DearchiveRegion0DotStar()
         {
-            TarArchiveReader archive
-                = new TarArchiveReader(
-                    new GZipStream(GetStream(m_loadPath), CompressionMode.Decompress));
+            TarArchiveReader archive = new TarArchiveReader(m_loadStream);
 
             //AssetsDearchiver dearchiver = new AssetsDearchiver(m_scene.AssetCache);
 
@@ -368,7 +373,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Resolve path to a working FileStream
         /// </summary>
-
         private Stream GetStream(string path)
         {
             try
@@ -392,7 +396,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                         // OK, now we know we have an HTTP URI to work with
 
                         return URIFetch(uri);
-
                     }
                 }
             }

@@ -33,8 +33,9 @@ using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Reflection;
-//using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using OpenMetaverse;
@@ -51,7 +52,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Scene m_scene;
-        protected string m_savePath;
+        protected Stream m_saveStream;
 
         /// <summary>
         /// Used as a temporary store of an asset which represents an object.  This can be a null if no appropriate
@@ -70,8 +71,19 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         public ArchiveWriteRequestPreparation(Scene scene, string savePath)
         {
             m_scene = scene;
-            m_savePath = savePath;
+            m_saveStream = new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress);            
         }
+        
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="saveStream">The stream to which to save data.</param>
+        public ArchiveWriteRequestPreparation(Scene scene, Stream saveStream)
+        {
+            m_scene = scene;
+            m_saveStream = saveStream;            
+        }        
 
         /// <summary>
         /// The callback made when we request the asset for an object from the asset service.
@@ -257,8 +269,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             }
         }
 
+        /// <summary>
+        /// Archive the region requested.
+        /// </summary>
+        /// <exception cref="System.IO.IOException">if there was an io problem with creating the file</exception>
         public void ArchiveRegion()
-        {
+        {                            
             Dictionary<UUID, int> assetUuids = new Dictionary<UUID, int>();
 
             List<EntityBase> entities = m_scene.GetEntities();
@@ -309,7 +325,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     m_scene.RequestModuleInterface<ITerrainModule>(),
                     m_scene.RequestModuleInterface<IRegionSerialiserModule>(),
                     m_scene.RegionInfo,
-                    m_savePath);
+                    m_saveStream);
             
             new AssetsRequest(assetUuids.Keys, m_scene.AssetCache, awre.ReceivedAllAssets).Execute();
         }

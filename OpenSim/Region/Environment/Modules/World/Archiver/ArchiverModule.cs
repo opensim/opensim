@@ -25,15 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.World.Serialiser;
-using OpenSim.Region.Environment.Scenes;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules.World.Serialiser;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
@@ -44,14 +45,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// Scene to which this module belongs
-        /// </summary>
-        /// <param name="scene"></param>
-        /// <param name="source"></param>
         private Scene m_scene;
 
-        public string Name { get { return "ArchiverModule"; } }
+        public string Name { get { return "Archiver Module"; } }
 
         public bool IsSharedModule { get { return false; } }
 
@@ -75,12 +71,22 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             
             new ArchiveWriteRequestPreparation(m_scene, savePath).ArchiveRegion();
         }
+        
+        public void ArchiveRegion(Stream saveStream)
+        {
+            new ArchiveWriteRequestPreparation(m_scene, saveStream).ArchiveRegion();
+        }
 
         public void DearchiveRegion(string loadPath)
         {
             m_log.InfoFormat("[SCENE]: Loading archive to region {0} from {1}", m_scene.RegionInfo.RegionName, loadPath);
             
-            new ArchiveReadRequest(m_scene, loadPath);
+            new ArchiveReadRequest(m_scene, loadPath).DearchiveRegion();
+        }
+        
+        public void DearchiveRegion(Stream loadStream)
+        {
+            new ArchiveReadRequest(m_scene, loadStream).DearchiveRegion();
         }
     }
 }

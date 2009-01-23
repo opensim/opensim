@@ -28,7 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Reflection;
 using System.Xml;
 using OpenMetaverse;
@@ -57,20 +56,20 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         protected IRegionSerialiserModule m_serialiser;
         protected List<SceneObjectGroup> m_sceneObjects;
         protected RegionInfo m_regionInfo;
-        protected string m_savePath;
+        protected Stream m_saveStream;
 
         public ArchiveWriteRequestExecution(
              List<SceneObjectGroup> sceneObjects,
              ITerrainModule terrainModule,
              IRegionSerialiserModule serialiser,
              RegionInfo regionInfo,
-             string savePath)
+             Stream saveStream)
         {
             m_sceneObjects = sceneObjects;
             m_terrainModule = terrainModule;
             m_serialiser = serialiser;
             m_regionInfo = regionInfo;
-            m_savePath = savePath;
+            m_saveStream = saveStream;
         }
 
         protected internal void ReceivedAllAssets(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids)
@@ -124,9 +123,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             AssetsArchiver assetsArchiver = new AssetsArchiver(assetsFound);
             assetsArchiver.Archive(archive);
 
-            archive.WriteTar(new GZipStream(new FileStream(m_savePath, FileMode.Create), CompressionMode.Compress));
+            archive.WriteTar(m_saveStream);
 
-            m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive {0}", m_savePath);
+//            m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive for {0}", m_regionInfo.RegionName);
+            m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive for {0}", m_saveStream);
         }
 
         /// <summary>

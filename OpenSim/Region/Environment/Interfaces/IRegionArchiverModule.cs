@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.IO;
+
 namespace OpenSim.Region.Environment.Interfaces
 {
     /// <summary>
@@ -39,9 +41,26 @@ namespace OpenSim.Region.Environment.Interfaces
         void ArchiveRegion(string savePath);
 
         /// <summary>
+        /// Archive the region to a stream.
+        /// </summary>
+        /// 
+        /// This may be a little problematic to use right now since saves happen asynchronously and there is not yet
+        /// a mechanism to signal completion to the caller (possibly other than continually checking whether the 
+        /// stream has any data in it).  TODO: Address this.
+        /// 
+        /// <param name="saveStream"></param>
+        void ArchiveRegion(Stream saveStream);
+
+        /// <summary>
         /// Dearchive the given region archive into the scene
         /// </summary>
         /// <param name="loadPath"></param>
         void DearchiveRegion(string loadPath);
+        
+        /// <summary>
+        /// Dearchive a region from a stream
+        /// </summary>
+        /// <param name="loadStream"></param>
+        void DearchiveRegion(Stream loadStream);
     }
 }

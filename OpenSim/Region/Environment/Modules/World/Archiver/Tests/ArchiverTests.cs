@@ -26,18 +26,22 @@
  */
 
 using NUnit.Framework;
+using OpenSim.Region.Environment.Modules.World.Archiver;
 
-namespace OpenSim.Region.Environment.Modules.World.Archiver
+namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests
 {
     [TestFixture]
     public class ArchiverTests
     {
         /// <summary>
-        /// Test loading a V0.2 OpenSim Region Archive.  Does not yet do what it says on the tin
+        /// Test saving a V0.2 OpenSim Region Archive.  Does not yet do what it says on the tin
         /// </summary>
         [Test]        
-        public void TestLoadOarV0p2()
-        {
+        public void TestSaveOarV0p2()
+        {            
+            // Create an archive containing only a terrain
+            //TarArchiveWriter taw = new TarArchiveWriter();
+            
             //System.Console.WriteLine("wibble");
         }
     }
