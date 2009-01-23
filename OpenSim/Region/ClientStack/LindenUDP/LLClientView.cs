@@ -174,7 +174,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private GenericCall7 handlerObjectMaterial;
         private ObjectPermissions handlerObjectPermissions;
         private RequestObjectPropertiesFamily handlerRequestObjectPropertiesFamily; //OnRequestObjectPropertiesFamily;
-        private TextureRequest handlerTextureRequest;
+        //private TextureRequest handlerTextureRequest;
         private UDPAssetUploadRequest handlerAssetUploadRequest; //OnAssetUploadRequest;
         private RequestXfer handlerRequestXfer; //OnRequestXfer;
         private XferReceive handlerXferReceive; //OnXferReceive;
@@ -5261,7 +5261,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     RequestImagePacket imageRequest = (RequestImagePacket)Pack;
                     //Console.WriteLine("image request: " + Pack.ToString());
 
-                    handlerTextureRequest = null;
+                    //handlerTextureRequest = null;
 
                     for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                     {
