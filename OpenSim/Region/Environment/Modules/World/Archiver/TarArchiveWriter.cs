@@ -32,7 +32,7 @@ using System.Text;
 //using System.Reflection;
 //using log4net;
 
-namespace OpenSim.Region.Environment
+namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
     /// <summary>
     /// Temporary code to produce a tar archive in tar v7 format

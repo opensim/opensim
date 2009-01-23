@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             TarArchiveWriter archive = new TarArchiveWriter();
 
             // Write out control file
-            archive.AddFile(ArchiveConstants.CONTROL_FILE_PATH, CreateControlFile());
+            archive.AddFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p2ControlFile());
             
             // Write out region settings
             string settingsPath = String.Format("{0}{1}.xml", ArchiveConstants.SETTINGS_PATH, m_regionInfo.RegionName);
@@ -129,10 +129,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         }
 
         /// <summary>
-        /// Create the control file for this archive
+        /// Create the control file for a 0.2 version archive
         /// </summary>
         /// <returns></returns>
-        protected string CreateControlFile()
+        public static string Create0p2ControlFile()
         {
             StringWriter sw = new StringWriter();
             XmlTextWriter xtw = new XmlTextWriter(sw);

@@ -276,6 +276,17 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 asset.Data = data;
 
                 m_scene.AssetCache.AddAsset(asset);
+                
+                /** 
+                 * Create layers on decode for image assets.  This is likely to significantly increase the time to load archives so
+                 * it might be best done when dearchive takes place on a separate thread
+                if (asset.Type=AssetType.Texture)
+                {
+                    IJ2KDecoder cacheLayerDecode = scene.RequestModuleInterface<IJ2KDecoder>();
+                    if (cacheLayerDecode != null)
+                        cacheLayerDecode.syncdecode(asset.FullID, asset.Data);
+                }
+                */
 
                 return true;
             }

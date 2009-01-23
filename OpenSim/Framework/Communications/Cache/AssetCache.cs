@@ -41,16 +41,12 @@ namespace OpenSim.Framework.Communications.Cache
 
     /// <summary>
     /// Manages local cache of assets and their sending to viewers.
-    ///
+    /// </summary>
+    /// 
     /// This class actually encapsulates two largely separate mechanisms.  One mechanism fetches assets either
     /// synchronously or async and passes the data back to the requester.  The second mechanism fetches assets and
     /// sends packetised data directly back to the client.  The only point where they meet is AssetReceived() and
-    /// AssetNotFound(), which means they do share the same asset and texture caches.
-    ///
-    /// TODO: Assets in this cache are effectively immortal (they are never disposed of through old age).
-    /// This is not a huge problem at the moment since other memory use usually dwarfs that used by assets
-    /// but it's something to bear in mind.
-    /// </summary>
+    /// AssetNotFound(), which means they do share the same asset and texture caches.I agr
     public class AssetCache : IAssetReceiver
     {
         protected ICache m_memcache = new SimpleMemoryCache();

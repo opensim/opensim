@@ -40,7 +40,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests
     public class ArchiverTests
     {
         /// <summary>
-        /// Test saving a V0.2 OpenSim Region Archive.  Does not yet do what it says on the tin
+        /// Test saving a V0.2 OpenSim Region Archive.
         /// </summary>
         [Test]        
         public void TestSaveOarV0p2()
@@ -75,6 +75,30 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests
             Assert.That(gotControlFile, Is.True, "No control file in archive");
             
             // TODO: Test presence of more files and contents of files.
+        }
+
+        /// <summary>
+        /// Test loading a V0.2 OpenSim Region Archive.  Does not yet do what it says on the tin.
+        /// </summary>        
+        [Test]
+        public void TestLoadOarV0p2()
+        {
+            MemoryStream archiveWriteStream = new MemoryStream();
+            TarArchiveWriter tar = new TarArchiveWriter();
+            
+            tar.AddFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestExecution.Create0p2ControlFile());
+            tar.WriteTar(archiveWriteStream);
+            
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
+            
+            ArchiverModule archiverModule = new ArchiverModule();
+            
+            Scene scene = SceneSetupHelpers.SetupScene();
+            SceneSetupHelpers.SetupSceneModules(scene, archiverModule);          
+            
+            archiverModule.DearchiveRegion(archiveReadStream);
+            
+            // TODO: Okay, so nothing is tested yet apart from the fact that it doesn't blow up
         }
     }
 }
