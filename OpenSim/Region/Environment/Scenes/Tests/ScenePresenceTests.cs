@@ -31,6 +31,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Tests.Common.Mock;
+using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {  
@@ -46,7 +47,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         [Test]
         public void TestAddRootAgent()
         {
-            Scene scene = SceneTestUtils.SetupScene();
+            Scene scene = SceneSetupHelpers.SetupScene();
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             string firstName = "testfirstname";
             
@@ -77,10 +78,10 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         [Test]       
         public void TestRemoveRootAgent()
         {
-            Scene scene = SceneTestUtils.SetupScene();
+            Scene scene = SceneSetupHelpers.SetupScene();
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
-            SceneTestUtils.AddRootAgent(scene, agentId);
+            SceneSetupHelpers.AddRootAgent(scene, agentId);
             
             scene.RemoveClient(agentId);
             

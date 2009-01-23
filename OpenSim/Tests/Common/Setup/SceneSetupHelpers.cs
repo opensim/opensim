@@ -39,12 +39,12 @@ using OpenSim.Region.Environment.Modules.Agent.Capabilities;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Region.Environment.Scenes.Tests
+namespace OpenSim.Tests.Common.Setup
 {        
     /// <summary>
-    /// Utilities for constructing and performing operations upon scenes.
+    /// Helpers for setting up scenes.
     /// </summary>
-    public class SceneTestUtils
+    public class SceneSetupHelpers
     {        
         /// <summary>
         /// Set up a test scene

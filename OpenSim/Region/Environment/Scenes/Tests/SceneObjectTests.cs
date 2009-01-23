@@ -35,6 +35,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Tests.Common.Mock;
+using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {
@@ -50,8 +51,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         [Test]
         public void TestAddSceneObject()
         {              
-            Scene scene = SceneTestUtils.SetupScene();
-            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
+            Scene scene = SceneSetupHelpers.SetupScene();
+            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
             
             //System.Console.WriteLine("retrievedPart : {0}", retrievedPart);
@@ -65,8 +66,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         [Test]
         public void TestDeleteSceneObject()
         {
-            TestScene scene = SceneTestUtils.SetupScene();         
-            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
+            TestScene scene = SceneSetupHelpers.SetupScene();         
+            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
             scene.DeleteSceneObject(part.ParentGroup, false);
             
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);            
@@ -81,15 +82,15 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         {
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
-            TestScene scene = SceneTestUtils.SetupScene();
+            TestScene scene = SceneSetupHelpers.SetupScene();
             
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
             sogd.Enabled = false;
                 
-            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
+            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
             
-            IClientAPI client = SceneTestUtils.AddRootAgent(scene, agentId);
+            IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
             scene.DeRezObject(client, part.LocalId, UUID.Zero, DeRezAction.Delete, UUID.Zero);
             
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
@@ -105,10 +106,10 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         {
             bool debugtest = false; 
 
-            Scene scene = SceneTestUtils.SetupScene();
-            SceneObjectPart part1 = SceneTestUtils.AddSceneObject(scene);
+            Scene scene = SceneSetupHelpers.SetupScene();
+            SceneObjectPart part1 = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectGroup grp1 = part1.ParentGroup;
-            SceneObjectPart part2 = SceneTestUtils.AddSceneObject(scene);
+            SceneObjectPart part2 = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectGroup grp2 = part2.ParentGroup;
 
 
@@ -178,14 +179,14 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         {
             bool debugtest = false;
 
-            Scene scene = SceneTestUtils.SetupScene();
-            SceneObjectPart part1 = SceneTestUtils.AddSceneObject(scene);
+            Scene scene = SceneSetupHelpers.SetupScene();
+            SceneObjectPart part1 = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectGroup grp1 = part1.ParentGroup;
-            SceneObjectPart part2 = SceneTestUtils.AddSceneObject(scene);
+            SceneObjectPart part2 = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectGroup grp2 = part2.ParentGroup;
-            SceneObjectPart part3 = SceneTestUtils.AddSceneObject(scene);
+            SceneObjectPart part3 = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectGroup grp3 = part3.ParentGroup;
-            SceneObjectPart part4 = SceneTestUtils.AddSceneObject(scene);
+            SceneObjectPart part4 = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectGroup grp4 = part4.ParentGroup;
 
 
@@ -310,21 +311,21 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             string myObjectName = "Fred";
             
-            TestScene scene = SceneTestUtils.SetupScene();                
-            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene, myObjectName);
+            TestScene scene = SceneSetupHelpers.SetupScene();                
+            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene, myObjectName);
             
             Assert.That(
                 scene.CommsManager.UserAdminService.AddUser(
                     "Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
                 Is.EqualTo(agentId));  
             
-            IClientAPI client = SceneTestUtils.AddRootAgent(scene, agentId);
+            IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
                                                 
             CachedUserInfo userInfo = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentId);
             Assert.That(userInfo, Is.Not.Null);
             Assert.That(userInfo.RootFolder, Is.Not.Null);
             
-            SceneTestUtils.DeleteSceneObjectAsync(scene, part, DeRezAction.Take, userInfo.RootFolder.ID, client);
+            SceneSetupHelpers.DeleteSceneObjectAsync(scene, part, DeRezAction.Take, userInfo.RootFolder.ID, client);
             
             // Check that we now have the taken part in our inventory
             Assert.That(myObjectName, Is.EqualTo(userInfo.RootFolder.FindItemByPath(myObjectName).Name));

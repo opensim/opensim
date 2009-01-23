@@ -2473,6 +2473,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

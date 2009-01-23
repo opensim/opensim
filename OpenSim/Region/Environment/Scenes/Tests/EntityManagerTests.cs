@@ -36,18 +36,16 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {
-    /// <summary>
-    /// Scene oriented tests
-    /// </summary>
     [TestFixture]
     public class EntityManagerTests
     {        
         static public Random random;
         SceneObjectGroup found;
-        Scene scene = SceneTestUtils.SetupScene();
+        Scene scene = SceneSetupHelpers.SetupScene();
 
         [Test]
         public void T010_AddObjects()

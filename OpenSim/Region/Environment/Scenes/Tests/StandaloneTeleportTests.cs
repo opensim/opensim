@@ -35,6 +35,7 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Communications.REST;
 using OpenSim.Tests.Common.Mock;
+using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
 {
@@ -61,21 +62,21 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             IRegionModule interregionComms = new RESTInterregionComms();
             
             // TODO: Clean this up
-            Scene sceneA = SceneTestUtils.SetupScene("sceneA", sceneAId, 1000, 1000, cm);            
+            Scene sceneA = SceneSetupHelpers.SetupScene("sceneA", sceneAId, 1000, 1000, cm);            
             interregionComms.Initialise(sceneA, new IniConfigSource());          
             sceneA.AddModule(interregionComms.Name, interregionComms);            
             sceneA.SetModuleInterfaces();                        
             sceneA.RegisterRegionWithGrid();
             
             // TODO: Clean this up
-            Scene sceneB = SceneTestUtils.SetupScene("sceneB", sceneBId, 1010, 1010, cm);
+            Scene sceneB = SceneSetupHelpers.SetupScene("sceneB", sceneBId, 1010, 1010, cm);
             interregionComms.Initialise(sceneB, new IniConfigSource());
             sceneB.AddModule(interregionComms.Name, interregionComms);
             sceneB.SetModuleInterfaces();
             sceneB.RegisterRegionWithGrid();
  
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000041");                      
-            TestClient client = SceneTestUtils.AddRootAgent(sceneA, agentId);
+            TestClient client = SceneSetupHelpers.AddRootAgent(sceneA, agentId);
  
             ICapabilitiesModule sceneACapsModule = sceneA.RequestModuleInterface<ICapabilitiesModule>();
             
