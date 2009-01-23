@@ -125,8 +125,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             archive.WriteTar(m_saveStream);
 
-//            m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive for {0}", m_regionInfo.RegionName);
-            m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive for {0}", m_saveStream);
+            m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive for {0}", m_regionInfo.RegionName);
         }
 
         /// <summary>
