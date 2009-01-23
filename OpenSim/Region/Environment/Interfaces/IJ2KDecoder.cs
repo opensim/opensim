@@ -36,5 +36,6 @@ namespace OpenSim.Region.Environment.Interfaces
     public interface IJ2KDecoder
     {
         void decode(UUID AssetId, byte[] assetData, DecodedCallback decodedReturn);
+        void syncdecode(UUID AssetId, byte[] j2kdata);
     }
 }

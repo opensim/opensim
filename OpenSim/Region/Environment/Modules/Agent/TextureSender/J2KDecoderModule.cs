@@ -146,6 +146,16 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
             }
         }
 
+        /// <summary>
+        /// Provides a synchronous decode so that caller can be assured that this executes before the next line
+        /// </summary>
+        /// <param name="AssetId"></param>
+        /// <param name="j2kdata"></param>
+        public void syncdecode(UUID AssetId, byte[] j2kdata)
+        {
+            doJ2kDecode(AssetId, j2kdata);
+        }
+
         #endregion
 
         /// <summary>

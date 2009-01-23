@@ -242,6 +242,13 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
                 LastAssetID = asset.FullID;
 
+                IJ2KDecoder cacheLayerDecode = scene.RequestModuleInterface<IJ2KDecoder>();
+                if (cacheLayerDecode != null)
+                {
+                    cacheLayerDecode.syncdecode(asset.FullID, asset.Data);
+                }
+                cacheLayerDecode = null;
+
                 // mostly keep the values from before
                 Primitive.TextureEntry tmptex = part.Shape.Textures;
 
