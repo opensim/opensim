@@ -1610,6 +1610,7 @@
         <Match path="Resources/SQLiteDialect" pattern="*.sql" buildAction="EmbeddedResource"/>
         <Match path="Resources/MySQLDialect" pattern="*.sql" buildAction="EmbeddedResource"/>
         <Match path="Resources/MsSql2005Dialect" pattern="*.sql" buildAction="EmbeddedResource"/>
+        <Match path="Resources/PostgreSQLDialect" pattern="*.sql" buildAction="EmbeddedResource"/>
       </Files>
     </Project>
 
@@ -2576,6 +2577,7 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="MySql.Data.dll"/>
+      <Reference name="Npgsql.dll"/>
       <Reference name="System.Data.SQLite.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="nunit.framework.dll" />

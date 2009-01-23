@@ -102,6 +102,7 @@
           <property name="PathRadiusOffset" type="OpenSim.Data.NHibernate.SByteType, OpenSim.Data.NHibernate" />
           <property name="PathRevolutions" type="System.Byte" />
           <property name="PathTaperX" type="OpenSim.Data.NHibernate.SByteType, OpenSim.Data.NHibernate" />
+          <property name="PathTaperY" type="OpenSim.Data.NHibernate.SByteType, OpenSim.Data.NHibernate" />
           <property name="PathTwist" type="OpenSim.Data.NHibernate.SByteType, OpenSim.Data.NHibernate" />
           <property name="ProfileBegin" type="OpenSim.Data.NHibernate.UInt16Type, OpenSim.Data.NHibernate" />
           <property name="ProfileEnd" type="OpenSim.Data.NHibernate.UInt16Type, OpenSim.Data.NHibernate" />

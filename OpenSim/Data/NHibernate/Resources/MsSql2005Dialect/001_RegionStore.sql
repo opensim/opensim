@@ -60,6 +60,7 @@ create table Prims (
    PathRadiusOffset TINYINT null,
    PathRevolutions TINYINT null,
    PathTaperX TINYINT null,
+   PathTaperY TINYINT null,
    PathTwist TINYINT null,
    ProfileBegin SMALLINT null,
    ProfileEnd SMALLINT null,
@@ -98,4 +99,5 @@ create table Terrain (
    MapData VARBINARY(max) null,
    primary key (RegionID)
 )
+
 
