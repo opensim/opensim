@@ -424,7 +424,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (!isOriginalXmlFormat)
                 throw new Exception("This constructor must specify the xml is in OpenSim's original format");
 
-            m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
+            //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
             int time = System.Environment.TickCount;
 
             // libomv.types changes UUID to Guid
@@ -491,8 +491,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected void SetFromXml(string xmlData)
         {
-            m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
-            int time = System.Environment.TickCount;
+            //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
+            //int time = System.Environment.TickCount;
 
             // libomv.types changes UUID to Guid
             xmlData = xmlData.Replace("<UUID>", "<Guid>");
@@ -539,7 +539,7 @@ namespace OpenSim.Region.Environment.Scenes
             reader.Close();
             sr.Close();
 
-            m_log.DebugFormat("[SOG]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
+            //m_log.DebugFormat("[SOG]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
         }
 
         protected virtual SceneObjectPart CreatePartFromXml(XmlTextReader reader)
