@@ -99,6 +99,23 @@ namespace OpenSim.Tests.Common.Setup
         }
         
         /// <summary>
+        /// Setup the given modules for a given scene.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="config"></param>
+        /// <param name="modules"></param>
+        public static void SetupSceneModules(Scene scene, IConfigSource config, params IRegionModule[] modules)
+        {
+            foreach (IRegionModule module in modules)
+            {
+                module.Initialise(scene, config);          
+                scene.AddModule(module.Name, module);
+            }
+            
+            scene.SetModuleInterfaces();               
+        }
+                                                     
+        /// <summary>
         /// Generate some standard agent connection data.
         /// </summary>
         /// <param name="agentId"></param>
