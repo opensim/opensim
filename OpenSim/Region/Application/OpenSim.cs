@@ -496,6 +496,16 @@ namespace OpenSim
                 case "reset":
                     Reset(cmdparams);
                     break;
+                case "predecode-j2k":
+                    if (cmdparams.Length > 0)
+                    {
+                        m_sceneManager.CacheJ2kDecode(Convert.ToInt32(cmdparams[0]));
+                    }
+                    else
+                    {
+                        m_sceneManager.CacheJ2kDecode(1);
+                    }
+                    break;
 
                 default:
                     string[] tmpPluginArgs = new string[cmdparams.Length + 1];
@@ -688,6 +698,7 @@ namespace OpenSim
             m_console.Notice("login-enable  - Allows login at sim level");
             m_console.Notice("login-disable - Disable login at sim level");
             m_console.Notice("login-status  - Show the actual login status");
+            m_console.Notice("predecode-j2k - Precache assets,decode j2k layerdata, First parameter is threads to use");
 
             ShowPluginCommandsHelp(CombineParams(helpArgs, 0), m_console);
 

@@ -236,7 +236,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
             // Cache Decoded layers
             lock (m_cacheddecode)
             {
-                m_cacheddecode.Add(AssetId, layers);
+                if (!m_cacheddecode.ContainsKey(AssetId))
+                    m_cacheddecode.Add(AssetId, layers);
 
             }
 

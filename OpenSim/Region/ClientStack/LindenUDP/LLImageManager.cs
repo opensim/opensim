@@ -230,12 +230,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 else if (!process.data.J2KDecodeWaiting)
                                 {
                                     // Send more data at a time for higher discard levels
-                                    for (int i = 0; i < (2*(5 - process.data.DiscardLevel) + 1)*2; i++)
+                                    bool done = false;
+                                    for (int i = 0; i < (2*(process.data.DiscardLevel) + 1)*2; i++)
                                         if (!process.data.SendPacket(m_client))
                                         {
+                                            done = true;
                                             pq[h] -= (500000*i);
                                             break;
                                         }
+                                    if (!done)
+                                    {
+                                        for (int i = 0; i < (2 * (5- process.data.DiscardLevel) + 1) * 2; i++)
+                                            if (!process.data.SendPacket(m_client))
+                                            {
+                                                done = true;
+                                                pq[h] -= (500000 * i);
+                                                break;
+                                            }
+                                    }
                                 }
                                 // If the priority is less then -4 billion, the client has forgotten about it, pop it off
                                 if (pq[h] < -400000000)
