@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
     /// </summary>
     public class Command : ICommand
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<CommandArgument> m_args = new List<CommandArgument>();
 
         private Action<object[]> m_command;
@@ -94,13 +94,13 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
 
         public void ShowConsoleHelp()
         {
-            m_log.Info("== " + Name + " ==");
-            m_log.Info(m_help);
-            m_log.Info("= Parameters =");
+            Console.WriteLine("== " + Name + " ==");
+            Console.WriteLine(m_help);
+            Console.WriteLine("= Parameters =");
             foreach (CommandArgument arg in m_args)
             {
-                m_log.Info("* " + arg.Name + " (" + arg.ArgumentType + ")");
-                m_log.Info("\t" + arg.HelpText);
+                Console.WriteLine("* " + arg.Name + " (" + arg.ArgumentType + ")");
+                Console.WriteLine("\t" + arg.HelpText);
             }
         }
 
@@ -110,13 +110,13 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
 
             if (args.Length < cleanArgs.Length)
             {
-                m_log.Error("Missing " + (cleanArgs.Length - args.Length) + " argument(s)");
+                Console.WriteLine("ERROR: Missing " + (cleanArgs.Length - args.Length) + " argument(s)");
                 ShowConsoleHelp();
                 return;
             }
             if (args.Length > cleanArgs.Length)
             {
-                m_log.Error("Too many arguments for this command. Type '<module> <command> help' for help.");
+                Console.WriteLine("ERROR: Too many arguments for this command. Type '<module> <command> help' for help.");
                 return;
             }
 
@@ -125,7 +125,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
             {
                 if (string.IsNullOrEmpty(arg.ToString()))
                 {
-                    m_log.Error("Empty arguments are not allowed");
+                    Console.WriteLine("ERROR: Empty arguments are not allowed");
                     return;
                 }
                 try
@@ -145,15 +145,16 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
                             m_args[i].ArgumentValue = Boolean.Parse(arg.ToString());
                             break;
                         default:
-                            m_log.Error("Unknown desired type for argument " + m_args[i].Name + " on command " + m_name);
+                            Console.WriteLine("ERROR: Unknown desired type for argument " + m_args[i].Name + " on command " + m_name);
                             break;
                     }
                 }
                 catch (FormatException)
                 {
-                    m_log.Error("Argument number " + (i + 1) +
+                    Console.WriteLine("ERROR: Argument number " + (i + 1) +
                                 " (" + m_args[i].Name + ") must be a valid " +
                                 m_args[i].ArgumentType.ToLower() + ".");
+                    return;
                 }
                 cleanArgs[i] = m_args[i].ArgumentValue;
 
@@ -289,11 +290,16 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
             }
             else
             {
-                if (function != "help")
-                    m_log.Error("Invalid command - No such command exists");
                 if (function == "api")
+                {
                     m_log.Info(GenerateRuntimeAPI());
-                ShowConsoleHelp();
+                }
+                else
+                {
+                    if (function != "help")
+                        Console.WriteLine("ERROR: Invalid command - No such command exists");
+                    ShowConsoleHelp();
+                }
             }
         }
 
@@ -301,10 +307,10 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
 
         private void ShowConsoleHelp()
         {
-            m_log.Info("===" + m_name + "===");
+            Console.WriteLine("===" + m_name + "===");
             foreach (ICommand com in m_commands.Values)
             {
-                m_log.Info("* " + com.Name + " - " + com.Help);
+                Console.WriteLine("* " + com.Name + " - " + com.Help);
             }
         }
 
