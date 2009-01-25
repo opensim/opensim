@@ -1704,6 +1704,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return ret;
             }
 
+            static public LSLInteger operator !(LSLInteger i1)
+            {
+                return i1.value == 0 ? 1 : 0;
+            }
+
             public static LSLInteger operator ++(LSLInteger i)
             {
                 i.value++;
