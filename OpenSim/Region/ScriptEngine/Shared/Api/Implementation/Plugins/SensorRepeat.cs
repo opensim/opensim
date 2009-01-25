@@ -265,10 +265,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
             SceneObjectPart SensePoint = ts.host;
 
-            Vector3 sensorPos = SensePoint.AbsolutePosition;
-            Vector3 regionPos = new Vector3(m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocX * Constants.RegionSize, m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocY * Constants.RegionSize, 0);
-            Vector3 fromRegionPos = sensorPos + regionPos;
-
+            Vector3 fromRegionPos = SensePoint.AbsolutePosition;
+            Vector3 toRegionPos;
             Quaternion q = SensePoint.RotationOffset;
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
@@ -290,8 +288,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 if (!(ent is SceneObjectGroup)) // dont bother if it is a pesky avatar
                     continue;
-
-                Vector3 toRegionPos = ent.AbsolutePosition + regionPos;
+                toRegionPos = ent.AbsolutePosition;
                 double dis = Math.Abs((double)Util.GetDistanceTo(toRegionPos, fromRegionPos));
                 if (keep && dis <= ts.range && ts.host.UUID != ent.UUID)
                 {
@@ -383,9 +380,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             SceneObjectPart SensePoint = ts.host;
 
-            Vector3 sensorPos = SensePoint.AbsolutePosition;
-            Vector3 regionPos = new Vector3(m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocX * Constants.RegionSize, m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocY * Constants.RegionSize, 0);
-            Vector3 fromRegionPos = sensorPos + regionPos;
+            Vector3 fromRegionPos = SensePoint.AbsolutePosition;
 
             Quaternion q = SensePoint.RotationOffset;
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
@@ -394,6 +389,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             bool attached = (SensePoint.AttachmentPoint != 0);
             bool nameSearch = (ts.name != null && ts.name != "");
+            Vector3 toRegionPos;
 
             foreach (ScenePresence presence in Presences)
             {
@@ -404,8 +400,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 if (presence.IsChildAgent)
                     keep = false;
+                toRegionPos = presence.AbsolutePosition;
 
-                Vector3 toRegionPos = presence.AbsolutePosition + regionPos;
                 double dis = Math.Abs(Util.GetDistanceTo(toRegionPos, fromRegionPos));
 
                 // are they in range
