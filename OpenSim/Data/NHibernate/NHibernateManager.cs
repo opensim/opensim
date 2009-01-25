@@ -49,7 +49,7 @@ namespace OpenSim.Data.NHibernate
         /// Parses the connection string and creates the NHibernate configuration
         /// </summary>
         /// <param name="connect">NHibernate dialect, driver and connection string separated by ';'</param>
-        private void parseConnectionString(string connect)
+        private void ParseConnectionString(string connect)
         {
             // Split out the dialect, driver, and connect string
             char[] split = { ';' };
@@ -73,7 +73,6 @@ namespace OpenSim.Data.NHibernate
             configuration.SetProperty(Environment.ConnectionString, parts[2]);
             configuration.AddAssembly("OpenSim.Data.NHibernate");
 
-            sessionFactory = configuration.BuildSessionFactory();
         }
 
         /// <summary>
@@ -82,7 +81,7 @@ namespace OpenSim.Data.NHibernate
         /// <param name="dialect">Dialect in use</param>
         /// <param name="assembly">Assembly where migration files exist</param>
         /// <param name="store">Name of the store in use</param>
-        private void runMigration(string dialect, Assembly assembly, string store)
+        private void RunMigration(string dialect, Assembly assembly, string store)
         {
             // Migration subtype is the folder name under which migrations are stored. For mysql this folder is
             // MySQLDialect instead of MySQL5Dialect which is the dialect currently in use. To avoid renaming 
@@ -104,7 +103,7 @@ namespace OpenSim.Data.NHibernate
         /// <param name="store">Name of the store</param>
         public NHibernateManager(string connect, string store)
         {
-            parseConnectionString(connect);
+            ParseConnectionString(connect);
 
             //To create sql file uncomment code below and write the name of the file
             //SchemaExport exp = new SchemaExport(cfg);
@@ -113,7 +112,8 @@ namespace OpenSim.Data.NHibernate
 
             Assembly assembly = GetType().Assembly;
 
-            runMigration(dialect, assembly, store);
+            sessionFactory = configuration.BuildSessionFactory();
+            RunMigration(dialect, assembly, store);
         }
 
         /// <summary>
@@ -121,14 +121,14 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="connect">NHibernate dialect, driver and connection string separated by ';'</param>
         /// <param name="store">Name of the store</param>
-        /// <param name="assembly"></param>
+        /// <param name="assembly">Outside assembly to be included </param>
         public NHibernateManager(string connect, string store, Assembly assembly)
         {
-            parseConnectionString(connect);
+            ParseConnectionString(connect);
 
             configuration.AddAssembly(assembly);
-
-            runMigration(dialect, assembly, store);
+            sessionFactory = configuration.BuildSessionFactory();
+            RunMigration(dialect, assembly, store);
         }
 
         public object Load(Type type, UUID uuid)
