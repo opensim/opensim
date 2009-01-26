@@ -53,6 +53,19 @@ namespace OpenSim.Region.Environment
             };
         }
 
+        private static byte[] uintToByteArray(uint uIntValue)
+        {
+            // Reverse endianness of a uint
+            return new byte[]
+            {
+                (byte)((uIntValue >> 24) % 256),
+                (byte)((uIntValue >> 16) % 256),
+                (byte)((uIntValue >> 8) % 256),
+                (byte)(uIntValue % 256)
+
+            };
+        }
+
         public static OSD buildEvent(string eventName, OSD eventBody)
         {
             OSDMap llsdEvent = new OSDMap(2);
@@ -363,7 +376,7 @@ namespace OpenSim.Region.Environment
             parcelDataMap.Add("OtherPrims", OSD.FromInteger(parcelPropertiesPacket.ParcelData.OtherPrims));
             parcelDataMap.Add("OwnerID", OSD.FromUUID(parcelPropertiesPacket.ParcelData.OwnerID));
             parcelDataMap.Add("OwnerPrims", OSD.FromInteger(parcelPropertiesPacket.ParcelData.OwnerPrims));
-            parcelDataMap.Add("ParcelFlags", OSD.FromBinary(parcelPropertiesPacket.ParcelData.ParcelFlags));
+            parcelDataMap.Add("ParcelFlags", OSD.FromBinary(uintToByteArray(parcelPropertiesPacket.ParcelData.ParcelFlags)));
             parcelDataMap.Add("ParcelPrimBonus", OSD.FromReal(parcelPropertiesPacket.ParcelData.ParcelPrimBonus));
             parcelDataMap.Add("PassHours", OSD.FromReal(parcelPropertiesPacket.ParcelData.PassHours));
             parcelDataMap.Add("PassPrice", OSD.FromInteger(parcelPropertiesPacket.ParcelData.PassPrice));
