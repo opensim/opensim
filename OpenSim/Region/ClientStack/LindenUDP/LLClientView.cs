@@ -3187,8 +3187,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.UserLocation = landData.UserLocation;
             updatePacket.ParcelData.UserLookAt = landData.UserLookAt;
             updatePacket.Header.Zerocoded = true;
-            
-            OutPacket(updatePacket, ThrottleOutPacketType.Task);
+
+            try
+            {
+                IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+                if (eq != null)
+                {
+                    OSD Item = Environment.EventQueueHelper.ParcelProperties(updatePacket);
+
+                    eq.Enqueue(Item, this.AgentId);
+                }
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("Unable to send parcel data via eventqueue - exception: " + ex.ToString());
+                m_log.Warn("sending parcel data via UDP");
+                OutPacket(updatePacket, ThrottleOutPacketType.Task);
+            }
         }
 
         public void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID)
