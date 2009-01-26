@@ -264,7 +264,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
         public override void OnNewClient(IClientAPI client)
         {
             client.OnLogout += OnClientLoggedOut;
-            client.OnConnectionClosed += OnClientLoggedOut;
 
             if (_replacingChatModule) 
                 client.OnChatFromClient += OnChatFromClient;
@@ -343,7 +342,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 List<UUID> attendees = _sceneAttendees[scene];
                 if (!attendees.Contains(agentID))
                 {
-                    _log.WarnFormat("[Concierge]: avatar {0} sneaked in (not on attendee list of region {1})",
+                    _log.WarnFormat("[Concierge]: avatar {0} must have sneaked in to region {1} earlier",
                                     name, scene.RegionInfo.RegionName);
                     return;
                 }
@@ -393,7 +392,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 list.Append("</avatar>");
             }
             string payload = list.ToString();
-            _log.DebugFormat("[Concierge]: posting to {0}:\n{1}", _brokerURI, payload);
 
             // post via REST to broker
             HttpWebRequest updatePost = WebRequest.Create(_brokerURI) as HttpWebRequest;
