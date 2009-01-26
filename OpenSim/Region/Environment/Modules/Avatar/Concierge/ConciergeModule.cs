@@ -29,8 +29,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using log4net;
@@ -53,7 +55,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 
         private List<IScene> _scenes = new List<IScene>();
         private List<IScene> _conciergedScenes = new List<IScene>();
-        private Dictionary<IScene, List<UUID>> _sceneAttendees = new Dictionary<IScene, List<UUID>>();
+        private Dictionary<IScene, List<UUID>> _sceneAttendees = 
+            new Dictionary<IScene, List<UUID>>();
+        private Dictionary<UUID, string> _attendeeNames =
+            new Dictionary<UUID, string>();
+
         private bool _replacingChatModule = false;
 
         private IConfig _config;
@@ -287,7 +293,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             if (_conciergedScenes.Contains(agent.Scene))
             {
                 _log.DebugFormat("[Concierge]: {0} enters {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
-                AddToAttendeeList(agent.UUID, agent.Scene);
+                AddToAttendeeList(agent.UUID, agent.Name, agent.Scene);
                 WelcomeAvatar(agent, agent.Scene);
                 AnnounceToAgentsRegion(agent.Scene, String.Format(_announceEntering, agent.Name, agent.Scene.RegionInfo.RegionName,
                                                                   _sceneAttendees[agent.Scene].Count));
@@ -308,15 +314,19 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             }
         }
 
-        protected void AddToAttendeeList(UUID agentID, Scene scene)
+        protected void AddToAttendeeList(UUID agentID, string name, Scene scene)
         {
             lock (_sceneAttendees)
             {
                 if (!_sceneAttendees.ContainsKey(scene))
                     _sceneAttendees[scene] = new List<UUID>();
+
                 List<UUID> attendees = _sceneAttendees[scene];
                 if (!attendees.Contains(agentID))
+                {
                     attendees.Add(agentID);
+                    _attendeeNames[agentID] = name;
+                }
             }
         }
 
@@ -329,6 +339,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                     _log.WarnFormat("[Concierge]: attendee list missing for region {0}", scene.RegionInfo.RegionName);
                     return;
                 }
+
                 List<UUID> attendees = _sceneAttendees[scene];
                 if (!attendees.Contains(agentID))
                 {
@@ -336,7 +347,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                                     name, scene.RegionInfo.RegionName);
                     return;
                 }
+
                 attendees.Remove(agentID);
+                _attendeeNames.Remove(agentID);
             }
         }
 
@@ -362,20 +375,42 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             StringBuilder list = new StringBuilder();
             if (0 == attendees.Count)
             {
-                list.Append("<avatars count=\"0\" region_name=\"{0}\" region_uuid=\"{1}\" timestamp=\"{2}\" />",
-                            scene.RegionInfo.RegionName, scene.RegionInfo.RegionID, 
-                            System.DateTime.UtcNow.ToString("s"));
+                list.Append(String.Format("<avatars count=\"0\" region_name=\"{0}\" region_uuid=\"{1}\" timestamp=\"{2}\" />",
+                                          scene.RegionInfo.RegionName, scene.RegionInfo.RegionID, 
+                                          DateTime.UtcNow.ToString("s")));
             } 
             else
             {
-                list.Append("<avatars count=\"{0}\" region_name=\"{1}\" region_uuid=\"{2}\" timestamp=\"{3}\" />",
-                            attendees.Count, scene.RegionInfo.RegionName, scene.RegionInfo.RegionID, 
-                            System.DateTime.UtcNow.ToString("s"));
-
+                list.Append(String.Format("<avatars count=\"{0}\" region_name=\"{1}\" region_uuid=\"{2}\" timestamp=\"{3}\">\n",
+                                          attendees.Count, scene.RegionInfo.RegionName, 
+                                          scene.RegionInfo.RegionID, 
+                                          DateTime.UtcNow.ToString("s")));
+                foreach(UUID uuid in attendees)
+                {
+                    string name = _attendeeNames[uuid];
+                    list.Append(String.Format("    <avatar name=\"{0}\" uuid=\"{1}\" />\n", name, uuid));
+                }
+                list.Append("</avatar>");
             }
+            string payload = list.ToString();
+            _log.DebugFormat("[Concierge]: posting to {0}:\n{1}", _brokerURI, payload);
 
             // post via REST to broker
+            HttpWebRequest updatePost = WebRequest.Create(_brokerURI) as HttpWebRequest;
+            updatePost.Method = "POST";
+            updatePost.ContentType = "text/xml";
+            updatePost.ContentLength = payload.Length;
+            updatePost.UserAgent = "OpenSim.Concierge";
+
+            StreamWriter payloadStream = new StreamWriter(updatePost.GetRequestStream());
+            payloadStream.Write(payload);
+            payloadStream.Close();
+
+            HttpWebResponse response = updatePost.GetResponse() as HttpWebResponse;
+            response.Close();
+            _log.DebugFormat("[Concierge] broker update: status {0}", response.StatusCode);
         }
+
 
         protected void WelcomeAvatar(ScenePresence agent, Scene scene)
         {
