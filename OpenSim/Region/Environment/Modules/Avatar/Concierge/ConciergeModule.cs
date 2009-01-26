@@ -391,7 +391,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                     string name = _attendeeNames[uuid];
                     list.Append(String.Format("    <avatar name=\"{0}\" uuid=\"{1}\" />\n", name, uuid));
                 }
-                list.Append("</avatar>");
+                list.Append("</avatars>");
             }
             string payload = list.ToString();
 
