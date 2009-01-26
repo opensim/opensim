@@ -364,13 +364,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             {
                 list.Append("<avatars count=\"0\" region_name=\"{0}\" region_uuid=\"{1}\" timestamp=\"{2}\" />",
                             scene.RegionInfo.RegionName, scene.RegionInfo.RegionID, 
-                            System.DateTime.UtcNow);
+                            System.DateTime.UtcNow.ToString("s"));
             } 
             else
             {
                 list.Append("<avatars count=\"{0}\" region_name=\"{1}\" region_uuid=\"{2}\" timestamp=\"{3}\" />",
                             attendees.Count, scene.RegionInfo.RegionName, scene.RegionInfo.RegionID, 
-                            System.DateTime.UtcNow);
+                            System.DateTime.UtcNow.ToString("s"));
 
             }
 
