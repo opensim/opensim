@@ -61,12 +61,12 @@ class ConciergeHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         self.logResponse(200)
 
-    def dumpXml(self, xml):
+    def dumpXml(xml):
         logging.debug('[ConciergeHandler] %s', xml.tag)
         for attr in xml.attrib:
             logging.debug('[ConciergeHandler] %s [%s] %s', xml.tag, attr, xml.attrib[attr])
-        for kid in xml.getchildren():
-            self.dumpXml(kid)
+        for kid in xml.getchildren:
+            dumpXml(kid)
 
     def do_POST(self):
         self.logRequest()
@@ -80,8 +80,8 @@ class ConciergeHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         
         logging.debug('[ConciergeHandler] POST: content: %s', content)
         try:
-            postXml = ET.fromstring(content)
-            self.dumpXml(postXml)
+            postXml = ET.parse(content)
+            dumpXml(postXml)
         except xml.parsers.expat.ExpatError, xmlError:
             logging.error('[ConciergeHandler] POST illformed:%s', xmlError)
             self.send_response(500)
