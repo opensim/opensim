@@ -65,6 +65,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
         private string _announceEntering = "{0} enters {1} (now {2} visitors in this region)";
         private string _announceLeaving = "{0} leaves {1} (back to {2} visitors in this region)";
         private string _xmlRpcPassword = String.Empty;
+        private string _brokerURI = String.Empty;
 
         internal object _syncy = new object();
 
@@ -118,6 +119,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             _announceEntering = _config.GetString("announce_entering", _announceEntering);
             _announceLeaving = _config.GetString("announce_leaving", _announceLeaving);
             _xmlRpcPassword = _config.GetString("password", _xmlRpcPassword);
+            _brokerURI = _config.GetString("broker", _brokerURI);
+            
             _log.InfoFormat("[Concierge] reporting as \"{0}\" to our users", _whoami);
 
             // calculate regions Regex
@@ -274,6 +277,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 RemoveFromAttendeeList(client.AgentId, client.Name, client.Scene);
                 AnnounceToAgentsRegion(client.Scene, String.Format(_announceLeaving, client.Name, client.Scene.RegionInfo.RegionName,
                                                                    _sceneAttendees[client.Scene].Count));
+                UpdateBroker(client.Scene);
             }
         }
 
@@ -287,6 +291,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 WelcomeAvatar(agent, agent.Scene);
                 AnnounceToAgentsRegion(agent.Scene, String.Format(_announceEntering, agent.Name, agent.Scene.RegionInfo.RegionName,
                                                                   _sceneAttendees[agent.Scene].Count));
+                UpdateBroker(agent.Scene);
             }
         }
 
@@ -299,6 +304,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 RemoveFromAttendeeList(agent.UUID, agent.Name, agent.Scene);
                 AnnounceToAgentsRegion(agent.Scene, String.Format(_announceLeaving, agent.Name, agent.Scene.RegionInfo.RegionName,
                                                                   _sceneAttendees[agent.Scene].Count));
+                UpdateBroker(agent.Scene);
             }
         }
 
@@ -332,6 +338,27 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 }
                 attendees.Remove(agentID);
             }
+        }
+
+        protected void UpdateBroker(IScene scene)
+        {
+            if (String.IsNullOrEmpty(_brokerURI))
+                return;
+
+            // get attendee list for the scene
+            List<UUID> attendees;
+            lock (_sceneAttendees)
+            {
+                if (!_sceneAttendees.ContainsKey(scene))
+                {
+                    _log.DebugFormat("[Concierge]: attendee list missing for region {0}", scene.RegionInfo.RegionName);
+                    return;
+                }
+
+                attendees = _sceneAttendees[scene];
+            }
+
+            // post via REST to broker
         }
 
         protected void WelcomeAvatar(ScenePresence agent, Scene scene)
