@@ -357,6 +357,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             if (String.IsNullOrEmpty(_brokerURI))
                 return;
 
+            string uri = String.Format(_brokerURI, scene.RegionInfo.RegionName, scene.RegionInfo.RegionID);
+
             // get attendee list for the scene
             List<UUID> attendees;
             lock (_sceneAttendees)
@@ -394,7 +396,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             string payload = list.ToString();
 
             // post via REST to broker
-            HttpWebRequest updatePost = WebRequest.Create(_brokerURI) as HttpWebRequest;
+            HttpWebRequest updatePost = WebRequest.Create(uri) as HttpWebRequest;
             updatePost.Method = "POST";
             updatePost.ContentType = "text/xml";
             updatePost.ContentLength = payload.Length;
@@ -405,7 +407,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             payloadStream.Close();
 
             updatePost.BeginGetResponse(UpdateBrokerDone, updatePost);
-            _log.DebugFormat("[Concierge] async broker update to {0} started", _brokerURI);
+            _log.DebugFormat("[Concierge] async broker update to {0} started", uri);
         }
 
         private void UpdateBrokerDone(IAsyncResult result)

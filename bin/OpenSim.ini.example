@@ -971,3 +971,10 @@ InterregionComms = "RESTComms"
     ; {2} is replaced with the name of the concierge (whoami variable above)
 
     welcomes = /path/to/welcome/template/directory
+
+    ; Concierge can send attendee lists to an event broker whenever an
+    ; avatar enters or leaves a concierged region. the URL is subject
+    ; to format substitution:
+    ; {0} is replaced with the region's name
+    ; {1} is replaced with the region's UUID
+    broker = "http://broker.place.com/{1}"
