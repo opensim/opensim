@@ -29,6 +29,9 @@
 
 import logging
 import BaseHTTPServer
+import xml.etree.ElementTree as ET
+import xml.parsers.expat
+
 
 # enable debug level logging
 logging.basicConfig(level = logging.DEBUG,
@@ -58,6 +61,13 @@ class ConciergeHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         self.logResponse(200)
 
+    def dumpXml(xml):
+        logging.debug('[ConciergeHandler] %s', xml.tag)
+        for attr in xml.attrib:
+            logging.debug('[ConciergeHandler] %s [%s] %s', xml.tag, attr, xml.attrib[attr])
+        for kid in xml.getchildren:
+            dumpXml(kid)
+
     def do_POST(self):
         self.logRequest()
         hdrs = {}
@@ -69,6 +79,13 @@ class ConciergeHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.rfile.close()
         
         logging.debug('[ConciergeHandler] POST: content: %s', content)
+        try:
+            postXml = ET.parse(content)
+            dumpXml(postXml)
+        except xml.parsers.expat.ExpatError, xmlError:
+            logging.error('[ConciergeHandler] POST illformed:%s', xmlError)
+            self.send_response(500)
+            return
             
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
