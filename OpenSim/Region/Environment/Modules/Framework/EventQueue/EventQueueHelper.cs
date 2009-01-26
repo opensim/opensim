@@ -275,5 +275,32 @@ namespace OpenSim.Region.Environment
             chatterboxInvitation.Add("body", body);
             return chatterboxInvitation;
         }
+
+        public static OSD ChatterBoxSessionAgentListUpdates(UUID sessionID,
+            UUID agentID, bool canVoiceChat, bool isModerator, bool textMute)
+        {
+            OSDMap body = new OSDMap();
+            OSDMap agentUpdates = new OSDMap();
+            OSDMap infoDetail = new OSDMap();
+            OSDMap mutes = new OSDMap();
+
+            mutes.Add("text", OSD.FromBoolean(textMute));
+            infoDetail.Add("can_voice_chat", OSD.FromBoolean(canVoiceChat));
+            infoDetail.Add("is_moderator", OSD.FromBoolean(isModerator));
+            infoDetail.Add("mutes", mutes);
+            OSDMap info = new OSDMap();
+            info.Add("info", infoDetail);
+            agentUpdates.Add(agentID.ToString(), info);
+            body.Add("agent_updates", agentUpdates);
+            body.Add("session_id", OSD.FromUUID(sessionID));
+            body.Add("updates", new OSD());
+
+            OSDMap chatterBoxSessionAgentListUpdates = new OSDMap();
+            chatterBoxSessionAgentListUpdates.Add("message", OSD.FromString("ChatterBoxSessionAgentListUpdates"));
+            chatterBoxSessionAgentListUpdates.Add("body", body);
+
+            return chatterBoxSessionAgentListUpdates;
+        }
+
     }
 }

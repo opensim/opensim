@@ -1214,19 +1214,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         dialog = 17;
 
-                        //OSD Item = Environment.EventQueueHelper.ChatterboxInvitation(
-                        //    new UUID("00000000-68f9-1111-024e-222222111123"),
-                        //    "Test Group", fromAgent, message, toAgent, fromName, dialog, 0,
-                        //    false, 0, new Vector3(), 1, transactionID, fromGroup,
-                        //    Utils.StringToBytes("Test Group"));
-
                         OSD Item = Environment.EventQueueHelper.ChatterboxInvitation(
                             new UUID("00000000-68f9-1111-024e-222222111123"),
                             "Test Group", fromAgent, message, toAgent, fromName, dialog, 0,
                             false, 0, new Vector3(), 1, transactionID, fromGroup, binaryBucket);
 
                         eq.Enqueue(Item, toAgent);
-                        m_log.Info("########### eq chatterbox invitation #############\n" + Item);
+                        m_log.Info("########### eq ChatterboxInvitation #############\n" + Item);
+
+                        Item = Environment.EventQueueHelper.ChatterBoxSessionAgentListUpdates(
+                            new UUID("00000000-68f9-1111-024e-222222111123"),
+                            fromAgent, false, false, false);
+
+                        eq.Enqueue(Item, toAgent);
+                        m_log.Info("########### eq ChatterBoxSessionAgentListUpdates #############\n" + Item);
                     }
 
                     System.Console.WriteLine("SendInstantMessage: " + msg);
