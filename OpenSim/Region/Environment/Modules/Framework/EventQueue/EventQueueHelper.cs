@@ -359,7 +359,7 @@ namespace OpenSim.Region.Environment
             parcelDataMap.Add("Bitmap", OSD.FromBinary(parcelPropertiesPacket.ParcelData.Bitmap));
             parcelDataMap.Add("Category", OSD.FromInteger((int)parcelPropertiesPacket.ParcelData.Category));
             parcelDataMap.Add("ClaimDate", OSD.FromInteger(parcelPropertiesPacket.ParcelData.ClaimDate));
-            parcelDataMap.Add("Desc", OSD.FromBinary(parcelPropertiesPacket.ParcelData.Desc));
+            parcelDataMap.Add("Desc", OSD.FromString(Utils.BytesToString(parcelPropertiesPacket.ParcelData.Desc)));
             parcelDataMap.Add("GroupID", OSD.FromUUID(parcelPropertiesPacket.ParcelData.GroupID));
             parcelDataMap.Add("GroupPrims", OSD.FromInteger(parcelPropertiesPacket.ParcelData.GroupPrims));
             parcelDataMap.Add("IsGroupOwned", OSD.FromBoolean(parcelPropertiesPacket.ParcelData.IsGroupOwned));
