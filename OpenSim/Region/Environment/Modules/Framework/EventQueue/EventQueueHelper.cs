@@ -355,7 +355,7 @@ namespace OpenSim.Region.Environment
 
             parcelDataMap.Add("Area", OSD.FromInteger(parcelPropertiesPacket.ParcelData.Area));
             parcelDataMap.Add("AuctionID", OSD.FromBinary(parcelPropertiesPacket.ParcelData.AuctionID));
-            parcelDataMap.Add("AuthbuyerID", OSD.FromUUID(parcelPropertiesPacket.ParcelData.AuthBuyerID));
+            parcelDataMap.Add("AuthBuyerID", OSD.FromUUID(parcelPropertiesPacket.ParcelData.AuthBuyerID));
             parcelDataMap.Add("Bitmap", OSD.FromBinary(parcelPropertiesPacket.ParcelData.Bitmap));
             parcelDataMap.Add("Category", OSD.FromInteger((int)parcelPropertiesPacket.ParcelData.Category));
             parcelDataMap.Add("ClaimDate", OSD.FromInteger(parcelPropertiesPacket.ParcelData.ClaimDate));
