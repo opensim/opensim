@@ -37,19 +37,19 @@ namespace OpenSim.Region.Environment
     {
         private EventQueueHelper() {} // no construction possible, it's an utility class
 
-        private static byte[] regionHandleToByteArray(ulong regionHandle)
+        private static byte[] ulongToByteArray(ulong uLongValue)
         {
             // Reverse endianness of RegionHandle
             return new byte[]
             {
-                (byte)((regionHandle >> 56) % 256),
-                (byte)((regionHandle >> 48) % 256),
-                (byte)((regionHandle >> 40) % 256),
-                (byte)((regionHandle >> 32) % 256),
-                (byte)((regionHandle >> 24) % 256),
-                (byte)((regionHandle >> 16) % 256),
-                (byte)((regionHandle >> 8) % 256),
-                (byte)(regionHandle % 256)
+                (byte)((uLongValue >> 56) % 256),
+                (byte)((uLongValue >> 48) % 256),
+                (byte)((uLongValue >> 40) % 256),
+                (byte)((uLongValue >> 32) % 256),
+                (byte)((uLongValue >> 24) % 256),
+                (byte)((uLongValue >> 16) % 256),
+                (byte)((uLongValue >> 8) % 256),
+                (byte)(uLongValue % 256)
             };
         }
 
@@ -79,7 +79,7 @@ namespace OpenSim.Region.Environment
         {
             OSDMap llsdSimInfo = new OSDMap(3);
 
-            llsdSimInfo.Add("Handle", new OSDBinary(regionHandleToByteArray(Handle)));
+            llsdSimInfo.Add("Handle", new OSDBinary(ulongToByteArray(Handle)));
             llsdSimInfo.Add("IP", new OSDBinary(endPoint.Address.GetAddressBytes()));
             llsdSimInfo.Add("Port", new OSDInteger(endPoint.Port));
 
@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment
             AgentDataArr.Add(AgentDataMap);
 
             OSDMap RegionDataMap = new OSDMap(4);
-            RegionDataMap.Add("RegionHandle", OSD.FromBinary(regionHandleToByteArray(Handle)));
+            RegionDataMap.Add("RegionHandle", OSD.FromBinary(ulongToByteArray(Handle)));
             RegionDataMap.Add("SeedCapability", OSD.FromString(capsURL));
             RegionDataMap.Add("SimIP", OSD.FromBinary(newRegionExternalEndPoint.Address.GetAddressBytes()));
             RegionDataMap.Add("SimPort", OSD.FromInteger(newRegionExternalEndPoint.Port));
@@ -159,7 +159,7 @@ namespace OpenSim.Region.Environment
             OSDMap info = new OSDMap();
             info.Add("AgentID", OSD.FromUUID(AgentID));
             info.Add("LocationID", OSD.FromInteger(4)); // TODO what is this?
-            info.Add("RegionHandle", OSD.FromBinary(regionHandleToByteArray(regionHandle)));
+            info.Add("RegionHandle", OSD.FromBinary(ulongToByteArray(regionHandle)));
             info.Add("SeedCapability", OSD.FromString(capsURL));
             info.Add("SimAccess", OSD.FromInteger(simAccess));
             info.Add("SimIP", OSD.FromBinary(regionExternalEndPoint.Address.GetAddressBytes()));
@@ -417,6 +417,67 @@ namespace OpenSim.Region.Environment
 
             return parcelProperties;
         }
+
+        public static OSD GroupMembership(AgentGroupDataUpdatePacket groupUpdatePacket)
+        {
+            OSDMap groupUpdate = new OSDMap();
+            groupUpdate.Add("message", OSD.FromString("AgentGroupDataUpdate"));
+
+            OSDMap body = new OSDMap();
+            OSDArray agentData = new OSDArray();
+            OSDMap agentDataMap = new OSDMap();
+            agentDataMap.Add("AgentID", OSD.FromUUID(groupUpdatePacket.AgentData.AgentID));
+            agentData.Add(agentDataMap);
+            body.Add("AgentData", agentData);
+
+            OSDArray groupData = new OSDArray();
+
+            foreach (AgentGroupDataUpdatePacket.GroupDataBlock groupDataBlock in groupUpdatePacket.GroupData)
+            {
+                OSDMap groupDataMap = new OSDMap();
+                groupDataMap.Add("ListInProfile", OSD.FromBoolean(false));
+                groupDataMap.Add("GroupID", OSD.FromUUID(groupDataBlock.GroupID));
+                groupDataMap.Add("GroupInsigniaID", OSD.FromUUID(groupDataBlock.GroupInsigniaID));
+                groupDataMap.Add("Contribution", OSD.FromInteger(groupDataBlock.Contribution));
+                groupDataMap.Add("GroupPowers", OSD.FromBinary(ulongToByteArray(groupDataBlock.GroupPowers)));
+                groupDataMap.Add("GroupName", OSD.FromString(Utils.BytesToString(groupDataBlock.GroupName)));
+                groupDataMap.Add("AcceptNotices", OSD.FromBoolean(groupDataBlock.AcceptNotices));
+
+                groupData.Add(groupDataMap);
+
+            }
+            body.Add("GroupData", groupData);
+            groupUpdate.Add("body", body);
+
+            return groupUpdate;
+        }
+        /*
+        public void SendGroupMembership(GroupMembershipData[] GroupMembership)
+        {
+            m_groupPowers.Clear();
+
+            AgentGroupDataUpdatePacket Groupupdate = new AgentGroupDataUpdatePacket();
+            AgentGroupDataUpdatePacket.GroupDataBlock[] Groups = new AgentGroupDataUpdatePacket.GroupDataBlock[GroupMembership.Length];
+            for (int i = 0; i < GroupMembership.Length; i++)
+            {
+                m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
+
+                AgentGroupDataUpdatePacket.GroupDataBlock Group = new AgentGroupDataUpdatePacket.GroupDataBlock();
+                Group.AcceptNotices = GroupMembership[i].AcceptNotices;
+                Group.Contribution = GroupMembership[i].Contribution;
+                Group.GroupID = GroupMembership[i].GroupID;
+                Group.GroupInsigniaID = GroupMembership[i].GroupPicture;
+                Group.GroupName = Utils.StringToBytes(GroupMembership[i].GroupName);
+                Group.GroupPowers = GroupMembership[i].GroupPowers;
+                Groups[i] = Group;
+                Groupupdate.GroupData = Groups;
+
+            }
+            Groupupdate.AgentData.AgentID = AgentId;
+            OutPacket(Groupupdate, ThrottleOutPacketType.Task);
+
+        }
+         */
 
     }
 }

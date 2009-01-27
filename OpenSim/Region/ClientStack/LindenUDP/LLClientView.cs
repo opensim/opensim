@@ -1216,7 +1216,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         OSD Item = Environment.EventQueueHelper.ChatterboxInvitation(
                             new UUID("00000000-68f9-1111-024e-222222111123"),
-                            "Test Group", fromAgent, message, toAgent, fromName, dialog, 0,
+                            "OpenSimulator Testing", fromAgent, message, toAgent, fromName, dialog, 0,
                             false, 0, new Vector3(), 1, transactionID, fromGroup, binaryBucket);
 
                         eq.Enqueue(Item, toAgent);
@@ -7600,7 +7600,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Groupupdate.AgentData.AgentID = AgentId;
             OutPacket(Groupupdate, ThrottleOutPacketType.Task);
 
+            try
+            {
+                IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+                if (eq != null)
+                {
+                    OSD Item = Environment.EventQueueHelper.GroupMembership(Groupupdate);
+
+                    eq.Enqueue(Item, this.AgentId);
+                }
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("Unable to send group membership data via eventqueue - exception: " + ex.ToString());
+                m_log.Warn("sending group membership data via UDP");
+                OutPacket(Groupupdate, ThrottleOutPacketType.Task);
+            }
         }
+
+
         public void SendGroupNameReply(UUID groupLLUID, string GroupName)
         {
             UUIDGroupNameReplyPacket pack = new UUIDGroupNameReplyPacket();
