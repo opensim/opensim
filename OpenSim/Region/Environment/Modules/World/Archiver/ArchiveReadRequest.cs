@@ -53,6 +53,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         private Scene m_scene;
         private Stream m_loadStream;
+        private string m_errorMessage;
 
         /// <summary>
         /// Used to cache lookups for valid uuids.
@@ -63,6 +64,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         {
             m_scene = scene;
             m_loadStream = new GZipStream(GetStream(loadPath), CompressionMode.Decompress);
+            m_errorMessage = String.Empty;
         }
         
         public ArchiveReadRequest(Scene scene, Stream loadStream)
@@ -82,62 +84,76 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         
         private void DearchiveRegion0DotStar()
         {
-            TarArchiveReader archive = new TarArchiveReader(m_loadStream);
-
-            //AssetsDearchiver dearchiver = new AssetsDearchiver(m_scene.AssetCache);
-
-            List<string> serialisedSceneObjects = new List<string>();
-            string filePath = "ERROR";
-
             int successfulAssetRestores = 0;
             int failedAssetRestores = 0;
+            List<string> serialisedSceneObjects = new List<string>();
 
-            byte[] data;
-            TarArchiveReader.TarEntryType entryType;
-            
-            while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
+            try
             {
-                //m_log.DebugFormat(
-                //    "[ARCHIVER]: Successfully read {0} ({1} bytes)}", filePath, data.Length);
-                if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType) 
+                TarArchiveReader archive = new TarArchiveReader(m_loadStream);
+
+                //AssetsDearchiver dearchiver = new AssetsDearchiver(m_scene.AssetCache);
+
+                string filePath = "ERROR";
+
+                byte[] data;
+                TarArchiveReader.TarEntryType entryType;
+            
+                while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
                 {
-                    m_log.WarnFormat("[ARCHIVER]: Ignoring directory entry {0}",
-                                     filePath);
-                }
-                else if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
-                {
-                    serialisedSceneObjects.Add(m_asciiEncoding.GetString(data));
-                }
+                    //m_log.DebugFormat(
+                    //    "[ARCHIVER]: Successfully read {0} ({1} bytes)}", filePath, data.Length);
+                    if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType) 
+                    {
+                        m_log.WarnFormat("[ARCHIVER]: Ignoring directory entry {0}",
+                                         filePath);
+                    }
+                    else if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
+                    {
+                        serialisedSceneObjects.Add(m_asciiEncoding.GetString(data));
+                    }
 //                else if (filePath.Equals(ArchiveConstants.ASSETS_METADATA_PATH))
 //                {
 //                    string xml = m_asciiEncoding.GetString(data);
 //                    dearchiver.AddAssetMetadata(xml);
 //                }
-                else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
-                {
-                    if (LoadAsset(filePath, data))
-                        successfulAssetRestores++;
-                    else
-                        failedAssetRestores++;
+                    else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                    {
+                        if (LoadAsset(filePath, data))
+                            successfulAssetRestores++;
+                        else
+                            failedAssetRestores++;
+                    }
+                    else if (filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
+                    {
+                        LoadTerrain(filePath, data);
+                    }
+                    else if (filePath.StartsWith(ArchiveConstants.SETTINGS_PATH))
+                    {
+                        LoadRegionSettings(filePath, data);
+                    }
                 }
-                else if (filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
-                {
-                    LoadTerrain(filePath, data);
-                }
-                else if (filePath.StartsWith(ArchiveConstants.SETTINGS_PATH))
-                {
-                    LoadRegionSettings(filePath, data);
-                }
-            }
             
-            //m_log.Debug("[ARCHIVER]: Reached end of archive");
+                //m_log.Debug("[ARCHIVER]: Reached end of archive");
 
-            archive.Close();
+                archive.Close();
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[ARCHIVER]: Error loading oar file. Exception was: {0}", e);
+                m_errorMessage += e.ToString();
+                m_scene.EventManager.TriggerOarFileLoaded(m_errorMessage);
+                return;
+            }
 
             m_log.InfoFormat("[ARCHIVER]: Restored {0} assets", successfulAssetRestores);
 
             if (failedAssetRestores > 0)
+            {
                 m_log.ErrorFormat("[ARCHIVER]: Failed to load {0} assets", failedAssetRestores);
+                m_errorMessage += String.Format("Failed to load {0} assets", failedAssetRestores);
+            }
             
             m_log.Info("[ARCHIVER]: Clearing all existing scene objects");
             m_scene.DeleteAllSceneObjects();
@@ -217,6 +233,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 sceneObject.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 0);
             }
+            m_scene.EventManager.TriggerOarFileLoaded(m_errorMessage);
+
         }
 
         /// <summary>

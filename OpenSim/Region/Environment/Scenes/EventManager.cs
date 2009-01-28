@@ -266,6 +266,21 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate float SunLindenHour();
         public event SunLindenHour OnGetSunLindenHour;
 
+        /// <summary>
+        /// Called when oar file has finished loading, although
+        /// the scripts may not have started yet
+        /// Message is non empty string if there were problems loading the oar file
+        /// </summary>
+        public delegate void OarFileLoaded(string message);
+        public event OarFileLoaded OnOarFileLoaded;
+
+        /// <summary>
+        /// Called when the script compile queue becomes empty
+        /// Returns the number of scripts which failed to start
+        /// </summary>
+        public delegate void EmptyScriptCompileQueue(int numScriptsFailed, string message);
+        public event EmptyScriptCompileQueue OnEmptyScriptCompileQueue;
+
         public class MoneyTransferArgs : EventArgs
         {
             public UUID sender;
@@ -399,6 +414,8 @@ namespace OpenSim.Region.Environment.Scenes
         private SunLindenHour handlerSunGetLindenHour = null;
         private OnSetRootAgentSceneDelegate handlerSetRootAgentScene = null;
 
+        private OarFileLoaded handlerOarFileLoaded = null;
+        private EmptyScriptCompileQueue handlerEmptyScriptCompileQueue = null;
 
         public void TriggerGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
         {
@@ -900,6 +917,20 @@ namespace OpenSim.Region.Environment.Scenes
                 return handlerSunGetLindenHour();
             }
             return 6;
+        }
+
+        public void TriggerOarFileLoaded(string message)
+        {
+            handlerOarFileLoaded = OnOarFileLoaded;
+            if (handlerOarFileLoaded != null)
+                handlerOarFileLoaded(message);
+        }
+
+        public void TriggerEmptyScriptCompileQueue(int numScriptsFailed, string message)
+        {
+            handlerEmptyScriptCompileQueue = OnEmptyScriptCompileQueue;
+            if (handlerEmptyScriptCompileQueue != null)
+                handlerEmptyScriptCompileQueue(numScriptsFailed, message);
         }
 
         public void TriggerScriptCollidingStart(uint localId, ColliderArgs colliders)
