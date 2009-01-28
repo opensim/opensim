@@ -88,6 +88,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private double m_minEventDelay = 0;
         private long m_eventDelayTicks = 0;
         private long m_nextEventTimeTicks = 0;
+        private bool m_startOnInit = true;
+        private StateSource m_stateSource;
+        private bool m_postOnRez;
+        private bool m_startedFromSavedState = false;
 
         //private ISponsor m_ScriptSponsor;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
@@ -224,6 +228,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_Assembly = assembly;
             m_StartParam = startParam;
             m_MaxScriptQueue = maxScriptQueue;
+            m_stateSource = stateSource;
+            m_postOnRez = postOnRez;
 
             if (part != null && part.TaskInventory.ContainsKey(m_ItemID))
             {
@@ -313,10 +319,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             if (m_RunEvents && (!m_ShuttingDown))
                             {
                                 m_RunEvents = false;
-                                Start();
-                                if (postOnRez)
-                                    PostEvent(new EventParams("on_rez",
-                                        new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
+                            } 
+                            else 
+                            {
+                                m_RunEvents = false;
+                                m_startOnInit = false;
                             }
 
                             // we get new rez events on sim restart, too
@@ -325,42 +332,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                             // We loaded state, don't force a re-save
                             m_SaveState = false;
+                            m_startedFromSavedState = true;
 
-                            if (stateSource == StateSource.NewRez)
-                            {
-//                                m_Engine.Log.Debug("[Script] Posted changed(CHANGED_REGION_RESTART) to script");
-                                PostEvent(new EventParams("changed",
-                                    new Object[] {new LSL_Types.LSLInteger(256)}, new DetectParams[0]));
-                            }
-                            else if (stateSource == StateSource.PrimCrossing)
-                            {
-                                // CHANGED_REGION
-                                PostEvent(new EventParams("changed",
-                                    new Object[] {new LSL_Types.LSLInteger(512)}, new DetectParams[0]));
-                            }
                         }
                     }
                     else
                     {
                         m_Engine.Log.Error("[Script] Unable to load script state: Memory limit exceeded");
-                        Start();
-                        PostEvent(new EventParams("state_entry",
-                                                   new Object[0], new DetectParams[0]));
-                        if (postOnRez)
-                            PostEvent(new EventParams("on_rez",
-                                new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
-
                     }
                 }
                 catch (Exception e)
                 {
                     m_Engine.Log.ErrorFormat("[Script] Unable to load script state from xml: {0}\n"+e.ToString(), xml);
-                    Start();
-                    PostEvent(new EventParams("state_entry",
-                                               new Object[0], new DetectParams[0]));
-                    if (postOnRez)
-                        PostEvent(new EventParams("on_rez",
-                                new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
                 }
             }
             else
@@ -371,13 +354,46 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     presence.ControllingClient.SendAgentAlertMessage("Compile successful", false);
 
 //                m_Engine.Log.ErrorFormat("[Script] Unable to load script state, file not found");
+            }
+        }
+
+        public void Init()
+        {
+            if (!m_startOnInit) return;
+
+            if (m_startedFromSavedState) 
+            {
+                Start();
+                if (m_postOnRez) 
+                {
+                    PostEvent(new EventParams("on_rez",
+                        new Object[] {new LSL_Types.LSLInteger(m_StartParam)}, new DetectParams[0]));
+                }
+
+                if (m_stateSource == StateSource.NewRez)
+                {
+//                                m_Engine.Log.Debug("[Script] Posted changed(CHANGED_REGION_RESTART) to script");
+                    PostEvent(new EventParams("changed",
+                                              new Object[] {new LSL_Types.LSLInteger(256)}, new DetectParams[0]));
+                }
+                else if (m_stateSource == StateSource.PrimCrossing)
+                {
+                    // CHANGED_REGION
+                    PostEvent(new EventParams("changed",
+                                              new Object[] {new LSL_Types.LSLInteger(512)}, new DetectParams[0]));
+                }
+            } 
+            else 
+            {
                 Start();
                 PostEvent(new EventParams("state_entry",
-                                           new Object[0], new DetectParams[0]));
-
-                if (postOnRez)
+                                          new Object[0], new DetectParams[0]));
+                if (m_postOnRez) 
+                {
                     PostEvent(new EventParams("on_rez",
-                            new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
+                        new Object[] {new LSL_Types.LSLInteger(m_StartParam)}, new DetectParams[0]));
+                }
+
             }
         }
 

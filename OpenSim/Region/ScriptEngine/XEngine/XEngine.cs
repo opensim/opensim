@@ -544,6 +544,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             lock (m_Scripts)
             {
+                ScriptInstance instance = null;
                 // Create the object record
 
                 if ((!m_Scripts.ContainsKey(itemID)) ||
@@ -596,14 +597,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     }
                     m_DomainScripts[appDomain].Add(itemID);
 
-                    ScriptInstance instance =
-                        new ScriptInstance(this, part,
-                                           itemID, assetID, assembly,
-                                           m_AppDomains[appDomain],
-                                           part.ParentGroup.RootPart.Name,
-                                           item.Name, startParam, postOnRez,
-                                           stateSource, m_MaxScriptQueue);
-
+                    instance = new ScriptInstance(this, part,
+                                                  itemID, assetID, assembly,
+                                                  m_AppDomains[appDomain],
+                                                  part.ParentGroup.RootPart.Name,
+                                                  item.Name, startParam, postOnRez,
+                                                  stateSource, m_MaxScriptQueue);
+                    
                     m_log.DebugFormat("[XEngine] Loaded script {0}.{1}",
                             part.ParentGroup.RootPart.Name, item.Name);
 
@@ -625,6 +625,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 if (!m_Assemblies.ContainsKey(assetID))
                     m_Assemblies[assetID] = assembly;
+
+                if (instance!=null) 
+                    instance.Init();
             }
             return true;
         }

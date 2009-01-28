@@ -73,6 +73,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         void RemoveState();
 
+        void Init();
         void Start();
         bool Stop(int timeout);
         void SetState(string state);
