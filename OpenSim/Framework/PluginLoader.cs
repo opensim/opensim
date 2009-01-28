@@ -182,7 +182,7 @@ namespace OpenSim.Framework
                     T plugin = (T)node.CreateInstance();
                     loadedPlugins.Add(plugin);
                 }
-                
+
                 // We do Initialise() in a second loop after CreateInstance
                 // So that modules who need init before others can do it
                 // Example: Script Engine Component System needs to load its components before RegionLoader starts
@@ -349,7 +349,7 @@ namespace OpenSim.Framework
     }
 
     /// <summary>
-    /// Filters out which plugin to load based on its the plugin name or names given.  Plugin names are contained in 
+    /// Filters out which plugin to load based on its the plugin name or names given.  Plugin names are contained in
     /// their addin.xml
     /// </summary>
     public class PluginProviderFilter : IPluginFilter
@@ -365,7 +365,7 @@ namespace OpenSim.Framework
         public PluginProviderFilter(string p)
         {
             m_filters = p.Split(',');
-            
+
             for (int i = 0; i < m_filters.Length; i++)
             {
                 m_filters[i] = m_filters[i].Trim();
@@ -379,14 +379,14 @@ namespace OpenSim.Framework
         /// <returns>true if the plugin's name matched one of the filters, false otherwise.</returns>
         public bool Apply (PluginExtensionNode plugin)
         {
-            for (int i = 0; i < m_filters.Length; i++) 
+            for (int i = 0; i < m_filters.Length; i++)
             {
-                if (m_filters[i] == plugin.Provider) 
+                if (m_filters[i] == plugin.Provider)
                 {
                     return true;
                 }
             }
-            
+
             return false;
         }
     }

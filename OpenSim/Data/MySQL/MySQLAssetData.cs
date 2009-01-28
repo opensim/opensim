@@ -45,7 +45,7 @@ namespace OpenSim.Data.MySQL
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private MySQLManager _dbConnection;
-        private long TicksToEpoch; 
+        private long TicksToEpoch;
 
         #region IPlugin Members
 
@@ -93,9 +93,8 @@ namespace OpenSim.Data.MySQL
         /// </list>
         /// </para>
         /// </summary>
-        /// <param name="connect">connect string</param>
-        /// <remarks>Probably DEPRECATED and shouldn't be used</remarks>
-        override public void Initialise()
+        /// <remarks>DEPRECATED and shouldn't be used</remarks>
+        public override void Initialise()
         {
             IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
             string hostname = GridDataMySqlFile.ParseFileReadValue("hostname");
@@ -109,7 +108,7 @@ namespace OpenSim.Data.MySQL
 
         }
 
-        override public void Dispose() { }
+        public override void Dispose() { }
 
         #region IAssetProviderPlugin Members
 
@@ -257,7 +256,7 @@ namespace OpenSim.Data.MySQL
                     _dbConnection.Reconnect();
                 }
             }
-            
+
         }
 
         /// <summary>
