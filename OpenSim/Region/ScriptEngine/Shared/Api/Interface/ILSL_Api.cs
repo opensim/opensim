@@ -233,7 +233,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llMakeFountain(int particles, float scale, float vel, float lifetime, float arc, int bounce, string texture, LSL_Vector offset, float bounce_offset);
               void llMakeSmoke(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset);
               void llMapDestination(string simname, LSL_Vector pos, LSL_Vector look_at);
-        LSL_String llMD5String(string src, int nonce);
+              LSL_String llMD5String(string src, int nonce);
+              LSL_String llSHA1String(string src);
               void llMessageLinked(int linknum, int num, string str, string id);
               void llMinEventDelay(double delay);
               void llModifyLand(int action, int brush);
