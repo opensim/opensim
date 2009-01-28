@@ -25,34 +25,71 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using Nini.Config;
+using System;
+using System.Collections.Generic;
+using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules.Communications.Local;
+using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
-{  
+{
     /// <summary>
     /// Scene presence tests
     /// </summary>
-    [TestFixture]    
+    [TestFixture]
     public class ScenePresenceTests
-    {      
+    {
+        public Scene scene, scene2, scene3;
+        public UUID agent1, agent2, agent3;
+        public static Random random;
+        public ulong region1,region2,region3;
+        public CommunicationsManager cm;
+        public AgentCircuitData acd1;
+        public SceneObjectGroup sog1, sog2, sog3;
+        public TestClient testclient;
+
+        [TestFixtureSetUp]
+        public void Init()
+        {
+            cm = new TestCommunicationsManager();
+            scene = SceneSetupHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000, cm);
+            scene2 = SceneSetupHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000, cm);
+            scene3 = SceneSetupHelpers.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000, cm);
+
+            agent1 = UUID.Random();
+            agent2 = UUID.Random();
+            agent3 = UUID.Random();
+            random = new Random();
+            sog1 = NewSOG(UUID.Random(), scene, agent1);
+            sog2 = NewSOG(UUID.Random(), scene, agent1);
+            sog3 = NewSOG(UUID.Random(), scene, agent1);
+
+            //ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
+            region1 = scene.RegionInfo.RegionHandle;
+            region2 = scene2.RegionInfo.RegionHandle;
+            region3 = scene3.RegionInfo.RegionHandle;
+        }
+
         /// <summary>
         /// Test adding a root agent to a scene.  Doesn't yet actually complete crossing the agent into the scene.
-        /// </summary>
+        /// </summary>        
         [Test]
-        public void TestAddRootAgent()
+        public void T010_TestAddRootAgent()
         {
-            Scene scene = SceneSetupHelpers.SetupScene();
-            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             string firstName = "testfirstname";
-            
+
             AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = agentId;
+            agent.AgentID = agent1;
             agent.firstname = firstName;
             agent.lastname = "testlastname";
             agent.SessionID = UUID.Zero;
@@ -61,33 +98,196 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             agent.BaseFolder = UUID.Zero;
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = Vector3.Zero;
-            agent.CapsPath = "http://wibble.com";
-            
+            agent.CapsPath = GetRandomCapsObjectPath();
+
             scene.NewUserConnection(agent);
-            scene.AddNewClient(new TestClient(agent, scene));
-            
-            ScenePresence presence = scene.GetScenePresence(agentId);
-            
+            testclient = new TestClient(agent, scene);
+            scene.AddNewClient(testclient);
+
+            ScenePresence presence = scene.GetScenePresence(agent1);
+
             Assert.That(presence, Is.Not.Null, "presence is null");
-            Assert.That(presence.Firstname, Is.EqualTo(firstName), "First name not same"); 
+            Assert.That(presence.Firstname, Is.EqualTo(firstName), "First name not same");
+            acd1 = agent;
         }
-        
+
         /// <summary>
         /// Test removing an uncrossed root agent from a scene.
-        /// </summary> 
-        [Test]       
-        public void TestRemoveRootAgent()
+        /// </summary>
+        [Test]
+        public void T011_TestRemoveRootAgent()
         {
-            Scene scene = SceneSetupHelpers.SetupScene();
-            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
-            
-            SceneSetupHelpers.AddRootAgent(scene, agentId);
-            
-            scene.RemoveClient(agentId);
-            
-            ScenePresence presence = scene.GetScenePresence(agentId);
-            
-            Assert.That(presence, Is.Null, "presence is not null");            
+            scene.RemoveClient(agent1);
+
+            ScenePresence presence = scene.GetScenePresence(agent1);
+
+            Assert.That(presence, Is.Null, "presence is not null");
+        }
+
+        [Test]
+        public void T012_TestAddNeighbourRegion()
+        {
+            SceneSetupHelpers.AddRootAgent(scene,agent1);
+
+            ScenePresence presence = scene.GetScenePresence(agent1);
+
+            string cap = presence.ControllingClient.RequestClientInfo().CapsPath;
+
+            presence.AddNeighbourRegion(region2, cap);
+            presence.AddNeighbourRegion(region3, cap);
+
+            List<ulong> neighbours = presence.GetKnownRegionList();
+
+            Assert.That(neighbours.Count, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void T013_TestRemoveNeighbourRegion()
+        {
+            ScenePresence presence = scene.GetScenePresence(agent1);
+            presence.RemoveNeighbourRegion(region3);
+
+            List<ulong> neighbours = presence.GetKnownRegionList();
+            Assert.That(neighbours.Count,Is.EqualTo(1));
+            /*
+            presence.MakeChildAgent;
+            presence.MakeRootAgent;
+            CompleteAvatarMovement
+            */
+        }
+
+        [Test]
+        public void T020_TestMakeRootAgent()
+        {
+            ScenePresence presence = scene.GetScenePresence(agent1);
+            Assert.That(presence.IsChildAgent, Is.False, "Starts out as a root agent");
+
+            presence.MakeChildAgent();
+            Assert.That(presence.IsChildAgent, Is.True, "Did not change to child agent after MakeChildAgent");
+
+            // Accepts 0 but rejects Constants.RegionSize
+            Vector3 pos = new Vector3(0,Constants.RegionSize-1,0);
+            presence.MakeRootAgent(pos,true);
+            Assert.That(presence.IsChildAgent, Is.False, "Did not go back to root agent");
+            Assert.That(presence.AbsolutePosition, Is.EqualTo(pos), "Position is not the same one entered");
+        }
+
+        [Test]
+        public void T021_TestCrossToNewRegion()
+        {
+            // Adding child agent to region 1001
+            scene2.NewUserConnection(acd1);
+            scene2.AddNewClient(testclient);
+
+            ScenePresence presence = scene.GetScenePresence(agent1);
+            ScenePresence presence2 = scene2.GetScenePresence(agent1);
+
+            // Adding neighbour region caps info to presence2
+            string cap = presence.ControllingClient.RequestClientInfo().CapsPath;
+            presence2.AddNeighbourRegion(region1, cap);
+
+            Assert.That(presence.IsChildAgent, Is.False, "Did not start root in origin region.");
+            Assert.That(presence2.IsChildAgent, Is.True, "Is not a child on destination region.");
+
+            // Cross to x+1
+            presence.AbsolutePosition = new Vector3(Constants.RegionSize+1,3,100);
+            scene.RegisterRegionWithGrid();
+            scene2.RegisterRegionWithGrid();
+            presence.Update();
+
+            Assert.That(presence.IsChildAgent, Is.True, "Did not complete region cross as expected.");
+            Assert.That(presence2.IsChildAgent, Is.False, "Did not receive root status after receiving agent.");
+
+            // Cross Back
+            presence2.AbsolutePosition = new Vector3(-1, 3, 100);
+            presence2.Update();
+
+            Assert.That(presence2.IsChildAgent, Is.True, "Did not return from region as expected.");
+            Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");
+        }
+
+        [Test]
+        public void T030_TestAddAttachments()
+        {
+            ScenePresence presence = scene.GetScenePresence(agent1);
+
+            presence.AddAttachment(sog1);
+            presence.AddAttachment(sog2);
+            presence.AddAttachment(sog3);
+
+            Assert.That(presence.HasAttachments(), Is.True);
+            Assert.That(presence.ValidateAttachments(), Is.True);
+        }
+
+        [Test]
+        public void T031_RemoveAttachments()
+        {
+            ScenePresence presence = scene.GetScenePresence(agent1);
+            presence.RemoveAttachment(sog1);
+            presence.RemoveAttachment(sog2);
+            presence.RemoveAttachment(sog3);
+            Assert.That(presence.HasAttachments(), Is.False);
+        }
+
+        [Test]
+        public void T032_CrossAttachments()
+        {
+            ScenePresence presence = scene.GetScenePresence(agent1);
+            ScenePresence presence2 = scene2.GetScenePresence(agent1);
+            presence2.AddAttachment(sog1);
+            presence2.AddAttachment(sog2);
+
+            IRegionModule serialiser = new SerialiserModule();
+            IRegionModule ircomms = new LocalInterregionComms();
+            SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), serialiser);
+            SceneSetupHelpers.SetupSceneModules(scene2, new IniConfigSource(), serialiser);
+
+            Assert.That(presence.HasAttachments(), Is.False, "Presence has attachments before cross");
+
+            Assert.That(presence2.CrossAttachmentsIntoNewRegion(region1, true), Is.True, "Cross was not successful");
+            Assert.That(presence2.HasAttachments(), Is.False, "Presence2 objects were not deleted");
+            Assert.That(presence.HasAttachments(), Is.True, "Presence has not received new objects");
+        }
+
+        public static string GetRandomCapsObjectPath()
+        {
+            UUID caps = UUID.Random();
+            string capsPath = caps.ToString();
+            capsPath = capsPath.Remove(capsPath.Length - 4, 4);
+            return capsPath;
+        }
+
+        private SceneObjectGroup NewSOG(UUID uuid, Scene scene, UUID agent)
+        {
+            SceneObjectPart sop = new SceneObjectPart();
+            sop.Name = RandomName();
+            sop.Description = RandomName();
+            sop.Text = RandomName();
+            sop.SitName = RandomName();
+            sop.TouchName = RandomName();
+            sop.UUID = uuid;
+            sop.Shape = PrimitiveBaseShape.Default;
+            sop.Shape.State = 1;
+            sop.OwnerID = agent;
+
+            SceneObjectGroup sog = new SceneObjectGroup();
+            sog.SetScene(scene);
+            sog.SetRootPart(sop);
+
+            return sog;
+        }
+
+        private static string RandomName()
+        {
+            StringBuilder name = new StringBuilder();
+            int size = random.Next(5,12);
+            char ch ;
+            for (int i=0; i<size; i++)
+            {
+                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))) ;
+                name.Append(ch);
+            }
+            return name.ToString();
         }
     }
 }
