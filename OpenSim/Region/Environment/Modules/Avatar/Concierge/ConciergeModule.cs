@@ -412,11 +412,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 
         private void UpdateBrokerDone(IAsyncResult result)
         {
-            HttpWebRequest updatePost = result.AsyncState as HttpWebRequest;
-            using (HttpWebResponse response = updatePost.EndGetResponse(result) as HttpWebResponse)
+            try 
             {
-                response.Close();
-                _log.DebugFormat("[Concierge] broker update: status {0}", response.StatusCode);
+                HttpWebRequest updatePost = result.AsyncState as HttpWebRequest;
+                using (HttpWebResponse response = updatePost.EndGetResponse(result) as HttpWebResponse)
+                {
+                    response.Close();
+                    _log.DebugFormat("[Concierge] broker update: status {0}", response.StatusCode);
+                }
+            }
+            catch (WebException we)
+            {
+                _log.ErrorFormat("[Concierge] broker update to {0} failed with status {1}", _brokerURI, we.Status);
             }
         }
 
