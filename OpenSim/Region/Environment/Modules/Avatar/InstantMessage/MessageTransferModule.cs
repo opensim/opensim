@@ -134,7 +134,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             // try child avatar second
             foreach (Scene scene in m_Scenes)
             {
-                m_log.DebugFormat("[INSTANT MESSAGE]: Looking for child of {0} in {1}", toAgentID.ToString(), scene.RegionInfo.RegionName);
+//                m_log.DebugFormat(
+//                    "[INSTANT MESSAGE]: Looking for child of {0} in {1}", toAgentID, scene.RegionInfo.RegionName);
 
                 if (scene.Entities.ContainsKey(toAgentID) &&
                         scene.Entities[toAgentID] is ScenePresence)
@@ -161,13 +162,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
             if (m_Gridmode)
             {
-                m_log.DebugFormat("[INSTANT MESSAGE]: Delivering via grid");
+                //m_log.DebugFormat("[INSTANT MESSAGE]: Delivering via grid");
                 // Still here, try send via Grid
                 SendGridInstantMessageViaXMLRPC(im, result);
                 return;
             }
 
-            m_log.DebugFormat("[INSTANT MESSAGE]: Undeliverable");
+            //m_log.DebugFormat("[INSTANT MESSAGE]: Undeliverable");
             result(false);
             return;
         }
@@ -184,7 +185,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             
             // TODO: For now, as IMs seem to be a bit unreliable on OSGrid, catch all exception that
             // happen here and aren't caught and log them.
-            try {
+            try 
+            {
                 // various rational defaults
                 UUID fromAgentID = UUID.Zero;
                 UUID toAgentID = UUID.Zero;

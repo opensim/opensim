@@ -597,6 +597,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (!m_isBackedUp)
                     m_scene.EventManager.OnBackup += ProcessBackup;
+                
                 m_isBackedUp = true;
             }
         }
@@ -1282,7 +1283,10 @@ namespace OpenSim.Region.Environment.Scenes
 
                         datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
 
-                        backup_group.ForEachPart(delegate(SceneObjectPart part) { part.Inventory.ProcessInventoryBackup(datastore); });
+                        backup_group.ForEachPart(delegate(SceneObjectPart part) 
+                        { 
+                            part.Inventory.ProcessInventoryBackup(datastore); 
+                        });
 
                         backup_group = null;
                     }

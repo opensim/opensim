@@ -186,7 +186,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!m_FunctionPerms.ContainsKey(function))
             {
-                string perm = m_ScriptEngine.Config.GetString("Allow_"+function, "");
+                string perm = m_ScriptEngine.Config.GetString("Allow_" + function, "");
                 if (perm == "")
                 {
                     m_FunctionPerms[function] = null; // a null value is default
