@@ -334,6 +334,17 @@ namespace OpenSim.Framework
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Return an SHA1 hash of the given string
+        /// </summary>
+        /// <param name="src"></param>
+        /// <returns></returns>
+        public static string SHA1Hash(string src)
+        {
+            SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider();
+            return BitConverter.ToString(SHA1.ComputeHash(Encoding.Default.GetBytes(src))).Replace("-", String.Empty);
+        }
+
         public static int fast_distance2d(int x, int y)
         {
             x = Math.Abs(x);

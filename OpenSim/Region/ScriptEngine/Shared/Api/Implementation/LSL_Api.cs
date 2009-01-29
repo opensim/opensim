@@ -5890,8 +5890,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llSHA1String(string src)
         {
             m_host.AddScriptLPS(1);
-            return ""; //ckrinke 1/27 This needs to return a proper hash.
+            return Util.SHA1Hash(src).ToLower();
         }
+
         private ObjectShapePacket.ObjectDataBlock SetPrimitiveBlockShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist)
         {
             ObjectShapePacket.ObjectDataBlock shapeBlock = new ObjectShapePacket.ObjectDataBlock();
