@@ -419,6 +419,7 @@ namespace OpenSim.Data.SQLite
 
                         string uuid = (string) primRow["UUID"];
                         string objID = (string) primRow["SceneGroupID"];
+                        
                         if (uuid == objID) //is new SceneObjectGroup ?
                         {
                             SceneObjectGroup group = new SceneObjectGroup();
@@ -451,6 +452,7 @@ namespace OpenSim.Data.SQLite
                         }
                     }
                 }
+                
                 // Now fill the groups with part data
                 foreach (DataRow primRow in primsForRegion)
                 {
@@ -470,10 +472,11 @@ namespace OpenSim.Data.SQLite
                             }
                             else
                             {
-                                m_log.Info(
+                                m_log.Warn(
                                     "[REGION DB]: No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
+                            
                             createdObjects[new UUID(objID)].AddPart(prim);
                             LoadItems(prim);
                         }

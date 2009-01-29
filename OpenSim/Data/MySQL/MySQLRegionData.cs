@@ -455,6 +455,20 @@ namespace OpenSim.Data.MySQL
                                 objects.Add(grp);
 
                             lastGroupID = groupID;
+                            
+                            // There sometimes exist OpenSim bugs that 'orphan groups' so that none of the prims are
+                            // recorded as the root prim (for which the UUID must equal the persisted group UUID).  In
+                            // this case, force the UUID to be the same as the group UUID so that at least these can be
+                            // deleted (we need to change the UUID so that any other prims in the linkset can also be 
+                            // deleted).
+                            if (prim.UUID != groupID && groupID != UUID.Zero)
+                            {
+                                m_log.WarnFormat(
+                                    "[REGION DB]: Found root prim {0} {1} at {2} where group was actually {3}.  Forcing UUID to group UUID", 
+                                    prim.Name, prim.UUID, prim.GroupPosition, groupID);
+                                
+                                prim.UUID = groupID;
+                            }                            
 
                             grp = new SceneObjectGroup(prim);
                         }
@@ -484,7 +498,7 @@ namespace OpenSim.Data.MySQL
             foreach (SceneObjectPart part in prims)
                 LoadItems(part);
 
-            m_log.DebugFormat("[DATABASE] Loaded {0} objects using {1} prims", objects.Count, prims.Count);
+            m_log.DebugFormat("[REGION DB]: Loaded {0} objects using {1} prims", objects.Count, prims.Count);
 
             return objects;
         }

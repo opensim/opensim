@@ -79,7 +79,6 @@ namespace OpenSim.Data.MSSQL
 
             //Migration settings
             _Database.CheckMigration(_migrationStore);
-
         }
 
         /// <summary>
@@ -124,10 +123,9 @@ namespace OpenSim.Data.MSSQL
                         else
                             sceneObjectPart.Shape = BuildShape(reader);
 
-                        sceneObjectPart.FolderID = sceneObjectPart.UUID; // A relic from when we
-                        // we thought prims contained
-                        // folder objects. In
-                        // reality, prim == folder
+                        // A relic from when we we thought that prims contained folder objects. In 
+                        // reality, prim == folder                        
+                        sceneObjectPart.FolderID = sceneObjectPart.UUID; 
                         sceneObjectParts.Add(sceneObjectPart);
 
                         UUID groupID = new UUID(reader["SceneGroupID"].ToString());
@@ -138,6 +136,20 @@ namespace OpenSim.Data.MSSQL
                                 sceneObjectGroups.Add(grp);
 
                             lastGroupID = groupID;
+                            
+                            // There sometimes exist OpenSim bugs that 'orphan groups' so that none of the prims are
+                            // recorded as the root prim (for which the UUID must equal the persisted group UUID).  In
+                            // this case, force the UUID to be the same as the group UUID so that at least these can be
+                            // deleted (we need to change the UUID so that any other prims in the linkset can also be 
+                            // deleted).
+                            if (sceneObjectPart.UUID != groupID && groupID != UUID.Zero)
+                            {
+                                _Log.WarnFormat(
+                                    "[REGION DB]: Found root prim {0} {1} at {2} where group was actually {3}.  Forcing UUID to group UUID", 
+                                    sceneObjectPart.Name, sceneObjectPart.UUID, sceneObjectPart.GroupPosition, groupID);
+
+                                sceneObjectPart.UUID = groupID;
+                            }                               
 
                             grp = new SceneObjectGroup(sceneObjectPart);
                         }
@@ -162,10 +174,9 @@ namespace OpenSim.Data.MSSQL
             //Load the inventory off all sceneobjects within the region
             LoadItems(sceneObjectParts);
 
-            _Log.DebugFormat("[DATABASE] Loaded {0} objects using {1} prims", sceneObjectGroups.Count, sceneObjectParts.Count);
+            _Log.DebugFormat("[REGION DB]: Loaded {0} objects using {1} prims", sceneObjectGroups.Count, sceneObjectParts.Count);
 
             return sceneObjectGroups;
-
         }
 
         /// <summary>
@@ -216,7 +227,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="regionUUID"></param>
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
-            _Log.InfoFormat("[REGION DB]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
+            _Log.InfoFormat("[MSSQL]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
 
             using (SqlConnection conn = _Database.DatabaseConnection())
             {
@@ -404,7 +415,7 @@ ELSE
         /// <param name="regionUUID">regionUUID (is this used anyway</param>
         public void RemoveObject(UUID objectID, UUID regionUUID)
         {
-            _Log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", objectID, regionUUID);
+            _Log.InfoFormat("[MSSQL]: Removing obj: {0} from region: {1}", objectID, regionUUID);
 
             //Remove from prims and primsitem table
             string sqlPrims = string.Format("DELETE FROM PRIMS WHERE SceneGroupID = '{0}'", objectID);
@@ -1482,9 +1493,7 @@ VALUES
 
             return parameters.ToArray();
         }
-
-    
-
+        
         #endregion
 
         #endregion
