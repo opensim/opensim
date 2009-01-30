@@ -25,11 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.IO;
+using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
+using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Archiver;
+using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Tests.Common.Setup;
@@ -48,21 +53,41 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests
             //log4net.Config.XmlConfigurator.Configure();
             
             ArchiverModule archiverModule = new ArchiverModule();
+            SerialiserModule serialiserModule = new SerialiserModule();
             TerrainModule terrainModule = new TerrainModule();
             
             Scene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, archiverModule, terrainModule);
+            SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
             
-
+            string partName = "My Little Pony";
+            UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000015");
+            PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
+            Vector3 groupPosition = new Vector3(10, 20, 30);
+            Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
+            Vector3 offsetPosition = new Vector3(5, 10, 15);
+            
+            SceneObjectPart part 
+                = new SceneObjectPart(
+                    ownerId, shape, groupPosition, rotationOffset, offsetPosition);
+            part.Name = partName;
+            
+            scene.AddNewSceneObject(new SceneObjectGroup(part), false);            
+            EventWaitHandle waitHandle = new ManualResetEvent(false);
             MemoryStream archiveWriteStream = new MemoryStream();
-            archiverModule.ArchiveRegion(archiveWriteStream);
+            archiverModule.ArchiveRegion(archiveWriteStream, waitHandle);            
+            waitHandle.WaitOne();
 
-            // If there are no assets to fetch, then the entire archive region code path will execute in this thread,
-            // so no need to worry about signalling.
-            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
+            byte[] archive = archiveWriteStream.ToArray();           
+            MemoryStream archiveReadStream = new MemoryStream(archive);
             TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
         
-            bool gotControlFile = false;            
+            bool gotControlFile = false;
+            bool gotObjectFile = false;
+            string expectedObjectFileName = string.Format(
+                "{0}_{1:000}-{2:000}-{3:000}__{4}.xml",
+                partName,
+                Math.Round(groupPosition.X), Math.Round(groupPosition.Y), Math.Round(groupPosition.Z),
+                part.UUID);            
             
             string filePath;
             TarArchiveReader.TarEntryType tarEntryType;
@@ -70,10 +95,19 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests
             while (tar.ReadEntry(out filePath, out tarEntryType) != null)
             {
                 if (ArchiveConstants.CONTROL_FILE_PATH == filePath)
+                {
                     gotControlFile = true;
+                }
+                else if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
+                {
+                    string fileName = filePath.Remove(0, ArchiveConstants.OBJECTS_PATH.Length);
+                    Assert.That(fileName, Is.EqualTo(expectedObjectFileName));
+                    gotObjectFile = true;
+                }
             }
 
             Assert.That(gotControlFile, Is.True, "No control file in archive");
+            Assert.That(gotObjectFile, Is.True, "No object file in archive");
             
             // TODO: Test presence of more files and contents of files.
         }

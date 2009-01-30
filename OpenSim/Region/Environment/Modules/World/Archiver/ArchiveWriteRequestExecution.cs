@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using System.Xml;
 using OpenMetaverse;
 using log4net;
@@ -57,19 +58,22 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         protected List<SceneObjectGroup> m_sceneObjects;
         protected RegionInfo m_regionInfo;
         protected Stream m_saveStream;
+        protected EventWaitHandle m_signalWhenDoneEvent;
 
         public ArchiveWriteRequestExecution(
              List<SceneObjectGroup> sceneObjects,
              ITerrainModule terrainModule,
              IRegionSerialiserModule serialiser,
              RegionInfo regionInfo,
-             Stream saveStream)
+             Stream saveStream,
+             EventWaitHandle signalWhenDoneEvent)
         {
             m_sceneObjects = sceneObjects;
             m_terrainModule = terrainModule;
             m_serialiser = serialiser;
             m_regionInfo = regionInfo;
             m_saveStream = saveStream;
+            m_signalWhenDoneEvent = signalWhenDoneEvent;
         }
 
         protected internal void ReceivedAllAssets(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids)
@@ -126,6 +130,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             archive.WriteTar(m_saveStream);
 
             m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive for {0}", m_regionInfo.RegionName);
+            
+            if (m_signalWhenDoneEvent != null)
+                m_signalWhenDoneEvent.Set();
         }
 
         /// <summary>

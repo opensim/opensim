@@ -26,6 +26,7 @@
  */
 
 using System.IO;
+using System.Threading;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
@@ -44,12 +45,11 @@ namespace OpenSim.Region.Environment.Interfaces
         /// Archive the region to a stream.
         /// </summary>
         /// 
-        /// This may be a little problematic to use right now since saves happen asynchronously and there is not yet
-        /// a mechanism to signal completion to the caller (possibly other than continually checking whether the 
-        /// stream has any data in it).  TODO: Address this.
-        /// 
         /// <param name="saveStream"></param>
-        void ArchiveRegion(Stream saveStream);
+        /// <param name="waitHandle">
+        /// Pass in a wait handle if you want to be signalled when the operation completes.
+        /// </param>
+        void ArchiveRegion(Stream saveStream, EventWaitHandle waitHandle);
 
         /// <summary>
         /// Dearchive the given region archive into the scene

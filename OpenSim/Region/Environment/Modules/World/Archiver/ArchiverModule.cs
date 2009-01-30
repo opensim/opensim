@@ -28,6 +28,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
@@ -72,9 +73,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             new ArchiveWriteRequestPreparation(m_scene, savePath).ArchiveRegion();
         }
         
-        public void ArchiveRegion(Stream saveStream)
+        public void ArchiveRegion(Stream saveStream, EventWaitHandle waitHandle)
         {
-            new ArchiveWriteRequestPreparation(m_scene, saveStream).ArchiveRegion();
+            new ArchiveWriteRequestPreparation(m_scene, saveStream, waitHandle).ArchiveRegion();
         }
 
         public void DearchiveRegion(string loadPath)

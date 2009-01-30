@@ -29,8 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-//using System.Reflection;
-//using log4net;
+using System.Reflection;
+using log4net;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
@@ -169,6 +169,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 }
             }
 
+            //m_log.Debug("[TAR ARCHIVE WRITER]: Writing final consecutive 0 blocks");
+            
             // Write two consecutive 0 blocks to end the archive
             byte[] finalZeroPadding = new byte[1024];
             bw.Write(finalZeroPadding);

@@ -27,9 +27,9 @@
 
 using System;
 using System.IO;
-//using System.Reflection;
+using System.Reflection;
 using System.Text;
-//using log4net;
+using log4net;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
@@ -39,6 +39,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     public class TarArchiveReader
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         public enum TarEntryType 
         {
             TYPE_UNKNOWN = 0,
