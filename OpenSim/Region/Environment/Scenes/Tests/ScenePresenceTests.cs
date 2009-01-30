@@ -238,7 +238,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             presence2.AddAttachment(sog2);
 
             IRegionModule serialiser = new SerialiserModule();
-            IRegionModule ircomms = new LocalInterregionComms();
             SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), serialiser);
             SceneSetupHelpers.SetupSceneModules(scene2, new IniConfigSource(), serialiser);
 

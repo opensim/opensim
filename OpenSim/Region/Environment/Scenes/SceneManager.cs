@@ -606,8 +606,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             UUID[] arrAssetRequestList = assetRequestList.ToArray();
 
-            int currpos = 0;
-
             List<UUID[]> arrvalus = new List<UUID[]>();
 
             //split into separate arrays
