@@ -454,9 +454,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 else
                 {
                     m_CurrentCompile = null;
-		    m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount, 
-									m_ScriptErrorMessage);
-		    m_ScriptFailCount = 0;
+                    m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount, 
+                                                                        m_ScriptErrorMessage);
+                    m_ScriptFailCount = 0;
                 }
             }
             return null;
@@ -482,18 +482,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (part == null)
             {
                 Log.Error("[Script] SceneObjectPart unavailable. Script NOT started.");
-		m_ScriptErrorMessage += "SceneObjectPart unavailable. Script NOT started.\n";
-		m_ScriptFailCount++;
+                m_ScriptErrorMessage += "SceneObjectPart unavailable. Script NOT started.\n";
+                m_ScriptFailCount++;
                 return false;
             }     
 
             TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
             if (item == null)
-	    {
-		m_ScriptErrorMessage += "Can't find script inventory item.\n";
-		m_ScriptFailCount++;
+            {
+                m_ScriptErrorMessage += "Can't find script inventory item.\n";
+                m_ScriptFailCount++;
                 return false;
-	    }
+            }
 
             UUID assetID = item.AssetID;
 
@@ -519,8 +519,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 try
                 {
                     // DISPLAY ERROR INWORLD
-		    m_ScriptErrorMessage += "Failed to compile: " + e.Message.ToString();
-		    m_ScriptFailCount++;
+                    m_ScriptErrorMessage += "Failed to compile: " + e.Message.ToString();
+                    m_ScriptFailCount++;
                     string text = "Error compiling script:\n" + e.Message.ToString();
                     if (text.Length > 1000)
                         text = text.Substring(0, 1000);
@@ -590,8 +590,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         catch (Exception e)
                         {
                             m_log.ErrorFormat("[XEngine] Exception creating app domain:\n {0}", e.ToString());
-			    m_ScriptErrorMessage += "Exception creating app domain:\n";
-			    m_ScriptFailCount++;
+                            m_ScriptErrorMessage += "Exception creating app domain:\n";
+                            m_ScriptFailCount++;
                             return false;
                         }
                     }

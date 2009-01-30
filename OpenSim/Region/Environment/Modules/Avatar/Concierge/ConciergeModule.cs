@@ -386,7 +386,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                                           attendees.Count, scene.RegionInfo.RegionName, 
                                           scene.RegionInfo.RegionID, 
                                           DateTime.UtcNow.ToString("s")));
-                foreach(UUID uuid in attendees)
+                foreach (UUID uuid in attendees)
                 {
                     string name = _attendeeNames[uuid];
                     list.Append(String.Format("    <avatar name=\"{0}\" uuid=\"{1}\" />\n", name, uuid));
