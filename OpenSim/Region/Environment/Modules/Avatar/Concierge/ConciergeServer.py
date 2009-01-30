@@ -29,6 +29,7 @@
 
 import logging
 import BaseHTTPServer
+import optparse
 import xml.etree.ElementTree as ET
 import xml.parsers.expat
 
@@ -36,6 +37,8 @@ import xml.parsers.expat
 # enable debug level logging
 logging.basicConfig(level = logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s')
+
+options = None
 
 # subclassed HTTPRequestHandler
 class ConciergeHandler(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -86,21 +89,39 @@ class ConciergeHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             logging.error('[ConciergeHandler] POST illformed:%s', xmlError)
             self.send_response(500)
             return
-            
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
 
-        self.logResponse(200)
+        if not options.fail:
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len('<success/>'))
+            self.end_headers()
+            self.logResponse(200)
+            self.wfile.write('<success/>')
+            self.wfile.close()
+        else:
+            self.send_response(500)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len('<error>gotcha!</error>'))
+            self.end_headers()
+            self.wfile.write('<error>gotcha!</error>')
+            self.wfile.close()
+
+            self.logResponse(500)
 
     def log_request(code, size):
         pass
 
 if __name__ == '__main__':
 
-    httpServer = BaseHTTPServer.HTTPServer(('', 8080), ConciergeHandler)
     logging.info('[ConciergeServer] Concierge Broker Test Server starting')
 
+    parser = optparse.OptionParser()
+    parser.add_option('-p', '--port', dest = 'port', help = 'port to listen on', metavar = 'PORT')
+    parser.add_option('-f', '--fail', dest = 'fail', action = 'store_true', help = 'always fail POST requests')
+
+    (options, args) = parser.parse_args()
+
+    httpServer = BaseHTTPServer.HTTPServer(('', 8080), ConciergeHandler)
     try:
         httpServer.serve_forever()
     except KeyboardInterrupt:
