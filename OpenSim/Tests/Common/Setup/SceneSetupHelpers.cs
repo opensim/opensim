@@ -221,7 +221,7 @@ namespace OpenSim.Tests.Common.Setup
                 part.Name = name;
             
             //part.UpdatePrimFlags(false, false, true);           
-            part.ObjectFlags |= (uint)PrimFlags.Phantom;            
+            //part.ObjectFlags |= (uint)PrimFlags.Phantom;            
             sceneObject.SetRootPart(part);
             
             scene.AddNewSceneObject(sceneObject, false);

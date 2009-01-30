@@ -52,6 +52,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests
             
             Scene scene = SceneSetupHelpers.SetupScene();
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule, terrainModule);
+            
 
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.ArchiveRegion(archiveWriteStream);
