@@ -128,34 +128,35 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             switch (header[156]) 
             {
-            case 0:
-                tarHeader.EntryType = TarEntryType.TYPE_NORMAL_FILE;
+                case 0:
+                    tarHeader.EntryType = TarEntryType.TYPE_NORMAL_FILE;
+                    break;
+                case (byte)'0':
+                    tarHeader.EntryType = TarEntryType.TYPE_NORMAL_FILE;
                 break;
-            case (byte)'0':
-                tarHeader.EntryType = TarEntryType.TYPE_NORMAL_FILE;
-            break;
-            case (byte)'1':
-                tarHeader.EntryType = TarEntryType.TYPE_HARD_LINK;
-            break;
-            case (byte)'2':
-                tarHeader.EntryType = TarEntryType.TYPE_SYMBOLIC_LINK;
-            break;
-            case (byte)'3':
-                tarHeader.EntryType = TarEntryType.TYPE_CHAR_SPECIAL;
-            break;
-            case (byte)'4':
-                tarHeader.EntryType = TarEntryType.TYPE_BLOCK_SPECIAL;
-            break;
-            case (byte)'5':
-                tarHeader.EntryType = TarEntryType.TYPE_DIRECTORY;
-            break;
-            case (byte)'6':
-                tarHeader.EntryType = TarEntryType.TYPE_FIFO;
-            break;
-            case (byte)'7':
-                tarHeader.EntryType = TarEntryType.TYPE_CONTIGUOUS_FILE;
-            break;
+                case (byte)'1':
+                    tarHeader.EntryType = TarEntryType.TYPE_HARD_LINK;
+                break;
+                case (byte)'2':
+                    tarHeader.EntryType = TarEntryType.TYPE_SYMBOLIC_LINK;
+                break;
+                case (byte)'3':
+                    tarHeader.EntryType = TarEntryType.TYPE_CHAR_SPECIAL;
+                break;
+                case (byte)'4':
+                    tarHeader.EntryType = TarEntryType.TYPE_BLOCK_SPECIAL;
+                break;
+                case (byte)'5':
+                    tarHeader.EntryType = TarEntryType.TYPE_DIRECTORY;
+                break;
+                case (byte)'6':
+                    tarHeader.EntryType = TarEntryType.TYPE_FIFO;
+                break;
+                case (byte)'7':
+                    tarHeader.EntryType = TarEntryType.TYPE_CONTIGUOUS_FILE;
+                break;
             }       
+            
             return tarHeader;
         }
 

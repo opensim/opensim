@@ -696,10 +696,13 @@ InterregionComms = "RESTComms"
     MaintenanceLoopTicks_Other=10
 
     ; Allow the use of os* functions (some are dangerous)
-    AllowOSFunctions = true
+    ; Default is false
+    AllowOSFunctions = false
 
-    ; Threat level to allow, one of None, VeryLow, Low, Moderate, High, VeryHigh, Severe
-    OSFunctionThreatLevel = Low
+    ; Threat level to allow if os functions are enabled
+    ; One of None, VeryLow, Low, Moderate, High, VeryHigh, Severe
+    ; Default is VeryLow
+    OSFunctionThreatLevel = VeryLow
 
     ; Maximum number of items in load/unload queue before we start rejecting loads
     ; Note that we will only be rejecting load. Unloads will still be able to queue.
