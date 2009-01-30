@@ -75,7 +75,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests
             EventWaitHandle waitHandle = new ManualResetEvent(false);
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.ArchiveRegion(archiveWriteStream, waitHandle);            
-            waitHandle.WaitOne();
+            waitHandle.WaitOne(60000, true);
 
             byte[] archive = archiveWriteStream.ToArray();           
             MemoryStream archiveReadStream = new MemoryStream(archive);
