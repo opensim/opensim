@@ -402,12 +402,19 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             updatePost.ContentLength = payload.Length;
             updatePost.UserAgent = "OpenSim.Concierge";
 
-            StreamWriter payloadStream = new StreamWriter(updatePost.GetRequestStream());
-            payloadStream.Write(payload);
-            payloadStream.Close();
+            try
+            {
+                StreamWriter payloadStream = new StreamWriter(updatePost.GetRequestStream());
+                payloadStream.Write(payload);
+                payloadStream.Close();
 
-            updatePost.BeginGetResponse(UpdateBrokerDone, updatePost);
-            _log.DebugFormat("[Concierge] async broker update to {0} started", uri);
+                updatePost.BeginGetResponse(UpdateBrokerDone, updatePost);
+                _log.DebugFormat("[Concierge] async broker POST to {0} started", uri);
+            }
+            catch (WebException we)
+            {
+                _log.ErrorFormat("[Concierge] async broker POST to {0} failed: {1}", uri, we.Status);
+            }
         }
 
         private void UpdateBrokerDone(IAsyncResult result)
@@ -423,20 +430,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             }
             catch (WebException we)
             {
-                _log.ErrorFormat("[Concierge] broker update to {0} failed with status {1}", _brokerURI, we.Status);
+                string uri = updatePost.RequestUri.OriginalString;
+                _log.ErrorFormat("[Concierge] broker update to {0} failed with status {1}", uri, we.Status);
                 if (null != we.Response) 
                 {
                     using(HttpWebResponse resp = we.Response as HttpWebResponse)
                     {
-                        _log.ErrorFormat("[Concierge] response from {0} request Uri: {1}", _brokerURI, updatePost.RequestUri);
-                        _log.ErrorFormat("[Concierge] response from {0} status code: {1}", _brokerURI, resp.StatusCode);
-                        _log.ErrorFormat("[Concierge] response from {0} status desc: {1}", _brokerURI, resp.StatusDescription);
-                        _log.ErrorFormat("[Concierge] response from {0} server:      {1}", _brokerURI, resp.Server);
+                        _log.ErrorFormat("[Concierge] response from {0} status code: {1}", uri, resp.StatusCode);
+                        _log.ErrorFormat("[Concierge] response from {0} status desc: {1}", uri, resp.StatusDescription);
+                        _log.ErrorFormat("[Concierge] response from {0} server:      {1}", uri, resp.Server);
                         
                         if (resp.ContentLength > 0) 
                         {
                             StreamReader content = new StreamReader(resp.GetResponseStream());
-                            _log.ErrorFormat("[Concierge] response from {0} content:     {1}", _brokerURI, content.ReadToEnd());
+                            _log.ErrorFormat("[Concierge] response from {0} content:     {1}", uri, content.ReadToEnd());
                             content.Close();
                         }
                     }
