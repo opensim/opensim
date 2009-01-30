@@ -327,17 +327,22 @@ namespace OpenSim.Region.Environment
             ageVerificationBlock.Add(ageVerificationMap);
             body.Add("AgeVerificationBlock", ageVerificationBlock);
 
-            OSDArray mediaData = new OSDArray();
-            OSDMap mediaDataMap = new OSDMap();
-            mediaDataMap.Add("MediaDesc", OSD.FromString(""));
-            mediaDataMap.Add("MediaHeight", OSD.FromInteger(0));
-            mediaDataMap.Add("MediaLoop", OSD.FromInteger(0));
-            mediaDataMap.Add("MediaType", OSD.FromString("type/type"));
-            mediaDataMap.Add("MediaWidth", OSD.FromInteger(0));
-            mediaDataMap.Add("ObscureMedia", OSD.FromInteger(0));
-            mediaDataMap.Add("ObscureMusic", OSD.FromInteger(0));
-            mediaData.Add(mediaDataMap);
-            body.Add("MediaData", mediaData);
+            // LL sims send media info in this event queue message but it's not in the UDP
+            // packet we construct this event queue message from. This should be refactored in
+            // other areas of the code so it can all be send in the same message. Until then we will
+            // still send the media info via UDP
+
+            //OSDArray mediaData = new OSDArray();
+            //OSDMap mediaDataMap = new OSDMap();
+            //mediaDataMap.Add("MediaDesc", OSD.FromString(""));
+            //mediaDataMap.Add("MediaHeight", OSD.FromInteger(0));
+            //mediaDataMap.Add("MediaLoop", OSD.FromInteger(0));
+            //mediaDataMap.Add("MediaType", OSD.FromString("type/type"));
+            //mediaDataMap.Add("MediaWidth", OSD.FromInteger(0));
+            //mediaDataMap.Add("ObscureMedia", OSD.FromInteger(0));
+            //mediaDataMap.Add("ObscureMusic", OSD.FromInteger(0));
+            //mediaData.Add(mediaDataMap);
+            //body.Add("MediaData", mediaData);
 
             OSDArray parcelData = new OSDArray();
             OSDMap parcelDataMap = new OSDMap();
