@@ -1827,6 +1827,20 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Immediately send an update for this scene object's root prim only.
+        /// This is for updates regarding the object as a whole, and none of its parts in particular.
+        /// Note: this may not be cused by opensim (it probably should) but it's used by
+        /// external modules.
+        /// </summary>
+        public void SendGroupRootUpdate()
+        {
+            if (IsDeleted)
+                return;
+
+            RootPart.SendFullUpdateToAllClients();
+        }
+
         public void QueueForUpdateCheck()
         {
             if (m_scene == null) // Need to check here as it's null during object creation
