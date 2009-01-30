@@ -202,7 +202,7 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>        
         public static SceneObjectPart AddSceneObject(Scene scene)
         {
-            return AddSceneObject(scene, null);
+            return AddSceneObject(scene, "Test Object");
         }
         
         /// <summary>
@@ -212,19 +212,15 @@ namespace OpenSim.Tests.Common.Setup
         /// <param name="name"></param>
         /// <returns></returns>
         public static SceneObjectPart AddSceneObject(Scene scene, string name)
-        {
-            SceneObjectGroup sceneObject = new SceneObjectGroup();
+        {            
             SceneObjectPart part 
                 = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
-            
-            if (name != null)
-                part.Name = name;
+            part.Name = name;
             
             //part.UpdatePrimFlags(false, false, true);           
-            //part.ObjectFlags |= (uint)PrimFlags.Phantom;            
-            sceneObject.SetRootPart(part);
-            
-            scene.AddNewSceneObject(sceneObject, false);
+            //part.ObjectFlags |= (uint)PrimFlags.Phantom;               
+
+            scene.AddNewSceneObject(new SceneObjectGroup(part), false);
             
             return part;
         }
