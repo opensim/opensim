@@ -355,7 +355,8 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
                     if (success)
                     {
                         m_log.Debug("[HGScene]: Successfully posted item to remote asset server " + userAssetURL);
-                        m_assetMap.Add(itemID, asscli);
+                        if (!m_assetMap.ContainsKey(itemID))
+                            m_assetMap.Add(itemID, asscli);
                     }
                     else
                         m_log.Warn("[HGScene]: Could not post asset to remote asset server " + userAssetURL);
