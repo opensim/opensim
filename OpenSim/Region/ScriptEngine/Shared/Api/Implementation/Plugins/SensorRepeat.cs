@@ -73,6 +73,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             public SceneObjectPart host;
         }
 
+        //
+        // Sensed entity
+        //
+        private class SensedEntity : IComparable
+        {
+            public SensedEntity(double detectedDistance, UUID detectedID)
+            {
+                distance = detectedDistance;
+                itemID = detectedID;
+            }
+            public int CompareTo(object obj)
+            {
+                if (!(obj is SensedEntity)) throw new InvalidOperationException();
+                SensedEntity ent = (SensedEntity)obj;
+                if (ent == null || ent.distance < distance) return 1;
+                if (ent.distance > distance) return -1;
+                return 0;
+            }
+            public UUID itemID;
+            public double distance;
+        }
+
         private List<SenseRepeatClass> SenseRepeaters = new List<SenseRepeatClass>();
         private object SenseRepeatListLock = new object();
 
@@ -175,23 +197,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 return;
             }
 
-            LSL_Types.list SensedObjects = new LSL_Types.list();
+            List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
             // Is the sensor type is AGENT and not SCRIPTED then include agents
             if ((ts.type & AGENT) != 0 && (ts.type & SCRIPTED) == 0)
             {
-                doAgentSensor(ts, SensedObjects);
+               sensedEntities.AddRange(doAgentSensor(ts));
             }
 
             // If SCRIPTED or PASSIVE or ACTIVE check objects
             if ((ts.type & SCRIPTED) != 0 || (ts.type & PASSIVE) != 0 || (ts.type & ACTIVE) != 0)
             {
-                doObjectSensor(ts, SensedObjects);
+                sensedEntities.AddRange(doObjectSensor(ts));
             }
 
             lock (SenseLock)
             {
-                if (SensedObjects.Length == 0)
+                if (sensedEntities.Count == 0)
                 {
                     // send a "no_sensor"
                     // Add it to queue
@@ -201,9 +223,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 }
                 else
                 {
-                    // the sort is stride = 2 and ascending to get everything ordered by distance
-                    SensedObjects = SensedObjects.Sort(2, 1);
-                    int count = SensedObjects.Length;
+                    // Sort the list to get everything ordered by distance
+                    sensedEntities.Sort();
+                    int count = sensedEntities.Count;
                     int idx;
                     List<DetectParams> detected = new List<DetectParams>();
                     for (idx = 0; idx < count; idx++)
@@ -211,7 +233,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         try
                         {
                             DetectParams detect = new DetectParams();
-                            detect.Key = (UUID)(SensedObjects.Data[(idx * 2) + 1]);
+                            detect.Key = sensedEntities[idx].itemID;
                             detect.Populate(m_CmdManager.m_ScriptEngine.World);
                             detected.Add(detect);
                         }
@@ -244,9 +266,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
         }
 
-        private void doObjectSensor(SenseRepeatClass ts, LSL_Types.list SensedObjects)
+        private List<SensedEntity> doObjectSensor(SenseRepeatClass ts)
         {
             List<EntityBase> Entities;
+            List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
             // If this is an object sense by key try to get it directly
             // rather than getting a list to scan through
@@ -255,7 +278,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 EntityBase e = null;
                 m_CmdManager.m_ScriptEngine.World.Entities.TryGetValue(ts.keyID, out e);
                 if (e == null)
-                    return;
+                    return sensedEntities;
                 Entities = new List<EntityBase>();
                 Entities.Add(e);
             }
@@ -266,7 +289,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             SceneObjectPart SensePoint = ts.host;
 
             Vector3 fromRegionPos = SensePoint.AbsolutePosition;
+
+            // pre define some things to avoid repeated definitions in the loop body
             Vector3 toRegionPos;
+            double dis;
+            int objtype;
+            SceneObjectPart part;
+            float dx;
+            float dy;
+            float dz;
+
             Quaternion q = SensePoint.RotationOffset;
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
@@ -289,13 +321,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 if (!(ent is SceneObjectGroup)) // dont bother if it is a pesky avatar
                     continue;
                 toRegionPos = ent.AbsolutePosition;
-                double dis = Math.Abs((double)Util.GetDistanceTo(toRegionPos, fromRegionPos));
+
+                // Calculation is in line for speed
+                dx = toRegionPos.X - fromRegionPos.X;
+                dy = toRegionPos.Y - fromRegionPos.Y;
+                dz = toRegionPos.Z - fromRegionPos.Z;
+
+                // Weed out those that will not fit in a cube the size of the range
+                // no point calculating if they are within a sphere the size of the range
+                // if they arent even in the cube
+                if (Math.Abs(dx) > ts.range || Math.Abs(dy) > ts.range || Math.Abs(dz) > ts.range)
+                    dis = ts.range + 1.0;
+                else
+                    dis = Math.Sqrt(dx * dx + dy * dy + dz * dz);
+
                 if (keep && dis <= ts.range && ts.host.UUID != ent.UUID)
                 {
                     // In Range and not the object containing the script, is it the right Type ?
-                    int objtype = 0;
+                    objtype = 0;
 
-                    SceneObjectPart part = ((SceneObjectGroup)ent).RootPart;
+                    part = ((SceneObjectGroup)ent).RootPart;
                     if (part.AttachmentPoint != 0) // Attached so ignore
                         continue;
 
@@ -347,17 +392,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         if (keep == true)
                         {
                             // add distance for sorting purposes later
-                            SensedObjects.Add(new LSL_Types.LSLFloat(dis));
-                            SensedObjects.Add(ent.UUID);
+                            sensedEntities.Add(new SensedEntity(dis, ent.UUID));
                         }
                     }
                 }
             }
+            return sensedEntities;
         }
 
-        private void doAgentSensor(SenseRepeatClass ts, LSL_Types.list SensedObjects)
+        private List<SensedEntity> doAgentSensor(SenseRepeatClass ts)
         {
             List<ScenePresence> Presences;
+            List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
             // If this is an avatar sense by key try to get them directly
             // rather than getting a list to scan through
@@ -365,7 +411,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             {
                 ScenePresence p = m_CmdManager.m_ScriptEngine.World.GetScenePresence(ts.keyID);
                 if (p == null)
-                    return;
+                    return sensedEntities;
                 Presences = new List<ScenePresence>();
                 Presences.Add(p);
             }
@@ -376,7 +422,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             // If nobody about quit fast
             if (Presences.Count == 0)
-                return;
+                return sensedEntities;
 
             SceneObjectPart SensePoint = ts.host;
 
@@ -390,6 +436,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             bool attached = (SensePoint.AttachmentPoint != 0);
             bool nameSearch = (ts.name != null && ts.name != "");
             Vector3 toRegionPos;
+            double dis;
 
             foreach (ScenePresence presence in Presences)
             {
@@ -402,7 +449,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     keep = false;
                 toRegionPos = presence.AbsolutePosition;
 
-                double dis = Math.Abs(Util.GetDistanceTo(toRegionPos, fromRegionPos));
+                dis = Math.Abs(Util.GetDistanceTo(toRegionPos, fromRegionPos));
 
                 // are they in range
                 if (keep && dis <= ts.range)
@@ -452,14 +499,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 if (keep) // add to list with distance
                 {
-                    SensedObjects.Add(new LSL_Types.LSLFloat(dis));
-                    SensedObjects.Add(presence.UUID);
+                    sensedEntities.Add(new SensedEntity(dis, presence.UUID));
                 }
 
                 // If this is a search by name and we have just found it then no more to do 
                 if (nameSearch && ts.name == presence.Name)
-                    return;
+                    return sensedEntities;
             }
+            return sensedEntities;
         }
 
         public Object[] GetSerializationData(UUID itemID)
