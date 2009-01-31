@@ -4929,9 +4929,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetAgentLanguage(string id)
         {
             // This should only return a value if the avatar is in the same region
+            //ckrinke 1-30-09 : This needs to parse the XMLRPC language field supplied
+            //by the client at login. Currently returning only en-us until our I18N
+            //effort gains momentum
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetAgentLanguage");
-            return "";
+            return "en-us";
         }
 
         public void llAdjustSoundVolume(double volume)
