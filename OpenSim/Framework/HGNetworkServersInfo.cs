@@ -82,6 +82,10 @@ namespace OpenSim.Framework
 
         public static string ServerURI(string uri)
         {
+            // Get rid of eventual slashes at the end
+            if (uri.EndsWith("/"))
+                uri = uri.Substring(0, uri.Length - 1);
+
             IPAddress ipaddr1 = null;
             string port1 = "";
             try
