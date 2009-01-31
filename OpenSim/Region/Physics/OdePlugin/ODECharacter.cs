@@ -89,6 +89,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_alwaysRun = false;
         private bool m_hackSentFall = false;
         private bool m_hackSentFly = false;
+        private PhysicsVector m_taintPosition = new PhysicsVector(0, 0, 0);
         public uint m_localID = 0;
         public bool m_returnCollisions = false;
         // taints and their non-tainted counterparts
@@ -130,6 +131,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             _velocity = new PhysicsVector();
             _target_velocity = new PhysicsVector();
             _position = pos;
+
+            m_taintPosition.X = pos.X;
+            m_taintPosition.Y = pos.Y;
+            m_taintPosition.Z = pos.Z;
+
             _acceleration = new PhysicsVector();
             _parent_scene = parent_scene;
 
@@ -158,10 +164,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_isPhysical = false; // current status: no ODE information exists
             m_tainted_isPhysical = true; // new tainted status: need to create ODE information
 
-            lock (_parent_scene.OdeLock)
-            {
-                _parent_scene.AddPhysicsActorTaint(this);
-            }
+            
+            _parent_scene.AddPhysicsActorTaint(this);
+            
             m_name = avName;
         }
 
@@ -371,11 +376,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return _position; }
             set
             {
-                lock (_parent_scene.OdeLock)
-                {
-                    d.BodySetPosition(Body, value.X, value.Y, value.Z);
-                    _position = value;
-                }
+                if (Body == IntPtr.Zero || Shell == IntPtr.Zero)
+                    _position.X = value.X; _position.Y = value.Y; _position.Z = value.Z;
+                  
+                m_taintPosition.X = value.X; m_taintPosition.Y = value.Y; m_taintPosition.Z = value.Z;
+                _parent_scene.AddPhysicsActorTaint(this);
             }
         }
 
@@ -395,14 +400,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 m_pidControllerActive = true;
-                lock (_parent_scene.OdeLock)
-                {
+               
                     PhysicsVector SetSize = value;
                     m_tainted_CAPSULE_LENGTH = (SetSize.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
                     //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
 
                     Velocity = new PhysicsVector(0f, 0f, 0f);
-                }
+               
                 _parent_scene.AddPhysicsActorTaint(this);
             }
         }
@@ -444,6 +448,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.MassSetCapsuleTotal(out ShellMass, m_mass, 2, CAPSULE_RADIUS, CAPSULE_LENGTH);
             Body = d.BodyCreate(_parent_scene.world);
             d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
+            
+            _position.X = npositionX;
+            _position.Y = npositionY;
+            _position.Z = npositionZ;
+
+            
+            m_taintPosition.X = npositionX;
+            m_taintPosition.Y = npositionY;
+            m_taintPosition.Z = npositionZ;
 
             d.BodySetMass(Body, ref ShellMass);
             d.Matrix3 m_caprot;
@@ -708,6 +721,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // If the PID Controller isn't active then we set our force
             // calculating base velocity to the current position
 
+            if (Body == IntPtr.Zero)
+                return;
 
             if (m_pidControllerActive == false)
             {
@@ -890,11 +905,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         public void Destroy()
         {
-            lock (_parent_scene.OdeLock)
-            {
-                m_tainted_isPhysical = false;
-                _parent_scene.AddPhysicsActorTaint(this);
-            }
+            m_tainted_isPhysical = false;
+            _parent_scene.AddPhysicsActorTaint(this);
         }
 
         public override void CrossingFailure()
@@ -1005,6 +1017,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                         + (Amotor==IntPtr.Zero ? "Amotor ":"") );
                 }
             }
+
+            if (!m_taintPosition.IsIdentical(_position, 0.05f))
+            {
+                if (Body != IntPtr.Zero)
+                {
+                    d.BodySetPosition(Body, m_taintPosition.X, m_taintPosition.Y, m_taintPosition.Z);
+
+                    _position.X = m_taintPosition.X;
+                    _position.Y = m_taintPosition.Y;
+                    _position.Z = m_taintPosition.Z;
+                }
+            }
+
         }
     }
 }

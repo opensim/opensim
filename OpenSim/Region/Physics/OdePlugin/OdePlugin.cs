@@ -1174,6 +1174,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (chr == null)
                     continue;
 
+                if (chr.Shell == IntPtr.Zero || chr.Body == IntPtr.Zero)
+                    continue;
+
                 chr.IsColliding = false;
                 chr.CollidingGround = false;
                 chr.CollidingObj = false;
