@@ -27,9 +27,11 @@
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Scenes.Hypergrid;
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
@@ -42,11 +44,17 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         Scene m_scene = null; // only need one for communication with GridService
+        private Random random;
 
         #region IRegionModule Members
         public void Initialise(Scene scene, IConfigSource source)
         {
-            if (m_scene == null) m_scene = scene;
+            if (m_scene == null)
+            {
+                m_scene = scene;
+                random = new Random();
+            }
+
             scene.EventManager.OnNewClient += OnNewClient;
         }
 
@@ -95,6 +103,17 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 if (info != null) regionInfos.Add(info);
             }
 
+            if ((regionInfos.Count == 0) && IsHypergridOn())
+            {
+                // OK, we tried but there are no regions matching that name.
+                // Let's check quickly if this is a domain name, and if so link to it
+                if (mapName.Contains(".") && mapName.Contains(":"))
+                {
+                    // It probably is a domain name. Try to link to it.
+                    TryLinkRegion(mapName, regionInfos);
+                }
+            }
+
             List<MapBlockData> blocks = new List<MapBlockData>();
 
             MapBlockData data;
@@ -105,7 +124,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     data = new MapBlockData();
                     data.Agents = 0;
                     data.Access = 21; // TODO what's this?
-                    data.MapImageId = info.RegionSettings.TerrainImageID; 
+                    data.MapImageId = info.RegionSettings.TerrainImageID;
                     data.Name = info.RegionName;
                     data.RegionFlags = 0; // TODO not used?
                     data.WaterHeight = 0; // not used
@@ -129,5 +148,85 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
             remoteClient.SendMapBlock(blocks, 0);
         }
+
+        private bool IsHypergridOn()
+        {
+            return (m_scene.SceneGridService is HGSceneCommunicationService);
+        }
+
+        private void TryLinkRegion(string mapName, List<RegionInfo> regionInfos)
+        {
+            string host = "127.0.0.1";
+            string portstr;
+            uint port = 9000;
+            string[] parts = mapName.Split(new char[] { ':' });
+            if (parts.Length >= 1)
+            {
+                host = parts[0];
+            }
+            if (parts.Length >= 2)
+            {
+                portstr = parts[1];
+                UInt32.TryParse(portstr, out port);
+            }
+
+            // Sanity check. Don't ever link to this sim.
+            IPAddress ipaddr = null;
+            try
+            {
+                ipaddr = Util.GetHostFromDNS(host);
+            }
+            catch { }
+
+            if ((ipaddr != null) &&
+                !((m_scene.RegionInfo.ExternalEndPoint.Address.Equals(ipaddr)) && (m_scene.RegionInfo.HttpPort == port)))
+            {
+                uint xloc = (uint)(random.Next(0, Int16.MaxValue));
+                RegionInfo regInfo;
+                bool success = TryCreateLink(xloc, 0, port, host, out regInfo);
+                if (success)
+                {
+                    regInfo.RegionName = mapName;
+                    regionInfos.Add(regInfo);
+                }
+            }
+        }
+
+        private bool TryCreateLink(uint xloc, uint yloc, uint externalPort, string externalHostName, out RegionInfo regInfo)
+        {
+            m_log.DebugFormat("[HGrid]: Dynamic link to {0}:{1}, in {2}-{3}", externalHostName, externalPort, xloc, yloc);
+
+            regInfo = new RegionInfo();
+            regInfo.RegionLocX = xloc; 
+            regInfo.RegionLocY = yloc;
+            regInfo.ExternalHostName = externalHostName;
+            regInfo.HttpPort = externalPort;
+            try
+            {
+                regInfo.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int)0);
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[HGrid] Wrong format for link-region: " + e.Message);
+                return false;
+            }
+            //regInfo.RemotingAddress = regInfo.ExternalEndPoint.Address.ToString();
+
+            // Finally, link it
+            try
+            {
+                m_scene.CommsManager.GridService.RegisterRegion(regInfo);
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[HGrid] Unable to dynamically link region: " + e);
+                return false;
+            }
+
+            m_log.Debug("[HGrid] Dynamic link region succeeded");
+
+            return true;
+        }
+
     }
 }
