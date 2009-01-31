@@ -5293,7 +5293,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             //if (handlerTextureRequest != null)
                                 //OnRequestTexture(this, args);
-                            m_imageManager.EnqueueReq(args);
+
+                            // in the end, we null this, so we have to check if it's null
+                            if (m_imageManager != null)
+                                m_imageManager.EnqueueReq(args);
                         }
                     }
                     break;
