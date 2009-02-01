@@ -2419,7 +2419,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // ScriptSleep(100);
         }
 
-        public void llMakeFountain(int particles, float scale, float vel, float lifetime, float arc, int bounce, string texture, LSL_Vector offset, float bounce_offset)
+        public void llMakeFountain(int particles, double scale, double vel, double lifetime, double arc, int bounce, string texture, LSL_Vector offset, double bounce_offset)
         {
             m_host.AddScriptLPS(1);
             Deprecated("llMakeFountain");
