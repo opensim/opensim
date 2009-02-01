@@ -513,6 +513,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        // Teleport functions
+        public void osTeleportAgent(string agent, uint regionX, uint regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        {
+            // High because there is no security check. High griefer potential
+            //
+            CheckThreatLevel(ThreatLevel.High, "osTeleportAgent");
+
+            ulong regionHandle = Util.UIntsToLong((regionX * (uint)Constants.RegionSize), (regionY * (uint)Constants.RegionSize));
+
+            m_host.AddScriptLPS(1);
+            UUID agentId = new UUID();
+            if (UUID.TryParse(agent, out agentId))
+            {
+                ScenePresence presence = World.GetScenePresence(agentId);
+                if (presence != null)
+                {
+                    // agent must be over owners land to avoid abuse
+                    if (m_host.OwnerID == World.GetLandOwner(presence.AbsolutePosition.X, presence.AbsolutePosition.Y))
+                    {
+                        presence.ControllingClient.SendTeleportLocationStart();
+                        World.RequestTeleportLocation(presence.ControllingClient, regionHandle,
+                            new Vector3((float)position.x, (float)position.y, (float)position.z),
+                            new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation);
+                        ScriptSleep(5000);
+                    }
+                }
+            }
+        }
+
         public void osTeleportAgent(string agent, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             osTeleportAgent(agent, World.RegionInfo.RegionName, position, lookat);
