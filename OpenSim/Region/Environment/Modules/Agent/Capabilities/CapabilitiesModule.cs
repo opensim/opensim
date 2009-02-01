@@ -78,9 +78,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.Capabilities
                 Caps oldCaps = m_capsHandlers[agentId];
                 
                 m_log.DebugFormat(
-                    "[CAPS]: Reregistering caps for agent {0}.  Old caps path {1}, new caps path {2}", 
+                    "[CAPS]: Reregistering caps for agent {0}.  Old caps path {1}, new caps path {2}. Ignoring. ", 
                     agentId, oldCaps.CapsObjectPath, capsObjectPath);
-                //return;
+                // This should not happen. The caller code is confused. We need to fix that.
+                // CAPs can never be reregistered, or the client will be confused.
+                // Hence this return here.
+                return;
             }
 
             Caps caps
