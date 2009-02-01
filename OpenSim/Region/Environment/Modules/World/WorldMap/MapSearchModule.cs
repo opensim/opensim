@@ -250,7 +250,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 if ((Math.Abs((int)m_scene.RegionInfo.RegionLocX - (int)x) >= 4096) ||
                     (Math.Abs((int)m_scene.RegionInfo.RegionLocY - (int)y) >= 4096))
                 {
-                    m_scene.CommsManager.GridService.RegisterRegion(regInfo);
+                    m_scene.CommsManager.GridService.DeregisterRegion(regInfo);
                     m_log.Debug("[HGrid]: Region deregistered.");
                     client.SendAlertMessage("Region is too far (" + x + ", " + y + ")");
                     return false;

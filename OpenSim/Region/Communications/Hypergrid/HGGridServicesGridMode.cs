@@ -96,9 +96,9 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         public override bool DeregisterRegion(RegionInfo regionInfo)
         {
-            bool success = m_remoteBackend.DeregisterRegion(regionInfo);
+            bool success = base.DeregisterRegion(regionInfo); 
             if (!success)
-                success = base.DeregisterRegion(regionInfo);
+                success = m_remoteBackend.DeregisterRegion(regionInfo);
             return success;
         }
 
