@@ -232,8 +232,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                              temp = parseIntParam(name);
                              if (temp != -1)
                              {
-                                 if (temp > 1028)
-                                    temp = 1028;
+                                 if (temp > 1024)
+                                    temp = 1024;
                                     
                                  if (temp < 128)
                                      temp = 128;
