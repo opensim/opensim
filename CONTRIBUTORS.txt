@@ -117,6 +117,9 @@ This software uses components from the following developers:
 * DotNetOpenMail v0.5.8b (http://dotnetopenmail.sourceforge.net)
 * Prototype JavaScript Framework ajax (http://www.prototypejs.org/)
 * C5 GENERIC COLLECTION LIBRARY FOR C#/CLI
+* Nini (http://nini.sourceforge.net/)
+* log4net (http://logging.apache.org/log4net/)
+* GlynnTucker.Cache (http://gtcache.sourceforge.net/)
 
 In addition, we would like to thank:
 * The Mono Project
