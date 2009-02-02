@@ -981,3 +981,11 @@ InterregionComms = "RESTComms"
     ; {0} is replaced with the region's name
     ; {1} is replaced with the region's UUID
     broker = "http://broker.place.com/{1}"
+
+[Trees]
+
+    ; Enable this to allow the tree module to manage your sim trees, including growing, reproducing and dying
+    active_trees = false
+
+    ; Density of tree population
+    tree_density = 1000.0

@@ -48,7 +48,9 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
 
         public double m_tree_density = 50.0; // Aim for this many per region
         public double m_tree_updates = 1000.0; // MS between updates
+        private bool m_active_trees = false;
         private List<UUID> m_trees;
+        Timer CalculateTrees;
 
         #region IRegionModule Members
 
@@ -57,6 +59,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
             try
             {
                 m_tree_density = config.Configs["Trees"].GetDouble("tree_density", m_tree_density);
+                m_active_trees = config.Configs["Trees"].GetBoolean("active_trees", m_active_trees);
             }
             catch (Exception)
             {
@@ -67,9 +70,9 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
 
             m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
 
-            Timer CalculateTrees = new Timer(m_tree_updates);
-            CalculateTrees.Elapsed += CalculateTrees_Elapsed;
-            CalculateTrees.Start();
+            if (m_active_trees)
+                activeizeTreeze(true);
+
             m_log.Debug("[TREES]: Initialised tree module");
         }
 
@@ -95,15 +98,60 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
 
         private void EventManager_OnPluginConsole(string[] args)
         {
-            if (args[0] == "tree")
+            if (args.Length == 1)
             {
-                UUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
-                if (uuid == UUID.Zero)
-                    uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-                m_log.Debug("[TREES]: New tree planting");
-                CreateTree(uuid, new Vector3(128.0f, 128.0f, 0.0f));
+                if (args[0] == "tree")
+                {
+                    UUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                    if (uuid == UUID.Zero)
+                        uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                    m_log.Debug("[TREES]: New tree planting");
+                    CreateTree(uuid, new Vector3(128.0f, 128.0f, 0.0f));
+                    
+                }
             }
+
+            if (args.Length == 2 || args.Length == 3)
+            {
+                if (args[1] == "active")
+                {
+                    if (args.Length >= 3)
+                    {
+                        if (args[2] == "true" && !m_active_trees)
+                        {
+                            m_active_trees = true;
+                            activeizeTreeze(m_active_trees);
+                            m_log.Info("[TREES]: Activizing Trees");
+                        }
+                        if (args[2] == "false" && m_active_trees)
+                        {
+                            m_active_trees = false;
+                            activeizeTreeze(m_active_trees);
+                            m_log.Info("[TREES]: Trees no longer Active, for now...");
+                        }
+                    }
+                    else
+                    {
+                        m_log.Info("[TREES]: When setting the tree module active via the console, you must specify true or false");
+                    }
+                }
+            }
+
         }
+
+        private void activeizeTreeze(bool activeYN)
+        {
+            if (activeYN)
+            {
+ 	            CalculateTrees = new Timer(m_tree_updates);
+                CalculateTrees.Elapsed += CalculateTrees_Elapsed;
+                CalculateTrees.Start();
+            }
+            else 
+            {
+                 CalculateTrees.Stop();
+            }
+        } 
 
         private void growTrees()
         {
