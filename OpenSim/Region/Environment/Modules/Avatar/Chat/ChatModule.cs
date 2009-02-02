@@ -170,7 +170,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             case ChatSourceType.Agent:
                 if (!(scene is Scene))
                 {
-                    m_log.WarnFormat("[CHAT] scene {0} is not a Scene object, cannot obtain scene presence for {1}",
+                    m_log.WarnFormat("[CHAT]: scene {0} is not a Scene object, cannot obtain scene presence for {1}",
                                      scene.RegionInfo.RegionName, c.Sender.AgentId);
                     return;
                 }
@@ -191,7 +191,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             if (message.Length >= 1000) // libomv limit
                 message = message.Substring(0, 1000);
 
-            // m_log.DebugFormat("[CHAT] DCTA: fromID {0} fromName {1}, cType {2}, sType {3}", fromID, fromName, c.Type, sourceType);
+            // m_log.DebugFormat("[CHAT]: DCTA: fromID {0} fromName {1}, cType {2}, sType {3}", fromID, fromName, c.Type, sourceType);
 
             foreach (Scene s in m_scenes)
             {
