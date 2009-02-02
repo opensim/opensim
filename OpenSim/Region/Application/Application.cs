@@ -162,7 +162,7 @@ namespace OpenSim
                 m_crashLog.WriteLine(msg);
                 m_crashLog.Close();
 
-                File.Copy("opensim.ini", Path.Combine(m_crashDir, log + "_opensim.ini"));
+                File.Copy("OpenSim.ini", Path.Combine(m_crashDir, log + "_OpenSim.ini"));
             }
             catch (Exception e2)
             {
