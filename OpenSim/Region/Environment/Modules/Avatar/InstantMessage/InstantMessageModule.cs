@@ -44,13 +44,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 {
     public class InstantMessageModule : IRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);        
 
+        /// <value>
+        /// Is this module enabled?
+        /// </value>
+        private bool m_enabled = false;
+        
         private readonly List<Scene> m_scenes = new List<Scene>();
 
         #region IRegionModule Members
-
-        //private bool gridmode = false;
 
         private IMessageTransferModule m_TransferModule = null;
 
@@ -63,6 +66,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                         "InstantMessageModule")
                     return;
             }
+            
+            m_enabled = true;
 
             lock (m_scenes)
             {
@@ -86,6 +91,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         public void PostInitialise()
         {
+            if (!m_enabled)
+                return;
+            
             m_TransferModule =
                 m_scenes[0].RequestModuleInterface<IMessageTransferModule>();
 
