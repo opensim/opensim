@@ -128,29 +128,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Data.Base" path="OpenSim/Data/Base" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data"/>
-      <Reference name="OpenSim.Framework"/>
-      <!-- needed for LLUUID types -->
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project name="OpenSim.Data" path="OpenSim/Data" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -177,90 +154,6 @@
       <Files>
         <Match pattern="*.cs" recurse="false"/>
         <Match pattern="Properties/*.cs" recurse="false"/>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Data.MySQLMapper" path="OpenSim/Data/MySQLMapper" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Data.Base"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="MySql.Data.dll"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Data.MSSQLMapper" path="OpenSim/Data/MSSQLMapper" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Data.Base"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Data.MapperFactory" path="OpenSim/Data/MapperFactory" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Data.Base"/>
-      <Reference name="OpenSim.Data.MySQLMapper"/>
-      <Reference name="OpenSim.Data.MSSQLMapper"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
 
