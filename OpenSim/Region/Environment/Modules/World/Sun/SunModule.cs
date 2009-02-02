@@ -93,7 +93,7 @@ namespace OpenSim.Region.Environment.Modules
         // Working values
         private Vector3 Position = Vector3.Zero;
         private Vector3 Velocity = Vector3.Zero;
-        private Quaternion  Tilt = Quaternion.Identity;
+        private Quaternion  Tilt = new Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
 
         private long LindenHourOffset = 0;
         private bool sunFixed = false;
