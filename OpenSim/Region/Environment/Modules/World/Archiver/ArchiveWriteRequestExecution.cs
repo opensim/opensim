@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Threading;
 using System.Xml;
 using OpenMetaverse;
 using log4net;
@@ -45,7 +44,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// Method called when all the necessary assets for an archive request have been received.
     /// </summary>
     public delegate void AssetsRequestCallback(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids);
-
+    
     /// <summary>
     /// Execute the write of an archive once we have received all the necessary data
     /// </summary>
@@ -56,27 +55,25 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         protected ITerrainModule m_terrainModule;
         protected IRegionSerialiserModule m_serialiser;
         protected List<SceneObjectGroup> m_sceneObjects;
-        protected RegionInfo m_regionInfo;
+        protected Scene m_scene;
         protected Stream m_saveStream;
-        protected EventWaitHandle m_signalWhenDoneEvent;
 
         public ArchiveWriteRequestExecution(
              List<SceneObjectGroup> sceneObjects,
              ITerrainModule terrainModule,
              IRegionSerialiserModule serialiser,
-             RegionInfo regionInfo,
-             Stream saveStream,
-             EventWaitHandle signalWhenDoneEvent)
+             Scene scene,
+             Stream saveStream)
         {
             m_sceneObjects = sceneObjects;
             m_terrainModule = terrainModule;
             m_serialiser = serialiser;
-            m_regionInfo = regionInfo;
+            m_scene = scene;
             m_saveStream = saveStream;
-            m_signalWhenDoneEvent = signalWhenDoneEvent;
         }
 
-        protected internal void ReceivedAllAssets(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids)
+        protected internal void ReceivedAllAssets(
+            IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids)
         {
             foreach (UUID uuid in assetsNotFoundUuids)
             {
@@ -95,11 +92,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             archive.AddFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p2ControlFile());
             
             // Write out region settings
-            string settingsPath = String.Format("{0}{1}.xml", ArchiveConstants.SETTINGS_PATH, m_regionInfo.RegionName);
-            archive.AddFile(settingsPath, RegionSettingsSerializer.Serialize(m_regionInfo.RegionSettings));
+            string settingsPath 
+                = String.Format("{0}{1}.xml", ArchiveConstants.SETTINGS_PATH, m_scene.RegionInfo.RegionName);
+            archive.AddFile(settingsPath, RegionSettingsSerializer.Serialize(m_scene.RegionInfo.RegionSettings));
 
             // Write out terrain
-            string terrainPath = String.Format("{0}{1}.r32", ArchiveConstants.TERRAINS_PATH, m_regionInfo.RegionName);
+            string terrainPath 
+                = String.Format("{0}{1}.r32", ArchiveConstants.TERRAINS_PATH, m_scene.RegionInfo.RegionName);
+            
             MemoryStream ms = new MemoryStream();
             m_terrainModule.SaveToStream(terrainPath, ms);
             archive.AddFile(terrainPath, ms.ToArray());
@@ -129,10 +129,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             archive.WriteTar(m_saveStream);
 
-            m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive for {0}", m_regionInfo.RegionName);
+            m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive for {0}", m_scene.RegionInfo.RegionName);
             
-            if (m_signalWhenDoneEvent != null)
-                m_signalWhenDoneEvent.Set();
+            m_scene.EventManager.TriggerOarFileSaved(String.Empty);
         }
 
         /// <summary>

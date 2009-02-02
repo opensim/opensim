@@ -44,13 +44,20 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests
     [TestFixture]
     public class ArchiverTests
     {
+        private EventWaitHandle m_waitHandle = new AutoResetEvent(false);
+        
+        private void SaveCompleted(string errorMessage)
+        {
+            m_waitHandle.Set();
+        }
+        
         /// <summary>
         /// Test saving a V0.2 OpenSim Region Archive.
         /// </summary>
         [Test]        
         public void TestSaveOarV0p2()
         {        
-            //log4net.Config.XmlConfigurator.Configure();
+            log4net.Config.XmlConfigurator.Configure();
             
             ArchiverModule archiverModule = new ArchiverModule();
             SerialiserModule serialiserModule = new SerialiserModule();
@@ -71,11 +78,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests
                     ownerId, shape, groupPosition, rotationOffset, offsetPosition);
             part.Name = partName;
             
-            scene.AddNewSceneObject(new SceneObjectGroup(part), false);            
-            EventWaitHandle waitHandle = new ManualResetEvent(false);
+            scene.AddNewSceneObject(new SceneObjectGroup(part), false);                        
             MemoryStream archiveWriteStream = new MemoryStream();
-            archiverModule.ArchiveRegion(archiveWriteStream, waitHandle);            
-            waitHandle.WaitOne(60000, true);
+            
+            scene.EventManager.OnOarFileSaved += SaveCompleted;
+            archiverModule.ArchiveRegion(archiveWriteStream);            
+            m_waitHandle.WaitOne(60000, true);
 
             byte[] archive = archiveWriteStream.ToArray();           
             MemoryStream archiveReadStream = new MemoryStream(archive);

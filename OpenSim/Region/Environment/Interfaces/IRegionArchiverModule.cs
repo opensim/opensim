@@ -26,7 +26,6 @@
  */
 
 using System.IO;
-using System.Threading;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
@@ -38,6 +37,10 @@ namespace OpenSim.Region.Environment.Interfaces
         /// <summary>
         /// Archive the region to the given path
         /// </summary>
+        /// 
+        /// This method occurs asynchronously.  If you want notification of when it has completed then subscribe to
+        /// the EventManager.OnOarFileSaved event.
+        /// 
         /// <param name="savePath"></param>
         void ArchiveRegion(string savePath);
 
@@ -45,21 +48,27 @@ namespace OpenSim.Region.Environment.Interfaces
         /// Archive the region to a stream.
         /// </summary>
         /// 
+        /// This method occurs asynchronously.  If you want notification of when it has completed then subscribe to
+        /// the EventManager.OnOarFileSaved event.
+        /// 
         /// <param name="saveStream"></param>
-        /// <param name="waitHandle">
-        /// Pass in a wait handle if you want to be signalled when the operation completes.
-        /// </param>
-        void ArchiveRegion(Stream saveStream, EventWaitHandle waitHandle);
+        void ArchiveRegion(Stream saveStream);
 
         /// <summary>
         /// Dearchive the given region archive into the scene
         /// </summary>
+        /// 
+        /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
+        /// 
         /// <param name="loadPath"></param>
         void DearchiveRegion(string loadPath);
         
         /// <summary>
-        /// Dearchive a region from a stream
+        /// Dearchive a region from a stream.  
         /// </summary>
+        /// 
+        /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
+        /// 
         /// <param name="loadStream"></param>
         void DearchiveRegion(Stream loadStream);
     }

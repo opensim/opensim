@@ -73,9 +73,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             new ArchiveWriteRequestPreparation(m_scene, savePath).ArchiveRegion();
         }
         
-        public void ArchiveRegion(Stream saveStream, EventWaitHandle waitHandle)
+        public void ArchiveRegion(Stream saveStream)
         {
-            new ArchiveWriteRequestPreparation(m_scene, saveStream, waitHandle).ArchiveRegion();
+            new ArchiveWriteRequestPreparation(m_scene, saveStream).ArchiveRegion();
         }
 
         public void DearchiveRegion(string loadPath)

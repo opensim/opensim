@@ -273,6 +273,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public delegate void OarFileLoaded(string message);
         public event OarFileLoaded OnOarFileLoaded;
+        
+        /// <summary>
+        /// Called when an oar file has finished saving
+        /// Message is non empty string if there were problems saving the oar file
+        /// </summary>
+        public delegate void OarFileSaved(string message);
+        public event OarFileSaved OnOarFileSaved;        
 
         /// <summary>
         /// Called when the script compile queue becomes empty
@@ -415,6 +422,8 @@ namespace OpenSim.Region.Environment.Scenes
         private OnSetRootAgentSceneDelegate handlerSetRootAgentScene = null;
 
         private OarFileLoaded handlerOarFileLoaded = null;
+        private OarFileSaved handlerOarFileSaved = null;
+        
         private EmptyScriptCompileQueue handlerEmptyScriptCompileQueue = null;
 
         public void TriggerGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
@@ -925,6 +934,13 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerOarFileLoaded != null)
                 handlerOarFileLoaded(message);
         }
+        
+        public void TriggerOarFileSaved(string message)
+        {
+            handlerOarFileSaved = OnOarFileSaved;
+            if (handlerOarFileSaved != null)
+                handlerOarFileSaved(message);
+        }        
 
         public void TriggerEmptyScriptCompileQueue(int numScriptsFailed, string message)
         {

@@ -233,8 +233,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 sceneObject.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 0);
             }
+            
             m_scene.EventManager.TriggerOarFileLoaded(m_errorMessage);
-
         }
 
         /// <summary>

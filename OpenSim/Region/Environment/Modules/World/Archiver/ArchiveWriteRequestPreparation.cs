@@ -53,7 +53,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         protected Scene m_scene;
         protected Stream m_saveStream;
-        protected EventWaitHandle m_signalWhenDoneEvent;
 
         /// <summary>
         /// Used as a temporary store of an asset which represents an object.  This can be a null if no appropriate
@@ -80,11 +79,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="saveStream">The stream to which to save data.</param>
-        public ArchiveWriteRequestPreparation(Scene scene, Stream saveStream, EventWaitHandle signalWhenDoneEvent)
+        public ArchiveWriteRequestPreparation(Scene scene, Stream saveStream)
         {
             m_scene = scene;
             m_saveStream = saveStream;
-            m_signalWhenDoneEvent = signalWhenDoneEvent;
         }        
 
         /// <summary>
@@ -326,9 +324,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     sceneObjects,
                     m_scene.RequestModuleInterface<ITerrainModule>(),
                     m_scene.RequestModuleInterface<IRegionSerialiserModule>(),
-                    m_scene.RegionInfo,
-                    m_saveStream,
-                    m_signalWhenDoneEvent);
+                    m_scene,
+                    m_saveStream);
             
             new AssetsRequest(assetUuids.Keys, m_scene.AssetCache, awre.ReceivedAllAssets).Execute();
         }
