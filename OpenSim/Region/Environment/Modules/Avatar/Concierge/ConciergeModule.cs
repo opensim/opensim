@@ -434,7 +434,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 _log.ErrorFormat("[Concierge] broker update to {0} failed with status {1}", uri, we.Status);
                 if (null != we.Response) 
                 {
-                    using(HttpWebResponse resp = we.Response as HttpWebResponse)
+                    using (HttpWebResponse resp = we.Response as HttpWebResponse)
                     {
                         _log.ErrorFormat("[Concierge] response from {0} status code: {1}", uri, resp.StatusCode);
                         _log.ErrorFormat("[Concierge] response from {0} status desc: {1}", uri, resp.StatusDescription);

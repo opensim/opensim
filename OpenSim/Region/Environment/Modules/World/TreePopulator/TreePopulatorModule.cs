@@ -143,7 +143,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
         {
             if (activeYN)
             {
- 	            CalculateTrees = new Timer(m_tree_updates);
+                CalculateTrees = new Timer(m_tree_updates);
                 CalculateTrees.Elapsed += CalculateTrees_Elapsed;
                 CalculateTrees.Start();
             }
