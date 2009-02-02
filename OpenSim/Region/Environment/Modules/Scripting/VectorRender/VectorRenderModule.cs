@@ -154,7 +154,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                     name = nvp[0].Trim();
                 }
                 
-                if (nvp.Length==2)
+                if (nvp.Length == 2)
                 {
                     value = nvp[1].Trim();
                 }
