@@ -402,6 +402,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
             if (im.dialog == (byte)InstantMessageDialog.FriendshipOffered) // 38
             {
+                // fromAgentName is the *destination* name (the friend we offer friendship to)                
+                ScenePresence initiator = GetAnyPresenceFromAgentID(new UUID(im.fromAgentID));
+                im.fromAgentName = initiator != null ? initiator.Name : "(hippo)";
+                
                 FriendshipOffered(im);
             }
             else if (im.dialog == (byte)InstantMessageDialog.FriendshipAccepted) // 39
@@ -417,19 +421,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         /// <summary>
         /// Invoked when a user offers a friendship.
         /// </summary>
-        /// May not currently be used - see OnApproveFriendRequest() instead
+        /// 
         /// <param name="im"></param>    
         /// <param name="client"></param>
         private void FriendshipOffered(GridInstantMessage im)
         {
             // this is triggered by the initiating agent:
             // A local agent offers friendship to some possibly remote friend.
-            // A IM is triggered, processed here and sent to the friend (possibly in a remote region).
-
-            // some properties are misused here:
-            // fromAgentName is the *destination* name (the friend we offer friendship to)
-            ScenePresence initiator = GetAnyPresenceFromAgentID(new UUID(im.fromAgentID));
-            im.fromAgentName = initiator != null ? initiator.Name : "(hippo)";
+            // A IM is triggered, processed here and sent to the friend (possibly in a remote region).           
 
             m_log.DebugFormat("[FRIEND]: Offer(38) - From: {0}, FromName: {1} To: {2}, Session: {3}, Message: {4}, Offline {5}",
                        im.fromAgentID, im.fromAgentName, im.toAgentID, im.imSessionID, im.message, im.offline);
@@ -447,7 +446,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 // Send it to whoever is the destination.
                 // If new friend is local, it will send an IM to the viewer.
                 // If new friend is remote, it will cause a OnGridInstantMessage on the remote server
-                m_TransferModule.SendInstantMessage(im,
+                m_TransferModule.SendInstantMessage(
+                    im,
                     delegate(bool success) 
                     {
                         m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
@@ -485,8 +485,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
               fromAgentID, im.fromAgentName, im.imSessionID, im.toAgentID, im.message, im.dialog);
 
             // Send the decline to whoever is the destination.
-            GridInstantMessage msg = new GridInstantMessage(client.Scene, fromAgentID, client.Name, toAgentID,
-                                                            im.dialog, im.message, im.offline != 0, im.Position);
+            GridInstantMessage msg 
+                = new GridInstantMessage(
+                    client.Scene, fromAgentID, client.Name, toAgentID,
+                    im.dialog, im.message, im.offline != 0, im.Position);
             
             // If new friend is local, it will send an IM to the viewer.
             // If new friend is remote, it will cause a OnGridInstantMessage on the remote server
@@ -504,6 +506,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // via grid again
             m_log.DebugFormat("[FRIEND]: Got GridIM from {0}, to {1}, imSession {2}, message {3}, dialog {4}",
                               msg.fromAgentID, msg.toAgentID, msg.imSessionID, msg.message, msg.dialog);
+            
             if (msg.dialog == (byte)InstantMessageDialog.FriendshipOffered ||
                 msg.dialog == (byte)InstantMessageDialog.FriendshipAccepted ||
                 msg.dialog == (byte)InstantMessageDialog.FriendshipDeclined)
