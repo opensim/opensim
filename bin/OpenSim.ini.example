@@ -335,7 +335,7 @@ InterregionComms = "RESTComms"
     ; Filtering Collisions helps keep things stable physics wise, but sometimes 
     ; it can be over zealous.  If you notice bouncing, chances are it's being just
     ; that
-    filter_collisions = true
+    filter_collisions = false
 
     ; Non Moving Terrain Contact (avatar isn't moving)
     nm_terraincontact_friction = 255.0
