@@ -128,34 +128,134 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
 
         private void Draw(string data, UUID id, string extraParams)
         {
-            // TODO: this is a brutal hack.  extraParams should actually be parsed reasonably.
-            int size = 256;
-            try
+            // We need to cater for old scripts that didnt use extraParams neatly, they use either an integer size which represents both width and height, or setalpha
+            // we will now support multiple comma seperated params in the form  width:256,height:512,alpha:255
+            int width = 256;
+            int height = 256;
+            int alpha = 255; // 0 is transparent
+            
+            char[] paramDelimiter = { ',' };
+            char[] nvpDelimiter = { ':' };
+           
+            extraParams = extraParams.Trim();
+            extraParams = extraParams.ToLower();
+            
+            string[] nvps = extraParams.Split(paramDelimiter);
+            
+            int temp = -1;
+            foreach (string pair in nvps)
             {
-                size = Convert.ToInt32(extraParams);
+                string[] nvp = pair.Split(nvpDelimiter);
+                string name = "";
+                string value = "";
+                
+                if (nvp[0] != null)
+                {    
+                    name = nvp[0].Trim();
+                }
+                
+                if (nvp.Length==2)
+                {
+                    value = nvp[1].Trim();
+                }
+                
+                switch (name)
+                {
+                    case "width":
+                        temp = parseIntParam(value);
+                        if (temp != -1)
+                        {
+                            if (temp < 1)
+                            {
+                                width = 1;
+                            }
+                            else if (temp > 2048)
+                            {
+                                width = 2048;
+                            }
+                            else
+                            {
+                                width = temp;
+                            }
+                        }
+                        break;
+                    case "height":
+                        temp = parseIntParam(value);
+                        if (temp != -1)
+                        {
+                            if (temp < 1)
+                            {
+                                height = 1;
+                            }
+                            else if (temp > 2048)
+                            {
+                                height = 2048;
+                            }
+                            else
+                            {
+                                height = temp;
+                            }
+                        }
+                        break;
+                     case "alpha":
+                          temp = parseIntParam(value);
+                          if (temp != -1)
+                          {
+                              if (temp < 0)
+                              {
+                                  alpha = 0;
+                              }
+                              else if (temp > 255)
+                              {
+                                  alpha = 255;
+                              }
+                              else
+                              {
+                                  alpha = temp;
+                              }
+                          }
+                          break;
+                     case "":
+                         // blank string has been passed do nothing just use defaults
+                     break;
+                     default: // this is all for backwards compat, all a bit ugly hopfully can be removed in future
+                         // could be either set alpha or just an int
+                         if (name == "setalpha")
+                         {
+                             alpha = 0; // set the texture to have transparent background (maintains backwards compat)
+                         }
+                         else
+                         {
+                             // this function used to accept an int on its own that represented both 
+                             // width and height, this is to maintain backwards compat, could be removed
+                             // but would break existing scripts
+                             temp = parseIntParam(name);
+                             if (temp != -1)
+                             {
+                                 if (temp > 1028)
+                                    temp = 1028;
+                                    
+                                 if (temp < 128)
+                                     temp = 128;
+                                  
+                                 width = temp;
+                                 height = temp;   
+                             }
+                         }
+                     break;   
+                }
+            
             }
-            catch (Exception e)
-            {
-//Ckrinke: Add a WriteLine to remove the warning about 'e' defined but not used
-                Console.WriteLine("Problem with Draw. Please verify parameters." + e.ToString());
-            }
-
-            if ((size < 128) || (size > 1024))
-                size = 256;
-
-            Bitmap bitmap = new Bitmap(size, size, PixelFormat.Format32bppArgb);
+            
+            Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
 
             Graphics graph = Graphics.FromImage(bitmap);
 
-            extraParams = extraParams.ToLower();
-            int alpha = 255;
-            if (extraParams == "setalpha")
+            // this is really just to save people filling the 
+            // background white in their scripts, only do when fully opaque
+            if (alpha == 255) 
             {
-                alpha = 0;
-            }
-            else
-            {
-                graph.FillRectangle(new SolidBrush(Color.White), 0, 0, size, size);
+                graph.FillRectangle(new SolidBrush(Color.White), 0, 0, width, height); 
             }
 
             for (int w = 0; w < bitmap.Width; w++)
@@ -182,6 +282,25 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
             }
             m_textureManager.ReturnData(id, imageJ2000);
         }
+        
+        private int parseIntParam(string strInt)
+        {
+            int parsed;
+            try
+            {
+                parsed = Convert.ToInt32(strInt);
+            }
+            catch (Exception)
+            {
+                //Ckrinke: Add a WriteLine to remove the warning about 'e' defined but not used
+                // Console.WriteLine("Problem with Draw. Please verify parameters." + e.ToString());
+                parsed = -1;
+            }
+            
+            return parsed;
+            
+        }
+
 
 /*
         private void CairoDraw(string data, System.Drawing.Graphics graph)
