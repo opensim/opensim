@@ -309,6 +309,12 @@ InterregionComms = "RESTComms"
     shout_distance = 100
 
 
+[Messaging]
+    ; Control which region module is used for instant messaging.
+    ; Default is InstantMessageModule (this is the name of the core IM module as well as the setting)
+    InstantMessageModule = InstantMessageModule
+
+
 [ODEPhysicsSettings]
     ;##
     ;## World Settings
