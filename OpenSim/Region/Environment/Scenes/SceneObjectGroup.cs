@@ -1063,7 +1063,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         /// <summary>
         /// Delete this group from its scene and tell all the scene presences about that deletion.
-        /// </summary>
+        /// </summary>        
+        /// <param name="silent">Broadcast deletions to all clients.</param>
         public void DeleteGroup(bool silent)
         {
             // We need to keep track of this state in case this group is still queued for backup.

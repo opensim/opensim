@@ -1881,7 +1881,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Synchronously delete the given object from the scene.
         /// </summary>
-        /// <param name="group"></param>
+        /// <param name="group">Object Id</param>
+        /// <param name="silent">Suppress broadcasting changes to other clients.</param>
         public void DeleteSceneObject(SceneObjectGroup group, bool silent)
         {
             //SceneObjectPart rootPart = group.GetChildPart(group.UUID);
@@ -1924,15 +1925,19 @@ namespace OpenSim.Region.Environment.Scenes
         /// Unlink the given object from the scene.  Unlike delete, this just removes the record of the object - the
         /// object itself is not destroyed.
         /// </summary>
-        /// <param name="uuid"></param>
+        /// <param name="uuid">Id of object.</param>
         /// <returns>true if the object was in the scene, false if it was not</returns>
-        public bool UnlinkSceneObject(UUID uuid, bool resultOfLinkingObjects)
+        /// <param name="softDelete">If true, only deletes from scene, but keeps object in database.</param>
+        public bool UnlinkSceneObject(UUID uuid, bool softDelete)
         {
-            if (m_sceneGraph.DeleteSceneObject(uuid, resultOfLinkingObjects))
+            if (m_sceneGraph.DeleteSceneObject(uuid, softDelete))
             {
-                if (!resultOfLinkingObjects)
+                if (!softDelete)
+                {
                     m_storageManager.DataStore.RemoveObject(uuid,
-                            m_regInfo.RegionID);
+                                                            m_regInfo.RegionID);
+                }
+
                 return true;
             }
 
