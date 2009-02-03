@@ -2213,6 +2213,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="visualParam"></param>
         public void SetAppearance(byte[] texture, List<byte> visualParam)
         {
+            if (m_physicsActor != null)
+            {
+                // This may seem like it's redundant, remove the avatar from the physics scene
+                // just to add it back again, but it saves us from having to update
+                // 3 variables 10 times a second.
+                m_scene.PhysicsScene.RemoveAvatar(m_physicsActor);
+                AddToPhysicalScene();
+            }
             m_appearance.SetAppearance(texture, visualParam);
             SetHeight(m_appearance.AvatarHeight);
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
