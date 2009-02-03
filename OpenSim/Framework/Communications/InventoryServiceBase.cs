@@ -33,6 +33,8 @@ using System.Threading;
 using OpenMetaverse;
 using log4net;
 
+using OpenSim.Data;
+
 namespace OpenSim.Framework.Communications
 {
     /// <summary>
@@ -50,12 +52,12 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// Add a new inventory data plugin - plugins will be requested in the order they were added.
         /// </summary>
-        /// <param name="plugin">The plugin that will provide data</param>     
+        /// <param name="plugin">The plugin that will provide data</param>
         public void AddPlugin(IInventoryDataPlugin plugin)
         {
             m_plugins.Add(plugin);
         }
-        
+
         /// <summary>
         /// Adds a new inventory data plugin - plugins will be requested in the order they were loaded.
         /// </summary>

@@ -27,8 +27,9 @@
 
 using System.Collections.Generic;
 using OpenMetaverse;
+using OpenSim.Framework;
 
-namespace OpenSim.Framework
+namespace OpenSim.Data
 {
     /// <summary>
     /// An interface for accessing inventory data from a storage server
@@ -130,7 +131,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="folder">The id of the folder</param>
         void deleteInventoryFolder(UUID folder);
-        
+
         /// <summary>
         /// Returns all activated gesture-items in the inventory of the specified avatar.
         /// </summary>

@@ -30,6 +30,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Communications.Local;
+using OpenSim.Data;
 
 namespace OpenSim.Tests.Common.Mock
 {
@@ -40,36 +41,36 @@ namespace OpenSim.Tests.Common.Mock
             get { return m_userDataPlugin; }
         }
         private IUserDataPlugin m_userDataPlugin;
-        
+
         public IInventoryDataPlugin InventoryDataPlugin
         {
             get { return m_inventoryDataPlugin; }
         }
         private IInventoryDataPlugin m_inventoryDataPlugin;
-        
+
         public TestCommunicationsManager()
             : this(null)
-        {          
+        {
         }
-        
+
         public TestCommunicationsManager(NetworkServersInfo serversInfo)
             : base(serversInfo, new BaseHttpServer(666), null, false, null)
-        {           
+        {
             m_userDataPlugin = new TestUserDataPlugin();
             m_inventoryDataPlugin = new TestInventoryDataPlugin();
-                     
+
             LocalInventoryService lis = new LocalInventoryService();
             lis.AddPlugin(m_inventoryDataPlugin);
             m_interServiceInventoryService = lis;
-            AddInventoryService(lis);      
-            
+            AddInventoryService(lis);
+
             LocalUserServices lus = new LocalUserServices(991, 992, lis);
             lus.AddPlugin(m_userDataPlugin);
             m_userService = lus;
-            m_userAdminService = lus;         
-            
+            m_userAdminService = lus;
+
             LocalBackEndServices gs = new LocalBackEndServices();
-            m_gridService = gs;      
+            m_gridService = gs;
             m_interRegion = gs;
         }
     }

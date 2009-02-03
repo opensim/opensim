@@ -94,9 +94,9 @@ namespace OpenSim.Data.Tests
             iname1 = "Shirt";
             iname2 = "Text Board";
             iname3 = "No Pants Barrel";
-            
+
         }
-        
+
         [Test]
         public void T001_LoadEmpty()
         {
@@ -163,7 +163,7 @@ namespace OpenSim.Data.Tests
         {
             InventoryFolderBase f2 = NewFolder(folder3, folder1, owner1, name3);
             db.addInventoryFolder(f2);
-           
+
             Assert.That(db.getInventoryFolders(zero).Count, Is.EqualTo(1));
             Assert.That(db.getInventoryFolders(folder1).Count, Is.EqualTo(2));
             Assert.That(db.getInventoryFolders(folder2).Count, Is.EqualTo(0));
@@ -171,7 +171,7 @@ namespace OpenSim.Data.Tests
             Assert.That(db.getInventoryFolders(UUID.Random()).Count, Is.EqualTo(0));
 
         }
-        
+
         [Test]
         public void T013_FolderHierarchy()
         {
@@ -182,14 +182,14 @@ namespace OpenSim.Data.Tests
             Assert.That(db.getFolderHierarchy(UUID.Random()).Count, Is.EqualTo(0));
         }
 
-        
+
         [Test]
         public void T014_MoveFolder()
         {
             InventoryFolderBase f2 = db.getInventoryFolder(folder2);
             f2.ParentID = folder3;
             db.moveInventoryFolder(f2);
-           
+
             Assert.That(db.getInventoryFolders(zero).Count, Is.EqualTo(1));
             Assert.That(db.getInventoryFolders(folder1).Count, Is.EqualTo(1));
             Assert.That(db.getInventoryFolders(folder2).Count, Is.EqualTo(0));
@@ -228,7 +228,7 @@ namespace OpenSim.Data.Tests
             db.addInventoryItem(NewItem(item3, folder3, owner1, iname3, asset3));
             Assert.That(db.getInventoryInFolder(folder3).Count, Is.EqualTo(3));
         }
-        
+
         [Test]
         public void T102_CompareItems()
         {
@@ -245,7 +245,7 @@ namespace OpenSim.Data.Tests
             Assert.That(i2.AssetID, Is.EqualTo(asset2));
             Assert.That(i3.AssetID, Is.EqualTo(asset3));
         }
-     
+
         [Test]
         public void T103UpdateItem()
         {
@@ -257,7 +257,7 @@ namespace OpenSim.Data.Tests
             i1.Description = niname1;
             i1.Owner = owner2;
             db.updateInventoryItem(i1);
-            
+
             i1 = db.getInventoryItem(item1);
             Assert.That(i1.Name, Is.EqualTo(niname1));
             Assert.That(i1.Description, Is.EqualTo(niname1));
