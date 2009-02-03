@@ -112,7 +112,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             SceneObjectPart part2 = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectGroup grp2 = part2.ParentGroup;
 
-
             grp1.AbsolutePosition = new Vector3(10, 10, 10);
             grp2.AbsolutePosition = Vector3.Zero;
             
@@ -129,6 +128,10 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             // Link grp2 to grp1.   part2 becomes child prim to grp1. grp2 is eliminated.
             grp1.LinkToGroup(grp2);
 
+            // FIXME: Can't to these tests yet since group 2 still has the parts attached!  We can't yet detach since
+            // it might cause SOG.ProcessBackup() to fail due to the race condition.  This really needs to be fixed.
+            //Assert.That(grp2.IsDeleted, "SOG 2 was not registered as deleted after link.");
+            //Assert.That(grp2.Children.Count, Is.EqualTo(0), "Group 2 still contained children after delink.");
             Assert.That(grp1.Children.Count == 2);
 
             if (debugtest)
@@ -170,8 +173,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             if (debugtest)
                 System.Console.WriteLine("Group2: Prim2: OffsetPosition:{0}, OffsetRotation:{1}", part2.AbsolutePosition, part2.RotationOffset);
 
-            Assert.That(part2.AbsolutePosition == Vector3.Zero);
-            
+            Assert.That(part2.AbsolutePosition == Vector3.Zero);            
         }
 
         [Test]
@@ -188,7 +190,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             SceneObjectGroup grp3 = part3.ParentGroup;
             SceneObjectPart part4 = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectGroup grp4 = part4.ParentGroup;
-
 
             grp1.AbsolutePosition = new Vector3(10, 10, 10);
             grp2.AbsolutePosition = Vector3.Zero;
@@ -228,7 +229,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             Assert.That(grp1.Children.Count == 2);
             Assert.That(grp3.Children.Count == 2);
             
-
             if (debugtest)
             {
                 System.Console.WriteLine("--------After Link-------");
@@ -297,7 +297,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
                 && (part4.RotationOffset.Y - compareQuaternion.Y < 0.00003) 
                 && (part4.RotationOffset.Z - compareQuaternion.Z < 0.00003) 
                 && (part4.RotationOffset.W - compareQuaternion.W < 0.00003));
-
         }
  
         /// <summary>

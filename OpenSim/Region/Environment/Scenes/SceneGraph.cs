@@ -1496,8 +1496,11 @@ namespace OpenSim.Region.Environment.Scenes
             // occur on link to invoke this elsewhere (such as object selection)
             parenPrim.RootPart.AddFlag(PrimFlags.CreateSelected);
             parenPrim.TriggerScriptChangedEvent(Changed.LINK);
+            
             if (client != null)
+            {
                 parenPrim.GetProperties(client);
+            }
             else
             {
                 foreach (ScenePresence p in GetScenePresences())
@@ -1715,6 +1718,7 @@ namespace OpenSim.Region.Environment.Scenes
             // SceneObjectGroup dupe = DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Zero);
             DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Identity);
         }
+        
         /// <summary>
         /// Duplicate the given object.
         /// </summary>
@@ -1780,6 +1784,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_log.WarnFormat("[SCENE]: Attempted to duplicate nonexistant prim id {0}", GroupID);
             }
+            
             return null;
         }
         

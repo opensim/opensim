@@ -1053,7 +1053,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             part.StoreUndoState();
             part.OnGrab(offsetPos, remoteClient);
-
         }
 
         public virtual void OnGrabGroup(Vector3 offsetPos, IClientAPI remoteClient)
@@ -1232,10 +1231,7 @@ namespace OpenSim.Region.Environment.Scenes
             // any exception propogate upwards.
 
             if (IsDeleted || UUID == UUID.Zero)
-            {
-//                DetachFromBackup();
                 return;
-            }
 
             try
             {
@@ -1359,18 +1355,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public SceneObjectGroup Copy(UUID cAgentID, UUID cGroupID, bool userExposed)
         {
-            SceneObjectGroup dupe = (SceneObjectGroup) MemberwiseClone();
+            SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
             dupe.m_isBackedUp = false;
             dupe.m_parts = new Dictionary<UUID, SceneObjectPart>();
-            dupe.m_parts.Clear();
-            //dupe.OwnerID = AgentID;
-            //dupe.GroupID = GroupID;
             dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
-            dupe.m_scene = m_scene;
-            dupe.m_regionHandle = m_regionHandle;
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
-
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
 
             if (userExposed)
@@ -1390,7 +1380,6 @@ namespace OpenSim.Region.Environment.Scenes
                     dupe.RootPart.PhysActor.IsPhysical);
 
                 dupe.RootPart.PhysActor.LocalID = dupe.RootPart.LocalId;
-
                 dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
             }
 
@@ -1415,8 +1404,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (part.UUID != m_rootPart.UUID)
                 {
-                    SceneObjectPart newPart =
-                            dupe.CopyPart(part, OwnerID, GroupID, userExposed);
+                    SceneObjectPart newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
 
                     newPart.LinkNum = part.LinkNum;
 

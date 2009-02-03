@@ -1380,7 +1380,6 @@ if (m_shape != null) {
             if (!userExposed)
                 dupe.PhysActor = null;
 
-
             dupe._ownerID = AgentID;
             dupe._groupID = GroupID;
             dupe.GroupPosition = GroupPosition;
@@ -1428,6 +1427,7 @@ if (m_shape != null) {
                 bool UsePhysics = ((dupe.ObjectFlags & (uint)PrimFlags.Physics) != 0);
                 dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
+            
             return dupe;
         }
 
