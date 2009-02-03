@@ -1392,8 +1392,14 @@ namespace OpenSim.Region.Environment.Scenes
                 SetRootPartOwner(m_rootPart, cAgentID, cGroupID);
                 m_rootPart.ScheduleFullUpdate();
             }
+            
+            List<SceneObjectPart> partList;
 
-            List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.Values);
+            lock (m_parts)
+            {                
+                partList = new List<SceneObjectPart>(m_parts.Values);
+            }
+            
             partList.Sort(delegate(SceneObjectPart p1, SceneObjectPart p2)
                 {
                     return p1.LinkNum.CompareTo(p2.LinkNum);
