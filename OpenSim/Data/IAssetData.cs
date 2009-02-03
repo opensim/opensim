@@ -26,8 +26,9 @@
  */
 
 using OpenMetaverse;
+using OpenSim.Framework;
 
-namespace OpenSim.Framework
+namespace OpenSim.Data
 {
     public interface IAssetDataPlugin : IPlugin
     {

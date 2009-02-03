@@ -27,7 +27,7 @@
 
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
+using OpenSim.Data;
 
 namespace OpenSim.Tests.Common.Mock
 {
@@ -35,7 +35,7 @@ namespace OpenSim.Tests.Common.Mock
     /// In memory asset data plugin for test purposes.  Could be another dll when properly filled out and when the
     /// mono addin plugin system starts co-operating with the unit test system.  Currently no locking since unit
     /// tests are single threaded.
-    /// </summary>    
+    /// </summary>
     public class TestAssetDataPlugin : IAssetDataPlugin
     {
         public string Version { get { return "0"; } }
@@ -43,7 +43,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public void Initialise() {}
         public void Dispose() {}
-        
+
         public AssetBase FetchAsset(UUID uuid) { return null; }
         public void CreateAsset(AssetBase asset) {}
         public void UpdateAsset(AssetBase asset) {}

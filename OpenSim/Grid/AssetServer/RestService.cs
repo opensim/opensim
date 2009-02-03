@@ -37,6 +37,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
+using OpenSim.Data;
 
 namespace OpenSim.Grid.AssetServer
 {
@@ -98,7 +99,7 @@ namespace OpenSim.Grid.AssetServer
                     result = ms.GetBuffer();
 
 //Ckrinke 1/11/09 Commenting out the succesful REST message as under heavy use there
-//are multiple messages in a second and that is usually (in my experience) meaning 
+//are multiple messages in a second and that is usually (in my experience) meaning
 //the logging itself is slowing down the program. Leaving the unsuccesful message
 //as we need to know about that path.
 //                    m_log.InfoFormat(

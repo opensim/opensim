@@ -32,6 +32,7 @@ using OpenMetaverse;
 using log4net;
 using OpenSim.Framework.AssetLoader.Filesystem;
 using OpenSim.Framework.Statistics;
+using OpenSim.Data;
 
 namespace OpenSim.Framework.Communications.Cache
 {

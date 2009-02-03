@@ -36,6 +36,7 @@ using OpenSim.Framework.AssetLoader.Filesystem;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
+using OpenSim.Data;
 
 namespace OpenSim.Grid.AssetServer
 {

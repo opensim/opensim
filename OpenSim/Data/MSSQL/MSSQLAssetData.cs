@@ -42,7 +42,7 @@ namespace OpenSim.Data.MSSQL
         private const string _migrationStore = "AssetStore";
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private long TicksToEpoch; 
+        private long TicksToEpoch;
         /// <summary>
         /// Database manager
         /// </summary>
@@ -212,7 +212,7 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-// Commented out since currently unused - this probably should be called in FetchAsset()       
+// Commented out since currently unused - this probably should be called in FetchAsset()
 //        private void UpdateAccessTime(AssetBase asset)
 //        {
 //            using (AutoClosingSqlCommand cmd = database.Query("UPDATE assets SET access_time = @access_time WHERE id=@id"))
