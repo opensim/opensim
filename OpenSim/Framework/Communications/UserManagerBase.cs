@@ -35,8 +35,8 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
-using OpenSim.Framework;
 using OpenSim.Framework.Statistics;
+using OpenSim.Data;
 
 namespace OpenSim.Framework.Communications
 {
@@ -52,22 +52,22 @@ namespace OpenSim.Framework.Communications
         /// List of plugins to search for user data
         /// </value>
         private List<IUserDataPlugin> _plugins = new List<IUserDataPlugin>();
-        
+
         protected IInterServiceInventoryServices m_interServiceInventoryService;
-        
+
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="interServiceInventoryService"></param>
         public UserManagerBase(IInterServiceInventoryServices interServiceInventoryService)
         {
-            m_interServiceInventoryService = interServiceInventoryService;            
-        }        
-                
+            m_interServiceInventoryService = interServiceInventoryService;
+        }
+
         /// <summary>
         /// Add a new user data plugin - plugins will be requested in the order they were added.
         /// </summary>
-        /// <param name="plugin">The plugin that will provide user data</param>     
+        /// <param name="plugin">The plugin that will provide user data</param>
         public void AddPlugin(IUserDataPlugin plugin)
         {
             _plugins.Add(plugin);
@@ -85,13 +85,13 @@ namespace OpenSim.Framework.Communications
 
             // loader will try to load all providers (MySQL, MSSQL, etc)
             // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add("/OpenSim/UserData", new PluginProviderFilter(provider));            
+            loader.Add("/OpenSim/UserData", new PluginProviderFilter(provider));
             loader.Load();
 
             _plugins.AddRange(loader.Plugins);
         }
 
-        #region Get UserProfile      
+        #region Get UserProfile
 
         // see IUserService
         public UserProfileData GetUserProfile(string fname, string lname)
@@ -109,7 +109,7 @@ namespace OpenSim.Framework.Communications
 
             return null;
         }
-        
+
         public void LogoutUsers(UUID regionID)
         {
             foreach (IUserDataPlugin plugin in _plugins)
@@ -117,7 +117,7 @@ namespace OpenSim.Framework.Communications
                 plugin.LogoutUsers(regionID);
             }
         }
-        
+
         public void ResetAttachments(UUID userID)
         {
             foreach (IUserDataPlugin plugin in _plugins)
@@ -125,7 +125,7 @@ namespace OpenSim.Framework.Communications
                 plugin.ResetAttachments(userID);
             }
         }
-        
+
         public UserAgentData GetAgentByUUID(UUID userId)
         {
             foreach (IUserDataPlugin plugin in _plugins)
@@ -140,7 +140,7 @@ namespace OpenSim.Framework.Communications
 
             return null;
         }
-        
+
         // see IUserService
         public virtual UserProfileData GetUserProfile(UUID uuid)
         {
@@ -173,7 +173,7 @@ namespace OpenSim.Framework.Communications
                     return new List<AvatarPickerAvatar>();
                 }
             }
-            
+
             return pickerlist;
         }
 
@@ -216,8 +216,8 @@ namespace OpenSim.Framework.Communications
                 try
                 {
                     UserAgentData result = plugin.GetAgentByUUID(uuid);
-                  
-                    if (result != null) 
+
+                    if (result != null)
                     {
                         return result;
                     }
@@ -288,8 +288,8 @@ namespace OpenSim.Framework.Communications
                 try
                 {
                     List<FriendListItem> result = plugin.GetUserFriendList(ownerID);
-                  
-                    if (result != null) 
+
+                    if (result != null)
                     {
                         return result;
                     }
@@ -310,8 +310,8 @@ namespace OpenSim.Framework.Communications
                 try
                 {
                     Dictionary<UUID, FriendRegionInfo> result = plugin.GetFriendRegionInfos(uuids);
-                  
-                    if (result != null) 
+
+                    if (result != null)
                     {
                         return result;
                     }
@@ -396,7 +396,7 @@ namespace OpenSim.Framework.Communications
             {
                 return;
             }
-            
+
             profile.CurrentAgent = null;
 
             UpdateUserProfile(profile);
@@ -623,7 +623,7 @@ namespace OpenSim.Framework.Communications
             string firstName, string lastName, string password, string email, uint regX, uint regY, UUID SetUUID)
         {
             string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
-            
+
             UserProfileData user = new UserProfileData();
             user.HomeLocation = new Vector3(128, 128, 100);
             user.ID = SetUUID;
@@ -657,9 +657,9 @@ namespace OpenSim.Framework.Communications
             else
             {
                 m_interServiceInventoryService.CreateNewUserInventory(userProf.ID);
-                
+
                 return userProf.ID;
-            }            
+            }
         }
 
         /// <summary>
@@ -672,22 +672,22 @@ namespace OpenSim.Framework.Communications
         public bool ResetUserPassword(string firstName, string lastName, string newPassword)
         {
             string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(newPassword) + ":" + String.Empty);
-            
+
             UserProfileData profile = GetUserProfile(firstName, lastName);
-            
+
             if (null == profile)
             {
                 m_log.ErrorFormat("[USERSTORAGE]: Could not find user {0} {1}", firstName, lastName);
                 return false;
             }
-            
+
             profile.PasswordHash = md5PasswdHash;
             profile.PasswordSalt = String.Empty;
-            
+
             UpdateUserProfile(profile);
-            
+
             return true;
-        }        
+        }
 
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName);
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName, string password);

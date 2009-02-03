@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Data;
 
 namespace OpenSim.Tests.Common.Mock
 {

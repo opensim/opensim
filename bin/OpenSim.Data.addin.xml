@@ -21,6 +21,6 @@
         <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IInventoryDataPlugin"/>
     </ExtensionPoint>
     <ExtensionPoint path = "/OpenSim/UserData">
-        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Framework.IUserDataPlugin"/>
+        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IUserDataPlugin"/>
     </ExtensionPoint>
 </Addin>

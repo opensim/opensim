@@ -27,8 +27,9 @@
 
 using System.Collections.Generic;
 using OpenMetaverse;
+using OpenSim.Framework;
 
-namespace OpenSim.Framework
+namespace OpenSim.Data
 {
     /// <summary>
     /// An interface for connecting to user storage servers.
