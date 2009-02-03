@@ -128,9 +128,9 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             // Link grp2 to grp1.   part2 becomes child prim to grp1. grp2 is eliminated.
             grp1.LinkToGroup(grp2);
 
-            // FIXME: Can't to these tests yet since group 2 still has the parts attached!  We can't yet detach since
+            // FIXME: Can't do this test yet since group 2 still has its root part!  We can't yet null this since
             // it might cause SOG.ProcessBackup() to fail due to the race condition.  This really needs to be fixed.
-            //Assert.That(grp2.IsDeleted, "SOG 2 was not registered as deleted after link.");
+            Assert.That(grp2.IsDeleted, "SOG 2 was not registered as deleted after link.");
             Assert.That(grp2.Children.Count, Is.EqualTo(0), "Group 2 still contained children after delink.");
             Assert.That(grp1.Children.Count == 2);
 
@@ -220,16 +220,14 @@ namespace OpenSim.Region.Environment.Scenes.Tests
 
             // Link grp4 to grp3.
             grp3.LinkToGroup(grp4);
-
-            // Required for linking
-            grp1.RootPart.UpdateFlag = 0;
-            grp3.RootPart.UpdateFlag = 0;
-
+            
             // At this point we should have 4 parts total in two groups.            
             Assert.That(grp1.Children.Count == 2);
+            Assert.That(grp2.IsDeleted, "Group 2 was not registered as deleted after link.");
             Assert.That(grp2.Children.Count, Is.EqualTo(0), "Group 2 still contained parts after delink.");            
             Assert.That(grp3.Children.Count == 2);
-            Assert.That(grp4.Children.Count, Is.EqualTo(0), "Group 4 still contained parts after delink.");
+            Assert.That(grp4.IsDeleted, "Group 4 was not registered as deleted after link.");
+            Assert.That(grp4.Children.Count, Is.EqualTo(0), "Group 4 still contained parts after delink.");            
             
             if (debugtest)
             {
@@ -243,7 +241,11 @@ namespace OpenSim.Region.Environment.Scenes.Tests
                 System.Console.WriteLine("Group3: Pos:{0}, Rot:{1}", grp3.AbsolutePosition, grp3.Rotation);
                 System.Console.WriteLine("Group3: Prim1: OffsetPosition:{0}, OffsetRotation:{1}", part3.OffsetPosition, part3.RotationOffset);
                 System.Console.WriteLine("Group3: Prim2: OffsetPosition:{0}, OffsetRotation:{1}", part4.OffsetPosition, part4.RotationOffset);
-            }
+            }            
+
+            // Required for linking
+            grp1.RootPart.UpdateFlag = 0;
+            grp3.RootPart.UpdateFlag = 0;
 
             // root part should have no offset position or rotation
             Assert.That(part1.OffsetPosition == Vector3.Zero && part1.RotationOffset == Quaternion.Identity);
