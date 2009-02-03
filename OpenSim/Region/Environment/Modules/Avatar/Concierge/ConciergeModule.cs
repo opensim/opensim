@@ -82,13 +82,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             {
                 if ((_config = config.Configs["Concierge"]) == null)
                 {
-                    _log.InfoFormat("[Concierge]: no configuration section [Concierge] in OpenSim.ini: module not configured");
+                    //_log.InfoFormat("[Concierge]: no configuration section [Concierge] in OpenSim.ini: module not configured");
                     return;
                 }
 
                 if (!_config.GetBoolean("enabled", false))
                 {
-                    _log.InfoFormat("[Concierge]: module disabled by OpenSim.ini configuration");
+                    //_log.InfoFormat("[Concierge]: module disabled by OpenSim.ini configuration");
                     return;
                 }
             }
