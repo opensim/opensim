@@ -74,21 +74,18 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// Add a new user data plugin - plugins will be requested in the order they were added.
+        /// Adds a list of user data plugins, as described by `provider' and
+        /// `connect', to `_plugins'.
         /// </summary>
-        /// <param name="provider">The filename to the user data plugin DLL</param>
-        /// <param name="connect"></param>
+        /// <param name="provider">
+        /// The filename of the inventory server plugin DLL.
+        /// </param>
+        /// <param name="connect">
+        /// The connection string for the storage backend.
+        /// </param>
         public void AddPlugin(string provider, string connect)
         {
-            PluginLoader<IUserDataPlugin> loader =
-                new PluginLoader<IUserDataPlugin>(new UserDataInitialiser(connect));
-
-            // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add("/OpenSim/UserData", new PluginProviderFilter(provider));
-            loader.Load();
-
-            _plugins.AddRange(loader.Plugins);
+            _plugins.AddRange(DataPluginFactory.LoadUserDataPlugins(provider, connect));
         }
 
         #region Get UserProfile

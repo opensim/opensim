@@ -112,24 +112,11 @@ namespace OpenSim.Grid.AssetServer
             return null;
         }
 
-        public IAssetDataPlugin LoadDatabasePlugin(string provider, string connect)
-        {
-            PluginLoader<IAssetDataPlugin> loader =
-                new PluginLoader<IAssetDataPlugin> (new AssetDataInitialiser (connect));
-
-            // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add ("/OpenSim/AssetData", new PluginProviderFilter (provider));
-            loader.Load();
-
-            return loader.Plugin;
-        }
-
         public void setupDB(AssetConfig config)
         {
             try
             {
-                m_assetProvider = LoadDatabasePlugin(config.DatabaseProvider, config.DatabaseConnect);
+                m_assetProvider = DataPluginFactory.LoadAssetDataPlugin(config.DatabaseProvider, config.DatabaseConnect);
                 if (m_assetProvider == null)
                 {
                     m_log.Error("[ASSET]: Failed to load a database plugin, server halting");

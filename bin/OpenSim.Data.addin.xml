@@ -1,26 +1,21 @@
 <Addin id="OpenSim.Data" isroot="true" version="0.5">
     <Runtime>
-        <Import assembly="OpenSim.Grid.UserServer.exe"/>
-        <Import assembly="OpenSim.Grid.GridServer.exe"/>
-        <Import assembly="OpenSim.Grid.AssetServer.exe"/>
-        <Import assembly="OpenSim.Grid.InventoryServer.exe"/>
-        <Import assembly="OpenSim.Grid.MessagingServer.exe"/>
-        <Import assembly="OpenSim.Data.dll"/>
-        <Import assembly="OpenSim.Framework.dll"/>
+        <Import assembly="OpenSim.Data.dll" />
+        <Import assembly="OpenSim.Framework.dll" />
     </Runtime>
     <ExtensionPoint path = "/OpenSim/GridData">
-        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IGridDataPlugin"/>
+        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IGridDataPlugin" />
     </ExtensionPoint>
     <ExtensionPoint path = "/OpenSim/LogData">
-        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.ILogDataPlugin"/>
+        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.ILogDataPlugin" />
     </ExtensionPoint>
     <ExtensionPoint path = "/OpenSim/AssetData">
-        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IAssetDataPlugin"/>
+        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IAssetDataPlugin" />
     </ExtensionPoint>
     <ExtensionPoint path = "/OpenSim/InventoryData">
-        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IInventoryDataPlugin"/>
+        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IInventoryDataPlugin" />
     </ExtensionPoint>
     <ExtensionPoint path = "/OpenSim/UserData">
-        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IUserDataPlugin"/>
+        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IUserDataPlugin" />
     </ExtensionPoint>
 </Addin>

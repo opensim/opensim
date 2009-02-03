@@ -59,20 +59,18 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// Adds a new inventory data plugin - plugins will be requested in the order they were loaded.
+        /// Adds a list of inventory data plugins, as described by `provider'
+        /// and `connect', to `m_plugins'.
         /// </summary>
-        /// <param name="provider">The filename of the inventory server plugin DLL</param>
+        /// <param name="provider">
+        /// The filename of the inventory server plugin DLL.
+        /// </param>
+        /// <param name="connect">
+        /// The connection string for the storage backend.
+        /// </param>
         public void AddPlugin(string provider, string connect)
         {
-            PluginLoader<IInventoryDataPlugin> loader =
-                new PluginLoader<IInventoryDataPlugin> (new InventoryDataInitialiser(connect));
-
-            // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add ("/OpenSim/InventoryData", new PluginProviderFilter(provider));
-            loader.Load();
-
-            m_plugins.AddRange(loader.Plugins);
+            m_plugins.AddRange(DataPluginFactory.LoadInventoryDataPlugins(provider, connect));
         }
 
         #endregion

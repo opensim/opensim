@@ -53,12 +53,12 @@ namespace OpenSim.Grid.GridServer
         private List<MessageServerInfo> _MessageServers = new List<MessageServerInfo>();
 
         public GridConfig Config;
-        
+
         /// <value>
         /// Used to notify old regions as to which OpenSim version to upgrade to
         /// </value>
         private string m_opensimVersion;
-        
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -71,27 +71,20 @@ namespace OpenSim.Grid.GridServer
         }
 
         /// <summary>
-        /// Adds a new grid server plugin - grid servers will be requested in the order they were loaded.
+        /// Adds a list of grid and log data plugins, as described by
+        /// `provider' and `connect', to `_plugins' and `_logplugins',
+        /// respectively.
         /// </summary>
-        /// <param name="provider">The name of the grid server plugin DLL</param>
+        /// <param name="provider">
+        /// The filename of the inventory server plugin DLL.
+        /// </param>
+        /// <param name="connect">
+        /// The connection string for the storage backend.
+        /// </param>
         public void AddPlugin(string provider, string connect)
         {
-            PluginLoader<IGridDataPlugin> gridloader =
-                new PluginLoader<IGridDataPlugin> (new GridDataInitialiser (connect));
-
-            PluginLoader<ILogDataPlugin> logloader =
-                new PluginLoader<ILogDataPlugin> (new LogDataInitialiser (connect));
-
-            // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            gridloader.Add ("/OpenSim/GridData", new PluginProviderFilter (provider));
-            logloader.Add ("/OpenSim/LogData", new PluginProviderFilter (provider));
-
-            gridloader.Load();
-            logloader.Load();
-
-            _plugins = gridloader.Plugins;
-            _logplugins = logloader.Plugins;
+            _plugins = DataPluginFactory.LoadGridDataPlugins(provider, connect);
+            _logplugins = DataPluginFactory.LoadLogDataPlugins(provider, connect);
         }
 
         /// <summary>
@@ -389,8 +382,8 @@ namespace OpenSim.Grid.GridServer
                 m_log.Debug("[LOGIN PRELUDE]: Invalid login parameters, sending back error response.");
                 return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e.ToString());
             }
-            
-            m_log.InfoFormat("[LOGIN BEGIN]: Received login request from simulator: {0}", sim.regionName);            
+
+            m_log.InfoFormat("[LOGIN BEGIN]: Received login request from simulator: {0}", sim.regionName);
 
             if (!Config.AllowRegionRegistration)
             {
@@ -399,12 +392,12 @@ namespace OpenSim.Grid.GridServer
                     sim.regionName);
 
                 return ErrorResponse("This grid is currently not accepting region registrations.");
-            }            
-            
+            }
+
             int majorInterfaceVersion = 0;
             if (requestData.ContainsKey("major_interface_version"))
                 int.TryParse((string)requestData["major_interface_version"], out majorInterfaceVersion);
-            
+
             if (majorInterfaceVersion != VersionInfo.MajorInterfaceVersion)
             {
                 return ErrorResponse(
