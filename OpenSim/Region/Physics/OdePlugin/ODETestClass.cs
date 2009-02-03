@@ -37,9 +37,9 @@ namespace OpenSim.Region.Physics.OdePlugin
     [TestFixture]
     public class ODETestClass
     {
-        private OdePlugin cbt;
-        private PhysicsScene ps;
-        private IMeshingPlugin imp;
+        protected OdePlugin cbt;
+        protected PhysicsScene ps;
+        protected IMeshingPlugin imp;
 
         [SetUp]
         public void Initialize()

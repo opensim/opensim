@@ -57,73 +57,73 @@ namespace OpenSim.Region.Physics.OdePlugin
     }
     public class OdeCharacter : PhysicsActor
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private PhysicsVector _position;
-        private d.Vector3 _zeroPosition;
-        // private d.Matrix3 m_StandUpRotation;
-        private bool _zeroFlag = false;
-        private bool m_lastUpdateSent = false;
-        private PhysicsVector _velocity;
-        private PhysicsVector _target_velocity;
-        private PhysicsVector _acceleration;
-        private PhysicsVector m_rotationalVelocity;
-        private float m_mass = 80f;
+        protected PhysicsVector _position;
+        protected d.Vector3 _zeroPosition;
+        // protected d.Matrix3 m_StandUpRotation;
+        protected bool _zeroFlag = false;
+        protected bool m_lastUpdateSent = false;
+        protected PhysicsVector _velocity;
+        protected PhysicsVector _target_velocity;
+        protected PhysicsVector _acceleration;
+        protected PhysicsVector m_rotationalVelocity;
+        protected float m_mass = 80f;
         public float m_density = 60f;
-        private bool m_pidControllerActive = true;
+        protected bool m_pidControllerActive = true;
         public float PID_D = 800.0f;
         public float PID_P = 900.0f;
-        //private static float POSTURE_SERVO = 10000.0f;
+        //protected static float POSTURE_SERVO = 10000.0f;
         public float CAPSULE_RADIUS = 0.37f;
         public float CAPSULE_LENGTH = 2.140599f;
         public float m_tensor = 3800000f;
         public float heightFudgeFactor = 0.52f;
         public float walkDivisor = 1.3f;
         public float runDivisor = 0.8f;
-        private bool flying = false;
-        private bool m_iscolliding = false;
-        private bool m_iscollidingGround = false;
-        private bool m_wascolliding = false;
-        private bool m_wascollidingGround = false;
-        private bool m_iscollidingObj = false;
-        private bool m_alwaysRun = false;
-        private bool m_hackSentFall = false;
-        private bool m_hackSentFly = false;
-        private PhysicsVector m_taintPosition = new PhysicsVector(0, 0, 0);
+        protected bool flying = false;
+        protected bool m_iscolliding = false;
+        protected bool m_iscollidingGround = false;
+        protected bool m_wascolliding = false;
+        protected bool m_wascollidingGround = false;
+        protected bool m_iscollidingObj = false;
+        protected bool m_alwaysRun = false;
+        protected bool m_hackSentFall = false;
+        protected bool m_hackSentFly = false;
+        protected PhysicsVector m_taintPosition = new PhysicsVector(0, 0, 0);
         public uint m_localID = 0;
         public bool m_returnCollisions = false;
         // taints and their non-tainted counterparts
         public bool m_isPhysical = false; // the current physical status
         public bool m_tainted_isPhysical = false; // set when the physical status is tainted (false=not existing in physics engine, true=existing)
-        private float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes. 
+        protected float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes. 
 
-        private float m_buoyancy = 0f;
+        protected float m_buoyancy = 0f;
 
-        // private CollisionLocker ode;
+        // protected CollisionLocker ode;
 
-        private string m_name = String.Empty;
+        protected string m_name = String.Empty;
 
-        private bool[] m_colliderarr = new bool[11];
-        private bool[] m_colliderGroundarr = new bool[11];
+        protected bool[] m_colliderarr = new bool[11];
+        protected bool[] m_colliderGroundarr = new bool[11];
 
         // Default we're a Character
-        private CollisionCategories m_collisionCategories = (CollisionCategories.Character);
+        protected CollisionCategories m_collisionCategories = (CollisionCategories.Character);
 
         // Default, Collide with Other Geometries, spaces, bodies and characters.
-        private CollisionCategories m_collisionFlags = (CollisionCategories.Geom
+        protected CollisionCategories m_collisionFlags = (CollisionCategories.Geom
                                                         | CollisionCategories.Space
                                                         | CollisionCategories.Body
                                                         | CollisionCategories.Character
                                                         | CollisionCategories.Land);
         public IntPtr Body = IntPtr.Zero;
-        private OdeScene _parent_scene;
+        protected OdeScene _parent_scene;
         public IntPtr Shell = IntPtr.Zero;
         public IntPtr Amotor = IntPtr.Zero;
         public d.Mass ShellMass;
         public bool collidelock = false;
 
         public int m_eventsubscription = 0;
-        private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
+        protected CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
 
         public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos, CollisionLocker dode, PhysicsVector size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
         {
@@ -421,7 +421,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         // WARNING: This MUST NOT be called outside of ProcessTaints, else we can have unsynchronized access
         // to ODE internals. ProcessTaints is called from within thread-locked Simulate(), so it is the only 
         // place that is safe to call this routine AvatarGeomAndBodyCreation.
-        private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ, float tensor)
+        protected void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ, float tensor)
         {
             //CAPSULE_LENGTH = -5;
             //CAPSULE_RADIUS = -5;
@@ -535,7 +535,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //      This code is very useful. Written by DanX0r. We're just not using it right now.
 //      Commented out to prevent a warning.
 //
-//         private void standupStraight()
+//         protected void standupStraight()
 //         {
 //             // The purpose of this routine here is to quickly stabilize the Body while it's popped up in the air.
 //             // The amotor needs a few seconds to stabilize so without it, the avatar shoots up sky high when you
@@ -714,7 +714,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// This is the avatar's movement control + PID Controller
         /// </summary>
         /// <param name="timeStep"></param>
-        public void Move(float timeStep)
+        public virtual void Move(float timeStep)
         {
             //  no lock; for now it's only called from within Simulate()
 

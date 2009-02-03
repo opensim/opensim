@@ -213,6 +213,9 @@ namespace OpenSim.Region.Physics.Manager
         public abstract void SubscribeEvents(int ms);
         public abstract void UnSubscribeEvents();
         public abstract bool SubscribedEvents();
+
+        public virtual void SetCollisionMesh(byte[] meshdata, string meshname, bool scalemesh) { }
+        public virtual void SetBoundsScaling(bool scalemesh) { }
     }
 
     public class NullPhysicsActor : PhysicsActor

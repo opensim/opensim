@@ -43,54 +43,54 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public class OdePrim : PhysicsActor
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private PhysicsVector _position;
-        private PhysicsVector _velocity;
-        private PhysicsVector _torque = new PhysicsVector(0,0,0);
-        private PhysicsVector m_lastVelocity = new PhysicsVector(0.0f, 0.0f, 0.0f);
-        private PhysicsVector m_lastposition = new PhysicsVector(0.0f, 0.0f, 0.0f);
-        private Quaternion m_lastorientation = new Quaternion();
-        private PhysicsVector m_rotationalVelocity;
-        private PhysicsVector _size;
-        private PhysicsVector _acceleration;
-        // private d.Vector3 _zeroPosition = new d.Vector3(0.0f, 0.0f, 0.0f);
-        private Quaternion _orientation;
-        private PhysicsVector m_taintposition;
-        private PhysicsVector m_taintsize;
-        private PhysicsVector m_taintVelocity = new PhysicsVector(0, 0, 0);
-        private PhysicsVector m_taintTorque = new PhysicsVector(0, 0, 0);
-        private Quaternion m_taintrot;
-        private PhysicsVector m_angularlock = new PhysicsVector(1f, 1f, 1f);
-        private PhysicsVector m_taintAngularLock = new PhysicsVector(1f, 1f, 1f);
-        private IntPtr Amotor = IntPtr.Zero;
+        protected PhysicsVector _position;
+        protected PhysicsVector _velocity;
+        protected PhysicsVector _torque = new PhysicsVector(0,0,0);
+        protected PhysicsVector m_lastVelocity = new PhysicsVector(0.0f, 0.0f, 0.0f);
+        protected PhysicsVector m_lastposition = new PhysicsVector(0.0f, 0.0f, 0.0f);
+        protected Quaternion m_lastorientation = new Quaternion();
+        protected PhysicsVector m_rotationalVelocity;
+        protected PhysicsVector _size;
+        protected PhysicsVector _acceleration;
+        // protected d.Vector3 _zeroPosition = new d.Vector3(0.0f, 0.0f, 0.0f);
+        protected Quaternion _orientation;
+        protected PhysicsVector m_taintposition;
+        protected PhysicsVector m_taintsize;
+        protected PhysicsVector m_taintVelocity = new PhysicsVector(0, 0, 0);
+        protected PhysicsVector m_taintTorque = new PhysicsVector(0, 0, 0);
+        protected Quaternion m_taintrot;
+        protected PhysicsVector m_angularlock = new PhysicsVector(1f, 1f, 1f);
+        protected PhysicsVector m_taintAngularLock = new PhysicsVector(1f, 1f, 1f);
+        protected IntPtr Amotor = IntPtr.Zero;
 
-        private PhysicsVector m_PIDTarget = new PhysicsVector(0, 0, 0);
-        private float m_PIDTau = 0f;
-        private float PID_D = 35f;
-        private float PID_G = 25f;
-        private float m_tensor = 5f;
-        private int body_autodisable_frames = 20;
-        private IMesh primMesh = null;
+        protected PhysicsVector m_PIDTarget = new PhysicsVector(0, 0, 0);
+        protected float m_PIDTau = 0f;
+        protected float PID_D = 35f;
+        protected float PID_G = 25f;
+        protected float m_tensor = 5f;
+        protected int body_autodisable_frames = 20;
+        protected IMesh primMesh = null;
 
-        private bool m_usePID = false;
+        protected bool m_usePID = false;
 
-        private const CollisionCategories m_default_collisionFlags = (CollisionCategories.Geom
+        protected const CollisionCategories m_default_collisionFlags = (CollisionCategories.Geom
                                                         | CollisionCategories.Space
                                                         | CollisionCategories.Body
                                                         | CollisionCategories.Character
                                                         );
-        private bool m_taintshape = false;
-        private bool m_taintPhysics = false;
-        private bool m_collidesLand = true;
-        private bool m_collidesWater = false;
+        protected bool m_taintshape = false;
+        protected bool m_taintPhysics = false;
+        protected bool m_collidesLand = true;
+        protected bool m_collidesWater = false;
         public bool m_returnCollisions = false;
 
         // Default we're a Geometry
-        private CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
+        protected CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
 
         // Default, Collide with Other Geometries, spaces and Bodies
-        private CollisionCategories m_collisionFlags = m_default_collisionFlags;
+        protected CollisionCategories m_collisionFlags = m_default_collisionFlags;
 
         public bool m_taintremove = false;
         public bool m_taintdisable = false;
@@ -102,58 +102,58 @@ namespace OpenSim.Region.Physics.OdePlugin
         public uint m_localID = 0;
 
         //public GCHandle gc;
-        private CollisionLocker ode;
+        protected CollisionLocker ode;
 
-        private bool m_taintforce = false;
-        private bool m_taintaddangularforce = false;
-        private PhysicsVector m_force = new PhysicsVector(0.0f, 0.0f, 0.0f);
-        private List<PhysicsVector> m_forcelist = new List<PhysicsVector>();
-        private List<PhysicsVector> m_angularforcelist = new List<PhysicsVector>();
+        protected bool m_taintforce = false;
+        protected bool m_taintaddangularforce = false;
+        protected PhysicsVector m_force = new PhysicsVector(0.0f, 0.0f, 0.0f);
+        protected List<PhysicsVector> m_forcelist = new List<PhysicsVector>();
+        protected List<PhysicsVector> m_angularforcelist = new List<PhysicsVector>();
 
-        private IMesh _mesh;
-        private PrimitiveBaseShape _pbs;
-        private OdeScene _parent_scene;
+        protected IMesh _mesh;
+        protected PrimitiveBaseShape _pbs;
+        protected OdeScene _parent_scene;
         public IntPtr m_targetSpace = (IntPtr) 0;
         public IntPtr prim_geom;
         public IntPtr prev_geom;
         public IntPtr _triMeshData;
 
-        private IntPtr _linkJointGroup = (IntPtr)0;
-        private PhysicsActor _parent = null;
-        private PhysicsActor m_taintparent = null;
+        protected IntPtr _linkJointGroup = (IntPtr)0;
+        protected PhysicsActor _parent = null;
+        protected PhysicsActor m_taintparent = null;
 
-        private List<OdePrim> childrenPrim = new List<OdePrim>();
+        protected List<OdePrim> childrenPrim = new List<OdePrim>();
 
-        private bool iscolliding = false;
-        private bool m_isphysical = false;
-        private bool m_isSelected = false;
+        protected bool iscolliding = false;
+        protected bool m_isphysical = false;
+        protected bool m_isSelected = false;
 
-        internal bool m_isVolumeDetect = false; // If true, this prim only detects collisions but doesn't collide actively
+        public bool m_isVolumeDetect = false; // If true, this prim only detects collisions but doesn't collide actively
 
-        private bool m_throttleUpdates = false;
-        private int throttleCounter = 0;
+        protected bool m_throttleUpdates = false;
+        protected int throttleCounter = 0;
         public int m_interpenetrationcount = 0;
         public float m_collisionscore = 0;
         public int m_roundsUnderMotionThreshold = 0;
-        private int m_crossingfailures = 0;
+        protected int m_crossingfailures = 0;
 
         public float m_buoyancy = 0f;
 
         public bool outofBounds = false;
-        private float m_density = 10.000006836f; // Aluminum g/cm3;
+        protected float m_density = 10.000006836f; // Aluminum g/cm3;
 
         public bool _zeroFlag = false;
-        private bool m_lastUpdateSent = false;
+        protected bool m_lastUpdateSent = false;
 
         public IntPtr Body = (IntPtr) 0;
-        private String m_primName;
-        private PhysicsVector _target_velocity;
+        protected String m_primName;
+        protected PhysicsVector _target_velocity;
         public d.Mass pMass;
 
         public int m_eventsubscription = 0;
-        private CollisionEventUpdate CollisionEventsThisFrame = null;
+        protected CollisionEventUpdate CollisionEventsThisFrame = null;
 
-        private IntPtr m_linkJoint = (IntPtr)0;
+        protected IntPtr m_linkJoint = (IntPtr)0;
 
         public volatile bool childPrim = false;
 
@@ -338,7 +338,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         #region Mass Calculation
 
-        private float CalculateMass()
+        protected float CalculateMass()
         {
             float volume = 0;
 
@@ -815,7 +815,7 @@ namespace OpenSim.Region.Physics.OdePlugin
            // }
         }
 
-        public void ProcessTaints(float timestep)
+        public virtual void ProcessTaints(float timestep)
         {
             if (m_taintadd)
             {
@@ -875,7 +875,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        private void changeAngularLock(float timestep)
+        protected void changeAngularLock(float timestep)
         {
             // do we have a Physical object?
             if (Body != IntPtr.Zero)
@@ -904,7 +904,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_angularlock = new PhysicsVector(m_taintAngularLock.X, m_taintAngularLock.Y, m_taintAngularLock.Z);
         }
 
-        private void changelink(float timestep)
+        protected void changelink(float timestep)
         {
             // If the newly set parent is not null
             // create link
@@ -1095,7 +1095,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         }
 
-        private void ChildSetGeom(OdePrim odePrim)
+        public void ChildSetGeom(OdePrim odePrim)
         {
             //if (m_isphysical && Body != IntPtr.Zero)
             lock (childrenPrim)
@@ -1129,7 +1129,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             
         }
 
-        private void ChildDelink(OdePrim odePrim)
+        protected void ChildDelink(OdePrim odePrim)
         {
             // Okay, we have a delinked child..   need to rebuild the body.
             lock (childrenPrim)
@@ -1173,7 +1173,7 @@ namespace OpenSim.Region.Physics.OdePlugin
            
         }
 
-        private void changeSelectedStatus(float timestep)
+        protected void changeSelectedStatus(float timestep)
         {
             if (m_taintselected)
             {
@@ -1603,7 +1603,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintrot = _orientation;
         }
 
-        private void resetCollisionAccounting()
+        protected void resetCollisionAccounting()
         {
             m_collisionscore = 0;
             m_interpenetrationcount = 0;
@@ -2132,7 +2132,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintaddangularforce = false;
         }
 
-        private void changevelocity(float timestep)
+        protected void changevelocity(float timestep)
         {
             if (!m_isSelected)
             {
@@ -2622,7 +2622,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override bool PIDActive { set { m_usePID = value; } }
         public override float PIDTau { set { m_PIDTau = value; } }
 
-        private void createAMotor(PhysicsVector axis)
+        protected void createAMotor(PhysicsVector axis)
         {
             if (Body == IntPtr.Zero)
                 return;
