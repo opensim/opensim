@@ -3172,6 +3172,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         childPrim = null;
                     break;
             }
+            
             if (linknum == ScriptBaseClass.LINK_ROOT)
             {
                 // Restructuring Multiple Prims.
@@ -3182,7 +3183,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     parentPrim.DelinkFromGroup(part.LocalId, true);
                 }
                 parentPrim.TriggerScriptChangedEvent(Changed.LINK);
-                if (parts.Count > 0) {
+                
+                if (parts.Count > 0) 
+                {
                     SceneObjectPart newRoot = parts[0];
                     parts.Remove(newRoot);
                     foreach (SceneObjectPart part in parts)
@@ -3196,6 +3199,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (childPrim == null)
                     return;
+                
                 parentPrim.DelinkFromGroup(childPrim.LocalId, true);
                 parentPrim.TriggerScriptChangedEvent(Changed.LINK);
             }

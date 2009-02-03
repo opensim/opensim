@@ -164,7 +164,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                     scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
                 }
             }
-            _log.InfoFormat("[Concierge] initialized for {0}", scene.RegionInfo.RegionName);
+            _log.InfoFormat("[Concierge]: initialized for {0}", scene.RegionInfo.RegionName);
         }
 
         public override void PostInitialise()

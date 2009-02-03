@@ -40,67 +40,11 @@ using OpenSim.Tests.Common.Setup;
 namespace OpenSim.Region.Environment.Scenes.Tests
 {
     /// <summary>
-    /// Scene object tests
+    /// Linking tests
     /// </summary>
-    [TestFixture]
-    public class SceneObjectTests
-    {         
-        /// <summary>
-        /// Test adding an object to a scene.
-        /// </summary>
-        [Test]
-        public void TestAddSceneObject()
-        {              
-            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-            
-            //System.Console.WriteLine("retrievedPart : {0}", retrievedPart);
-            // If the parts have the same UUID then we will consider them as one and the same
-            Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));         
-        }
-        
-        /// <summary>
-        /// Test deleting an object from a scene.
-        /// </summary>
-        [Test]
-        public void TestDeleteSceneObject()
-        {
-            TestScene scene = SceneSetupHelpers.SetupScene();         
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
-            scene.DeleteSceneObject(part.ParentGroup, false);
-            
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);            
-            Assert.That(retrievedPart, Is.Null);
-        }
-        
-        /// <summary>
-        /// Test deleting an object asynchronously
-        /// </summary>
-        [Test]
-        public void TestDeleteSceneObjectAsync()
-        {
-            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
-            
-            TestScene scene = SceneSetupHelpers.SetupScene();
-            
-            // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
-            AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
-            sogd.Enabled = false;
-                
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
-            
-            IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
-            scene.DeRezObject(client, part.LocalId, UUID.Zero, DeRezAction.Delete, UUID.Zero);
-            
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-            Assert.That(retrievedPart, Is.Not.Null);
-            
-            sogd.InventoryDeQueueAndDelete();
-            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
-            Assert.That(retrievedPart2, Is.Null);            
-        }
-
+    [TestFixture]    
+    public class SceneObjectLinkingTests
+    {
         [Test]
         public void TestLinkDelink2SceneObjects()
         {
@@ -300,41 +244,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
                 && (part4.RotationOffset.Y - compareQuaternion.Y < 0.00003) 
                 && (part4.RotationOffset.Z - compareQuaternion.Z < 0.00003) 
                 && (part4.RotationOffset.W - compareQuaternion.W < 0.00003));
-        }
- 
-        /// <summary>
-        /// Test deleting an object asynchronously to user inventory.
-        /// </summary>
-        [Test]
-        public void TestDeleteSceneObjectAsyncToUserInventory()
-        {
-            //log4net.Config.XmlConfigurator.Configure();                  
-            
-            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
-            string myObjectName = "Fred";
-            
-            TestScene scene = SceneSetupHelpers.SetupScene();                
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene, myObjectName);
-            
-            Assert.That(
-                scene.CommsManager.UserAdminService.AddUser(
-                    "Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
-                Is.EqualTo(agentId));  
-            
-            IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
-                                                
-            CachedUserInfo userInfo = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentId);
-            Assert.That(userInfo, Is.Not.Null);
-            Assert.That(userInfo.RootFolder, Is.Not.Null);
-            
-            SceneSetupHelpers.DeleteSceneObjectAsync(scene, part, DeRezAction.Take, userInfo.RootFolder.ID, client);
-            
-            // Check that we now have the taken part in our inventory
-            Assert.That(myObjectName, Is.EqualTo(userInfo.RootFolder.FindItemByPath(myObjectName).Name));
-            
-            // Check that the taken part has actually disappeared
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-            Assert.That(retrievedPart, Is.Null);                             
-        }
+        }        
     }
 }
