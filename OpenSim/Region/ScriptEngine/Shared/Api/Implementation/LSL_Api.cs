@@ -3097,10 +3097,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence sp = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter);
             if (sp != null)
                 client = sp.ControllingClient;
+            
             SceneObjectPart targetPart = World.GetSceneObjectPart((UUID)target);
+            
             if (targetPart.ParentGroup.RootPart.AttachmentPoint != 0)
                 return; // Fail silently if attached
             SceneObjectGroup parentPrim = null, childPrim = null;
+            
             if (targetPart != null)
             {
                 if (parent != 0) {
@@ -3118,10 +3121,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 //                if (uf != (Byte)0)
 //                    parent.RootPart.UpdateFlag = uf;
             }
+            
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
             parentPrim.RootPart.AddFlag(PrimFlags.CreateSelected);
             parentPrim.HasGroupChanged = true;
             parentPrim.ScheduleGroupForFullUpdate();
+            
             if (client != null)
                 parentPrim.GetProperties(client);
 

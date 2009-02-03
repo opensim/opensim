@@ -2049,8 +2049,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             m_scene.UnlinkSceneObject(objectGroup.UUID, true);
-            objectGroup.m_isDeleted = true;                        
-            objectGroup.m_parts.Clear();
+            objectGroup.m_isDeleted = true;
+            
+            lock (objectGroup.m_parts)
+            {
+                objectGroup.m_parts.Clear();
+            }
             
             // Can't do this yet since backup still makes use of the root part without any synchronization
 //            objectGroup.m_rootPart = null;
