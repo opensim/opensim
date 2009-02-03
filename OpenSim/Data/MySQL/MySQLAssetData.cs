@@ -110,7 +110,7 @@ namespace OpenSim.Data.MySQL
 
         public override void Dispose() { }
 
-        #region IAssetProviderPlugin Members
+        #region IAssetDataPlugin Members
 
         /// <summary>
         /// Fetch Asset <paramref name="assetID"/> from database

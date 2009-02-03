@@ -29,7 +29,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
-    public interface IAssetProviderPlugin : IPlugin
+    public interface IAssetDataPlugin : IPlugin
     {
         AssetBase FetchAsset(UUID uuid);
         void CreateAsset(AssetBase asset);
@@ -44,7 +44,7 @@ namespace OpenSim.Framework
         public AssetDataInitialiser (string s) { connect = s; }
         public override void Initialise (IPlugin plugin)
         {
-            IAssetProviderPlugin p = plugin as IAssetProviderPlugin;
+            IAssetDataPlugin p = plugin as IAssetDataPlugin;
             p.Initialise (connect);
         }
     }

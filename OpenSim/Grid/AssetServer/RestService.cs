@@ -45,14 +45,14 @@ namespace OpenSim.Grid.AssetServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // private OpenAsset_Main m_assetManager;
-        private IAssetProviderPlugin m_assetProvider;
+        private IAssetDataPlugin m_assetProvider;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="assetManager"></param>
         /// <param name="assetProvider"></param>
-        public GetAssetStreamHandler(IAssetProviderPlugin assetProvider)
+        public GetAssetStreamHandler(IAssetDataPlugin assetProvider)
             : base("GET", "/assets")
         {
             m_log.Info("[REST]: In Get Request");
@@ -125,7 +125,7 @@ namespace OpenSim.Grid.AssetServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // private OpenAsset_Main m_assetManager;
-        private IAssetProviderPlugin m_assetProvider;
+        private IAssetDataPlugin m_assetProvider;
 
         public override byte[] Handle(string path, Stream request,
                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
@@ -146,7 +146,7 @@ namespace OpenSim.Grid.AssetServer
             return new byte[] {};
         }
 
-        public PostAssetStreamHandler(IAssetProviderPlugin assetProvider)
+        public PostAssetStreamHandler(IAssetDataPlugin assetProvider)
             : base("POST", "/assets")
         {
             // m_assetManager = assetManager;

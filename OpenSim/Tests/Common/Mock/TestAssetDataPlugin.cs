@@ -36,7 +36,7 @@ namespace OpenSim.Tests.Common.Mock
     /// mono addin plugin system starts co-operating with the unit test system.  Currently no locking since unit
     /// tests are single threaded.
     /// </summary>    
-    public class TestAssetDataPlugin : IAssetProviderPlugin
+    public class TestAssetDataPlugin : IAssetDataPlugin
     {
         public string Version { get { return "0"; } }
         public string Name { get { return "TestAssetDataPlugin"; } }

@@ -114,7 +114,7 @@ namespace OpenSim.Data.MSSQL
 
         #endregion
 
-        #region IAssetProviderPlugin Members
+        #region IAssetDataPlugin Members
 
         /// <summary>
         /// Fetch Asset from database

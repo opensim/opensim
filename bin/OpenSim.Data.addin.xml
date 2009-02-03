@@ -15,7 +15,7 @@
         <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.ILogDataPlugin"/>
     </ExtensionPoint>
     <ExtensionPoint path = "/OpenSim/AssetData">
-        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Framework.IAssetProviderPlugin"/>
+        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IAssetDataPlugin"/>
     </ExtensionPoint>
     <ExtensionPoint path = "/OpenSim/InventoryData">
         <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Framework.IInventoryDataPlugin"/>

@@ -51,7 +51,7 @@ namespace OpenSim.Grid.AssetServer
         // Temporarily hardcoded - should be a plugin
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();
 
-        private IAssetProviderPlugin m_assetProvider;
+        private IAssetDataPlugin m_assetProvider;
 
         public static void Main(string[] args)
         {
@@ -111,10 +111,10 @@ namespace OpenSim.Grid.AssetServer
             return null;
         }
 
-        public IAssetProviderPlugin LoadDatabasePlugin(string provider, string connect)
+        public IAssetDataPlugin LoadDatabasePlugin(string provider, string connect)
         {
-            PluginLoader<IAssetProviderPlugin> loader =
-                new PluginLoader<IAssetProviderPlugin> (new AssetDataInitialiser (connect));
+            PluginLoader<IAssetDataPlugin> loader =
+                new PluginLoader<IAssetDataPlugin> (new AssetDataInitialiser (connect));
 
             // loader will try to load all providers (MySQL, MSSQL, etc)
             // unless it is constrainted to the correct "Provider" entry in the addin.xml

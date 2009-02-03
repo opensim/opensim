@@ -43,9 +43,9 @@ namespace OpenSim.Framework.Communications.Cache
         protected IAssetReceiver m_receiver;
         protected BlockingQueue<AssetRequest> m_assetRequests;
         protected Thread m_localAssetServerThread;
-        protected IAssetProviderPlugin m_assetProvider;
+        protected IAssetDataPlugin m_assetProvider;
 
-        public IAssetProviderPlugin AssetProviderPlugin
+        public IAssetDataPlugin AssetProviderPlugin
         {
             get { return m_assetProvider; }
         }
