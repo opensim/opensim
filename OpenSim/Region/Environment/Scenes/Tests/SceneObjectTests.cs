@@ -131,7 +131,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             // FIXME: Can't to these tests yet since group 2 still has the parts attached!  We can't yet detach since
             // it might cause SOG.ProcessBackup() to fail due to the race condition.  This really needs to be fixed.
             //Assert.That(grp2.IsDeleted, "SOG 2 was not registered as deleted after link.");
-            //Assert.That(grp2.Children.Count, Is.EqualTo(0), "Group 2 still contained children after delink.");
+            Assert.That(grp2.Children.Count, Is.EqualTo(0), "Group 2 still contained children after delink.");
             Assert.That(grp1.Children.Count == 2);
 
             if (debugtest)
@@ -173,6 +173,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             if (debugtest)
                 System.Console.WriteLine("Group2: Prim2: OffsetPosition:{0}, OffsetRotation:{1}", part2.AbsolutePosition, part2.RotationOffset);
 
+            Assert.That(grp1.Children.Count, Is.EqualTo(1), "Group 1 still contained part2 after delink.");
             Assert.That(part2.AbsolutePosition == Vector3.Zero);            
         }
 
@@ -224,10 +225,11 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             grp1.RootPart.UpdateFlag = 0;
             grp3.RootPart.UpdateFlag = 0;
 
-            // At this point we should have 4 parts total in two groups.
-
+            // At this point we should have 4 parts total in two groups.            
             Assert.That(grp1.Children.Count == 2);
+            Assert.That(grp2.Children.Count, Is.EqualTo(0), "Group 2 still contained parts after delink.");            
             Assert.That(grp3.Children.Count == 2);
+            Assert.That(grp4.Children.Count, Is.EqualTo(0), "Group 4 still contained parts after delink.");
             
             if (debugtest)
             {
@@ -268,13 +270,12 @@ namespace OpenSim.Region.Environment.Scenes.Tests
 
             Assert.That(rotEuler2.ApproxEquals(new Vector3(-180, 0, 0), 0.001f) || rotEuler2.ApproxEquals(new Vector3(180, 0, 0), 0.001f));
 
-            // Now we're linking the first group to the second group.  This will make the first group child parts of the second one.
+            // Now we're linking the first group to the third group.  This will make the first group child parts of the third one.
             grp3.LinkToGroup(grp1);
 
-            // Delink part 2
-            grp1.DelinkFromGroup(part2.LocalId);
-
-            grp1.DelinkFromGroup(part3.LocalId);
+            // Delink parts 2 and 3
+            grp3.DelinkFromGroup(part2.LocalId);
+            grp3.DelinkFromGroup(part3.LocalId);
 
             if (debugtest)
             {

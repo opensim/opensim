@@ -2049,14 +2049,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             m_scene.UnlinkSceneObject(objectGroup.UUID, true);
-//            objectGroup.Children.Clear();
+            objectGroup.Children.Clear();
+            
+            // Can't do this yet since backup still makes use of the root part without any synchronization
 //            objectGroup.m_rootPart = null;
-
-            // TODO Deleting the original group object may cause problems later on if they have already
-            // made it into the update queue.  However, sending out updates for those parts is now
-            // spurious, so it would be good not to send them at some point.
-            // The traffic caused is always going to be pretty minor, so it's not high priority
-            //objectGroup.DeleteGroup();
 
             AttachToBackup();
             HasGroupChanged = true;
