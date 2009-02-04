@@ -126,6 +126,7 @@ namespace OpenSim.Framework.Servers
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
             request.ContentType = "text/xml";
+            request.Timeout = 10000;
 
             MemoryStream buffer = new MemoryStream();
 
@@ -144,6 +145,7 @@ namespace OpenSim.Framework.Servers
 
             Stream requestStream = request.GetRequestStream();
             requestStream.Write(buffer.ToArray(), 0, length);
+            requestStream.Close();
             // IAsyncResult result = request.BeginGetResponse(AsyncCallback, request);
             request.BeginGetResponse(AsyncCallback, request);
         }
