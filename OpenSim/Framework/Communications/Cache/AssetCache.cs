@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Communications.Cache
     /// <summary>
     /// Manages local cache of assets and their sending to viewers.
     /// </summary>
-    /// 
+    ///
     /// This class actually encapsulates two largely separate mechanisms.  One mechanism fetches assets either
     /// synchronously or async and passes the data back to the requester.  The second mechanism fetches assets and
     /// sends packetised data directly back to the client.  The only point where they meet is AssetReceived() and
@@ -80,7 +80,7 @@ namespace OpenSim.Framework.Communications.Cache
         private Dictionary<UUID, AssetRequestsList> RequestLists;
 
         /// <summary>
-        /// The 'server' from which assets can be requested and to which assets are persisted. 
+        /// The 'server' from which assets can be requested and to which assets are persisted.
         /// </summary>
         private readonly IAssetServer m_assetServer;
 
@@ -211,7 +211,7 @@ namespace OpenSim.Framework.Communications.Cache
             else
             {
                 // m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
-                
+
                 NewAssetRequest req = new NewAssetRequest(callback);
                 AssetRequestsList requestList;
 
@@ -228,10 +228,10 @@ namespace OpenSim.Framework.Communications.Cache
                         // m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
                         requestList = new AssetRequestsList();
                         requestList.TimeRequested = DateTime.Now;
-                        requestList.Requests.Add(req);           
-                        
-                        RequestLists.Add(assetId, requestList);                        
-                        
+                        requestList.Requests.Add(req);
+
+                        RequestLists.Add(assetId, requestList);
+
                         m_assetServer.RequestAsset(assetId, isTexture);
                     }
                 }
@@ -247,7 +247,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// the allowed number of polls.  This isn't a very good way of doing things since a single thread
         /// is processing inbound packets, so if the asset server is slow, we could block this for up to
         /// the timeout period.  Whereever possible we want to use the asynchronous callback GetAsset()
-        ///  
+        ///
         /// <param name="assetID"></param>
         /// <param name="isTexture"></param>
         /// <returns>null if the asset could not be retrieved</returns>
@@ -264,7 +264,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 return asset;
             }
-            
+
             m_assetServer.RequestAsset(assetID, isTexture);
 
             do
@@ -275,7 +275,7 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     return asset;
                 }
-            } 
+            }
             while (--maxPolls > 0);
 
             m_log.WarnFormat("[ASSET CACHE]: {0} {1} was not received before the retrieval timeout was reached",
@@ -290,17 +290,17 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="asset"></param>
         public void AddAsset(AssetBase asset)
         {
-            if (!m_memcache.Contains(asset.FullID))
+            if (!m_memcache.Contains(asset.Metadata.FullID))
             {
-                m_log.Info("[CACHE] Caching " + asset.FullID + " for 24 hours from last access");
+                m_log.Info("[CACHE] Caching " + asset.Metadata.FullID + " for 24 hours from last access");
                 // Use 24 hour rolling asset cache.
-                m_memcache.AddOrUpdate(asset.FullID, asset, TimeSpan.FromHours(24));
+                m_memcache.AddOrUpdate(asset.Metadata.FullID, asset, TimeSpan.FromHours(24));
 
-                // According to http://wiki.secondlife.com/wiki/AssetUploadRequest, Local signifies that the 
+                // According to http://wiki.secondlife.com/wiki/AssetUploadRequest, Local signifies that the
                 // information is stored locally.  It could disappear, in which case we could send the
-                // ImageNotInDatabase packet to tell the client this.  
+                // ImageNotInDatabase packet to tell the client this.
                 //
-                // However, this doesn't quite appear to work with local textures that are part of an avatar's 
+                // However, this doesn't quite appear to work with local textures that are part of an avatar's
                 // appearance texture set.  Whilst sending an ImageNotInDatabase does trigger an automatic rebake
                 // and reupload by the client, if those assets aren't pushed to the asset server anyway, then
                 // on crossing onto another region server, other avatars can no longer get the required textures.
@@ -314,7 +314,7 @@ namespace OpenSim.Framework.Communications.Cache
                 // But for now, we're going to take the easy way out and store local assets globally.
                 //
                 // TODO: Also, Temporary is now deprecated.  We should start ignoring it and not passing it out from LLClientView.
-                if (!asset.Temporary || asset.Local)
+                if (!asset.Metadata.Temporary || asset.Metadata.Local)
                 {
                     m_assetServer.StoreAsset(asset);
                 }
@@ -345,25 +345,25 @@ namespace OpenSim.Framework.Communications.Cache
         {
 
             AssetInfo assetInf = new AssetInfo(asset);
-            if (!m_memcache.Contains(assetInf.FullID))
+            if (!m_memcache.Contains(assetInf.Metadata.FullID))
             {
-                m_memcache.AddOrUpdate(assetInf.FullID, assetInf, TimeSpan.FromHours(24));
+                m_memcache.AddOrUpdate(assetInf.Metadata.FullID, assetInf, TimeSpan.FromHours(24));
 
                 if (StatsManager.SimExtraStats != null)
                 {
                     StatsManager.SimExtraStats.AddAsset(assetInf);
                 }
 
-                if (RequestedAssets.ContainsKey(assetInf.FullID))
+                if (RequestedAssets.ContainsKey(assetInf.Metadata.FullID))
                 {
-                    AssetRequest req = RequestedAssets[assetInf.FullID];
+                    AssetRequest req = RequestedAssets[assetInf.Metadata.FullID];
                     req.AssetInf = assetInf;
                     req.NumPackets = CalculateNumPackets(assetInf.Data);
 
-                    RequestedAssets.Remove(assetInf.FullID);
+                    RequestedAssets.Remove(assetInf.Metadata.FullID);
                     // If it's a direct request for a script, drop it
                     // because it's a hacked client
-                    if (req.AssetRequestSource != 2 || assetInf.Type != 10)
+                    if (req.AssetRequestSource != 2 || assetInf.Metadata.Type != 10)
                         AssetRequests.Add(req);
                 }
             }
@@ -373,8 +373,8 @@ namespace OpenSim.Framework.Communications.Cache
 
             lock (RequestLists)
             {
-                if (RequestLists.TryGetValue(asset.FullID, out reqList))
-                    RequestLists.Remove(asset.FullID);
+                if (RequestLists.TryGetValue(asset.Metadata.FullID, out reqList))
+                    RequestLists.Remove(asset.Metadata.FullID);
             }
 
             if (reqList != null)
@@ -385,8 +385,8 @@ namespace OpenSim.Framework.Communications.Cache
                 foreach (NewAssetRequest req in reqList.Requests)
                 {
                     // Xantor 20080526 are we really calling all the callbacks if multiple queued for 1 request? -- Yes, checked
-                    // m_log.DebugFormat("[ASSET CACHE]: Callback for asset {0}", asset.FullID);
-                    req.Callback(asset.FullID, asset);
+                    // m_log.DebugFormat("[ASSET CACHE]: Callback for asset {0}", asset.Metadata.FullID);
+                    req.Callback(asset.Metadata.FullID, asset);
                 }
             }
         }
@@ -398,12 +398,12 @@ namespace OpenSim.Framework.Communications.Cache
 
             // Remember the fact that this asset could not be found to prevent delays from repeated requests
             m_memcache.Add(assetID, null, TimeSpan.FromHours(24));
-                
+
             // Notify requesters for this asset
             AssetRequestsList reqList;
             lock (RequestLists)
             {
-                if (RequestLists.TryGetValue(assetID, out reqList))                      
+                if (RequestLists.TryGetValue(assetID, out reqList))
                     RequestLists.Remove(assetID);
             }
 
@@ -411,7 +411,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (StatsManager.SimExtraStats != null)
                     StatsManager.SimExtraStats.AddAssetRequestTimeAfterCacheMiss(DateTime.Now - reqList.TimeRequested);
-                
+
                 foreach (NewAssetRequest req in reqList.Requests)
                 {
                     req.Callback(assetID, null);
@@ -461,7 +461,7 @@ namespace OpenSim.Framework.Communications.Cache
                 source = 3;
                 //Console.WriteLine("asset request " + requestID);
             }
-            
+
             //check to see if asset is in local cache, if not we need to request it from asset server.
             //Console.WriteLine("asset request " + requestID);
             if (!m_memcache.Contains(requestID))
@@ -494,7 +494,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
 
             // Scripts cannot be retrieved by direct request
-            if (transferRequest.TransferInfo.SourceType == 2 && asset.Type == 10)
+            if (transferRequest.TransferInfo.SourceType == 2 && asset.Metadata.Type == 10)
                 return;
 
             // The asset is knosn to exist and is in our cache, so add it to the AssetRequests list
@@ -520,7 +520,7 @@ namespace OpenSim.Framework.Communications.Cache
                 //no requests waiting
                 return;
             }
-            
+
             // if less than 5, do all of them
             int num = Math.Min(5, AssetRequests.Count);
 
@@ -580,10 +580,10 @@ namespace OpenSim.Framework.Communications.Cache
             public AssetInfo(AssetBase aBase)
             {
                 Data = aBase.Data;
-                FullID = aBase.FullID;
-                Type = aBase.Type;
-                Name = aBase.Name;
-                Description = aBase.Description;
+                Metadata.FullID = aBase.Metadata.FullID;
+                Metadata.Type = aBase.Metadata.Type;
+                Metadata.Name = aBase.Metadata.Name;
+                Metadata.Description = aBase.Metadata.Description;
             }
         }
 
@@ -592,10 +592,10 @@ namespace OpenSim.Framework.Communications.Cache
             public TextureImage(AssetBase aBase)
             {
                 Data = aBase.Data;
-                FullID = aBase.FullID;
-                Type = aBase.Type;
-                Name = aBase.Name;
-                Description = aBase.Description;
+                Metadata.FullID = aBase.Metadata.FullID;
+                Metadata.Type = aBase.Metadata.Type;
+                Metadata.Name = aBase.Metadata.Name;
+                Metadata.Description = aBase.Metadata.Description;
             }
         }
 
@@ -608,7 +608,7 @@ namespace OpenSim.Framework.Communications.Cache
             /// A list of requests for assets
             /// </summary>
             public List<NewAssetRequest> Requests = new List<NewAssetRequest>();
-            
+
             /// <summary>
             /// Record the time that this request was first made.
             /// </summary>

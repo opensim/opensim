@@ -42,7 +42,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     /// <summary>
     /// A work in progress, to contain the SL specific file transfer code that is currently in various region modules
-    /// This file currently contains multiple classes that need to be split out into their own files. 
+    /// This file currently contains multiple classes that need to be split out into their own files.
     /// </summary>
     public class LLFileTransfer : IClientFileTransfer
     {
@@ -206,13 +206,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void Initialise(UUID fileID, string fileName)
         {
             m_asset = new AssetBase();
-            m_asset.FullID = fileID;
-            m_asset.Type = type;
+            m_asset.Metadata.FullID = fileID;
+            m_asset.Metadata.Type = type;
             m_asset.Data = new byte[0];
-            m_asset.Name = fileName;
-            m_asset.Description = "empty";
-            m_asset.Local = true;
-            m_asset.Temporary = true;
+            m_asset.Metadata.Name = fileName;
+            m_asset.Metadata.Description = "empty";
+            m_asset.Metadata.Local = true;
+            m_asset.Metadata.Temporary = true;
             mXferID = Util.GetNextXferID();
         }
 
@@ -223,13 +223,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void RequestStartXfer(IClientAPI pRemoteClient)
         {
-            if (!String.IsNullOrEmpty(m_asset.Name))
+            if (!String.IsNullOrEmpty(m_asset.Metadata.Name))
             {
-                pRemoteClient.SendXferRequest(mXferID, m_asset.Type, m_asset.FullID, 0, Utils.StringToBytes(m_asset.Name));
+                pRemoteClient.SendXferRequest(mXferID, m_asset.Metadata.Type, m_asset.Metadata.FullID, 0, Utils.StringToBytes(m_asset.Metadata.Name));
             }
             else
             {
-                pRemoteClient.SendXferRequest(mXferID, m_asset.Type, m_asset.FullID, 0, new byte[0]);
+                pRemoteClient.SendXferRequest(mXferID, m_asset.Metadata.Type, m_asset.Metadata.FullID, 0, new byte[0]);
             }
         }
 
@@ -238,7 +238,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         /// <param name="xferID"></param>
         /// <param name="packetID"></param>
-        /// <param name="data"></param>       
+        /// <param name="data"></param>
         public void XferReceive(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data)
         {
             if (mXferID == xferID)
@@ -273,7 +273,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             handlerUploadDone = UploadDone;
             if (handlerUploadDone != null)
             {
-                handlerUploadDone(m_asset.Name, m_asset.FullID, mXferID, m_asset.Data, remoteClient);
+                handlerUploadDone(m_asset.Metadata.Name, m_asset.Metadata.FullID, mXferID, m_asset.Data, remoteClient);
             }
         }
 
@@ -282,7 +282,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             handlerAbort = UploadAborted;
             if (handlerAbort != null)
             {
-                handlerAbort(m_asset.Name, m_asset.FullID, mXferID, remoteClient);
+                handlerAbort(m_asset.Metadata.Name, m_asset.Metadata.FullID, mXferID, remoteClient);
             }
         }
     }

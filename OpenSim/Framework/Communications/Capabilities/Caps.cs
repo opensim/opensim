@@ -159,7 +159,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                 m_capsHandlers["SEED"] = new RestStreamHandler("POST", capsBase + m_requestPath, CapsRequest);
                 m_log.DebugFormat(
                     "[CAPS]: Registered seed capability {0} for {1}", capsBase + m_requestPath, m_agentID);
-                
+
                 //m_capsHandlers["MapLayer"] =
                 //    new LLSDStreamhandler<OSDMapRequest, OSDMapLayerResponse>("POST",
                 //                                                                capsBase + m_mapLayerPath,
@@ -247,9 +247,9 @@ namespace OpenSim.Framework.Communications.Capabilities
             //m_log.Debug("[CAPS]: Seed Caps Request in region: " + m_regionName);
 
             string result = LLSDHelpers.SerialiseLLSDReply(m_capsHandlers.CapsDetails);
-            
+
             //m_log.DebugFormat("[CAPS] CapsRequest {0}", result);
-            
+
             return result;
         }
 
@@ -569,7 +569,7 @@ namespace OpenSim.Framework.Communications.Capabilities
 
                 m_httpListener.AddStreamHandler(
                     new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
-                
+
                 string protocol = "http://";
 
                 if (m_httpListener.UseSSL)
@@ -648,7 +648,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <returns></returns>
         public LLSDAssetUploadResponse NewAgentInventoryRequest(LLSDAssetUploadRequest llsdRequest)
         {
-            if (llsdRequest.asset_type == "texture" || 
+            if (llsdRequest.asset_type == "texture" ||
                 llsdRequest.asset_type == "animation" ||
                 llsdRequest.asset_type == "sound")
             {
@@ -741,9 +741,9 @@ namespace OpenSim.Framework.Communications.Capabilities
 
             AssetBase asset;
             asset = new AssetBase();
-            asset.FullID = assetID;
-            asset.Type = assType;
-            asset.Name = assetName;
+            asset.Metadata.FullID = assetID;
+            asset.Metadata.Type = assType;
+            asset.Metadata.Name = assetName;
             asset.Data = data;
             m_assetCache.AddAsset(asset);
 
@@ -751,7 +751,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             item.Owner = m_agentID;
             item.Creator = m_agentID;
             item.ID = inventoryItem;
-            item.AssetID = asset.FullID;
+            item.AssetID = asset.Metadata.FullID;
             item.Description = assetDescription;
             item.Name = assetName;
             item.AssetType = assType;

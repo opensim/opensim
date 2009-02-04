@@ -139,18 +139,18 @@ namespace OpenSim.Data.MySQL
                         {
                             asset = new AssetBase();
                             asset.Data = (byte[]) dbReader["data"];
-                            asset.Description = (string) dbReader["description"];
-                            asset.FullID = assetID;
+                            asset.Metadata.Description = (string) dbReader["description"];
+                            asset.Metadata.FullID = assetID;
                             try
                             {
-                                asset.Local = (bool)dbReader["local"];
+                                asset.Metadata.Local = (bool)dbReader["local"];
                             }
                             catch (System.InvalidCastException)
                             {
-                                asset.Local = false;
+                                asset.Metadata.Local = false;
                             }
-                            asset.Name = (string) dbReader["name"];
-                            asset.Type = (sbyte) dbReader["assetType"];
+                            asset.Metadata.Name = (string) dbReader["name"];
+                            asset.Metadata.Type = (sbyte) dbReader["assetType"];
                         }
                         dbReader.Close();
                         cmd.Dispose();
@@ -178,8 +178,8 @@ namespace OpenSim.Data.MySQL
         {
             lock (_dbConnection)
             {
-                //m_log.Info("[ASSET DB]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
-                if (ExistsAsset(asset.FullID))
+                //m_log.Info("[ASSET DB]: Creating Asset " + Util.ToRawUuidString(asset.Metadata.FullID));
+                if (ExistsAsset(asset.Metadata.FullID))
                 {
                     //m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
                     return;
@@ -200,12 +200,12 @@ namespace OpenSim.Data.MySQL
                     {
                         // create unix epoch time
                         int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
-                        cmd.Parameters.AddWithValue("?id", asset.FullID.ToString());
-                        cmd.Parameters.AddWithValue("?name", asset.Name);
-                        cmd.Parameters.AddWithValue("?description", asset.Description);
-                        cmd.Parameters.AddWithValue("?assetType", asset.Type);
-                        cmd.Parameters.AddWithValue("?local", asset.Local);
-                        cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
+                        cmd.Parameters.AddWithValue("?id", asset.Metadata.ID);
+                        cmd.Parameters.AddWithValue("?name", asset.Metadata.Name);
+                        cmd.Parameters.AddWithValue("?description", asset.Metadata.Description);
+                        cmd.Parameters.AddWithValue("?assetType", asset.Metadata.Type);
+                        cmd.Parameters.AddWithValue("?local", asset.Metadata.Local);
+                        cmd.Parameters.AddWithValue("?temporary", asset.Metadata.Temporary);
                         cmd.Parameters.AddWithValue("?create_time", now);
                         cmd.Parameters.AddWithValue("?access_time", now);
                         cmd.Parameters.AddWithValue("?data", asset.Data);
@@ -218,7 +218,7 @@ namespace OpenSim.Data.MySQL
                     m_log.ErrorFormat(
                         "[ASSETS DB]: " +
                         "MySql failure creating asset {0} with name {1}" + Environment.NewLine + e.ToString()
-                        + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
+                        + Environment.NewLine + "Attempting reconnection", asset.Metadata.FullID, asset.Metadata.Name);
                     _dbConnection.Reconnect();
                 }
             }
@@ -241,7 +241,7 @@ namespace OpenSim.Data.MySQL
                     {
                         // create unix epoch time
                         int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
-                        cmd.Parameters.AddWithValue("?id", asset.FullID.ToString());
+                        cmd.Parameters.AddWithValue("?id", asset.Metadata.ID);
                         cmd.Parameters.AddWithValue("?access_time", now);
                         cmd.ExecuteNonQuery();
                         cmd.Dispose();
@@ -252,7 +252,7 @@ namespace OpenSim.Data.MySQL
                     m_log.ErrorFormat(
                         "[ASSETS DB]: " +
                         "MySql failure updating access_time for asset {0} with name {1}" + Environment.NewLine + e.ToString()
-                        + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
+                        + Environment.NewLine + "Attempting reconnection", asset.Metadata.FullID, asset.Metadata.Name);
                     _dbConnection.Reconnect();
                 }
             }

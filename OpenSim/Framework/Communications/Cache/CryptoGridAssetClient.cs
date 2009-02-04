@@ -86,11 +86,11 @@ namespace OpenSim.Framework.Communications.Cache
 
         #region Rjindael
         /// <summary>
-        /// This class uses a symmetric key algorithm (Rijndael/AES) to encrypt and 
+        /// This class uses a symmetric key algorithm (Rijndael/AES) to encrypt and
         /// decrypt data. As long as encryption and decryption routines use the same
         /// parameters to generate the keys, the keys are guaranteed to be the same.
         /// The class uses static functions with duplicate code to make it easier to
-        /// demonstrate encryption and decryption logic. In a real-life application, 
+        /// demonstrate encryption and decryption logic. In a real-life application,
         /// this may not be the most efficient way of handling encryption, so - as
         /// soon as you feel comfortable with it - you may want to redesign this class.
         /// </summary>
@@ -123,11 +123,11 @@ namespace OpenSim.Framework.Communications.Cache
             /// </param>
             /// <param name="initVector">
             /// Initialization vector (or IV). This value is required to encrypt the
-            /// first block of plaintext data. For RijndaelManaged class IV must be 
+            /// first block of plaintext data. For RijndaelManaged class IV must be
             /// exactly 16 ASCII characters long.
             /// </param>
             /// <param name="keySize">
-            /// Size of encryption key in bits. Allowed values are: 128, 192, and 256. 
+            /// Size of encryption key in bits. Allowed values are: 128, 192, and 256.
             /// Longer keys are more secure than shorter keys.
             /// </param>
             /// <returns>
@@ -143,7 +143,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 // Convert strings into byte arrays.
                 // Let us assume that strings only contain ASCII codes.
-                // If strings include Unicode characters, use Unicode, UTF7, or UTF8 
+                // If strings include Unicode characters, use Unicode, UTF7, or UTF8
                 // encoding.
                 byte[] initVectorBytes = Encoding.ASCII.GetBytes(initVector);
                 byte[] saltValueBytes = Encoding.ASCII.GetBytes(saltValue);
@@ -153,8 +153,8 @@ namespace OpenSim.Framework.Communications.Cache
                 byte[] plainTextBytes = plainText;
 
                 // First, we must create a password, from which the key will be derived.
-                // This password will be generated from the specified passphrase and 
-                // salt value. The password will be created using the specified hash 
+                // This password will be generated from the specified passphrase and
+                // salt value. The password will be created using the specified hash
                 // algorithm. Password creation can be done in several iterations.
                 PasswordDeriveBytes password = new PasswordDeriveBytes(
                                                                 passPhrase,
@@ -173,8 +173,8 @@ namespace OpenSim.Framework.Communications.Cache
                 // (CBC). Use default options for other symmetric key parameters.
                 symmetricKey.Mode = CipherMode.CBC;
 
-                // Generate encryptor from the existing key bytes and initialization 
-                // vector. Key size will be defined based on the number of the key 
+                // Generate encryptor from the existing key bytes and initialization
+                // vector. Key size will be defined based on the number of the key
                 // bytes.
                 ICryptoTransform encryptor = symmetricKey.CreateEncryptor(
                                                                  keyBytes,
@@ -265,8 +265,8 @@ namespace OpenSim.Framework.Communications.Cache
                 // Convert our ciphertext into a byte array.
                 byte[] cipherTextBytes = cipherText;
 
-                // First, we must create a password, from which the key will be 
-                // derived. This password will be generated from the specified 
+                // First, we must create a password, from which the key will be
+                // derived. This password will be generated from the specified
                 // passphrase and salt value. The password will be created using
                 // the specified hash algorithm. Password creation can be done in
                 // several iterations.
@@ -286,8 +286,8 @@ namespace OpenSim.Framework.Communications.Cache
                 // (CBC). Use default options for other symmetric key parameters.
                 symmetricKey.Mode = CipherMode.CBC;
 
-                // Generate decryptor from the existing key bytes and initialization 
-                // vector. Key size will be defined based on the number of the key 
+                // Generate decryptor from the existing key bytes and initialization
+                // vector. Key size will be defined based on the number of the key
                 // bytes.
                 ICryptoTransform decryptor = symmetricKey.CreateDecryptor(
                                                                  keyBytes,
@@ -320,7 +320,7 @@ namespace OpenSim.Framework.Communications.Cache
                 for (i = 0; i < decryptedByteCount; i++)
                     plainText[i] = plainTextBytes[i];
 
-                // Return decrypted string.   
+                // Return decrypted string.
                 return plainText;
             }
         }
@@ -403,17 +403,17 @@ namespace OpenSim.Framework.Communications.Cache
             string salt = Convert.ToBase64String(rand);
 
             x.Data = UtilRijndael.Encrypt(x.Data, file.Secret, salt, "SHA1", 2, file.IVBytes, file.Keysize);
-            x.Description = String.Format("ENCASS#:~:#{0}#:~:#{1}#:~:#{2}#:~:#{3}",
-                                          "OPENSIM_AES_AF1",
-                                          file.AlsoKnownAs,
-                                          salt,
-                                          x.Description);
+            x.Metadata.Description = String.Format("ENCASS#:~:#{0}#:~:#{1}#:~:#{2}#:~:#{3}",
+                                                   "OPENSIM_AES_AF1",
+                                                   file.AlsoKnownAs,
+                                                   salt,
+                                                   x.Metadata.Description);
         }
 
         private bool DecryptAssetBase(AssetBase x)
         {
             // Check it's encrypted first.
-            if (!x.Description.Contains("ENCASS"))
+            if (!x.Metadata.Description.Contains("ENCASS"))
                 return true;
 
             // ENCASS:ALG:AKA:SALT:Description
@@ -421,7 +421,7 @@ namespace OpenSim.Framework.Communications.Cache
             string[] splitchars = new string[1];
             splitchars[0] = "#:~:#";
 
-            string[] meta = x.Description.Split(splitchars, StringSplitOptions.None);
+            string[] meta = x.Metadata.Description.Split(splitchars, StringSplitOptions.None);
             if (meta.Length < 5)
             {
                 m_log.Warn("[ENCASSETS] Recieved Encrypted Asset, but header is corrupt");
@@ -432,7 +432,7 @@ namespace OpenSim.Framework.Communications.Cache
             if (m_keyfiles.ContainsKey(meta[2]))
             {
                 RjinKeyfile deckey = m_keyfiles[meta[2]];
-                x.Description = meta[4];
+                x.Metadata.Description = meta[4];
                 switch (meta[1])
                 {
                     case "OPENSIM_AES_AF1":
@@ -506,7 +506,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 string assetUrl = _assetServerUrl + "/assets/";
 
-                m_log.InfoFormat("[CRYPTO GRID ASSET CLIENT]: Sending store request for asset {0}", asset.FullID);
+                m_log.InfoFormat("[CRYPTO GRID ASSET CLIENT]: Sending store request for asset {0}", asset.Metadata.FullID);
 
                 RestObjectPoster.BeginPostObject<AssetBase>(assetUrl, asset);
             }

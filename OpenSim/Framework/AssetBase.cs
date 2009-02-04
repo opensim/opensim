@@ -26,7 +26,9 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
@@ -34,33 +36,18 @@ namespace OpenSim.Framework
     public class AssetBase
     {
         private byte[] _data;
-        private string _description = String.Empty;
-        private UUID _fullid;
-        private bool _local = false;
-        private string _name = String.Empty;
-        private bool _temporary = false;
-        private sbyte _type;
+        private AssetMetadata _metadata;
 
         public AssetBase()
         {
+            Metadata = new AssetMetadata();
         }
 
         public AssetBase(UUID assetId, string name)
         {
-            FullID = assetId;
-            Name = name;
-        }
-
-        public virtual UUID FullID
-        {
-            get { return _fullid; }
-            set { _fullid = value; }
-        }
-
-        public virtual string ID
-        {
-            get { return _fullid.ToString(); }
-            set { _fullid = new UUID(value); }
+            Metadata = new AssetMetadata();
+            Metadata.FullID = assetId;
+            Metadata.Name = name;
         }
 
         public virtual byte[] Data
@@ -69,34 +56,98 @@ namespace OpenSim.Framework
             set { _data = value; }
         }
 
-        public virtual sbyte Type
+        public virtual AssetMetadata Metadata
         {
-            get { return _type; }
-            set { _type = value; }
+            get { return _metadata; }
+            set { _metadata = value; }
+        }
+    }
+
+    [Serializable]
+    public class AssetMetadata
+    {
+        private UUID _fullid;
+        private string _name = String.Empty;
+        private string _description = String.Empty;
+        private DateTime _creation_date;
+        private sbyte _type;
+        private string _content_type;
+        private byte[] _sha1;
+        private bool _local = false;
+        private bool _temporary = false;
+        //private Dictionary<string, Uri> _methods = new Dictionary<string, Uri>();
+        //private OSDMap _extra_data;
+
+        public UUID FullID
+        {
+            get { return _fullid; }
+            set { _fullid = value; }
         }
 
-        public virtual string Name
+        public string ID
+        {
+            get { return _fullid.ToString(); }
+            set { _fullid = new UUID(value); }
+        }
+
+        public string Name
         {
             get { return _name; }
             set { _name = value; }
         }
 
-        public virtual string Description
+        public string Description
         {
             get { return _description; }
             set { _description = value; }
         }
 
-        public virtual bool Local
+        public DateTime CreationDate
+        {
+            get { return _creation_date; }
+            set { _creation_date = value; }
+        }
+
+        public sbyte Type
+        {
+            get { return _type; }
+            set { _type = value; }
+        }
+
+        public string ContentType
+        {
+            get { return _content_type; }
+            set { _content_type = value; }
+        }
+
+        public byte[] SHA1
+        {
+            get { return _sha1; }
+            set { _sha1 = value; }
+        }
+
+        public bool Local
         {
             get { return _local; }
             set { _local = value; }
         }
 
-        public virtual bool Temporary
+        public bool Temporary
         {
             get { return _temporary; }
             set { _temporary = value; }
         }
+
+        //public Dictionary<string, Uri> Methods
+        //{
+        //    get { return _methods; }
+        //    set { _methods = value; }
+        //}
+
+        //public OSDMap ExtraData
+        //{
+        //    get { return _extra_data; }
+        //    set { _extra_data = value; }
+        //}
     }
 }

@@ -66,12 +66,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_loadStream = new GZipStream(GetStream(loadPath), CompressionMode.Decompress);
             m_errorMessage = String.Empty;
         }
-        
+
         public ArchiveReadRequest(Scene scene, Stream loadStream)
         {
             m_scene = scene;
             m_loadStream = loadStream;
-        }        
+        }
 
         /// <summary>
         /// Dearchive the region embodied in this request.
@@ -81,7 +81,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             // The same code can handle dearchiving 0.1 and 0.2 OpenSim Archive versions
             DearchiveRegion0DotStar();
         }
-        
+
         private void DearchiveRegion0DotStar()
         {
             int successfulAssetRestores = 0;
@@ -98,12 +98,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                 byte[] data;
                 TarArchiveReader.TarEntryType entryType;
-            
+
                 while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
                 {
                     //m_log.DebugFormat(
                     //    "[ARCHIVER]: Successfully read {0} ({1} bytes)}", filePath, data.Length);
-                    if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType) 
+                    if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType)
                     {
                         m_log.WarnFormat("[ARCHIVER]: Ignoring directory entry {0}",
                                          filePath);
@@ -133,7 +133,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                         LoadRegionSettings(filePath, data);
                     }
                 }
-            
+
                 //m_log.Debug("[ARCHIVER]: Reached end of archive");
 
                 archive.Close();
@@ -154,10 +154,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 m_log.ErrorFormat("[ARCHIVER]: Failed to load {0} assets", failedAssetRestores);
                 m_errorMessage += String.Format("Failed to load {0} assets", failedAssetRestores);
             }
-            
+
             m_log.Info("[ARCHIVER]: Clearing all existing scene objects");
             m_scene.DeleteAllSceneObjects();
-            
+
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
@@ -176,10 +176,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
                 // otherwise, use the master avatar uuid instead
                 UUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-                
+
                 if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                     masterAvatarId = m_scene.RegionInfo.EstateSettings.EstateOwner;
-                
+
                 foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {
                     if (!resolveUserUuid(part.CreatorID))
@@ -233,7 +233,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 sceneObject.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 0);
             }
-            
+
             m_scene.EventManager.TriggerOarFileLoaded(m_errorMessage);
         }
 
@@ -290,12 +290,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 //m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
                 AssetBase asset = new AssetBase(new UUID(uuid), String.Empty);
-                asset.Type = assetType;
+                asset.Metadata.Type = assetType;
                 asset.Data = data;
 
                 m_scene.AssetCache.AddAsset(asset);
-                
-                /** 
+
+                /**
                  * Create layers on decode for image assets.  This is likely to significantly increase the time to load archives so
                  * it might be best done when dearchive takes place on a separate thread
                 if (asset.Type=AssetType.Texture)
@@ -317,7 +317,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 return false;
             }
         }
-        
+
         /// <summary>
         /// Load region settings data
         /// </summary>
@@ -329,7 +329,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         private bool LoadRegionSettings(string settingsPath, byte[] data)
         {
             RegionSettings loadedRegionSettings;
-            
+
             try
             {
                 loadedRegionSettings = RegionSettingsSerializer.Deserialize(data);
@@ -337,13 +337,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[ARCHIVER]: Could not parse region settings file {0}.  Ignoring.  Exception was {1}", 
+                    "[ARCHIVER]: Could not parse region settings file {0}.  Ignoring.  Exception was {1}",
                     settingsPath, e);
                 return false;
             }
-                
+
             RegionSettings currentRegionSettings = m_scene.RegionInfo.RegionSettings;
-            
+
             currentRegionSettings.AgentLimit = loadedRegionSettings.AgentLimit;
             currentRegionSettings.AllowDamage = loadedRegionSettings.AllowDamage;
             currentRegionSettings.AllowLandJoinDivide = loadedRegionSettings.AllowLandJoinDivide;
@@ -373,10 +373,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             currentRegionSettings.TerrainTexture4 = loadedRegionSettings.TerrainTexture4;
             currentRegionSettings.UseEstateSun = loadedRegionSettings.UseEstateSun;
             currentRegionSettings.WaterHeight = loadedRegionSettings.WaterHeight;
-            
+
             IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
             estateModule.sendRegionHandshakeToAll();
-            
+
             return true;
         }
 
@@ -411,11 +411,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 if (File.Exists(path))
                 {
                     return new FileStream(path, FileMode.Open);
-                }    
+                }
                 else
                 {
                     Uri uri = new Uri(path); // throw exception if not valid URI
-                    if (uri.Scheme == "file") 
+                    if (uri.Scheme == "file")
                     {
                         return new FileStream(uri.AbsolutePath, FileMode.Open);
                     }

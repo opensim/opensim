@@ -1,29 +1,29 @@
 /**
  * Copyright (c) 2008, Contributors. All rights reserved.
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
- * 
- * Redistribution and use in source and binary forms, with or without modification, 
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright notice, 
+ *
+ *     * Redistributions of source code must retain the above copyright notice,
  *       this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright notice, 
- *       this list of conditions and the following disclaimer in the documentation 
+ *     * Redistributions in binary form must reproduce the above copyright notice,
+ *       this list of conditions and the following disclaimer in the documentation
  *       and/or other materials provided with the distribution.
  *     * Neither the name of the Organizations nor the names of Individual
- *       Contributors may be used to endorse or promote products derived from 
+ *       Contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
- * THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE 
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+ * THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 using System;
@@ -48,7 +48,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Scenes.Hypergrid
 {
-    public class HGAssetMapper 
+    public class HGAssetMapper
     {
         #region Fields
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -128,12 +128,12 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
 
                 if (m_scene.CommsManager.AssetCache.TryGetCachedAsset(assetID, out asset) && (asset != null))
                 {
-                    m_log.Debug("[HGScene]: Asset made it to asset cache. " + asset.Name + " " + assetID);
-                    // I think I need to store it in the asset DB too. 
+                    m_log.Debug("[HGScene]: Asset made it to asset cache. " + asset.Metadata.Name + " " + assetID);
+                    // I think I need to store it in the asset DB too.
                     // For now, let me just do it for textures and scripts
-                    if (((AssetType)asset.Type == AssetType.Texture) ||
-                        ((AssetType)asset.Type == AssetType.LSLBytecode) ||
-                        ((AssetType)asset.Type == AssetType.LSLText))
+                    if (((AssetType)asset.Metadata.Type == AssetType.Texture) ||
+                        ((AssetType)asset.Metadata.Type == AssetType.LSLBytecode) ||
+                        ((AssetType)asset.Metadata.Type == AssetType.LSLText))
                     {
                         AssetBase asset1 = new AssetBase();
                         Copy(asset, asset1);
@@ -157,9 +157,9 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
             if (asset1 != null)
             {
                 // See long comment in AssetCache.AddAsset
-                if (!asset1.Temporary || asset1.Local)
+                if (!asset1.Metadata.Temporary || asset1.Metadata.Local)
                 {
-                    // The asset cache returns instances of subclasses of AssetBase: 
+                    // The asset cache returns instances of subclasses of AssetBase:
                     // TextureImage or AssetInfo. So in passing them to the remote
                     // server we first need to convert this to instances of AssetBase,
                     // which is the serializable class for assets.
@@ -179,14 +179,14 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
         private void Copy(AssetBase from, AssetBase to)
         {
             to.Data         = from.Data;
-            to.Description  = from.Description;
-            to.FullID       = from.FullID;
-            to.ID           = from.ID;
-            to.Local        = from.Local;
-            to.Name         = from.Name;
-            to.Temporary    = from.Temporary;
-            to.Type         = from.Type;
-            
+            to.Metadata.Description  = from.Metadata.Description;
+            to.Metadata.FullID       = from.Metadata.FullID;
+            to.Metadata.ID           = from.Metadata.ID;
+            to.Metadata.Local        = from.Metadata.Local;
+            to.Metadata.Name         = from.Metadata.Name;
+            to.Metadata.Temporary    = from.Metadata.Temporary;
+            to.Metadata.Type         = from.Metadata.Type;
+
         }
 
         private void _guardedAdd(Dictionary<UUID, bool> lst, UUID obj, bool val)
@@ -243,7 +243,7 @@ namespace OpenSim.Region.Environment.Scenes.Hypergrid
         private Dictionary<UUID, bool> SniffUUIDs(AssetBase asset)
         {
             Dictionary<UUID, bool> uuids = new Dictionary<UUID, bool>();
-            if ((asset != null) && ((AssetType)asset.Type == AssetType.Object))
+            if ((asset != null) && ((AssetType)asset.Metadata.Type == AssetType.Object))
             {
                 string ass_str = Utils.BytesToString(asset.Data);
                 SceneObjectGroup sog = new SceneObjectGroup(ass_str, true);

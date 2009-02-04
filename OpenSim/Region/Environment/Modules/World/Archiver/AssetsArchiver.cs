@@ -86,16 +86,16 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                     string extension = string.Empty;
 
-                    if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
+                    if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Metadata.Type))
                     {
-                        extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
+                        extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Metadata.Type];
                     }
 
                     xtw.WriteElementString("filename", uuid.ToString() + extension);
 
-                    xtw.WriteElementString("name", asset.Name);
-                    xtw.WriteElementString("description", asset.Description);
-                    xtw.WriteElementString("asset-type", asset.Type.ToString());
+                    xtw.WriteElementString("name", asset.Metadata.Name);
+                    xtw.WriteElementString("description", asset.Metadata.Description);
+                    xtw.WriteElementString("asset-type", asset.Metadata.Type.ToString());
 
                     xtw.WriteEndElement();
                 }
@@ -123,15 +123,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                 string extension = string.Empty;
 
-                if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
+                if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Metadata.Type))
                 {
-                    extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
+                    extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Metadata.Type];
                 }
                 else
                 {
                     m_log.ErrorFormat(
                         "[ARCHIVER]: Unrecognized asset type {0} with uuid {1}.  This asset will be saved but not reloaded",
-                        asset.Type, asset.ID);
+                        asset.Metadata.Type, asset.Metadata.ID);
                 }
 
                 archive.AddFile(

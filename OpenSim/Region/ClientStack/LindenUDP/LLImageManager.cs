@@ -47,7 +47,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Priority Queue for images.  Contains lots of data
         /// </summary>
         private readonly IPriorityQueue<Prio<J2KImage>> pq = new IntervalHeap<Prio<J2KImage>>();
-        
+
         /// <summary>
         /// Dictionary of PriorityQueue handles by AssetId
         /// </summary>
@@ -87,7 +87,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             //if (req.RequestType == 1) // avatar body texture!
             //    return;
-            
+
             AddQueueItem(req.RequestedAssetID, (int)req.Priority + 100000);
             //if (pq[PQHandles[req.RequestedAssetID]].data.Missing)
             //{
@@ -96,9 +96,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //
             //if (pq[PQHandles[req.RequestedAssetID]].data.HasData && pq[PQHandles[req.RequestedAssetID]].data.Layers.Length > 0)
             //{
-               
+
             //}
-            
+
             pq[PQHandles[req.RequestedAssetID]].data.requestedUUID = req.RequestedAssetID;
             pq[PQHandles[req.RequestedAssetID]].data.Priority = (int)req.Priority;
 
@@ -118,7 +118,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             //Console.WriteLine("AssetCallback for assetId" + assetID);
-            
+
             if (asset == null || asset.Data == null)
             {
                 lock (pq)
@@ -132,12 +132,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 
             pq[PQHandles[assetID]].data.asset = asset;
-            
+
             //lock (pq[PQHandles[assetID]].data)
             pq[PQHandles[assetID]].data.Update((int)pq[PQHandles[assetID]].data.Priority, pq[PQHandles[assetID]].data.CurrentPacket);
-            
-            
-            
+
+
+
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             // Is the asset missing?
                             if (process.data.Missing)
                             {
-                                
+
                                     //m_client.sendtextur
                                     pq[h] -= 90000;
                                     /*
@@ -191,7 +191,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     // Substitute a blank image
                                     process.data.asset = MissingSubstitute;
                                     process.data.Missing = false;
-                                    
+
                                 // If the priority is less then -4billion, the client has forgotten about it.
                                 if (pq[h] < -400000000)
                                 {
@@ -224,7 +224,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                         j2kDecodedCallback(process.data.AssetId, new OpenJPEG.J2KLayerInfo[0]);
                                     }
 
-                                   
+
 
                                 } // Are we waiting?
                                 else if (!process.data.J2KDecodeWaiting)
@@ -259,10 +259,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             //pq[h] = process;
                         }
-                         
+
                         // uncomment the following line to see the upper most asset and the priority
                         //Console.WriteLine(process.ToString());
-                        
+
                         // Lower priority to give the next image a chance to bubble up
                         pq[h] -= 50000;
                     }
@@ -318,7 +318,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
         }
-        
+
 
         /// <summary>
         /// Adds an image to the queue and update priority
@@ -336,7 +336,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     h = PQHandles[AssetId];
                     pq[h] = pq[h].SetPriority(priority);
-                    
+
                 }
                 else
                 {
@@ -354,7 +354,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Close()
         {
             m_shuttingdown = true;
-               
+
             lock (pq)
             {
                 while (!pq.IsEmpty)
@@ -362,7 +362,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     pq.DeleteMin();
                 }
             }
-            
+
 
             lock (PQHandles)
                 PQHandles.Clear();
@@ -423,7 +423,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public UUID AssetId
         {
-            get { return m_asset_ref.FullID; }
+            get { return m_asset_ref.Metadata.FullID; }
         }
 
         /// <summary>
@@ -544,7 +544,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns>true if a packet was sent, false if not</returns>
         public bool SendPacket(LLClientView client)
         {
-            // If we've hit the end of the send or if the client set -1, return false.  
+            // If we've hit the end of the send or if the client set -1, return false.
             if (CurrentPacket > StopPacket || StopPacket == -1)
                 return false;
 
@@ -564,7 +564,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    
+
                     // Send first packet
                     byte[] firstImageData = new byte[FIRST_IMAGE_PACKET_SIZE];
                     try { Buffer.BlockCopy(m_asset_ref.Data, 0, firstImageData, 0, FIRST_IMAGE_PACKET_SIZE); }
@@ -585,7 +585,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // figure out if we're on the last packet, if so, use the last packet size.  If not, use 1000.
             // we know that the total image size is greater then 1000 if we're here
             int imagePacketSize = (CurrentPacket == (TexturePacketCount() ) ) ? LastPacketSize() : IMAGE_PACKET_SIZE;
-            
+
             //if (imagePacketSize > 0)
             //    imagePacketSize = IMAGE_PACKET_SIZE;
             //if (imagePacketSize != 1000)
@@ -611,7 +611,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             try { Buffer.BlockCopy(m_asset_ref.Data, CurrentBytePosition(), imageData, 0, imagePacketSize); }
             catch (Exception e)
             {
-                Console.WriteLine(String.Format("Err: srcLen:{0}, BytePos:{1}, desLen:{2}, pktsize:{3}, currpak:{4}, stoppak:{5}, totalpak:{6}", m_asset_ref.Data.Length, CurrentBytePosition(), 
+                Console.WriteLine(String.Format("Err: srcLen:{0}, BytePos:{1}, desLen:{2}, pktsize:{3}, currpak:{4}, stoppak:{5}, totalpak:{6}", m_asset_ref.Data.Length, CurrentBytePosition(),
                     imageData.Length, imagePacketSize, CurrentPacket,StopPacket,TexturePacketCount()));
                 Console.WriteLine(e.ToString());
                 //m_log.Error("Texture data copy failed for " + m_asset_ref.FullID.ToString());
@@ -622,7 +622,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Send next packet to the client
             client.SendImageNextPart((ushort)(CurrentPacket - 1), requestedUUID, imageData);
-            
+
             ++CurrentPacket;
 
             if (atEnd)
@@ -630,7 +630,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return true;
         }
-        
+
     }
 
     /// <summary>
@@ -676,7 +676,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public static Prio<D> operator -(Prio<D> tp, int delta)
         {
-            if (tp.priority - delta < 0) 
+            if (tp.priority - delta < 0)
                 return new Prio<D>(tp.data, tp.priority - delta);
             else
                 return new Prio<D>(tp.data, 0);

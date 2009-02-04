@@ -231,21 +231,21 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
                 // Create a new asset for user
                 AssetBase asset = new AssetBase();
-                asset.FullID = UUID.Random();
+                asset.Metadata.FullID = UUID.Random();
                 asset.Data = assetData;
-                asset.Name = "DynamicImage" + Util.RandomClass.Next(1, 10000);
-                asset.Type = 0;
-                asset.Description = "dynamic image";
-                asset.Local = false;
-                asset.Temporary = true;
+                asset.Metadata.Name = "DynamicImage" + Util.RandomClass.Next(1, 10000);
+                asset.Metadata.Type = 0;
+                asset.Metadata.Description = "dynamic image";
+                asset.Metadata.Local = false;
+                asset.Metadata.Temporary = true;
                 scene.AssetCache.AddAsset(asset);
 
-                LastAssetID = asset.FullID;
+                LastAssetID = asset.Metadata.FullID;
 
                 IJ2KDecoder cacheLayerDecode = scene.RequestModuleInterface<IJ2KDecoder>();
                 if (cacheLayerDecode != null)
                 {
-                    cacheLayerDecode.syncdecode(asset.FullID, asset.Data);
+                    cacheLayerDecode.syncdecode(asset.Metadata.FullID, asset.Data);
                 }
                 cacheLayerDecode = null;
 
@@ -256,7 +256,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 UUID oldID = tmptex.DefaultTexture.TextureID;
                 scene.AssetCache.ExpireAsset(oldID);
 
-                tmptex.DefaultTexture.TextureID = asset.FullID;
+                tmptex.DefaultTexture.TextureID = asset.Metadata.FullID;
                 // I'm pretty sure we always want to force this to true
                 tmptex.DefaultTexture.Fullbright = true;
 
@@ -287,7 +287,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                         try
                         {
                             result = OpenJPEG.EncodeFromImage(joint, true);
-                        } 
+                        }
                         catch (Exception)
                         {
                             Console.WriteLine(

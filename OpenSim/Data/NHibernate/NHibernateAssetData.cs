@@ -69,7 +69,7 @@ namespace OpenSim.Data.NHibernate
 
         private void Save(AssetBase asset)
         {
-            AssetBase temp = (AssetBase)manager.Load(typeof(AssetBase), asset.FullID);
+            AssetBase temp = (AssetBase)manager.Load(typeof(AssetBase), asset.Metadata.FullID);
             if (temp == null)
             {
                 manager.Save(asset);
@@ -78,13 +78,13 @@ namespace OpenSim.Data.NHibernate
 
         override public void CreateAsset(AssetBase asset)
         {
-            m_log.InfoFormat("[NHIBERNATE] inserting asset {0}", asset.FullID);
+            m_log.InfoFormat("[NHIBERNATE] inserting asset {0}", asset.Metadata.FullID);
             Save(asset);
         }
 
         override public void UpdateAsset(AssetBase asset)
         {
-            m_log.InfoFormat("[NHIBERNATE] updating asset {0}", asset.FullID);
+            m_log.InfoFormat("[NHIBERNATE] updating asset {0}", asset.Metadata.FullID);
             manager.Update(asset);
         }
 

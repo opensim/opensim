@@ -132,12 +132,12 @@ namespace OpenSim.Data.MSSQL
                     {
                         AssetBase asset = new AssetBase();
                         // Region Main
-                        asset.FullID = new UUID((string)reader["id"]);
-                        asset.Name = (string)reader["name"];
-                        asset.Description = (string)reader["description"];
-                        asset.Type = Convert.ToSByte(reader["assetType"]);
-                        asset.Local = Convert.ToBoolean(reader["local"]);
-                        asset.Temporary = Convert.ToBoolean(reader["temporary"]);
+                        asset.Metadata.FullID = new UUID((string)reader["id"]);
+                        asset.Metadata.Name = (string)reader["name"];
+                        asset.Metadata.Description = (string)reader["description"];
+                        asset.Metadata.Type = Convert.ToSByte(reader["assetType"]);
+                        asset.Metadata.Local = Convert.ToBoolean(reader["local"]);
+                        asset.Metadata.Temporary = Convert.ToBoolean(reader["temporary"]);
                         asset.Data = (byte[])reader["data"];
                         return asset;
                     }
@@ -152,7 +152,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="asset">the asset</param>
         override public void CreateAsset(AssetBase asset)
         {
-            if (ExistsAsset(asset.FullID))
+            if (ExistsAsset(asset.Metadata.FullID))
             {
                 return;
             }
@@ -163,12 +163,12 @@ namespace OpenSim.Data.MSSQL
                     "(@id, @name, @description, @assetType, @local, @temporary, @create_time, @access_time, @data)"))
             {
                 int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
-                command.Parameters.Add(database.CreateParameter("id", asset.FullID));
-                command.Parameters.Add(database.CreateParameter("name", asset.Name));
-                command.Parameters.Add(database.CreateParameter("description", asset.Description));
-                command.Parameters.Add(database.CreateParameter("assetType", asset.Type));
-                command.Parameters.Add(database.CreateParameter("local", asset.Local));
-                command.Parameters.Add(database.CreateParameter("temporary", asset.Temporary));
+                command.Parameters.Add(database.CreateParameter("id", asset.Metadata.FullID));
+                command.Parameters.Add(database.CreateParameter("name", asset.Metadata.Name));
+                command.Parameters.Add(database.CreateParameter("description", asset.Metadata.Description));
+                command.Parameters.Add(database.CreateParameter("assetType", asset.Metadata.Type));
+                command.Parameters.Add(database.CreateParameter("local", asset.Metadata.Local));
+                command.Parameters.Add(database.CreateParameter("temporary", asset.Metadata.Temporary));
                 command.Parameters.Add(database.CreateParameter("access_time", now));
                 command.Parameters.Add(database.CreateParameter("create_time", now));
                 command.Parameters.Add(database.CreateParameter("data", asset.Data));
@@ -192,14 +192,14 @@ namespace OpenSim.Data.MSSQL
                                                 "data = @data where " +
                                                 "id = @keyId;"))
             {
-                command.Parameters.Add(database.CreateParameter("id", asset.FullID));
-                command.Parameters.Add(database.CreateParameter("name", asset.Name));
-                command.Parameters.Add(database.CreateParameter("description", asset.Description));
-                command.Parameters.Add(database.CreateParameter("assetType", asset.Type));
-                command.Parameters.Add(database.CreateParameter("local", asset.Local));
-                command.Parameters.Add(database.CreateParameter("temporary", asset.Temporary));
+                command.Parameters.Add(database.CreateParameter("id", asset.Metadata.FullID));
+                command.Parameters.Add(database.CreateParameter("name", asset.Metadata.Name));
+                command.Parameters.Add(database.CreateParameter("description", asset.Metadata.Description));
+                command.Parameters.Add(database.CreateParameter("assetType", asset.Metadata.Type));
+                command.Parameters.Add(database.CreateParameter("local", asset.Metadata.Local));
+                command.Parameters.Add(database.CreateParameter("temporary", asset.Metadata.Temporary));
                 command.Parameters.Add(database.CreateParameter("data", asset.Data));
-                command.Parameters.Add(database.CreateParameter("@keyId", asset.FullID));
+                command.Parameters.Add(database.CreateParameter("@keyId", asset.Metadata.FullID));
 
                 try
                 {

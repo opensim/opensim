@@ -37,8 +37,8 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ScriptEngine.Shared; 
-using OpenSim.Region.ScriptEngine.Shared.Api.Plugins; 
+using OpenSim.Region.ScriptEngine.Shared;
+using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
@@ -117,7 +117,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host = host;
             m_localID = localID;
             m_itemID = itemID;
-                        
+
             if (m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
                 m_OSFunctionsEnabled = true;
 
@@ -328,9 +328,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryHigh, "osRegionNotice");
 
             m_host.AddScriptLPS(1);
-            
+
             IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
-            
+
             if (dm != null)
                 dm.SendGeneralAlert(msg);
         }
@@ -776,7 +776,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return String.Empty;
             }
         }
-        
+
         public string osGetSimulatorVersion()
         {
             // High because it can be used to target attacks to known weaknesses
@@ -802,37 +802,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             World.ParcelMediaSetTime((float)time);
         }
-                            
+
         public Hashtable osParseJSON(string JSON)
         {
             CheckThreatLevel(ThreatLevel.None, "osParseJSON");
-            
+
             m_host.AddScriptLPS(1);
 
             // see http://www.json.org/ for more details on JSON
-            
+
             string currentKey=null;
             Stack objectStack = new Stack(); // objects in JSON can be nested so we need to keep a track of this
             Hashtable jsondata = new Hashtable(); // the hashtable to be returned
             int i=0;
             try
             {
-                
+
                 // iterate through the serialised stream of tokens and store at the right depth in the hashtable
                 // the top level hashtable may contain more nested hashtables within it each containing an objects representation
                 for (i=0;i<JSON.Length; i++)
                 {
-                    
-                    // Console.WriteLine(""+JSON[i]); 
+
+                    // Console.WriteLine(""+JSON[i]);
                     switch (JSON[i])
                     {
                         case '{':
                             // create hashtable and add it to the stack or array if we are populating one, we can have a lot of nested objects in JSON
-                            
-                            Hashtable currentObject = new Hashtable();  
+
+                            Hashtable currentObject = new Hashtable();
                             if (objectStack.Count==0) // the stack should only be empty for the first outer object
                             {
-                                
+
                                 objectStack.Push(jsondata);
                             }
                             else if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
@@ -842,12 +842,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 objectStack.Push(currentObject);
                             }
                             else
-                            { 
+                            {
                                 // add it to the parent hashtable
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,currentObject);
                                 objectStack.Push(currentObject);
-                            }  
-                            
+                            }
+
                             // clear the key
                             currentKey=null;
                         break;
@@ -856,25 +856,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             objectStack.Pop();
                         break;
                         case '"':// string boundary
-                            
+
                             string tokenValue="";
                             i++; // move to next char
-                            
+
                             // just loop through until the next quote mark storing the string, ignore quotes with pre-ceding \
                             while (JSON[i]!='"')
                             {
                                 tokenValue+=JSON[i];
-                                
+
                                 // handle escaped double quotes \"
                                 if (JSON[i]=='\\' && JSON[i+1]=='"')
-                                {    
+                                {
                                     tokenValue+=JSON[i+1];
-                                    i++;   
-                                }    
+                                    i++;
+                                }
                                 i++;
-                                    
+
                             }
-                            
+
                             // ok we've got a string, if we've got an array on the top of the stack then we store it
                             if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
                             {
@@ -884,14 +884,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 currentKey = tokenValue;
                             }
-                            else   
+                            else
                             {
                                 // we have a key so lets store this value
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,tokenValue);
                                 // now lets clear the key, we're done with it and moving on
                                 currentKey=null;
                             }
-                        
+
                         break;
                         case ':':// key : value separator
                         // just ignore
@@ -900,20 +900,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // just ignore
                         break;
                         case '[': // array start
-                            ArrayList currentArray = new ArrayList(); 
-                            
+                            ArrayList currentArray = new ArrayList();
+
                             if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
-                            {   
+                            {
                                 ((ArrayList)objectStack.Peek()).Add(currentArray);
                             }
-                            else   
-                            {  
+                            else
+                            {
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,currentArray);
                                 // clear the key
                                 currentKey=null;
                             }
                             objectStack.Push(currentArray);
-                        
+
                         break;
                         case ',':// seperator
                             // just ignore
@@ -923,24 +923,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             objectStack.Pop();
                         break;
                         case 't': // we've found a character start not in quotes, it must be a boolean true
-                        
+
                             if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
                             {
                                 ((ArrayList)objectStack.Peek()).Add(true);
                             }
                             else
-                            { 
+                            {
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,true);
                                 currentKey=null;
                             }
-                            
+
                             //advance the counter to the letter 'e'
                             i = i+3;
                         break;
                         case 'f': // we've found a character start not in quotes, it must be a boolean false
-                            
+
                             if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
-                            { 
+                            {
                                 ((ArrayList)objectStack.Peek()).Add(false);
                             }
                             else
@@ -960,53 +960,53 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         default:
                             // ok here we're catching all numeric types int,double,long we might want to spit these up mr accurately
                             // but for now we'll just do them as strings
-                            
+
                             string numberValue="";
-                            
+
                             // just loop through until the next known marker quote mark storing the string
                             while (JSON[i] != '"' && JSON[i] != ',' && JSON[i] != ']' && JSON[i] != '}' && JSON[i] != ' ')
                             {
                                 numberValue+=""+JSON[i++];
                             }
-                            
+
                             i--; // we want to process this caracter that marked the end of this string in the main loop
-                            
+
                             // ok we've got a string, if we've got an array on the top of the stack then we store it
                             if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
                             {
                                 ((ArrayList)objectStack.Peek()).Add(numberValue);
                             }
-                            else   
+                            else
                             {
                                 // we have a key so lets store this value
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,numberValue);
                                 // now lets clear the key, we're done with it and moving on
                                 currentKey=null;
                             }
-                                                    
+
                         break;
-                    }                                                                              
-                }                
+                    }
+                }
             }
             catch(Exception)
             {
                 OSSLError("osParseJSON: The JSON string is not valid " + JSON) ;
             }
-            
-            return jsondata;                        
-        }     
-        
+
+            return jsondata;
+        }
+
         // send a message to to object identified by the given UUID, a script in the object must implement the dataserver function
         // the dataserver function is passed the ID of the calling function and a string message
         public void osMessageObject(LSL_Key objectUUID, string message)
         {
             CheckThreatLevel(ThreatLevel.Low, "osMessageObject");
             m_host.AddScriptLPS(1);
-            
+
             object[] resobj = new object[] { new LSL_Types.LSLString(m_host.UUID.ToString()), new LSL_Types.LSLString(message) };
-            
+
             SceneObjectPart sceneOP = World.GetSceneObjectPart(new UUID(objectUUID));
-            
+
             m_ScriptEngine.PostObjectEvent(
                 sceneOP.LocalId, new EventParams(
                     "dataserver", resobj, new DetectParams[0]));
@@ -1024,10 +1024,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // Create new asset
             AssetBase asset = new AssetBase();
-            asset.Name = notecardName;
-            asset.Description = "Script Generated Notecard";
-            asset.Type = 7;
-            asset.FullID = UUID.Random();
+            asset.Metadata.Name = notecardName;
+            asset.Metadata.Description = "Script Generated Notecard";
+            asset.Metadata.Type = 7;
+            asset.Metadata.FullID = UUID.Random();
             string notecardData = "";
 
             for (int i = 0; i < contents.Length; i++) {
@@ -1035,7 +1035,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             int textLength = notecardData.Length;
-            notecardData = "Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length " 
+            notecardData = "Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length "
             + textLength.ToString() + "\n" + notecardData + "}\n";
 
             asset.Data = Encoding.ASCII.GetBytes(notecardData);
@@ -1047,8 +1047,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             taskItem.ResetIDs(m_host.UUID);
             taskItem.ParentID = m_host.UUID;
             taskItem.CreationDate = (uint)Util.UnixTimeSinceEpoch();
-            taskItem.Name = asset.Name;
-            taskItem.Description = asset.Description;
+            taskItem.Name = asset.Metadata.Name;
+            taskItem.Description = asset.Metadata.Description;
             taskItem.Type = 7;
             taskItem.InvType = 7;
             taskItem.OwnerID = m_host.OwnerID;
@@ -1062,7 +1062,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             taskItem.Flags = 0;
             taskItem.PermsGranter = UUID.Zero;
             taskItem.PermsMask = 0;
-            taskItem.AssetID = asset.FullID;
+            taskItem.AssetID = asset.Metadata.FullID;
 
             m_host.Inventory.AddInventoryItem(taskItem, false);
         }

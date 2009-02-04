@@ -353,7 +353,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 default :
                     Rest.Log.WarnFormat("{0} Method {1} not supported for {2}",
                                         MsgId, rdata.method, rdata.path);
-                    rdata.Fail(Rest.HttpStatusCodeMethodNotAllowed, 
+                    rdata.Fail(Rest.HttpStatusCodeMethodNotAllowed,
                                String.Format("{0} not supported", rdata.method));
                     break;
             }
@@ -488,12 +488,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     foreach (AssetBase asset in entity.Assets)
                     {
                         Rest.Log.DebugFormat("{0} Rest asset: {1} {2} {3}",
-                                             MsgId, asset.ID, asset.Type, asset.Name);
+                                             MsgId, asset.Metadata.ID, asset.Metadata.Type, asset.Metadata.Name);
                         Rest.AssetServices.AddAsset(asset);
 
                         created = true;
                         rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>",
-                                        asset.Name, asset.ID));
+                                        asset.Metadata.Name, asset.Metadata.ID));
 
                         if (Rest.DEBUG && Rest.DumpAsset)
                         {
@@ -691,14 +691,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 foreach (AssetBase asset in entity.Assets)
                 {
                     Rest.Log.DebugFormat("{0} Rest asset: {1} {2} {3}",
-                                         MsgId, asset.ID, asset.Type, asset.Name);
+                                         MsgId, asset.Metadata.ID, asset.Metadata.Type, asset.Metadata.Name);
 
                     // The asset was validated during the collection process
 
                     Rest.AssetServices.AddAsset(asset);
 
                     created = true;
-                    rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Name, asset.ID));
+                    rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Metadata.Name, asset.Metadata.ID));
 
                     if (Rest.DEBUG && Rest.DumpAsset)
                     {
@@ -1083,7 +1083,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             Rest.Log.DebugFormat("{0} {1}: Resource {2} not found",
                                  MsgId, rdata.method, rdata.path);
-            rdata.Fail(Rest.HttpStatusCodeNotFound, 
+            rdata.Fail(Rest.HttpStatusCodeNotFound,
                         String.Format("resource {0}:{1} not found", rdata.method, rdata.path));
 
             return null; /* Never reached */
@@ -1324,7 +1324,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             rdata.writer.WriteAttributeString("everyone", String.Empty, i.EveryOnePermissions.ToString("X"));
             rdata.writer.WriteAttributeString("base", String.Empty, i.BasePermissions.ToString("X"));
             rdata.writer.WriteEndElement();
-            
+
             rdata.writer.WriteElementString("Asset", i.AssetID.ToString());
 
             rdata.writer.WriteEndElement();
@@ -1458,7 +1458,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                             case XmlNodeType.Element:
                                 Rest.Log.DebugFormat("{0} StartElement: <{1}>",
                                                      MsgId, ic.xml.Name);
-                            
+
                                 switch (ic.xml.Name)
                                 {
                                     case "Folder":
@@ -1486,7 +1486,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                                              MsgId, ic.xml.Name);
                                         break;
                                 }
-                            
+
                                 // This stinks, but the ReadElement call above not only reads
                                 // the imbedded data, but also consumes the end tag for Asset
                                 // and moves the element pointer on to the containing Item's
@@ -1498,7 +1498,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                     Validate(ic);
                                 }
                                 break;
-                            
+
                             case XmlNodeType.EndElement :
                                 switch (ic.xml.Name)
                                 {
@@ -1526,7 +1526,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                         break;
                                     }
                                 break;
-                            
+
                             default:
                                 Rest.Log.DebugFormat("{0} Ignoring: <{1}>:<{2}>",
                                                      MsgId, ic.xml.NodeType, ic.xml.Value);
@@ -1868,7 +1868,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // only if the size is non-zero.
 
             else
-            {                
+            {
                 AssetBase asset = null;
                 string b64string = null;
 
@@ -1884,10 +1884,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 asset = new AssetBase(uuid, name);
 
-                asset.Description = desc;
-                asset.Type        = type; // type == 0 == texture
-                asset.Local       = local;
-                asset.Temporary   = temp;
+                asset.Metadata.Description = desc;
+                asset.Metadata.Type        = type; // type == 0 == texture
+                asset.Metadata.Local       = local;
+                asset.Metadata.Temporary   = temp;
 
                 b64string         = ic.xml.ReadElementContentAsString();
 
@@ -1911,8 +1911,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 {
                     ic.Item.AssetID = uuid;
                 }
-                
-                ic.Push(asset);                
+
+                ic.Push(asset);
             }
         }
 
@@ -2039,10 +2039,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (ic.Asset != null)
             {
-                if (ic.Asset.Name == String.Empty)
-                    ic.Asset.Name = ic.Item.Name;
-                if (ic.Asset.Description == String.Empty)
-                    ic.Asset.Description = ic.Item.Description;
+                if (ic.Asset.Metadata.Name == String.Empty)
+                    ic.Asset.Metadata.Name = ic.Item.Name;
+                if (ic.Asset.Metadata.Description == String.Empty)
+                    ic.Asset.Metadata.Description = ic.Item.Description;
             }
 
             // Assign permissions
@@ -2139,7 +2139,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 try
                 {
                     ic.Asset.Data = OpenJPEG.EncodeFromImage(temp, true);
-                } 
+                }
                 catch (DllNotFoundException)
                 {
                     Rest.Log.ErrorFormat("OpenJpeg is not installed correctly on this system.   Asset Data is emtpy for {0}", ic.Item.Name);
@@ -2201,7 +2201,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             /// <summary>
             /// This is the callback method required by the inventory watchdog. The
-            /// requestor issues an inventory request and then blocks until the 
+            /// requestor issues an inventory request and then blocks until the
             /// request completes, or this method signals the monitor.
             /// </summary>
 

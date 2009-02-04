@@ -37,13 +37,13 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Estate
 {
-    
+
     public class EstateTerrainXferHandler
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private AssetBase m_asset;
-        
+
         public delegate void TerrainUploadComplete(string name, byte[] filedata, IClientAPI remoteClient);
 
         public event TerrainUploadComplete TerrainUploadDone;
@@ -52,21 +52,21 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         //private string m_name = String.Empty;
         //private UUID TransactionID = UUID.Zero;
         private sbyte type = 0;
-        
+
         public ulong mXferID;
         private TerrainUploadComplete handlerTerrainUploadDone;
 
         public EstateTerrainXferHandler(IClientAPI pRemoteClient, string pClientFilename)
         {
-            
+
             m_asset = new AssetBase();
-            m_asset.FullID = UUID.Zero;
-            m_asset.Type = type;
+            m_asset.Metadata.FullID = UUID.Zero;
+            m_asset.Metadata.Type = type;
             m_asset.Data = new byte[0];
-            m_asset.Name = pClientFilename;
-            m_asset.Description = "empty";
-            m_asset.Local = true;
-            m_asset.Temporary = true;
+            m_asset.Metadata.Name = pClientFilename;
+            m_asset.Metadata.Description = "empty";
+            m_asset.Metadata.Local = true;
+            m_asset.Metadata.Temporary = true;
 
         }
 
@@ -78,7 +78,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         public void RequestStartXfer(IClientAPI pRemoteClient)
         {
             mXferID = Util.GetNextXferID();
-            pRemoteClient.SendXferRequest(mXferID, m_asset.Type, m_asset.FullID, 0, Utils.StringToBytes(m_asset.Name));
+            pRemoteClient.SendXferRequest(mXferID, m_asset.Metadata.Type, m_asset.Metadata.FullID, 0, Utils.StringToBytes(m_asset.Metadata.Name));
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         /// </summary>
         /// <param name="xferID"></param>
         /// <param name="packetID"></param>
-        /// <param name="data"></param>       
+        /// <param name="data"></param>
         public void XferReceive(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data)
         {
             if (mXferID == xferID)
@@ -110,7 +110,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 if ((packetID & 0x80000000) != 0)
                 {
                     SendCompleteMessage(remoteClient);
-                    
+
                 }
             }
         }
@@ -120,7 +120,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             handlerTerrainUploadDone = TerrainUploadDone;
             if (handlerTerrainUploadDone != null)
             {
-                handlerTerrainUploadDone(m_asset.Name,m_asset.Data, remoteClient);
+                handlerTerrainUploadDone(m_asset.Metadata.Name, m_asset.Data, remoteClient);
             }
         }
     }

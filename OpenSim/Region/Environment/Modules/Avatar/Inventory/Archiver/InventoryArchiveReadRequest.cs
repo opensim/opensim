@@ -46,7 +46,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
     public class InventoryArchiveReadRequest
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         protected Scene scene;
         protected TarArchiveReader archive;
         private static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
@@ -65,7 +65,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
             InventoryItemBase item = new InventoryItemBase();
             StringReader sr = new StringReader(contents);
             XmlTextReader reader = new XmlTextReader(sr);
-            
+
             if (contents.Equals("")) return null;
 
             reader.ReadStartElement("InventoryObject");
@@ -79,7 +79,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
             item.InvType = System.Convert.ToInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("CreatorUUID");
-            item.Creator = UUID.Parse(reader.ReadString());            
+            item.Creator = UUID.Parse(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("CreationDate");
             item.CreationDate = System.Convert.ToInt32(reader.ReadString());
@@ -94,7 +94,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
             }
             else
             {
-                reader.ReadStartElement("Description"); 
+                reader.ReadStartElement("Description");
                 item.Description = reader.ReadString();
                 reader.ReadEndElement();
             }
@@ -145,7 +145,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
             int successfulAssetRestores = 0;
             int failedAssetRestores = 0;
             int successfulItemRestores = 0;
-            
+
             UserProfileData userProfile = commsManager.UserService.GetUserProfile(firstName, lastName);
             if (null == userProfile)
             {
@@ -157,28 +157,28 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
             if (null == userInfo)
             {
                 m_log.ErrorFormat(
-                    "[CONSOLE]: Failed to find user info for {0} {1} {2}", 
+                    "[CONSOLE]: Failed to find user info for {0} {1} {2}",
                     firstName, lastName, userProfile.ID);
-                
+
                 return;
             }
-            
+
             if (!userInfo.HasReceivedInventory)
             {
                 m_log.ErrorFormat(
-                    "[CONSOLE]: Have not yet received inventory info for user {0} {1} {2}", 
+                    "[CONSOLE]: Have not yet received inventory info for user {0} {1} {2}",
                     firstName, lastName, userProfile.ID);
-                
+
                 return;
-            }                
-            
+            }
+
             InventoryFolderImpl inventoryFolder = userInfo.RootFolder.FindFolderByPath(invPath);
 
             if (null == inventoryFolder)
             {
                 // TODO: Later on, automatically create this folder if it does not exist
                 m_log.ErrorFormat("[ARCHIVER]: Inventory path {0} does not exist", invPath);
-                
+
                 return;
             }
 
@@ -202,17 +202,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
                 else
                 {
                     InventoryItemBase item = loadInvItem(filePath, m_asciiEncoding.GetString(data));
-                        
-                    if (item != null) 
+
+                    if (item != null)
                     {
                         item.Creator = userProfile.ID;
                         item.Owner = userProfile.ID;
-                        
+
                         // Reset folder ID to the one in which we want to load it
                         // TODO: Properly restore entire folder structure.  At the moment all items are dumped in this
                         // single folder no matter where in the saved folder structure they are.
                         item.Folder = inventoryFolder.ID;
-                        
+
                         userInfo.AddItem(item);
                         successfulItemRestores++;
                     }
@@ -258,7 +258,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
 
                 AssetBase asset = new AssetBase(new UUID(uuid), "RandomName");
 
-                asset.Type = assetType;
+                asset.Metadata.Type = assetType;
                 asset.Data = data;
 
                 scene.AssetCache.AddAsset(asset);

@@ -1,29 +1,29 @@
 /**
  * Copyright (c) 2008, Contributors. All rights reserved.
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
- * 
- * Redistribution and use in source and binary forms, with or without modification, 
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright notice, 
+ *
+ *     * Redistributions of source code must retain the above copyright notice,
  *       this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright notice, 
- *       this list of conditions and the following disclaimer in the documentation 
+ *     * Redistributions in binary form must reproduce the above copyright notice,
+ *       this list of conditions and the following disclaimer in the documentation
  *       and/or other materials provided with the distribution.
  *     * Neither the name of the Organizations nor the names of Individual
- *       Contributors may be used to endorse or promote products derived from 
+ *       Contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
- * THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE 
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+ * THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 
@@ -73,11 +73,11 @@ namespace OpenSim.Region.Communications.Hypergrid
         public BaseHttpServer httpServer;
 
         protected List<RegionInfo> m_regionsOnInstance = new List<RegionInfo>();
-        
+
         // Hyperlink regions are hyperlinks on the map
         protected List<RegionInfo> m_hyperlinkRegions = new List<RegionInfo>();
 
-        // Known regions are home regions of visiting foreign users. 
+        // Known regions are home regions of visiting foreign users.
         // They are not on the map as static hyperlinks. They are dynamic hyperlinks, they go away when
         // the visitor goes away. They are mapped to X=0 on the map.
         // This is key-ed on agent ID
@@ -326,13 +326,13 @@ namespace OpenSim.Region.Communications.Hypergrid
                 //Console.WriteLine("Size: " + m.PhysicalDimension.Height + "-" + m.PhysicalDimension.Width);
                 byte[] imageData = OpenJPEG.EncodeFromImage(m, true);
                 AssetBase ass = new AssetBase(UUID.Random(), "region " + info.RegionID.ToString());
-                info.RegionSettings.TerrainImageID = ass.FullID;
-                ass.Type = (int)AssetType.Texture;
-                ass.Temporary = false;
+                info.RegionSettings.TerrainImageID = ass.Metadata.FullID;
+                ass.Metadata.Type = (int)AssetType.Texture;
+                ass.Metadata.Temporary = false;
                 //imageData.CopyTo(ass.Data, 0);
                 ass.Data = imageData;
                 m_assetcache.AddAsset(ass);
-                
+
             }
             catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
@@ -342,7 +342,7 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         // A little ugly, since this code is exactly the same as OSG1's, and we're already
         // calling that for when the region in in grid mode... (for the grid regions)
-        // 
+        //
         public virtual LandData RequestLandData (ulong regionHandle, uint x, uint y)
         {
             m_log.DebugFormat("[HGrid]: requests land data in {0}, at {1}, {2}",
@@ -542,23 +542,23 @@ namespace OpenSim.Region.Communications.Hypergrid
                 m_log.Info("[HGrid]: InformRegionOfUser: Local grid region " + regInfo.regionSecret);
             }
 
-            string capsPath = agentData.CapsPath; 
+            string capsPath = agentData.CapsPath;
             Hashtable loginParams = new Hashtable();
-            loginParams["session_id"] = agentData.SessionID.ToString(); 
-            loginParams["secure_session_id"] = agentData.SecureSessionID.ToString(); 
+            loginParams["session_id"] = agentData.SessionID.ToString();
+            loginParams["secure_session_id"] = agentData.SecureSessionID.ToString();
 
             loginParams["firstname"] = agentData.firstname;
             loginParams["lastname"] = agentData.lastname;
 
-            loginParams["agent_id"] = agentData.AgentID.ToString(); 
-            loginParams["circuit_code"] = agentData.circuitcode.ToString(); 
-            loginParams["startpos_x"] = agentData.startpos.X.ToString(); 
-            loginParams["startpos_y"] = agentData.startpos.Y.ToString(); 
-            loginParams["startpos_z"] = agentData.startpos.Z.ToString(); 
+            loginParams["agent_id"] = agentData.AgentID.ToString();
+            loginParams["circuit_code"] = agentData.circuitcode.ToString();
+            loginParams["startpos_x"] = agentData.startpos.X.ToString();
+            loginParams["startpos_y"] = agentData.startpos.Y.ToString();
+            loginParams["startpos_z"] = agentData.startpos.Z.ToString();
             loginParams["caps_path"] = capsPath;
 
             CachedUserInfo u = m_userProfileCache.GetUserDetails(agentData.AgentID);
-            if (u != null && u.UserProfile != null) 
+            if (u != null && u.UserProfile != null)
             {
                 loginParams["region_uuid"] = u.UserProfile.HomeRegionID.ToString(); // This seems to be always Zero
                 //Console.WriteLine("  --------- Home Region UUID -------");
@@ -691,7 +691,7 @@ namespace OpenSim.Region.Communications.Hypergrid
 
             userData.UserServerURI = (string)requestData["userserver_id"];
             userData.UserAssetURI = (string)requestData["assetserver_id"];
-            userData.UserInventoryURI = (string)requestData["inventoryserver_id"]; 
+            userData.UserInventoryURI = (string)requestData["inventoryserver_id"];
 
             UUID rootID = UUID.Zero;
             UUID.TryParse((string)requestData["root_folder_id"], out rootID);
@@ -710,7 +710,7 @@ namespace OpenSim.Region.Communications.Hypergrid
 
             m_log.DebugFormat("[HGrid]: Told by user service to prepare for a connection from {0} {1} {2}",
                               userData.FirstName, userData.SurName, userData.ID);
-            m_log.Debug("[HGrid]: home_address: " + userData.UserHomeAddress + 
+            m_log.Debug("[HGrid]: home_address: " + userData.UserHomeAddress +
                        "; home_port: " + userData.UserHomePort + "; remoting: " + userData.UserHomeRemotingPort);
 
 
@@ -926,7 +926,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             return true;
         }
 
-        public virtual bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData) 
+        public virtual bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
         {
             // If we're here, it's because regionHandle is a remote, non-grided region
             m_log.Info("[HGrid]: InformRegionOfChildAgent for " + regionHandle);
@@ -934,7 +934,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             RegionInfo regInfo = GetHyperlinkRegion(regionHandle);
             if (regInfo == null)
                 return false;
-                
+
             //ulong realHandle = regionHandle;
 
             if (!SendUserInformation(regInfo, agentData))
@@ -1184,7 +1184,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         #region Methods triggered by calls from external instances
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
@@ -1192,7 +1192,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         public void AdjustUserInformation(AgentCircuitData agentData)
         {
             CachedUserInfo uinfo = m_userProfileCache.GetUserDetails(agentData.AgentID);
-            if ((uinfo != null) && (uinfo.UserProfile != null) && 
+            if ((uinfo != null) && (uinfo.UserProfile != null) &&
                 (IsLocalUser(uinfo) || !(uinfo.UserProfile is ForeignUserProfileData)))
             {
                 //Console.WriteLine("---------------> Local User!");
@@ -1232,7 +1232,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                 if (info.RegionHandle == ihandle)
                     return info;
             }
-            
+
             return null;
         }
 
@@ -1250,7 +1250,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                         ohandle = Convert.ToInt64(info.regionSecret);
                         m_log.Info("[HGrid] remote region " + ohandle);
                     }
-                    catch  
+                    catch
                     {
                         m_log.Error("[HGrid] Could not convert secret for " + ihandle + " (" + info.regionSecret + ")");
                     }

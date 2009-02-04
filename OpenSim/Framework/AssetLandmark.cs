@@ -40,10 +40,10 @@ namespace OpenSim.Framework
         public AssetLandmark(AssetBase a)
         {
             Data = a.Data;
-            FullID = a.FullID;
-            Type = a.Type;
-            Name = a.Name;
-            Description = a.Description;
+            Metadata.FullID = a.Metadata.FullID;
+            Metadata.Type = a.Metadata.Type;
+            Metadata.Name = a.Metadata.Name;
+            Metadata.Description = a.Metadata.Description;
             InternData();
         }
 

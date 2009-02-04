@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         }
 
         public void HandleXfer(ulong xferID, uint packetID, byte[] data)
-        {         
+        {
             lock (XferUploaders)
             {
                 foreach (AssetXferUploader uploader in XferUploaders.Values)
@@ -97,8 +97,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                                                                         wearableType, nextOwnerMask);
             }
         }
-        
-       
+
+
 
         /// <summary>
         /// Get an uploaded asset.  If the data is successfully retrieved, the transaction will be removed.
@@ -171,10 +171,10 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                         "[ASSET TRANSACTIONS]: Updating task item {0} in {1} with asset in transaction {2}",
                         item.Name, part.Name, transactionID);
 
-                    asset.Name = item.Name;
-                    asset.Description = item.Description;
-                    asset.Type = (sbyte)item.Type;
-                    item.AssetID = asset.FullID;
+                    asset.Metadata.Name = item.Name;
+                    asset.Metadata.Description = item.Description;
+                    asset.Metadata.Type = (sbyte)item.Type;
+                    item.AssetID = asset.Metadata.FullID;
 
                     Manager.MyScene.CommsManager.AssetCache.AddAsset(asset);
 
@@ -206,14 +206,14 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                         asset = GetTransactionAsset(transactionID);
                     }
 
-                    if (asset != null && asset.FullID == assetID)
+                    if (asset != null && asset.Metadata.FullID == assetID)
                     {
                         // Assets never get updated, new ones get created
-                        asset.FullID = UUID.Random();
-                        asset.Name = item.Name;
-                        asset.Description = item.Description;
-                        asset.Type = (sbyte)item.AssetType;
-                        item.AssetID = asset.FullID;
+                        asset.Metadata.FullID = UUID.Random();
+                        asset.Metadata.Name = item.Name;
+                        asset.Metadata.Description = item.Description;
+                        asset.Metadata.Type = (sbyte)item.AssetType;
+                        item.AssetID = asset.Metadata.FullID;
 
                         Manager.MyScene.CommsManager.AssetCache.AddAsset(asset);
                     }

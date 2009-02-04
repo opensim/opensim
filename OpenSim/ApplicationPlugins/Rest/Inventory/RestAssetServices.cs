@@ -195,7 +195,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         #endregion Interface
 
         /// <summary>
-        /// The only parameter we recognize is a UUID.If an asset with this identification is 
+        /// The only parameter we recognize is a UUID.If an asset with this identification is
         /// found, it's content, base-64 encoded, is returned to the client.
         /// </summary>
 
@@ -218,12 +218,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     rdata.writer.WriteStartElement(String.Empty,"Asset",String.Empty);
 
-                    rdata.writer.WriteAttributeString("id", asset.ID.ToString());
-                    rdata.writer.WriteAttributeString("name", asset.Name);
-                    rdata.writer.WriteAttributeString("desc", asset.Description);
-                    rdata.writer.WriteAttributeString("type", asset.Type.ToString());
-                    rdata.writer.WriteAttributeString("local", asset.Local.ToString());
-                    rdata.writer.WriteAttributeString("temporary", asset.Temporary.ToString());
+                    rdata.writer.WriteAttributeString("id", asset.Metadata.ID);
+                    rdata.writer.WriteAttributeString("name", asset.Metadata.Name);
+                    rdata.writer.WriteAttributeString("desc", asset.Metadata.Description);
+                    rdata.writer.WriteAttributeString("type", asset.Metadata.Type.ToString());
+                    rdata.writer.WriteAttributeString("local", asset.Metadata.Local.ToString());
+                    rdata.writer.WriteAttributeString("temporary", asset.Metadata.Temporary.ToString());
 
                     rdata.writer.WriteBase64(asset.Data,0,asset.Data.Length);
 
@@ -274,19 +274,19 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 modified = (asset != null);
                 created  = !modified;
 
-                asset             = new AssetBase();
-                asset.FullID      = uuid;
-                asset.Name        = xml.GetAttribute("name");
-                asset.Description = xml.GetAttribute("desc");
-                asset.Type        = SByte.Parse(xml.GetAttribute("type"));
-                asset.Local       = Int32.Parse(xml.GetAttribute("local")) != 0;
-                asset.Temporary   = Int32.Parse(xml.GetAttribute("temporary")) != 0;
-                asset.Data        = Convert.FromBase64String(xml.ReadElementContentAsString("Asset", ""));
+                asset                      = new AssetBase();
+                asset.Metadata.FullID      = uuid;
+                asset.Metadata.Name        = xml.GetAttribute("name");
+                asset.Metadata.Description = xml.GetAttribute("desc");
+                asset.Metadata.Type        = SByte.Parse(xml.GetAttribute("type"));
+                asset.Metadata.Local       = Int32.Parse(xml.GetAttribute("local")) != 0;
+                asset.Metadata.Temporary   = Int32.Parse(xml.GetAttribute("temporary")) != 0;
+                asset.Data                 = Convert.FromBase64String(xml.ReadElementContentAsString("Asset", ""));
 
-                if (asset.ID != rdata.Parameters[0])
+                if (asset.Metadata.ID != rdata.Parameters[0])
                 {
-                    Rest.Log.WarnFormat("{0} URI and payload disagree on UUID U:{1} vs P:{2}", 
-                                        MsgId, rdata.Parameters[0], asset.ID);
+                    Rest.Log.WarnFormat("{0} URI and payload disagree on UUID U:{1} vs P:{2}",
+                                        MsgId, rdata.Parameters[0], asset.Metadata.ID);
                 }
 
                 Rest.AssetServices.AddAsset(asset);
@@ -300,14 +300,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (created)
             {
-                rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
+                rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Metadata.Name, asset.Metadata.FullID));
                 rdata.Complete(Rest.HttpStatusCodeCreated);
             }
             else
             {
                 if (modified)
                 {
-                    rdata.appendStatus(String.Format("<p> Modified asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
+                    rdata.appendStatus(String.Format("<p> Modified asset {0}, UUID {1} <p>", asset.Metadata.Name, asset.Metadata.FullID));
                     rdata.Complete(Rest.HttpStatusCodeOK);
                 }
                 else
@@ -354,27 +354,27 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             modified = (asset != null);
             created  = !modified;
 
-            asset             = new AssetBase();
-            asset.FullID      = uuid;
-            asset.Name        = xml.GetAttribute("name");
-            asset.Description = xml.GetAttribute("desc");
-            asset.Type        = SByte.Parse(xml.GetAttribute("type"));
-            asset.Local       = Int32.Parse(xml.GetAttribute("local")) != 0;
-            asset.Temporary   = Int32.Parse(xml.GetAttribute("temporary")) != 0;
-            asset.Data        = Convert.FromBase64String(xml.ReadElementContentAsString("Asset", ""));
+            asset                      = new AssetBase();
+            asset.Metadata.FullID      = uuid;
+            asset.Metadata.Name        = xml.GetAttribute("name");
+            asset.Metadata.Description = xml.GetAttribute("desc");
+            asset.Metadata.Type        = SByte.Parse(xml.GetAttribute("type"));
+            asset.Metadata.Local       = Int32.Parse(xml.GetAttribute("local")) != 0;
+            asset.Metadata.Temporary   = Int32.Parse(xml.GetAttribute("temporary")) != 0;
+            asset.Data                 = Convert.FromBase64String(xml.ReadElementContentAsString("Asset", ""));
 
             Rest.AssetServices.AddAsset(asset);
 
             if (created)
             {
-                rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
+                rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Metadata.Name, asset.Metadata.FullID));
                 rdata.Complete(Rest.HttpStatusCodeCreated);
             }
             else
             {
                 if (modified)
                 {
-                    rdata.appendStatus(String.Format("<p> Modified asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
+                    rdata.appendStatus(String.Format("<p> Modified asset {0}, UUID {1} <p>", asset.Metadata.Name, asset.Metadata.FullID));
                     rdata.Complete(Rest.HttpStatusCodeOK);
                 }
                 else
