@@ -495,6 +495,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                     m_commander.ProcessConsoleCommand("help", new string[0]);
                     return;
                 }
+                
                 string[] tmpArgs = new string[args.Length - 2];
                 int i;
                 for (i = 2; i < args.Length; i++)

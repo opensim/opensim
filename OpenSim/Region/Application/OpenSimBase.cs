@@ -269,8 +269,12 @@ namespace OpenSim
         /// </summary>
         protected virtual void InitialiseAssetCache()
         {
+            // If the assetcache is set to default, then use the grid asset service in grid mode and the local database
+            // based asset service in standalone mode
+            
             IAssetServer assetServer;
-            if (m_configSettings.AssetStorage == "grid")
+            if (m_configSettings.AssetStorage == "grid" 
+                || (m_configSettings.AssetStorage == "default" && false == m_configSettings.Standalone))
             {
                 assetServer = new GridAssetClient(m_networkServersInfo.AssetURL);
             }

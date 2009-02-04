@@ -200,7 +200,7 @@ namespace OpenSim
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
                 config.Set("DefaultScriptEngine", "XEngine");
-                config.Set("asset_database", "local");
+                config.Set("asset_database", "default");
                 config.Set("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
                 // life doesn't really work without this
                 config.Set("EventQueue", true);

@@ -91,8 +91,17 @@
     ; If you're running a region server connecting to a grid, you probably want grid mode, since this will use the
     ; grid asset server.  If you select local in grid mode, then you will use a database as specified in asset_plugin to store assets
     ; locally.  This will mean you won't be able to take items using your assets to other people's regions.
-    asset_database = "local"
-    ;asset_database = "grid"
+    
+    ; asset_database can be default, local or grid.  This controls where assets (textures, scripts, etc.) are stored for your region
+    ; 
+    ; If set to default, then
+    ;   In standalone mode the local database based asset service will be used
+    ;   In grid mode the grid asset service will be used for asset storage
+    ;   This is probably the setting that you want.
+    ;
+    ; If set to local then the local database based asset service will be used in standalone and grid modes
+    ; If set to grid then the grid based asset service will be used in standalone and grid modes
+    asset_database = "default"   
 
     ; Persistence of changed objects happens during regular sweeps. The following control that behaviour to
     ; prevent frequently changing objects from heavily loading the region data store.

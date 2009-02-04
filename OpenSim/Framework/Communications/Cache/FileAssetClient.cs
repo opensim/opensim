@@ -43,6 +43,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
             m_dir = dir;
         }
+        
         public override void StoreAsset(AssetBase asset)
         {
             byte[] idBytes = asset.Metadata.FullID.Guid.ToByteArray();
