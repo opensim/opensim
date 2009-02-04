@@ -2911,7 +2911,9 @@ namespace OpenSim.Region.Environment.Scenes
 //            m_log.DebugFormat(
 //                "[SCENE]: Incoming child agent update for {0} in {1}", cAgentData.AgentID, RegionInfo.RegionName);
 
-            ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
+            // We have to wait until the viewer contacts this region after receiving EAC.
+            // That calls AddNewClient, which finally creates the ScenePresence
+            ScenePresence childAgentUpdate = WaitGetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
                 childAgentUpdate.ChildAgentDataUpdate(cAgentData);
@@ -2945,6 +2947,16 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             return false;
+        }
+
+        protected virtual ScenePresence WaitGetScenePresence(UUID agentID)
+        {
+            int ntimes = 10;
+            ScenePresence childAgentUpdate = null;
+            while ((childAgentUpdate = GetScenePresence(agentID)) == null && (ntimes-- > 0))
+                Thread.Sleep(1000);
+            return childAgentUpdate;
+
         }
 
         public virtual bool IncomingReleaseAgent(UUID id)

@@ -1000,7 +1000,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void CompleteMovement()
         {
-            //Console.WriteLine("\n CompleteMovement \n");
             Vector3 look = Velocity;
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
             {
@@ -1017,7 +1016,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
                 {
-                    //m_log.DebugFormat("Found callback URI {0}", m_callbackURI);
+                    m_log.DebugFormat("[SCENE PRESENCE]: Releasing agent in URI {0}", m_callbackURI);
                     Scene.SendReleaseAgent(m_rootRegionHandle, UUID, m_callbackURI);
                     m_callbackURI = null;
                 }
