@@ -728,7 +728,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (!entity.IsDeleted && entity is SceneObjectGroup && ((SceneObjectGroup)entity).HasGroupChanged)
                 {
-                    ((SceneObjectGroup)entity).ProcessBackup(m_storageManager.DataStore);
+                    ((SceneObjectGroup)entity).ProcessBackup(m_storageManager.DataStore, false);
                 }
             }
 
@@ -1049,6 +1049,14 @@ namespace OpenSim.Region.Environment.Scenes
                         tr.SendInstantMessage(msg, delegate(bool success) {} );
                 }
                 m_returns.Clear();
+            }
+        }
+
+        public void ForceSceneObjectBackup(SceneObjectGroup group)
+        {
+            if (group != null)
+            {
+                group.ProcessBackup(m_storageManager.DataStore, true);
             }
         }
 

@@ -1686,6 +1686,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             SceneObjectGroup grp = part.ParentGroup;
 
+            //force a database backup/update on this SceneObjectGroup
+            //So that we know the database is upto date, for when deleting the object from it
+            ForceSceneObjectBackup(grp);
+
             bool permissionToTake = false;
             bool permissionToDelete = false;
 

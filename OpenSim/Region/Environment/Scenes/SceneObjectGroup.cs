@@ -1222,7 +1222,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Processes backup.
         /// </summary>
         /// <param name="datastore"></param>
-        public void ProcessBackup(IRegionDataStore datastore)
+        public void ProcessBackup(IRegionDataStore datastore, bool forcedBackup)
         {
             if (!m_isBackedUp)
                 return;
@@ -1265,7 +1265,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (HasGroupChanged)
                 {
                     // don't backup while it's selected or you're asking for changes mid stream.
-                    if (isTimeToPersist())
+                    if ((isTimeToPersist()) || (forcedBackup))
                     {
                         m_log.DebugFormat(
                             "[SCENE]: Storing {0}, {1} in {2}",
