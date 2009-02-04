@@ -264,13 +264,6 @@ namespace OpenSim.Region.Environment.Scenes
             CurrentOrFirstScene.Heightmap.LoadFromXmlString(mapData);
         }
 
-        [Obsolete("TODO: Remove this warning by 0.7")]
-        public bool RunTerrainCmdOnCurrentScene(string[] cmdparams, ref string result)
-        {
-            m_log.Warn("DEPRECATED: The terrain engine has been replaced with a new terrain plugin module. Please type 'plugin terrain help' for new commands.");
-            return false;
-        }
-
         public void SendCommandToPluginModules(string[] cmdparams)
         {
             ForEachCurrentScene(delegate(Scene scene) { scene.SendCommandToPlugins(cmdparams); });
@@ -377,6 +370,7 @@ namespace OpenSim.Region.Environment.Scenes
                     return true;
                 }
             }
+            
             scene = null;
             return false;
         }
@@ -392,6 +386,7 @@ namespace OpenSim.Region.Environment.Scenes
                     return true;
                 }
             }
+            
             scene = null;
             return false;
         }
@@ -407,6 +402,7 @@ namespace OpenSim.Region.Environment.Scenes
                     return true;
                 }
             }
+            
             scene = null;
             return false;
         }
@@ -602,18 +598,18 @@ namespace OpenSim.Region.Environment.Scenes
             }
             #endregion
 
-            int entries_per_thread = (assetRequestList.Count/threads) + 1;
+            int entries_per_thread = (assetRequestList.Count / threads) + 1;
 
             UUID[] arrAssetRequestList = assetRequestList.ToArray();
 
             List<UUID[]> arrvalus = new List<UUID[]>();
 
             //split into separate arrays
-            for (int j=0;j<threads;j++)
+            for (int j = 0; j < threads; j++)
             {
                 List<UUID> val = new List<UUID>();
 
-                for (int k=j*entries_per_thread; k < ((j+1)* entries_per_thread);k++)
+                for (int k = j * entries_per_thread; k < ((j + 1) * entries_per_thread); k++)
                 {
                     if (k < arrAssetRequestList.Length)
                     {
@@ -624,7 +620,7 @@ namespace OpenSim.Region.Environment.Scenes
                 arrvalus.Add(val.ToArray());
             }
 
-            for (int l=0;l<arrvalus.Count;l++)
+            for (int l = 0; l < arrvalus.Count; l++)
             {
                 DecodeThreadContents threadworkItem = new DecodeThreadContents();
                 threadworkItem.sn = m_localScenes[0];
@@ -637,16 +633,14 @@ namespace OpenSim.Region.Environment.Scenes
                 threadworkItem.SetThread(decodethread);
 
                 decodethread.Priority = System.Threading.ThreadPriority.Lowest;
-                decodethread.Name = "J2kCacheDecodeThread_" + l+1;
+                decodethread.Name = "J2kCacheDecodeThread_" + l + 1;
                 ThreadTracker.Add(decodethread);
                 decodethread.Start();
                 
             }
-
-
-
         }
     }
+    
     public class DecodeThreadContents
     {
         public Scene sn;
@@ -671,6 +665,5 @@ namespace OpenSim.Region.Environment.Scenes
         {
             thisthread = thr;
         }
-
     }
 }

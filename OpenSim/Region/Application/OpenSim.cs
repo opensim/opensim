@@ -1085,14 +1085,16 @@ namespace OpenSim
 
         /// <summary>
         /// Runs the best matching plugin command
-        ///
-        /// returns true if a match was found, false otherwise.
         /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="withParams"></param>
+        /// <returns>true if a match was found, false otherwise</returns>
         public bool RunPluginCommands(string cmd, string[] withParams)
         {
             ConsolePluginCommand bestMatch = null;
             int bestLength = 0;
             String cmdWithParams = cmd + " " + String.Join(" ",withParams);
+            
             foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
             {
                 int matchLen = cmdinfo.matchLength(cmdWithParams);
@@ -1102,6 +1104,7 @@ namespace OpenSim
                     bestLength = matchLen;
                 }
             }
+            
             if (bestMatch == null) return false;
             bestMatch.Run(cmd,withParams);//.Substring(bestLength));
             return true;
