@@ -63,7 +63,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
                 
                 foreach (ICommand com in m_commands.Values)
                 {
-                    sb.AppendLine("* " + com.Name + " - " + com.Help);
+                    sb.AppendLine("* " + Name + " " + com.Name + " - " + com.Help);
                 }
                 
                 return sb.ToString();
