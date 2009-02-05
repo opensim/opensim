@@ -278,11 +278,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void RegisterModuleCommander(string name, ICommander commander)
+        public void RegisterModuleCommander(ICommander commander)
         {
             lock (m_moduleCommanders)
             {
-                m_moduleCommanders.Add(name, commander);
+                m_moduleCommanders.Add(commander.Name, commander);
             }
         }
 

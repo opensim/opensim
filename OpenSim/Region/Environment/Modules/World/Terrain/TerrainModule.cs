@@ -993,7 +993,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             m_commander.RegisterCommand("flip", flipCommand);
 
             // Add this to our scene so scripts can call these functions
-            m_scene.RegisterModuleCommander("Terrain", m_commander);
+            m_scene.RegisterModuleCommander(m_commander);
         }
 
         #endregion

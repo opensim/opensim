@@ -237,7 +237,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             debugCommand.AddArgument("enable_debug_perms", "true to enable debugging to console all perms", "Boolean");
 
             m_commander.RegisterCommand("debug", debugCommand);
-            m_scene.RegisterModuleCommander("CommanderPermissions", m_commander);
+            m_scene.RegisterModuleCommander(m_commander);
 
             m_scene.EventManager.OnPluginConsole += new EventManager.OnPluginConsoleDelegate(EventManager_OnPluginConsole);
         }

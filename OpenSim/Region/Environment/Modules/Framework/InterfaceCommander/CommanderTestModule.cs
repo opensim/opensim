@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
             m_commander.RegisterCommand("hello", testCommand);
 
             // Register me
-            m_scene.RegisterModuleCommander("commandertest", m_commander);
+            m_scene.RegisterModuleCommander(m_commander);
         }
 
         public void Close()

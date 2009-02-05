@@ -41,18 +41,36 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
     public class Commander : ICommander
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private Dictionary<string, ICommand> m_commands = new Dictionary<string, ICommand>();
+                
+        /// <value>
+        /// Used in runtime class generation
+        /// </summary>
+        private string m_generatedApiClassName;
+        
+        public string Name
+        {
+            get { return m_name; }
+        }
         private string m_name;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="name"></param>
         public Commander(string name)
         {
             m_name = name;
+            m_generatedApiClassName = m_name;
         }
 
+        /// <value>
+        /// Commands that this commander knows about
+        /// </value>
         public Dictionary<string, ICommand> Commands
         {
             get { return m_commands; }
         }
+        private Dictionary<string, ICommand> m_commands = new Dictionary<string, ICommand>();        
 
         #region ICommander Members
 
@@ -67,7 +85,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
         /// <returns>Returns C# source code to create a binding</returns>
         public string GenerateRuntimeAPI()
         {
-            string classSrc = "\n\tpublic class " + m_name + " {\n";
+            string classSrc = "\n\tpublic class " + m_generatedApiClassName + " {\n";
             foreach (ICommand com in m_commands.Values)
             {
                 classSrc += "\tpublic void " + EscapeRuntimeAPICommand(com.Name) + "( ";

@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-            scene.RegisterModuleCommander("Export", m_commander);
+            scene.RegisterModuleCommander(m_commander);
             scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
             scene.RegisterModuleInterface<IRegionSerialiserModule>(this);
 
