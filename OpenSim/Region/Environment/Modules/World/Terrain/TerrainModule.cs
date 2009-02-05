@@ -263,6 +263,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                             throw new TerrainException(String.Format("unable to load heightmap: parser {0} does not support loading", loader.Value));
                         }
                     }
+                    
                     CheckForTerrainUpdates();
                     m_log.Info("[TERRAIN]: File (" + filename + ") loaded successfully");
                     return;

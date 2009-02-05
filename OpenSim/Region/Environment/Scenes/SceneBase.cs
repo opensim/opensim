@@ -48,6 +48,30 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Fields
+        
+        /// <value>
+        /// All the region modules attached to this scene.
+        /// </value>
+        public Dictionary<string, IRegionModule> Modules
+        {
+            get { return m_modules; }
+        }
+        protected Dictionary<string, IRegionModule> m_modules = new Dictionary<string, IRegionModule>();
+
+        /// <value>
+        /// The module interfaces available from this scene.
+        /// </value>
+        protected Dictionary<Type, List<object> > ModuleInterfaces = new Dictionary<Type, List<object> >();
+
+        protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
+        protected Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();
+        
+        /// <value>
+        /// Registered classes that are capable of creating entities.
+        /// </value>
+        protected Dictionary<PCode, IEntityCreator> m_entityCreators = new Dictionary<PCode, IEntityCreator>();        
+
+        //API module interfaces        
 
         /// <summary>
         /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is
@@ -202,6 +226,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public virtual void Close()
         {
+            // Shut down all non shared modules.
+            foreach (IRegionModule module in Modules.Values)
+            {
+                if (!module.IsSharedModule)
+                {
+                    module.Close();
+                }
+            }
+            Modules.Clear();
+            
             try
             {
                 EventManager.TriggerShutdown();
@@ -228,15 +262,150 @@ namespace OpenSim.Region.Environment.Scenes
 
             return myID;
         }        
+        
+        #region Module Methods
 
-        public virtual T RequestModuleInterface<T>()
+        /// <summary>
+        /// Add a module to this scene.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="module"></param>
+        public void AddModule(string name, IRegionModule module)
         {
-            return default(T);
+            if (!Modules.ContainsKey(name))
+            {
+                Modules.Add(name, module);
+            }
         }
 
-        public virtual T[] RequestModuleInterfaces<T>()
+        public void RegisterModuleCommander(string name, ICommander commander)
         {
-            return new T[] { default(T) };
+            lock (m_moduleCommanders)
+            {
+                m_moduleCommanders.Add(name, commander);
+            }
         }
+
+        public ICommander GetCommander(string name)
+        {
+            lock (m_moduleCommanders)
+            {
+                return m_moduleCommanders[name];
+            }
+        }
+
+        public Dictionary<string, ICommander> GetCommanders()
+        {
+            return m_moduleCommanders;
+        }
+
+        /// <summary>
+        /// Register an interface to a region module.  This allows module methods to be called directly as
+        /// well as via events.  If there is already a module registered for this interface, it is not replaced
+        /// (is this the best behaviour?)
+        /// </summary>
+        /// <param name="mod"></param>
+        public void RegisterModuleInterface<M>(M mod)
+        {
+            if (!ModuleInterfaces.ContainsKey(typeof(M)))
+            {
+                List<Object> l = new List<Object>();
+                l.Add(mod);
+                ModuleInterfaces.Add(typeof(M), l);
+
+                if (mod is IEntityCreator)
+                {
+                    IEntityCreator entityCreator = (IEntityCreator)mod;
+                    foreach (PCode pcode in entityCreator.CreationCapabilities)
+                    {
+                        m_entityCreators[pcode] = entityCreator;
+                    }
+                }
+            }
+        }
+
+        public void StackModuleInterface<M>(M mod)
+        {
+            List<Object> l;
+            if (ModuleInterfaces.ContainsKey(typeof(M)))
+                l = ModuleInterfaces[typeof(M)];
+            else
+                l = new List<Object>();
+
+            if (l.Contains(mod))
+                return;
+
+            l.Add(mod);
+
+            if (mod is IEntityCreator)
+            {
+                IEntityCreator entityCreator = (IEntityCreator)mod;
+                foreach (PCode pcode in entityCreator.CreationCapabilities)
+                {
+                    m_entityCreators[pcode] = entityCreator;
+                }
+            }
+
+            ModuleInterfaces[typeof(M)] = l;
+        }
+
+        /// <summary>
+        /// For the given interface, retrieve the region module which implements it.
+        /// </summary>
+        /// <returns>null if there is no registered module implementing that interface</returns>
+        public T RequestModuleInterface<T>()
+        {
+            if (ModuleInterfaces.ContainsKey(typeof(T)))
+            {
+                return (T)ModuleInterfaces[typeof(T)][0];
+            }
+            else
+            {
+                return default(T);
+            }
+        }
+
+        /// <summary>
+        /// For the given interface, retrieve an array of region modules that implement it.
+        /// </summary>
+        /// <returns>an empty array if there are no registered modules implementing that interface</returns>
+        public T[] RequestModuleInterfaces<T>()
+        {
+            if (ModuleInterfaces.ContainsKey(typeof(T)))
+            {
+                List<T> ret = new List<T>();
+
+                foreach (Object o in ModuleInterfaces[typeof(T)])
+                    ret.Add((T)o);
+                return ret.ToArray();
+            }
+            else
+            {
+                return new T[] { default(T) };
+            }
+        }
+        
+        #endregion
+        
+        /// <summary>
+        /// Shows various details about the sim based on the parameters supplied by the console command in openSimMain.
+        /// </summary>
+        /// <param name="showParams">What to show</param>        
+        public virtual void Show(string[] showParams)
+        {
+            switch (showParams[0])
+            {
+                case "modules":
+                    m_log.Error("The currently loaded modules in " + RegionInfo.RegionName + " are:");
+                    foreach (IRegionModule module in Modules.Values)
+                    {
+                        if (!module.IsSharedModule)
+                        {
+                            m_log.Error("Region Module: " + module.Name);
+                        }
+                    }
+                    break;
+            }
+        }        
     }
 }

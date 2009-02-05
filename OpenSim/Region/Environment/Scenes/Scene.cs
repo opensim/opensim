@@ -113,25 +113,6 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_sceneGridService; }
         }
 
-        /// <value>
-        /// All the region modules attached to this scene.
-        /// </value>
-        public Dictionary<string, IRegionModule> Modules
-        {
-            get { return m_modules; }
-        }
-        protected Dictionary<string, IRegionModule> m_modules = new Dictionary<string, IRegionModule>();
-
-        /// <value>
-        /// The module interfaces available from this scene.
-        /// </value>
-        protected Dictionary<Type, List<object> > ModuleInterfaces = new Dictionary<Type, List<object> >();
-
-        protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
-        protected Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();
-
-        //API module interfaces
-
         public IXfer XferManager;
 
         protected IXMLRPC m_xmlrpcModule;
@@ -280,11 +261,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public int objectCapacity = 45000;
-
-        /// <value>
-        /// Registered classes that are capable of creating entities.
-        /// </value>
-        protected Dictionary<PCode, IEntityCreator> m_entityCreators = new Dictionary<PCode, IEntityCreator>();
 
         #endregion
 
@@ -736,16 +712,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             // De-register with region communications (events cleanup)
             UnRegisterRegionWithComms();
-
-            // Shut down all non shared modules.
-            foreach (IRegionModule module in Modules.Values)
-            {
-                if (!module.IsSharedModule)
-                {
-                    module.Close();
-                }
-            }
-            Modules.Clear();
 
             // call the base class Close method.
             base.Close();
@@ -1838,6 +1804,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Add an object into the scene that has come from storage
         /// </summary>
+        /// 
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup">
         /// If true, changes to the object will be reflected in its persisted data
@@ -3158,128 +3125,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        #region Module Methods
-
-        /// <summary>
-        /// Add a module to this scene.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="module"></param>
-        public void AddModule(string name, IRegionModule module)
-        {
-            if (!Modules.ContainsKey(name))
-            {
-                Modules.Add(name, module);
-            }
-        }
-
-        public void RegisterModuleCommander(string name, ICommander commander)
-        {
-            lock (m_moduleCommanders)
-            {
-                m_moduleCommanders.Add(name, commander);
-            }
-        }
-
-        public ICommander GetCommander(string name)
-        {
-            lock (m_moduleCommanders)
-            {
-                return m_moduleCommanders[name];
-            }
-        }
-
-        public Dictionary<string, ICommander> GetCommanders()
-        {
-            return m_moduleCommanders;
-        }
-
-        /// <summary>
-        /// Register an interface to a region module.  This allows module methods to be called directly as
-        /// well as via events.  If there is already a module registered for this interface, it is not replaced
-        /// (is this the best behaviour?)
-        /// </summary>
-        /// <param name="mod"></param>
-        public void RegisterModuleInterface<M>(M mod)
-        {
-            if (!ModuleInterfaces.ContainsKey(typeof(M)))
-            {
-                List<Object> l = new List<Object>();
-                l.Add(mod);
-                ModuleInterfaces.Add(typeof(M), l);
-
-                if (mod is IEntityCreator)
-                {
-                    IEntityCreator entityCreator = (IEntityCreator)mod;
-                    foreach (PCode pcode in entityCreator.CreationCapabilities)
-                    {
-                        m_entityCreators[pcode] = entityCreator;
-                    }
-                }
-            }
-        }
-
-        public void StackModuleInterface<M>(M mod)
-        {
-            List<Object> l;
-            if (ModuleInterfaces.ContainsKey(typeof(M)))
-                l = ModuleInterfaces[typeof(M)];
-            else
-                l = new List<Object>();
-
-            if (l.Contains(mod))
-                return;
-
-            l.Add(mod);
-
-            if (mod is IEntityCreator)
-            {
-                IEntityCreator entityCreator = (IEntityCreator)mod;
-                foreach (PCode pcode in entityCreator.CreationCapabilities)
-                {
-                    m_entityCreators[pcode] = entityCreator;
-                }
-            }
-
-            ModuleInterfaces[typeof(M)] = l;
-        }
-
-        /// <summary>
-        /// For the given interface, retrieve the region module which implements it.
-        /// </summary>
-        /// <returns>null if there is no registered module implementing that interface</returns>
-        public override T RequestModuleInterface<T>()
-        {
-            if (ModuleInterfaces.ContainsKey(typeof(T)))
-            {
-                return (T)ModuleInterfaces[typeof(T)][0];
-            }
-            else
-            {
-                return default(T);
-            }
-        }
-
-        /// <summary>
-        /// For the given interface, retrieve an array of region modules that implement it.
-        /// </summary>
-        /// <returns>an empty array if there are no registered modules implementing that interface</returns>
-        public override T[] RequestModuleInterfaces<T>()
-        {
-            if (ModuleInterfaces.ContainsKey(typeof(T)))
-            {
-                List<T> ret = new List<T>();
-
-                foreach (Object o in ModuleInterfaces[typeof(T)])
-                    ret.Add((T)o);
-                return ret.ToArray();
-            }
-            else
-            {
-                return new T[] { default(T) };
-            }
-        }
-
+        #region Other Methods
+        
         public void SetObjectCapacity(int objects)
         {
             // Region specific config overrides global
@@ -3293,7 +3140,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             objectCapacity = objects;
         }
-
+        
         public List<FriendListItem> GetFriendList(UUID avatarID)
         {
             return CommsManager.GetUserFriendList(avatarID);
@@ -3313,10 +3160,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return CommsManager.TriggerTerminateFriend(regionHandle, agentID, exFriendID);
         }
-
-        #endregion
-
-        #region Other Methods
 
         public virtual void StoreAddFriendship(UUID ownerID, UUID friendID, uint perms)
         {
@@ -3563,12 +3406,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        /// <summary>
-        /// Shows various details about the sim based on the parameters supplied by the console command in openSimMain.
-        /// </summary>
-        /// <param name="showParams">What to show</param>
-        public void Show(string[] showParams)
+        public override void Show(string[] showParams)
         {
+            base.Show(showParams);
+            
             switch (showParams[0])
             {
                 case "users":
@@ -3587,18 +3428,9 @@ namespace OpenSim.Region.Environment.Scenes
                                           "Unknown",
                                           RegionInfo.RegionName);
                     }
+                
                     break;
-                case "modules":
-                    m_log.Error("The currently loaded modules in " + RegionInfo.RegionName + " are:");
-                    foreach (IRegionModule module in Modules.Values)
-                    {
-                        if (!module.IsSharedModule)
-                        {
-                            m_log.Error("Region Module: " + module.Name);
-                        }
-                    }
-                    break;
-            }
+            }           
         }
 
         #region Script Handling Methods

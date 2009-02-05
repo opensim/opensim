@@ -52,7 +52,7 @@ using OpenSim.Region.Physics.Manager;
 namespace OpenSim
 {
     /// <summary>
-    /// Common OpenSim region service code
+    /// Common OpenSim simulator code
     /// </summary>
     public class OpenSimBase : RegionApplicationBase
     {
@@ -75,14 +75,13 @@ namespace OpenSim
         /// The file to load and save inventory if no filename has been specified
         /// </summary>
         protected const string DEFAULT_INV_BACKUP_FILENAME = "opensim_inv.tar.gz";
-
-        protected ConfigSettings m_configSettings;
-
+        
         public ConfigSettings ConfigurationSettings
         {
             get { return m_configSettings; }
             set { m_configSettings = value; }
         }
+        protected ConfigSettings m_configSettings;
 
         protected ConfigurationLoader m_configLoader;
 
@@ -123,15 +122,14 @@ namespace OpenSim
         public uint HttpServerPort
         {
             get { return m_httpServerPort; }
-        }
-
-        protected ModuleLoader m_moduleLoader;
+        }        
 
         public ModuleLoader ModuleLoader
         {
             get { return m_moduleLoader; }
             set { m_moduleLoader = value; }
         }
+        protected ModuleLoader m_moduleLoader;        
 
         /// <summary>
         /// Constructor.
@@ -441,7 +439,7 @@ namespace OpenSim
             if (!String.IsNullOrEmpty(scene.RegionInfo.RegionFile))
             {
                 File.Delete(scene.RegionInfo.RegionFile);
-                m_log.InfoFormat("[OPENSIM MAIN] deleting region file \"{0}\"", scene.RegionInfo.RegionFile);
+                m_log.InfoFormat("[OPENSIM]: deleting region file \"{0}\"", scene.RegionInfo.RegionFile);
             }
         }
 
@@ -480,7 +478,7 @@ namespace OpenSim
 
         public void handleRestartRegion(RegionInfo whichRegion)
         {
-            m_log.Error("[OPENSIM MAIN]: Got restart signal from SceneManager");
+            m_log.Info("[OPENSIM]: Got restart signal from SceneManager");
 
             // Shutting down the client server
             bool foundClientServer = false;
@@ -488,8 +486,6 @@ namespace OpenSim
 
             for (int i = 0; i < m_clientServers.Count; i++)
             {
-                //--> Melanie, the following needs to be fixed
-                // the Equals override is not returning true if the locations are actually equal
                 if (m_clientServers[i].HandlesRegion(new Location(whichRegion.RegionHandle)))
                 {
                     clientServerElement = i;
@@ -497,6 +493,7 @@ namespace OpenSim
                     break;
                 }
             }
+            
             if (foundClientServer)
             {
                 m_clientServers[clientServerElement].Server.Close();
