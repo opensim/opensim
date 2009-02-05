@@ -87,8 +87,7 @@ namespace OpenSim
 
         protected GridInfoService m_gridInfoService;
 
-        protected List<IClientNetworkServer> m_clientServers = new List<IClientNetworkServer>();
-        protected List<RegionInfo> m_regionData = new List<RegionInfo>();
+        protected List<IClientNetworkServer> m_clientServers = new List<IClientNetworkServer>();        
 
         public ConsoleCommand CreateAccount = null;
         
@@ -107,12 +106,7 @@ namespace OpenSim
         public List<IClientNetworkServer> ClientServers
         {
             get { return m_clientServers; }
-        }
-
-        public List<RegionInfo> RegionData
-        {
-            get { return m_regionData; }
-        }
+        }       
 
         public new BaseHttpServer HttpServer
         {
@@ -405,7 +399,6 @@ namespace OpenSim
             m_sceneManager.Add(scene);
 
             m_clientServers.Add(clientServer);
-            m_regionData.Add(regionInfo);
             clientServer.Start();
 
             if (do_post_init)
@@ -430,7 +423,6 @@ namespace OpenSim
             }
             
             scene.DeleteAllSceneObjects();
-            m_regionData.Remove(scene.RegionInfo);
             m_sceneManager.CloseScene(scene);
 
             if (!cleanup) 
@@ -498,20 +490,6 @@ namespace OpenSim
             {
                 m_clientServers[clientServerElement].Server.Close();
                 m_clientServers.RemoveAt(clientServerElement);
-            }
-
-            //Removing the region from the sim's database of regions..
-            int RegionHandleElement = -1;
-            for (int i = 0; i < m_regionData.Count; i++)
-            {
-                if (whichRegion.RegionHandle == m_regionData[i].RegionHandle)
-                {
-                    RegionHandleElement = i;
-                }
-            }
-            if (RegionHandleElement >= 0)
-            {
-                m_regionData.RemoveAt(RegionHandleElement);
             }
 
             CreateRegion(whichRegion, true);
