@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.ObjectCaps
         {
             UUID capuuid = UUID.Random();
             
-            //m_log.InfoFormat("[OBJECTADD]: {0}", "/CAPS/OA/" + capuuid + "/");
+            m_log.InfoFormat("[OBJECTADD]: {0}", "/CAPS/OA/" + capuuid + "/");
 
             caps.RegisterHandler("ObjectAdd",
                                  new RestHTTPHandler("POST", "/CAPS/OA/" + capuuid + "/",
@@ -92,7 +92,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.ObjectCaps
             uint group_mask = 0;
             uint next_owner_mask = 0;
             uint flags = 0;
-            UUID group_id;
+            UUID group_id = UUID.Zero;
             int hollow = 0;
             int material = 0;
             int p_code = 0;
@@ -126,42 +126,150 @@ namespace OpenSim.Region.Environment.Modules.Avatar.ObjectCaps
             
             OSDMap rm = (OSDMap)r;
 
-            bypass_raycast = rm["bypass_raycast"].AsBoolean();
+            if (rm.ContainsKey("ObjectData")) //v2
+            {
+                if (rm["ObjectData"].Type != OSDType.Map)
+                {
+                    responsedata["str_response_string"] = "Has ObjectData key, but data not in expected format";
+                    return responsedata;
+                }
 
-            everyone_mask = readuintval(rm["everyone_mask"]);
-            flags = readuintval(rm["flags"]);
-            group_id = rm["group_id"].AsUUID();
-            group_mask = readuintval(rm["group_mask"]);
-            hollow = rm["hollow"].AsInteger();
-            material = rm["material"].AsInteger();
-            next_owner_mask = readuintval(rm["next_owner_mask"]);
-            hollow = rm["hollow"].AsInteger();
-            p_code= rm["p_code"].AsInteger();
-            path_begin = rm["path_begin"].AsInteger();
-            path_curve = rm["path_curve"].AsInteger();
-            path_end = rm["path_end"].AsInteger();
-            path_radius_offset = rm["path_radius_offset"].AsInteger();
-            path_revolutions = rm["path_revolutions"].AsInteger();
-            path_scale_x = rm["path_scale_x"].AsInteger();
-            path_scale_y = rm["path_scale_y"].AsInteger();
-            path_shear_x = rm["path_shear_x"].AsInteger();
-            path_shear_y = rm["path_shear_y"].AsInteger();
-            path_skew = rm["path_skew"].AsInteger();
-            path_taper_x = rm["path_taper_x"].AsInteger();
-            path_taper_y = rm["path_taper_y"].AsInteger();
-            path_twist = rm["path_twist"].AsInteger();
-            path_twist_begin = rm["path_twist_begin"].AsInteger();
-            profile_begin = rm["profile_begin"].AsInteger();
-            profile_curve = rm["profile_curve"].AsInteger();
-            profile_end = rm["profile_end"].AsInteger();
-            ray_end = ((OSDArray) rm["ray_end"]).AsVector3();
-            ray_end_is_intersection = rm["ray_end_is_intersection"].AsBoolean();
-            ray_start = ((OSDArray) rm["ray_start"]).AsVector3();
-            ray_target_id = rm["ray_target_id"].AsUUID();
-            rotation = ((OSDArray) rm["rotation"]).AsQuaternion();
-            scale = ((OSDArray)rm["scale"]).AsVector3();
-            session_id = rm["session_id"].AsUUID();
-            state = rm["state"].AsInteger();
+                OSDMap ObjMap = (OSDMap) rm["ObjectData"];
+
+                bypass_raycast = ObjMap["BypassRaycast"].AsBoolean();
+                everyone_mask = readuintval(ObjMap["EveryoneMask"]);
+                flags = readuintval(ObjMap["Flags"]);
+                group_mask = readuintval(ObjMap["GroupMask"]);
+                material = ObjMap["Material"].AsInteger();
+                next_owner_mask = readuintval(ObjMap["NextOwnerMask"]);
+                p_code = ObjMap["PCode"].AsInteger();
+
+                if (ObjMap.ContainsKey("Path"))
+                {
+                    if (ObjMap["Path"].Type != OSDType.Map)
+                    {
+                        responsedata["str_response_string"] = "Has Path key, but data not in expected format";
+                        return responsedata;
+                    }
+
+                    OSDMap PathMap = (OSDMap)ObjMap["Path"];
+                    path_begin = PathMap["Begin"].AsInteger();
+                    path_curve = PathMap["Curve"].AsInteger();
+                    path_end = PathMap["End"].AsInteger();
+                    path_radius_offset = PathMap["RadiusOffset"].AsInteger();
+                    path_revolutions = PathMap["Revolutions"].AsInteger();
+                    path_scale_x = PathMap["ScaleX"].AsInteger();
+                    path_scale_y = PathMap["ScaleY"].AsInteger();
+                    path_shear_x = PathMap["ShearX"].AsInteger();
+                    path_shear_y = PathMap["ShearY"].AsInteger();
+                    path_skew = PathMap["Skew"].AsInteger();
+                    path_taper_x = PathMap["TaperX"].AsInteger();
+                    path_taper_y = PathMap["TaperY"].AsInteger();
+                    path_twist = PathMap["Twist"].AsInteger();
+                    path_twist_begin = PathMap["TwistBegin"].AsInteger();
+
+                }
+
+                if (ObjMap.ContainsKey("Profile"))
+                {
+                    if (ObjMap["Profile"].Type != OSDType.Map)
+                    {
+                        responsedata["str_response_string"] = "Has Profile key, but data not in expected format";
+                        return responsedata;
+                    }
+                        
+                    OSDMap ProfileMap = (OSDMap)ObjMap["Profile"];
+
+                    profile_begin = ProfileMap["Begin"].AsInteger();
+                    profile_curve = ProfileMap["Curve"].AsInteger();
+                    profile_end = ProfileMap["End"].AsInteger();
+                    hollow = ProfileMap["Hollow"].AsInteger();
+                }
+                ray_end_is_intersection = ObjMap["RayEndIsIntersection"].AsBoolean();
+                
+                ray_target_id = ObjMap["RayTargetId"].AsUUID();
+                state = ObjMap["State"].AsInteger();
+                try
+                {
+                    ray_end = ((OSDArray) ObjMap["RayEnd"]).AsVector3();
+                    ray_start = ((OSDArray) ObjMap["RayStart"]).AsVector3();
+                    scale = ((OSDArray) ObjMap["Scale"]).AsVector3();
+                    rotation = ((OSDArray)ObjMap["Rotation"]).AsQuaternion();
+                }
+                catch (Exception)
+                {
+                    responsedata["str_response_string"] = "RayEnd, RayStart, Scale or Rotation wasn't in the expected format";
+                    return responsedata;
+                }
+
+                if (rm.ContainsKey("AgentData"))
+                {
+                    if (rm["AgentData"].Type != OSDType.Map)
+                    {
+                        responsedata["str_response_string"] = "Has AgentData key, but data not in expected format";
+                        return responsedata;
+                    }
+
+                    OSDMap AgentDataMap = (OSDMap) rm["AgentData"];
+
+                    session_id = AgentDataMap["SessionId"].AsUUID();
+                    group_id = AgentDataMap["GroupId"].AsUUID();
+                }
+
+            }
+            else
+            { //v1
+                bypass_raycast = rm["bypass_raycast"].AsBoolean();
+
+                everyone_mask = readuintval(rm["everyone_mask"]);
+                flags = readuintval(rm["flags"]);
+                group_id = rm["group_id"].AsUUID();
+                group_mask = readuintval(rm["group_mask"]);
+                hollow = rm["hollow"].AsInteger();
+                material = rm["material"].AsInteger();
+                next_owner_mask = readuintval(rm["next_owner_mask"]);
+                hollow = rm["hollow"].AsInteger();
+                p_code = rm["p_code"].AsInteger();
+                path_begin = rm["path_begin"].AsInteger();
+                path_curve = rm["path_curve"].AsInteger();
+                path_end = rm["path_end"].AsInteger();
+                path_radius_offset = rm["path_radius_offset"].AsInteger();
+                path_revolutions = rm["path_revolutions"].AsInteger();
+                path_scale_x = rm["path_scale_x"].AsInteger();
+                path_scale_y = rm["path_scale_y"].AsInteger();
+                path_shear_x = rm["path_shear_x"].AsInteger();
+                path_shear_y = rm["path_shear_y"].AsInteger();
+                path_skew = rm["path_skew"].AsInteger();
+                path_taper_x = rm["path_taper_x"].AsInteger();
+                path_taper_y = rm["path_taper_y"].AsInteger();
+                path_twist = rm["path_twist"].AsInteger();
+                path_twist_begin = rm["path_twist_begin"].AsInteger();
+                profile_begin = rm["profile_begin"].AsInteger();
+                profile_curve = rm["profile_curve"].AsInteger();
+                profile_end = rm["profile_end"].AsInteger();
+                
+                ray_end_is_intersection = rm["ray_end_is_intersection"].AsBoolean();
+                
+                ray_target_id = rm["ray_target_id"].AsUUID();
+                
+                
+                session_id = rm["session_id"].AsUUID();
+                state = rm["state"].AsInteger();
+                try 
+                {
+                    ray_end = ((OSDArray)rm["ray_end"]).AsVector3();
+                    ray_start = ((OSDArray)rm["ray_start"]).AsVector3();
+                    rotation = ((OSDArray)rm["rotation"]).AsQuaternion();
+                    scale = ((OSDArray)rm["scale"]).AsVector3();
+                } 
+                catch (Exception)
+                {
+                    responsedata["str_response_string"] = "RayEnd, RayStart, Scale or Rotation wasn't in the expected format";
+                    return responsedata;
+                }
+            }
+
+           
 
             Vector3 pos = m_scene.GetNewRezLocation(ray_start, ray_end, ray_target_id, rotation, (bypass_raycast) ? (byte)1 : (byte)0,  (ray_end_is_intersection) ? (byte)1 : (byte)0, true, scale, false);
 
