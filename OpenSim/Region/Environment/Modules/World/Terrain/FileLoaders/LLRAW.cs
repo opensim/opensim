@@ -184,6 +184,13 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 for (int x = 0; x < map.Width; x++)
                 {
                     double t = map[x, (map.Height - 1) - y];
+                    //if height is less than 0, set it to 0 as
+                    //can't save -ve values in a LLRAW file
+                    if (t < 0d)
+                    {
+                        t = 0d;
+                    }
+
                     int index = 0;
 
                     // The lookup table is pre-sorted, so we either find an exact match or
