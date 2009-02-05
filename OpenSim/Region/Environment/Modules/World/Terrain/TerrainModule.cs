@@ -68,7 +68,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly Commander m_commander = new Commander("Terrain");
+        private readonly Commander m_commander = new Commander("terrain");
 
         private readonly Dictionary<StandardTerrainEffects, ITerrainFloodEffect> m_floodeffects =
             new Dictionary<StandardTerrainEffects, ITerrainFloodEffect>();

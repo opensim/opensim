@@ -29,10 +29,15 @@ namespace OpenSim.Region.Environment.Interfaces
 {
     public interface ICommander
     {
-        /// <summary>
+        /// <value>
         /// The name of this commander
-        /// </summary>        
+        /// </value>        
         string Name { get; }
+
+        /// <value>
+        /// Provide general help information about this commander.
+        /// </value>
+        string Help { get; }
         
         void ProcessConsoleCommand(string function, string[] args);
         void RegisterCommand(string commandName, ICommand command);

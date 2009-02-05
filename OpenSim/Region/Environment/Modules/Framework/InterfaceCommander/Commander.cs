@@ -52,6 +52,23 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
             get { return m_name; }
         }
         private string m_name;
+        
+        public string Help
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                
+                sb.AppendLine("===" + m_name + "===");
+                
+                foreach (ICommand com in m_commands.Values)
+                {
+                    sb.AppendLine("* " + com.Name + " - " + com.Help);
+                }
+                
+                return sb.ToString();
+            }
+        }        
 
         /// <summary>
         /// Constructor
@@ -60,7 +77,10 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
         public Commander(string name)
         {
             m_name = name;
-            m_generatedApiClassName = m_name;
+            m_generatedApiClassName = m_name[0].ToString().ToUpper();
+            
+            if (m_name.Length > 1)
+                m_generatedApiClassName += m_name.Substring(1);
         }
 
         /// <value>
@@ -145,21 +165,13 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
                 {
                     if (function != "help")
                         Console.WriteLine("ERROR: Invalid command - No such command exists");
-                    ShowConsoleHelp();
+                    
+                    Console.Write(Help);
                 }
             }
         }
 
         #endregion
-
-        private void ShowConsoleHelp()
-        {
-            Console.WriteLine("===" + m_name + "===");
-            foreach (ICommand com in m_commands.Values)
-            {
-                Console.WriteLine("* " + com.Name + " - " + com.Help);
-            }
-        }
 
         private string EscapeRuntimeAPICommand(string command)
         {

@@ -286,12 +286,20 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Get a module commander
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>The module commander, null if no module commander with that name was found</returns>
         public ICommander GetCommander(string name)
         {
             lock (m_moduleCommanders)
             {
-                return m_moduleCommanders[name];
+                if (m_moduleCommanders.ContainsKey(name))
+                    return m_moduleCommanders[name];
             }
+            
+            return null;
         }
 
         public Dictionary<string, ICommander> GetCommanders()

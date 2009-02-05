@@ -59,7 +59,7 @@ namespace OpenSim
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected string proxyUrl;
-        protected int proxyOffset = 0;
+        protected int proxyOffset = 0;                
 
         /// <summary>
         /// The file used to load and save prim backup xml if no filename has been specified
@@ -158,7 +158,15 @@ namespace OpenSim
             loader.Load("/OpenSim/Startup");
             m_plugins = loader.Plugins;
         }
-
+        
+        protected override List<string> GetHelpTopics() 
+        {
+            List<string> topics = base.GetHelpTopics();
+            topics.AddRange(SceneManager.CurrentOrFirstScene.GetCommanders().Keys);
+            
+            return topics;
+        }        
+        
         /// <summary>
         /// Performs startup specific to this region server, including initialization of the scene 
         /// such as loading configuration from disk.

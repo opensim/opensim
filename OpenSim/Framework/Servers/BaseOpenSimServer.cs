@@ -104,6 +104,16 @@ namespace OpenSim.Framework.Servers
         /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
         /// </summary>      
         public virtual void ShutdownSpecific() {}
+        
+        /// <summary>
+        /// Provides a list of help topics that are available.  Overriding classes should append their topics to the
+        /// information returned when the base method is called.
+        /// </summary>
+        /// 
+        /// <returns>
+        /// A list of strings that represent different help topics on which more information is available
+        /// </returns>
+        protected virtual List<string> GetHelpTopics() { return new List<string>(); }
 
         /// <summary>
         /// Print statistics to the logfile, if they are active
@@ -310,11 +320,20 @@ namespace OpenSim.Framework.Servers
         /// <param name="helpArgs"></param>
         protected virtual void ShowHelp(string[] helpArgs)
         {
+            Notice("");
+            
             if (helpArgs.Length == 0)
             {
-                Notice("");
-                // TODO: not yet implemented
-                //Notice("help [command] - display general help or specific command help.  Try help help for more info.");
+                List<string> helpTopics = GetHelpTopics();
+                
+                if (helpTopics.Count > 0)
+                {                    
+                    Notice(
+                        "As well as the help information below, you can also type help <topic> to get more information on the following areas:");
+                    Notice(string.Format("    {0}", string.Join(", ", helpTopics.ToArray())));
+                    Notice("");
+                }                           
+                                
                 Notice("quit - equivalent to shutdown.");
 
                 Notice("set log level [level] - change the console logging level only.  For example, off or debug.");
@@ -326,7 +345,8 @@ namespace OpenSim.Framework.Servers
                 Notice("show threads - list tracked threads");
                 Notice("show uptime - show server startup time and uptime.");
                 Notice("show version - show server version.");
-                Notice("shutdown - shutdown the server.\n");
+                Notice("shutdown - shutdown the server.");
+                Notice("");
 
                 return;
             }

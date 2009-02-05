@@ -46,7 +46,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
                 
         protected Scene m_scene;
-        private readonly Commander m_commander = new Commander("Permissions");                
+        private readonly Commander m_commander = new Commander("permissions");                
 
         #region Constants
         // These are here for testing.  They will be taken out

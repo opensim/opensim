@@ -38,7 +38,7 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
 {
     public class SerialiserModule : IRegionModule, IRegionSerialiserModule
     {
-        private Commander m_commander = new Commander("Export");
+        private Commander m_commander = new Commander("export");
         private List<Scene> m_regions = new List<Scene>();
         private string m_savedir = "exports" + "/";
         private List<IFileSerialiser> m_serialisers = new List<IFileSerialiser>();
