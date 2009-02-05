@@ -100,6 +100,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private Dictionary<UUID, string> m_Assemblies =
                 new Dictionary<UUID, string>();
 
+        private Dictionary<string, int> m_AddingAssemblies =
+                new Dictionary<string, int>();
+
         // This will list AppDomains by script asset
 
         private Dictionary<UUID, AppDomain> m_AppDomains =
@@ -509,8 +512,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             try
             {
-                assembly = m_Compiler.PerformScriptCompile(script,
-                                                           assetID.ToString());
+                lock (m_AddingAssemblies) 
+                {
+                    assembly = m_Compiler.PerformScriptCompile(script,
+                                                               assetID.ToString());
+                    if (!m_AddingAssemblies.ContainsKey(assembly)) {
+                        m_AddingAssemblies[assembly] = 1;
+                    } else {
+                        m_AddingAssemblies[assembly]++;
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -592,6 +603,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             m_log.ErrorFormat("[XEngine] Exception creating app domain:\n {0}", e.ToString());
                             m_ScriptErrorMessage += "Exception creating app domain:\n";
                             m_ScriptFailCount++;
+                            lock (m_AddingAssemblies) 
+                            {
+                                m_AddingAssemblies[assembly]--;
+                            }
                             return false;
                         }
                     }
@@ -625,6 +640,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 if (!m_Assemblies.ContainsKey(assetID))
                     m_Assemblies[assetID] = assembly;
+
+                lock (m_AddingAssemblies) 
+                {
+                    m_AddingAssemblies[assembly]--;
+                }
 
                 if (instance!=null) 
                     instance.Init();
@@ -710,24 +730,33 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     assetIDList.Remove(i.AssetID);
             }
 
-            foreach (UUID assetID in assetIDList)
+            lock (m_AddingAssemblies)
             {
-//                m_log.DebugFormat("[XEngine] Removing unreferenced assembly {0}", m_Assemblies[assetID]);
-                try
+                foreach (UUID assetID in assetIDList)
                 {
-                    if (File.Exists(m_Assemblies[assetID]))
-                        File.Delete(m_Assemblies[assetID]);
-
-                    if (File.Exists(m_Assemblies[assetID]+".state"))
-                        File.Delete(m_Assemblies[assetID]+".state");
-
-                    if (File.Exists(m_Assemblies[assetID]+".mdb"))
-                        File.Delete(m_Assemblies[assetID]+".mdb");
+                    // Do not remove assembly files if another instance of the script
+                    // is currently initialising
+                    if (!m_AddingAssemblies.ContainsKey(m_Assemblies[assetID])
+                        || m_AddingAssemblies[m_Assemblies[assetID]] == 0) 
+                    {
+//                        m_log.DebugFormat("[XEngine] Removing unreferenced assembly {0}", m_Assemblies[assetID]);
+                        try
+                        {
+                            if (File.Exists(m_Assemblies[assetID]))
+                                File.Delete(m_Assemblies[assetID]);
+                            
+                            if (File.Exists(m_Assemblies[assetID]+".state"))
+                                File.Delete(m_Assemblies[assetID]+".state");
+                            
+                            if (File.Exists(m_Assemblies[assetID]+".mdb"))
+                                File.Delete(m_Assemblies[assetID]+".mdb");
+                        }
+                        catch (Exception)
+                        {
+                        }
+                        m_Assemblies.Remove(assetID);
+                    }
                 }
-                catch (Exception)
-                {
-                }
-                m_Assemblies.Remove(assetID);
             }
         }
 
