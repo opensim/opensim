@@ -86,7 +86,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.ObjectCaps
 
 
             OSD r = OSDParser.DeserializeLLSDXml((string)request["requestbody"]);
-            UUID session_id = UUID.Zero;
+            //UUID session_id = UUID.Zero;
             bool bypass_raycast = false;
             uint everyone_mask = 0;
             uint group_mask = 0;
@@ -212,7 +212,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.ObjectCaps
 
                     OSDMap AgentDataMap = (OSDMap) rm["AgentData"];
 
-                    session_id = AgentDataMap["SessionId"].AsUUID();
+                    //session_id = AgentDataMap["SessionId"].AsUUID();
                     group_id = AgentDataMap["GroupId"].AsUUID();
                 }
 
@@ -253,7 +253,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.ObjectCaps
                 ray_target_id = rm["ray_target_id"].AsUUID();
                 
                 
-                session_id = rm["session_id"].AsUUID();
+                //session_id = rm["session_id"].AsUUID();
                 state = rm["state"].AsInteger();
                 try 
                 {
