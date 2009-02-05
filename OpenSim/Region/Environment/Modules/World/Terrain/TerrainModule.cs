@@ -40,7 +40,6 @@ using OpenSim.Region.Environment.Modules.World.Terrain.FloodBrushes;
 using OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes;
 using OpenSim.Region.Environment.Scenes;
 
-
 namespace OpenSim.Region.Environment.Modules.World.Terrain
 {
     public class TerrainModule : IRegionModule, ICommandableModule, ITerrainModule
@@ -208,6 +207,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                     return;
                 }
             }
+            
             m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader available for that format.");
             throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
         }

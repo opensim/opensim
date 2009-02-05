@@ -85,9 +85,7 @@ namespace OpenSim
 
         protected ConfigurationLoader m_configLoader;
 
-        protected GridInfoService m_gridInfoService;
-
-        protected List<IClientNetworkServer> m_clientServers = new List<IClientNetworkServer>();        
+        protected GridInfoService m_gridInfoService;               
 
         public ConsoleCommand CreateAccount = null;
         
@@ -107,6 +105,7 @@ namespace OpenSim
         {
             get { return m_clientServers; }
         }       
+        protected List<IClientNetworkServer> m_clientServers = new List<IClientNetworkServer>(); 
 
         public new BaseHttpServer HttpServer
         {
