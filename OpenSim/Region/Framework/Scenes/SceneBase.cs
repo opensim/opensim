@@ -61,17 +61,24 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>
         /// The module interfaces available from this scene.
         /// </value>
-        protected Dictionary<Type, List<object> > ModuleInterfaces = new Dictionary<Type, List<object> >();
+        protected Dictionary<Type, List<object>> ModuleInterfaces = new Dictionary<Type, List<object>>();
 
         protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
+        
+        /// <value>
+        /// The module commanders available from this scene
+        /// </value>
         protected Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();
+        
+        /// <value>
+        /// The module commands available for this scene
+        /// </value>
+        protected Dictionary<string, ICommand> m_moduleCommands = new Dictionary<string, ICommand>();        
         
         /// <value>
         /// Registered classes that are capable of creating entities.
         /// </value>
-        protected Dictionary<PCode, IEntityCreator> m_entityCreators = new Dictionary<PCode, IEntityCreator>();        
-
-        //API module interfaces        
+        protected Dictionary<PCode, IEntityCreator> m_entityCreators = new Dictionary<PCode, IEntityCreator>();                
 
         /// <summary>
         /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is
@@ -278,11 +285,47 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Register a module commander.
+        /// </summary>
+        /// <param name="commander"></param>
         public void RegisterModuleCommander(ICommander commander)
         {
             lock (m_moduleCommanders)
             {
                 m_moduleCommanders.Add(commander.Name, commander);
+                
+                lock (m_moduleCommands)
+                {
+                    foreach (ICommand command in commander.Commands.Values)
+                    {
+                        if (m_moduleCommands.ContainsKey(command.Name))
+                        {
+                            m_log.ErrorFormat(
+                                "[MODULES]: Module commander {0} tried to register the command {1} which has already been registered",
+                                commander.Name, command.Name);
+                            continue;
+                        }
+                            
+                        m_moduleCommands[command.Name] = command;
+                    }                    
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Get an available module command
+        /// </summary>
+        /// <param name="commandName"></param>
+        /// <returns>The command if it was found, null if no command is available with that name</returns>
+        public ICommand GetCommand(string commandName)
+        {
+            lock (m_moduleCommands)
+            {
+                if (m_moduleCommands.ContainsKey(commandName))
+                    return m_moduleCommands[commandName];
+                else
+                    return null;
             }
         }
 

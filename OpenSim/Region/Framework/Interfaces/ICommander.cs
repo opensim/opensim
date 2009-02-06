@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
+
 namespace OpenSim.Region.Framework.Interfaces
 {
     public interface ICommander
@@ -38,6 +40,11 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Provide general help information about this commander.
         /// </value>
         string Help { get; }
+        
+        /// <summary>
+        /// The commands available for this commander
+        /// </summary>
+        Dictionary<string, ICommand> Commands { get; }     
         
         void ProcessConsoleCommand(string function, string[] args);
         void RegisterCommand(string commandName, ICommand command);

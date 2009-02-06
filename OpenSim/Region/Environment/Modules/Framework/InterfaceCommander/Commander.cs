@@ -59,7 +59,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
             {
                 StringBuilder sb = new StringBuilder();
                 
-                sb.AppendLine("===" + m_name + "===");
+                sb.AppendLine("=== " + m_name + " ===");
                 
                 foreach (ICommand com in m_commands.Values)
                 {
@@ -83,9 +83,6 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
                 m_generatedApiClassName += m_name.Substring(1);
         }
 
-        /// <value>
-        /// Commands that this commander knows about
-        /// </value>
         public Dictionary<string, ICommand> Commands
         {
             get { return m_commands; }

@@ -712,10 +712,25 @@ namespace OpenSim
             }
             else
             {
-                ICommander moduleCommander = SceneManager.CurrentOrFirstScene.GetCommander(helpArgs[0]);
-                if (moduleCommander != null)
+                // Messily we want to join all the help params back here
+                //string helpSubject = string.Join(" ", helpArgs);
+                
+                // FIXME: Very cheap hack to get transition help working.  Will disappear very shortly.
+                if (helpArgs.Length == 1)
                 {
-                    m_console.Notice(moduleCommander.Help);
+                    ICommander moduleCommander = SceneManager.CurrentOrFirstScene.GetCommander(helpArgs[0]);
+                    if (moduleCommander != null)
+                    {
+                        m_console.Notice(moduleCommander.Help);
+                    }
+                }
+                else
+                {
+                    ICommand command = SceneManager.CurrentOrFirstScene.GetCommand(helpArgs[1]);
+                    if (command != null)
+                    {
+                        m_console.Notice(command.Help);
+                    }
                 }
             }                            
         }
