@@ -322,7 +322,7 @@ namespace OpenSim.Region.Environment
 
             OSDArray ageVerificationBlock = new OSDArray();
             OSDMap ageVerificationMap = new OSDMap();
-            ageVerificationMap.Add("RegionDenyAgeVerified",
+            ageVerificationMap.Add("RegionDenyAgeUnverified",
                 OSD.FromBoolean(parcelPropertiesPacket.AgeVerificationBlock.RegionDenyAgeUnverified));
             ageVerificationBlock.Add(ageVerificationMap);
             body.Add("AgeVerificationBlock", ageVerificationBlock);
@@ -390,7 +390,6 @@ namespace OpenSim.Region.Environment
             parcelDataMap.Add("RegionDenyAnonymous", OSD.FromBoolean(parcelPropertiesPacket.ParcelData.RegionDenyAnonymous));
             parcelDataMap.Add("RegionDenyIdentified", OSD.FromBoolean(parcelPropertiesPacket.ParcelData.RegionDenyIdentified));
             parcelDataMap.Add("RegionDenyTransacted", OSD.FromBoolean(parcelPropertiesPacket.ParcelData.RegionDenyTransacted));
-            parcelDataMap.Add("RegionDenyAgeUnverified", OSD.FromBoolean(false));
 
             parcelDataMap.Add("RegionPushOverride", OSD.FromBoolean(parcelPropertiesPacket.ParcelData.RegionPushOverride));
             parcelDataMap.Add("RentPrice", OSD.FromInteger(parcelPropertiesPacket.ParcelData.RentPrice));
