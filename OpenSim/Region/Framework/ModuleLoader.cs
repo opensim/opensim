@@ -218,9 +218,13 @@ namespace OpenSim.Region.Framework
                         }
                     }
                 }
-                catch (ReflectionTypeLoadException)
+                catch (Exception e)
                 {
-                    m_log.InfoFormat("[MODULES]: Could not load types for [{0}].", pluginAssembly.FullName);
+                    m_log.ErrorFormat(
+                        "[MODULES]: Could not load types for [{0}].  Exception {1}", pluginAssembly.FullName, e);
+                    
+                    // justincc: Right now this is fatal to really get the user's attention
+                    throw e;
                 }
             }
 
