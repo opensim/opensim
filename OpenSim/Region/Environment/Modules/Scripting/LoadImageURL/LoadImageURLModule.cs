@@ -43,6 +43,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
 
+	private string m_proxyurl = "";
+	private string m_proxyexcepts = "";
+
+
         #region IDynamicTextureRender Members
 
         public string GetName()
@@ -91,6 +95,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
             {
                 m_scene = scene;
             }
+	    m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
+	    m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
         }
 
         public void PostInitialise()
@@ -121,6 +127,16 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
         private void MakeHttpRequest(string url, UUID requestID)
         {
             WebRequest request = HttpWebRequest.Create(url);
+	    if (m_proxyurl.Length > 0) 
+	      {
+		if (m_proxyexcepts.Length > 0) {
+		  string[] elist = m_proxyexcepts.Split(';');
+		  request.Proxy = new WebProxy(m_proxyurl,true,elist);
+		} else {
+		  request.Proxy = new WebProxy(m_proxyurl,true);
+		}
+	      }
+
             RequestState state = new RequestState((HttpWebRequest) request, requestID);
             // IAsyncResult result = request.BeginGetResponse(new AsyncCallback(HttpRequestReturn), state);
             request.BeginGetResponse(new AsyncCallback(HttpRequestReturn), state);

@@ -90,6 +90,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         private int httpTimeout = 30000;
         private string m_name = "HttpScriptRequests";
 
+	private string m_proxyurl = "";
+	private string m_proxyexcepts = "";
+
         // <request id, HttpRequestClass>
         private Dictionary<UUID, HttpRequestClass> m_pendingRequests;
         private Scene m_scene;
@@ -152,6 +155,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
             htc.httpTimeout = httpTimeout;
             htc.outbound_body = body;
             htc.response_headers = headers;
+	    htc.proxyurl = m_proxyurl;
+	    htc.proxyexcepts = m_proxyexcepts;
 
             lock (HttpListLock)
             {
@@ -232,6 +237,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
 
             m_scene.RegisterModuleInterface<IHttpRequests>(this);
 
+	    m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
+	    m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
+
             m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
         }
 
@@ -285,6 +293,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         public Dictionary<string, string> response_headers;
         public int status;
         public string url;
+        public string proxyurl;
+        public string proxyexcepts;
 
         public void process()
         {
@@ -316,6 +326,15 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
                           WebRequest.Create(url);
                 request.Method = httpMethod;
                 request.ContentType = httpMIMEType;
+		if (proxyurl.Length > 0) 
+		  {
+		    if (proxyexcepts.Length > 0) {
+		      string[] elist = proxyexcepts.Split(';');
+		      request.Proxy = new WebProxy(proxyurl,true,elist);
+		    } else {
+		      request.Proxy = new WebProxy(proxyurl,true);
+		    }
+		  }
 
                 foreach (KeyValuePair<string, string> entry in response_headers)
                     request.Headers[entry.Key] = entry.Value;
