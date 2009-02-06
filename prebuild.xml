@@ -148,7 +148,6 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Data.Base"/>
       <Reference name="log4net.dll"/>
       <Reference name="Mono.Addins.dll" />
       <Files>
@@ -579,7 +578,6 @@
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Data.Base"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="DotNetOpenMail.dll"/>
@@ -881,7 +879,6 @@
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Data.Base"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="DotNetOpenMail.dll"/>
@@ -1046,7 +1043,6 @@
       <Reference name="IronPython.dll"/>
       <Reference name="IronMath.dll"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Data.Base" />
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
@@ -1096,7 +1092,6 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Data.Base" />
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="Nini.dll" />
@@ -1412,9 +1407,6 @@
       <Reference name="System.Drawing"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Data.MapperFactory"/>
-      <Reference name="OpenSim.Data.Base"/>
-      <Reference name="OpenSim.Data.MySQLMapper"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="MySql.Data.dll"/>
@@ -2241,7 +2233,6 @@
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Data.Base"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="DotNetOpenMail.dll"/>
@@ -2395,9 +2386,6 @@
       <Reference name="System.Drawing"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Data.MapperFactory"/>
-      <Reference name="OpenSim.Data.Base"/>
-      <Reference name="OpenSim.Data.MySQLMapper"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="MySql.Data.dll"/>
@@ -2433,8 +2421,6 @@
       <Reference name="System.Drawing"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Data.MapperFactory"/>
-      <Reference name="OpenSim.Data.Base"/>
       <Reference name="OpenSim.Data.NHibernate"/>
       <Reference name="OpenSim.Data.Tests"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -2616,7 +2602,6 @@
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Data.Base"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="DotNetOpenMail.dll"/>
