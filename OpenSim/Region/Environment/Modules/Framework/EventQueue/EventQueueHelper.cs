@@ -55,15 +55,11 @@ namespace OpenSim.Region.Environment
 
         private static byte[] uintToByteArray(uint uIntValue)
         {
-            // Reverse endianness of a uint
-            return new byte[]
-            {
-                (byte)((uIntValue >> 24) % 256),
-                (byte)((uIntValue >> 16) % 256),
-                (byte)((uIntValue >> 8) % 256),
-                (byte)(uIntValue % 256)
+            byte[] resultbytes = Utils.UIntToBytes(uIntValue);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(resultbytes);
 
-            };
+            return resultbytes;
         }
 
         public static OSD buildEvent(string eventName, OSD eventBody)
@@ -359,7 +355,7 @@ namespace OpenSim.Region.Environment
             parcelDataMap.Add("AABBMin", AABBMin);
 
             parcelDataMap.Add("Area", OSD.FromInteger(parcelPropertiesPacket.ParcelData.Area));
-            parcelDataMap.Add("AuctionID", OSD.FromBinary(parcelPropertiesPacket.ParcelData.AuctionID));
+            parcelDataMap.Add("AuctionID", OSD.FromBinary(uintToByteArray(parcelPropertiesPacket.ParcelData.AuctionID)));
             parcelDataMap.Add("AuthBuyerID", OSD.FromUUID(parcelPropertiesPacket.ParcelData.AuthBuyerID));
             parcelDataMap.Add("Bitmap", OSD.FromBinary(parcelPropertiesPacket.ParcelData.Bitmap));
             parcelDataMap.Add("Category", OSD.FromInteger((int)parcelPropertiesPacket.ParcelData.Category));
