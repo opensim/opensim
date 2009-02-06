@@ -90,8 +90,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         private int httpTimeout = 30000;
         private string m_name = "HttpScriptRequests";
 
-    private string m_proxyurl = "";
-    private string m_proxyexcepts = "";
+        private string m_proxyurl = "";
+        private string m_proxyexcepts = "";
 
         // <request id, HttpRequestClass>
         private Dictionary<UUID, HttpRequestClass> m_pendingRequests;
@@ -155,8 +155,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
             htc.HttpTimeout = httpTimeout;
             htc.OutboundBody = body;
             htc.ResponseHeaders = headers;
-        htc.proxyurl = m_proxyurl;
-        htc.proxyexcepts = m_proxyexcepts;
+            htc.proxyurl = m_proxyurl;
+            htc.proxyexcepts = m_proxyexcepts;
 
             lock (HttpListLock)
             {
@@ -344,21 +344,26 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
                 Request = (HttpWebRequest) WebRequest.Create(Url);
                 Request.Method = HttpMethod;
                 Request.ContentType = HttpMIMEType;
-        if (proxyurl.Length > 0) 
-          {
-            if (proxyexcepts.Length > 0) {
-              string[] elist = proxyexcepts.Split(';');
-              Request.Proxy = new WebProxy(proxyurl,true,elist);
-            } else {
-              Request.Proxy = new WebProxy(proxyurl,true);
-            }
-          }
+
+                if (proxyurl != null && proxyurl.Length > 0) 
+                {
+                    if (proxyexcepts != null && proxyexcepts.Length > 0) 
+                    {
+                        string[] elist = proxyexcepts.Split(';');
+                        Request.Proxy = new WebProxy(proxyurl, true, elist);
+                    } 
+                    else 
+                    {
+                        Request.Proxy = new WebProxy(proxyurl, true);
+                    }
+                }
 
                 foreach (KeyValuePair<string, string> entry in ResponseHeaders)
                     Request.Headers[entry.Key] = entry.Value;
 
                 // Encode outbound data
-                if (OutboundBody.Length > 0) {
+                if (OutboundBody.Length > 0) 
+                {
                     byte[] data = Encoding.UTF8.GetBytes(OutboundBody);
 
                     Request.ContentLength = data.Length;

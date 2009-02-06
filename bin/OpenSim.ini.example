@@ -8,7 +8,12 @@
     crash_dir = "crashes"
 
     ; Http proxy support for llHTTPRequest and dynamic texture loading
+    ; Set HttpProxy to the URL for your proxy server if you would like
+    ; to proxy llHTTPRequests through a firewall
     HttpProxy = "http://proxy.com"
+    ; Set HttpProxyExceptions to a list of regular expressions for 
+    ; URLs that you don't want going through the proxy such as servers
+    ; inside your firewall, separate patterns with a ';'
     HttpProxyExceptions = ".mydomain.com;localhost"
 
     ; Set this to true if you are connecting your OpenSimulator regions to a grid
