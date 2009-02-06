@@ -866,7 +866,6 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Grid"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Framework.Console"/>
