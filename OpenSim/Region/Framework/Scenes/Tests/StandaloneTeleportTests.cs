@@ -31,7 +31,6 @@ using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Region.Environment;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Environment.Modules.Communications.REST;
 using OpenSim.Tests.Common.Mock;

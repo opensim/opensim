@@ -33,7 +33,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
 
@@ -133,7 +133,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             // Check that the taken part has actually disappeared
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-            Assert.That(retrievedPart, Is.Null);                             
+            Assert.That(retrievedPart, Is.Null);
         }
     }
 }
