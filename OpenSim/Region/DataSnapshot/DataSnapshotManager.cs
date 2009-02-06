@@ -39,8 +39,8 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.DataSnapshot.Interfaces;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse.Packets;
 
 namespace OpenSim.Region.DataSnapshot

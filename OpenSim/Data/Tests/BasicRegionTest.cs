@@ -33,8 +33,8 @@ using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenSim.Framework;
 using OpenSim.Data;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment.Modules.World.Land;
 using OpenMetaverse;
 

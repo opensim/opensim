@@ -35,8 +35,8 @@ using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using System.Collections;
 
 /*****************************************************
@@ -84,14 +84,14 @@ using System.Collections;
 
 namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
 {
-    public class HttpRequestModule : IRegionModule, IHttpRequests
+    public class HttpRequestModule : IRegionModule, IHttpRequestModule
     {
         private object HttpListLock = new object();
         private int httpTimeout = 30000;
         private string m_name = "HttpScriptRequests";
 
-	private string m_proxyurl = "";
-	private string m_proxyexcepts = "";
+    private string m_proxyurl = "";
+    private string m_proxyexcepts = "";
 
         // <request id, HttpRequestClass>
         private Dictionary<UUID, HttpRequestClass> m_pendingRequests;
@@ -102,7 +102,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         {
         }
 
-        #region IHttpRequests Members
+        #region IHttpRequestModule Members
 
         public UUID MakeHttpRequest(string url, string parameters, string body)
         {
@@ -125,22 +125,22 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
                 {
                     switch (Int32.Parse(parms[i]))
                     {
-                        case HttpRequestClass.HTTP_METHOD:
+                        case (int)HttpRequestConstants.HTTP_METHOD:
 
-                            htc.httpMethod = parms[i + 1];
+                            htc.HttpMethod = parms[i + 1];
                             break;
 
-                        case HttpRequestClass.HTTP_MIMETYPE:
+                        case (int)HttpRequestConstants.HTTP_MIMETYPE:
 
-                            htc.httpMIMEType = parms[i + 1];
+                            htc.HttpMIMEType = parms[i + 1];
                             break;
 
-                        case HttpRequestClass.HTTP_BODY_MAXLENGTH:
+                        case (int)HttpRequestConstants.HTTP_BODY_MAXLENGTH:
 
                             // TODO implement me
                             break;
 
-                        case HttpRequestClass.HTTP_VERIFY_CERT:
+                        case (int)HttpRequestConstants.HTTP_VERIFY_CERT:
 
                             // TODO implement me
                             break;
@@ -148,22 +148,22 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
                 }
             }
 
-            htc.localID = localID;
-            htc.itemID = itemID;
-            htc.url = url;
-            htc.reqID = reqID;
-            htc.httpTimeout = httpTimeout;
-            htc.outbound_body = body;
-            htc.response_headers = headers;
-	    htc.proxyurl = m_proxyurl;
-	    htc.proxyexcepts = m_proxyexcepts;
+            htc.LocalID = localID;
+            htc.ItemID = itemID;
+            htc.Url = url;
+            htc.ReqID = reqID;
+            htc.HttpTimeout = httpTimeout;
+            htc.OutboundBody = body;
+            htc.ResponseHeaders = headers;
+        htc.proxyurl = m_proxyurl;
+        htc.proxyexcepts = m_proxyexcepts;
 
             lock (HttpListLock)
             {
                 m_pendingRequests.Add(reqID, htc);
             }
 
-            htc.process();
+            htc.Process();
 
             return reqID;
         }
@@ -193,7 +193,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         * it will need some refactoring and this works 'enough' right now
         */
 
-        public HttpRequestClass GetNextCompletedRequest()
+        public IServiceRequest GetNextCompletedRequest()
         {
             lock (HttpListLock)
             {
@@ -203,7 +203,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
 
                     if (m_pendingRequests.TryGetValue(luid, out tmpReq))
                     {
-                        if (tmpReq.finished)
+                        if (tmpReq.Finished)
                         {
                             return tmpReq;
                         }
@@ -235,10 +235,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         {
             m_scene = scene;
 
-            m_scene.RegisterModuleInterface<IHttpRequests>(this);
+            m_scene.RegisterModuleInterface<IHttpRequestModule>(this);
 
-	    m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
-	    m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
+        m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
+        m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
 
             m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
         }
@@ -264,45 +264,64 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         #endregion
     }
 
-    public class HttpRequestClass
+    public class HttpRequestClass: IServiceRequest
     {
         // Constants for parameters
-        public const int HTTP_BODY_MAXLENGTH = 2;
-        public const int HTTP_METHOD = 0;
-        public const int HTTP_MIMETYPE = 1;
-        public const int HTTP_VERIFY_CERT = 3;
-        public bool finished;
-        public int httpBodyMaxLen = 2048; // not implemented
+        // public const int HTTP_BODY_MAXLENGTH = 2;
+        // public const int HTTP_METHOD = 0;
+        // public const int HTTP_MIMETYPE = 1;
+        // public const int HTTP_VERIFY_CERT = 3;
+        private bool _finished;
+        public bool Finished
+        { 
+            get { return _finished; }
+        }
+        // public int HttpBodyMaxLen = 2048; // not implemented
 
         // Parameter members and default values
-        public string httpMethod = "GET";
-        public string httpMIMEType = "text/plain;charset=utf-8";
+        public string HttpMethod  = "GET";
+        public string HttpMIMEType = "text/plain;charset=utf-8";
+        public int HttpTimeout;
+        // public bool HttpVerifyCert = true; // not implemented
         private Thread httpThread;
-        public int httpTimeout;
-        public bool httpVerifyCert = true; // not implemented
 
         // Request info
-        public UUID itemID;
-        public uint localID;
-        public DateTime next;
-        public string outbound_body;
-        public UUID reqID;
-        public HttpWebRequest request;
-        public string response_body;
-        public List<string> response_metadata;
-        public Dictionary<string, string> response_headers;
-        public int status;
-        public string url;
+        private UUID _itemID;
+        public UUID ItemID 
+        {
+            get { return _itemID; }
+            set { _itemID = value; }
+        }
+        private uint _localID;
+        public uint LocalID
+        {
+            get { return _localID; }
+            set { _localID = value; }
+        }
+        public DateTime Next;
         public string proxyurl;
         public string proxyexcepts;
+        public string OutboundBody;
+        private UUID _reqID;
+        public UUID ReqID 
+        {
+            get { return _reqID; }
+            set { _reqID = value; }
+        }
+        public HttpWebRequest Request;
+        public string ResponseBody;
+        public List<string> ResponseMetadata;
+        public Dictionary<string, string> ResponseHeaders;
+        public int Status;
+        public string Url;
 
-        public void process()
+        public void Process()
         {
             httpThread = new Thread(SendRequest);
             httpThread.Name = "HttpRequestThread";
             httpThread.Priority = ThreadPriority.BelowNormal;
             httpThread.IsBackground = true;
-            finished = false;
+            _finished = false;
             httpThread.Start();
             ThreadTracker.Add(httpThread);
         }
@@ -322,37 +341,35 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
 
             try
             {
-                request = (HttpWebRequest)
-                          WebRequest.Create(url);
-                request.Method = httpMethod;
-                request.ContentType = httpMIMEType;
-		if (proxyurl.Length > 0) 
-		  {
-		    if (proxyexcepts.Length > 0) {
-		      string[] elist = proxyexcepts.Split(';');
-		      request.Proxy = new WebProxy(proxyurl,true,elist);
-		    } else {
-		      request.Proxy = new WebProxy(proxyurl,true);
-		    }
-		  }
+                Request = (HttpWebRequest) WebRequest.Create(Url);
+                Request.Method = HttpMethod;
+                Request.ContentType = HttpMIMEType;
+        if (proxyurl.Length > 0) 
+          {
+            if (proxyexcepts.Length > 0) {
+              string[] elist = proxyexcepts.Split(';');
+              Request.Proxy = new WebProxy(proxyurl,true,elist);
+            } else {
+              Request.Proxy = new WebProxy(proxyurl,true);
+            }
+          }
 
-                foreach (KeyValuePair<string, string> entry in response_headers)
-                    request.Headers[entry.Key] = entry.Value;
+                foreach (KeyValuePair<string, string> entry in ResponseHeaders)
+                    Request.Headers[entry.Key] = entry.Value;
 
                 // Encode outbound data
-                if (outbound_body.Length > 0) {
-                    byte[] data = Encoding.UTF8.GetBytes(outbound_body);
+                if (OutboundBody.Length > 0) {
+                    byte[] data = Encoding.UTF8.GetBytes(OutboundBody);
 
-                    request.ContentLength = data.Length;
-                    Stream bstream = request.GetRequestStream();
+                    Request.ContentLength = data.Length;
+                    Stream bstream = Request.GetRequestStream();
                     bstream.Write(data, 0, data.Length);
                     bstream.Close();
                 }
 
-                request.Timeout = httpTimeout;
+                Request.Timeout = HttpTimeout;
                 // execute the request
-                response = (HttpWebResponse)
-                           request.GetResponse();
+                response = (HttpWebResponse) Request.GetResponse();
 
                 Stream resStream = response.GetResponseStream();
 
@@ -372,23 +389,23 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
                     }
                 } while (count > 0); // any more data to read?
 
-                response_body = sb.ToString();
+                ResponseBody = sb.ToString();
             }
             catch (Exception e)
             {
                 if (e is WebException && ((WebException)e).Status == WebExceptionStatus.ProtocolError)
                 {
                     HttpWebResponse webRsp = (HttpWebResponse)((WebException)e).Response;
-                    status = (int)webRsp.StatusCode;
-                    response_body = webRsp.StatusDescription;
+                    Status = (int)webRsp.StatusCode;
+                    ResponseBody = webRsp.StatusDescription;
                 }
                 else
                 {
-                    status = (int)OSHttpStatusCode.ClientErrorJoker;
-                    response_body = e.Message;
+                    Status = (int)OSHttpStatusCode.ClientErrorJoker;
+                    ResponseBody = e.Message;
                 }
 
-                finished = true;
+                _finished = true;
                 return;
             }
             finally
@@ -397,8 +414,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
                     response.Close();
             }
 
-            status = (int)OSHttpStatusCode.SuccessOk;
-            finished = true;
+            Status = (int)OSHttpStatusCode.SuccessOk;
+            _finished = true;
         }
 
         public void Stop()

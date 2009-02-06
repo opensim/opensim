@@ -35,7 +35,7 @@ using log4net;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework;
-using OpenSim.Region.Interfaces;
+// using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {

@@ -29,10 +29,10 @@ using System.Collections.Generic;
 using System.Text;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.ScriptEngine.Shared;
-using EventParams=OpenSim.ScriptEngine.Shared.EventParams;
+using EventParams = OpenSim.ScriptEngine.Shared.EventParams;
 
 namespace OpenSim.ScriptEngine.Components.DotNetEngine.Events
 {

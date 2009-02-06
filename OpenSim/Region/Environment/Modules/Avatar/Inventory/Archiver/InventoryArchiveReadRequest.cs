@@ -32,7 +32,7 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Xml;
 using OpenMetaverse;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment.Modules.World.Archiver;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;

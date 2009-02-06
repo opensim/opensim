@@ -163,8 +163,11 @@ namespace OpenSim.Framework.Communications.Cache
                                                                 passwordIterations);
 
                 // Use the password to generate pseudo-random bytes for the encryption
-                // key. Specify the size of the key in bytes (instead of bits).
+                // key. Specify the size of the key in bytes (instead
+                // of bits).
+                #pragma warning disable 0618
                 byte[] keyBytes = password.GetBytes(keySize / 8);
+                #pragma warning restore 0618
 
                 // Create uninitialized Rijndael encryption object.
                 RijndaelManaged symmetricKey = new RijndaelManaged();
@@ -276,8 +279,11 @@ namespace OpenSim.Framework.Communications.Cache
                                                                        passwordIterations);
 
                 // Use the password to generate pseudo-random bytes for the encryption
-                // key. Specify the size of the key in bytes (instead of bits).
+                // key. Specify the size of the key in bytes (instead
+                // of bits).
+                #pragma warning disable 0618
                 byte[] keyBytes = password.GetBytes(keySize / 8);
+                #pragma warning restore 0618
 
                 // Create uninitialized Rijndael encryption object.
                 RijndaelManaged symmetricKey = new RijndaelManaged();

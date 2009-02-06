@@ -41,9 +41,8 @@ using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
-using OpenSim.Region.Interfaces;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using Timer = System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
@@ -475,7 +474,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler.OnPacketStats += PopulateStats;
 
             RegisterLocalPacketHandlers();
-            m_imageManager = new LLImageManager(this, m_assetCache,Scene.RequestModuleInterface<OpenSim.Region.Environment.Interfaces.IJ2KDecoder>());
+            m_imageManager = new LLImageManager(this, m_assetCache,Scene.RequestModuleInterface<OpenSim.Region.Framework.Interfaces.IJ2KDecoder>());
         }
 
         public void SetDebugPacketLevel(int newDebugPacketLevel)
@@ -1214,20 +1213,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         dialog = 17;
 
-                        OSD Item = Environment.EventQueueHelper.ChatterboxInvitation(
+                        eq.ChatterboxInvitation(
                             new UUID("00000000-68f9-1111-024e-222222111123"),
                             "OpenSimulator Testing", fromAgent, message, toAgent, fromName, dialog, 0,
                             false, 0, new Vector3(), 1, transactionID, fromGroup, binaryBucket);
 
-                        eq.Enqueue(Item, toAgent);
-                        m_log.Info("########### eq ChatterboxInvitation #############\n" + Item);
-
-                        Item = Environment.EventQueueHelper.ChatterBoxSessionAgentListUpdates(
+                        eq.ChatterBoxSessionAgentListUpdates(
                             new UUID("00000000-68f9-1111-024e-222222111123"),
-                            fromAgent, false, false, false);
-
-                        eq.Enqueue(Item, toAgent);
-                        m_log.Info("########### eq ChatterBoxSessionAgentListUpdates #############\n" + Item);
+                            fromAgent, toAgent, false, false, false);
                     }
 
                     System.Console.WriteLine("SendInstantMessage: " + msg);
@@ -3193,9 +3186,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
                 {
-                    OSD Item = Environment.EventQueueHelper.ParcelProperties(updatePacket);
-
-                    eq.Enqueue(Item, this.AgentId);
+                    eq.ParcelProperties(updatePacket, this.AgentId);
                 }
             }
             catch (Exception ex)
@@ -7608,9 +7599,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
                 {
-                    OSD Item = Environment.EventQueueHelper.GroupMembership(Groupupdate);
-
-                    eq.Enqueue(Item, this.AgentId);
+                    eq.GroupMembership(Groupupdate, this.AgentId);
                 }
             }
             catch (Exception ex)

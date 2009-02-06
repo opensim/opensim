@@ -30,7 +30,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Xml;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Serialiser
 {

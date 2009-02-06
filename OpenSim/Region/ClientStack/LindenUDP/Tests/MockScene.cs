@@ -29,7 +29,7 @@ using System.Xml;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {

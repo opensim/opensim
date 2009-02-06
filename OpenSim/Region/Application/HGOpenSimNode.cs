@@ -44,9 +44,10 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.Hypergrid;
 using OpenSim.Region.Environment;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Scenes.Hypergrid;
+using OpenSim.Region.Framework;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Hypergrid;
 
 using Timer = System.Timers.Timer;
 

@@ -30,8 +30,8 @@ using System.Collections.Generic;
 //using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 {

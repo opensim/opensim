@@ -38,12 +38,11 @@ using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment;
-using OpenSim.Region.Interfaces;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
 using OpenSim.Region.Environment.Modules.World.Land;
 using OpenSim.Region.Environment.Modules.World.Terrain;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
@@ -8454,8 +8453,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //   in StartHttpRequest
 
             m_host.AddScriptLPS(1);
-            IHttpRequests httpScriptMod =
-                m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();
+            IHttpRequestModule httpScriptMod =
+                m_ScriptEngine.World.RequestModuleInterface<IHttpRequestModule>();
             List<string> param = new List<string>();
             foreach (object o in parameters.Data)
             {

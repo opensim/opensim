@@ -26,7 +26,7 @@
  */
 
 using System;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Environment.Modules.Scripting.HttpRequest;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Interfaces;
@@ -48,13 +48,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             if (m_CmdManager.m_ScriptEngine.World == null)
                 return;
 
-            IHttpRequests iHttpReq =
-                m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();
+            IHttpRequestModule iHttpReq =
+                m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IHttpRequestModule>();
 
             HttpRequestClass httpInfo = null;
 
             if (iHttpReq != null)
-                httpInfo = iHttpReq.GetNextCompletedRequest();
+                httpInfo = (HttpRequestClass)iHttpReq.GetNextCompletedRequest();
 
             while (httpInfo != null)
             {
@@ -67,24 +67,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // implemented here yet anyway.  Should be fixed if/when maxsize
                 // is supported
 
-                iHttpReq.RemoveCompletedRequest(httpInfo.reqID);
+                iHttpReq.RemoveCompletedRequest(httpInfo.ReqID);
 
                 object[] resobj = new object[]
                 {
-                    new LSL_Types.LSLString(httpInfo.reqID.ToString()),
-                    new LSL_Types.LSLInteger(httpInfo.status),
+                    new LSL_Types.LSLString(httpInfo.ReqID.ToString()),
+                    new LSL_Types.LSLInteger(httpInfo.Status),
                     new LSL_Types.list(),
-                    new LSL_Types.LSLString(httpInfo.response_body)
+                    new LSL_Types.LSLString(httpInfo.ResponseBody)
                 };
 
                 foreach (IScriptEngine e in m_CmdManager.ScriptEngines)
                 {
-                    if (e.PostObjectEvent(httpInfo.localID,
+                    if (e.PostObjectEvent(httpInfo.LocalID,
                             new EventParams("http_response",
                             resobj, new DetectParams[0])))
                         break;
                 }
-                httpInfo = iHttpReq.GetNextCompletedRequest();
+                httpInfo = (HttpRequestClass)iHttpReq.GetNextCompletedRequest();
             }
         }
     }

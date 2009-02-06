@@ -42,10 +42,9 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Interfaces;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Scenes.Hypergrid;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Region.Environment.Modules.Communications.Local;
 
 namespace OpenSim.Region.Environment.Modules.Communications.REST

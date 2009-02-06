@@ -34,7 +34,7 @@ using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenSim.Data;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
 
 namespace OpenSim.Data.Tests

@@ -30,7 +30,7 @@ using System.Xml;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.DataSnapshot.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.DataSnapshot.Providers
 {

@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction

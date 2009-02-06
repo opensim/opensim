@@ -71,11 +71,11 @@ namespace OpenSim.Region.Environment
             return llsdEvent;
         }
 
-        public static OSD EnableSimulator(ulong Handle, IPEndPoint endPoint)
+        public static OSD EnableSimulator(ulong handle, IPEndPoint endPoint)
         {
             OSDMap llsdSimInfo = new OSDMap(3);
 
-            llsdSimInfo.Add("Handle", new OSDBinary(ulongToByteArray(Handle)));
+            llsdSimInfo.Add("Handle", new OSDBinary(ulongToByteArray(handle)));
             llsdSimInfo.Add("IP", new OSDBinary(endPoint.Address.GetAddressBytes()));
             llsdSimInfo.Add("Port", new OSDInteger(endPoint.Port));
 
@@ -88,11 +88,11 @@ namespace OpenSim.Region.Environment
             return buildEvent("EnableSimulator", llsdBody);
         }
 
-        public static OSD DisableSimulator(ulong Handle)
+        public static OSD DisableSimulator(ulong handle)
         {
             //OSDMap llsdSimInfo = new OSDMap(1);
 
-            //llsdSimInfo.Add("Handle", new OSDBinary(regionHandleToByteArray(Handle)));
+            //llsdSimInfo.Add("Handle", new OSDBinary(regionHandleToByteArray(handle)));
 
             //OSDArray arr = new OSDArray(1);
             //arr.Add(llsdSimInfo);
@@ -103,57 +103,57 @@ namespace OpenSim.Region.Environment
             return buildEvent("DisableSimulator", llsdBody);
         }
         
-        public static OSD CrossRegion(ulong Handle, Vector3 pos, Vector3 lookAt,
-                                       IPEndPoint newRegionExternalEndPoint,
-                                       string capsURL, UUID AgentID, UUID SessionID)
+        public static OSD CrossRegion(ulong handle, Vector3 pos, Vector3 lookAt,
+                                      IPEndPoint newRegionExternalEndPoint,
+                                      string capsURL, UUID agentID, UUID sessionID)
         {
-            OSDArray LookAtArr = new OSDArray(3);
-            LookAtArr.Add(OSD.FromReal(lookAt.X));
-            LookAtArr.Add(OSD.FromReal(lookAt.Y));
-            LookAtArr.Add(OSD.FromReal(lookAt.Z));
+            OSDArray lookAtArr = new OSDArray(3);
+            lookAtArr.Add(OSD.FromReal(lookAt.X));
+            lookAtArr.Add(OSD.FromReal(lookAt.Y));
+            lookAtArr.Add(OSD.FromReal(lookAt.Z));
 
-            OSDArray PositionArr = new OSDArray(3);
-            PositionArr.Add(OSD.FromReal(pos.X));
-            PositionArr.Add(OSD.FromReal(pos.Y));
-            PositionArr.Add(OSD.FromReal(pos.Z));
+            OSDArray positionArr = new OSDArray(3);
+            positionArr.Add(OSD.FromReal(pos.X));
+            positionArr.Add(OSD.FromReal(pos.Y));
+            positionArr.Add(OSD.FromReal(pos.Z));
 
-            OSDMap InfoMap = new OSDMap(2);
-            InfoMap.Add("LookAt", LookAtArr);
-            InfoMap.Add("Position", PositionArr);
+            OSDMap infoMap = new OSDMap(2);
+            infoMap.Add("LookAt", lookAtArr);
+            infoMap.Add("Position", positionArr);
 
-            OSDArray InfoArr = new OSDArray(1);
-            InfoArr.Add(InfoMap);
+            OSDArray infoArr = new OSDArray(1);
+            infoArr.Add(infoMap);
 
-            OSDMap AgentDataMap = new OSDMap(2);
-            AgentDataMap.Add("AgentID", OSD.FromUUID(AgentID));
-            AgentDataMap.Add("SessionID",  OSD.FromUUID(SessionID));
+            OSDMap agentDataMap = new OSDMap(2);
+            agentDataMap.Add("AgentID", OSD.FromUUID(agentID));
+            agentDataMap.Add("SessionID",  OSD.FromUUID(sessionID));
 
-            OSDArray AgentDataArr = new OSDArray(1);
-            AgentDataArr.Add(AgentDataMap);
+            OSDArray agentDataArr = new OSDArray(1);
+            agentDataArr.Add(agentDataMap);
 
-            OSDMap RegionDataMap = new OSDMap(4);
-            RegionDataMap.Add("RegionHandle", OSD.FromBinary(ulongToByteArray(Handle)));
-            RegionDataMap.Add("SeedCapability", OSD.FromString(capsURL));
-            RegionDataMap.Add("SimIP", OSD.FromBinary(newRegionExternalEndPoint.Address.GetAddressBytes()));
-            RegionDataMap.Add("SimPort", OSD.FromInteger(newRegionExternalEndPoint.Port));
+            OSDMap regionDataMap = new OSDMap(4);
+            regionDataMap.Add("RegionHandle", OSD.FromBinary(ulongToByteArray(handle)));
+            regionDataMap.Add("SeedCapability", OSD.FromString(capsURL));
+            regionDataMap.Add("SimIP", OSD.FromBinary(newRegionExternalEndPoint.Address.GetAddressBytes()));
+            regionDataMap.Add("SimPort", OSD.FromInteger(newRegionExternalEndPoint.Port));
 
-            OSDArray RegionDataArr = new OSDArray(1);
-            RegionDataArr.Add(RegionDataMap);
+            OSDArray regionDataArr = new OSDArray(1);
+            regionDataArr.Add(regionDataMap);
 
             OSDMap llsdBody = new OSDMap(3);
-            llsdBody.Add("Info", InfoArr);
-            llsdBody.Add("AgentData", AgentDataArr);
-            llsdBody.Add("RegionData", RegionDataArr);
+            llsdBody.Add("Info", infoArr);
+            llsdBody.Add("AgentData", agentDataArr);
+            llsdBody.Add("RegionData", regionDataArr);
 
             return buildEvent("CrossedRegion", llsdBody);
         }
 
         public static OSD TeleportFinishEvent(
             ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
-            uint locationID, uint flags, string capsURL, UUID AgentID)
+            uint locationID, uint flags, string capsURL, UUID agentID)
         {
             OSDMap info = new OSDMap();
-            info.Add("AgentID", OSD.FromUUID(AgentID));
+            info.Add("AgentID", OSD.FromUUID(agentID));
             info.Add("LocationID", OSD.FromInteger(4)); // TODO what is this?
             info.Add("RegionHandle", OSD.FromBinary(ulongToByteArray(regionHandle)));
             info.Add("SeedCapability", OSD.FromString(capsURL));

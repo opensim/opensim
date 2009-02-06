@@ -30,10 +30,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.ScriptEngine.Shared;
-using EventParams=OpenSim.ScriptEngine.Shared.EventParams;
+using EventParams = OpenSim.ScriptEngine.Shared.EventParams;
 
 namespace OpenSim.ScriptEngine.Shared
 {

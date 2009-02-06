@@ -33,7 +33,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Mono.Data.SqliteClient;
 using OpenMetaverse;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Region.UserStatistics

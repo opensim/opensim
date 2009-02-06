@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using System.IO;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenMetaverse;
 

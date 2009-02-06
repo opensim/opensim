@@ -30,7 +30,7 @@ using System.Reflection;
 using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
 {

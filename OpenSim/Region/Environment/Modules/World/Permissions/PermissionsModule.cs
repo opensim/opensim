@@ -33,10 +33,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment.Modules.Framework;
 using OpenSim.Region.Environment.Modules.Framework.InterfaceCommander;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Environment.Modules.World.Permissions

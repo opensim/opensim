@@ -34,6 +34,12 @@ using OpenSim.Framework;
 using OpenSim.Framework.RegionLoader.Filesystem;
 using OpenSim.Framework.RegionLoader.Web;
 
+using OpenSim.Region.Environment.Modules.Scripting.DynamicTexture;
+using OpenSim.Region.Environment.Modules.Avatar.InstantMessage;
+using OpenSim.Region.Environment.Modules.Scripting.LoadImageURL;
+using OpenSim.Region.Environment.Modules.Scripting.XMLRPC;
+using OpenSim.Region.Environment.Modules.Agent.AssetTransaction;
+
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {
     public class LoadRegionsPlugin : IApplicationPlugin
@@ -74,8 +80,11 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             regionLoader.SetIniConfigSource(openSim.ConfigSource.Source);
             RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
 
-            openSim.ModuleLoader.LoadDefaultSharedModules();
-
+            openSim.ModuleLoader.LoadDefaultSharedModule(new DynamicTextureModule());
+            openSim.ModuleLoader.LoadDefaultSharedModule(new InstantMessageModule());
+            openSim.ModuleLoader.LoadDefaultSharedModule(new LoadImageURLModule());
+            openSim.ModuleLoader.LoadDefaultSharedModule(new XMLRPCModule());
+            openSim.ModuleLoader.LoadDefaultSharedModule(new AssetTransactionModule());
             if (!CheckRegionsForSanity(regionsToLoad))
             {
                 m_log.Error("[LOADREGIONS]: Halting startup due to conflicts in region configurations");

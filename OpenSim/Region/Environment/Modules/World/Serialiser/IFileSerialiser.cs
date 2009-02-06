@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Serialiser
 {

@@ -37,9 +37,9 @@ using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment.Modules.World.Terrain;
-using OpenSim.Region.Environment.Scenes;
 using System.Collections.Generic;
 
 namespace OpenSim.ApplicationPlugins.RemoteController

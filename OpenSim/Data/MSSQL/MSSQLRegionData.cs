@@ -35,8 +35,8 @@ using System.Reflection;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Data.MSSQL
 {

@@ -32,8 +32,8 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Grid.Interregion
 {

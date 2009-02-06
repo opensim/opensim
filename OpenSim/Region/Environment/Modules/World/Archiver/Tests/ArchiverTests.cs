@@ -32,11 +32,11 @@ using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Archiver;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver.Tests

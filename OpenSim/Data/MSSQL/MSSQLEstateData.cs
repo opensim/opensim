@@ -33,7 +33,7 @@ using System.Reflection;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Data.MSSQL
 {

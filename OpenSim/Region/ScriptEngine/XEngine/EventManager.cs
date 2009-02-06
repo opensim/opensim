@@ -31,9 +31,8 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
-using OpenSim.Region.Interfaces;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Interfaces;
 

@@ -26,7 +26,7 @@
  */
 
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Grid.Interregion
 {

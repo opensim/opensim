@@ -37,8 +37,8 @@ using Nini.Config;
 using log4net;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 
 namespace OpenSim.Region.Environment.Modules.World.WorldMap

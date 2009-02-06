@@ -33,10 +33,10 @@ using System.Xml;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
-using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
 {

@@ -32,7 +32,7 @@ using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenSim.Framework;
 using OpenSim.Data.Tests;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
 using OpenSim.Data.NHibernate;
 

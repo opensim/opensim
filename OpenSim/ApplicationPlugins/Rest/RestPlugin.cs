@@ -41,7 +41,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.ApplicationPlugins.Rest
 {

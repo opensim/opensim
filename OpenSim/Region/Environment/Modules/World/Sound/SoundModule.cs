@@ -31,8 +31,8 @@ using Nini.Config;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Environment.World.Sound
 {        

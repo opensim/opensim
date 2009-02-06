@@ -26,7 +26,7 @@
  */
 
 using System;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Environment.Modules.Scripting.XMLRPC;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -52,7 +52,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             if (xmlrpc != null)
             {
-                RPCRequestInfo rInfo = xmlrpc.GetNextCompletedRequest();
+                RPCRequestInfo rInfo = (RPCRequestInfo)xmlrpc.GetNextCompletedRequest();
 
                 while (rInfo != null)
                 {
@@ -80,10 +80,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                             break;
                     }
 
-                    rInfo = xmlrpc.GetNextCompletedRequest();
+                    rInfo = (RPCRequestInfo)xmlrpc.GetNextCompletedRequest();
                 }
 
-                SendRemoteDataRequest srdInfo = xmlrpc.GetNextCompletedSRDRequest();
+                SendRemoteDataRequest srdInfo = (SendRemoteDataRequest)xmlrpc.GetNextCompletedSRDRequest();
 
                 while (srdInfo != null)
                 {
@@ -93,23 +93,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     object[] resobj = new object[]
                     {
                         new LSL_Types.LSLInteger(3),
-                        new LSL_Types.LSLString(srdInfo.channel.ToString()),
+                        new LSL_Types.LSLString(srdInfo.Channel.ToString()),
                         new LSL_Types.LSLString(srdInfo.GetReqID().ToString()),
                         new LSL_Types.LSLString(String.Empty),
-                        new LSL_Types.LSLInteger(srdInfo.idata),
-                        new LSL_Types.LSLString(srdInfo.sdata)
+                        new LSL_Types.LSLInteger(srdInfo.Idata),
+                        new LSL_Types.LSLString(srdInfo.Sdata)
                     };
 
                     foreach (IScriptEngine e in m_CmdManager.ScriptEngines)
                     {
                         if (e.PostScriptEvent(
-                                srdInfo.m_itemID, new EventParams(
+                                srdInfo.ItemID, new EventParams(
                                     "remote_data", resobj,
                                     new DetectParams[0])))
                             break;
                     }
 
-                    srdInfo = xmlrpc.GetNextCompletedSRDRequest();
+                    srdInfo = (SendRemoteDataRequest)xmlrpc.GetNextCompletedSRDRequest();
                 }
             }
         }

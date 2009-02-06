@@ -31,7 +31,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.ApplicationPlugins.Rest.Regions
 {

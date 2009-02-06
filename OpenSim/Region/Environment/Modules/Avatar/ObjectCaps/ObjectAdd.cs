@@ -34,8 +34,8 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.ObjectCaps

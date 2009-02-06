@@ -32,8 +32,8 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Limit;
 using OpenSim.Framework.Statistics;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 {

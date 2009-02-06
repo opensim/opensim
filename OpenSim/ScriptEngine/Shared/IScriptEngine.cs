@@ -28,8 +28,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Nini.Config;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.ScriptEngine.Shared
 {

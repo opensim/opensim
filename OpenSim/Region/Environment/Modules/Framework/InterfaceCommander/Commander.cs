@@ -31,7 +31,7 @@ using System.Reflection;
 using System.Text;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
 {

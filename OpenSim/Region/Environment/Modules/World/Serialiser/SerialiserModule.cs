@@ -30,9 +30,9 @@ using System.Collections.Generic;
 using System.IO;
 using OpenMetaverse;
 using Nini.Config;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment.Modules.Framework.InterfaceCommander;
-using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Serialiser
 {

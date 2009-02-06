@@ -41,8 +41,8 @@ using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment.Modules.Avatar.Chat;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Concierge

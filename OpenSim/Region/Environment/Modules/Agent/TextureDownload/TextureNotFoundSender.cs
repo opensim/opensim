@@ -30,7 +30,7 @@ using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 {

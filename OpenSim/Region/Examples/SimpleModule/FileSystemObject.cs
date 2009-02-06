@@ -28,7 +28,7 @@
 using System.IO;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Examples.SimpleModule
 {

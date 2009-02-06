@@ -33,8 +33,8 @@ using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Tests.Common.Mock
 {

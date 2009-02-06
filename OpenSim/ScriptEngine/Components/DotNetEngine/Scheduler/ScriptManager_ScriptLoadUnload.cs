@@ -34,7 +34,7 @@ using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.ScriptEngine.Shared;

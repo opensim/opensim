@@ -27,7 +27,7 @@
 
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Serialiser
 {

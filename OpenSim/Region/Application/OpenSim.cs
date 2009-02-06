@@ -39,8 +39,8 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver;
 using Timer=System.Timers.Timer;
 

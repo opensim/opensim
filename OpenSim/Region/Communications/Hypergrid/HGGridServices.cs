@@ -52,9 +52,9 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
-using OpenSim.Region.Environment.Modules.Framework;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Interfaces;
+// using OpenSim.Region.Environment.Modules.Framework;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Communications.Hypergrid
 {

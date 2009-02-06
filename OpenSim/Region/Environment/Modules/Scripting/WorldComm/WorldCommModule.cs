@@ -31,8 +31,8 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 // using log4net;
 // using System.Reflection;
@@ -313,7 +313,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         /// Pop the first availlable listen event from the queue
         /// </summary>
         /// <returns>ListenerInfo with filter filled in</returns>
-        public ListenerInfo GetNextMessage()
+        public IWorldCommListenerInfo GetNextMessage()
         {
             ListenerInfo li = null;
 
@@ -608,7 +608,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         }
     }
 
-    public class ListenerInfo
+    public class ListenerInfo: IWorldCommListenerInfo
     {
         private bool m_active; // Listener is active or not
         private int m_handle; // Assigned handle of this listener

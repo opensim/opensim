@@ -28,7 +28,7 @@
 using log4net;
 using System;
 using OpenSim.Region.ScriptEngine.Shared;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Region.ScriptEngine.Interfaces;

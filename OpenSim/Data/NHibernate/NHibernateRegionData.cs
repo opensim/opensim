@@ -36,9 +36,9 @@ using log4net;
 using NHibernate;
 using NHibernate.Criterion;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
-using Environment=NHibernate.Cfg.Environment;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using Environment = NHibernate.Cfg.Environment;
 
 namespace OpenSim.Data.NHibernate
 {

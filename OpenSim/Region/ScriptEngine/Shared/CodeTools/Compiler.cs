@@ -33,7 +33,7 @@ using System.IO;
 using Microsoft.CSharp;
 using Microsoft.JScript;
 using Microsoft.VisualBasic;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Shared.CodeTools

@@ -37,7 +37,7 @@
 
 using System;
 using OpenMetaverse;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules.ContentManagement

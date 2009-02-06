@@ -31,7 +31,7 @@ using System.Net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.NPC
 {

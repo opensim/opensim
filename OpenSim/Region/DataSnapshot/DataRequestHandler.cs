@@ -31,7 +31,7 @@ using System.Collections;
 using System.Reflection;
 using System.Xml;
 using log4net;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Communications.Capabilities;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 using OpenMetaverse;

@@ -31,7 +31,7 @@ using System.Threading;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
 using integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;

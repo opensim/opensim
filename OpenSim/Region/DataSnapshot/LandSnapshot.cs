@@ -33,9 +33,9 @@ using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.DataSnapshot.Interfaces;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Land;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse.Packets;
 using OpenSim.Framework.Communications.Cache;
 

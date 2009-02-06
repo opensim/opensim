@@ -30,8 +30,8 @@ using System.Reflection;
 using System.Text;
 using log4net;
 using Nini.Config;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.ScriptEngine.Shared;
 
 namespace OpenSim.ApplicationPlugins.ScriptEngine

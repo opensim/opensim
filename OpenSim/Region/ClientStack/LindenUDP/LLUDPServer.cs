@@ -36,7 +36,7 @@ using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {

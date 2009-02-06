@@ -42,8 +42,8 @@ using Nini.Config;
 
 using OpenSim;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;

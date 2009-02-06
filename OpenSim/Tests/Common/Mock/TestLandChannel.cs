@@ -28,7 +28,7 @@
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Tests.Common.Mock
 {       

@@ -36,8 +36,9 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.Framework;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.ClientStack

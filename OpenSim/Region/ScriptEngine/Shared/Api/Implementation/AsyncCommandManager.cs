@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Threading;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
@@ -234,8 +234,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_Timer[engine].UnSetTimerEvents(localID, itemID);
 
             // Remove from: HttpRequest
-            IHttpRequests iHttpReq =
-                engine.World.RequestModuleInterface<IHttpRequests>();
+            IHttpRequestModule iHttpReq =
+                engine.World.RequestModuleInterface<IHttpRequestModule>();
             iHttpReq.StopHttpRequest(localID, itemID);
 
             IWorldComm comms = engine.World.RequestModuleInterface<IWorldComm>();

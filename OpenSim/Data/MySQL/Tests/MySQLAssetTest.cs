@@ -33,7 +33,7 @@ using NUnit.Framework.SyntaxHelpers;
 using OpenSim.Framework;
 using OpenSim.Data.Tests;
 using OpenSim.Data.MySQL;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
 
 namespace OpenSim.Data.MySQL.Tests

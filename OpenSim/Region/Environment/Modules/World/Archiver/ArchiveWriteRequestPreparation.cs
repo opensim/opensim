@@ -27,10 +27,10 @@
 
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
-using OpenSim.Region.Environment.Scenes;
 using System;
 using System.Collections.Generic;
 using System.IO;

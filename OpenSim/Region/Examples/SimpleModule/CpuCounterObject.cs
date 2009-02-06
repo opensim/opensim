@@ -29,7 +29,7 @@ using System;
 using System.Diagnostics;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Examples.SimpleModule
 {

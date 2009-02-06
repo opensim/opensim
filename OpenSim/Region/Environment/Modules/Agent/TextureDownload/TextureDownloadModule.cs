@@ -31,10 +31,10 @@ using System.Threading;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Communications.Cache;
-using BlockingQueue = OpenSim.Framework.BlockingQueue<OpenSim.Region.Environment.Interfaces.ITextureSender>;
+using BlockingQueue = OpenSim.Framework.BlockingQueue<OpenSim.Region.Framework.Interfaces.ITextureSender>;
 
 namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 {

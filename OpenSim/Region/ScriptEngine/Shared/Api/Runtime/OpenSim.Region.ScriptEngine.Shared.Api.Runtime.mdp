@@ -34,6 +34,7 @@
     <ProjectReference type="Project" localcopy="False" refto="OpenSim.Framework.Communications" />
     <ProjectReference type="Project" localcopy="False" refto="OpenSim.Framework.Console" />
     <ProjectReference type="Project" localcopy="False" refto="OpenSim.Region.Environment" />
+    <ProjectReference type="Project" localcopy="False" refto="OpenSim.Region.Framework" />
     <ProjectReference type="Project" localcopy="False" refto="OpenSim.Region.ScriptEngine.Shared" />
     <ProjectReference type="Assembly" refto="../../../../../../bin/RAIL.dll" localcopy="False" />
     <ProjectReference type="Gac" localcopy="False" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />

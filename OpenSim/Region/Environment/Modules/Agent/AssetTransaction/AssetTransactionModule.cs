@@ -30,9 +30,8 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Region.Interfaces;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 {

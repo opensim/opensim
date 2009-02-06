@@ -26,7 +26,7 @@
  */
 
 using System.Drawing;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using Nini.Config;
 
 namespace OpenSim.Region.Environment

@@ -34,8 +34,8 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.Environment.Modules.Agent.Capabilities
@@ -100,7 +100,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.Capabilities
             caps.ItemUpdatedCall = m_scene.CapsUpdateInventoryItemAsset;
             caps.TaskScriptUpdatedCall = m_scene.CapsUpdateTaskInventoryScriptAsset;
             caps.CAPSFetchInventoryDescendents = m_scene.HandleFetchInventoryDescendentsCAPS;
-            caps.GetClient = m_scene.m_sceneGraph.GetControllingClient;
+            caps.GetClient = m_scene.SceneContents.GetControllingClient;
             
             m_capsHandlers[agentId] = caps;
         }

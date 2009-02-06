@@ -47,10 +47,10 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Types;
 using OpenSim.Region.Environment.Modules.World.WorldMap;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Types;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 
 using OSD = OpenMetaverse.StructuredData.OSD;

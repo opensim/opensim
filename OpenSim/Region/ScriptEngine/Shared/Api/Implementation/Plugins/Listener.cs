@@ -27,7 +27,7 @@
 
 using System;
 using OpenMetaverse;
-using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Environment.Modules.Scripting.WorldComm;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -56,7 +56,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             {
                 while (comms.HasMessages())
                 {
-                    ListenerInfo lInfo = comms.GetNextMessage();
+                    ListenerInfo lInfo = (ListenerInfo)comms.GetNextMessage();
 
                     //Deliver data to prim's listen handler
                     object[] resobj = new object[]

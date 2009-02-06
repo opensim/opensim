@@ -34,6 +34,7 @@ using System.Reflection;
 using System.Threading;
 using System.Xml;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
 using log4net;
 using Nini.Config;
@@ -42,9 +43,8 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 using OSD = OpenMetaverse.StructuredData.OSD;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
@@ -554,6 +554,77 @@ namespace OpenSim.Region.Environment.Modules.Framework.EventQueue
             }
             
             return new OSDString("shutdown404!");
+        }
+
+        public void DisableSimulator(ulong handle, UUID avatarID)
+        {
+            OSD item = EventQueueHelper.DisableSimulator(handle);
+            Enqueue(item, avatarID);
+        }
+
+        public void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID)
+        {
+            OSD item = EventQueueHelper.EnableSimulator(handle, endPoint);
+            Enqueue(item, avatarID);
+        }
+
+        public void EstablishAgentCommunication(UUID avatarID, IPEndPoint endPoint, string capsPath) 
+        {
+            OSD item = EventQueueHelper.EstablishAgentCommunication(avatarID, endPoint.ToString(), capsPath);
+            Enqueue(item, avatarID);
+        }
+
+        public void TeleportFinishEvent(ulong regionHandle, byte simAccess, 
+                                        IPEndPoint regionExternalEndPoint,
+                                        uint locationID, uint flags, string capsURL, 
+                                        UUID avatarID)
+        {
+            OSD item = EventQueueHelper.TeleportFinishEvent(regionHandle, simAccess, regionExternalEndPoint,
+                                                            locationID, flags, capsURL, avatarID);
+            Enqueue(item, avatarID);
+        }
+
+        public void CrossRegion(ulong handle, Vector3 pos, Vector3 lookAt,
+                                IPEndPoint newRegionExternalEndPoint,
+                                string capsURL, UUID avatarID, UUID sessionID)
+        {
+            OSD item = EventQueueHelper.CrossRegion(handle, pos, lookAt, newRegionExternalEndPoint,
+                                                    capsURL, avatarID, sessionID);
+            Enqueue(item, avatarID);
+        }
+
+        public void ChatterboxInvitation(UUID sessionID, string sessionName,
+                                         UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog,
+                                         uint timeStamp, bool offline, int parentEstateID, Vector3 position,
+                                         uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket)
+        {
+            OSD item = EventQueueHelper.ChatterboxInvitation(sessionID, sessionName, fromAgent, message, toAgent, fromName, dialog, 
+                                                             timeStamp, offline, parentEstateID, position, ttl, transactionID, 
+                                                             fromGroup, binaryBucket);
+            Enqueue(item, toAgent);
+            m_log.InfoFormat("########### eq ChatterboxInvitation #############\n{0}", item);
+
+        }
+
+        public void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID toAgent, bool canVoiceChat, 
+                                                      bool isModerator, bool textMute)
+        {
+            OSD item = EventQueueHelper.ChatterBoxSessionAgentListUpdates(sessionID, fromAgent, canVoiceChat,
+                                                                          isModerator, textMute);
+            Enqueue(item, toAgent);
+            m_log.InfoFormat("########### eq ChatterBoxSessionAgentListUpdates #############\n{0}", item);
+        }
+
+        public void ParcelProperties(ParcelPropertiesPacket parcelPropertiesPacket, UUID avatarID)
+        {
+            OSD item = Environment.EventQueueHelper.ParcelProperties(parcelPropertiesPacket);
+            Enqueue(item, avatarID);
+        }
+
+        public void GroupMembership(AgentGroupDataUpdatePacket groupUpdate, UUID avatarID)
+        {
+            OSD item = EventQueueHelper.GroupMembership(groupUpdate);
+            Enqueue(item, avatarID);
         }
     }
 }

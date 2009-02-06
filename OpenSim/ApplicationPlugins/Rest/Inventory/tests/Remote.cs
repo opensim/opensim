@@ -33,7 +33,7 @@ using System.IO;
 using System.Threading;
 using System.Xml;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
