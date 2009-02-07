@@ -77,6 +77,9 @@ namespace OpenSim
             m_log.Info("====================================================================");
 
             base.StartupSpecific();
+
+            MainConsole.Instance.Commands.AddCommand("hypergrid", "link-mapping", "link-mapping [<x> <y>] <cr>", "Set local coordinate to map HG regions to", RunCommand);
+            MainConsole.Instance.Commands.AddCommand("hypergrid", "link-region", "link-region <Xloc> <Yloc> <HostName> <HttpPort> <LocalName> <cr>", "Link a hypergrid region", RunCommand);
         }
 
         protected override void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
@@ -143,11 +146,18 @@ namespace OpenSim
                     m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }
 
-        public override void RunCmd(string command, string[] cmdparams)
+        public void RunCommand(string module, string[] cp)
         {
+            List<string> cmdparams = new List<string>(cp);
+            if (cmdparams.Count < 1)
+                return;
+
+            string command = cmdparams[0];
+            cmdparams.RemoveAt(0);
+
             if (command.Equals("link-mapping"))
             {
-                if (cmdparams.Length == 2)
+                if (cmdparams.Count == 2)
                 {
                     try
                     {
@@ -166,11 +176,11 @@ namespace OpenSim
             else if (command.Equals("link-region"))
             {
                 // link-region <Xloc> <Yloc> <HostName> <HttpPort> <LocalName>
-                if (cmdparams.Length < 4)
+                if (cmdparams.Count < 4)
                 {
-                    if ((cmdparams.Length == 1) || (cmdparams.Length ==2))
+                    if ((cmdparams.Count == 1) || (cmdparams.Count ==2))
                     {
-                        LoadXmlLinkFile(cmdparams);
+                        LoadXmlLinkFile(cmdparams.ToArray());
                     }
                     else
                     {
@@ -201,19 +211,16 @@ namespace OpenSim
 
                 if (TryCreateLink(xloc, yloc, externalPort, externalHostName, out regInfo))
                 {
-                    if (cmdparams.Length >= 5)
+                    if (cmdparams.Count >= 5)
                     {
                         regInfo.RegionName = "";
-                        for (int i = 4; i < cmdparams.Length; i++)
+                        for (int i = 4; i < cmdparams.Count; i++)
                             regInfo.RegionName += cmdparams[i] + " ";
                     }
                 }
 
                 return;
             }
-
-            base.RunCmd(command, cmdparams);
-
         }
 
         private void LoadXmlLinkFile(string[] cmdparams)

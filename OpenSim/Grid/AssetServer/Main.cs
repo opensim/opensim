@@ -43,7 +43,7 @@ namespace OpenSim.Grid.AssetServer
     /// <summary>
     /// An asset server
     /// </summary>
-    public class OpenAsset_Main : BaseOpenSimServer, conscmd_callback
+    public class OpenAsset_Main : BaseOpenSimServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -76,7 +76,7 @@ namespace OpenSim.Grid.AssetServer
 
         public OpenAsset_Main()
         {
-            m_console = new ConsoleBase("Asset", this);
+            m_console = new ConsoleBase("Asset");
 
             MainConsole.Instance = m_console;
         }
@@ -99,6 +99,8 @@ namespace OpenSim.Grid.AssetServer
             AddHttpHandlers();
 
             m_httpServer.Start();
+
+            base.StartupSpecific();
         }
 
         protected void AddHttpHandlers()

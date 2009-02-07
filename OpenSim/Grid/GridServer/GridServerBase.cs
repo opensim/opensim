@@ -39,7 +39,7 @@ namespace OpenSim.Grid.GridServer
 {
     /// <summary>
     /// </summary>
-    public class GridServerBase : BaseOpenSimServer, conscmd_callback
+    public class GridServerBase : BaseOpenSimServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -59,43 +59,34 @@ namespace OpenSim.Grid.GridServer
 
         public GridServerBase()
         {
-            m_console = new ConsoleBase("Grid", this);
+            m_console = new ConsoleBase("Grid");
             MainConsole.Instance = m_console;
         }
 
-        public override void RunCmd(string cmd, string[] cmdparams)
+        private void HandleRegistration(string module, string[] cmd)
         {
-            base.RunCmd(cmd, cmdparams);   
-            
-            switch (cmd)
+            switch (cmd[0])
             {
-                case "disable-reg":
-                    m_config.AllowRegionRegistration = false;
-                    m_log.Info("Region registration disabled");
-                    break;                
-                case "enable-reg":
-                    m_config.AllowRegionRegistration = true;
-                    m_log.Info("Region registration enabled");
-                    break;      
+            case "enable":
+                m_config.AllowRegionRegistration = true;
+                m_log.Info("Region registration enabled");
+                break;
+            case "disable":
+                m_config.AllowRegionRegistration = false;
+                m_log.Info("Region registration disabled");
+                break;
             }
         }
-        
-        public override void Show(string[] showParams)
-        {
-            base.Show(showParams);
 
-            switch (showParams[0])
+        private void HandleShowStatus(string module, string[] cmd)
+        {
+            if (m_config.AllowRegionRegistration)
             {
-                case "status":
-                    if (m_config.AllowRegionRegistration)
-                    {
-                        m_log.Info("Region registration enabled.");
-                    }
-                    else
-                    {              
-                        m_log.Info("Region registration disabled.");
-                    }
-                    break;
+                m_log.Info("Region registration enabled.");
+            }
+            else
+            {              
+                m_log.Info("Region registration disabled.");
             }
         }
   
@@ -120,6 +111,20 @@ namespace OpenSim.Grid.GridServer
 //            Timer simCheckTimer = new Timer(3600000 * 3); // 3 Hours between updates.
 //            simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
 //            simCheckTimer.Enabled = true;
+
+            base.StartupSpecific();
+
+            m_console.Commands.AddCommand("gridserver", "enable registration",
+                    "enable registration",
+                    "Enable new regions to register", HandleRegistration);
+
+            m_console.Commands.AddCommand("gridserver", "disable registration",
+                    "disable registration",
+                    "Disable registering new regions", HandleRegistration);
+
+            m_console.Commands.AddCommand("gridserver", "show status",
+                    "show status",
+                    "Show registration status", HandleShowStatus);
         }
 
         protected void AddHttpHandlers()

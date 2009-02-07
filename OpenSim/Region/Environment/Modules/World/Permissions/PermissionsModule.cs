@@ -32,21 +32,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Environment.Modules.Framework;
-using OpenSim.Region.Environment.Modules.Framework.InterfaceCommander;
 using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Environment.Modules.World.Permissions
 {
-    public class PermissionsModule : IRegionModule, ICommandableModule
+    public class PermissionsModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
                 
         protected Scene m_scene;
-        private readonly Commander m_commander = new Commander("permissions");                
 
         #region Constants
         // These are here for testing.  They will be taken out
@@ -91,60 +90,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// permissions are not being bypassed.  This overrides normal permissions.-
         /// </value>        
         private UserSet m_allowedScriptEditors = UserSet.All;
-
-        #endregion
-
-        #region ICommandableModule Members
-
-        public ICommander CommandInterface
-        {
-            get { throw new System.NotImplementedException(); }
-        }
-
-        private void InterfaceDebugPermissions(Object[] args)
-        {
-            if ((bool)args[0] == true)
-            {
-                m_debugPermissions = true;
-                m_log.Info("[PERMISSIONS]: Permissions Debugging Enabled.");
-            }
-            else
-            {
-                m_debugPermissions = false;
-                m_log.Info("[PERMISSIONS]:  Permissions Debugging Disabled.");
-            }
-        }
-
-        private void InterfaceBypassPermissions(Object[] args)
-        {
-            if ((bool)args[0] == true)
-            {
-                m_log.Info("[PERMISSIONS]: Permissions Bypass Enabled.");
-                m_bypassPermissionsValue = (bool)args[1];
-            }
-            else
-            {
-                m_bypassPermissions = false;
-                m_log.Info("[PERMISSIONS]:  Permissions Bypass Disabled. Normal Operation.");
-            }
-        }
-
-        /// <summary>
-        /// Processes commandline input. Do not call directly.
-        /// </summary>
-        /// <param name="args">Commandline arguments</param>
-        private void EventManager_OnPluginConsole(string[] args)
-        {
-            if (args[0] == "permissions")
-            {
-                string[] tmpArgs = new string[args.Length - 2];
-                int i;
-                for (i = 2; i < args.Length; i++)
-                    tmpArgs[i - 2] = args[i];
-
-                m_commander.ProcessConsoleCommand(args[1], tmpArgs);
-            }
-        }
 
         #endregion
 
@@ -226,20 +171,89 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             
             m_scene.Permissions.AddCanTeleportHandler(CanTeleport); //NOT YET IMPLEMENTED
 
-            //Register Debug Commands
-            Command bypassCommand = new Command("bypass", CommandIntentions.COMMAND_HAZARDOUS, InterfaceBypassPermissions, "Force the permissions a specific way to test permissions");
-            bypassCommand.AddArgument("enable_bypass_perms", "true to enable bypassing all perms", "Boolean");
-            bypassCommand.AddArgument("bypass_perms_value", "true/false: true will ignore all perms; false will restrict everything", "Boolean");
+            m_scene.AddCommand("permissions", "bypass permissions",
+                    "bypass permissions <true / false>",
+                    "Bypass permission checks",
+                    HandleBypassPermissions);
 
-            m_commander.RegisterCommand("bypass", bypassCommand);
+            m_scene.AddCommand("permissions", "force permissions",
+                    "force permissions <true / false>",
+                    "Force permissions on or off",
+                    HandleForcePermissions);
 
-            Command debugCommand = new Command("debug", CommandIntentions.COMMAND_STATISTICAL, InterfaceDebugPermissions, "Force the permissions a specific way to test permissions");
-            debugCommand.AddArgument("enable_debug_perms", "true to enable debugging to console all perms", "Boolean");
+            m_scene.AddCommand("permissions", "debug permissions",
+                    "debug permissions <true / false>",
+                    "Enable permissions debugging",
+                    HandleDebugPermissions);
+        }
 
-            m_commander.RegisterCommand("debug", debugCommand);
-            m_scene.RegisterModuleCommander(m_commander);
+        public void HandleBypassPermissions(string module, string[] args)
+        {
+            if (m_scene.ConsoleScene() != null &&
+                m_scene.ConsoleScene() != m_scene)
+            {
+                return;
+            }
 
-            m_scene.EventManager.OnPluginConsole += new EventManager.OnPluginConsoleDelegate(EventManager_OnPluginConsole);
+            if (args.Length > 2)
+            {
+                bool val;
+
+                if (!bool.TryParse(args[2], out val))
+                    return;
+
+                m_bypassPermissions = val;
+
+                m_log.InfoFormat("[PERMISSIONS] Set permissions bypass to {0} for {1}", m_bypassPermissions, m_scene.RegionInfo.RegionName);
+            }
+        }
+
+        public void HandleForcePermissions(string module, string[] args)
+        {
+            if (m_scene.ConsoleScene() != null &&
+                m_scene.ConsoleScene() != m_scene)
+            {
+                return;
+            }
+
+            if (!m_bypassPermissions)
+            {
+                m_log.Error("[PERMISSIONS] Permissions can't be forced unless they are bypassed first");
+                return;
+            }
+
+            if (args.Length > 2)
+            {
+                bool val;
+
+                if (!bool.TryParse(args[2], out val))
+                    return;
+
+                m_bypassPermissionsValue = val;
+
+                m_log.InfoFormat("[PERMISSIONS] Forced permissions to {0} in {1}", m_bypassPermissionsValue, m_scene.RegionInfo.RegionName);
+            }
+        }
+
+        public void HandleDebugPermissions(string module, string[] args)
+        {
+            if (m_scene.ConsoleScene() != null &&
+                m_scene.ConsoleScene() != m_scene)
+            {
+                return;
+            }
+
+            if (args.Length > 2)
+            {
+                bool val;
+
+                if (!bool.TryParse(args[2], out val))
+                    return;
+
+                m_debugPermissions = val;
+
+                m_log.InfoFormat("[PERMISSIONS] Set permissions debugging to {0} in {1}", m_debugPermissions, m_scene.RegionInfo.RegionName);
+            }
         }
 
         public void PostInitialise()

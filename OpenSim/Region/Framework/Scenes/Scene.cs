@@ -37,6 +37,7 @@ using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
@@ -3384,7 +3385,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="cmdparams"></param>
         public void HandleEditCommand(string[] cmdparams)
         {
-            Console.WriteLine("Searching for Primitive: '" + cmdparams[0] + "'");
+            Console.WriteLine("Searching for Primitive: '" + cmdparams[2] + "'");
 
             List<EntityBase> EntityList = GetEntities();
 
@@ -3395,11 +3396,11 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart part = ((SceneObjectGroup)ent).GetChildPart(((SceneObjectGroup)ent).UUID);
                     if (part != null)
                     {
-                        if (part.Name == cmdparams[0])
+                        if (part.Name == cmdparams[2])
                         {
                             part.Resize(
-                                new Vector3(Convert.ToSingle(cmdparams[1]), Convert.ToSingle(cmdparams[2]),
-                                              Convert.ToSingle(cmdparams[3])));
+                                new Vector3(Convert.ToSingle(cmdparams[3]), Convert.ToSingle(cmdparams[4]),
+                                              Convert.ToSingle(cmdparams[5])));
 
                             Console.WriteLine("Edited scale of Primitive: " + part.Name);
                         }
@@ -4234,6 +4235,15 @@ namespace OpenSim.Region.Framework.Scenes
                     // couldn't find the joint proxy object; the error message is silently suppressed
                 }
             }
+        }
+
+        public Scene ConsoleScene()
+        {
+            if (MainConsole.Instance == null)
+                return null;
+            if (MainConsole.Instance.ConsoleScene is Scene)
+                return (Scene)MainConsole.Instance.ConsoleScene;
+            return null;
         }
     }
 }

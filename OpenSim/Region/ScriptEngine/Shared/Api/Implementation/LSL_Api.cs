@@ -128,12 +128,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             get { return m_ScriptEngine.World; }
         }
 
-        // Extension commands use this:
-        public ICommander GetCommander(string name)
-        {
-            return World.GetCommander(name);
-        }
-
         public void state(string newState)
         {
             m_ScriptEngine.SetState(m_itemID, newState);

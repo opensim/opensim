@@ -46,5 +46,6 @@ namespace OpenSim.Region.Framework.Interfaces
 
         void Run(object[] args);
         void ShowConsoleHelp();
+        string ShortHelp();
     }
 }

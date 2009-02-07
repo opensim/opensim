@@ -40,7 +40,7 @@ namespace OpenSim.TestSuite
     /// <summary>
     /// Thread/Bot manager for the application
     /// </summary>
-    public class BotManager : conscmd_callback
+    public class BotManager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -58,8 +58,6 @@ namespace OpenSim.TestSuite
         public BotManager()
         {
             m_log.Info("In bot manager");
-            // m_console = CreateConsole();
-            // MainConsole.Instance = m_console;
             m_lBot = new List<PhysicsBot>();
         }
 
@@ -168,53 +166,6 @@ namespace OpenSim.TestSuite
             {
                 pb.shutdown();
             }
-        }
-
-        /// <summary>
-        /// Standard CreateConsole routine
-        /// </summary>
-        /// <returns></returns>
-        protected ConsoleBase CreateConsole()
-        {
-            return new ConsoleBase("Region", this);
-        }
-
-        /// <summary>
-        /// Command runnint tool..  Currently use it to add bots, shutdown and (dangerous)Forcequit
-        /// </summary>
-        /// <param name="command"></param>
-        /// <param name="cmdparams"></param>
-        public void RunCmd(string command, string[] cmdparams)
-        {
-            switch (command)
-            {
-                case "shutdown":
-                    m_console.Warn("BOTMANAGER", "Shutting down bots");
-                    doBotShutdown();
-                    break;
-                case "quit":
-                    m_console.Warn("DANGER", "This should only be used to quit the program if you've already used the shutdown command and the program hasn't quit");
-                    Environment.Exit(0);
-                    break;
-                case "addbots":
-                    int newbots;
-                    Int32.TryParse(cmdparams[0], out newbots);
-
-                    if (newbots > 0)
-                        addbots(newbots);
-                    break;
-                case "help":
-                    m_console.Notice("HELP", "\nshutdown - graceful shutdown\naddbots <n> - adds n bots to the test\nquit - forcequits, dangerous if you have not already run shutdown");
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Required method to implement the conscmd_callback interface
-        /// </summary>
-        /// <param name="showParams">What to show</param>
-        public void Show(string[] showParams)
-        {
         }
     }
 }

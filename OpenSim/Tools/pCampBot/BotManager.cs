@@ -31,6 +31,9 @@ using System.Reflection;
 using System.Threading;
 using OpenMetaverse;
 using log4net;
+using log4net.Appender;
+using log4net.Core;
+using log4net.Repository;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -40,7 +43,7 @@ namespace pCampBot
     /// <summary>
     /// Thread/Bot manager for the application
     /// </summary>
-    public class BotManager : conscmd_callback
+    public class BotManager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -59,6 +62,36 @@ namespace pCampBot
         {
             m_console = CreateConsole();
             MainConsole.Instance = m_console;
+
+            // Make log4net see the console
+            //
+            ILoggerRepository repository = LogManager.GetRepository();
+            IAppender[] appenders = repository.GetAppenders();
+            OpenSimAppender consoleAppender = null;
+
+            foreach (IAppender appender in appenders)
+            {
+                if (appender.Name == "Console")
+                {
+                    consoleAppender = (OpenSimAppender)appender;
+                    consoleAppender.Console = m_console;
+                    break;
+                }
+            }
+
+            m_console.Commands.AddCommand("bot", "shutdown",
+                    "shutdown",
+                    "Gracefully shut down bots", HandleShutdown);
+
+            m_console.Commands.AddCommand("bot", "quit",
+                    "quit",
+                    "Force quit (DANGEROUS, try shutdown first)",
+                    HandleShutdown);
+
+            m_console.Commands.AddCommand("bot", "add bots",
+                    "add bots <number>",
+                    "Add more bots", HandleAddBots);
+
             m_lBot = new List<PhysicsBot>();
         }
 
@@ -175,45 +208,31 @@ namespace pCampBot
         /// <returns></returns>
         protected ConsoleBase CreateConsole()
         {
-            return new ConsoleBase("Region", this);
+            return new ConsoleBase("Region");
         }
 
-        /// <summary>
-        /// Command runnint tool..  Currently use it to add bots, shutdown and (dangerous)Forcequit
-        /// </summary>
-        /// <param name="command"></param>
-        /// <param name="cmdparams"></param>
-        public void RunCmd(string command, string[] cmdparams)
+        private void HandleShutdown(string module, string[] cmd)
         {
-            switch (command)
+            m_console.Warn("BOTMANAGER", "Shutting down bots");
+            doBotShutdown();
+        }
+
+        private void HandleQuit(string module, string[] cmd)
+        {
+            m_console.Warn("DANGER", "This should only be used to quit the program if you've already used the shutdown command and the program hasn't quit");
+            Environment.Exit(0);
+        }
+
+        private void HandleAddBots(string module, string[] cmd)
+        {
+            int newbots = 0;
+            
+            if (cmd.Length > 2)
             {
-                case "shutdown":
-                    m_console.Warn("BOTMANAGER", "Shutting down bots");
-                    doBotShutdown();
-                    break;
-                case "quit":
-                    m_console.Warn("DANGER", "This should only be used to quit the program if you've already used the shutdown command and the program hasn't quit");
-                    Environment.Exit(0);
-                    break;
-                case "addbots":
-                    int newbots;
-                    Int32.TryParse(cmdparams[0], out newbots);
-
-                    if (newbots > 0)
-                        addbots(newbots);
-                    break;
-                case "help":
-                    m_console.Notice("HELP", "\nshutdown - graceful shutdown\naddbots <n> - adds n bots to the test\nquit - forcequits, dangerous if you have not already run shutdown");
-                    break;
+                Int32.TryParse(cmd[2], out newbots);
             }
-        }
-
-        /// <summary>
-        /// Required method to implement the conscmd_callback interface
-        /// </summary>
-        /// <param name="showParams">What to show</param>
-        public void Show(string[] showParams)
-        {
+            if (newbots > 0)
+                addbots(newbots);
         }
     }
 }

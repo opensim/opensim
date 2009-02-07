@@ -38,7 +38,7 @@ using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.InventoryServer
 {
-    public class OpenInventory_Main : BaseOpenSimServer, conscmd_callback
+    public class OpenInventory_Main : BaseOpenSimServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -58,7 +58,7 @@ namespace OpenSim.Grid.InventoryServer
 
         public OpenInventory_Main()
         {
-            m_console = new ConsoleBase("Inventory", this);
+            m_console = new ConsoleBase("Inventory");
             MainConsole.Instance = m_console;
         }
 
@@ -77,6 +77,12 @@ namespace OpenSim.Grid.InventoryServer
             m_httpServer.Start();
 
             m_log.Info("[" + LogName + "]: Started HTTP server");
+
+            base.StartupSpecific();
+
+            m_console.Commands.AddCommand("inventoryserver", "add user",
+                    "add user",
+                    "Add a random user inventory", HandleAddUser);
         }
 
         protected void AddHttpHandlers()
@@ -146,16 +152,9 @@ namespace OpenSim.Grid.InventoryServer
             }
         }
 
-        public override void RunCmd(string cmd, string[] cmdparams)
+        private void HandleAddUser(string module, string[] args)
         {
-            base.RunCmd(cmd, cmdparams);
-
-            switch (cmd)
-            {
-                case "add-user":
-                    m_inventoryService.CreateUsersInventory(UUID.Random().Guid);
-                    break;
-            }
+            m_inventoryService.CreateUsersInventory(UUID.Random().Guid);
         }
     }
 }

@@ -34,6 +34,7 @@ using log4net.Config;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim
 {
@@ -45,6 +46,8 @@ namespace OpenSim
 
         public static bool m_saveCrashDumps = false;
         public static string m_crashDir = "crashes";
+
+        protected static OpenSimBase m_sim = null;
 
         //could move our main function into OpenSimMain and kill this class
         public static void Main(string[] args)
@@ -93,18 +96,18 @@ namespace OpenSim
 
             if (background)
             {
-                OpenSimBase sim = new OpenSimBackground(configSource);
-                sim.Startup();
+                m_sim = new OpenSimBackground(configSource);
+                m_sim.Startup();
             }
             else
             {
-                OpenSimBase sim = null;
+                m_sim = null;
                 if (hgrid)
-                    sim = new HGOpenSimNode(configSource);
+                    m_sim = new HGOpenSimNode(configSource);
                 else
-                    sim = new OpenSim(configSource);
+                    m_sim = new OpenSim(configSource);
 
-                sim.Startup();
+                m_sim.Startup();
 
                 while (true)
                 {

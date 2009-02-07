@@ -41,7 +41,7 @@ namespace OpenSim.Grid.MessagingServer
 {
     /// <summary>
     /// </summary>
-    public class OpenMessage_Main : BaseOpenSimServer, conscmd_callback
+    public class OpenMessage_Main : BaseOpenSimServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -64,7 +64,7 @@ namespace OpenSim.Grid.MessagingServer
 
         public OpenMessage_Main()
         {
-            m_console = new ConsoleBase("Messaging", this);
+            m_console = new ConsoleBase("Messaging");
             MainConsole.Instance = m_console;
         }
 
@@ -124,6 +124,16 @@ namespace OpenSim.Grid.MessagingServer
             registerWithUserServer();
 
             m_log.Info("[SERVER]: Messageserver 0.5 - Startup complete");
+
+            base.StartupSpecific();
+
+            m_console.Commands.AddCommand("messageserver", "clear cache",
+                    "clear cache",
+                    "Clear presence cache", HandleClearCache);
+
+            m_console.Commands.AddCommand("messageserver", "register",
+                    "register",
+                    "Re-register with user server(s)", HandleRegister);
         }
 
         public void do_create(string what)
@@ -154,29 +164,17 @@ namespace OpenSim.Grid.MessagingServer
             }
         }
 
-        public override void RunCmd(string cmd, string[] cmdparams)
+        private void HandleClearCache(string module, string[] cmd)
         {
-            base.RunCmd(cmd, cmdparams);
-
-            switch (cmd)
-            {
-                case "clear-cache":
-                    int entries = msgsvc.ClearRegionCache();
-                    m_console.Notice("Region cache cleared! Cleared " + entries.ToString() + " entries");
-                    break;
-                case "register":
-                    deregisterFromUserServer();
-                    registerWithUserServer();
-                    break;
-            }
+            int entries = msgsvc.ClearRegionCache();
+            m_console.Notice("Region cache cleared! Cleared " +
+                    entries.ToString() + " entries");
         }
-        
-        protected override void ShowHelp(string[] helpArgs)
+
+        private void HandleRegister(string module, string[] cmd)
         {
-            base.ShowHelp(helpArgs);
-            
-            m_console.Notice("clear-cache - Clears region cache.  Should be done when regions change position.  The region cache gets stale after a while.");
-            m_console.Notice("register    - (Re-)registers with user-server. This might be necessary if the userserver crashed/restarted"); 
+            deregisterFromUserServer();
+            registerWithUserServer();
         }
 
         public override void ShutdownSpecific()

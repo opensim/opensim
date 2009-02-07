@@ -98,7 +98,45 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Must be overriden by child classes for their own server specific startup behaviour.
         /// </summary>
-        protected abstract void StartupSpecific();
+        protected virtual void StartupSpecific()
+        {
+            if (m_console != null)
+            {
+                SetConsoleLogLevel(new string[] { "ALL" });
+
+                m_console.Commands.AddCommand("base", "quit",
+                        "quit",
+                        "Quit the application", HandleQuit);
+
+                m_console.Commands.AddCommand("base", "shutdown",
+                        "shutdown",
+                        "Quit the application", HandleQuit);
+
+                m_console.Commands.AddCommand("base", "set log level",
+                        "set log level <level>",
+                        "Set the console logging level", HandleLogLevel);
+
+                m_console.Commands.AddCommand("base", "show info",
+                        "show info",
+                        "Show general information", HandleShow);
+
+                m_console.Commands.AddCommand("base", "show stats",
+                        "show stats",
+                        "Show statistics", HandleShow);
+
+                m_console.Commands.AddCommand("base", "show threads",
+                        "show threads",
+                        "Show thread status", HandleShow);
+
+                m_console.Commands.AddCommand("base", "show uptime",
+                        "show uptime",
+                        "Show server uptime", HandleShow);
+
+                m_console.Commands.AddCommand("base", "show version",
+                        "show version",
+                        "Show server version", HandleShow);
+            }
+        }
         
         /// <summary>
         /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
@@ -212,6 +250,8 @@ namespace OpenSim.Framework.Servers
                 return;
             }
 
+            consoleAppender.Console = m_console;
+
             if (setParams.Length > 0)
             {
                 Level consoleLevel = repository.LevelMap[setParams[0]];
@@ -261,56 +301,18 @@ namespace OpenSim.Framework.Servers
             Environment.Exit(0);
         }
 
-        /// <summary>
-        /// Runs commands issued by the server console from the operator
-        /// </summary>
-        /// <param name="command">The first argument of the parameter (the command)</param>
-        /// <param name="cmdparams">Additional arguments passed to the command</param>
-        public virtual void RunCmd(string command, string[] cmdparams)
+        private void HandleQuit(string module, string[] args)
         {
-            switch (command)
-            {
-                case "help":
-                    ShowHelp(cmdparams);
-                    Notice("");
-                    break;
-
-                case "set":
-                    Set(cmdparams);
-                    break;
-
-                case "show":
-                    if (cmdparams.Length > 0)
-                    {
-                        Show(cmdparams);
-                    }
-                    break;
-
-                case "quit":
-                case "shutdown":
-                    Shutdown();
-                    break;
-            }
+            Shutdown();
         }
 
-        /// <summary>
-        /// Set an OpenSim parameter
-        /// </summary>
-        /// <param name="setArgs">
-        /// The arguments given to the set command.
-        /// </param>
-        public virtual void Set(string[] setArgs)
+        private void HandleLogLevel(string module, string[] cmd)
         {
-            // Temporary while we only have one command which takes at least two parameters
-            if (setArgs.Length < 2)
-                return;
-
-            if (setArgs[0] == "log" && setArgs[1] == "level")
+            if (cmd.Length > 3)
             {
-                string[] setParams = new string[setArgs.Length - 2];
-                Array.Copy(setArgs, 2, setParams, 0, setArgs.Length - 2);
+                string level = cmd[3];
 
-                SetConsoleLogLevel(setParams);
+                SetConsoleLogLevel(new string[] { level });
             }
         }
 
@@ -324,18 +326,6 @@ namespace OpenSim.Framework.Servers
             
             if (helpArgs.Length == 0)
             {
-                List<string> helpTopics = GetHelpTopics();
-                
-                if (helpTopics.Count > 0)
-                {                    
-                    Notice(
-                        "As well as the help information below, you can also type help <topic> to get more information on the following areas:");
-                    Notice(string.Format("    {0}", string.Join(", ", helpTopics.ToArray())));
-                    Notice("");
-                }                           
-                                
-                Notice("quit - equivalent to shutdown.");
-
                 Notice("set log level [level] - change the console logging level only.  For example, off or debug.");
                 Notice("show info - show server information (e.g. startup path).");
 
@@ -345,21 +335,20 @@ namespace OpenSim.Framework.Servers
                 Notice("show threads - list tracked threads");
                 Notice("show uptime - show server startup time and uptime.");
                 Notice("show version - show server version.");
-                Notice("shutdown - shutdown the server.");
                 Notice("");
 
                 return;
             }
         }
 
-        /// <summary>
-        /// Outputs to the console information about the region
-        /// </summary>
-        /// <param name="showParams">
-        /// What information to display (valid arguments are "uptime", "users", ...)
-        /// </param>
-        public virtual void Show(string[] showParams)
+        public virtual void HandleShow(string module, string[] cmd)
         {
+            List<string> args = new List<string>(cmd);
+
+            args.RemoveAt(0);
+
+            string[] showParams = args.ToArray();
+
             switch (showParams[0])
             {                       
                 case "info":

@@ -198,6 +198,46 @@ namespace OpenSim
                                     
             // Only enable logins to the regions once we have completely finished starting up (apart from scripts)
             m_commsManager.GridService.RegionLoginsEnabled = true;
+
+            List<string> topics = GetHelpTopics();
+
+            foreach (string topic in topics)
+            {
+                m_console.Commands.AddCommand("plugin", "help "+topic,
+                        "help "+topic,
+                        "Get help on plugin command '"+topic+"'",
+                        HandleCommanderHelp);
+
+                m_console.Commands.AddCommand("plugin", topic,
+                        topic,
+                        "Execute subcommand for plugin '"+topic+"'",
+                        null);
+
+                ICommander commander =
+                        SceneManager.CurrentOrFirstScene.GetCommanders()[topic];
+
+                if (commander == null)
+                    continue;
+
+                foreach (string command in commander.Commands.Keys)
+                {
+                    m_console.Commands.AddCommand(topic, topic+" "+command,
+                            topic+" "+commander.Commands[command].ShortHelp(),
+                            String.Empty, HandleCommanderCommand);
+                }
+            }
+        }
+
+        private void HandleCommanderCommand(string module, string[] cmd)
+        {
+            m_sceneManager.SendCommandToPluginModules(cmd);
+        }
+
+        private void HandleCommanderHelp(string module, string[] cmd)
+        {
+            ICommander moduleCommander = SceneManager.CurrentOrFirstScene.GetCommander(cmd[1]);
+            if (moduleCommander != null)
+                m_console.Notice(moduleCommander.Help);
         }
 
         /// <summary>

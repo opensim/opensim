@@ -46,7 +46,7 @@ namespace OpenSim.Grid.UserServer
     /// <summary>
     /// Grid user server main class
     /// </summary>
-    public class OpenUser_Main : BaseOpenSimServer, conscmd_callback
+    public class OpenUser_Main : BaseOpenSimServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -73,7 +73,7 @@ namespace OpenSim.Grid.UserServer
 
         public OpenUser_Main()
         {
-            m_console = new ConsoleBase("User", this);
+            m_console = new ConsoleBase("User");
             MainConsole.Instance = m_console;
         }
 
@@ -119,6 +119,37 @@ namespace OpenSim.Grid.UserServer
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
             AddHttpHandlers();
             m_httpServer.Start();
+            
+            base.StartupSpecific();
+
+            m_console.Commands.AddCommand("userserver", "create user",
+                    "create user [<first> [<last> [<x> <y> [email]]]]",
+                    "Create a new user account", RunCommand);
+
+            m_console.Commands.AddCommand("userserver", "reset user password",
+                    "reset user password [<first> [<last> [<new password>]]]",
+                    "Reset a user's password", RunCommand);
+
+            m_console.Commands.AddCommand("userserver", "login level",
+                    "login level <level>",
+                    "Set the minimum user level to log in", HandleLoginCommand);
+
+            m_console.Commands.AddCommand("userserver", "login reset",
+                    "login reset",
+                    "Reset the login level to allow all users",
+                    HandleLoginCommand);
+
+            m_console.Commands.AddCommand("userserver", "login text",
+                    "login text <text>",
+                    "Set the text users will see on login", HandleLoginCommand);
+
+            m_console.Commands.AddCommand("userserver", "test-inventory",
+                    "test-inventory",
+                    "Perform a test inventory transaction", RunCommand);
+
+            m_console.Commands.AddCommand("userserver", "logoff-user",
+                    "logoff-user <first> <last> <message>",
+                    "Log off a named user", RunCommand);
         }
 
         /// <summary>
@@ -301,10 +332,45 @@ namespace OpenSim.Grid.UserServer
             m_userManager.ResetUserPassword(firstName, lastName, newPassword);
         }         
 
-        public override void RunCmd(string cmd, string[] cmdparams)
+        private void HandleLoginCommand(string module, string[] cmd)
         {
-            base.RunCmd(cmd, cmdparams);
-            switch (cmd)
+            string subcommand = cmd[1];
+            
+            switch (subcommand)
+            {
+                case "level":
+                    // Set the minimal level to allow login 
+                    // Useful to allow grid update without worrying about users.
+                    // or fixing critical issues
+                    //
+                    if (cmd.Length > 2)
+                    {
+                        int level = Convert.ToInt32(cmd[2]);
+                        m_loginService.setloginlevel(level);
+                    }
+                    break;
+                case "reset":
+                     m_loginService.setloginlevel(0);
+                    break;
+                case "text":
+                    if (cmd.Length > 2)
+                    {
+                        m_loginService.setwelcometext(cmd[2]);
+                    }
+                    break;
+            }
+        }
+
+        public void RunCommand(string module, string[] cmd)
+        {
+            List<string> args = new List<string>(cmd);
+            string command = cmd[0];
+
+            args.RemoveAt(0);
+
+            string[] cmdparams = args.ToArray();
+
+            switch (command)
             {
                 case "create":
                     do_create(cmdparams);
@@ -314,26 +380,6 @@ namespace OpenSim.Grid.UserServer
                     Reset(cmdparams);
                     break;
 
-
-                case "login-level":
-                       // Set the minimal level to allow login 
-                       // Usefull to allow grid update without worrying about users.
-                       // or fixing critical issue
-                    if (cmdparams.Length == 1)
-                    {
-                        int level = Convert.ToInt32(cmdparams[0]);
-                        m_loginService.setloginlevel(level);
-                    }
-                    break;
-                case "login-reset":
-                     m_loginService.setloginlevel(0);
-                    break;
-                case "login-text":
-                    if (cmdparams.Length == 1)
-                    {
-                        m_loginService.setwelcometext(cmdparams[0]);
-                    }
-                    break;
 
                 case "test-inventory":
                     //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();

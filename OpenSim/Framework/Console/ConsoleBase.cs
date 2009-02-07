@@ -26,22 +26,250 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net;
+using System.Text;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Diagnostics;
+using System.Collections.Generic;
 using log4net;
 
 namespace OpenSim.Framework.Console
 {
+    public delegate void CommandDelegate(string module, string[] cmd);
+
+    public class Commands
+    {
+        private class CommandInfo
+        {
+            public string module;
+            public string help_text;
+            public string long_help;
+            public CommandDelegate fn;
+        }
+
+        private Dictionary<string, Object> tree =
+                new Dictionary<string, Object>();
+
+        public List<string> GetHelp()
+        {
+            List<string> help = new List<string>();
+
+            help.AddRange(CollectHelp(tree));
+
+            help.Sort();
+
+            return help;
+        }
+
+        private List<string> CollectHelp(Dictionary<string, Object> dict)
+        {
+            List<string> result = new List<string>();
+
+            foreach (KeyValuePair<string, object> kvp in dict)
+            {
+                if (kvp.Value is Dictionary<string, Object>)
+                {
+                    result.AddRange(CollectHelp((Dictionary<string, Object>)kvp.Value));
+                }
+                else
+                {
+                    if (((CommandInfo)kvp.Value).long_help != String.Empty)
+                        result.Add(((CommandInfo)kvp.Value).help_text+" - "+
+                                ((CommandInfo)kvp.Value).long_help);
+                }
+            }
+            return result;
+        }
+
+        public void AddCommand(string module, string command, string help, string longhelp, CommandDelegate fn)
+        {
+            string[] parts = Parser.Parse(command);
+
+            Dictionary<string, Object> current = tree;
+            foreach (string s in parts)
+            {
+                if (current.ContainsKey(s))
+                {
+                    if (current[s] is Dictionary<string, Object>)
+                    {
+                        current = (Dictionary<string, Object>)current[s];
+                    }
+                    else
+                        return;
+                }
+                else
+                {
+                    current[s] = new Dictionary<string, Object>();
+                    current = (Dictionary<string, Object>)current[s];
+                }
+            }
+
+            if (current.ContainsKey(String.Empty))
+                return;
+            CommandInfo info = new CommandInfo();
+            info.module = module;
+            info.help_text = help;
+            info.long_help = longhelp;
+            info.fn = fn;
+            current[String.Empty] = info;
+        }
+
+        public string[] FindNextOption(string[] cmd, bool term)
+        {
+            Dictionary<string, object> current = tree;
+
+            int remaining = cmd.Length;
+
+            foreach (string s in cmd)
+            {
+                remaining--;
+
+                List<string> found = new List<string>();
+
+                foreach (string opt in current.Keys)
+                {
+                    if (opt.StartsWith(s))
+                    {
+                        found.Add(opt);
+                    }
+                }
+
+                if (found.Count == 1 && (remaining != 0 || term))
+                {
+                    current = (Dictionary<string, object>)current[found[0]];
+                }
+                else if (found.Count > 0)
+                {
+                    return found.ToArray();
+                }
+                else
+                {
+                    break;
+//                    return new string[] {"<cr>"};
+                }
+            }
+
+            if (current.Count > 1)
+            {
+                List<string> choices = new List<string>();
+
+                bool addcr = false;
+                foreach (string s in current.Keys)
+                {
+                    if (s == String.Empty)
+                    {
+                        CommandInfo ci = (CommandInfo)current[String.Empty];
+                        if (ci.fn != null)
+                            addcr = true;
+                    }
+                    else
+                        choices.Add(s);
+                }
+                if (addcr)
+                    choices.Add("<cr>");
+                return choices.ToArray();
+            }
+
+            if (current.ContainsKey(String.Empty))
+                return new string[] { "Command help: "+((CommandInfo)current[String.Empty]).help_text};
+
+            return new string[] { new List<string>(current.Keys)[0] };
+        }
+
+        public string[] Resolve(string[] cmd)
+        {
+            string[] result = cmd;
+            int index = -1;
+
+            Dictionary<string, object> current = tree;
+
+            foreach (string s in cmd)
+            {
+                index++;
+
+                List<string> found = new List<string>();
+
+                foreach (string opt in current.Keys)
+                {
+                    if (opt.StartsWith(s))
+                    {
+                        found.Add(opt);
+                    }
+                }
+
+                if (found.Count == 1)
+                {
+                    result[index] = found[0];
+                    current = (Dictionary<string, object>)current[found[0]];
+                }
+                else if (found.Count > 0)
+                {
+                    return new string[0];
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (current.ContainsKey(String.Empty))
+            {
+                CommandInfo ci = (CommandInfo)current[String.Empty];
+                if (ci.fn == null)
+                    return new string[0];
+                ci.fn(ci.module, result);
+                return result;
+            }
+            return new string[0];
+        }
+    }
+
+    public class Parser
+    {
+        public static string[] Parse(string text)
+        {
+            List<string> result = new List<string>();
+
+            int index;
+
+            string[] unquoted = text.Split(new char[] {'"'});
+
+            for (index = 0 ; index < unquoted.Length ; index++)
+            {
+                if (index % 2 == 0)
+                {
+                    string[] words = unquoted[index].Split(new char[] {' '});
+                    foreach (string w in words)
+                    {
+                        if (w != String.Empty)
+                            result.Add(w);
+                    }
+                }
+                else
+                {
+                    result.Add(unquoted[index]);
+                }
+            }
+
+            return result.ToArray();
+        }
+    }
+
     public class ConsoleBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private readonly object m_syncRoot = new object();
 
-        public conscmd_callback m_cmdParser;
+        private int y = -1;
+        private int cp = 0;
+        private int h = 1;
+        private string prompt = "# ";
+        private StringBuilder cmdline = new StringBuilder();
+        public Commands Commands = new Commands();
+        private bool echo = true;
+        private List<string> history = new List<string>();
+
+        public object ConsoleScene = null;
 
         /// <summary>
         /// The default prompt text.
@@ -53,15 +281,19 @@ namespace OpenSim.Framework.Console
         }
         protected string m_defaultPrompt;
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="defaultPrompt"></param>
-        /// <param name="cmdparser"></param>
-        public ConsoleBase(string defaultPrompt, conscmd_callback cmdparser)
+        public ConsoleBase(string defaultPrompt)
         {
             DefaultPrompt = defaultPrompt;
-            m_cmdParser = cmdparser;
+
+            Commands.AddCommand("console", "help", "help", "Get command list", Help);
+        }
+
+        private void AddToHistory(string text)
+        {
+            while (history.Count >= 100)
+                history.RemoveAt(0);
+
+            history.Add(text);
         }
 
         /// <summary>
@@ -95,8 +327,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Warn(string sender, string format, params object[] args)
         {
-            WritePrefixLine(DeriveColor(sender), sender);
-            WriteNewLine(ConsoleColor.Yellow, format, args);
+            WriteNewLine(DeriveColor(sender), sender, ConsoleColor.Yellow, format, args);
         }
 
         /// <summary>
@@ -117,10 +348,8 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Notice(string sender, string format, params object[] args)
         {
-            WritePrefixLine(DeriveColor(sender), sender);
-            WriteNewLine(ConsoleColor.White, format, args);
+            WriteNewLine(DeriveColor(sender), sender, ConsoleColor.White, format, args);
         }
-
         /// <summary>
         /// Sends an error to the current console output
         /// </summary>
@@ -139,8 +368,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Error(string sender, string format, params object[] args)
         {
-            WritePrefixLine(DeriveColor(sender), sender);
-            Error(format, args);
+            WriteNewLine(DeriveColor(sender), sender, ConsoleColor.Red, format, args);
         }
 
         /// <summary>
@@ -161,8 +389,7 @@ namespace OpenSim.Framework.Console
         /// <param name="args">WriteLine-style message arguments</param>
         public void Status(string sender, string format, params object[] args)
         {
-            WritePrefixLine(DeriveColor(sender), sender);
-            WriteNewLine(ConsoleColor.Blue, format, args);
+            WriteNewLine(DeriveColor(sender), sender, ConsoleColor.Blue, format, args);
         }
 
         [Conditional("DEBUG")]
@@ -174,11 +401,59 @@ namespace OpenSim.Framework.Console
         [Conditional("DEBUG")]
         public void Debug(string sender, string format, params object[] args)
         {
-            WritePrefixLine(DeriveColor(sender), sender);
-            WriteNewLine(ConsoleColor.Gray, format, args);
+            WriteNewLine(DeriveColor(sender), sender, ConsoleColor.Gray, format, args);
+        }
+
+        private void WriteNewLine(ConsoleColor senderColor, string sender, ConsoleColor color, string format, params object[] args)
+        {
+            lock (cmdline)
+            {
+                if (y != -1)
+                {
+                    System.Console.CursorTop = y;
+                    System.Console.CursorLeft = 0;
+
+                    int count = cmdline.Length;
+
+                    System.Console.Write("  ");
+                    while (count-- > 0)
+                        System.Console.Write(" ");
+
+                    System.Console.CursorTop = y;
+                    System.Console.CursorLeft = 0;
+                }
+                WritePrefixLine(senderColor, sender);
+                WriteConsoleLine(color, format, args);
+                if (y != -1)
+                    y = System.Console.CursorTop;
+            }
         }
 
         private void WriteNewLine(ConsoleColor color, string format, params object[] args)
+        {
+            lock (cmdline)
+            {
+                if (y != -1)
+                {
+                    System.Console.CursorTop = y;
+                    System.Console.CursorLeft = 0;
+
+                    int count = cmdline.Length;
+
+                    System.Console.Write("  ");
+                    while (count-- > 0)
+                        System.Console.Write(" ");
+
+                    System.Console.CursorTop = y;
+                    System.Console.CursorLeft = 0;
+                }
+                WriteConsoleLine(color, format, args);
+                if (y != -1)
+                    y = System.Console.CursorTop;
+            }
+        }
+
+        private void WriteConsoleLine(ConsoleColor color, string format, params object[] args)
         {
             try
             {
@@ -240,106 +515,148 @@ namespace OpenSim.Framework.Console
             }
         }
 
-        public string ReadLine()
+        private void Help(string module, string[] cmd)
         {
+            List<string> help = Commands.GetHelp();
+
+            foreach (string s in help)
+                Output(s);
+        }
+
+        private void Show()
+        {
+            lock (cmdline)
+            {
+                if (y == -1 || System.Console.BufferWidth == 0)
+                    return;
+
+                int xc = prompt.Length + cp;
+                int new_x = xc % System.Console.BufferWidth;
+                int new_y = y + xc / System.Console.BufferWidth;
+                int end_y = y + (cmdline.Length + prompt.Length) / System.Console.BufferWidth;
+                if (end_y / System.Console.BufferWidth >= h)
+                    h++;
+                if (end_y >= System.Console.BufferHeight) // wrap
+                {
+                    y--;
+                    new_y--;
+                    System.Console.CursorLeft = 0;
+                    System.Console.CursorTop = System.Console.BufferHeight-1;
+                    System.Console.WriteLine(" ");
+                }
+
+                System.Console.CursorTop = y;
+                System.Console.CursorLeft = 0;
+
+                if (echo)
+                    System.Console.Write("{0}{1}", prompt, cmdline);
+                else
+                    System.Console.Write("{0}", prompt);
+
+                System.Console.CursorLeft = new_x;
+                System.Console.CursorTop = new_y;
+            }
+        }
+
+        public void LockOutput()
+        {
+            System.Threading.Monitor.Enter(cmdline);
             try
             {
-                string line = System.Console.ReadLine();
-
-                while (line == null)
+                if (y != -1)
                 {
-                    line = System.Console.ReadLine();
-                }
+                    System.Console.CursorTop = y;
+                    System.Console.CursorLeft = 0;
 
-                return line;
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[Console]: System.Console.ReadLine exception " + e.ToString());
-                return String.Empty;
-            }
-        }
+                    int count = cmdline.Length + prompt.Length;
 
-        public int Read()
-        {
-            return System.Console.Read();
-        }
+                    while (count-- > 0)
+                        System.Console.Write(" ");
 
-        public IPAddress CmdPromptIPAddress(string prompt, string defaultvalue)
-        {
-            IPAddress address;
-            string addressStr;
+                    System.Console.CursorTop = y;
+                    System.Console.CursorLeft = 0;
 
-            while (true)
-            {
-                addressStr = CmdPrompt(prompt, defaultvalue);
-                if (IPAddress.TryParse(addressStr, out address))
-                {
-                    break;
-                }
-                else
-                {
-                    m_log.Error("Illegal address. Please re-enter.");
                 }
             }
-
-            return address;
+            catch (Exception)
+            {
+            }
         }
 
-        public uint CmdPromptIPPort(string prompt, string defaultvalue)
+        public void UnlockOutput()
         {
-            uint port;
-            string portStr;
-
-            while (true)
+            if (y != -1)
             {
-                portStr = CmdPrompt(prompt, defaultvalue);
-                if (uint.TryParse(portStr, out port))
+                y = System.Console.CursorTop;
+                Show();
+            }
+            System.Threading.Monitor.Exit(cmdline);
+        }
+
+        public void Output(string text)
+        {
+            lock (cmdline)
+            {
+                if (y == -1)
                 {
-                    if (port >= IPEndPoint.MinPort && port <= IPEndPoint.MaxPort)
-                    {
-                        break;
-                    }
+                    System.Console.WriteLine(text);
+
+                    return;
                 }
 
-                m_log.Error("Illegal address. Please re-enter.");
+                System.Console.CursorTop = y;
+                System.Console.CursorLeft = 0;
+
+                int count = cmdline.Length + prompt.Length;
+
+                while (count-- > 0)
+                    System.Console.Write(" ");
+
+                System.Console.CursorTop = y;
+                System.Console.CursorLeft = 0;
+
+                System.Console.WriteLine(text);
+
+                y = System.Console.CursorTop;
+
+                Show();
             }
-
-            return port;
         }
 
-        // Displays a prompt and waits for the user to enter a string, then returns that string
-        // (Done with no echo and suitable for passwords - currently disabled)
-        public string PasswdPrompt(string prompt)
+        private void ContextHelp()
         {
-            // FIXME: Needs to be better abstracted
-            System.Console.WriteLine(String.Format("{0}: ", prompt));
-            //ConsoleColor oldfg = System.Console.ForegroundColor;
-            //System.Console.ForegroundColor = System.Console.BackgroundColor;
-            string temp = System.Console.ReadLine();
-            //System.Console.ForegroundColor = oldfg;
-            return temp;
-        }
+            string[] words = Parser.Parse(cmdline.ToString());
 
-        // Displays a command prompt and waits for the user to enter a string, then returns that string
-        public string CmdPrompt(string prompt)
-        {
-            System.Console.WriteLine(String.Format("{0}: ", prompt));
-            return ReadLine();
-        }
+            string[] opts = Commands.FindNextOption(words, cmdline.ToString().EndsWith(" "));
 
-        // Displays a command prompt and returns a default value if the user simply presses enter
-        public string CmdPrompt(string prompt, string defaultresponse)
-        {
-            string temp = CmdPrompt(String.Format("{0} [{1}]", prompt, defaultresponse));
-            if (temp == String.Empty)
-            {
-                return defaultresponse;
-            }
+            if (opts[0].StartsWith("Command help:"))
+                Output(opts[0]);
             else
+                Output(String.Format("Options: {0}", String.Join(" ", opts)));
+        }
+
+        public void Prompt()
+        {
+            string line = ReadLine(m_defaultPrompt, true, true);
+
+            if (line != String.Empty)
             {
-                return temp;
+                m_log.Info("Invalid command");
             }
+        }
+
+        public string CmdPrompt(string p)
+        {
+            return ReadLine(String.Format("{0}: ", p), false, true);
+        }
+
+        public string CmdPrompt(string p, string def)
+        {
+            string ret = ReadLine(String.Format("{0} [{1}]: ", p, def), false, true);
+            if (ret == String.Empty)
+                ret = def;
+
+            return ret;
         }
 
         // Displays a command prompt and returns a default value, user may only enter 1 of 2 options
@@ -362,85 +679,137 @@ namespace OpenSim.Framework.Console
             return temp;
         }
 
-        // Runs a command with a number of parameters
-        public Object RunCmd(string Cmd, string[] cmdparams)
+        // Displays a prompt and waits for the user to enter a string, then returns that string
+        // (Done with no echo and suitable for passwords)
+        public string PasswdPrompt(string p)
         {
-            m_cmdParser.RunCmd(Cmd, cmdparams);
-            return null;
+            return ReadLine(p, false, false);
         }
 
-        // Shows data about something
-        public void ShowCommands(string ShowWhat)
+        public void RunCommand(string cmd)
         {
-            m_cmdParser.Show(new string[] { ShowWhat });
+            string[] parts = Parser.Parse(cmd);
+            Commands.Resolve(parts);
         }
 
-        public void Prompt()
+        public string ReadLine(string p, bool isCommand, bool e)
         {
-            string tempstr = CmdPrompt(m_defaultPrompt);
-            RunCommand(tempstr);
-        }
+            h = 1;
+            cp = 0;
+            prompt = p;
+            echo = e;
+            int historyLine = history.Count;
 
-        public void RunCommand(string cmdline)
-        {
-            Regex Extractor = new Regex(@"(['""][^""]+['""])\s*|([^\s]+)\s*", RegexOptions.Compiled);
-            char[] delims = {' ', '"'};
-            MatchCollection matches = Extractor.Matches(cmdline);
-            // Get matches
+            System.Console.CursorLeft = 0; // Needed for mono
+            System.Console.Write(" "); // Needed for mono
 
-            if (matches.Count == 0)
-                return;
+            y = System.Console.CursorTop;
+            cmdline = new StringBuilder();
 
-            string cmd = matches[0].Value.Trim(delims);
-            string[] cmdparams = new string[matches.Count - 1];
-
-            for (int i = 1; i < matches.Count; i++)
+            while(true)
             {
-                cmdparams[i-1] = matches[i].Value.Trim(delims);
-            }
+                Show();
 
-            try
-            {
-                RunCmd(cmd, cmdparams);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[Console]: Command [{0}] failed with exception {1}", cmdline, e.ToString());
-                m_log.Error(e.StackTrace);
-            }
-        }
+                ConsoleKeyInfo key = System.Console.ReadKey(true);
+                char c = key.KeyChar;
 
-        public string LineInfo
-        {
-            get
-            {
-                string result = String.Empty;
-
-                string stacktrace = Environment.StackTrace;
-                List<string> lines = new List<string>(stacktrace.Split(new string[] {"at "}, StringSplitOptions.None));
-
-                if (lines.Count > 4)
+                if (!Char.IsControl(c))
                 {
-                    lines.RemoveRange(0, 4);
+                    if (cp >= 318)
+                        continue;
 
-                    string tmpLine = lines[0];
-
-                    int inIndex = tmpLine.IndexOf(" in ");
-
-                    if (inIndex > -1)
+                    if (c == '?' && isCommand)
                     {
-                        result = tmpLine.Substring(0, inIndex);
+                        ContextHelp();
+                        continue;
+                    }
 
-                        int lineIndex = tmpLine.IndexOf(":line ");
+                    cmdline.Insert(cp, c);
+                    cp++;
+                }
+                else
+                {
+                    switch (key.Key)
+                    {
+                    case ConsoleKey.Backspace:
+                        if (cp == 0)
+                            break;
+                        cmdline.Remove(cp-1, 1);
+                        cp--;
 
-                        if (lineIndex > -1)
+                        System.Console.CursorLeft = 0;
+                        System.Console.CursorTop = y;
+
+                        System.Console.Write("{0}{1} ", prompt, cmdline);
+
+                        break;
+                    case ConsoleKey.End:
+                        cp = cmdline.Length;
+                        break;
+                    case ConsoleKey.Home:
+                        cp = 0;
+                        break;
+                    case ConsoleKey.UpArrow:
+                        if (historyLine < 1)
+                            break;
+                        historyLine--;
+                        LockOutput();
+                        cmdline = new StringBuilder(history[historyLine]);
+                        cp = cmdline.Length;
+                        UnlockOutput();
+                        break;
+                    case ConsoleKey.DownArrow:
+                        if (historyLine >= history.Count)
+                            break;
+                        historyLine++;
+                        LockOutput();
+                        if (historyLine == history.Count)
+                            cmdline = new StringBuilder();
+                        else
+                            cmdline = new StringBuilder(history[historyLine]);
+                        cp = cmdline.Length;
+                        UnlockOutput();
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        if (cp > 0)
+                            cp--;
+                        break;
+                    case ConsoleKey.RightArrow:
+                        if (cp < cmdline.Length)
+                            cp++;
+                        break;
+                    case ConsoleKey.Enter:
+                        System.Console.CursorLeft = 0;
+                        System.Console.CursorTop = y;
+
+                        System.Console.WriteLine("{0}{1}", prompt, cmdline);
+
+                        y = -1;
+
+                        if (isCommand)
                         {
-                            lineIndex += 6;
-                            result += ", line " + tmpLine.Substring(lineIndex, (tmpLine.Length - lineIndex) - 5);
+                            string[] cmd = Commands.Resolve(Parser.Parse(cmdline.ToString()));
+
+                            if (cmd.Length != 0)
+                            {
+                                int i;
+
+                                for (i=0 ; i < cmd.Length ; i++)
+                                {
+                                    if (cmd[i].Contains(" "))
+                                        cmd[i] = "\"" + cmd[i] + "\"";
+                                }
+                                AddToHistory(String.Join(" ", cmd));
+                                return String.Empty;
+                            }
                         }
+
+                        AddToHistory(cmdline.ToString());
+                        return cmdline.ToString();
+                    default:
+                        break;
                     }
                 }
-                return result;
             }
         }
     }

@@ -32,6 +32,7 @@ using System.Threading;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 
@@ -458,5 +459,12 @@ namespace OpenSim.Region.Framework.Scenes
                     break;
             }
         }        
+
+        public void AddCommand(string module, string command, string shorthelp, string longhelp, CommandDelegate callback)
+        {
+            if (MainConsole.Instance == null)
+                return;
+            MainConsole.Instance.Commands.AddCommand(module, command, shorthelp, longhelp, callback);
+        }
     }
 }

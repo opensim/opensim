@@ -88,6 +88,18 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
             }
         }
 
+        public string ShortHelp()
+        {
+            string help = m_name;
+
+            foreach (CommandArgument arg in m_args)
+            {
+                help += " <" + arg.Name + ">";
+            }
+
+            return help;
+        }
+
         public void ShowConsoleHelp()
         {
             Console.WriteLine("== " + Name + " ==");

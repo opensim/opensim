@@ -27,6 +27,7 @@
 
 using System.Collections.Generic;
 using OpenMetaverse;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {
@@ -88,5 +89,7 @@ namespace OpenSim.Framework
 
         T RequestModuleInterface<T>();
         T[] RequestModuleInterfaces<T>();
+
+        void AddCommand(string module, string command, string shorthelp, string longhelp, CommandDelegate callback);
     }
 }

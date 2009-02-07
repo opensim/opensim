@@ -37,6 +37,14 @@ namespace OpenSim.Framework.Console
     /// </summary>
     public class OpenSimAppender : AnsiColorTerminalAppender
     {
+        private ConsoleBase m_console = null;
+
+        public ConsoleBase Console
+        {
+            get { return m_console; }
+            set { m_console = value; }
+        }
+
         private static readonly ConsoleColor[] Colors = {
             // the dark colors don't seem to be visible on some black background terminals like putty :(
             //ConsoleColor.DarkBlue,
@@ -55,6 +63,9 @@ namespace OpenSim.Framework.Console
 
         override protected void Append(LoggingEvent le)
         {
+            if (m_console != null)
+                m_console.LockOutput();
+
             try
             {
                 string loggingMessage = RenderLoggingEvent(le);
@@ -95,6 +106,11 @@ namespace OpenSim.Framework.Console
             catch (Exception e)
             {
                 System.Console.WriteLine("Couldn't write out log message: {0}", e.ToString());
+            }
+            finally
+            {
+                if (m_console != null)
+                    m_console.UnlockOutput();
             }
         }
 
