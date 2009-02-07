@@ -703,8 +703,11 @@ namespace OpenSim.Framework.Console
             System.Console.CursorLeft = 0; // Needed for mono
             System.Console.Write(" "); // Needed for mono
 
-            y = System.Console.CursorTop;
-            cmdline = new StringBuilder();
+            lock (cmdline)
+            {
+                y = System.Console.CursorTop;
+                cmdline.Remove(0, cmdline.Length);
+            }
 
             while(true)
             {
@@ -754,7 +757,8 @@ namespace OpenSim.Framework.Console
                             break;
                         historyLine--;
                         LockOutput();
-                        cmdline = new StringBuilder(history[historyLine]);
+                        cmdline.Remove(0, cmdline.Length);
+                        cmdline.Append(history[historyLine]);
                         cp = cmdline.Length;
                         UnlockOutput();
                         break;
@@ -764,9 +768,14 @@ namespace OpenSim.Framework.Console
                         historyLine++;
                         LockOutput();
                         if (historyLine == history.Count)
-                            cmdline = new StringBuilder();
+                        {
+                            cmdline.Remove(0, cmdline.Length);
+                        }
                         else
-                            cmdline = new StringBuilder(history[historyLine]);
+                        {
+                            cmdline.Remove(0, cmdline.Length);
+                            cmdline.Append(history[historyLine]);
+                        }
                         cp = cmdline.Length;
                         UnlockOutput();
                         break;
@@ -784,7 +793,10 @@ namespace OpenSim.Framework.Console
 
                         System.Console.WriteLine("{0}{1}", prompt, cmdline);
 
-                        y = -1;
+                        lock (cmdline)
+                        {
+                            y = -1;
+                        }
 
                         if (isCommand)
                         {
