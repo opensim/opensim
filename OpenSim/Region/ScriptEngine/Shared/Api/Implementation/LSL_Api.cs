@@ -344,7 +344,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llAtan2(double x, double y)
         {
             m_host.AddScriptLPS(1);
-            return (double)Math.Atan2(y, x);
+            return (double)Math.Atan2(x, y);
         }
 
         public LSL_Float llSqrt(double f)
