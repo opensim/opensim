@@ -6,8 +6,8 @@ all: prebuild
 	find OpenSim -name \*.mdb -exec cp {} bin \; 
 
 release: prebuild
-        ${NANT} -D:project.config=Release
-        find OpenSim -name \*.mdb -exec cp {} bin \;
+	${NANT} -D:project.config=Release
+	find OpenSim -name \*.mdb -exec cp {} bin \;
 
 prebuild:
 	./runprebuild.sh
