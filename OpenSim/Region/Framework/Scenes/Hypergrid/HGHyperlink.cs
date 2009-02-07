@@ -115,7 +115,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                 m_log.Warn("[HGrid]: Wrong format for link-region: " + e.Message);
                 return false;
             }
-            //regInfo.RemotingAddress = regInfo.ExternalEndPoint.Address.ToString();
+            regInfo.RemotingAddress = regInfo.ExternalEndPoint.Address.ToString();
 
             // Finally, link it
             try
