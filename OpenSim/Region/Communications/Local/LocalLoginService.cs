@@ -210,7 +210,7 @@ namespace OpenSim.Region.Communications.Local
                     else
                     {
                         theUser.CurrentAgent.Position = new Vector3(float.Parse(uriMatch.Groups["x"].Value),
-                            float.Parse(uriMatch.Groups["y"].Value), float.Parse(uriMatch.Groups["x"].Value));
+                            float.Parse(uriMatch.Groups["y"].Value), float.Parse(uriMatch.Groups["z"].Value));
                     }
                 }
                 response.LookAt = "[r0,r1,r0]";
