@@ -79,7 +79,7 @@ namespace OpenSim
             base.StartupSpecific();
 
             MainConsole.Instance.Commands.AddCommand("hypergrid", "link-mapping", "link-mapping [<x> <y>] <cr>", "Set local coordinate to map HG regions to", RunCommand);
-            MainConsole.Instance.Commands.AddCommand("hypergrid", "link-region", "link-region <Xloc> <Yloc> <HostName> <HttpPort> <LocalName> <cr>", "Link a hypergrid region", RunCommand);
+            MainConsole.Instance.Commands.AddCommand("hypergrid", "link-region", "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>", "Link a hypergrid region", RunCommand);
         }
 
         protected override void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
@@ -175,50 +175,71 @@ namespace OpenSim
             }
             else if (command.Equals("link-region"))
             {
-                // link-region <Xloc> <Yloc> <HostName> <HttpPort> <LocalName>
-                if (cmdparams.Count < 4)
+                if (cmdparams.Count < 3)
                 {
-                    if ((cmdparams.Count == 1) || (cmdparams.Count ==2))
-                    {
-                        LoadXmlLinkFile(cmdparams.ToArray());
-                    }
-                    else
-                    {
-                        LinkRegionCmdUsage();
-                    }
-                    return;
-                }
-
-                RegionInfo regInfo;
-                uint xloc, yloc;
-                uint externalPort;
-                string externalHostName;
-                try
-                {
-                    xloc = Convert.ToUInt32(cmdparams[0]);
-                    yloc = Convert.ToUInt32(cmdparams[1]);
-                    externalPort = Convert.ToUInt32(cmdparams[3]);
-                    externalHostName = cmdparams[2];
-                    //internalPort = Convert.ToUInt32(cmdparams[4]);
-                    //remotingPort = Convert.ToUInt32(cmdparams[5]);
-                }
-                catch (Exception e)
-                {
-                    m_log.Warn("[HGrid] Wrong format for link-region command: " + e.Message);
                     LinkRegionCmdUsage();
                     return;
                 }
 
-                if (TryCreateLink(xloc, yloc, externalPort, externalHostName, out regInfo))
-                {
-                    if (cmdparams.Count >= 5)
+                if (cmdparams[2].Contains(":"))
+                { // New format
+                    uint xloc, yloc;
+                    string mapName;
+                    try
                     {
-                        regInfo.RegionName = "";
-                        for (int i = 4; i < cmdparams.Count; i++)
-                            regInfo.RegionName += cmdparams[i] + " ";
+                        xloc = Convert.ToUInt32(cmdparams[0]);
+                        yloc = Convert.ToUInt32(cmdparams[1]);
+                        mapName = cmdparams[2];
+                        if (cmdparams.Count > 3)
+                            for (int i = 3; i < cmdparams.Count; i++)
+                                mapName += " " + cmdparams[i];
+
+                        Console.WriteLine(">> MapName: " + mapName);
+                        //internalPort = Convert.ToUInt32(cmdparams[4]);
+                        //remotingPort = Convert.ToUInt32(cmdparams[5]);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Warn("[HGrid] Wrong format for link-region command: " + e.Message);
+                        LinkRegionCmdUsage();
+                        return;
+                    }
+
+                    HGHyperlink.TryLinkRegionToCoords(m_sceneManager.CurrentOrFirstScene, null, mapName, xloc, yloc);
+                }
+                else
+                { // old format
+                    RegionInfo regInfo;
+                    uint xloc, yloc;
+                    uint externalPort;
+                    string externalHostName;
+                    try
+                    {
+                        xloc = Convert.ToUInt32(cmdparams[0]);
+                        yloc = Convert.ToUInt32(cmdparams[1]);
+                        externalPort = Convert.ToUInt32(cmdparams[3]);
+                        externalHostName = cmdparams[2];
+                        //internalPort = Convert.ToUInt32(cmdparams[4]);
+                        //remotingPort = Convert.ToUInt32(cmdparams[5]);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Warn("[HGrid] Wrong format for link-region command: " + e.Message);
+                        LinkRegionCmdUsage();
+                        return;
+                    }
+
+                    //if (TryCreateLink(xloc, yloc, externalPort, externalHostName, out regInfo))
+                    if (HGHyperlink.TryCreateLink(m_sceneManager.CurrentOrFirstScene, null, xloc, yloc, "", externalPort, externalHostName, out regInfo))
+                    {
+                        if (cmdparams.Count >= 5)
+                        {
+                            regInfo.RegionName = "";
+                            for (int i = 4; i < cmdparams.Count; i++)
+                                regInfo.RegionName += cmdparams[i] + " ";
+                        }
                     }
                 }
-
                 return;
             }
         }
@@ -292,49 +313,16 @@ namespace OpenSim
 
             if (((realXLoc == 0) && (realYLoc == 0)) || (((realXLoc - xloc < 3896) || (xloc - realXLoc < 3896)) && ((realYLoc - yloc < 3896) || (yloc - realYLoc < 3896))))
             {
-                if (TryCreateLink(xloc, yloc, externalPort, externalHostName, out regInfo))
+                if (HGHyperlink.TryCreateLink(m_sceneManager.CurrentOrFirstScene, null, xloc, yloc, "", externalPort, externalHostName, out regInfo))
                 {
                     regInfo.RegionName = config.GetString("localName", "");
                 }
             }
         }
 
-        private bool TryCreateLink(uint xloc, uint yloc, uint externalPort, string externalHostName, out RegionInfo regInfo)
-        {
-            regInfo = new RegionInfo();
-            regInfo.RegionLocX = xloc;
-            regInfo.RegionLocY = yloc;
-            regInfo.ExternalHostName = externalHostName;
-            regInfo.HttpPort = externalPort;
-            //regInfo.RemotingPort = remotingPort;
-            try
-            {
-                regInfo.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int)0);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[HGrid] Wrong format for link-region command: " + e.Message);
-                LinkRegionCmdUsage();
-                return false;
-            }
-            regInfo.RemotingAddress = regInfo.ExternalEndPoint.Address.ToString();
-
-            // Finally, link it
-            try
-            {
-                m_sceneManager.CurrentOrFirstScene.CommsManager.GridService.RegisterRegion(regInfo);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[HGrid] Unable to link region: " + e.StackTrace);
-                return false;
-            }
-
-            return true;
-        }
-
         private void LinkRegionCmdUsage()
         {
+            Console.WriteLine("Usage: link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>]");
             Console.WriteLine("Usage: link-region <Xloc> <Yloc> <HostName> <HttpPort> [<LocalName>]");
         }
     }

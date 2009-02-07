@@ -44,7 +44,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         Scene m_scene = null; // only need one for communication with GridService
-        private Random random;
+        List<Scene> m_scenes = new List<Scene>();
 
         #region IRegionModule Members
         public void Initialise(Scene scene, IConfigSource source)
@@ -52,9 +52,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             if (m_scene == null)
             {
                 m_scene = scene;
-                random = new Random();
             }
 
+            m_scenes.Add(scene);
             scene.EventManager.OnNewClient += OnNewClient;
         }
 
@@ -65,6 +65,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         public void Close()
         {
             m_scene = null;
+            m_scenes.Clear();
         }
 
         public string Name
@@ -110,7 +111,11 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 if (mapName.Contains(".") && mapName.Contains(":"))
                 {
                     // It probably is a domain name. Try to link to it.
-                    TryLinkRegion(remoteClient, mapName, regionInfos);
+                    RegionInfo regInfo;
+                    Scene cScene = GetClientScene(remoteClient);
+                    regInfo = HGHyperlink.TryLinkRegion(cScene, remoteClient, mapName);
+                    if (regInfo != null)
+                        regionInfos.Add(regInfo);
                 }
             }
 
@@ -154,116 +159,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             return (m_scene.SceneGridService is HGSceneCommunicationService);
         }
 
-        private void TryLinkRegion(IClientAPI client, string mapName, List<RegionInfo> regionInfos)
+        private Scene GetClientScene(IClientAPI client)
         {
-            string host = "127.0.0.1";
-            string portstr;
-            uint port = 9000;
-            string[] parts = mapName.Split(new char[] { ':' });
-            if (parts.Length >= 1)
+            foreach (Scene s in m_scenes)
             {
-                host = parts[0];
+                if (client.Scene.RegionInfo.RegionHandle == s.RegionInfo.RegionHandle)
+                    return s;
             }
-            if (parts.Length >= 2)
-            {
-                portstr = parts[1];
-                UInt32.TryParse(portstr, out port);
-            }
-
-            // Sanity check. Don't ever link to this sim.
-            IPAddress ipaddr = null;
-            try
-            {
-                ipaddr = Util.GetHostFromDNS(host);
-            }
-            catch { }
-
-            if ((ipaddr != null) &&
-                !((m_scene.RegionInfo.ExternalEndPoint.Address.Equals(ipaddr)) && (m_scene.RegionInfo.HttpPort == port)))
-            {
-                uint xloc = (uint)(random.Next(0, Int16.MaxValue));
-                RegionInfo regInfo;
-                bool success = TryCreateLink(client, xloc, 0, port, host, out regInfo);
-                if (success)
-                {
-                    regInfo.RegionName = mapName;
-                    regionInfos.Add(regInfo);
-                }
-            }
+            return m_scene;
         }
-
-        private bool TryCreateLink(IClientAPI client, uint xloc, uint yloc, uint externalPort, string externalHostName, out RegionInfo regInfo)
-        {
-            m_log.DebugFormat("[HGrid]: Dynamic link to {0}:{1}, in {2}-{3}", externalHostName, externalPort, xloc, yloc);
-
-            regInfo = new RegionInfo();
-            regInfo.RegionLocX = xloc; 
-            regInfo.RegionLocY = yloc;
-            regInfo.ExternalHostName = externalHostName;
-            regInfo.HttpPort = externalPort;
-            try
-            {
-                regInfo.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int)0);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[HGrid] Wrong format for link-region: " + e.Message);
-                return false;
-            }
-            //regInfo.RemotingAddress = regInfo.ExternalEndPoint.Address.ToString();
-
-            // Finally, link it
-            try
-            {
-                m_scene.CommsManager.GridService.RegisterRegion(regInfo);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[HGrid] Unable to dynamically link region: " + e.Message);
-                return false;
-            }
-
-            if (!Check4096(client, regInfo))
-            {
-                return false;
-            }
-
-            m_log.Debug("[HGrid] Dynamic link region succeeded");
-            return true;
-        }
-
-        /// <summary>
-        /// Cope with this viewer limitation.
-        /// </summary>
-        /// <param name="regInfo"></param>
-        /// <returns></returns>
-        private bool Check4096(IClientAPI client, RegionInfo regInfo)
-        {
-            ulong realHandle;
-            if (UInt64.TryParse(regInfo.regionSecret, out realHandle))
-            {
-                uint x, y;
-                Utils.LongToUInts(realHandle, out x, out y);
-                x = x / Constants.RegionSize;
-                y = y / Constants.RegionSize;
-
-                if ((Math.Abs((int)m_scene.RegionInfo.RegionLocX - (int)x) >= 4096) ||
-                    (Math.Abs((int)m_scene.RegionInfo.RegionLocY - (int)y) >= 4096))
-                {
-                    m_scene.CommsManager.GridService.DeregisterRegion(regInfo);
-                    m_log.Debug("[HGrid]: Region deregistered.");
-                    client.SendAlertMessage("Region is too far (" + x + ", " + y + ")");
-                    return false;
-                }
-                return true;
-            }
-            else
-            {
-                m_scene.CommsManager.GridService.RegisterRegion(regInfo);
-                m_log.Debug("[HGrid]: Gnomes. Region deregistered.");
-                return false;
-            }
-        }
-
     }
 }

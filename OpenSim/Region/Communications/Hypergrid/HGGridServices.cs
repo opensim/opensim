@@ -329,14 +329,13 @@ namespace OpenSim.Region.Communications.Hypergrid
                 info.RegionSettings.TerrainImageID = ass.Metadata.FullID;
                 ass.Metadata.Type = (int)AssetType.Texture;
                 ass.Metadata.Temporary = false;
-                //imageData.CopyTo(ass.Data, 0);
                 ass.Data = imageData;
                 m_assetcache.AddAsset(ass);
 
             }
-            catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
+            catch // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
-                Console.WriteLine("Failed getting/storing map image: " + e);
+                Console.WriteLine("[HGrid]: Failed getting/storing map image, because it is probably already in the cache");
             }
         }
 
@@ -463,6 +462,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                     if (hash["region_name"] != null)
                     {
                         info.RegionName = (string)hash["region_name"];
+                        //Console.WriteLine(">> " + info.RegionName);
                     }
                     if (hash["internal_port"] != null)
                     {
