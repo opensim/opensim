@@ -145,10 +145,17 @@ namespace OpenSim.Region.Communications.Local
             RegionInfo homeInfo = null;
             
             // use the homeRegionID if it is stored already. If not, use the regionHandle as before
-            if (theUser.HomeRegionID != UUID.Zero)
-                homeInfo = m_gridService.RequestNeighbourInfo(theUser.HomeRegionID);
+            UUID homeRegionId = theUser.HomeRegionID;
+            ulong homeRegionHandle = theUser.HomeRegion;
+            if (homeRegionId != UUID.Zero)
+            {
+                homeInfo = GetRegionInfo(homeRegionId);
+            }
             else
-                homeInfo = m_gridService.RequestNeighbourInfo(theUser.HomeRegion);
+            {
+                homeInfo = GetRegionInfo(homeRegionHandle);
+            }
+
             if (homeInfo != null)
             {
                 response.Home =
@@ -164,8 +171,8 @@ namespace OpenSim.Region.Communications.Local
                 // Emergency mode: Home-region isn't available, so we can't request the region info.
                 // Use the stored home regionHandle instead.
                 // NOTE: If the home-region moves, this will be wrong until the users update their user-profile again
-                ulong regionX = theUser.HomeRegion >> 32;
-                ulong regionY = theUser.HomeRegion & 0xffffffff;
+                ulong regionX = homeRegionHandle >> 32;
+                ulong regionY = homeRegionHandle & 0xffffffff;
                 response.Home =
                     string.Format(
                         "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
@@ -188,7 +195,8 @@ namespace OpenSim.Region.Communications.Local
             }
             else if (startLocationRequest == "last")
             {
-                regionInfo = m_gridService.RequestNeighbourInfo(theUser.CurrentAgent.Region);
+                UUID lastRegion = theUser.CurrentAgent.Region;
+                regionInfo = GetRegionInfo(lastRegion);
                 response.LookAt = "[r" + theUser.CurrentAgent.LookAt.X.ToString() + ",r" + theUser.CurrentAgent.LookAt.Y.ToString() + ",r" + theUser.CurrentAgent.LookAt.Z.ToString() + "]";
             }
             else
@@ -202,7 +210,7 @@ namespace OpenSim.Region.Communications.Local
                 else
                 {
                     string region = uriMatch.Groups["region"].ToString();
-                    regionInfo = m_gridService.RequestClosestRegion(region);
+                    regionInfo = RequestClosestRegion(region);
                     if (regionInfo == null)
                     {
                         m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, can't locate region {1}", startLocationRequest, region);
@@ -238,7 +246,7 @@ namespace OpenSim.Region.Communications.Local
             }
 
             m_log.Error("[LOGIN]: Sending user to default region " + defaultHandle + " instead");
-            regionInfo = m_gridService.RequestNeighbourInfo(defaultHandle);
+            regionInfo = GetRegionInfo(defaultHandle);
 
             // Customise the response
             //response.Home =
@@ -252,6 +260,21 @@ namespace OpenSim.Region.Communications.Local
             response.StartLocation = "safe";
                 
             return PrepareLoginToRegion(regionInfo, theUser, response);
+        }
+
+        protected RegionInfo RequestClosestRegion(string region)
+        {
+            return m_gridService.RequestClosestRegion(region);
+        }
+
+        protected RegionInfo GetRegionInfo(ulong homeRegionHandle)
+        {
+            return m_gridService.RequestNeighbourInfo(homeRegionHandle);
+        }
+
+        protected RegionInfo GetRegionInfo(UUID homeRegionId)
+        {
+            return m_gridService.RequestNeighbourInfo(homeRegionId);
         }
 
         /// <summary>

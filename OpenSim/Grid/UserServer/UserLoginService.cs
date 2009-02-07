@@ -183,12 +183,17 @@ namespace OpenSim.Grid.UserServer
             // HomeLocation
             RegionProfileData homeInfo = null;
             // use the homeRegionID if it is stored already. If not, use the regionHandle as before
-            if (theUser.HomeRegionID != UUID.Zero)
-                homeInfo = RegionProfileData.RequestSimProfileData(theUser.HomeRegionID,
-                    m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
+            UUID homeRegionId = theUser.HomeRegionID;
+            ulong homeRegionHandle = theUser.HomeRegion;
+            if (homeRegionId != UUID.Zero)
+            {
+                homeInfo = GetRegionInfo(homeRegionId);
+            }
             else
-                homeInfo = RegionProfileData.RequestSimProfileData(theUser.HomeRegion,
-                    m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
+            {
+                homeInfo = GetRegionInfo(homeRegionHandle);
+            }
+
             if (homeInfo != null)
             {
                 response.Home =
@@ -204,8 +209,8 @@ namespace OpenSim.Grid.UserServer
                 // Emergency mode: Home-region isn't available, so we can't request the region info.
                 // Use the stored home regionHandle instead.
                 // NOTE: If the home-region moves, this will be wrong until the users update their user-profile again
-                ulong regionX = theUser.HomeRegion >> 32;
-                ulong regionY = theUser.HomeRegion & 0xffffffff;
+                ulong regionX = homeRegionHandle >> 32;
+                ulong regionY = homeRegionHandle & 0xffffffff;
                 response.Home =
                     string.Format(
                         "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
@@ -227,8 +232,8 @@ namespace OpenSim.Grid.UserServer
             }
             else if (startLocationRequest == "last")
             {
-                regionInfo = RegionProfileData.RequestSimProfileData(theUser.CurrentAgent.Region,
-                    m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
+                UUID lastRegion = theUser.CurrentAgent.Region;
+                regionInfo = GetRegionInfo(lastRegion);
                 response.LookAt = "[r" + theUser.CurrentAgent.LookAt.X.ToString() + ",r" + theUser.CurrentAgent.LookAt.Y.ToString() + ",r" + theUser.CurrentAgent.LookAt.Z.ToString() + "]";
             }
             else
@@ -242,8 +247,7 @@ namespace OpenSim.Grid.UserServer
                 else
                 {
                     string region = uriMatch.Groups["region"].ToString();
-                    regionInfo = RegionProfileData.RequestSimProfileData(region,
-                        m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
+                    regionInfo = RequestClosestRegion(region);
                     if (regionInfo == null)
                     {
                         m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, can't locate region {1}", startLocationRequest, region);
@@ -280,7 +284,7 @@ namespace OpenSim.Grid.UserServer
             }
 
             m_log.Error("[LOGIN]: Sending user to default region " + defaultHandle + " instead");
-            regionInfo = RegionProfileData.RequestSimProfileData(defaultHandle, m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
+            regionInfo = GetRegionInfo(defaultHandle);
 
             // Customise the response
             //response.Home =
@@ -294,6 +298,26 @@ namespace OpenSim.Grid.UserServer
             response.StartLocation = "safe";
 
             return PrepareLoginToRegion(regionInfo, theUser, response);
+        }
+
+        protected RegionProfileData RequestClosestRegion(string region)
+        {
+            return RegionProfileData.RequestSimProfileData(region,
+                                                           m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
+        }
+
+        protected RegionProfileData GetRegionInfo(ulong homeRegionHandle)
+        {
+            return RegionProfileData.RequestSimProfileData(homeRegionHandle,
+                                                           m_config.GridServerURL, m_config.GridSendKey,
+                                                           m_config.GridRecvKey);
+        }
+
+        protected RegionProfileData GetRegionInfo(UUID homeRegionId)
+        {
+            return RegionProfileData.RequestSimProfileData(homeRegionId,
+                                                           m_config.GridServerURL, m_config.GridSendKey,
+                                                           m_config.GridRecvKey);
         }
 
         /// <summary>
