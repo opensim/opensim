@@ -2721,9 +2721,15 @@
 
       <ReferencePath>../../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared.Api"/>
+      <Reference name="OpenSim.Region.ScriptEngine.XEngine"/>
       <Reference name="OpenSim.Tests.Common"/>
       <Reference name="nunit.framework.dll" />
+      <Reference name="Nini.dll" />
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="false"/>
       </Files>
@@ -2817,4 +2823,5 @@
 
   </Solution>
 </Prebuild>
+
 
