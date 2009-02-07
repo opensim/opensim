@@ -77,7 +77,7 @@ Patches
 * Salahzar Stenvaag
 * sempuki
 * tglion
-* tlaukkan/Tommil
+* tlaukkan/Tommil (Tommi S. E. Laukkanen, Bubble Cloud)
 * tyre
 * Vytek
 * webmage (IBM)
