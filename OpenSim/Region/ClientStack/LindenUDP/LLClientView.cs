@@ -1213,10 +1213,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         dialog = 17;
 
+                        //eq.ChatterboxInvitation(
+                        //    new UUID("00000000-68f9-1111-024e-222222111123"),
+                        //    "OpenSimulator Testing", fromAgent, message, toAgent, fromName, dialog, 0,
+                        //    false, 0, new Vector3(), 1, transactionID, fromGroup, binaryBucket);
+
                         eq.ChatterboxInvitation(
                             new UUID("00000000-68f9-1111-024e-222222111123"),
                             "OpenSimulator Testing", fromAgent, message, toAgent, fromName, dialog, 0,
-                            false, 0, new Vector3(), 1, transactionID, fromGroup, binaryBucket);
+                            false, 0, new Vector3(), 1, transactionID, fromGroup, Utils.StringToBytes("OpenSimulator Testing"));
 
                         eq.ChatterBoxSessionAgentListUpdates(
                             new UUID("00000000-68f9-1111-024e-222222111123"),
