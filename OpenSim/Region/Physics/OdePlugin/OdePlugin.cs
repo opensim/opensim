@@ -122,14 +122,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         Selected = 0x00000100
     }
 
-    public class OdeScene : PhysicsScene
+    public sealed class OdeScene : PhysicsScene
     {
-        private ILog m_log;
+        private readonly ILog m_log;
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
         CollisionLocker ode;
 
-        protected Random fluidRandomizer = new Random(Environment.TickCount);
+        private Random fluidRandomizer = new Random(Environment.TickCount);
 
         private const uint m_regionWidth = Constants.RegionSize;
         private const uint m_regionHeight = Constants.RegionSize;
@@ -153,7 +153,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private int framecount = 0;
         //private int m_returncollisions = 10;
 
-        private IntPtr contactgroup;
+        private readonly IntPtr contactgroup;
         private IntPtr LandGeom;
 
         private IntPtr WaterGeom;
@@ -210,26 +210,26 @@ namespace OpenSim.Region.Physics.OdePlugin
         private d.NearCallback nearCallback;
         public d.TriCallback triCallback;
         public d.TriArrayCallback triArrayCallback;
-        private List<OdeCharacter> _characters = new List<OdeCharacter>();
-        private List<OdePrim> _prims = new List<OdePrim>();
-        private List<OdePrim> _activeprims = new List<OdePrim>();
-        private List<OdePrim> _taintedPrim = new List<OdePrim>();
-        private List<OdeCharacter> _taintedActors = new List<OdeCharacter>();
-        private List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
-        private List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
+        private readonly List<OdeCharacter> _characters = new List<OdeCharacter>();
+        private readonly List<OdePrim> _prims = new List<OdePrim>();
+        private readonly List<OdePrim> _activeprims = new List<OdePrim>();
+        private readonly List<OdePrim> _taintedPrim = new List<OdePrim>();
+        private readonly List<OdeCharacter> _taintedActors = new List<OdeCharacter>();
+        private readonly List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
+        private readonly List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
         private bool m_NINJA_physics_joints_enabled = false;
         //private Dictionary<String, IntPtr> jointpart_name_map = new Dictionary<String,IntPtr>();
-        private Dictionary<String, List<PhysicsJoint>> joints_connecting_actor = new Dictionary<String, List<PhysicsJoint>>();
+        private readonly Dictionary<String, List<PhysicsJoint>> joints_connecting_actor = new Dictionary<String, List<PhysicsJoint>>();
         private d.ContactGeom[] contacts = new d.ContactGeom[80];
-        private List<PhysicsJoint> requestedJointsToBeCreated = new List<PhysicsJoint>(); // lock only briefly. accessed by external code (to request new joints) and by OdeScene.Simulate() to move those joints into pending/active
-        private List<PhysicsJoint> pendingJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
-        private List<PhysicsJoint> activeJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
-        private List<string> requestedJointsToBeDeleted = new List<string>(); // lock only briefly. accessed by external code (to request deletion of joints) and by OdeScene.Simulate() to move those joints out of pending/active
+        private readonly List<PhysicsJoint> requestedJointsToBeCreated = new List<PhysicsJoint>(); // lock only briefly. accessed by external code (to request new joints) and by OdeScene.Simulate() to move those joints into pending/active
+        private readonly List<PhysicsJoint> pendingJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
+        private readonly List<PhysicsJoint> activeJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
+        private readonly List<string> requestedJointsToBeDeleted = new List<string>(); // lock only briefly. accessed by external code (to request deletion of joints) and by OdeScene.Simulate() to move those joints out of pending/active
         private Object externalJointRequestsLock = new Object();
-        private Dictionary<String, PhysicsJoint> SOPName_to_activeJoint = new Dictionary<String, PhysicsJoint>();
-        private Dictionary<String, PhysicsJoint> SOPName_to_pendingJoint = new Dictionary<String, PhysicsJoint>();
+        private readonly Dictionary<String, PhysicsJoint> SOPName_to_activeJoint = new Dictionary<String, PhysicsJoint>();
+        private readonly Dictionary<String, PhysicsJoint> SOPName_to_pendingJoint = new Dictionary<String, PhysicsJoint>();
 
         private d.Contact contact;
         private d.Contact TerrainContact;
@@ -240,8 +240,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 //Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
 //Ckrinke        private int m_randomizeWater = 200;
         private int m_physicsiterations = 10;
-        private float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
-        private PhysicsActor PANull = new NullPhysicsActor();
+        private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
+        private readonly PhysicsActor PANull = new NullPhysicsActor();
         private float step_time = 0.0f;
 //Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
 //Ckrinke        private int ms = 0;
@@ -1874,14 +1874,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Takes a space pointer and zeros out the array we're using to hold the spaces
         /// </summary>
-        /// <param name="space"></param>
-        public void resetSpaceArrayItemToZero(IntPtr space)
+        /// <param name="pSpace"></param>
+        public void resetSpaceArrayItemToZero(IntPtr pSpace)
         {
             for (int x = 0; x < staticPrimspace.GetLength(0); x++)
             {
                 for (int y = 0; y < staticPrimspace.GetLength(1); y++)
                 {
-                    if (staticPrimspace[x, y] == space)
+                    if (staticPrimspace[x, y] == pSpace)
                         staticPrimspace[x, y] = IntPtr.Zero;
                 }
             }
@@ -1926,8 +1926,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" + currentspace.ToString() +
-                                   " Geom:" + geom.ToString());
+                        m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" + currentspace +
+                                   " Geom:" + geom);
                     }
                 }
                 else
@@ -1943,7 +1943,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         else
                         {
                             m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
-                                       sGeomIsIn.ToString() + " Geom:" + geom.ToString());
+                                       sGeomIsIn + " Geom:" + geom);
                         }
                     }
                 }
@@ -1966,7 +1966,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         else
                         {
                             m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
-                                       currentspace.ToString() + " Geom:" + geom.ToString());
+                                       currentspace + " Geom:" + geom);
                         }
                     }
                 }
@@ -1986,7 +1986,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         else
                         {
                             m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
-                                       currentspace.ToString() + " Geom:" + geom.ToString());
+                                       currentspace + " Geom:" + geom);
                         }
                     }
                     else
@@ -2002,7 +2002,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             else
                             {
                                 m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
-                                           sGeomIsIn.ToString() + " Geom:" + geom.ToString());
+                                           sGeomIsIn + " Geom:" + geom);
                             }
                         }
                     }
@@ -2127,7 +2127,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (pbs.ProfileHollow != 0)
                 iPropertiesNotSupportedDefault++;
 
-            if (((Int16)pbs.PathTwistBegin != 0) || ((Int16)pbs.PathTwist != 0))
+            if ((pbs.PathTwistBegin != 0) || (pbs.PathTwist != 0))
                 iPropertiesNotSupportedDefault++; 
 
             if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
