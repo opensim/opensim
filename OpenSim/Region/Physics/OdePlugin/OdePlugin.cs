@@ -297,6 +297,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // Create the world and the first space
                 world = d.WorldCreate();
                 space = d.HashSpaceCreate(IntPtr.Zero);
+                
 
                 contactgroup = d.JointGroupCreate(0);
                 //contactgroup
@@ -483,6 +484,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Essentially Steps * m_physicsiterations
             d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
             //d.WorldSetContactMaxCorrectingVel(world, 1000.0f);
+
+            
 
             for (int i = 0; i < staticPrimspace.GetLength(0); i++)
             {
@@ -2900,15 +2903,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_log.Warn("[PHYSICS]: Non finite heightfield element detected.  Setting it to 0");
                         resultarr2[y, x] = 0;
                     }
-
-                    if (resultarr2[y, x] <= 0)
-                    {
-                        returnarr[i] = 0.0000001f;
-
-                    }
-                    else
-                        returnarr[i] = resultarr2[y, x];
-
+                    returnarr[i] = resultarr2[y, x];
                     i++;
                 }
             }
@@ -2934,7 +2929,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             //Double resolution
             heightMap = ResizeTerrain512Interpolation(heightMap);
-
+            float hfmin = 2000;
+            float hfmax = -2000;
             for (int x = 0; x < heightmapWidthSamples; x++)
             {
                 for (int y = 0; y < heightmapHeightSamples; y++)
@@ -2944,6 +2940,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     float val = heightMap[yy*512 + xx];
                     _heightmap[x*heightmapHeightSamples + y] = val;
+                    hfmin = (val < hfmin) ? val : hfmin;
+                    hfmax = (val > hfmax) ? val : hfmax;
                 }
             }
 
@@ -2957,7 +2955,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, heightmapWidth, heightmapHeight,
                                                  (int) heightmapWidthSamples, (int) heightmapHeightSamples, scale,
                                                  offset, thickness, wrap);
-                d.GeomHeightfieldDataSetBounds(HeightmapData, m_regionWidth, m_regionHeight);
+                d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1 , hfmax + 1 );
                 LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
                 if (LandGeom != IntPtr.Zero)
                 {
@@ -3047,6 +3045,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(WaterGeom, ref R);
                 d.GeomSetPosition(WaterGeom, 128, 128, 0);
+                
             }
 
         }
