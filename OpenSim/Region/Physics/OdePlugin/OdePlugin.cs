@@ -276,6 +276,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public d.Vector3 xyz = new d.Vector3(128.1640f, 128.3079f, 25.7600f);
         public d.Vector3 hpr = new d.Vector3(125.5000f, -17.0000f, 0.0000f);
 
+        private volatile int m_global_contactcount = 0;
+
         /// <summary>
         /// Initiailizes the scene
         /// Sets many properties that ODE requires to be stable
@@ -832,6 +834,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!skipThisContact && checkDupe(contacts[i], p2.PhysicsActorType))
                     skipThisContact = true;
 
+                int maxContactsbeforedeath = 4000;
+                joint = IntPtr.Zero;
+
+
                 if (!skipThisContact)
                 {
                     // If we're colliding against terrain
@@ -844,23 +850,31 @@ namespace OpenSim.Region.Physics.OdePlugin
                             // Use the movement terrain contact
                             AvatarMovementTerrainContact.geom = contacts[i];
                             _perloopContact.Add(contacts[i]);
-                            joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
+                            if (m_global_contactcount < maxContactsbeforedeath)
+                            {
+                                joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
+                                m_global_contactcount++;
+                            }
                         }
                         else
                         {
                             // Use the non moving terrain contact
                             TerrainContact.geom = contacts[i];
                             _perloopContact.Add(contacts[i]);
-                            joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
+                            if (m_global_contactcount < maxContactsbeforedeath)
+                            {
+                                joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
+                                m_global_contactcount++;
+                            }
                         }
                         //if (p2.PhysicsActorType == (int)ActorTypes.Prim)
                         //{
-                            //m_log.Debug("[PHYSICS]: prim contacting with ground");
+                        //m_log.Debug("[PHYSICS]: prim contacting with ground");
                         //}
                     }
                     else if (name1 == "Water" || name2 == "Water")
                     {
-                        if ((p2.PhysicsActorType == (int)ActorTypes.Prim))
+                        if ((p2.PhysicsActorType == (int) ActorTypes.Prim))
                         {
                         }
                         else
@@ -877,29 +891,49 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         WaterContact.geom = contacts[i];
                         _perloopContact.Add(contacts[i]);
-                        joint = d.JointCreateContact(world, contactgroup, ref WaterContact);
-
+                        if (m_global_contactcount < maxContactsbeforedeath)
+                        {
+                            joint = d.JointCreateContact(world, contactgroup, ref WaterContact);
+                            m_global_contactcount++;
+                        }
                         //m_log.Info("[PHYSICS]: Prim Water Contact" + contacts[i].depth);
                     }
                     else
-                    {   // we're colliding with prim or avatar
+                    {
+                        // we're colliding with prim or avatar
                         // check if we're moving
-                        if ((p2.PhysicsActorType == (int)ActorTypes.Agent) &&
+                        if ((p2.PhysicsActorType == (int) ActorTypes.Agent) &&
                             (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
                         {
                             // Use the Movement prim contact
                             AvatarMovementprimContact.geom = contacts[i];
                             _perloopContact.Add(contacts[i]);
-                            joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
+                            if (m_global_contactcount < maxContactsbeforedeath)
+                            {
+                                joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
+                                m_global_contactcount++;
+                            }
                         }
                         else
-                        {   // Use the non movement contact
+                        {
+                            // Use the non movement contact
                             contact.geom = contacts[i];
                             _perloopContact.Add(contacts[i]);
-                            joint = d.JointCreateContact(world, contactgroup, ref contact);
+
+                            if (m_global_contactcount < maxContactsbeforedeath)
+                            {
+                                joint = d.JointCreateContact(world, contactgroup, ref contact);
+                                m_global_contactcount++;
+                            }
                         }
                     }
-                    d.JointAttach(joint, b1, b2);
+
+                    if (m_global_contactcount < maxContactsbeforedeath && joint != IntPtr.Zero) // stack collide!
+                    {
+                        d.JointAttach(joint, b1, b2);
+                        m_global_contactcount++;
+                    }
+
                 }
                 collision_accounting_events(p1, p2, max_collision_depth);
                 if (count > geomContactPointsStartthrottle)
@@ -2543,6 +2577,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     }
                                 }
 
+                                //if (m_global_contactcount > 5)
+                                //{
+                                //    m_log.DebugFormat("[PHYSICS]: Contacts:{0}", m_global_contactcount);
+                                //}
+
+                                m_global_contactcount = 0;
+                                
                                 d.WorldQuickStep(world, ODE_STEPSIZE);
                                 d.JointGroupEmpty(contactgroup);
                                 //ode.dunlock(world);
