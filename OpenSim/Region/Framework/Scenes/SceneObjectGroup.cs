@@ -1018,11 +1018,26 @@ namespace OpenSim.Region.Framework.Scenes
         // justincc: I don't believe this hack is needed any longer, especially since the physics
         // parts of set AbsolutePosition were already commented out.  By changing HasGroupChanged to false
         // this method was preventing proper reload of scene objects.
+        
         // dahlia: I had to uncomment it, without it meshing was failing on some prims and objects
         // at region startup
+        
+        // teravus: After this was removed from the linking algorithm, Linked prims no longer collided 
+        // properly when non-physical if they havn't been moved.   This breaks ALL builds.
+        // see: http://opensimulator.org/mantis/view.php?id=3108
+        
+        // Here's the deal, this is ABSOLUTELY CRITICAL so the physics scene gets the update about the 
+        // position of linkset prims.  IF YOU CHANGE THIS, YOU MUST TEST colliding with just linked and 
+        // unmoved prims!  As soon as you move a Prim/group, it will collide properly because Absolute 
+        // Position has been set!
+        
         public void ResetChildPrimPhysicsPositions()
         {
             AbsolutePosition = AbsolutePosition; // could someone in the know please explain how this works?
+
+            // teravus: AbsolutePosition is NOT a normal property!
+            // the code in the getter of AbsolutePosition is significantly different then the code in the setter!
+            
         }
 
         public UUID GetPartsFullID(uint localID)
@@ -2060,6 +2075,13 @@ namespace OpenSim.Region.Framework.Scenes
 //            objectGroup.m_rootPart = null;
 
             AttachToBackup();
+
+
+            // Here's the deal, this is ABSOLUTELY CRITICAL so the physics scene gets the update about the 
+            // position of linkset prims.  IF YOU CHANGE THIS, YOU MUST TEST colliding with just linked and 
+            // unmoved prims!
+            ResetChildPrimPhysicsPositions();
+
             HasGroupChanged = true;
             ScheduleGroupForFullUpdate();
         }
