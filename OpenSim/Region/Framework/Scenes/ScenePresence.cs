@@ -848,7 +848,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.SwapRootAgentCount(false);
             m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(m_uuid);            
-            m_scene.CapsModule.AddCapsHandler(m_uuid);
+            //m_scene.CapsModule.AddCapsHandler(m_uuid);
 
             // On the next prim update, all objects will be sent
             //
@@ -1005,8 +1005,6 @@ namespace OpenSim.Region.Framework.Scenes
                 look = new Vector3(0.99f, 0.042f, 0);
             }
 
-            m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
-
             if (m_isChildAgent)
             {
                 m_isChildAgent = false;
@@ -1022,6 +1020,9 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 //m_log.DebugFormat("Completed movement");
             }
+
+            m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
+
         }
 
         /// <summary>

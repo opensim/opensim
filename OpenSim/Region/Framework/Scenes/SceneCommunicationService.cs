@@ -940,7 +940,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected bool WaitForCallback(UUID id)
+        public bool WaitForCallback(UUID id)
         {
             int count = 20;
             while (m_agentsInTransit.Contains(id) && count-- > 0)
@@ -961,7 +961,7 @@ namespace OpenSim.Region.Framework.Scenes
             return ResetFromTransit(id);
         }
 
-        protected void SetInTransit(UUID id)
+        public void SetInTransit(UUID id)
         {
             lock (m_agentsInTransit)
             {
