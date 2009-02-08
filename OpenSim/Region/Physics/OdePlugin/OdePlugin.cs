@@ -52,10 +52,10 @@ namespace OpenSim.Region.Physics.OdePlugin
     /// </summary>
     public class OdePlugin : IPhysicsPlugin
     {
-        //protected static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected CollisionLocker ode;
-        protected OdeScene _mScene;
+        private CollisionLocker ode;
+        private OdeScene _mScene;
 
         public OdePlugin()
         {
@@ -124,62 +124,62 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public class OdeScene : PhysicsScene
     {
-        protected ILog m_log;
-        // protected Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
+        private ILog m_log;
+        // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
-        protected CollisionLocker ode;
+        CollisionLocker ode;
 
         protected Random fluidRandomizer = new Random(Environment.TickCount);
 
-        protected const uint m_regionWidth = Constants.RegionSize;
-        protected const uint m_regionHeight = Constants.RegionSize;
+        private const uint m_regionWidth = Constants.RegionSize;
+        private const uint m_regionHeight = Constants.RegionSize;
 
-        protected float ODE_STEPSIZE = 0.020f;
-        protected float metersInSpace = 29.9f;
+        private float ODE_STEPSIZE = 0.020f;
+        private float metersInSpace = 29.9f;
 
         public float gravityx = 0f;
         public float gravityy = 0f;
         public float gravityz = -9.8f;
 
-        protected float contactsurfacelayer = 0.001f;
+        private float contactsurfacelayer = 0.001f;
 
-        protected int worldHashspaceLow = -4;
-        protected int worldHashspaceHigh = 128;
+        private int worldHashspaceLow = -4;
+        private int worldHashspaceHigh = 128;
 
-        protected int smallHashspaceLow = -4;
-        protected int smallHashspaceHigh = 66;
+        private int smallHashspaceLow = -4;
+        private int smallHashspaceHigh = 66;
 
-        protected float waterlevel = 0f;
-        protected int framecount = 0;
-        //protected int m_returncollisions = 10;
+        private float waterlevel = 0f;
+        private int framecount = 0;
+        //private int m_returncollisions = 10;
 
-        protected IntPtr contactgroup;
-        protected IntPtr LandGeom;
+        private IntPtr contactgroup;
+        private IntPtr LandGeom;
 
-        protected IntPtr WaterGeom;
+        private IntPtr WaterGeom;
 
-        protected float nmTerrainContactFriction = 255.0f;
-        protected float nmTerrainContactBounce = 0.1f;
-        protected float nmTerrainContactERP = 0.1025f;
+        private float nmTerrainContactFriction = 255.0f;
+        private float nmTerrainContactBounce = 0.1f;
+        private float nmTerrainContactERP = 0.1025f;
 
-        protected float mTerrainContactFriction = 75f;
-        protected float mTerrainContactBounce = 0.1f;
-        protected float mTerrainContactERP = 0.05025f;
+        private float mTerrainContactFriction = 75f;
+        private float mTerrainContactBounce = 0.1f;
+        private float mTerrainContactERP = 0.05025f;
 
-        protected float nmAvatarObjectContactFriction = 250f;
-        protected float nmAvatarObjectContactBounce = 0.1f;
+        private float nmAvatarObjectContactFriction = 250f;
+        private float nmAvatarObjectContactBounce = 0.1f;
 
-        protected float mAvatarObjectContactFriction = 75f;
-        protected float mAvatarObjectContactBounce = 0.1f;
+        private float mAvatarObjectContactFriction = 75f;
+        private float mAvatarObjectContactBounce = 0.1f;
 
-        protected float avPIDD = 3200f;
-        protected float avPIDP = 1400f;
-        protected float avCapRadius = 0.37f;
-        protected float avStandupTensor = 2000000f;
-        protected float avDensity = 80f;
-        protected float avHeightFudgeFactor = 0.52f;
-        protected float avMovementDivisorWalk = 1.3f;
-        protected float avMovementDivisorRun = 0.8f;
+        private float avPIDD = 3200f;
+        private float avPIDP = 1400f;
+        private float avCapRadius = 0.37f;
+        private float avStandupTensor = 2000000f;
+        private float avDensity = 80f;
+        private float avHeightFudgeFactor = 0.52f;
+        private float avMovementDivisorWalk = 1.3f;
+        private float avMovementDivisorRun = 0.8f;
 
         public bool meshSculptedPrim = true;
 
@@ -200,66 +200,66 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public int bodyFramesAutoDisable = 20;
 
-        protected float[] _heightmap;
+        private float[] _heightmap;
 
-        protected float[] _watermap;
-        protected bool m_filterCollisions = true;
+        private float[] _watermap;
+        private bool m_filterCollisions = true;
 
-        // protected float[] _origheightmap;
+        // private float[] _origheightmap;
 
-        protected d.NearCallback nearCallback;
+        private d.NearCallback nearCallback;
         public d.TriCallback triCallback;
         public d.TriArrayCallback triArrayCallback;
-        protected List<OdeCharacter> _characters = new List<OdeCharacter>();
-        protected List<OdePrim> _prims = new List<OdePrim>();
-        protected List<OdePrim> _activeprims = new List<OdePrim>();
-        protected List<OdePrim> _taintedPrim = new List<OdePrim>();
-        protected List<OdeCharacter> _taintedActors = new List<OdeCharacter>();
-        protected List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
-        protected List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
+        private List<OdeCharacter> _characters = new List<OdeCharacter>();
+        private List<OdePrim> _prims = new List<OdePrim>();
+        private List<OdePrim> _activeprims = new List<OdePrim>();
+        private List<OdePrim> _taintedPrim = new List<OdePrim>();
+        private List<OdeCharacter> _taintedActors = new List<OdeCharacter>();
+        private List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
+        private List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
-        protected bool m_NINJA_physics_joints_enabled = false;
-        //protected Dictionary<String, IntPtr> jointpart_name_map = new Dictionary<String,IntPtr>();
-        protected Dictionary<String, List<PhysicsJoint>> joints_connecting_actor = new Dictionary<String, List<PhysicsJoint>>();
-        protected d.ContactGeom[] contacts = new d.ContactGeom[80];
-        protected List<PhysicsJoint> requestedJointsToBeCreated = new List<PhysicsJoint>(); // lock only briefly. accessed by external code (to request new joints) and by OdeScene.Simulate() to move those joints into pending/active
-        protected List<PhysicsJoint> pendingJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
-        protected List<PhysicsJoint> activeJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
-        protected List<string> requestedJointsToBeDeleted = new List<string>(); // lock only briefly. accessed by external code (to request deletion of joints) and by OdeScene.Simulate() to move those joints out of pending/active
-        protected Object externalJointRequestsLock = new Object();
-        protected Dictionary<String, PhysicsJoint> SOPName_to_activeJoint = new Dictionary<String, PhysicsJoint>();
-        protected Dictionary<String, PhysicsJoint> SOPName_to_pendingJoint = new Dictionary<String, PhysicsJoint>();
+        private bool m_NINJA_physics_joints_enabled = false;
+        //private Dictionary<String, IntPtr> jointpart_name_map = new Dictionary<String,IntPtr>();
+        private Dictionary<String, List<PhysicsJoint>> joints_connecting_actor = new Dictionary<String, List<PhysicsJoint>>();
+        private d.ContactGeom[] contacts = new d.ContactGeom[80];
+        private List<PhysicsJoint> requestedJointsToBeCreated = new List<PhysicsJoint>(); // lock only briefly. accessed by external code (to request new joints) and by OdeScene.Simulate() to move those joints into pending/active
+        private List<PhysicsJoint> pendingJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
+        private List<PhysicsJoint> activeJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
+        private List<string> requestedJointsToBeDeleted = new List<string>(); // lock only briefly. accessed by external code (to request deletion of joints) and by OdeScene.Simulate() to move those joints out of pending/active
+        private Object externalJointRequestsLock = new Object();
+        private Dictionary<String, PhysicsJoint> SOPName_to_activeJoint = new Dictionary<String, PhysicsJoint>();
+        private Dictionary<String, PhysicsJoint> SOPName_to_pendingJoint = new Dictionary<String, PhysicsJoint>();
 
-        protected d.Contact contact;
-        protected d.Contact TerrainContact;
-        protected d.Contact AvatarMovementprimContact;
-        protected d.Contact AvatarMovementTerrainContact;
-        protected d.Contact WaterContact;
+        private d.Contact contact;
+        private d.Contact TerrainContact;
+        private d.Contact AvatarMovementprimContact;
+        private d.Contact AvatarMovementTerrainContact;
+        private d.Contact WaterContact;
 
 //Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
-//Ckrinke        protected int m_randomizeWater = 200;
-        protected int m_physicsiterations = 10;
-        protected float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
-        protected PhysicsActor PANull = new NullPhysicsActor();
-        protected float step_time = 0.0f;
+//Ckrinke        private int m_randomizeWater = 200;
+        private int m_physicsiterations = 10;
+        private float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
+        private PhysicsActor PANull = new NullPhysicsActor();
+        private float step_time = 0.0f;
 //Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
-//Ckrinke        protected int ms = 0;
+//Ckrinke        private int ms = 0;
         public IntPtr world;
-        //protected bool returncollisions = false;
-        // protected uint obj1LocalID = 0;
-        protected uint obj2LocalID = 0;
-        //protected int ctype = 0;
-        protected OdeCharacter cc1;
-        protected OdePrim cp1;
-        protected OdeCharacter cc2;
-        protected OdePrim cp2;
-        //protected int cStartStop = 0;
-        //protected string cDictKey = "";
+        //private bool returncollisions = false;
+        // private uint obj1LocalID = 0;
+        private uint obj2LocalID = 0;
+        //private int ctype = 0;
+        private OdeCharacter cc1;
+        private OdePrim cp1;
+        private OdeCharacter cc2;
+        private OdePrim cp2;
+        //private int cStartStop = 0;
+        //private string cDictKey = "";
 
         public IntPtr space;
 
-        //protected IntPtr tmpSpace;
+        //private IntPtr tmpSpace;
         // split static geometry collision handling into spaces of 30 meters
         public IntPtr[,] staticPrimspace;
 
@@ -267,7 +267,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public IMesher mesher;
 
-        protected IConfigSource m_config;
+        private IConfigSource m_config;
 
         public bool physics_logging = false;
         public int physics_logging_interval = 0;
@@ -498,7 +498,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public void waitForSpaceUnlock(IntPtr space)
+        internal void waitForSpaceUnlock(IntPtr space)
         {
             //if (space != IntPtr.Zero)
                 //while (d.SpaceLockQuery(space)) { } // Wait and do nothing
@@ -522,7 +522,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="space">The space that contains the geoms.  Remember, spaces are also geoms</param>
         /// <param name="g1">a geometry or space</param>
         /// <param name="g2">another geometry or space</param>
-        protected void near(IntPtr space, IntPtr g1, IntPtr g2)
+        private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
             //  no lock here!  It's invoked from within Simulate(), which is thread-locked
 
@@ -949,7 +949,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        protected bool checkDupe(d.ContactGeom contactGeom, int atype)
+        private bool checkDupe(d.ContactGeom contactGeom, int atype)
         {
             bool result = false;
             //return result;
@@ -1019,7 +1019,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             return result;
         }
 
-        protected void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, float collisiondepth)
+        private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, float collisiondepth)
         {
             // obj1LocalID = 0;
             //returncollisions = false;
@@ -1197,7 +1197,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// This is our collision testing routine in ODE
         /// </summary>
         /// <param name="timeStep"></param>
-        protected void collision_optimized(float timeStep)
+        private void collision_optimized(float timeStep)
         {
             _perloopContact.Clear();
 
@@ -1286,7 +1286,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         #endregion
 
 // TODO: unused
-//         protected float GetTerrainHeightAtXY(float x, float y)
+//         private float GetTerrainHeightAtXY(float x, float y)
 //         {
 //             return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
 //         }
@@ -1332,7 +1332,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        protected PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
+        private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
                                      IMesh mesh, PrimitiveBaseShape pbs, bool isphysical)
         {
             PhysicsVector pos = new PhysicsVector(position.X, position.Y, position.Z);
@@ -1407,28 +1407,28 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         // internal utility function: must be called within a lock (OdeLock)
-        protected void InternalAddActiveJoint(PhysicsJoint joint)
+        private void InternalAddActiveJoint(PhysicsJoint joint)
         {
             activeJoints.Add(joint);
             SOPName_to_activeJoint.Add(joint.ObjectNameInScene, joint);
         }
 
         // internal utility function: must be called within a lock (OdeLock)
-        protected void InternalAddPendingJoint(OdePhysicsJoint joint)
+        private void InternalAddPendingJoint(OdePhysicsJoint joint)
         {
             pendingJoints.Add(joint);
             SOPName_to_pendingJoint.Add(joint.ObjectNameInScene, joint);
         }
 
         // internal utility function: must be called within a lock (OdeLock)
-        protected void InternalRemovePendingJoint(PhysicsJoint joint)
+        private void InternalRemovePendingJoint(PhysicsJoint joint)
         {
             pendingJoints.Remove(joint);
             SOPName_to_pendingJoint.Remove(joint.ObjectNameInScene);
         }
 
         // internal utility function: must be called within a lock (OdeLock)
-        protected void InternalRemoveActiveJoint(PhysicsJoint joint)
+        private void InternalRemoveActiveJoint(PhysicsJoint joint)
         {
             activeJoints.Remove(joint);
             SOPName_to_activeJoint.Remove(joint.ObjectNameInScene);
@@ -1482,7 +1482,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        protected void DeleteRequestedJoints()
+        private void DeleteRequestedJoints()
         {
             List<string> myRequestedJointsToBeDeleted;
             lock (externalJointRequestsLock)
@@ -1562,7 +1562,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         // for pending joints we don't know if their associated bodies exist yet or not.
         // the joint is actually created during processing of the taints
-        protected void CreateRequestedJoints()
+        private void CreateRequestedJoints()
         {
             List<PhysicsJoint> myRequestedJointsToBeCreated;
             lock (externalJointRequestsLock)
@@ -1648,7 +1648,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             return joint;
         }
 
-        protected void RemoveAllJointsConnectedToActor(PhysicsActor actor)
+        private void RemoveAllJointsConnectedToActor(PhysicsActor actor)
         {
             //m_log.Debug("RemoveAllJointsConnectedToActor: start");
             if (actor.SOPName != null && joints_connecting_actor.ContainsKey(actor.SOPName) && joints_connecting_actor[actor.SOPName] != null)

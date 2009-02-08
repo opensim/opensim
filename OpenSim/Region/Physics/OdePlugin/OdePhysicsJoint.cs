@@ -34,7 +34,7 @@ using OpenSim.Region.Physics.OdePlugin;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
-    public class OdePhysicsJoint : PhysicsJoint
+    class OdePhysicsJoint : PhysicsJoint
     {
         public override bool IsInPhysicsEngine
         {

@@ -152,12 +152,6 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract bool IsThreaded { get; }
 
-        public virtual uint Raycast(PhysicsVector pos, PhysicsVector dir, float rayLength, uint ignoreId)
-        { return 0; }
-        
-        public virtual void SetMaxFlightHeight(float maxheight) { }
-        
-
         private class NullPhysicsScene : PhysicsScene
         {
             private static int m_workIndicator;
