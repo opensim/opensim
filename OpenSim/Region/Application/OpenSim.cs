@@ -158,7 +158,7 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", "kick user",
                     "kick user <first> <last>",
-                    "Kick a user off the simulator", HandleEditScale);
+                    "Kick a user off the simulator", KickUserCommand);
 
             m_console.Commands.AddCommand("region", "show assets",
                     "show assets",
