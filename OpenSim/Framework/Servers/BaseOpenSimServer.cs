@@ -342,7 +342,7 @@ namespace OpenSim.Framework.Servers
         }
 
         public virtual void HandleShow(string module, string[] cmd)
-        {
+        {            
             List<string> args = new List<string>(cmd);
 
             args.RemoveAt(0);

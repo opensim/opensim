@@ -479,6 +479,7 @@ namespace OpenSim
                             }
                         }
                         break;
+                    
                     case "get":
                         if (cmdparams.Length < 3)
                         {
@@ -501,6 +502,7 @@ namespace OpenSim
                         }
 
                         break;
+                    
                     case "save":
                         m_console.Notice("Saving configuration file: " + Application.iniFilePath);
                         m_config.Save(Application.iniFilePath);
@@ -763,6 +765,8 @@ namespace OpenSim
         // see BaseOpenSimServer
         override public void HandleShow(string mod, string[] cmd)
         {
+            base.HandleShow(mod, cmd);
+            
             List<string> args = new List<string>(cmd);
             args.RemoveAt(0);
             string[] showParams = args.ToArray();
@@ -834,7 +838,6 @@ namespace OpenSim
                                              scene.RegionInfo.RegionLocY + " , Region Port: " + scene.RegionInfo.InternalEndPoint.Port.ToString());
                         });
                     break;
-
 
                 case "queues":
                     Notice(GetQueuesReport());
