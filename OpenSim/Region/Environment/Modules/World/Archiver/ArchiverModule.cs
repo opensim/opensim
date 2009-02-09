@@ -64,11 +64,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         public void Close()
         {
-        }
+        }                
 
         public void ArchiveRegion(string savePath)
         {
-            m_log.InfoFormat("[SCENE]: Writing archive for region {0} to {1}", m_scene.RegionInfo.RegionName, savePath);
+            m_log.InfoFormat(
+                "[ARCHIVER]: Writing archive for region {0} to {1}", m_scene.RegionInfo.RegionName, savePath);
             
             new ArchiveWriteRequestPreparation(m_scene, savePath).ArchiveRegion();
         }
@@ -80,7 +81,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         public void DearchiveRegion(string loadPath)
         {
-            m_log.InfoFormat("[SCENE]: Loading archive to region {0} from {1}", m_scene.RegionInfo.RegionName, loadPath);
+            m_log.InfoFormat(
+                "[ARCHIVER]: Loading archive to region {0} from {1}", m_scene.RegionInfo.RegionName, loadPath);
             
             new ArchiveReadRequest(m_scene, loadPath).DearchiveRegion();
         }

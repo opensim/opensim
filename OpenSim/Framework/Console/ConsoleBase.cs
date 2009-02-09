@@ -38,27 +38,111 @@ namespace OpenSim.Framework.Console
 
     public class Commands
     {
+        /// <summary>
+        /// Encapsulates a command that can be invoked from the console
+        /// </summary>
         private class CommandInfo
         {
+            /// <value>
+            /// The module from which this command comes
+            /// </value>
             public string module;
+            
+            /// <value>
+            /// Very short BNF description
+            /// </value>
             public string help_text;
+            
+            /// <value>
+            /// Longer one line help text
+            /// </value>
             public string long_help;
+            
+            /// <value>
+            /// Full descriptive help for this command
+            /// </value>
+            public string descriptive_help;
+            
+            /// <value>
+            /// The method to invoke for this command
+            /// </value>
             public CommandDelegate fn;
         }
 
+        /// <value>
+        /// Commands organized by keyword in a tree
+        /// </value>
         private Dictionary<string, Object> tree =
                 new Dictionary<string, Object>();
 
-        public List<string> GetHelp()
-        {
+        /// <summary>
+        /// Get help for the given help string
+        /// </summary>
+        /// <param name="helpParts">Parsed parts of the help string.  If empty then general help is returned.</param>
+        /// <returns></returns>
+        public List<string> GetHelp(string[] cmd)
+        {                  
             List<string> help = new List<string>();
+            List<string> helpParts = new List<string>(cmd);
+            
+            // Remove initial help keyword
+            helpParts.RemoveAt(0);
 
-            help.AddRange(CollectHelp(tree));
-
-            help.Sort();
+            // General help
+            if (helpParts.Count == 0)
+            {
+                help.AddRange(CollectHelp(tree));
+                help.Sort();
+            }
+            else
+            {
+                help.AddRange(CollectHelp(helpParts));
+            }
 
             return help;
         }
+        
+        /// <summary>
+        /// See if we can find the requested command in order to display longer help
+        /// </summary>
+        /// <param name="helpParts"></param>
+        /// <returns></returns>
+        private List<string> CollectHelp(List<string> helpParts)
+        {            
+            string originalHelpRequest = string.Join(" ", helpParts.ToArray());
+            List<string> help = new List<string>();
+            
+            Dictionary<string, object> dict = tree;
+            while (helpParts.Count > 0)
+            {
+                string helpPart = helpParts[0];
+                
+                if (!dict.ContainsKey(helpPart))
+                    break;
+                
+                //System.Console.WriteLine("Found {0}", helpParts[0]);
+                
+                if (dict[helpPart] is Dictionary<string, Object>)
+                    dict = (Dictionary<string, object>)dict[helpPart]; 
+                
+                helpParts.RemoveAt(0);                                                               
+            }
+        
+            // There was a command for the given help string
+            if (dict.ContainsKey(String.Empty))
+            {
+                CommandInfo commandInfo = (CommandInfo)dict[String.Empty];
+                help.Add(commandInfo.help_text);
+                help.Add(commandInfo.long_help);
+                help.Add(commandInfo.descriptive_help);
+            }
+            else
+            {
+                help.Add(string.Format("No help is available for {0}", originalHelpRequest));
+            }
+            
+            return help;
+        }            
 
         private List<string> CollectHelp(Dictionary<string, Object> dict)
         {
@@ -79,12 +163,37 @@ namespace OpenSim.Framework.Console
             }
             return result;
         }
+        
+        /// <summary>
+        /// Add a command to those which can be invoked from the console.
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="command"></param>
+        /// <param name="help"></param>
+        /// <param name="longhelp"></param>
+        /// <param name="fn"></param>
+        public void AddCommand(
+            string module, string command, string help, string longhelp, CommandDelegate fn)   
+        {
+            AddCommand(module, command, help, longhelp, String.Empty, fn);
+        }
 
-        public void AddCommand(string module, string command, string help, string longhelp, CommandDelegate fn)
+        /// <summary>
+        /// Add a command to those which can be invoked from the console.
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="command"></param>
+        /// <param name="help"></param>
+        /// <param name="longhelp"></param>
+        /// <param name="descriptivehelp"></param>
+        /// <param name="fn"></param>
+        public void AddCommand(
+            string module, string command, string help, string longhelp, string descriptivehelp, CommandDelegate fn)
         {
             string[] parts = Parser.Parse(command);
 
             Dictionary<string, Object> current = tree;
+            
             foreach (string s in parts)
             {
                 if (current.ContainsKey(s))
@@ -105,10 +214,12 @@ namespace OpenSim.Framework.Console
 
             if (current.ContainsKey(String.Empty))
                 return;
+            
             CommandInfo info = new CommandInfo();
             info.module = module;
             info.help_text = help;
             info.long_help = longhelp;
+            info.descriptive_help = descriptivehelp;
             info.fn = fn;
             current[String.Empty] = info;
         }
@@ -285,7 +396,9 @@ namespace OpenSim.Framework.Console
         {
             DefaultPrompt = defaultPrompt;
 
-            Commands.AddCommand("console", "help", "help", "Get command list", Help);
+            Commands.AddCommand(
+                "console", "help", "help [<command>]", 
+                "Get general command list or more detailed help on a specific command", Help);
         }
 
         private void AddToHistory(string text)
@@ -517,7 +630,7 @@ namespace OpenSim.Framework.Console
 
         private void Help(string module, string[] cmd)
         {
-            List<string> help = Commands.GetHelp();
+            List<string> help = Commands.GetHelp(cmd);
 
             foreach (string s in help)
                 Output(s);

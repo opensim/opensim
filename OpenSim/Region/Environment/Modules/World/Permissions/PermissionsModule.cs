@@ -204,7 +204,9 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
                 m_bypassPermissions = val;
 
-                m_log.InfoFormat("[PERMISSIONS] Set permissions bypass to {0} for {1}", m_bypassPermissions, m_scene.RegionInfo.RegionName);
+                m_log.InfoFormat(
+                    "[PERMISSIONS]: Set permissions bypass to {0} for {1}", 
+                    m_bypassPermissions, m_scene.RegionInfo.RegionName);
             }
         }
 

@@ -142,7 +142,8 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", "save oar",
                     "save oar <oar name>",
-                    "Save a region's data to an OAR archive", SaveOar);
+                    "Save a region's data to an OAR archive",
+                    "More information on forthcoming options here soon", SaveOar);
 
             m_console.Commands.AddCommand("region", "save inventory",
                     "save inventory <first> <last> <path> <file>",

@@ -203,14 +203,14 @@ namespace OpenSim
 
             foreach (string topic in topics)
             {
-                m_console.Commands.AddCommand("plugin", "help "+topic,
-                        "help "+topic,
-                        "Get help on plugin command '"+topic+"'",
+                m_console.Commands.AddCommand("plugin", "help " + topic,
+                        "help " + topic,
+                        "Get help on plugin command '" + topic + "'",
                         HandleCommanderHelp);
 
                 m_console.Commands.AddCommand("plugin", topic,
                         topic,
-                        "Execute subcommand for plugin '"+topic+"'",
+                        "Execute subcommand for plugin '" + topic + "'",
                         null);
 
                 ICommander commander =
@@ -221,8 +221,8 @@ namespace OpenSim
 
                 foreach (string command in commander.Commands.Keys)
                 {
-                    m_console.Commands.AddCommand(topic, topic+" "+command,
-                            topic+" "+commander.Commands[command].ShortHelp(),
+                    m_console.Commands.AddCommand(topic, topic + " " + command,
+                            topic + " " + commander.Commands[command].ShortHelp(),
                             String.Empty, HandleCommanderCommand);
                 }
             }
