@@ -2031,7 +2031,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //}
 
                 // And the new channel...
-                successYN = m_interregionCommsOut.SendCreateObject(newRegionHandle, grp);
+                if (m_interregionCommsOut != null)
+                    successYN = m_interregionCommsOut.SendCreateObject(newRegionHandle, grp);
 
                 if (successYN)
                 {
