@@ -76,7 +76,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected bool Allow_Alternate_Port;
         protected IPAddress listenIP = IPAddress.Parse("0.0.0.0");
         protected IScene m_localScene;
-        protected AssetCache m_assetCache;
+        protected IAssetCache m_assetCache;
 
         /// <value>
         /// Manages authentication for agent circuits
@@ -131,7 +131,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public LLUDPServer(
             IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, IConfigSource configSource, 
-            AssetCache assetCache, AgentCircuitManager authenticateClass)
+            IAssetCache assetCache, AgentCircuitManager authenticateClass)
         {
             Initialise(_listenIP, ref port, proxyPortOffset, allow_alternate_port, configSource, assetCache, authenticateClass);
         }
@@ -148,7 +148,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="circuitManager"></param>
         public void Initialise(
             IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource,
-            AssetCache assetCache, AgentCircuitManager circuitManager)
+            IAssetCache assetCache, AgentCircuitManager circuitManager)
         {
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
             

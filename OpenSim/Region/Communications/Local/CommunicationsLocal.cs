@@ -37,7 +37,7 @@ namespace OpenSim.Region.Communications.Local
         public CommunicationsLocal(
             NetworkServersInfo serversInfo,
             BaseHttpServer httpServer,
-            AssetCache assetCache,
+            IAssetCache assetCache,
             IUserService userService,
             IUserAdminService userServiceAdmin,
             LocalInventoryService inventoryService,

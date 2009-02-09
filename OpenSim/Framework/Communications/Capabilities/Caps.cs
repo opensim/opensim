@@ -98,7 +98,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         //private string eventQueue = "0100/";
         private BaseHttpServer m_httpListener;
         private UUID m_agentID;
-        private AssetCache m_assetCache;
+        private IAssetCache m_assetCache;
         private int m_eventQueueCount = 1;
         private Queue<string> m_capsEventQueue = new Queue<string>();
         private bool m_dumpAssetsToFile;
@@ -121,7 +121,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         public FetchInventoryDescendentsCAPS CAPSFetchInventoryDescendents = null;
         public GetClientDelegate GetClient = null;
 
-        public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
+        public Caps(IAssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     UUID agent, bool dumpAssetsToFile, string regionName)
         {
             m_assetCache = assetCache;

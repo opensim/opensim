@@ -40,7 +40,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         public HGCommunicationsStandalone(
             NetworkServersInfo serversInfo,
             BaseHttpServer httpServer,
-            AssetCache assetCache,
+            IAssetCache assetCache,
             IUserService userService,
             IUserAdminService userServiceAdmin,
             LocalInventoryService inventoryService,

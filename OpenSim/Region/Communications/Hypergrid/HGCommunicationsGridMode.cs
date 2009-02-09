@@ -51,7 +51,7 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         public HGCommunicationsGridMode(
             NetworkServersInfo serversInfo, BaseHttpServer httpServer,
-            AssetCache assetCache, SceneManager sman, LibraryRootFolder libraryRootFolder)
+            IAssetCache assetCache, SceneManager sman, LibraryRootFolder libraryRootFolder)
             : base(serversInfo, httpServer, assetCache, false, libraryRootFolder)
         {
 

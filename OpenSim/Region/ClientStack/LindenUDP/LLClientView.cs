@@ -65,7 +65,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private int m_debugPacketLevel;
 
-        private readonly AssetCache m_assetCache;
+        private readonly IAssetCache m_assetCache;
         private int m_cachedTextureSerial;
         private Timer m_clientPingTimer;
 
@@ -429,7 +429,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Constructor
         /// </summary>
         public LLClientView(
-            EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
+            EndPoint remoteEP, IScene scene, IAssetCache assetCache, LLPacketServer packServer,
             AuthenticateResponse sessionInfo, UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP,
             ClientStackUserSettings userSettings)
         {
@@ -3748,7 +3748,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerGenericMessage(sender, method, msg);
                         return true;
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         m_log.Error("[GENERICMESSAGE] " + e);
                     }

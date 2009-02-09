@@ -36,7 +36,7 @@ namespace OpenSim.Region.Communications.OGS1
     {
         public CommunicationsOGS1(
             NetworkServersInfo serversInfo, BaseHttpServer httpServer, 
-            AssetCache assetCache, LibraryRootFolder libraryRootFolder)
+            IAssetCache assetCache, LibraryRootFolder libraryRootFolder)
             : base(serversInfo, httpServer, assetCache, false, libraryRootFolder)
         {
             OGS1GridServices gridInterComms = new OGS1GridServices(serversInfo, httpServer);

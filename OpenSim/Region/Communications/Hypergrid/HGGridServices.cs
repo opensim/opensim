@@ -83,7 +83,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         // This is key-ed on agent ID
         protected Dictionary<UUID, RegionInfo> m_knownRegions = new Dictionary<UUID, RegionInfo>();
 
-        protected AssetCache m_assetcache;
+        protected IAssetCache m_assetcache;
         protected UserProfileCacheService m_userProfileCache;
         protected SceneManager m_sceneman;
 
@@ -120,7 +120,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         /// <param name="servers_info"></param>
         /// <param name="httpServe"></param>
-        public HGGridServices(NetworkServersInfo servers_info, BaseHttpServer httpServe, AssetCache asscache, SceneManager sman)
+        public HGGridServices(NetworkServersInfo servers_info, BaseHttpServer httpServe, IAssetCache asscache, SceneManager sman)
         {
             serversInfo = servers_info;
             httpServer = httpServe;

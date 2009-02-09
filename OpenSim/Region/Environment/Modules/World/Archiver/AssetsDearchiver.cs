@@ -59,9 +59,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Cache to which dearchived assets will be added
         /// </summary>
-        protected AssetCache m_cache;
+        protected IAssetCache m_cache;
 
-        public AssetsDearchiver(AssetCache cache)
+        public AssetsDearchiver(IAssetCache cache)
         {
             m_cache = cache;
         }

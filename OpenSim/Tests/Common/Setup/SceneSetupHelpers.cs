@@ -74,7 +74,7 @@ namespace OpenSim.Tests.Common.Setup
             SceneCommunicationService scs = new SceneCommunicationService(cm);
             
             SQLAssetServer assetService = new SQLAssetServer(new TestAssetDataPlugin());
-            AssetCache ac = new AssetCache(assetService);
+            IAssetCache ac = (IAssetCache) new AssetCache(assetService);
             
             StorageManager sm = new StorageManager("OpenSim.Data.Null.dll", "", "");            
             IConfigSource configSource = new IniConfigSource();

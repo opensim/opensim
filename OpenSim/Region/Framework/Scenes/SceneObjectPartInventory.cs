@@ -251,7 +251,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_part.ScheduleFullUpdate();
                     return;
                 }
-                AssetCache cache = m_part.ParentGroup.Scene.AssetCache;
+                IAssetCache cache = m_part.ParentGroup.Scene.AssetCache;
 
                 cache.GetAsset(item.AssetID, delegate(UUID assetID, AssetBase asset)
                                {

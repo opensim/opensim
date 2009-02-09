@@ -272,7 +272,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
                      CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
-                     AssetCache assetCach, StorageManager storeManager,
+                     IAssetCache assetCach, StorageManager storeManager,
                      ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
                      bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
         {

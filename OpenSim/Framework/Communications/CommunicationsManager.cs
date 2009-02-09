@@ -87,11 +87,11 @@ namespace OpenSim.Framework.Communications
         }
         protected IAvatarService m_avatarService;
 
-        public AssetCache AssetCache
+        public IAssetCache AssetCache
         {
             get { return m_assetCache; }
         }
-        protected AssetCache m_assetCache;
+        protected IAssetCache m_assetCache;
 
         public IInterServiceInventoryServices InterServiceInventoryService
         {
@@ -127,7 +127,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="httpServer"></param>
         /// <param name="assetCache"></param>
         /// <param name="dumpAssetsToFile"></param>
-        public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache,
+        public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, IAssetCache assetCache,
                                      bool dumpAssetsToFile, LibraryRootFolder libraryRootFolder)
         {
             m_networkServersInfo = serversInfo;

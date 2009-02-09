@@ -48,7 +48,7 @@ namespace OpenSim.Region.ClientStack
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected AssetCache m_assetCache;
+        protected IAssetCache m_assetCache;
         protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();
         protected NetworkServersInfo m_networkServersInfo;
 

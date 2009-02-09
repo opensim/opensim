@@ -37,7 +37,7 @@ using GlynnTucker.Cache;
 
 namespace OpenSim.Framework.Communications.Cache
 {
-    public delegate void AssetRequestCallback(UUID assetID, AssetBase asset);
+    // public delegate void AssetRequestCallback(UUID assetID, AssetBase asset);
 
     /// <summary>
     /// Manages local cache of assets and their sending to viewers.
@@ -47,7 +47,8 @@ namespace OpenSim.Framework.Communications.Cache
     /// synchronously or async and passes the data back to the requester.  The second mechanism fetches assets and
     /// sends packetised data directly back to the client.  The only point where they meet is AssetReceived() and
     /// AssetNotFound(), which means they do share the same asset and texture caches.I agr
-    public class AssetCache : IAssetReceiver
+
+    public class AssetCache : IAssetCache, IAssetReceiver
     {
         protected ICache m_memcache = new SimpleMemoryCache();
 
@@ -148,7 +149,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// Process the asset queue which holds data which is packeted up and sent
         /// directly back to the client.
         /// </summary>
-        public void RunAssetManager()
+        private void RunAssetManager()
         {
             while (true)
             {

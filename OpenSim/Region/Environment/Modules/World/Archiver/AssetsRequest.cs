@@ -73,9 +73,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Asset cache used to request the assets
         /// </summary>
-        protected AssetCache m_assetCache;
+        protected IAssetCache m_assetCache;
 
-        protected internal AssetsRequest(ICollection<UUID> uuids, AssetCache assetCache, AssetsRequestCallback assetsRequestCallback)
+        protected internal AssetsRequest(ICollection<UUID> uuids, IAssetCache assetCache, AssetsRequestCallback assetsRequestCallback)
         {
             m_uuids = uuids;
             m_assetsRequestCallback = assetsRequestCallback;

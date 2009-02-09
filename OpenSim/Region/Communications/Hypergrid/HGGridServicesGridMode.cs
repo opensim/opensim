@@ -71,7 +71,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         }      
 
         public HGGridServicesGridMode(NetworkServersInfo servers_info, BaseHttpServer httpServe, 
-            AssetCache asscache, SceneManager sman, UserProfileCacheService userv)
+            IAssetCache asscache, SceneManager sman, UserProfileCacheService userv)
             : base(servers_info, httpServe, asscache, sman)
         {
             m_remoteBackend = new OGS1GridServices(servers_info, httpServe);

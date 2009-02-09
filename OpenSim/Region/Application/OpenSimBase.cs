@@ -309,37 +309,53 @@ namespace OpenSim
         /// </summary>
         protected virtual void InitialiseAssetCache()
         {
-            // If the assetcache is set to default, then use the grid asset service in grid mode and the local database
-            // based asset service in standalone mode
-            
-            IAssetServer assetServer;
-            if (m_configSettings.AssetStorage == "grid" 
-                || (m_configSettings.AssetStorage == "default" && false == m_configSettings.Standalone))
+
+            IAssetServer assetServer = null;
+            string mode = m_configSettings.AssetStorage;
+
+            if (m_configSettings.Standalone   == false &&
+                m_configSettings.AssetStorage == "default")
+                    mode = "grid";
+
+            switch (mode)
             {
-                assetServer = new GridAssetClient(m_networkServersInfo.AssetURL);
-            }
-            else if (m_configSettings.AssetStorage == "cryptogrid") // Decrypt-Only
-            {
-                assetServer = new CryptoGridAssetClient(m_networkServersInfo.AssetURL,
+                case "grid" :
+                    assetServer = new GridAssetClient(m_networkServersInfo.AssetURL);
+                    break;
+                case "cryptogrid" :
+                    assetServer = new CryptoGridAssetClient(m_networkServersInfo.AssetURL,
                                                         Environment.CurrentDirectory, true);
-            }
-            else if (m_configSettings.AssetStorage == "cryptogrid_eou") // Encrypts All Assets
-            {
-                assetServer = new CryptoGridAssetClient(m_networkServersInfo.AssetURL,
+                    break;
+                case "cryptogrid_eou" :
+                    assetServer = new CryptoGridAssetClient(m_networkServersInfo.AssetURL,
                                                         Environment.CurrentDirectory, false);
-            }
-            else if (m_configSettings.AssetStorage == "file")
-            {
-                assetServer = new FileAssetClient(m_networkServersInfo.AssetURL);
-            }
-            else
-            {
-                SQLAssetServer sqlAssetServer = new SQLAssetServer(m_configSettings.StandaloneAssetPlugin, m_configSettings.StandaloneAssetSource);
-                sqlAssetServer.LoadDefaultAssets(m_configSettings.AssetSetsXMLFile);
-                assetServer = sqlAssetServer;
+                    break;
+                case "file" :
+                    assetServer = new FileAssetClient(m_networkServersInfo.AssetURL);
+                    break;
+                default :
+                    if (!ResolveAssetServer(out assetServer))
+                    {
+                        SQLAssetServer sqlAssetServer = new SQLAssetServer(m_configSettings.StandaloneAssetPlugin, m_configSettings.StandaloneAssetSource);
+                        sqlAssetServer.LoadDefaultAssets(m_configSettings.AssetSetsXMLFile);
+                        assetServer = sqlAssetServer;
+                    }
+                    break;
             }
 
-            m_assetCache = new AssetCache(assetServer);
+            m_assetCache = ResolveAssetCache(assetServer);
+
+        }
+
+        private bool ResolveAssetServer(out IAssetServer assetServer)
+        {
+            assetServer = null;
+            return false;
+        }
+
+        private IAssetCache ResolveAssetCache(IAssetServer assetServer)
+        {
+            return new AssetCache(assetServer);
         }
 
         public void ProcessLogin(bool LoginEnabled)

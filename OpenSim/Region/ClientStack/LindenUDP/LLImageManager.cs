@@ -55,7 +55,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             new Dictionary<UUID, IPriorityQueueHandle<Prio<J2KImage>>>();
 
         private LLClientView m_client;
-        private readonly AssetCache m_assetCache;
+        private readonly IAssetCache m_assetCache;
         private bool m_shuttingdown = false;
         private readonly IJ2KDecoder m_j2kDecodeModule;
 
@@ -67,7 +67,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="client">LLClientView of client</param>
         /// <param name="pAssetCache">The Asset retrieval system</param>
         /// <param name="pJ2kDecodeModule">The Jpeg2000 Decoder</param>
-        public LLImageManager(LLClientView client, AssetCache pAssetCache, IJ2KDecoder pJ2kDecodeModule)
+        public LLImageManager(LLClientView client, IAssetCache pAssetCache, IJ2KDecoder pJ2kDecodeModule)
         {
             m_client = client;
             m_assetCache = pAssetCache;

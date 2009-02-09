@@ -38,7 +38,7 @@ namespace OpenSim.Region.ClientStack
     {
         void Initialise(
             IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, 
-            AssetCache assetCache, AgentCircuitManager authenticateClass);
+            IAssetCache assetCache, AgentCircuitManager authenticateClass);
 
         Socket Server { get; }
         bool HandlesRegion(Location x);
