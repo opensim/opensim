@@ -2608,6 +2608,63 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Region.CoreModules.Tests" path="OpenSim/Region/CoreModules" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Drawing"/>
+      <Reference name="System.Runtime.Remoting"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
+      <Reference name="OpenSim.Region.Communications.Local"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
+      <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
+
+      <!-- Unit tests -->
+      <!-- <Reference name="OpenSim.Tests.Common"/> -->
+      <Reference name="OpenSim.Tests.Common"/>
+      <Reference name="Nini.dll"/>
+      <Reference name="nunit.framework.dll"/>
+
+      <!-- For scripting in funny languages by default -->
+      <Reference name="Microsoft.JScript"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+      <Reference name="DotNetOpenMail.dll"/>
+
+      <!--
+           TODO: this is kind of lame, we basically build a duplicate
+           assembly but with tests added in, just so that we don't
+           need to hard code in a bunch of Test directories here.  If
+           pattern="Tests/*.cs" worked, we wouldn't need this.
+      -->
+      <Files>
+        <!-- SADLY the way this works means you need to keep adding these paths -->
+        <Match path="Agent/TextureSender/Tests" pattern="*.cs" recurse="true" />
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Region.Environment.Tests" path="OpenSim/Region/Environment" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2662,7 +2719,6 @@
         <!-- SADLY the way this works means you need to keep adding these paths -->
         <Match path="Modules/World/Terrain/Tests" pattern="*.cs" recurse="true" />
         <Match path="Modules/World/Archiver/Tests" pattern="*.cs" recurse="true" />
-        <Match path="Modules/Agent/TextureSender/Tests" pattern="*.cs" recurse="true" />
       </Files>
     </Project>
 
