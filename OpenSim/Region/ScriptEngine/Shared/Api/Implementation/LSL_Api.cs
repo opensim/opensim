@@ -2506,8 +2506,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llLookAt(LSL_Vector target, double strength, double damping)
         {
+        	// partial implementation, rotates objects correctly but does not apply strength or damping attributes
+        	
             m_host.AddScriptLPS(1);
-            NotImplemented("llLookAt");
+            // Determine where we are looking from 
+            LSL_Vector from = llGetPos(); 
+            
+            // Work out the normalised vector from the source to the target 
+            LSL_Vector delta = llVecNorm(target - from); 
+            LSL_Vector angle = new LSL_Vector(0,0,0); 
+ 
+            // Calculate the yaw 
+            // subtracting PI_BY_TWO is required to compensate for the odd SL co-ordinate system 
+            angle.x = llAtan2(delta.z, delta.y) - ScriptBaseClass.PI_BY_TWO; 
+ 
+            // Calculate pitch 
+            angle.y = llAtan2(delta.x, llSqrt((delta.y * delta.y) + (delta.z * delta.z))); 
+
+            // we need to convert from a vector describing
+            // the angles of rotation in radians into rotation value
+            
+            LSL_Types.Quaternion rot = llEuler2Rot(angle); 
+            
+            // Orient the object to the angle calculated 
+            llSetRot(rot); 
         }
 
         public void llStopLookAt()
