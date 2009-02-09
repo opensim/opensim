@@ -36,7 +36,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Communications.Cache;
 using BlockingQueue = OpenSim.Framework.BlockingQueue<OpenSim.Region.Framework.Interfaces.ITextureSender>;
 
-namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
+namespace OpenSim.Region.CoreModules.Agent.TextureDownload
 {
     public class TextureDownloadModule : IRegionModule
     {

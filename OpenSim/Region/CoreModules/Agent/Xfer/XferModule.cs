@@ -33,7 +33,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.Environment.Modules.Agent.Xfer
+namespace OpenSim.Region.CoreModules.Agent.Xfer
 {
     public class XferModule : IRegionModule, IXfer
     {

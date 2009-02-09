@@ -146,7 +146,7 @@ namespace OpenSim
                     m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }
 
-        public void RunCommand(string module, string[] cp)
+        void RunCommand(string module, string[] cp)
         {
             List<string> cmdparams = new List<string>(cp);
             if (cmdparams.Count < 1)

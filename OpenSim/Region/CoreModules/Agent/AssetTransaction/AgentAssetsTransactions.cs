@@ -32,7 +32,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Communications.Cache;
 
-namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
+namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
     /// <summary>
     /// Manage asset transactions for a single agent.

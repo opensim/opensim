@@ -39,7 +39,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
+namespace OpenSim.Region.CoreModules.Agent.TextureSender
 {
     public class J2KDecoderModule : IRegionModule, IJ2KDecoder
     {

@@ -36,7 +36,7 @@ using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Environment.Modules.Agent.Capabilities;
+using OpenSim.Region.CoreModules.Agent.Capabilities;
 using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Tests.Common.Setup

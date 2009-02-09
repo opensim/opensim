@@ -38,7 +38,7 @@ using OpenSim.Region.Environment.Modules.Scripting.DynamicTexture;
 using OpenSim.Region.Environment.Modules.Avatar.InstantMessage;
 using OpenSim.Region.Environment.Modules.Scripting.LoadImageURL;
 using OpenSim.Region.Environment.Modules.Scripting.XMLRPC;
-using OpenSim.Region.Environment.Modules.Agent.AssetTransaction;
+using OpenSim.Region.CoreModules.Agent.AssetTransaction;
 
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {

@@ -35,7 +35,7 @@ using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
+namespace OpenSim.Region.CoreModules.Agent.TextureDownload
 {
     /// <summary>
     /// This module sets up texture senders in response to client texture requests, and places them on a

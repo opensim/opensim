@@ -35,7 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
+namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
     public class AssetXferUploader
     {

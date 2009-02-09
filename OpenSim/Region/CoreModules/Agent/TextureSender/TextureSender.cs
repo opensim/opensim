@@ -32,7 +32,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
-namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
+namespace OpenSim.Region.CoreModules.Agent.TextureSender
 {
     /// <summary>
     /// A TextureSender handles the process of receiving a texture requested by the client from the

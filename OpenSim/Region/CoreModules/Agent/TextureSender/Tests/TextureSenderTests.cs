@@ -33,7 +33,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
+namespace OpenSim.Region.CoreModules.Agent.TextureSender
 {
     [TestFixture]
     public class UserTextureSenderTests

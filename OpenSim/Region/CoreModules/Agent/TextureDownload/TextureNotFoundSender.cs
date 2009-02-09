@@ -32,7 +32,7 @@ using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
-namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
+namespace OpenSim.Region.CoreModules.Agent.TextureDownload
 {
     /// <summary>
     /// Sends a 'texture not found' packet back to the client
