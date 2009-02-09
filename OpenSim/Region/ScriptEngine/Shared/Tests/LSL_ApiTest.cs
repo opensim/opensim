@@ -109,25 +109,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             return (float)(Math.PI * degrees / 180);
         }
 
-        private double FromRadians(float radians)
-        {
-            return radians * 180 / Math.PI;
-        }
+        // private double FromRadians(float radians)
+        // {
+        //     return radians * 180 / Math.PI;
+        // }
 
         private double FromLslFloat(LSL_Types.LSLFloat lslFloat)
         {
             return lslFloat.value;
         }
 
-        private LSL_Types.LSLFloat ToLslFloat(double value)
-        {
-            return new LSL_Types.LSLFloat(value);
-        }
+        // private LSL_Types.LSLFloat ToLslFloat(double value)
+        // {
+        //     return new LSL_Types.LSLFloat(value);
+        // }
 
-        private Quaternion FromLslQuaternion(LSL_Types.Quaternion lslQuaternion)
-        {
-            return new Quaternion((float)lslQuaternion.x, (float)lslQuaternion.y, (float)lslQuaternion.z, (float)lslQuaternion.s);
-        }
+        // private Quaternion FromLslQuaternion(LSL_Types.Quaternion lslQuaternion)
+        // {
+        //     return new Quaternion((float)lslQuaternion.x, (float)lslQuaternion.y, (float)lslQuaternion.z, (float)lslQuaternion.s);
+        // }
 
         private LSL_Types.Quaternion ToLslQuaternion(Quaternion quaternion)
         {

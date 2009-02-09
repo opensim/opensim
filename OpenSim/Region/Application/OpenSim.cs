@@ -321,32 +321,32 @@ namespace OpenSim
 
         #region Console Commands
 
-        private void KickUserCommand(string module, string[] cmdparams)
-        {
-            if (cmdparams.Length < 4)
-                return;
+        // private void KickUserCommand(string module, string[] cmdparams)
+        // {
+        //     if (cmdparams.Length < 4)
+        //         return;
 
-            IList agents = m_sceneManager.GetCurrentSceneAvatars();
+        //     IList agents = m_sceneManager.GetCurrentSceneAvatars();
 
-            foreach (ScenePresence presence in agents)
-            {
-                RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
+        //     foreach (ScenePresence presence in agents)
+        //     {
+        //         RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
 
-                if (presence.Firstname.ToLower().Contains(cmdparams[2].ToLower()) && presence.Lastname.ToLower().Contains(cmdparams[3].ToLower()))
-                {
-                    m_console.Notice(
-                        String.Format(
-                             "Kicking user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
-                             presence.Firstname,
-                             presence.Lastname,
-                             presence.UUID,
-                             regionInfo.RegionName));
+        //         if (presence.Firstname.ToLower().Contains(cmdparams[2].ToLower()) && presence.Lastname.ToLower().Contains(cmdparams[3].ToLower()))
+        //         {
+        //             m_console.Notice(
+        //                 String.Format(
+        //                      "Kicking user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
+        //                      presence.Firstname,
+        //                      presence.Lastname,
+        //                      presence.UUID,
+        //                      regionInfo.RegionName));
 
-                    presence.Scene.IncomingCloseAgent(presence.UUID);
-                }
-            }
-            m_console.Notice("");
-        }
+        //             presence.Scene.IncomingCloseAgent(presence.UUID);
+        //         }
+        //     }
+        //     m_console.Notice("");
+        // }
 
         /// <summary>
         /// Run an optional startup list of commands
@@ -761,7 +761,7 @@ namespace OpenSim
         }
 
         // see BaseOpenSimServer
-        private void HandleShow(string mod, string[] cmd)
+        override public void HandleShow(string mod, string[] cmd)
         {
             List<string> args = new List<string>(cmd);
             args.RemoveAt(0);
