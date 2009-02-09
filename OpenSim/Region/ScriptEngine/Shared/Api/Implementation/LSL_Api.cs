@@ -2506,8 +2506,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llLookAt(LSL_Vector target, double strength, double damping)
         {
-        	// partial implementation, rotates objects correctly but does not apply strength or damping attributes
-        	
+            // partial implementation, rotates objects correctly but does not apply strength or damping attributes
+            
             m_host.AddScriptLPS(1);
             // Determine where we are looking from 
             LSL_Vector from = llGetPos(); 

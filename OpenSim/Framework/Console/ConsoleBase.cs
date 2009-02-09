@@ -822,7 +822,7 @@ namespace OpenSim.Framework.Console
                 cmdline.Remove(0, cmdline.Length);
             }
 
-            while(true)
+            while (true)
             {
                 Show();
 
