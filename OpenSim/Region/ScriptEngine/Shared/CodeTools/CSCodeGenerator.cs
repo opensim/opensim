@@ -145,6 +145,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             m_braceCount--;
             //retstr += GenerateLine("}");
 
+            // Removes all carriage return characters which may be generated in Windows platform. Is there
+            // cleaner way of doing this?
+            retstr=retstr.Replace("\r", "");
+
             return retstr;
         }
 
@@ -711,7 +715,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
             string retstr = String.Empty;
 
-            // we wrap all typecasted statements in parentheses 
+            // we wrap all typecasted statements in parentheses
             retstr += Generate(String.Format("({0}) (", te.TypecastType), te);
             retstr += GenerateNode((SYMBOL) te.kids.Pop());
             retstr += Generate(")");
@@ -972,12 +976,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// <summary>
         /// Returns the passed name with an underscore prepended if that name is a reserved word in C#
         /// and not resevered in LSL otherwise it just returns the passed name.
-        /// 
+        ///
         /// This makes no attempt to cache the results to minimise future lookups. For a non trivial
         /// scripts the number of unique identifiers could easily grow to the size of the reserved word
         /// list so maintaining a list or dictionary and doing the lookup there firstwould probably not
         /// give any real speed advantage.
-        /// 
+        ///
         /// I believe there is a class Microsoft.CSharp.CSharpCodeProvider that has a function
         /// CreateValidIdentifier(str) that will return either the value of str if it is not a C#
         /// key word or "_"+str if it is. But availability under Mono?
