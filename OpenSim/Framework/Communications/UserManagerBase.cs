@@ -85,7 +85,7 @@ namespace OpenSim.Framework.Communications
         /// </param>
         public void AddPlugin(string provider, string connect)
         {
-            _plugins.AddRange(DataPluginFactory.LoadUserDataPlugins(provider, connect));
+            _plugins.AddRange(DataPluginFactory.LoadDataPlugins<IUserDataPlugin>(provider, connect));
         }
 
         #region Get UserProfile

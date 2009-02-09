@@ -70,7 +70,7 @@ namespace OpenSim.Framework.Communications
         /// </param>
         public void AddPlugin(string provider, string connect)
         {
-            m_plugins.AddRange(DataPluginFactory.LoadInventoryDataPlugins(provider, connect));
+            m_plugins.AddRange(DataPluginFactory.LoadDataPlugins<IInventoryDataPlugin>(provider, connect));
         }
 
         #endregion

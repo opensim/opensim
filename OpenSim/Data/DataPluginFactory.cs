@@ -25,21 +25,80 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenSim.Framework;
 
 namespace OpenSim.Data
 {
     /// <summary>
-    /// A static class containing a series of methods for obtaining handles to
-    /// database storage objects.
+    /// A static class containing methods for obtaining handles to database
+    /// storage objects.
     /// </summary>
-    // Yeah, it's not really a factory, but maybe it'll morph into one?
     public static class DataPluginFactory
     {
         /// <summary>
-        /// Returns a list of new inventory data plugins. Plugins will be
-        /// requested in the order they were added.
+        /// Based on <typeparam name="T" />, returns the appropriate
+        /// PluginInitialiserBase instance in <paramref name="init" /> and
+        /// extension point path in <paramref name="path" />.
+        /// </summary>
+        /// <param name="connect">
+        /// The DB connection string used when creating a new
+        /// PluginInitialiserBase, returned in <paramref name="init" />.
+        /// </param>
+        /// <param name="init">
+        /// A reference to a PluginInitialiserBase object in which the proper
+        /// initialiser will be returned.
+        /// </param>
+        /// <param name="path">
+        /// A string in which the proper extension point path will be returned.
+        /// </param>
+        /// <typeparam name="T">
+        /// The type of data plugin requested.
+        /// </typeparam>
+        /// <exception cref="NotImplementedException">
+        /// Thrown if <typeparamref name="T" /> is not one of the expected data
+        /// interfaces.
+        /// </exception>
+        private static void PluginLoaderParamFactory<T>(string connect, out PluginInitialiserBase init, out string path) where T : IPlugin
+        {
+            Type type = typeof(T);
+
+            if (type == typeof(IInventoryDataPlugin))
+            {
+                init = new InventoryDataInitialiser(connect);
+                path = "/OpenSim/InventoryData";
+            }
+            else if (type == typeof(IUserDataPlugin))
+            {
+                init = new UserDataInitialiser(connect);
+                path = "/OpenSim/UserData";
+            }
+            else if (type == typeof(IGridDataPlugin))
+            {
+                init = new GridDataInitialiser(connect);
+                path = "/OpenSim/GridData";
+            }
+            else if (type == typeof(ILogDataPlugin))
+            {
+                init = new LogDataInitialiser(connect);
+                path = "/OpenSim/LogData";
+            }
+            else if (type == typeof(IAssetDataPlugin))
+            {
+                init = new AssetDataInitialiser(connect);
+                path = "/OpenSim/AssetData";
+            }
+            else
+            {
+                // We don't support this data plugin.
+                throw new NotImplementedException(String.Format("The type '{0}' is not a valid data plugin.", type));
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of new <typeparamref name="T" /> data plugins.
+        /// Plugins will be requested in the order they were added.
         /// </summary>
         /// <param name="provider">
         /// The filename of the inventory server plugin DLL.
@@ -47,95 +106,49 @@ namespace OpenSim.Data
         /// <param name="connect">
         /// The connection string for the storage backend.
         /// </param>
-        public static List<IInventoryDataPlugin> LoadInventoryDataPlugins(string provider, string connect)
+        /// <typeparam name="T">
+        /// The type of data plugin requested.
+        /// </typeparam>
+        /// <returns>
+        /// A list of all loaded plugins matching <typeparamref name="T" />.
+        /// </returns>
+        public static List<T> LoadDataPlugins<T>(string provider, string connect) where T : IPlugin
         {
-            PluginLoader<IInventoryDataPlugin> loader = new PluginLoader<IInventoryDataPlugin> (new InventoryDataInitialiser(connect));
+            PluginInitialiserBase pluginInitialiser;
+            string extensionPointPath;
+
+            PluginLoaderParamFactory<T>(connect, out pluginInitialiser, out extensionPointPath);
+
+            PluginLoader<T> loader = new PluginLoader<T>(pluginInitialiser);
 
             // loader will try to load all providers (MySQL, MSSQL, etc)
             // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add ("/OpenSim/InventoryData", new PluginProviderFilter(provider));
+            loader.Add(extensionPointPath, new PluginProviderFilter(provider));
             loader.Load();
 
             return loader.Plugins;
         }
 
         /// <summary>
-        /// Returns a list of new user data plugins. Plugins will be requested
-        /// in the order they were added.
+        /// Returns a new <typeparamref name="T" /> data plugin instance if
+        /// only one was loaded, otherwise returns null (<c>default(T)</c>).
         /// </summary>
         /// <param name="provider">
-        /// The filename of the user data plugin DLL.
+        /// The filename of the inventory server plugin DLL.
         /// </param>
         /// <param name="connect">
         /// The connection string for the storage backend.
         /// </param>
-        public static List<IUserDataPlugin> LoadUserDataPlugins(string provider, string connect)
+        /// <typeparam name="T">
+        /// The type of data plugin requested.
+        /// </typeparam>
+        /// <returns>
+        /// A list of all loaded plugins matching <typeparamref name="T" />.
+        /// </returns>
+        public static T LoadDataPlugin<T>(string provider, string connect) where T : IPlugin
         {
-            PluginLoader<IUserDataPlugin> loader = new PluginLoader<IUserDataPlugin>(new UserDataInitialiser(connect));
-
-            // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add("/OpenSim/UserData", new PluginProviderFilter(provider));
-            loader.Load();
-
-            return loader.Plugins;
+            List<T> plugins = LoadDataPlugins<T>(provider, connect);
+            return (plugins.Count == 1) ? plugins[0] : default(T);
         }
-
-        /// <summary>
-        /// Returns a list of new grid data plugins. Plugins will be requested
-        /// in the order they were added.
-        /// </summary>
-        /// <param name="provider">
-        /// The filename of the user data plugin DLL.
-        /// </param>
-        /// <param name="connect">
-        /// The connection string for the storage backend.
-        /// </param>
-        public static List<IGridDataPlugin> LoadGridDataPlugins(string provider, string connect)
-        {
-            PluginLoader<IGridDataPlugin> loader = new PluginLoader<IGridDataPlugin>(new GridDataInitialiser(connect));
-
-            // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add("/OpenSim/GridData", new PluginProviderFilter(provider));
-            loader.Load();
-
-            return loader.Plugins;
-        }
-
-        /// <summary>
-        /// Returns a list of new log data plugins. Plugins will be requested
-        /// in the order they were added.
-        /// </summary>
-        /// <param name="provider">
-        /// The filename of the user data plugin DLL.
-        /// </param>
-        /// <param name="connect">
-        /// The connection string for the storage backend.
-        /// </param>
-        public static List<ILogDataPlugin> LoadLogDataPlugins(string provider, string connect)
-        {
-            PluginLoader<ILogDataPlugin> loader = new PluginLoader<ILogDataPlugin>(new LogDataInitialiser(connect));
-
-            // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add("/OpenSim/LogData", new PluginProviderFilter(provider));
-            loader.Load();
-
-            return loader.Plugins;
-        }
-
-        public static IAssetDataPlugin LoadAssetDataPlugin(string provider, string connect)
-        {
-            PluginLoader<IAssetDataPlugin> loader = new PluginLoader<IAssetDataPlugin> (new AssetDataInitialiser (connect));
-
-            // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add ("/OpenSim/AssetData", new PluginProviderFilter (provider));
-            loader.Load();
-
-            return loader.Plugin;
-        }
-
     }
 }

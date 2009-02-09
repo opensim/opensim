@@ -118,7 +118,7 @@ namespace OpenSim.Grid.AssetServer
         {
             try
             {
-                m_assetProvider = DataPluginFactory.LoadAssetDataPlugin(config.DatabaseProvider, config.DatabaseConnect);
+                m_assetProvider = DataPluginFactory.LoadDataPlugin<IAssetDataPlugin>(config.DatabaseProvider, config.DatabaseConnect);
                 if (m_assetProvider == null)
                 {
                     m_log.Error("[ASSET]: Failed to load a database plugin, server halting");

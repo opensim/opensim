@@ -83,8 +83,8 @@ namespace OpenSim.Grid.GridServer
         /// </param>
         public void AddPlugin(string provider, string connect)
         {
-            _plugins = DataPluginFactory.LoadGridDataPlugins(provider, connect);
-            _logplugins = DataPluginFactory.LoadLogDataPlugins(provider, connect);
+            _plugins = DataPluginFactory.LoadDataPlugins<IGridDataPlugin>(provider, connect);
+            _logplugins = DataPluginFactory.LoadDataPlugins<ILogDataPlugin>(provider, connect);
         }
 
         /// <summary>
