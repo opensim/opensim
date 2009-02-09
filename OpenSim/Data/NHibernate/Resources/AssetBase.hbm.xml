@@ -4,11 +4,13 @@
         <id name="FullID" column="ID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id> 
-        <property name="Type" type="OpenSim.Data.NHibernate.SByteType, OpenSim.Data.NHibernate" />
-        <property name="Name" type="String" length="64" />
-        <property name="Description" type="String" length="64" />
-        <property name="Local" type="boolean" />
-        <property name="Temporary" type="boolean" />
         <property name="Data" type="binary" />
+        <component name="Metadata">
+            <property name="Type" type="OpenSim.Data.NHibernate.SByteType, OpenSim.Data.NHibernate" />
+            <property name="Name" type="String" length="64" />
+            <property name="Description" type="String" length="64" />
+            <property name="Local" type="boolean" />
+            <property name="Temporary" type="boolean" />
+        </component>
     </class>
 </hibernate-mapping>

@@ -61,6 +61,15 @@ namespace OpenSim.Framework
             get { return _metadata; }
             set { _metadata = value; }
         }
+
+        // We expose FullID here because the NHibernate mappers require a
+        // property on the AssetBase class for its primary key (see
+        // OpenSim/Data/NHibernate/Resources/AssetBase.hbm.xml).
+        public UUID FullID
+        {
+            get { return Metadata.FullID; }
+            set { Metadata.FullID = value; }
+        }
     }
 
     [Serializable]
