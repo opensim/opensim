@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Threading;
 using System.Xml;
 using System.Xml.Serialization;
 using OpenMetaverse;
@@ -84,7 +85,7 @@ namespace OpenSim.Region.Framework.Scenes
     /// A scene object group is conceptually an object in the scene.  The object is constituted of SceneObjectParts
     /// (often known as prims), one of which is considered the root part.
     /// </summary>
-    public partial class SceneObjectGroup : EntityBase
+    public partial class SceneObjectGroup : EntityBase, ISceneObject
     {
         // private PrimCountTaintedDelegate handlerPrimCountTainted = null;
 
@@ -3030,5 +3031,31 @@ namespace OpenSim.Region.Framework.Scenes
                     part.SetAttachmentPoint(point);
             }
         }
+
+        #region ISceneObject
+        
+        public virtual ISceneObject CloneForNewScene()
+        {
+            SceneObjectGroup sog = Copy(this.OwnerID, this.GroupID, false);
+            return sog;
+        }
+
+        public virtual string ExtraToXmlString()
+        {
+            return "<ExtraFromAssetID>" + GetFromAssetID().ToString() + "</ExtraFromAssetID>";
+        }
+
+        public virtual void ExtraFromXmlString(string xmlstr)
+        {
+            string id = xmlstr.Substring(xmlstr.IndexOf("<ExtraFromAssetID>"));
+            id = xmlstr.Replace("<ExtraFromAssetID>", "");
+            id = id.Replace("</ExtraFromAssetID>", "");
+
+            UUID uuid = UUID.Zero;
+            UUID.TryParse(id, out uuid);
+
+            SetFromAssetID(uuid);
+        }
+        #endregion 
     }
 }

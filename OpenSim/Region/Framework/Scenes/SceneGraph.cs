@@ -590,6 +590,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                             // Saves and gets assetID
                             UUID itemId;
+
                             if (group.GetFromAssetID() == UUID.Zero)
                             {
                                 m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId, out itemId);

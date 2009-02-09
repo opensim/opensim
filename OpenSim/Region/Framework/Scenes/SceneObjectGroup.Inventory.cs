@@ -309,6 +309,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string GetStateSnapshot()
         {
+            Console.WriteLine(" >>> GetStateSnapshot <<<");
+
             List<string> assemblies = new List<string>();
             Dictionary<UUID, string> states = new Dictionary<UUID, string>();
 
@@ -358,9 +360,16 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Byte[] data = new Byte[fi.Length];
 
-                FileStream fs = File.Open(assembly, FileMode.Open, FileAccess.Read);
-                fs.Read(data, 0, data.Length);
-                fs.Close();
+                try
+                {
+                    FileStream fs = File.Open(assembly, FileMode.Open, FileAccess.Read);
+                    fs.Read(data, 0, data.Length);
+                    fs.Close();
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[SOG]: Unable to open script assembly {0}, reason: {1}", assembly, e.Message);
+                }
 
                 XmlElement assemblyData = xmldoc.CreateElement("", "Assembly", "");
                 XmlAttribute assemblyName = xmldoc.CreateAttribute("", "Filename", "");
@@ -396,6 +405,74 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return xmldoc.InnerXml;
+        }
+
+        public void SetState(string objXMLData, UUID RegionID)
+        {
+
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(objXMLData);
+
+            XmlNodeList rootL = doc.GetElementsByTagName("ScriptData");
+            if (rootL.Count == 1)
+            {
+                XmlNode rootNode = rootL[0];
+                if (rootNode != null)
+                {
+                    XmlNodeList partL = rootNode.ChildNodes;
+
+                    foreach (XmlNode part in partL)
+                    {
+                        XmlNodeList nodeL = part.ChildNodes;
+
+                        switch (part.Name)
+                        {
+                            case "Assemblies":
+                                foreach (XmlNode asm in nodeL)
+                                {
+                                    string fn = asm.Attributes.GetNamedItem("Filename").Value;
+
+                                    Byte[] filedata = Convert.FromBase64String(asm.InnerText);
+                                    string path = Path.Combine("ScriptEngines", RegionID.ToString());
+                                    path = Path.Combine(path, fn);
+
+                                    if (!File.Exists(path))
+                                    {
+                                        FileStream fs = File.Create(path);
+                                        fs.Write(filedata, 0, filedata.Length);
+                                        fs.Close();
+                                    }
+                                }
+                                break;
+                            case "ScriptStates":
+                                foreach (XmlNode st in nodeL)
+                                {
+                                    string id = st.Attributes.GetNamedItem("UUID").Value;
+                                    UUID uuid = new UUID(id);
+                                    XmlNode state = st.ChildNodes[0];
+
+                                    XmlDocument sdoc = new XmlDocument();
+                                    XmlNode sxmlnode = sdoc.CreateNode(
+                                            XmlNodeType.XmlDeclaration,
+                                            "", "");
+                                    sdoc.AppendChild(sxmlnode);
+
+                                    XmlNode newnode = sdoc.ImportNode(state, true);
+                                    sdoc.AppendChild(newnode);
+
+                                    string spath = Path.Combine("ScriptEngines", RegionID.ToString());
+                                    spath = Path.Combine(spath, uuid.ToString());
+                                    FileStream sfs = File.Create(spath + ".state");
+                                    System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                                    Byte[] buf = enc.GetBytes(sdoc.InnerXml);
+                                    sfs.Write(buf, 0, buf.Length);
+                                    sfs.Close();
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
         }
     }
 }

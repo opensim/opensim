@@ -70,6 +70,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="id"></param>
         /// <returns></returns>
         bool SendCloseAgent(ulong regionHandle, UUID id);
+
+        bool SendCreateObject(ulong regionHandle, ISceneObject sog);
+
     }
 
     // This may not be needed, but having it here for now.

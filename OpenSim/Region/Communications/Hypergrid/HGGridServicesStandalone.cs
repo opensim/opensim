@@ -461,6 +461,16 @@ namespace OpenSim.Region.Communications.Hypergrid
                     regInfo = RequestNeighbourInfo(regionHandle);
                     if (regInfo != null)
                     {
+                        try
+                        {
+                            regionHandle = Convert.ToUInt64(regInfo.regionSecret);
+                        }
+                        catch (Exception)
+                        {
+                            m_log.Warn("[HGrid]: Invalid hyperlink region.");
+                            return false;
+                        }
+
                         //don't want to be creating a new link to the remote instance every time like we are here
                         bool retValue = false;
 
@@ -472,6 +482,7 @@ namespace OpenSim.Region.Communications.Hypergrid
 
                         if (remObject != null)
                         {
+                            m_log.Debug("[HGrid]: Inform region of prim crossing: " + regInfo.RemotingAddress + ":" + regInfo.RemotingPort);
                             retValue = remObject.InformRegionOfPrimCrossing(regionHandle, primID.Guid, objData, XMLMethod);
                         }
                         else
@@ -810,6 +821,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// <returns></returns>
         public bool IncomingPrim(ulong regionHandle, UUID primID, string objData, int XMLMethod)
         {
+            m_log.Debug("[HGrid]: Incoming Prim");
             m_localBackend.TriggerExpectPrim(regionHandle, primID, objData, XMLMethod);
 
             return true;

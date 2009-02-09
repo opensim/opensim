@@ -116,6 +116,10 @@ namespace OpenSim.Region.Environment.Modules.Communications.Local
 
         #region IInterregionComms
 
+        /**
+         * Agent-related communications 
+         */
+
         public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit)
         {            
             foreach (Scene s in m_sceneList)
@@ -204,6 +208,37 @@ namespace OpenSim.Region.Environment.Modules.Communications.Local
             return false;
         }
 
+        /**
+         * Object-related communications 
+         */
+
+        public bool SendCreateObject(ulong regionHandle, ISceneObject sog)
+        {
+            foreach (Scene s in m_sceneList)
+            {
+                if (s.RegionInfo.RegionHandle == regionHandle)
+                {
+                    //m_log.Debug("[LOCAL COMMS]: Found region to SendCreateObject");
+                    return s.IncomingCreateObject(sog);
+                }
+            }
+            return false;
+        }
+
         #endregion /* IInterregionComms */
+
+        #region Misc
+
+        public UUID GetRegionID(ulong regionhandle)
+        {
+            foreach (Scene s in m_sceneList)
+            {
+                if (s.RegionInfo.RegionHandle == regionhandle)
+                    return s.RegionInfo.RegionID;
+            }
+            // ? weird. should not happen
+            return m_sceneList[0].RegionInfo.RegionID;
+        }
+        #endregion
     }
 }
