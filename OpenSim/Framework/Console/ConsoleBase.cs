@@ -238,6 +238,12 @@ namespace OpenSim.Framework.Console
 
                 foreach (string opt in current.Keys)
                 {
+                    if (remaining > 0 && opt == s)
+                    {
+                        found.Clear();
+                        found.Add(opt);
+                        break;
+                    }
                     if (opt.StartsWith(s))
                     {
                         found.Add(opt);
@@ -301,6 +307,12 @@ namespace OpenSim.Framework.Console
 
                 foreach (string opt in current.Keys)
                 {
+                    if (opt == s)
+                    {
+                        found.Clear();
+                        found.Add(opt);
+                        break;
+                    }
                     if (opt.StartsWith(s))
                     {
                         found.Add(opt);
