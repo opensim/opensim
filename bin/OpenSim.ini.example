@@ -504,8 +504,8 @@ InterregionComms = "RESTComms"
     ; we can limit the number of regions that XmlRpcCreateRegion will
     ;allow by setting this to a positive, non-0 number: as long as the
     ;number of regions is below region_limits, XmlRpcCreateRegion will
-    ;succeed. setting region_limits to 0 disables the check.
-    ;region_limits = 0
+    ;succeed. setting region_limit to 0 disables the check.
+    ;region_limit = 0
 
     enabled_methods = all
     ; enable only those methods you deem to be appropriate using a | delimited whitelist
