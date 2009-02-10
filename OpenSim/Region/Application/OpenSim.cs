@@ -306,7 +306,10 @@ namespace OpenSim
             PrintFileToConsole("startuplogo.txt");
 
             // For now, start at the 'root' level by default
-            ChangeSelectedRegion("region", new string[] {"change", "region", "root"});
+            if (m_sceneManager.Scenes.Count == 1) // If there is only one region, select it
+                ChangeSelectedRegion("region", new string[] {"change", "region", m_sceneManager.Scenes[0].RegionInfo.RegionName});
+            else
+                ChangeSelectedRegion("region", new string[] {"change", "region", "root"});
         }
 
         public override void ShutdownSpecific()
