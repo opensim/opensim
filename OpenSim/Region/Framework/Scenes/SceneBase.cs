@@ -460,11 +460,24 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }        
 
-        public void AddCommand(string module, string command, string shorthelp, string longhelp, CommandDelegate callback)
+        public void AddCommand(object mod, string command, string shorthelp, string longhelp, CommandDelegate callback)
         {
             if (MainConsole.Instance == null)
                 return;
-            MainConsole.Instance.Commands.AddCommand(module, command, shorthelp, longhelp, callback);
+
+            string modulename = String.Empty;
+            bool shared = false;
+
+            if (mod != null)
+            {
+                if (!(mod is IRegionModule))
+                    throw new Exception("AddCommand module parameter must be IRegionModule");
+                IRegionModule module = (IRegionModule)mod;
+                modulename = module.Name;
+                shared = module.IsSharedModule;
+            }
+
+            MainConsole.Instance.Commands.AddCommand(modulename, shared, command, shorthelp, longhelp, callback);
         }
     }
 }

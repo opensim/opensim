@@ -80,7 +80,7 @@ namespace OpenSim.Grid.InventoryServer
 
             base.StartupSpecific();
 
-            m_console.Commands.AddCommand("inventoryserver", "add user",
+            m_console.Commands.AddCommand("inventoryserver", false, "add user",
                     "add user",
                     "Add a random user inventory", HandleAddUser);
         }

@@ -114,15 +114,17 @@ namespace OpenSim.Grid.GridServer
 
             base.StartupSpecific();
 
-            m_console.Commands.AddCommand("gridserver", "enable registration",
+            m_console.Commands.AddCommand("gridserver", false,
+                    "enable registration",
                     "enable registration",
                     "Enable new regions to register", HandleRegistration);
 
-            m_console.Commands.AddCommand("gridserver", "disable registration",
+            m_console.Commands.AddCommand("gridserver", false,
+                    "disable registration",
                     "disable registration",
                     "Disable registering new regions", HandleRegistration);
 
-            m_console.Commands.AddCommand("gridserver", "show status",
+            m_console.Commands.AddCommand("gridserver", false, "show status",
                     "show status",
                     "Show registration status", HandleShowStatus);
         }

@@ -49,6 +49,11 @@ namespace OpenSim.Framework.Console
             public string module;
             
             /// <value>
+            /// Whether the module is shared
+            /// </value>
+            public bool shared;
+            
+            /// <value>
             /// Very short BNF description
             /// </value>
             public string help_text;
@@ -66,7 +71,7 @@ namespace OpenSim.Framework.Console
             /// <value>
             /// The method to invoke for this command
             /// </value>
-            public CommandDelegate fn;
+            public List<CommandDelegate> fn;
         }
 
         /// <value>
@@ -172,10 +177,11 @@ namespace OpenSim.Framework.Console
         /// <param name="help"></param>
         /// <param name="longhelp"></param>
         /// <param name="fn"></param>
-        public void AddCommand(
-            string module, string command, string help, string longhelp, CommandDelegate fn)   
+        public void AddCommand(string module, bool shared, string command,
+                string help, string longhelp, CommandDelegate fn)   
         {
-            AddCommand(module, command, help, longhelp, String.Empty, fn);
+            AddCommand(module, shared, command, help, longhelp,
+                    String.Empty, fn);
         }
 
         /// <summary>
@@ -187,8 +193,9 @@ namespace OpenSim.Framework.Console
         /// <param name="longhelp"></param>
         /// <param name="descriptivehelp"></param>
         /// <param name="fn"></param>
-        public void AddCommand(
-            string module, string command, string help, string longhelp, string descriptivehelp, CommandDelegate fn)
+        public void AddCommand(string module, bool shared, string command,
+                string help, string longhelp, string descriptivehelp,
+                CommandDelegate fn)
         {
             string[] parts = Parser.Parse(command);
 
@@ -212,15 +219,25 @@ namespace OpenSim.Framework.Console
                 }
             }
 
+            CommandInfo info;
+
             if (current.ContainsKey(String.Empty))
+            {
+                info = (CommandInfo)current[String.Empty];
+                if (!info.shared && !info.fn.Contains(fn))
+                    info.fn.Add(fn);
+
                 return;
+            }
             
-            CommandInfo info = new CommandInfo();
+            info = new CommandInfo();
             info.module = module;
+            info.shared = shared;
             info.help_text = help;
             info.long_help = longhelp;
             info.descriptive_help = descriptivehelp;
-            info.fn = fn;
+            info.fn = new List<CommandDelegate>();
+            info.fn.Add(fn);
             current[String.Empty] = info;
         }
 
@@ -275,7 +292,7 @@ namespace OpenSim.Framework.Console
                     if (s == String.Empty)
                     {
                         CommandInfo ci = (CommandInfo)current[String.Empty];
-                        if (ci.fn != null)
+                        if (ci.fn.Count != null)
                             addcr = true;
                     }
                     else
@@ -337,9 +354,10 @@ namespace OpenSim.Framework.Console
             if (current.ContainsKey(String.Empty))
             {
                 CommandInfo ci = (CommandInfo)current[String.Empty];
-                if (ci.fn == null)
+                if (ci.fn.Count == null)
                     return new string[0];
-                ci.fn(ci.module, result);
+                foreach (CommandDelegate fn in ci.fn)
+                    fn(ci.module, result);
                 return result;
             }
             return new string[0];
@@ -409,9 +427,8 @@ namespace OpenSim.Framework.Console
         {
             DefaultPrompt = defaultPrompt;
 
-            Commands.AddCommand(
-                "console", "help", "help [<command>]", 
-                "Get general command list or more detailed help on a specific command", Help);
+            Commands.AddCommand("console", false, "help", "help [<command>]", 
+                    "Get general command list or more detailed help on a specific command", Help);
         }
 
         public void SetGuiMode(bool mode)

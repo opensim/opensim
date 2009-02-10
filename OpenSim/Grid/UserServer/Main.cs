@@ -122,32 +122,32 @@ namespace OpenSim.Grid.UserServer
             
             base.StartupSpecific();
 
-            m_console.Commands.AddCommand("userserver", "create user",
+            m_console.Commands.AddCommand("userserver", false, "create user",
                     "create user [<first> [<last> [<x> <y> [email]]]]",
                     "Create a new user account", RunCommand);
 
-            m_console.Commands.AddCommand("userserver", "reset user password",
+            m_console.Commands.AddCommand("userserver", false, "reset user password",
                     "reset user password [<first> [<last> [<new password>]]]",
                     "Reset a user's password", RunCommand);
 
-            m_console.Commands.AddCommand("userserver", "login level",
+            m_console.Commands.AddCommand("userserver", false, "login level",
                     "login level <level>",
                     "Set the minimum user level to log in", HandleLoginCommand);
 
-            m_console.Commands.AddCommand("userserver", "login reset",
+            m_console.Commands.AddCommand("userserver", false, "login reset",
                     "login reset",
                     "Reset the login level to allow all users",
                     HandleLoginCommand);
 
-            m_console.Commands.AddCommand("userserver", "login text",
+            m_console.Commands.AddCommand("userserver", false, "login text",
                     "login text <text>",
                     "Set the text users will see on login", HandleLoginCommand);
 
-            m_console.Commands.AddCommand("userserver", "test-inventory",
+            m_console.Commands.AddCommand("userserver", false, "test-inventory",
                     "test-inventory",
                     "Perform a test inventory transaction", RunCommand);
 
-            m_console.Commands.AddCommand("userserver", "logoff-user",
+            m_console.Commands.AddCommand("userserver", false, "logoff-user",
                     "logoff-user <first> <last> <message>",
                     "Log off a named user", RunCommand);
         }

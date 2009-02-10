@@ -104,35 +104,35 @@ namespace OpenSim.Framework.Servers
             {
                 SetConsoleLogLevel(new string[] { "ALL" });
 
-                m_console.Commands.AddCommand("base", "quit",
+                m_console.Commands.AddCommand("base", false, "quit",
                         "quit",
                         "Quit the application", HandleQuit);
 
-                m_console.Commands.AddCommand("base", "shutdown",
+                m_console.Commands.AddCommand("base", false, "shutdown",
                         "shutdown",
                         "Quit the application", HandleQuit);
 
-                m_console.Commands.AddCommand("base", "set log level",
+                m_console.Commands.AddCommand("base", false, "set log level",
                         "set log level <level>",
                         "Set the console logging level", HandleLogLevel);
 
-                m_console.Commands.AddCommand("base", "show info",
+                m_console.Commands.AddCommand("base", false, "show info",
                         "show info",
                         "Show general information", HandleShow);
 
-                m_console.Commands.AddCommand("base", "show stats",
+                m_console.Commands.AddCommand("base", false, "show stats",
                         "show stats",
                         "Show statistics", HandleShow);
 
-                m_console.Commands.AddCommand("base", "show threads",
+                m_console.Commands.AddCommand("base", false, "show threads",
                         "show threads",
                         "Show thread status", HandleShow);
 
-                m_console.Commands.AddCommand("base", "show uptime",
+                m_console.Commands.AddCommand("base", false, "show uptime",
                         "show uptime",
                         "Show server uptime", HandleShow);
 
-                m_console.Commands.AddCommand("base", "show version",
+                m_console.Commands.AddCommand("base", false, "show version",
                         "show version",
                         "Show server version", HandleShow);
             }

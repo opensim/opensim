@@ -127,11 +127,11 @@ namespace OpenSim.Grid.MessagingServer
 
             base.StartupSpecific();
 
-            m_console.Commands.AddCommand("messageserver", "clear cache",
+            m_console.Commands.AddCommand("messageserver", false, "clear cache",
                     "clear cache",
                     "Clear presence cache", HandleClearCache);
 
-            m_console.Commands.AddCommand("messageserver", "register",
+            m_console.Commands.AddCommand("messageserver", false, "register",
                     "register",
                     "Re-register with user server(s)", HandleRegister);
         }

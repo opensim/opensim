@@ -171,17 +171,17 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             
             m_scene.Permissions.AddCanTeleportHandler(CanTeleport); //NOT YET IMPLEMENTED
 
-            m_scene.AddCommand("permissions", "bypass permissions",
+            m_scene.AddCommand(this, "bypass permissions",
                     "bypass permissions <true / false>",
                     "Bypass permission checks",
                     HandleBypassPermissions);
 
-            m_scene.AddCommand("permissions", "force permissions",
+            m_scene.AddCommand(this, "force permissions",
                     "force permissions <true / false>",
                     "Force permissions on or off",
                     HandleForcePermissions);
 
-            m_scene.AddCommand("permissions", "debug permissions",
+            m_scene.AddCommand(this, "debug permissions",
                     "debug permissions <true / false>",
                     "Enable permissions debugging",
                     HandleDebugPermissions);

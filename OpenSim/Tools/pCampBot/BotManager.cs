@@ -79,16 +79,16 @@ namespace pCampBot
                 }
             }
 
-            m_console.Commands.AddCommand("bot", "shutdown",
+            m_console.Commands.AddCommand("bot", false, "shutdown",
                     "shutdown",
                     "Gracefully shut down bots", HandleShutdown);
 
-            m_console.Commands.AddCommand("bot", "quit",
+            m_console.Commands.AddCommand("bot", false, "quit",
                     "quit",
                     "Force quit (DANGEROUS, try shutdown first)",
                     HandleShutdown);
 
-            m_console.Commands.AddCommand("bot", "add bots",
+            m_console.Commands.AddCommand("bot", false, "add bots",
                     "add bots <number>",
                     "Add more bots", HandleAddBots);
 

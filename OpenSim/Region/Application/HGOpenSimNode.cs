@@ -78,8 +78,8 @@ namespace OpenSim
 
             base.StartupSpecific();
 
-            MainConsole.Instance.Commands.AddCommand("hypergrid", "link-mapping", "link-mapping [<x> <y>] <cr>", "Set local coordinate to map HG regions to", RunCommand);
-            MainConsole.Instance.Commands.AddCommand("hypergrid", "link-region", "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>", "Link a hypergrid region", RunCommand);
+            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>] <cr>", "Set local coordinate to map HG regions to", RunCommand);
+            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region", "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>", "Link a hypergrid region", RunCommand);
         }
 
         protected override void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
