@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         settings.Elevation1NE = double.Parse(xtr.ReadElementContentAsString());
                         break;
                     case "ElevationHighSW":
-                        settings.Elevation1SW = double.Parse(xtr.ReadElementContentAsString());
+                        settings.Elevation2SW = double.Parse(xtr.ReadElementContentAsString());
                         break;
                     case "ElevationHighNW":
                         settings.Elevation2NW = double.Parse(xtr.ReadElementContentAsString());
