@@ -28,8 +28,6 @@
 using OpenMetaverse;
 using Nwc.XmlRpc;
 
-// using OpenSim.Region.Environment.Modules.Scripting.XMLRPC;
-
 namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IXmlRpcRequestInfo

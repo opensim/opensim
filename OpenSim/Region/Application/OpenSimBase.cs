@@ -44,7 +44,7 @@ using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
-using OpenSim.Region.Environment;
+using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;

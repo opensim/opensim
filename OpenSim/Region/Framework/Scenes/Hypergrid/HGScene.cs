@@ -34,7 +34,6 @@ using OpenMetaverse;
 using OpenSim.Framework;
 
 using OpenSim.Framework.Communications.Cache;
-// using OpenSim.Region.Environment;
 using OpenSim.Region.Framework.Scenes;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 

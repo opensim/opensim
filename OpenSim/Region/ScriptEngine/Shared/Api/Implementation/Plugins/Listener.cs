@@ -28,7 +28,7 @@
 using System;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Environment.Modules.Scripting.WorldComm;
+using OpenSim.Region.CoreModules.Scripting.WorldComm;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;

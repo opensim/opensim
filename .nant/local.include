@@ -40,7 +40,6 @@
           <include name="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
-          <include name="./bin/OpenSim.Region.Environment.Tests.dll" />
           <include name="./bin/OpenSim.Region.CoreModules.Tests.dll" />
           <include name="./bin/OpenSim.Region.Framework.Tests.dll" />
           <include name="./bin/OpenSim.Data.SQLite.Tests.dll" />
@@ -110,13 +109,13 @@
     
     <exec program="mono">
       <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.Environment.cov,+[OpenSim.Region.Environment]" />
+      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.CoreModules.cov,+[OpenSim.Region.CoreModules]" />
       <arg value="/usr/lib/nunit/nunit-console.exe" />
-      <arg value="./bin/OpenSim.Region.Environment.Tests.dll" />
+      <arg value="./bin/OpenSim.Region.CoreModules.Tests.dll" />
     </exec>
-    <delete dir="./cov/OpenSim.Region.Environment" />
+    <delete dir="./cov/OpenSim.Region.CoreModules" />
     <exec program="monocov">
-      <arg value="--export-html=./cov/OpenSim.Region.Environment ./cov/OpenSim.Region.Environment.cov" />
+      <arg value="--export-html=./cov/OpenSim.Region.CoreModules ./cov/OpenSim.Region.CoreModules.cov" />
     </exec>    
 
     <exec program="mono">
@@ -170,7 +169,6 @@
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
           <include name="./bin/OpenSim.Region.CoreModules.Tests.dll" />
-          <include name="./bin/OpenSim.Region.Environment.Tests.dll" />
           <include name="./bin/OpenSim.Region.Framework.Tests.dll" />
           <include name="./bin/OpenSim.Data.SQLite.Tests.dll" />
           <include name="./bin/OpenSim.Data.MySQL.Tests.dll" />

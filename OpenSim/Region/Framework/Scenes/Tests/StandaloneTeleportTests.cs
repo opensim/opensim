@@ -32,7 +32,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Environment.Modules.Communications.REST;
+using OpenSim.Region.CoreModules.Communications.REST;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
 

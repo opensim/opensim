@@ -27,7 +27,7 @@
 
 using System;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Environment.Modules.Scripting.HttpRequest;
+using OpenSim.Region.CoreModules.Scripting.HttpRequest;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api;

@@ -39,7 +39,6 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Region.Framework.Scenes;
-// using OpenSim.Region.Environment;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes.Hypergrid

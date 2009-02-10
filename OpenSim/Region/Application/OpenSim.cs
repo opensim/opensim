@@ -41,8 +41,8 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver;
-using Timer=System.Timers.Timer;
+using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
+using Timer = System.Timers.Timer;
 
 namespace OpenSim
 {

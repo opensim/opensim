@@ -798,7 +798,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>
         /// Starts up the timers to check the client and resend unacked packets
-        /// Adds the client to the OpenSim.Region.Environment.Scenes.Scene
+        /// Adds the client to the OpenSim.Region.Framework.Scenes.Scene
         /// </summary>
         protected virtual void InitNewClient()
         {

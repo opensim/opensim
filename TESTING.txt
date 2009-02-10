@@ -60,7 +60,7 @@ have tests in them:
 OpenSim.Region.ScriptEngine.Common.Tests.dll
 OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll
 OpenSim.Region.ScriptEngine.Shared.Tests.dll
-OpenSim.Framework.Tests.dll OpenSim.Region.Environment.dll
+OpenSim.Framework.Tests.dll OpenSim.Region.CoreModules.dll
 OpenSim.Region.Physics.OdePlugin.dll[2]
 
 The console command used to run the tests is `nunit-console` (or

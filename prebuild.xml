@@ -888,7 +888,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Region.Environment" path="OpenSim/Region/Environment" type="Library">
+    <Project name="OpenSim.Region.CoreModules" path="OpenSim/Region/CoreModules" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -930,10 +930,83 @@
       <Files>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests" />
+	  <Exclude name="TerrainDefaultEffects" pattern="World/Terrain/DefaultEffects" />
         </Match>
       </Files>
     </Project>
 
+    <Project name="OpenSim.Region.CoreModules.World.Terrain.DefaultEffects" path="OpenSim/Region/CoreModules/World/Terrain/DefaultEffects" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../../bin/Terrain/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../../bin/Terrain/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+
+    <Project name="OpenSim.Region.OptionalModules" path="OpenSim/Region/OptionalModules" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Drawing"/>
+      <Reference name="System.Runtime.Remoting"/>
+      <Reference name="System.Web"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="IronPython.dll"/>
+      <Reference name="IronMath.dll"/>
+      <Reference name="PumaCode.SvnDotNet.dll" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Data" />
+      <Reference name="OpenSim.Region.Framework" />
+      <Reference name="OpenSim.Region.CoreModules" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Grid.AssetServer"/>
+
+      <!-- For scripting in funny languages by default -->
+      <Reference name="Microsoft.JScript"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+      <Reference name="DotNetOpenMail.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
+      </Files>
+    </Project>
 
     <Project name="OpenSim.Region.Communications.Hypergrid" path="OpenSim/Region/Communications/Hypergrid" type="Library">
       <Configuration name="Debug">
@@ -994,6 +1067,7 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
@@ -1069,83 +1143,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Region.Modules.Python" path="OpenSim/Region/Modules/Python" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="IronPython.dll"/>
-      <Reference name="IronMath.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="Nini.dll" />
-      <Reference name="log4net.dll"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Region.Modules.Terrain.Extensions.DefaultEffects" path="OpenSim/Region/Modules/Terrain/Extensions/DefaultEffects" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../../../bin/Terrain/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../../../bin/Terrain/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Region.Modules.SvnSerialiser" path="OpenSim/Region/Modules/SvnSerialiser" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="Nini.dll" />
-      <Reference name="PumaCode.SvnDotNet.dll" />
-      <Reference name="log4net.dll"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <!-- OpenSim app -->
     <Project name="OpenSim" path="OpenSim/Region/Application" type="Exe">
       <Configuration name="Debug">
@@ -1173,7 +1170,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Communications.OGS1"/>
@@ -1209,7 +1206,6 @@
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.CoreModules"/>
-      <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -1246,7 +1242,7 @@
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Servers"/>
@@ -1283,7 +1279,7 @@
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Servers"/>
@@ -1318,7 +1314,7 @@
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.ClientStack"/>
-      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Servers"/>
@@ -1357,7 +1353,7 @@
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.ClientStack"/>
-      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Servers"/>
@@ -1396,7 +1392,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="Nini.dll" />
@@ -1623,7 +1619,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Framework" />
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
@@ -1660,7 +1656,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Framework" />
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="Nini.dll" />
@@ -1694,7 +1690,7 @@
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="Nini.dll" />
@@ -1730,7 +1726,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Framework" />
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
@@ -1764,7 +1760,7 @@
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.YieldProlog"/>
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
@@ -1800,7 +1796,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Framework" />
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.CodeTools"/>
@@ -1840,7 +1836,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Framework" />
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.CodeTools"/>
@@ -1880,7 +1876,7 @@
       <Reference name="RAIL.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api"/>
@@ -1940,7 +1936,7 @@
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
@@ -1978,7 +1974,7 @@
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
@@ -2019,7 +2015,7 @@
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
@@ -2058,7 +2054,7 @@
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
@@ -2098,7 +2094,7 @@
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
@@ -2139,7 +2135,7 @@
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
@@ -2180,7 +2176,7 @@
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
@@ -2220,7 +2216,7 @@
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
@@ -2266,7 +2262,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Region.Framework" />
-      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
@@ -2374,7 +2370,6 @@
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
-      <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
 
       <Files>
@@ -2404,7 +2399,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="log4net.dll"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="nunit.framework.dll" />
@@ -2636,7 +2631,6 @@
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
 
       <!-- Unit tests -->
@@ -2665,7 +2659,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Region.Environment.Tests" path="OpenSim/Region/Environment" type="Library">
+    <Project name="OpenSim.Region.CoreModules.Tests" path="OpenSim/Region/CoreModules" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -2692,7 +2686,7 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
 
       <!-- Unit tests -->
@@ -2717,8 +2711,8 @@
       -->
       <Files>
         <!-- SADLY the way this works means you need to keep adding these paths -->
-        <Match path="Modules/World/Terrain/Tests" pattern="*.cs" recurse="true" />
-        <Match path="Modules/World/Archiver/Tests" pattern="*.cs" recurse="true" />
+        <Match path="World/Terrain/Tests" pattern="*.cs" recurse="true" />
+        <Match path="World/Archiver/Tests" pattern="*.cs" recurse="true" />
       </Files>
     </Project>
 
@@ -2749,7 +2743,7 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
 
       <!-- Unit tests -->

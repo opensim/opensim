@@ -28,7 +28,6 @@
 using System;
 using OpenMetaverse;
 using OpenSim.Framework;
-// using OpenSim.Region.Environment.Modules.Scripting.WorldComm;
 
 namespace OpenSim.Region.Framework.Interfaces
 {

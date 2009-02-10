@@ -33,7 +33,7 @@ using log4net;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Environment.Modules.World.Land;
+using OpenSim.Region.CoreModules.World.Land;
 using OpenSim.Framework;
 using OpenMetaverse;
 

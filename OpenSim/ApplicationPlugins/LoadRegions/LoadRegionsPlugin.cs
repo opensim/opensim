@@ -34,10 +34,10 @@ using OpenSim.Framework;
 using OpenSim.Framework.RegionLoader.Filesystem;
 using OpenSim.Framework.RegionLoader.Web;
 
-using OpenSim.Region.Environment.Modules.Scripting.DynamicTexture;
-using OpenSim.Region.Environment.Modules.Avatar.InstantMessage;
-using OpenSim.Region.Environment.Modules.Scripting.LoadImageURL;
-using OpenSim.Region.Environment.Modules.Scripting.XMLRPC;
+using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
+using OpenSim.Region.CoreModules.Avatar.InstantMessage;
+using OpenSim.Region.CoreModules.Scripting.LoadImageURL;
+using OpenSim.Region.CoreModules.Scripting.XMLRPC;
 using OpenSim.Region.CoreModules.Agent.AssetTransaction;
 
 namespace OpenSim.ApplicationPlugins.LoadRegions

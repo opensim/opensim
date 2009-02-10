@@ -37,11 +37,11 @@ using OpenMetaverse.Packets;
 using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.Environment;
+using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
-using OpenSim.Region.Environment.Modules.World.Land;
-using OpenSim.Region.Environment.Modules.World.Terrain;
+using OpenSim.Region.CoreModules.Avatar.Currency.SampleMoney;
+using OpenSim.Region.CoreModules.World.Land;
+using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -4168,7 +4168,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_Vector SunDoubleVector3;
             Vector3 SunFloatVector3;
 
-            // sunPosition estate setting is set in OpenSim.Region.Environment.Modules.SunModule
+            // sunPosition estate setting is set in OpenSim.Region.CoreModules.SunModule
             // have to convert from Vector3 (float) to LSL_Vector (double)
             SunFloatVector3 = World.RegionInfo.RegionSettings.SunVector;
             SunDoubleVector3.x = (double)SunFloatVector3.X;

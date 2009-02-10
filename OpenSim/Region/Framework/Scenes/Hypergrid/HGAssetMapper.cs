@@ -40,7 +40,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
-// using OpenSim.Region.Environment;
 using OpenSim.Region.Framework.Scenes;
 
 //using HyperGrid.Framework;

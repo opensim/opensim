@@ -41,7 +41,7 @@ using log4net;
 using Nini.Config;
 using Amib.Threading;
 using OpenSim.Framework;
-using OpenSim.Region.Environment;
+using OpenSim.Region.CoreModules.Framework.EventQueue;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;

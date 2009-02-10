@@ -33,7 +33,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment;
+using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.ScriptEngine.Shared

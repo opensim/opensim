@@ -37,7 +37,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
 
-namespace OpenSim.Region.Environment.Scenes.Tests
+namespace OpenSim.Region.CoreModules.Scenes.Tests
 {
     /// <summary>
     /// Linking tests

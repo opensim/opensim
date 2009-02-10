@@ -43,7 +43,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.Hypergrid;
-using OpenSim.Region.Environment;
+using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
