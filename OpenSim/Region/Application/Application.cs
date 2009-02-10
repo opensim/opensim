@@ -111,9 +111,15 @@ namespace OpenSim
 
                 while (true)
                 {
-                    MainConsole.Instance.Prompt();
+                    try
+                    {
+                        MainConsole.Instance.Prompt();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Caught exception from command: {0}", e);
+                    }
                 }
-
             }
         }
 
