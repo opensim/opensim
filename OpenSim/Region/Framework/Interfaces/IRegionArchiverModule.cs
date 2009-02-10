@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void ArchiveRegion(Stream saveStream);
 
         /// <summary>
-        /// Dearchive the given region archive into the scene
+        /// Dearchive the given region archive.  This replaces the existing scene.
         /// </summary>
         /// 
         /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
@@ -64,12 +64,38 @@ namespace OpenSim.Region.Framework.Interfaces
         void DearchiveRegion(string loadPath);
         
         /// <summary>
-        /// Dearchive a region from a stream.  
+        /// Dearchive the given region archive.  This replaces the existing scene.
+        /// </summary>
+        /// 
+        /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
+        /// 
+        /// <param name="loadPath"></param>
+        /// <param name="merge">
+        /// If true, the loaded region merges with the existing one rather than replacing it.  Any terrain or region
+        /// settings in the archive will be ignored.
+        /// </param>
+        void DearchiveRegion(string loadPath, bool merge);        
+        
+        /// <summary>
+        /// Dearchive a region from a stream.  This replaces the existing scene. 
         /// </summary>
         /// 
         /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
         /// 
         /// <param name="loadStream"></param>
         void DearchiveRegion(Stream loadStream);
+        
+        /// <summary>
+        /// Dearchive a region from a stream.  This replaces the existing scene.
+        /// </summary>
+        /// 
+        /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
+        /// 
+        /// <param name="loadStream"></param>
+        /// <param name="merge">
+        /// If true, the loaded region merges with the existing one rather than replacing it.  Any terrain or region
+        /// settings in the archive will be ignored.
+        /// </param>        
+        void DearchiveRegion(Stream loadStream, bool merge);        
     }
 }

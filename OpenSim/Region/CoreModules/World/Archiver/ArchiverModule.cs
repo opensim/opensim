@@ -81,15 +81,25 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void DearchiveRegion(string loadPath)
         {
+            DearchiveRegion(loadPath, false);
+        }
+        
+        public void DearchiveRegion(string loadPath, bool merge)
+        {
             m_log.InfoFormat(
                 "[ARCHIVER]: Loading archive to region {0} from {1}", m_scene.RegionInfo.RegionName, loadPath);
             
-            new ArchiveReadRequest(m_scene, loadPath).DearchiveRegion();
-        }
+            new ArchiveReadRequest(m_scene, loadPath, merge).DearchiveRegion();
+        }        
         
         public void DearchiveRegion(Stream loadStream)
         {
-            new ArchiveReadRequest(m_scene, loadStream).DearchiveRegion();
+            DearchiveRegion(loadStream, false);
         }
+        
+        public void DearchiveRegion(Stream loadStream, bool merge)
+        {
+            new ArchiveReadRequest(m_scene, loadStream, merge).DearchiveRegion();
+        }        
     }
 }

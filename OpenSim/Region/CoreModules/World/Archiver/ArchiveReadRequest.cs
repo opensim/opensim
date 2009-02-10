@@ -51,26 +51,33 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         private static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
 
-        private Scene m_scene;
+        private Scene m_scene;                        
         private Stream m_loadStream;
         private string m_errorMessage;
+        
+        /// <value>
+        /// Should the archive being loaded be merged with what is already on the region?
+        /// </value>
+        private bool m_merge;        
 
         /// <summary>
         /// Used to cache lookups for valid uuids.
         /// </summary>
         private IDictionary<UUID, bool> m_validUserUuids = new Dictionary<UUID, bool>();
 
-        public ArchiveReadRequest(Scene scene, string loadPath)
+        public ArchiveReadRequest(Scene scene, string loadPath, bool merge)
         {
             m_scene = scene;
             m_loadStream = new GZipStream(GetStream(loadPath), CompressionMode.Decompress);
             m_errorMessage = String.Empty;
+            m_merge = merge;
         }
 
-        public ArchiveReadRequest(Scene scene, Stream loadStream)
+        public ArchiveReadRequest(Scene scene, Stream loadStream, bool merge)
         {
             m_scene = scene;
             m_loadStream = loadStream;
+            m_merge = merge;
         }
 
         /// <summary>
@@ -92,8 +99,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 TarArchiveReader archive = new TarArchiveReader(m_loadStream);
 
-                //AssetsDearchiver dearchiver = new AssetsDearchiver(m_scene.AssetCache);
-
                 string filePath = "ERROR";
 
                 byte[] data;
@@ -103,6 +108,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     //m_log.DebugFormat(
                     //    "[ARCHIVER]: Successfully read {0} ({1} bytes)}", filePath, data.Length);
+                    
                     if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType)
                     {
                         m_log.WarnFormat("[ARCHIVER]: Ignoring directory entry {0}",
@@ -112,11 +118,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     {
                         serialisedSceneObjects.Add(m_asciiEncoding.GetString(data));
                     }
-//                else if (filePath.Equals(ArchiveConstants.ASSETS_METADATA_PATH))
-//                {
-//                    string xml = m_asciiEncoding.GetString(data);
-//                    dearchiver.AddAssetMetadata(xml);
-//                }
                     else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                     {
                         if (LoadAsset(filePath, data))
@@ -124,11 +125,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         else
                             failedAssetRestores++;
                     }
-                    else if (filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
+                    else if (!m_merge && filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
                     {
                         LoadTerrain(filePath, data);
                     }
-                    else if (filePath.StartsWith(ArchiveConstants.SETTINGS_PATH))
+                    else if (!m_merge && filePath.StartsWith(ArchiveConstants.SETTINGS_PATH))
                     {
                         LoadRegionSettings(filePath, data);
                     }
@@ -155,8 +156,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_errorMessage += String.Format("Failed to load {0} assets", failedAssetRestores);
             }
 
-            m_log.Info("[ARCHIVER]: Clearing all existing scene objects");
-            m_scene.DeleteAllSceneObjects();
+            if (!m_merge)
+            {
+                m_log.Info("[ARCHIVER]: Clearing all existing scene objects");
+                m_scene.DeleteAllSceneObjects();
+            }
 
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
@@ -182,13 +186,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {
-                    if (!resolveUserUuid(part.CreatorID))
+                    if (!ResolveUserUuid(part.CreatorID))
                         part.CreatorID = masterAvatarId;
 
-                    if (!resolveUserUuid(part.OwnerID))
+                    if (!ResolveUserUuid(part.OwnerID))
                         part.OwnerID = masterAvatarId;
 
-                    if (!resolveUserUuid(part.LastOwnerID))
+                    if (!ResolveUserUuid(part.LastOwnerID))
                         part.LastOwnerID = masterAvatarId;
 
                     // And zap any troublesome sit target information
@@ -201,11 +205,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     TaskInventoryDictionary inv = part.TaskInventory;
                     foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
                     {
-                        if (!resolveUserUuid(kvp.Value.OwnerID))
+                        if (!ResolveUserUuid(kvp.Value.OwnerID))
                         {
                             kvp.Value.OwnerID = masterAvatarId;
                         }
-                        if (!resolveUserUuid(kvp.Value.CreatorID))
+                        if (!ResolveUserUuid(kvp.Value.CreatorID))
                         {
                             kvp.Value.CreatorID = masterAvatarId;
                         }
@@ -242,7 +246,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns></returns>
-        private bool resolveUserUuid(UUID uuid)
+        private bool ResolveUserUuid(UUID uuid)
         {
             if (!m_validUserUuids.ContainsKey(uuid))
             {

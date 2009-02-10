@@ -167,14 +167,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestLoadOarV0p2()
         {
-            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
             
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter();
             
             tar.AddFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestExecution.Create0p2ControlFile());
             
-            UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000020");
             string part1Name = "object1";
             PrimitiveBaseShape shape = PrimitiveBaseShape.CreateCylinder();
             Vector3 groupPosition = new Vector3(90, 80, 70);
@@ -215,6 +214,85 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 object1PartLoaded.RotationOffset, Is.EqualTo(rotationOffset), "object1 rotation offset not equal");
             Assert.That(
                 object1PartLoaded.OffsetPosition, Is.EqualTo(offsetPosition), "object1 offset position not equal");
+        }
+        
+        /// <summary>
+        /// Test merging a V0.2 OpenSim Region Archive into an existing scene
+        /// </summary>        
+        [Test]
+        public void TestMergeOarV0p2()
+        {
+            log4net.Config.XmlConfigurator.Configure();
+            
+            MemoryStream archiveWriteStream = new MemoryStream();
+
+            string part2Name = "objectMerge";
+            PrimitiveBaseShape part2Shape = PrimitiveBaseShape.CreateCylinder();
+            Vector3 part2GroupPosition = new Vector3(90, 80, 70);
+            Quaternion part2RotationOffset = new Quaternion(60, 70, 80, 90);
+            Vector3 part2OffsetPosition = new Vector3(20, 25, 30);            
+            
+            // Create an oar file that we can use for the merge
+            {
+                ArchiverModule archiverModule = new ArchiverModule();
+                SerialiserModule serialiserModule = new SerialiserModule();
+                TerrainModule terrainModule = new TerrainModule();
+                
+                Scene scene = SceneSetupHelpers.SetupScene();
+                SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
+                                            
+                SceneObjectPart part2
+                    = new SceneObjectPart(
+                        UUID.Zero, part2Shape, part2GroupPosition, part2RotationOffset, part2OffsetPosition);
+                part2.Name = part2Name;
+                SceneObjectGroup object2 = new SceneObjectGroup(part2);
+                
+                scene.AddNewSceneObject(object2, false);
+     
+                // Write out this scene
+                scene.EventManager.OnOarFileSaved += SaveCompleted;
+                archiverModule.ArchiveRegion(archiveWriteStream);            
+                m_waitHandle.WaitOne(60000, true);
+            }
+            
+            {
+                ArchiverModule archiverModule = new ArchiverModule();
+                SerialiserModule serialiserModule = new SerialiserModule();
+                TerrainModule terrainModule = new TerrainModule();
+                
+                Scene scene = SceneSetupHelpers.SetupScene();
+                SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
+                
+                string part1Name = "objectExisting";
+                PrimitiveBaseShape part1Shape = PrimitiveBaseShape.CreateCylinder();
+                Vector3 part1GroupPosition = new Vector3(80, 70, 60);
+                Quaternion part1RotationOffset = new Quaternion(50, 60, 70, 80);
+                Vector3 part1OffsetPosition = new Vector3(15, 20, 25);
+                            
+                SceneObjectPart part1
+                    = new SceneObjectPart(
+                        UUID.Zero, part1Shape, part1GroupPosition, part1RotationOffset, part1OffsetPosition);
+                part1.Name = part1Name;
+                SceneObjectGroup object1 = new SceneObjectGroup(part1);            
+                
+                scene.AddNewSceneObject(object1, false);
+                
+                // Merge in the archive we created earlier
+                byte[] archive = archiveWriteStream.ToArray();           
+                MemoryStream archiveReadStream = new MemoryStream(archive);            
+                
+                archiverModule.DearchiveRegion(archiveReadStream, true);
+                
+                SceneObjectPart object1Existing = scene.GetSceneObjectPart(part1Name);            
+                Assert.That(object1Existing, Is.Not.Null, "object1 was not present after merge");
+                Assert.That(object1Existing.Name, Is.EqualTo(part1Name), "object1 names not identical after merge"); 
+                Assert.That(object1Existing.GroupPosition, Is.EqualTo(part1GroupPosition), "object1 group position not equal after merge");
+                
+                SceneObjectPart object2PartMerged = scene.GetSceneObjectPart(part2Name);
+                Assert.That(object2PartMerged, Is.Not.Null, "object2 was not present after merge");
+                Assert.That(object2PartMerged.Name, Is.EqualTo(part2Name), "object2 names not identical after merge"); 
+                Assert.That(object2PartMerged.GroupPosition, Is.EqualTo(part2GroupPosition), "object2 group position not equal after merge");
+            }
         }
     }
 }
