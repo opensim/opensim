@@ -361,8 +361,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llAbs(int i)
         {
+        	// changed to replicate LSL behaviour whereby minimum int value is returned untouched.
             m_host.AddScriptLPS(1);
-            return (int)Math.Abs(i);
+            if(i == Int32.MinValue)
+                return i;	
+            else
+            	return (int)Math.Abs(i);
         }
 
         public LSL_Float llFabs(double f)
