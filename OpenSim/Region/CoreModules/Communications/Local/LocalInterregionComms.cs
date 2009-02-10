@@ -219,7 +219,8 @@ namespace OpenSim.Region.CoreModules.Communications.Local
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
                     //m_log.Debug("[LOCAL COMMS]: Found region to SendCreateObject");
-                    return s.IncomingCreateObject(sog);
+                    ISceneObject sogClone = sog.CloneForNewScene();
+                    return s.IncomingCreateObject(sogClone);
                 }
             }
             return false;

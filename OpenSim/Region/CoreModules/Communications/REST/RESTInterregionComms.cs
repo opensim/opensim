@@ -223,8 +223,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         public bool SendCreateObject(ulong regionHandle, ISceneObject sog)
         {
             // Try local first
-            ISceneObject sogClone = sog.CloneForNewScene();
-            if (m_localBackend.SendCreateObject(regionHandle, sogClone))
+            if (m_localBackend.SendCreateObject(regionHandle, sog))
             {
                 //m_log.Debug("[REST COMMS]: LocalBackEnd SendCreateObject succeeded");
                 return true;

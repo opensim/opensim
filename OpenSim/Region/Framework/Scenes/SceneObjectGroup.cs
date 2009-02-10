@@ -1717,6 +1717,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_rootPart == null)
                 return;
 
+            if ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0)
+                return;
+
             lock (m_parts)
             {
                 bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
@@ -3036,6 +3039,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual ISceneObject CloneForNewScene()
         {
             SceneObjectGroup sog = Copy(this.OwnerID, this.GroupID, false);
+            sog.m_isDeleted = false;
             return sog;
         }
 

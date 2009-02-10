@@ -309,7 +309,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string GetStateSnapshot()
         {
-            Console.WriteLine(" >>> GetStateSnapshot <<<");
+            //Console.WriteLine(" >>> GetStateSnapshot <<<");
 
             List<string> assemblies = new List<string>();
             Dictionary<UUID, string> states = new Dictionary<UUID, string>();
