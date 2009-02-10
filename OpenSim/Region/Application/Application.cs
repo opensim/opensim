@@ -84,13 +84,13 @@ namespace OpenSim
             configSource.AddSwitch("Startup", "physics");
             configSource.AddSwitch("Startup", "useexecutepath");
             configSource.AddSwitch("Startup", "hypergrid");
+            configSource.AddSwitch("Startup", "gui");
 
             configSource.AddConfig("StandAlone");
             configSource.AddConfig("Network");
 
             bool background = configSource.Configs["Startup"].GetBoolean("background", false);
             bool hgrid = configSource.Configs["Startup"].GetBoolean("hypergrid", false);
-
             m_saveCrashDumps = configSource.Configs["Startup"].GetBoolean("save_crashes", false);
             m_crashDir = configSource.Configs["Startup"].GetString("crash_dir", m_crashDir);
 

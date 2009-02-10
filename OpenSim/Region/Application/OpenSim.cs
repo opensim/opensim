@@ -58,6 +58,7 @@ namespace OpenSim
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
+        private bool m_gui = false;
 
         public OpenSim(IConfigSource configSource) : base(configSource)
         {
@@ -73,6 +74,8 @@ namespace OpenSim
             {
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", String.Empty);
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", String.Empty);
+
+                m_gui = startupConfig.GetBoolean("gui", false);
 
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
             }
@@ -93,6 +96,7 @@ namespace OpenSim
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Latency Mode: {0}", GCSettings.LatencyMode.ToString());
 
             m_console = new ConsoleBase("Region");
+            m_console.SetGuiMode(m_gui);
             MainConsole.Instance = m_console;
 
             m_console.Commands.AddCommand("region", "clear assets",

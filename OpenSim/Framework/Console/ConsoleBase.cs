@@ -379,6 +379,7 @@ namespace OpenSim.Framework.Console
         public Commands Commands = new Commands();
         private bool echo = true;
         private List<string> history = new List<string>();
+        private bool gui = false;
 
         public object ConsoleScene = null;
 
@@ -399,6 +400,11 @@ namespace OpenSim.Framework.Console
             Commands.AddCommand(
                 "console", "help", "help [<command>]", 
                 "Get general command list or more detailed help on a specific command", Help);
+        }
+
+        public void SetGuiMode(bool mode)
+        {
+            gui = mode;
         }
 
         private void AddToHistory(string text)
@@ -812,6 +818,30 @@ namespace OpenSim.Framework.Console
             prompt = p;
             echo = e;
             int historyLine = history.Count;
+
+            if (gui)
+            {
+                System.Console.Write("{0}", prompt);
+                string cmdinput = System.Console.ReadLine();
+
+                if (isCommand)
+                {
+                    string[] cmd = Commands.Resolve(Parser.Parse(cmdinput));
+
+                    if (cmd.Length != 0)
+                    {
+                        int i;
+
+                        for (i=0 ; i < cmd.Length ; i++)
+                        {
+                            if (cmd[i].Contains(" "))
+                                cmd[i] = "\"" + cmd[i] + "\"";
+                        }
+                        return String.Empty;
+                    }
+                }
+                return cmdinput;
+            }
 
             System.Console.CursorLeft = 0; // Needed for mono
             System.Console.Write(" "); // Needed for mono
