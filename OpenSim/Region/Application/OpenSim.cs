@@ -149,6 +149,7 @@ namespace OpenSim
                     "Save a region's data to an OAR archive",
                     "More information on forthcoming options here soon", SaveOar);
 
+            /*
             m_console.Commands.AddCommand("region", "save inventory",
                     "save inventory <first> <last> <path> <file>",
                     "Save user inventory data", SaveInv);
@@ -156,6 +157,7 @@ namespace OpenSim
             m_console.Commands.AddCommand("region", "load inventory",
                     "load inventory <first> <last> <path> <file>",
                     "Load user inventory data", LoadInv);
+                    */
 
             m_console.Commands.AddCommand("region", "edit scale",
                     "edit scale <name> <x> <y> <z>",
