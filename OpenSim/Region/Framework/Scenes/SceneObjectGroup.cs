@@ -726,7 +726,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ToXml(XmlTextWriter writer)
         {
             //m_log.DebugFormat("[SOG]: Starting serialization of {0}", Name);
-            int time = System.Environment.TickCount;
+            //int time = System.Environment.TickCount;
 
             writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
             writer.WriteStartElement(String.Empty, "RootPart", String.Empty);

@@ -244,6 +244,7 @@ namespace OpenSim
             }
         }
 
+        /*
         private void LoadXmlLinkFile(string[] cmdparams)
         {
             try
@@ -289,6 +290,7 @@ namespace OpenSim
                 Console.WriteLine(e.ToString());
             }
         }
+        */
 
         private void ReadLinkFromConfig(IConfig config)
         {

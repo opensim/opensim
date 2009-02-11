@@ -2224,10 +2224,10 @@ namespace OpenSim.Region.Framework.Scenes
                     //
                     ScenePresence sp = GetScenePresence(sceneObject.OwnerID);
 
-                    uint parentLocalID = 0;
+                    //uint parentLocalID = 0;
                     if (sp != null)
                     {
-                        parentLocalID = sp.LocalId;
+                        //parentLocalID = sp.LocalId;
 
                         //sceneObject.RootPart.IsAttachment = true;
                         //sceneObject.RootPart.SetParentLocalId(parentLocalID);
