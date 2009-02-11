@@ -887,18 +887,14 @@ namespace OpenSim.Framework
         void SendTaskInventory(UUID taskID, short serial, byte[] fileName);
 
         /// <summary>
-        /// Used by the server to inform the client of new inventory items.  Will transfer the contents of the folder
+        /// Used by the server to inform the client of new inventory items and folders.
+        /// </summary>
+        /// 
+        /// If the node is a folder then the contents will be transferred
         /// (including all descendent folders) as well as the folder itself.
-        /// </summary>
-        /// <param name="folder"></param>
-        void SendBulkUpdateInventory(InventoryFolderBase folder);
-        
-        /// <summary>
-        /// Used by the server to inform the client of a new inventory item.  Used when transferring items
-        /// between avatars, possibly among other things.
-        /// </summary>
-        /// <param name="item"></param>
-        void SendBulkUpdateInventory(InventoryItemBase item);
+        /// 
+        /// <param name="node"></param>
+        void SendBulkUpdateInventory(InventoryNodeBase node);
 
         void SendXferPacket(ulong xferID, uint packet, byte[] data);
 

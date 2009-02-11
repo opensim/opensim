@@ -636,13 +636,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        /// <see>IClientAPI.SendBulkUpdateInventory(InventoryItemBase)</see>
-        public virtual void SendBulkUpdateInventory(InventoryItemBase item)
+        public virtual void SendBulkUpdateInventory(InventoryNodeBase node)
         {
         }
-        
-        public virtual void SendBulkUpdateInventory(InventoryFolderBase folderBase)
-        {}
 
         public void SendTakeControls(int controls, bool passToAgent, bool TakeControls)
         {

@@ -627,13 +627,9 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        /// <see>IClientAPI.SendBulkUpdateInventory(InventoryItemBase)</see>
-        public virtual void SendBulkUpdateInventory(InventoryItemBase item)
+        public virtual void SendBulkUpdateInventory(InventoryNodeBase node)
         {
         }
-
-        public void SendBulkUpdateInventory(InventoryFolderBase folderBase)
-        {}
 
         public UUID GetDefaultAnimation(string name)
         {

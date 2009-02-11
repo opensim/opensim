@@ -1850,9 +1850,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             inventoryReply.Header.Zerocoded = true;
             OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
         }
-
-        /// <see>IClientAPI.SendBulkUpdateInventory(InventoryFolderBase)</see>
-        public void SendBulkUpdateInventory(InventoryFolderBase folderBase)
+        
+        protected void SendBulkUpdateInventoryFolder(InventoryFolderBase folderBase)
         {
             // XXX: Nasty temporary move that will be resolved shortly
             InventoryFolderImpl folder = (InventoryFolderImpl)folderBase;
@@ -1863,7 +1862,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             List<BulkUpdateInventoryPacket.FolderDataBlock> folderDataBlocks
                 = new List<BulkUpdateInventoryPacket.FolderDataBlock>();
 
-            SendBulkUpdateInventoryRecursive(folder, ref folderDataBlocks, transactionId);
+            SendBulkUpdateInventoryFolderRecursive(folder, ref folderDataBlocks, transactionId);
 
             if (folderDataBlocks.Count > 0)
             {
@@ -1888,7 +1887,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="folder"></param>
         /// <param name="folderDataBlocks"></param>
         /// <param name="transactionId"></param>
-        private void SendBulkUpdateInventoryRecursive(
+        private void SendBulkUpdateInventoryFolderRecursive(
             InventoryFolderImpl folder, ref List<BulkUpdateInventoryPacket.FolderDataBlock> folderDataBlocks,
             UUID transactionId)
         {
@@ -1934,7 +1933,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             List<InventoryFolderImpl> subFolders = folder.RequestListOfFolderImpls();
             foreach (InventoryFolderImpl subFolder in subFolders)
             {
-                SendBulkUpdateInventoryRecursive(subFolder, ref folderDataBlocks, transactionId);
+                SendBulkUpdateInventoryFolderRecursive(subFolder, ref folderDataBlocks, transactionId);
             }
         }
 
@@ -1997,9 +1996,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return itemBlock;
         }
-
-        /// <see>IClientAPI.SendBulkUpdateInventory(InventoryItemBase)</see>
-        public void SendBulkUpdateInventory(InventoryItemBase item)
+        
+        public void SendBulkUpdateInventory(InventoryNodeBase node)        
+        {
+            if (node is InventoryItemBase)
+                SendBulkUpdateInventoryItem((InventoryItemBase)node);
+            else if (node is InventoryFolderBase)
+                SendBulkUpdateInventoryFolder((InventoryFolderBase)node);
+            else
+                m_log.ErrorFormat("[CLIENT]: Client for {0} sent unknown inventory node named {1}", Name, node.Name);
+        }
+                
+        protected void SendBulkUpdateInventoryItem(InventoryItemBase item)
         {
             const uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
 
