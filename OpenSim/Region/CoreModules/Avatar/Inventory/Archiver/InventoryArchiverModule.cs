@@ -114,6 +114,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {            
                 new InventoryArchiveReadRequest(firstName, lastName, invPath, loadPath, m_commsManager).Execute();
             }
+            
+            /*
+            foreach (Scene scene in m_scenes.Values)
+            {
+                ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));            
+                if (user != null && !user.IsChildAgent)
+                {        
+                    user.ControllingClient.SendBulkUpdateInventory(folderCopy);
+                }        
+            }
+            */
         }
                 
         public void ArchiveInventory(string firstName, string lastName, string invPath, string savePath)

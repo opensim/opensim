@@ -30,43 +30,38 @@ using OpenMetaverse;
 namespace OpenSim.Framework
 {
     /// <summary>
-    /// A Class for folders which contain users inventory
-    /// </summary>
-    public class InventoryFolderBase : InventoryNodeBase
-    {
+    /// Common base class for inventory nodes of different types (files, folders, etc.)
+    /// </summary>        
+    public class InventoryNodeBase
+    {                
         /// <summary>
-        /// The folder this folder is contained in
-        /// </summary>
-        private UUID _parentID;
-
+        /// The name of the node (64 characters or less)
+        /// </summary>        
+        public virtual string Name
+        {
+            get { return m_name; }
+            set { m_name = value; }
+        } 
+        private string m_name;
+        
         /// <summary>
-        /// Type of items normally stored in this folder
+        /// A UUID containing the ID for the inventory node itself
         /// </summary>
-        private short _type;
-
+        public UUID ID 
+        {
+            get { return m_id; }
+            set { m_id = value; }
+        }       
+        private UUID m_id;
+        
         /// <summary>
-        /// This is used to denote the version of the client, needed
-        /// because of the changes clients have with inventory from
-        /// time to time (1.19.1 caused us some fits there).
-        /// </summary>
-        private ushort _version;
-
-        public virtual UUID ParentID
+        /// The agent who's inventory this is contained by
+        /// </summary>        
+        public virtual UUID Owner
         {
-            get { return _parentID; }
-            set { _parentID = value; }
+            get { return m_owner; }
+            set { m_owner = value; }
         }
-
-        public virtual short Type
-        {
-            get { return _type; }
-            set { _type = value; }
-        }
-
-        public virtual ushort Version
-        {
-            get { return _version; }
-            set { _version = value; }
-        }
+        private UUID m_owner;        
     }
 }

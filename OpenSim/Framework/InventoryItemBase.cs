@@ -33,7 +33,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// Inventory Item - contains all the properties associated with an individual inventory piece.
     /// </summary>
-    public class InventoryItemBase
+    public class InventoryItemBase : InventoryNodeBase
     {
         /// <summary>
         /// The UUID of the associated asset on the asset server
@@ -54,8 +54,6 @@ namespace OpenSim.Framework
         /// The creator of this item
         /// </summary>
         private UUID _creator;
-
-        private UUID _owner;
 
         private uint _nextPermissions;
 
@@ -85,20 +83,9 @@ namespace OpenSim.Framework
         private UUID _folder;
 
         /// <summary>
-        /// A UUID containing the ID for the inventory item itself
-        /// </summary>
-        private UUID _id;
-
-        /// <summary>
-        /// The type of inventory item. (Can be slightly different to the asset type
+        /// The inventory type of the item.  This is slightly different from the asset type in some situations.
         /// </summary>
         private int _invType;
-
-        /// <summary>
-        /// The name of the inventory item (must be less than 64 characters)
-        /// </summary>
-        private string _name;
-
 
         /// <summary>
         ///
@@ -130,11 +117,6 @@ namespace OpenSim.Framework
         /// </summary>
         private int _creationDate;
 
-        public UUID ID {
-            get { return _id; }
-            set { _id = value; }
-        }
-
         public int InvType
         {
             get { return _invType; }
@@ -147,22 +129,10 @@ namespace OpenSim.Framework
             set { _folder = value; }
         }
 
-        public UUID Owner
-        {
-            get { return _owner; }
-            set { _owner = value; }
-        }
-
         public UUID Creator
         {
             get { return _creator; }
             set { _creator = value; }
-        }
-
-        public string Name
-        {
-            get { return _name; }
-            set { _name = value; }
         }
 
         public string Description
