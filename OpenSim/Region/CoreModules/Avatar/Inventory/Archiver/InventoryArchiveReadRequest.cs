@@ -161,18 +161,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             return item;
         }
 
-        public void Execute()
+        /// <summary>
+        /// Execute the request
+        /// </summary>
+        /// <returns>
+        /// A list of the inventory nodes loaded.  If folders were loaded then only the root folders are
+        /// returned
+        /// </returns>
+        public List<InventoryNodeBase> Execute()
         {
             string filePath = "ERROR";
             int successfulAssetRestores = 0;
             int failedAssetRestores = 0;
             int successfulItemRestores = 0;
+            List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
 
             UserProfileData userProfile = commsManager.UserService.GetUserProfile(m_firstName, m_lastName);
             if (null == userProfile)
             {
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: Failed to find user {0} {1}", m_firstName, m_lastName);
-                return;
+                return nodesLoaded;
             }
 
             CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
@@ -182,7 +190,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1} {2}",
                     m_firstName, m_lastName, userProfile.ID);
 
-                return;
+                return nodesLoaded;
             }
 
             if (!userInfo.HasReceivedInventory)
@@ -191,7 +199,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1} {2}",
                     m_firstName, m_lastName, userProfile.ID);
 
-                return;
+                return nodesLoaded;
             }
 
             InventoryFolderImpl inventoryFolder = userInfo.RootFolder.FindFolderByPath(m_invPath);
@@ -201,7 +209,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 // TODO: Later on, automatically create this folder if it does not exist
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: Inventory path {0} does not exist", m_invPath);
 
-                return;
+                return nodesLoaded;
             }
 
             archive = new TarArchiveReader(m_loadStream);
@@ -236,6 +244,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                         userInfo.AddItem(item);
                         successfulItemRestores++;
+                        nodesLoaded.Add(item);
                     }
                 }
             }
@@ -244,6 +253,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             m_log.DebugFormat("[INVENTORY ARCHIVER]: Restored {0} assets", successfulAssetRestores);
             m_log.InfoFormat("[INVENTORY ARCHIVER]: Restored {0} items", successfulItemRestores);
+            
+            return nodesLoaded;
         }
 
         /// <summary>

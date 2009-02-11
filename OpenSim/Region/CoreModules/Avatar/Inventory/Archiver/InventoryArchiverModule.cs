@@ -31,6 +31,7 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -96,7 +97,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (m_scenes.Count > 0)
             {            
-                new InventoryArchiveReadRequest(firstName, lastName, invPath, loadStream, m_commsManager).Execute();
+                InventoryArchiveReadRequest request = 
+                    new InventoryArchiveReadRequest(firstName, lastName, invPath, loadStream, m_commsManager);
+                
+                UpdateClientWithLoadedNodes(firstName, lastName, request.Execute());
             }            
         }        
 
@@ -111,20 +115,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         public void DearchiveInventory(string firstName, string lastName, string invPath, string loadPath)
         {
             if (m_scenes.Count > 0)
-            {            
-                new InventoryArchiveReadRequest(firstName, lastName, invPath, loadPath, m_commsManager).Execute();
-            }
-            
-            /*
-            foreach (Scene scene in m_scenes.Values)
-            {
-                ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));            
-                if (user != null && !user.IsChildAgent)
-                {        
-                    user.ControllingClient.SendBulkUpdateInventory(folderCopy);
-                }        
-            }
-            */
+            {      
+                InventoryArchiveReadRequest request = 
+                    new InventoryArchiveReadRequest(firstName, lastName, invPath, loadPath, m_commsManager);
+                
+                UpdateClientWithLoadedNodes(firstName, lastName, request.Execute());
+            }                
         }
                 
         public void ArchiveInventory(string firstName, string lastName, string invPath, string savePath)
@@ -175,6 +171,40 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string savePath = (cmdparams.Length > 5 ? cmdparams[5] : DEFAULT_INV_BACKUP_FILENAME);
 
             ArchiveInventory(firstName, lastName, invPath, savePath);
-        }        
+        }
+        
+        /// <summary>
+        /// Notify the client of loaded nodes if they are logged in
+        /// </summary>
+        /// <param name="loadedNodes">Can be empty.  In which case, nothing happens</param>
+        private void UpdateClientWithLoadedNodes(string firstName, string lastName, List<InventoryNodeBase> loadedNodes)
+        {               
+            if (loadedNodes.Count == 0)
+                return;
+            
+            UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(firstName, lastName);
+            
+            if (null == userProfile)
+                return;
+                   
+            foreach (Scene scene in m_scenes.Values)
+            {
+                ScenePresence user = scene.GetScenePresence(userProfile.ID);
+                
+                if (user != null && !user.IsChildAgent)
+                {        
+                    foreach (InventoryNodeBase node in loadedNodes)
+                    {
+                        m_log.DebugFormat(
+                            "[INVENTORY ARCHIVER]: Notifying {0} of loaded inventory node {1}", 
+                            user.Name, node.Name);
+                        
+                        user.ControllingClient.SendBulkUpdateInventory(node);
+                    }
+                    
+                    break;
+                }        
+            }            
+        }
     }
 }
