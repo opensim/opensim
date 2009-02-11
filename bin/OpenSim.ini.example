@@ -1012,3 +1012,14 @@ InterregionComms = "RESTComms"
 
     ; Density of tree population
     tree_density = 1000.0
+
+[RegionReady]
+    ; Enable this module to get notified once all items and scripts in the region have been completely loaded and compiled
+    enabled = false
+
+    ; Channel on which to signal region readiness through a message
+    ; formatted as follows: "{0|1},n,[oar error]"
+    ; - the first number indicating whether the OAR file loaded ok (1 == ok, 0 == error)
+    ; - the second number indicates how many scrips failed to compile
+    ; - "oar error" if supplied, provides the error message from the OAR load
+    channel_notify = -800
