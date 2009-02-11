@@ -48,7 +48,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         private Scene m_scene;
 
-        public string Name { get { return "Archiver Module"; } }
+        public string Name { get { return "Region Archiver Module"; } }
 
         public bool IsSharedModule { get { return false; } }
 

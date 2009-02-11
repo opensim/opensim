@@ -47,16 +47,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected Scene scene;
         protected TarArchiveReader archive;
         private static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
 
         CommunicationsManager commsManager;
 
-        public InventoryArchiveReadRequest(Scene currentScene, CommunicationsManager commsManager)
+        public InventoryArchiveReadRequest(CommunicationsManager commsManager)
         {
             //List<string> serialisedObjects = new List<string>();
-            scene = currentScene;
             this.commsManager = commsManager;
         }
 
@@ -261,8 +259,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 asset.Metadata.Type = assetType;
                 asset.Data = data;
 
-                scene.AssetCache.AddAsset(asset);
-
+                commsManager.AssetCache.AddAsset(asset);
 
                 return true;
             }

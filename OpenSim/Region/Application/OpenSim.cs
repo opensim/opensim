@@ -149,16 +149,6 @@ namespace OpenSim
                     "Save a region's data to an OAR archive",
                     "More information on forthcoming options here soon", SaveOar);
 
-            /*
-            m_console.Commands.AddCommand("region", false, "save inventory",
-                    "save inventory <first> <last> <path> <file>",
-                    "Save user inventory data", SaveInv);
-
-            m_console.Commands.AddCommand("region", false, "load inventory",
-                    "load inventory <first> <last> <path> <file>",
-                    "Load user inventory data", LoadInv);
-                    */
-
             m_console.Commands.AddCommand("region", false, "edit scale",
                     "edit scale <name> <x> <y> <z>",
                     "Change the scale of a named prim", HandleEditScale);
@@ -1101,52 +1091,6 @@ namespace OpenSim
             {
                 m_sceneManager.SaveCurrentSceneToArchive(DEFAULT_OAR_BACKUP_FILENAME);
             }
-        }
-
-        /// <summary>
-        /// Load inventory from an inventory file archive
-        /// </summary>
-        /// <param name="cmdparams"></param>
-        protected void LoadInv(string module, string[] cmdparams)
-        {
-            m_log.Error("[CONSOLE]: This command has not yet been implemented!");
-            if (cmdparams.Length < 5)
-            {
-                m_log.Error("[CONSOLE]: usage is load-inv <first name> <last name> <inventory path> [<load file path>]");
-                return;
-            }
-
-            string firstName = cmdparams[2];
-            string lastName = cmdparams[3];
-            string invPath = cmdparams[4];
-            string loadPath = (cmdparams.Length > 5 ? cmdparams[5] : DEFAULT_INV_BACKUP_FILENAME);
-
-            new InventoryArchiveReadRequest(
-                m_sceneManager.CurrentOrFirstScene, m_commsManager).execute(
-                    firstName, lastName, invPath, loadPath);
-        }
-
-        /// <summary>
-        /// Save inventory to a file archive
-        /// </summary>
-        /// <param name="cmdparams"></param>
-        protected void SaveInv(string module, string[] cmdparams)
-        {
-            m_log.Error("[CONSOLE]: This command has not yet been implemented!");
-            if (cmdparams.Length < 5)
-            {
-                m_log.Error("[CONSOLE]: usage is save-inv <first name> <last name> <inventory path> [<save file path>]");
-                return;
-            }
-
-            string firstName = cmdparams[2];
-            string lastName = cmdparams[3];
-            string invPath = cmdparams[4];
-            string savePath = (cmdparams.Length > 5 ? cmdparams[5] : DEFAULT_INV_BACKUP_FILENAME);
-
-            new InventoryArchiveWriteRequest(
-                m_sceneManager.CurrentOrFirstScene,m_commsManager).execute(
-                    firstName, lastName, invPath, savePath);
         }
 
         private static string CombineParams(string[] commandParams, int pos)

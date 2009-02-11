@@ -39,14 +39,12 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using log4net;
 
-
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 {        
     public class InventoryArchiveWriteRequest
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        protected Scene scene;
         protected TarArchiveWriter archive;
         protected CommunicationsManager commsManager;
         Dictionary<UUID, int> assetUuids;
@@ -56,9 +54,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </value>
         private string m_savePath;
 
-        public InventoryArchiveWriteRequest(Scene currentScene, CommunicationsManager commsManager)
+        public InventoryArchiveWriteRequest(CommunicationsManager commsManager)
         {
-            scene = currentScene;
             archive = new TarArchiveWriter();
             this.commsManager = commsManager;
             assetUuids = new Dictionary<UUID, int>();
@@ -241,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 saveInvDir(inventoryFolder, "");
             }
 
-            new AssetsRequest(assetUuids.Keys, scene.AssetCache, ReceivedAllAssets).Execute();
+            new AssetsRequest(assetUuids.Keys, commsManager.AssetCache, ReceivedAllAssets).Execute();
         }
     }
 }
