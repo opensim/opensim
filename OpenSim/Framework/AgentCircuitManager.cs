@@ -81,13 +81,25 @@ namespace OpenSim.Framework
         /// <param name="agentData"></param>
         public virtual void AddNewCircuit(uint circuitCode, AgentCircuitData agentData)
         {
-            if (AgentCircuits.ContainsKey(circuitCode))
+            lock (AgentCircuits)
             {
-                AgentCircuits[circuitCode] = agentData;
+                if (AgentCircuits.ContainsKey(circuitCode))
+                {
+                    AgentCircuits[circuitCode] = agentData;
+                }
+                else
+                {
+                    AgentCircuits.Add(circuitCode, agentData);
+                }
             }
-            else
+        }
+
+        public virtual void RemoveCircuit(uint circuitCode)
+        {
+            lock (AgentCircuits)
             {
-                AgentCircuits.Add(circuitCode, agentData);
+                if (AgentCircuits.ContainsKey(circuitCode))
+                    AgentCircuits.Remove(circuitCode);
             }
         }
 

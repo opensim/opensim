@@ -443,9 +443,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     
                     m_packetServer.AddNewClient(epSender, useCircuit, m_assetCache, sessionInfo, epProxy);
                                     
-                    m_log.DebugFormat(
-                        "[CONNECTION SUCCESS]: Incoming client {0} (circuit code {1}) received and authenticated for {2}", 
-                        useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code, m_localScene.RegionInfo.RegionName);                    
+                    //m_log.DebugFormat(
+                    //    "[CONNECTION SUCCESS]: Incoming client {0} (circuit code {1}) received and authenticated for {2}", 
+                    //    useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code, m_localScene.RegionInfo.RegionName);                    
                 }                
             }            
             

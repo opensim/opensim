@@ -2286,6 +2286,32 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override void AddNewClient(IClientAPI client)
         {
+            if (m_regInfo.EstateSettings.IsBanned(client.AgentId))
+            {
+                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
+                                client.AgentId, client.FirstName, client.LastName, RegionInfo.RegionName);
+                client.SendAlertMessage("Denied access to region " + RegionInfo.RegionName + ". You have been banned from that region.");
+                try
+                {
+                    IEventQueue eq = RequestModuleInterface<IEventQueue>();
+                    if (eq != null)
+                    {
+                        eq.DisableSimulator(RegionInfo.RegionHandle, client.AgentId);
+                    }
+                    else
+                        client.SendShutdownConnectionNotice();
+
+                    client.Close(false);
+                    CapsModule.RemoveCapsHandler(client.AgentId);
+                    m_authenticateHandler.RemoveCircuit(client.CircuitCode);
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[SCENE]: Exception while closing banned client {0} {1}: {2}", client.FirstName, client.LastName, e.Message);
+                }
+            }
+
+
             SubscribeToClientEvents(client);
             ScenePresence presence;
 
@@ -2803,7 +2829,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
             {
                 m_log.WarnFormat(
-               "[CONNECTION BEGIN]: Denied access to: {0} at {1} because the user is on the region banlist",
+               "[CONNECTION BEGIN]: Incoming user {0} at {1} is on the region banlist",
                agent.AgentID, RegionInfo.RegionName);
             }
 

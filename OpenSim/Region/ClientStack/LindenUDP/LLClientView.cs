@@ -538,9 +538,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "[CLIENT]: Close has been called with shutdownCircuit = {0} for {1} attached to scene {2}",
                 shutdownCircuit, Name, m_scene.RegionInfo.RegionName);
 
-            m_imageManager.Close();
+            if (m_imageManager != null)
+                m_imageManager.Close();
 
-            m_PacketHandler.Flush();
+            if (m_PacketHandler != null)
+                m_PacketHandler.Flush();
 
             // raise an event on the packet server to Shutdown the circuit
             // Now, if we raise the event then the packet server will call this method itself, so don't try cleanup
