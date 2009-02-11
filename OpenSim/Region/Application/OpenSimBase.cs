@@ -164,7 +164,7 @@ namespace OpenSim
         }        
         
         /// <summary>
-        /// Performs startup specific to this region server, including initialization of the scene 
+        /// Performs startup specific to the region server, including initialization of the scene 
         /// such as loading configuration from disk.
         /// </summary>
         protected override void StartupSpecific()
@@ -175,7 +175,7 @@ namespace OpenSim
             
             LibraryRootFolder libraryRootFolder = new LibraryRootFolder(m_configSettings.LibrariesXMLFile);
 
-            // StandAlone mode? is determined by !startupConfig.GetBoolean("gridmode", false)
+            // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
             if (m_configSettings.Standalone)
             {
                 InitialiseStandaloneServices(libraryRootFolder);

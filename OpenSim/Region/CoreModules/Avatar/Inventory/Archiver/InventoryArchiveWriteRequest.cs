@@ -43,29 +43,53 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 {        
     public class InventoryArchiveWriteRequest
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);      
         
-        protected TarArchiveWriter archive;
+        protected TarArchiveWriter archive = new TarArchiveWriter();
         protected CommunicationsManager commsManager;
-        Dictionary<UUID, int> assetUuids;
+        protected Dictionary<UUID, int> assetUuids = new Dictionary<UUID, int>();
+        
+        private string m_firstName;
+        private string m_lastName;
+        private string m_invPath;
         
         /// <value>
-        /// The path to which the inventory archive will be saved.
+        /// The stream to which the inventory archive will be saved.
         /// </value>
-        private string m_savePath;
-
-        public InventoryArchiveWriteRequest(CommunicationsManager commsManager)
+        private Stream m_saveStream;
+        
+        /// <summary>
+        /// Constructor
+        /// </summary>        
+        public InventoryArchiveWriteRequest(
+             string firstName, string lastName, string invPath, string savePath, CommunicationsManager commsManager)
+            : this(
+                firstName, 
+                 lastName, 
+                 invPath, 
+                 new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress),
+                 commsManager)
         {
-            archive = new TarArchiveWriter();
+        }
+        
+        /// <summary>
+        /// Constructor
+        /// </summary>        
+        public InventoryArchiveWriteRequest(
+             string firstName, string lastName, string invPath, Stream saveStream, CommunicationsManager commsManager)
+        {
+            m_firstName = firstName;
+            m_lastName = lastName;
+            m_invPath = invPath;
+            m_saveStream = saveStream;                        
             this.commsManager = commsManager;
-            assetUuids = new Dictionary<UUID, int>();
         }
 
         protected void ReceivedAllAssets(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids)
         {
             AssetsArchiver assetsArchiver = new AssetsArchiver(assetsFound);
             assetsArchiver.Archive(archive);
-            archive.WriteTar(new GZipStream(new FileStream(m_savePath, FileMode.Create), CompressionMode.Compress));
+            archive.WriteTar(m_saveStream);
         }
 
         protected void saveInvItem(InventoryItemBase inventoryItem, string path)
@@ -158,21 +182,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
         }
 
-        public void execute(string firstName, string lastName, string invPath, string savePath)
+        public void Execute()
         {
-            m_savePath = savePath;
-            
-            UserProfileData userProfile = commsManager.UserService.GetUserProfile(firstName, lastName);
+            UserProfileData userProfile = commsManager.UserService.GetUserProfile(m_firstName, m_lastName);
             if (null == userProfile)
             {
-                m_log.ErrorFormat("[CONSOLE]: Failed to find user {0} {1}", firstName, lastName);
+                m_log.ErrorFormat("[INVENTORY ARCHIVER]: Failed to find user {0} {1}", m_firstName, m_lastName);
                 return;
             }
 
             CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
             if (null == userInfo)
             {
-                m_log.ErrorFormat("[CONSOLE]: Failed to find user info for {0} {1} {2}", firstName, lastName, userProfile.ID);
+                m_log.ErrorFormat(
+                    "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1} {2}", 
+                    m_firstName, m_lastName, userProfile.ID);
                 return;
             }
 
@@ -184,34 +208,36 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
                 // itself (possibly at a small loss in efficiency).
                 string[] components
-                    = invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
-                invPath = String.Empty;
+                    = m_invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
+                m_invPath = String.Empty;
                 foreach (string c in components)
                 {
-                    invPath += c + InventoryFolderImpl.PATH_DELIMITER;
+                    m_invPath += c + InventoryFolderImpl.PATH_DELIMITER;
                 }
 
                 // Annoyingly Split actually returns the original string if the input string consists only of delimiters
                 // Therefore if we still start with a / after the split, then we need the root folder
-                if (invPath.Length == 0)
+                if (m_invPath.Length == 0)
                 {
                     inventoryFolder = userInfo.RootFolder;
                 }
                 else
                 {
-                    invPath = invPath.Remove(invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
-                    inventoryFolder = userInfo.RootFolder.FindFolderByPath(invPath);
+                    m_invPath = m_invPath.Remove(m_invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
+                    inventoryFolder = userInfo.RootFolder.FindFolderByPath(m_invPath);
                 }
 
                 // The path may point to an item instead
                 if (inventoryFolder == null)
                 {
-                    inventoryItem = userInfo.RootFolder.FindItemByPath(invPath);
+                    inventoryItem = userInfo.RootFolder.FindItemByPath(m_invPath);
                 }
             }
             else
             {
-                m_log.ErrorFormat("[CONSOLE]: Have not yet received inventory info for user {0} {1} {2}", firstName, lastName, userProfile.ID);
+                m_log.ErrorFormat(
+                    "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1} {2}", 
+                    m_firstName, m_lastName, userProfile.ID);
                 return;
             }
 
@@ -219,21 +245,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 if (null == inventoryItem)
                 {
-                    m_log.ErrorFormat("[CONSOLE]: Could not find inventory entry at path {0}", invPath);
+                    m_log.ErrorFormat("[INVENTORY ARCHIVER]: Could not find inventory entry at path {0}", m_invPath);
                     return;
                 }
                 else
                 {
-                    m_log.InfoFormat("[CONSOLE]: Found item {0} {1} at {2}", inventoryItem.Name, inventoryItem.ID,
-                                     invPath);
+                    m_log.InfoFormat(
+                        "[INVENTORY ARCHIVER]: Found item {0} {1} at {2}", 
+                        inventoryItem.Name, inventoryItem.ID, m_invPath);
+                    
                     //get and export item info
-                    saveInvItem(inventoryItem, invPath);
+                    saveInvItem(inventoryItem, m_invPath);
                 }
             }
             else
             {
-                m_log.InfoFormat("[CONSOLE]: Found folder {0} {1} at {2}", inventoryFolder.Name, inventoryFolder.ID,
-                                 invPath);
+                m_log.InfoFormat(
+                    "[INVENTORY ARCHIVER]: Found folder {0} {1} at {2}", 
+                    inventoryFolder.Name, inventoryFolder.ID, m_invPath);
+                
                 //recurse through all dirs getting dirs and files
                 saveInvDir(inventoryFolder, "");
             }

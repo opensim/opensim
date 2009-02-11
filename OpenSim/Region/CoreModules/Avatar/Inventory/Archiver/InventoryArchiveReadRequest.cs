@@ -50,13 +50,37 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected TarArchiveReader archive;
         private static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
 
+        private string m_firstName;
+        private string m_lastName;
+        private string m_invPath;
+        
+        /// <value>
+        /// The stream from which the inventory archive will be loaded.
+        /// </value>
+        private Stream m_loadStream;
+        
         CommunicationsManager commsManager;
 
-        public InventoryArchiveReadRequest(CommunicationsManager commsManager)
+        public InventoryArchiveReadRequest(
+            string firstName, string lastName, string invPath, string loadPath, CommunicationsManager commsManager)
+            : this(
+                firstName, 
+                lastName, 
+                invPath, 
+                new GZipStream(new FileStream(loadPath, FileMode.Open), CompressionMode.Decompress),
+                commsManager)
         {
-            //List<string> serialisedObjects = new List<string>();
-            this.commsManager = commsManager;
         }
+        
+        public InventoryArchiveReadRequest(
+            string firstName, string lastName, string invPath, Stream loadStream, CommunicationsManager commsManager)
+        {
+            m_firstName = firstName;
+            m_lastName = lastName;
+            m_invPath = invPath;
+            m_loadStream = loadStream;                        
+            this.commsManager = commsManager;
+        }        
 
         protected InventoryItemBase loadInvItem(string path, string contents)
         {
@@ -137,17 +161,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             return item;
         }
 
-        public void execute(string firstName, string lastName, string invPath, string loadPath)
+        public void Execute()
         {
             string filePath = "ERROR";
             int successfulAssetRestores = 0;
             int failedAssetRestores = 0;
             int successfulItemRestores = 0;
 
-            UserProfileData userProfile = commsManager.UserService.GetUserProfile(firstName, lastName);
+            UserProfileData userProfile = commsManager.UserService.GetUserProfile(m_firstName, m_lastName);
             if (null == userProfile)
             {
-                m_log.ErrorFormat("[CONSOLE]: Failed to find user {0} {1}", firstName, lastName);
+                m_log.ErrorFormat("[INVENTORY ARCHIVER]: Failed to find user {0} {1}", m_firstName, m_lastName);
                 return;
             }
 
@@ -155,8 +179,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (null == userInfo)
             {
                 m_log.ErrorFormat(
-                    "[CONSOLE]: Failed to find user info for {0} {1} {2}",
-                    firstName, lastName, userProfile.ID);
+                    "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1} {2}",
+                    m_firstName, m_lastName, userProfile.ID);
 
                 return;
             }
@@ -164,33 +188,32 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (!userInfo.HasReceivedInventory)
             {
                 m_log.ErrorFormat(
-                    "[CONSOLE]: Have not yet received inventory info for user {0} {1} {2}",
-                    firstName, lastName, userProfile.ID);
+                    "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1} {2}",
+                    m_firstName, m_lastName, userProfile.ID);
 
                 return;
             }
 
-            InventoryFolderImpl inventoryFolder = userInfo.RootFolder.FindFolderByPath(invPath);
+            InventoryFolderImpl inventoryFolder = userInfo.RootFolder.FindFolderByPath(m_invPath);
 
             if (null == inventoryFolder)
             {
                 // TODO: Later on, automatically create this folder if it does not exist
-                m_log.ErrorFormat("[ARCHIVER]: Inventory path {0} does not exist", invPath);
+                m_log.ErrorFormat("[INVENTORY ARCHIVER]: Inventory path {0} does not exist", m_invPath);
 
                 return;
             }
 
-            archive
-                = new TarArchiveReader(new GZipStream(
-                    new FileStream(loadPath, FileMode.Open), CompressionMode.Decompress));
+            archive = new TarArchiveReader(m_loadStream);
 
             byte[] data;
             TarArchiveReader.TarEntryType entryType;
             while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
             {
                 if (entryType == TarArchiveReader.TarEntryType.TYPE_DIRECTORY) {
-                    m_log.WarnFormat("[ARCHIVER]: Ignoring directory entry {0}", filePath);
-                } else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                    m_log.WarnFormat("[INVENTORY ARCHIVER]: Ignoring directory entry {0}", filePath);
+                } 
+                else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                 {
                     if (LoadAsset(filePath, data))
                         successfulAssetRestores++;
@@ -219,8 +242,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             archive.Close();
 
-            m_log.DebugFormat("[ARCHIVER]: Restored {0} assets", successfulAssetRestores);
-            m_log.InfoFormat("[ARCHIVER]: Restored {0} items", successfulItemRestores);
+            m_log.DebugFormat("[INVENTORY ARCHIVER]: Restored {0} assets", successfulAssetRestores);
+            m_log.InfoFormat("[INVENTORY ARCHIVER]: Restored {0} items", successfulItemRestores);
         }
 
         /// <summary>
@@ -239,7 +262,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (i == -1)
             {
                 m_log.ErrorFormat(
-                   "[ARCHIVER]: Could not find extension information in asset path {0} since it's missing the separator {1}.  Skipping",
+                   "[INVENTORY ARCHIVER]: Could not find extension information in asset path {0} since it's missing the separator {1}.  Skipping",
                     assetPath, ArchiveConstants.ASSET_EXTENSION_SEPARATOR);
 
                 return false;
@@ -252,7 +275,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
 
-                m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
+                m_log.DebugFormat("[INVENTORY ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
                 AssetBase asset = new AssetBase(new UUID(uuid), "RandomName");
 
@@ -266,7 +289,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             else
             {
                 m_log.ErrorFormat(
-                   "[ARCHIVER]: Tried to dearchive data with path {0} with an unknown type extension {1}",
+                   "[INVENTORY ARCHIVER]: Tried to dearchive data with path {0} with an unknown type extension {1}",
                     assetPath, extension);
 
                 return false;
