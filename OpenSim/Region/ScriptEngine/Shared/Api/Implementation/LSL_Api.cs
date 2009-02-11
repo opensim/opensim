@@ -6286,7 +6286,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
 
                         LSL_Rotation q = rules.GetQuaternionItem(idx++);
-                        SetRot(part, Rot2Quaternion(q));
+                        llSetRot(q);
 
                         break;
 
