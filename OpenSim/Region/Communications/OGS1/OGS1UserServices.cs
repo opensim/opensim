@@ -126,10 +126,10 @@ namespace OpenSim.Region.Communications.OGS1
                Hashtable respData = (Hashtable) resp.Value;
                if (respData.Contains("error_type"))
                {
-                   m_log.Warn("[GRID]: " +
-                              "Error sent by user server when trying to get agent: (" +
-                              (string) respData["error_type"] +
-                              "): " + (string)respData["error_desc"]);
+                   //m_log.Warn("[GRID]: " +
+                   //           "Error sent by user server when trying to get agent: (" +
+                   //           (string) respData["error_type"] +
+                   //           "): " + (string)respData["error_desc"]);
                    return null;
                }
                UUID sessionid = UUID.Zero;

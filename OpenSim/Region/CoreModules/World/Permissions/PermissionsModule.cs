@@ -349,10 +349,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     if (profile.UserProfile.GodLevel >= 200)
                         return true;
                 }
-                else
-                {
-                    m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for administrator check", user);
-                }
+                //else
+                //{
+                //    m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for administrator check", user);
+                //}
             }
 
             return false;
