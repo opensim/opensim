@@ -3227,6 +3227,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 block.Flags = accessFlag;
                 block.ID = avatar;
                 block.Time = 0;
+                list.Add(block);
             }
 
             replyPacket.List = list.ToArray();
