@@ -66,11 +66,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private CommunicationsManager m_commsManager;
 
         public void Initialise(Scene scene, IConfigSource source)
-        {
+        {            
             if (m_scenes.Count == 0)
             {
                 scene.RegisterModuleInterface<IInventoryArchiverModule>(this);
-                m_commsManager = scene.CommsManager;
+                m_commsManager = scene.CommsManager;                                
                 
                 scene.AddCommand(
                     this, "load iar",

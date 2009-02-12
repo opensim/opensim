@@ -183,42 +183,54 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             InventoryFolderImpl inventoryFolder = null;
             InventoryItemBase inventoryItem = null;
 
-            if (m_userInfo.HasReceivedInventory)
-            {
-                // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
-                // itself (possibly at a small loss in efficiency).
-                string[] components
-                    = m_invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
-                m_invPath = String.Empty;
-                foreach (string c in components)
+            if (!m_userInfo.HasReceivedInventory)
+            {            
+                // If the region server has access to the user admin service (by which users are created), 
+                // then we'll assume that it's okay to fiddle with the user's inventory even if they are not on the 
+                // server.
+                //
+                // FIXME: FetchInventory should probably be assumed to by async anyway, since even standalones might
+                // use a remote inventory service, though this is vanishingly rare at the moment.
+                if (null == commsManager.UserAdminService)
                 {
-                    m_invPath += c + InventoryFolderImpl.PATH_DELIMITER;
-                }
+                    m_log.ErrorFormat(
+                        "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1}",
+                        m_userInfo.UserProfile.Name, m_userInfo.UserProfile.ID);
 
-                // Annoyingly Split actually returns the original string if the input string consists only of delimiters
-                // Therefore if we still start with a / after the split, then we need the root folder
-                if (m_invPath.Length == 0)
-                {
-                    inventoryFolder = m_userInfo.RootFolder;
+                    return;
                 }
                 else
                 {
-                    m_invPath = m_invPath.Remove(m_invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
-                    inventoryFolder = m_userInfo.RootFolder.FindFolderByPath(m_invPath);
+                    m_userInfo.FetchInventory();
                 }
+            }
+            
+            // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
+            // itself (possibly at a small loss in efficiency).
+            string[] components
+                = m_invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
+            m_invPath = String.Empty;
+            foreach (string c in components)
+            {
+                m_invPath += c + InventoryFolderImpl.PATH_DELIMITER;
+            }
 
-                // The path may point to an item instead
-                if (inventoryFolder == null)
-                {
-                    inventoryItem = m_userInfo.RootFolder.FindItemByPath(m_invPath);
-                }
+            // Annoyingly Split actually returns the original string if the input string consists only of delimiters
+            // Therefore if we still start with a / after the split, then we need the root folder
+            if (m_invPath.Length == 0)
+            {
+                inventoryFolder = m_userInfo.RootFolder;
             }
             else
             {
-                m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1}", 
-                    m_userInfo.UserProfile.Name, m_userInfo.UserProfile.ID);
-                return;
+                m_invPath = m_invPath.Remove(m_invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
+                inventoryFolder = m_userInfo.RootFolder.FindFolderByPath(m_invPath);
+            }
+
+            // The path may point to an item instead
+            if (inventoryFolder == null)
+            {
+                inventoryItem = m_userInfo.RootFolder.FindItemByPath(m_invPath);
             }
 
             if (null == inventoryFolder)
