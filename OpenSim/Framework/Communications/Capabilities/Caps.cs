@@ -30,11 +30,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
-using OpenSim.Framework.Communications.Cache;
+using OpenMetaverse;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework;
+
 // using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Framework.Communications.Capabilities

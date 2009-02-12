@@ -27,20 +27,13 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-
 using log4net;
-using Nini.Config;
 using OpenMetaverse;
-
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Framework.Scenes;
 
 //using HyperGrid.Framework;
 //using OpenSim.Region.Communications.Hypergrid;

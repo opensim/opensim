@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 
 namespace OpenSim.Framework
 {
@@ -62,7 +63,7 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("assetset_location", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                         "Location of 'AssetSets.xml'",
-                                        string.Format(".{0}assets{0}AssetSets.xml", System.IO.Path.DirectorySeparatorChar), false);
+                                        string.Format(".{0}assets{0}AssetSets.xml", Path.DirectorySeparatorChar), false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)

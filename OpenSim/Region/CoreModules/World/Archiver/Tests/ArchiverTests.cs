@@ -28,12 +28,11 @@
 using System;
 using System.IO;
 using System.Threading;
+using log4net.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Scenes;
@@ -222,7 +221,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestMergeOarV0p2()
         {
-            log4net.Config.XmlConfigurator.Configure();
+            XmlConfigurator.Configure();
             
             MemoryStream archiveWriteStream = new MemoryStream();
 

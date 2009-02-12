@@ -25,11 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
+using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.Framework.Interfaces
 {

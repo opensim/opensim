@@ -35,12 +35,12 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Xml;
-using OpenMetaverse.StructuredData;
+using HttpServer;
 using log4net;
 using Nwc.XmlRpc;
+using OpenMetaverse.StructuredData;
 using CoolHTTPListener = HttpServer.HttpListener;
-using IHttpClientContext = HttpServer.IHttpClientContext;
-using IHttpRequest = HttpServer.IHttpRequest;
+using HttpListener=System.Net.HttpListener;
 
 namespace OpenSim.Framework.Servers
 {
@@ -219,7 +219,7 @@ namespace OpenSim.Framework.Servers
         public void OnHandleRequestIOThread(IHttpClientContext context, IHttpRequest request)
         {
             OSHttpRequest req = new OSHttpRequest(context, request);
-            OSHttpResponse resp = new OSHttpResponse(new HttpServer.HttpResponse(context, request));
+            OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request));
             //resp.KeepAlive = req.KeepAlive;
             //m_log.Info("[Debug BASE HTTP SERVER]: Got Request");
             //HttpServerContextObj objstate= new HttpServerContextObj(req,resp);
@@ -1373,7 +1373,7 @@ namespace OpenSim.Framework.Servers
                 {
                     //m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
                     //m_httpListener.Prefixes.Add("http://10.1.1.5:" + m_port + "/");
-                    m_httpListener2 = new HttpServer.HttpListener(IPAddress.Any, (int)m_port);
+                    m_httpListener2 = new CoolHTTPListener(IPAddress.Any, (int)m_port);
                     m_httpListener2.ExceptionThrown += httpServerException;
                     m_httpListener2.LogWriter = httpserverlog;
                     
@@ -1408,7 +1408,7 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        public void httpServerDisconnectMonitor(HttpServer.IHttpClientContext source, SocketError err)
+        public void httpServerDisconnectMonitor(IHttpClientContext source, SocketError err)
         {            
             switch (err)
             {
@@ -1564,11 +1564,11 @@ namespace OpenSim.Framework.Servers
     /// Relays HttpServer log messages to our own logging mechanism.
     /// </summary>
     /// There is also a UseTraceLogs line in this file that can be uncommented for more detailed log information
-    public class HttpServerLogWriter : HttpServer.ILogWriter
+    public class HttpServerLogWriter : ILogWriter
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public void Write(object source, HttpServer.LogPrio priority, string message)
+        public void Write(object source, LogPrio priority, string message)
         {
             /*
             switch (priority)

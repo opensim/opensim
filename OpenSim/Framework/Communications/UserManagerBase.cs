@@ -26,17 +26,16 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
-using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
-using OpenSim.Framework.Statistics;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Data;
+using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.Communications
 {

@@ -28,13 +28,12 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
-using System.Threading;
-using System.Drawing;
-using OpenMetaverse;
 using log4net;
 using Mono.Data.SqliteClient;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;

@@ -31,7 +31,6 @@ using System.Reflection;
 using System.Timers;
 using log4net;
 using OpenMetaverse;
-using OpenMetaverse.Packets;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Scenes

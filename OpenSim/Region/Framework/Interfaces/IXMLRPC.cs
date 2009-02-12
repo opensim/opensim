@@ -26,7 +26,6 @@
  */
 
 using OpenMetaverse;
-using Nwc.XmlRpc;
 
 namespace OpenSim.Region.Framework.Interfaces
 {

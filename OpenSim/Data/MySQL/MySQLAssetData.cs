@@ -26,14 +26,12 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
 using MySql.Data.MySqlClient;
+using OpenMetaverse;
 using OpenSim.Framework;
-
 
 namespace OpenSim.Data.MySQL
 {
@@ -62,7 +60,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="connect">connect string</param>
         override public void Initialise(string connect)
         {
-            TicksToEpoch = new System.DateTime(1970,1,1).Ticks;
+            TicksToEpoch = new DateTime(1970,1,1).Ticks;
 
             // TODO: This will let you pass in the connect string in
             // the config, though someone will need to write that.
@@ -145,7 +143,7 @@ namespace OpenSim.Data.MySQL
                             {
                                 asset.Metadata.Local = (bool)dbReader["local"];
                             }
-                            catch (System.InvalidCastException)
+                            catch (InvalidCastException)
                             {
                                 asset.Metadata.Local = false;
                             }
@@ -199,7 +197,7 @@ namespace OpenSim.Data.MySQL
                     using (cmd)
                     {
                         // create unix epoch time
-                        int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
+                        int now = (int)((DateTime.Now.Ticks - TicksToEpoch) / 10000000);
                         cmd.Parameters.AddWithValue("?id", asset.Metadata.ID);
                         cmd.Parameters.AddWithValue("?name", asset.Metadata.Name);
                         cmd.Parameters.AddWithValue("?description", asset.Metadata.Description);
@@ -240,7 +238,7 @@ namespace OpenSim.Data.MySQL
                     using (cmd)
                     {
                         // create unix epoch time
-                        int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
+                        int now = (int)((DateTime.Now.Ticks - TicksToEpoch) / 10000000);
                         cmd.Parameters.AddWithValue("?id", asset.Metadata.ID);
                         cmd.Parameters.AddWithValue("?access_time", now);
                         cmd.ExecuteNonQuery();

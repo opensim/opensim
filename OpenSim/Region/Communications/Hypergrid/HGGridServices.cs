@@ -31,30 +31,22 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Remoting;
-using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Tcp;
 using System.Security.Authentication;
-using System.Threading;
-using OpenMetaverse;
-using OpenMetaverse.Imaging;
 using log4net;
 using Nwc.XmlRpc;
+using OpenMetaverse;
+using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
-// using OpenSim.Region.Environment.Modules.Framework;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Interfaces;
+// using OpenSim.Region.Environment.Modules.Framework;
 
 namespace OpenSim.Region.Communications.Hypergrid
 {

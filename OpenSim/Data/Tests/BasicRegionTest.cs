@@ -29,14 +29,13 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using log4net.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
+using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Data;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.World.Land;
-using OpenMetaverse;
 
 namespace OpenSim.Data.Tests
 {
@@ -71,7 +70,7 @@ namespace OpenSim.Data.Tests
         {
             try
             {
-                log4net.Config.XmlConfigurator.Configure();
+                XmlConfigurator.Configure();
             }
             catch (Exception)
             {
@@ -140,7 +139,7 @@ namespace OpenSim.Data.Tests
             }
             catch (Exception e)
             {
-                System.Console.WriteLine("Exception in storing object {0} {1}", sog.ToString(), e);
+                Console.WriteLine("Exception in storing object {0} {1}", sog.ToString(), e);
                 Assert.Fail();
             }
                     
@@ -150,7 +149,7 @@ namespace OpenSim.Data.Tests
             }
             catch (Exception e)
             {
-                System.Console.WriteLine("Exception in storing object {0} {1}", sog2.ToString(), e);
+                Console.WriteLine("Exception in storing object {0} {1}", sog2.ToString(), e);
                 Assert.Fail();
             }
 
@@ -651,7 +650,7 @@ namespace OpenSim.Data.Tests
         }
         
         [Test]
-        [ExpectedException(typeof(System.ArgumentException))]
+        [ExpectedException(typeof(ArgumentException))]
         public void T026_PrimInventoryMany()
         {
             UUID i1,i2,i3,i4;

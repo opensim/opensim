@@ -28,9 +28,9 @@
 using System;
 using System.IO;
 using System.Reflection;
-using OpenSim.Framework;
 using log4net;
 using OpenMetaverse;
+using OpenSim.Framework;
 
 namespace OpenSim.Data.NHibernate
 {

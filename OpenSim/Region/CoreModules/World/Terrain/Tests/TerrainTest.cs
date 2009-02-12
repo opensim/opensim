@@ -27,8 +27,8 @@
 
 using System;
 using NUnit.Framework;
-using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.World.Terrain.PaintBrushes;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Terrain.Tests
 {

@@ -125,7 +125,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public OpenMetaverse.Parcel.ParcelCategory Category {
+        public Parcel.ParcelCategory Category {
             get {
                 return _category;
             }
@@ -233,7 +233,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public OpenMetaverse.Parcel.ParcelStatus Status {
+        public Parcel.ParcelStatus Status {
             get {
                 return _status;
             }
@@ -314,7 +314,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public List<OpenMetaverse.ParcelManager.ParcelAccessEntry> ParcelAccessList {
+        public List<ParcelManager.ParcelAccessEntry> ParcelAccessList {
             get {
                 return _parcelAccessList;
             }

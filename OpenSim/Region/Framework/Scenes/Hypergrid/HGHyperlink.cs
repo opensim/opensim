@@ -26,13 +26,11 @@
  */
 
 using System;
-using System.Reflection;
 using System.Net;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenMetaverse;
+using System.Reflection;
 using log4net;
-using Nini.Config;
+using OpenMetaverse;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Scenes.Hypergrid
 {

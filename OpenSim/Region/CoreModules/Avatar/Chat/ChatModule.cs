@@ -27,14 +27,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net.Sockets;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using System.Threading;
-using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;

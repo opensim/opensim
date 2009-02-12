@@ -26,20 +26,10 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-using System.Reflection;
-using System.Xml;
-using OpenMetaverse;
-using log4net;
 using Nini.Config;
-using Nwc.XmlRpc;
-using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
 {
@@ -117,7 +107,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
                             foundResult = true;
                         }
                     }
-                } catch (System.InvalidOperationException)
+                } catch (InvalidOperationException)
                 {
 
                 }

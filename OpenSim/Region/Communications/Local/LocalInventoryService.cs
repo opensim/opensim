@@ -27,8 +27,8 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;

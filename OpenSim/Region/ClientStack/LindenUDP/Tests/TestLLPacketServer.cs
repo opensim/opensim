@@ -26,9 +26,7 @@
  */
 
 using System.Collections.Generic;
-using OpenMetaverse;
 using OpenMetaverse.Packets;
-using OpenSim.Region.ClientStack.LindenUDP;
 
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 { 

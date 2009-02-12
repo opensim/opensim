@@ -26,19 +26,14 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Timers;
-using System.Reflection;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
-using Timer = System.Timers.Timer;
 using OpenSim.Framework;
-using OpenSim.Region.ClientStack.LindenUDP;
-using log4net;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -96,7 +91,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Dictionary<uint, int> m_DupeTracker =
             new Dictionary<uint, int>();
         private uint m_DupeTrackerWindow = 30;
-        private int m_DupeTrackerLastCheck = System.Environment.TickCount;
+        private int m_DupeTrackerLastCheck = Environment.TickCount;
 
         // Values for the SimStatsReporter
         //
@@ -164,7 +159,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_Client = client;
             m_PacketServer = server;
-            m_DropSafeTimeout = System.Environment.TickCount + 15000;
+            m_DropSafeTimeout = Environment.TickCount + 15000;
 
             m_PacketQueue = new LLPacketQueue(client.AgentId, userSettings);
 
@@ -225,9 +220,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // acks being appended to the payload, just don't send
             // any with them until libsl is fixed.
             //
-            if (packet is OpenMetaverse.Packets.ViewerEffectPacket)
+            if (packet is ViewerEffectPacket)
                 return;
-            if (packet is OpenMetaverse.Packets.SimStatsPacket)
+            if (packet is SimStatsPacket)
                 return;
 
             // Add acks to outgoing packets
@@ -261,7 +256,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             item.Packet = packet;
             item.Incoming = false;
             item.throttleType = throttlePacketType;
-            item.TickCount = System.Environment.TickCount;
+            item.TickCount = Environment.TickCount;
             item.Identifier = id;
             item.Resends = 0;
             item.Length = packet.ToBytes().Length;
@@ -272,7 +267,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void ResendUnacked()
         {
-            int now = System.Environment.TickCount;
+            int now = Environment.TickCount;
 
             int intervalMs = 250;
 
@@ -341,7 +336,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
 
                             m_NeedAck[packet.Header.Sequence].TickCount =
-                                    System.Environment.TickCount;
+                                    Environment.TickCount;
 
                             QueuePacket(packet, ThrottleOutPacketType.Resend,
                                     data.Identifier);
@@ -463,10 +458,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (m_DupeTracker.Count < 1024)
                     return;
 
-                if (System.Environment.TickCount - m_DupeTrackerLastCheck < 2000)
+                if (Environment.TickCount - m_DupeTrackerLastCheck < 2000)
                     return;
 
-                m_DupeTrackerLastCheck = System.Environment.TickCount;
+                m_DupeTrackerLastCheck = Environment.TickCount;
 
                 Dictionary<uint, int> packs =
                     new Dictionary<uint, int>(m_DupeTracker);
@@ -673,7 +668,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 item.Packet = packet;
                 item.Incoming = false;
                 item.throttleType = 0;
-                item.TickCount = System.Environment.TickCount;
+                item.TickCount = Environment.TickCount;
                 item.Identifier = 0;
                 item.Resends = 0;
                 item.Length = packet.ToBytes().Length;
@@ -741,7 +736,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_UnackedBytes += item.Length;
 
                         // Keep track of when this packet was sent out
-                        item.TickCount = System.Environment.TickCount;
+                        item.TickCount = Environment.TickCount;
 
                         m_NeedAck[packet.Header.Sequence] = item;
                     }

@@ -28,15 +28,12 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Reflection;
-using System.Threading;
-using OpenMetaverse;
-using Mono.Data.SqliteClient;
 using log4net;
+using Mono.Data.SqliteClient;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Data.SQLite
 {
@@ -109,7 +106,7 @@ namespace OpenSim.Data.SQLite
                         else
                             m_FieldMap[name].SetValue(es, false);
                     }
-                    else if (m_FieldMap[name].GetValue(es) is OpenMetaverse.UUID)
+                    else if (m_FieldMap[name].GetValue(es) is UUID)
                     {
                         UUID uuid = UUID.Zero;
 

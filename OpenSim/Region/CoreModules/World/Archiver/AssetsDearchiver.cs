@@ -29,11 +29,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Xml;
-using OpenMetaverse;
 using log4net;
+using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -44,7 +44,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
+        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
 
         /// <summary>
         /// Store for asset data we received before we get the metadata

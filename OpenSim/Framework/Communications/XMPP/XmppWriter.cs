@@ -28,7 +28,6 @@
 using System.IO;
 using System.Text;
 using System.Xml;
-
 using IOStream = System.IO.Stream;
 
 namespace OpenSim.Framework.Communications.XMPP

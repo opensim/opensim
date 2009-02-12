@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -27,9 +27,7 @@
 
 using System;
 using System.IO;
-using System.Reflection;
 using System.Text;
-using log4net;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {

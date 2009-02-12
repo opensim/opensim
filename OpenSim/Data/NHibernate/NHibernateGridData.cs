@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -27,15 +27,14 @@
 
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using log4net;
 using System.Reflection;
-using OpenSim.Framework;
+using log4net;
 using NHibernate;
 using NHibernate.Criterion;
-using System.Collections;
 using OpenMetaverse;
+using OpenSim.Framework;
 
 namespace OpenSim.Data.NHibernate
 {
@@ -93,7 +92,7 @@ namespace OpenSim.Data.NHibernate
             }
         }
 
-        public override bool AuthenticateSim(OpenMetaverse.UUID UUID, ulong regionHandle, string simrecvkey)
+        public override bool AuthenticateSim(UUID UUID, ulong regionHandle, string simrecvkey)
         {
             bool throwHissyFit = false; // Should be true by 1.0
 
@@ -147,7 +146,7 @@ namespace OpenSim.Data.NHibernate
             return DataResponse.RESPONSE_ERROR;
         }
 
-        public override RegionProfileData GetProfileByUUID(OpenMetaverse.UUID UUID)
+        public override RegionProfileData GetProfileByUUID(UUID UUID)
         {
             return (RegionProfileData)manager.Load(typeof(RegionProfileData), UUID);
         }

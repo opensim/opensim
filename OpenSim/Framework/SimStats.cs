@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenMetaverse;
 using OpenMetaverse.Packets;
 
 namespace OpenSim.Framework
@@ -73,15 +74,15 @@ namespace OpenSim.Framework
         }
         private uint m_objectCapacity;
 
-        public OpenMetaverse.UUID RegionUUID
+        public UUID RegionUUID
         {
             get { return regionUUID;}   
         }
-        private OpenMetaverse.UUID regionUUID;
+        private UUID regionUUID;
                 
         public SimStats(
             uint regionX, uint regionY, uint regionFlags, uint objectCapacity, 
-            SimStatsPacket.RegionBlock regionBlock, SimStatsPacket.StatBlock[] statsBlock, OpenMetaverse.UUID pRUUID)
+            SimStatsPacket.RegionBlock regionBlock, SimStatsPacket.StatBlock[] statsBlock, UUID pRUUID)
         {
             regionUUID = pRUUID;
             m_regionX = regionX;

@@ -26,10 +26,11 @@
  */
 
 using System;
-using System.Text;
-using System.Reflection;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 using log4net;
 
 namespace OpenSim.Framework.Console
@@ -77,8 +78,8 @@ namespace OpenSim.Framework.Console
         /// <value>
         /// Commands organized by keyword in a tree
         /// </value>
-        private Dictionary<string, Object> tree =
-                new Dictionary<string, Object>();
+        private Dictionary<string, object> tree =
+                new Dictionary<string, object>();
 
         /// <summary>
         /// Get help for the given help string
@@ -149,7 +150,7 @@ namespace OpenSim.Framework.Console
             return help;
         }            
 
-        private List<string> CollectHelp(Dictionary<string, Object> dict)
+        private List<string> CollectHelp(Dictionary<string, object> dict)
         {
             List<string> result = new List<string>();
 
@@ -708,7 +709,7 @@ namespace OpenSim.Framework.Console
 
         public void LockOutput()
         {
-            System.Threading.Monitor.Enter(cmdline);
+            Monitor.Enter(cmdline);
             try
             {
                 if (y != -1)
@@ -738,7 +739,7 @@ namespace OpenSim.Framework.Console
                 y = System.Console.CursorTop;
                 Show();
             }
-            System.Threading.Monitor.Exit(cmdline);
+            Monitor.Exit(cmdline);
         }
 
         public void Output(string text)

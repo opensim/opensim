@@ -29,8 +29,6 @@ using System;
 using System.Collections;
 using System.Net;
 using System.Text.RegularExpressions;
-using System.Xml;
-using Nini;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using Nwc.XmlRpc;
@@ -61,7 +59,7 @@ namespace OpenSim.Framework.Communications.Tests
             IPEndPoint capsEndPoint = new IPEndPoint(IPAddress.Loopback, 9123);
 
             CommunicationsManager commsManager
-                = new TestCommunicationsManager(new OpenSim.Framework.NetworkServersInfo(42, 43));
+                = new TestCommunicationsManager(new NetworkServersInfo(42, 43));
 
             commsManager.GridService.RegisterRegion(
                 new RegionInfo(42, 43, capsEndPoint, regionExternalName));
@@ -89,7 +87,7 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(responseData["first_name"], Is.EqualTo(firstName));
             Assert.That(responseData["last_name"], Is.EqualTo(lastName));
             Assert.That(
-                responseData["circuit_code"], Is.GreaterThanOrEqualTo(0) & Is.LessThanOrEqualTo(System.Int32.MaxValue));
+                responseData["circuit_code"], Is.GreaterThanOrEqualTo(0) & Is.LessThanOrEqualTo(Int32.MaxValue));
 
             Regex capsSeedPattern
                 = new Regex("^http://"
@@ -108,7 +106,7 @@ namespace OpenSim.Framework.Communications.Tests
             IPEndPoint capsEndPoint = new IPEndPoint(IPAddress.Loopback, 9123);
 
             CommunicationsManager commsManager
-                = new TestCommunicationsManager(new OpenSim.Framework.NetworkServersInfo(42, 43));
+                = new TestCommunicationsManager(new NetworkServersInfo(42, 43));
 
             commsManager.GridService.RegisterRegion(
                 new RegionInfo(42, 43, capsEndPoint, regionExternalName));
@@ -159,7 +157,7 @@ namespace OpenSim.Framework.Communications.Tests
             Hashtable invlibroothash = (Hashtable) invlibroot[0];
             Assert.That(invlibroothash["folder_id"],Is.EqualTo("00000112-000f-0000-0000-000100bba000"));
             Assert.That(
-                responseData["circuit_code"], Is.GreaterThanOrEqualTo(0) & Is.LessThanOrEqualTo(System.Int32.MaxValue));
+                responseData["circuit_code"], Is.GreaterThanOrEqualTo(0) & Is.LessThanOrEqualTo(Int32.MaxValue));
             Assert.That(responseData["message"], Is.EqualTo("Hello folks"));
             Assert.That(responseData["buddy-list"], Is.Empty);
             Assert.That(responseData["start_location"], Is.EqualTo("last"));

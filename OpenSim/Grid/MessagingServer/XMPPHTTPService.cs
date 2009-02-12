@@ -27,10 +27,9 @@
 
 using System;
 using System.IO;
-using System.Net;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
+using OpenMetaverse;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.MessagingServer

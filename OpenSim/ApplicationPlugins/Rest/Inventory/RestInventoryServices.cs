@@ -27,18 +27,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Threading;
-using System.Xml;
-using System.Drawing;
 using System.Timers;
-using OpenSim.Framework;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
+using System.Xml;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
-using Nini.Config;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Servers;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
@@ -1931,19 +1931,19 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     switch (ic.xml.Name)
                     {
                         case "current":
-                            ic.CurrentPermissions  = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
+                            ic.CurrentPermissions  = UInt32.Parse(ic.xml.Value, NumberStyles.HexNumber);
                             break;
                         case "next":
-                            ic.NextPermissions     = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
+                            ic.NextPermissions     = UInt32.Parse(ic.xml.Value, NumberStyles.HexNumber);
                             break;
                         case "group":
-                            ic.GroupPermissions    = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
+                            ic.GroupPermissions    = UInt32.Parse(ic.xml.Value, NumberStyles.HexNumber);
                             break;
                         case "everyone":
-                            ic.EveryOnePermissions = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
+                            ic.EveryOnePermissions = UInt32.Parse(ic.xml.Value, NumberStyles.HexNumber);
                             break;
                         case "base":
-                            ic.BasePermissions     = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
+                            ic.BasePermissions     = UInt32.Parse(ic.xml.Value, NumberStyles.HexNumber);
                             break;
                         default:
                             Rest.Log.DebugFormat("{0} Permissions:  invalid attribute {1}:{2}",
@@ -2176,7 +2176,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             internal UserProfileData              userProfile = null;
             internal InventoryFolderBase                 root = null;
             internal bool                             timeout = false;
-            internal System.Timers.Timer             watchDog = new System.Timers.Timer();
+            internal Timer             watchDog = new Timer();
 
             internal InventoryRequestData(OSHttpRequest request, OSHttpResponse response, string prefix)
                 : base(request, response, prefix)

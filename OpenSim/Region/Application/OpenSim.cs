@@ -29,20 +29,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Reflection;
-using System.Runtime;
-using System.Threading;
-using OpenMetaverse;
+using System.Timers;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
-using Timer = System.Timers.Timer;
 
 namespace OpenSim
 {

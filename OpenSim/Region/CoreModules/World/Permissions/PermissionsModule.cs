@@ -25,19 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenMetaverse;
-using Nini.Config;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
-using OpenSim;
+using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.Framework;
-using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.CoreModules.World.Permissions
 {

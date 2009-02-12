@@ -27,8 +27,8 @@
 
 using System;
 using System.Collections;
-using OpenMetaverse;
 using Nwc.XmlRpc;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Data

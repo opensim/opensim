@@ -26,30 +26,20 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using System.Reflection;
-using System.Xml;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Statistics;
-using OpenSim.Region.ClientStack;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.Communications.Local;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
 using OpenSim.Region.Communications.Hypergrid;
-using OpenSim.Region.CoreModules;
+using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Framework;
-using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
-
-using Timer = System.Timers.Timer;
 
 namespace OpenSim
 {

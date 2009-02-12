@@ -29,12 +29,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
-using OpenMetaverse;
+using System.Threading;
 using log4net;
 using Nwc.XmlRpc;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using System.Threading;
 
 namespace OpenSim.Grid.UserServer
 {

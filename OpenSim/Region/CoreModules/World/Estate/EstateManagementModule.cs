@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,13 +25,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
-using System.Threading;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
-using OpenMetaverse;
+using System.Security;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -458,36 +460,36 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 TerrainUploader = null;
             }
             remoteClient.SendAlertMessage("Terrain Upload Complete. Loading....");
-            OpenSim.Region.CoreModules.World.Terrain.ITerrainModule terr = m_scene.RequestModuleInterface<OpenSim.Region.CoreModules.World.Terrain.ITerrainModule>();
+            ITerrainModule terr = m_scene.RequestModuleInterface<ITerrainModule>();
 
             if (terr != null)
             {
                 m_log.Warn("[CLIENT]: Got Request to Send Terrain in region " + m_scene.RegionInfo.RegionName);
-                if (System.IO.File.Exists(Util.dataDir() + "/terrain.raw"))
+                if (File.Exists(Util.dataDir() + "/terrain.raw"))
                 {
-                    System.IO.File.Delete(Util.dataDir() + "/terrain.raw");
+                    File.Delete(Util.dataDir() + "/terrain.raw");
                 }
                 try
                 {
-                    System.IO.FileStream input = new System.IO.FileStream(Util.dataDir() + "/terrain.raw", System.IO.FileMode.CreateNew);
+                    FileStream input = new FileStream(Util.dataDir() + "/terrain.raw", FileMode.CreateNew);
                     input.Write(terrainData, 0, terrainData.Length);
                     input.Close();
                 }
-                catch (System.IO.IOException e)
+                catch (IOException e)
                 {
                     m_log.ErrorFormat("[TERRAIN]: Error Saving a terrain file uploaded via the estate tools.  It gave us the following error: {0}", e.ToString());
                     remoteClient.SendAlertMessage("There was an IO Exception loading your terrain.  Please check free space");
 
                     return;
                 }
-                catch (System.Security.SecurityException e)
+                catch (SecurityException e)
                 {
                     m_log.ErrorFormat("[TERRAIN]: Error Saving a terrain file uploaded via the estate tools.  It gave us the following error: {0}", e.ToString());
                     remoteClient.SendAlertMessage("There was a security Exception loading your terrain.  Please check the security on the simulator drive");
 
                     return;
                 }
-                catch (System.UnauthorizedAccessException e)
+                catch (UnauthorizedAccessException e)
                 {
                     m_log.ErrorFormat("[TERRAIN]: Error Saving a terrain file uploaded via the estate tools.  It gave us the following error: {0}", e.ToString());
                     remoteClient.SendAlertMessage("There was a security Exception loading your terrain.  Please check the security on the simulator drive");
@@ -544,18 +546,18 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private void handleTerrainRequest(IClientAPI remote_client, string clientFileName)
         {
             // Save terrain here
-            OpenSim.Region.CoreModules.World.Terrain.ITerrainModule terr = m_scene.RequestModuleInterface<OpenSim.Region.CoreModules.World.Terrain.ITerrainModule>();
+            ITerrainModule terr = m_scene.RequestModuleInterface<ITerrainModule>();
             
             if (terr != null)
             {
                 m_log.Warn("[CLIENT]: Got Request to Send Terrain in region " + m_scene.RegionInfo.RegionName);
-                if (System.IO.File.Exists(Util.dataDir() + "/terrain.raw"))
+                if (File.Exists(Util.dataDir() + "/terrain.raw"))
                 {
-                    System.IO.File.Delete(Util.dataDir() + "/terrain.raw");
+                    File.Delete(Util.dataDir() + "/terrain.raw");
                 }
                 terr.SaveToFile(Util.dataDir() + "/terrain.raw");
 
-                System.IO.FileStream input = new System.IO.FileStream(Util.dataDir() + "/terrain.raw", System.IO.FileMode.Open);
+                FileStream input = new FileStream(Util.dataDir() + "/terrain.raw", FileMode.Open);
                 byte[] bdata = new byte[input.Length];
                 input.Read(bdata, 0, (int)input.Length);
                 remote_client.SendAlertMessage("Terrain file written, starting download...");

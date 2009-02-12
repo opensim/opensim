@@ -29,8 +29,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using OpenMetaverse;
 using log4net;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.CoreModules.World.Archiver

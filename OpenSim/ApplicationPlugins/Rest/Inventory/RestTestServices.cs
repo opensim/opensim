@@ -26,17 +26,10 @@
  * 
  */
 
-using OpenMetaverse;
-using Nini.Config;
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
-using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {

@@ -28,15 +28,12 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Reflection;
-using System.Threading;
-using OpenMetaverse;
 using log4net;
 using MySql.Data.MySqlClient;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Data.MySQL
 {
@@ -131,7 +128,7 @@ namespace OpenSim.Data.MySQL
                 cmd.Dispose();
             }
 
-            m_lastConnectionUse = System.DateTime.Now.Ticks;
+            m_lastConnectionUse = DateTime.Now.Ticks;
 
             m_log.DebugFormat(
                 "[REGION DB]: Connection wait timeout {0} seconds",
@@ -140,7 +137,7 @@ namespace OpenSim.Data.MySQL
 
         protected void CheckConnection()
         {
-            long timeNow = System.DateTime.Now.Ticks;
+            long timeNow = DateTime.Now.Ticks;
             if (timeNow - m_lastConnectionUse > m_waitTimeout ||
                     m_connection.State != ConnectionState.Open)
             {
@@ -185,7 +182,7 @@ namespace OpenSim.Data.MySQL
                         else
                             m_FieldMap[name].SetValue(es, false);
                     }
-                    else if (m_FieldMap[name].GetValue(es) is OpenMetaverse.UUID)
+                    else if (m_FieldMap[name].GetValue(es) is UUID)
                     {
                         UUID uuid = UUID.Zero;
 

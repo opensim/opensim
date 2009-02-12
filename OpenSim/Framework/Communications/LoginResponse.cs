@@ -29,10 +29,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Communications
 {

@@ -31,17 +31,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using System.Text;
 using System.Xml;
-using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenMetaverse.Packets;
 
 namespace OpenSim.Region.DataSnapshot
 {
@@ -51,7 +49,7 @@ namespace OpenSim.Region.DataSnapshot
         //Information from config
         private bool m_enabled = false;
         private bool m_configLoaded = false;
-        private List<String> m_disabledModules = new List<String>();
+        private List<string> m_disabledModules = new List<string>();
         private Dictionary<string, string> m_gridinfo = new Dictionary<string, string>();
         private string m_snapsDir = "DataSnapshot";
         private string m_exposure_level = "minimum";
@@ -123,7 +121,7 @@ namespace OpenSim.Region.DataSnapshot
                         {
                             m_disabledModules.Add(bloody_wanker);
                         }
-                        m_lastUpdate = System.Environment.TickCount;
+                        m_lastUpdate = Environment.TickCount;
                     }
                     catch (Exception)
                     {
@@ -363,26 +361,26 @@ namespace OpenSim.Region.DataSnapshot
         private void CheckStale()
         {
             // Wrap check
-            if (System.Environment.TickCount < m_lastUpdate)
+            if (Environment.TickCount < m_lastUpdate)
             {
-                m_lastUpdate = System.Environment.TickCount;
+                m_lastUpdate = Environment.TickCount;
             }
 
             if (m_stales >= m_maxStales)
             {
-                if (System.Environment.TickCount - m_lastUpdate >= 20000)
+                if (Environment.TickCount - m_lastUpdate >= 20000)
                 {
                     m_stales = 0;
-                    m_lastUpdate = System.Environment.TickCount;
+                    m_lastUpdate = Environment.TickCount;
                     MakeEverythingStale();
                 }
             }
             else
             {
-                if (m_lastUpdate + 1000 * m_period < System.Environment.TickCount)
+                if (m_lastUpdate + 1000 * m_period < Environment.TickCount)
                 {
                     m_stales = 0;
-                    m_lastUpdate = System.Environment.TickCount;
+                    m_lastUpdate = Environment.TickCount;
                     MakeEverythingStale();
                 }
             }

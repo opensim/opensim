@@ -291,7 +291,7 @@ namespace OpenSim.Framework.Communications
                 {
                     _response = (HttpWebResponse) _request.GetResponse();
                 }
-                catch (System.Net.WebException e)
+                catch (WebException e)
                 {
                     m_log.ErrorFormat("[ASSET] Error fetching asset from asset server");
                     m_log.Debug(e.ToString());

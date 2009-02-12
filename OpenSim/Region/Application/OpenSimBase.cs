@@ -28,11 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Reflection;
 using System.Text;
-using System.Threading;
-using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -44,7 +41,6 @@ using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
-using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -446,7 +442,7 @@ namespace OpenSim
 
                 // Carrying on now causes a lot of confusion down the
                 // line - we need to get the user's attention
-                System.Environment.Exit(1);
+                Environment.Exit(1);
             }
 
             // We need to do this after we've initialized the

@@ -30,7 +30,6 @@ using System.Net.Sockets;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.ClientStack
 {

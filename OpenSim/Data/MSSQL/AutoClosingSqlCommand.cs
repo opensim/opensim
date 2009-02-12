@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Data.SqlClient;
 using System.Data;
+using System.Data.SqlClient;
 
 namespace OpenSim.Data.MSSQL
 {

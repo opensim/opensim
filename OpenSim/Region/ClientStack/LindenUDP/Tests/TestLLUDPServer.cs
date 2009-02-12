@@ -30,8 +30,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using OpenMetaverse.Packets;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {

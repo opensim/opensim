@@ -28,10 +28,7 @@
 using System;
 using System.Collections.Generic;
 using OpenMetaverse;
-using OSD = OpenMetaverse.StructuredData.OSD;
-using OSDMap = OpenMetaverse.StructuredData.OSDMap;
-using OSDArray = OpenMetaverse.StructuredData.OSDArray;
-using OSDParser = OpenMetaverse.StructuredData.OSDParser;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
@@ -108,13 +105,13 @@ namespace OpenSim.Framework
             if (args["caps_path"] != null)
                 CapsPath = args["caps_path"].AsString();
 
-            if ((args["children_seeds"] != null) && (args["children_seeds"].Type == OpenMetaverse.StructuredData.OSDType.Array))
+            if ((args["children_seeds"] != null) && (args["children_seeds"].Type == OSDType.Array))
             {
                 OSDArray childrenSeeds = (OSDArray)(args["children_seeds"]);
                 ChildrenCapSeeds = new Dictionary<ulong, string>();
                 foreach (OSD o in childrenSeeds)
                 {
-                    if (o.Type == OpenMetaverse.StructuredData.OSDType.Map)
+                    if (o.Type == OSDType.Map)
                     {
                         ulong handle = 0;
                         string seed = "";

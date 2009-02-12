@@ -27,8 +27,8 @@
 
 using System;
 using System.Collections.Generic;
-using OpenMetaverse;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -42,7 +42,7 @@ namespace OpenSim.Region.CoreModules
 
         private int m_frame = 0;
         private int m_frame_mod = 150;
-        private Random rndnums = new Random(System.Environment.TickCount);
+        private Random rndnums = new Random(Environment.TickCount);
         private Scene m_scene = null;
         private bool ready = false;
         private Vector2[] windSpeeds = new Vector2[16 * 16];

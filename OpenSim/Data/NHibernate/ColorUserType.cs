@@ -27,12 +27,10 @@
 
 using System;
 using System.Data;
-using OpenMetaverse;
-using OpenSim.Framework;
+using System.Drawing;
 using NHibernate;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
-using System.Drawing;
 
 namespace OpenSim.Data.NHibernate
 {

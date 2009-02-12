@@ -25,10 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Reflection;
 using System.Collections.Generic;
 using OpenMetaverse;
-using log4net;
 using OpenSim.Framework;
 
 namespace OpenSim.Data

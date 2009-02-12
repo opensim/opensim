@@ -26,14 +26,8 @@
  */
 
 using System;
-using System.IO;
-using System.Reflection;
-using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.Framework.Scenes;
-
 
 namespace OpenSim.Region.CoreModules.World.Estate
 {

@@ -30,18 +30,17 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using OpenSim.Framework;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
+using log4net;
 using Nini.Config;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
     public class Rest
     {
-        internal static readonly log4net.ILog Log =
-            log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        internal static readonly ILog Log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         internal static bool DEBUG = Log.IsDebugEnabled;
 
@@ -468,25 +467,25 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         public static void Dump(byte[] data)
         {
-            char[] buffer = new char[Rest.DumpLineSize];
+            char[] buffer = new char[DumpLineSize];
             int cc = 0;
 
             for (int i = 0; i < data.Length; i++)
             {
-                if (i % Rest.DumpLineSize == 0) Console.Write("\n{0}: ",i.ToString("d8"));
+                if (i % DumpLineSize == 0) Console.Write("\n{0}: ",i.ToString("d8"));
 
                 if (i % 4  == 0) Console.Write(" ");
 
                 Console.Write("{0}",data[i].ToString("x2"));
 
                 if (data[i] < 127 && data[i] > 31)
-                    buffer[i % Rest.DumpLineSize] = (char) data[i];
+                    buffer[i % DumpLineSize] = (char) data[i];
                 else
-                    buffer[i % Rest.DumpLineSize] = '.';
+                    buffer[i % DumpLineSize] = '.';
 
                 cc++;
 
-                if (i != 0 && (i + 1) % Rest.DumpLineSize == 0)
+                if (i != 0 && (i + 1) % DumpLineSize == 0)
                 {
                     Console.Write(" |"+(new String(buffer))+"|");
                     cc = 0;
@@ -497,11 +496,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (cc != 0)
             {
-                for (int i = cc ; i < Rest.DumpLineSize; i++)
+                for (int i = cc ; i < DumpLineSize; i++)
                 {
                     if (i % 4  == 0) Console.Write(" ");
                     Console.Write("  ");
-                    buffer[i % Rest.DumpLineSize] = ' ';
+                    buffer[i % DumpLineSize] = ' ';
                 }
                 Console.WriteLine(" |"+(new String(buffer))+"|");
             }

@@ -25,12 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.World.Serialiser;
-using OpenSim.Region.CoreModules.World.Terrain;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,9 +32,12 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
-using OpenMetaverse;
 using log4net;
-using Nini.Config;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Region.CoreModules.World.Terrain;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {

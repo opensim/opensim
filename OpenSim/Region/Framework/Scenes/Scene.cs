@@ -30,26 +30,22 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Xml;
+using System.Text;
 using System.Threading;
 using System.Timers;
+using System.Xml;
+using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
-using OpenMetaverse.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
-using Nini.Config;
-using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
-using Image = System.Drawing.Image;
+using Timer=System.Timers.Timer;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
-using Timer = System.Timers.Timer;
-using OSD = OpenMetaverse.StructuredData.OSD;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -776,7 +772,7 @@ namespace OpenSim.Region.Framework.Scenes
             int maintc = 0;
             while (!shuttingdown)
             {
-                maintc = System.Environment.TickCount;
+                maintc = Environment.TickCount;
 
                 TimeSpan SinceLastFrame = DateTime.Now - m_lastupdate;
                 // Aquire a lock so only one update call happens at once
@@ -802,7 +798,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                frameMS = System.Environment.TickCount;
+                frameMS = Environment.TickCount;
                 try
                 {
                     // Increment the frame counter
@@ -812,15 +808,15 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_frame == Int32.MaxValue)
                         m_frame = 0;
 
-                    physicsMS2 = System.Environment.TickCount;
+                    physicsMS2 = Environment.TickCount;
                     if ((m_frame % m_update_physics == 0) && m_physics_enabled)
                         m_sceneGraph.UpdatePreparePhysics();
-                    physicsMS2 = System.Environment.TickCount - physicsMS2;
+                    physicsMS2 = Environment.TickCount - physicsMS2;
 
                     if (m_frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateEntityMovement();
 
-                    physicsMS = System.Environment.TickCount;
+                    physicsMS = Environment.TickCount;
                     if ((m_frame % m_update_physics == 0) && m_physics_enabled)
                         physicsFPS = m_sceneGraph.UpdatePhysics(
                             Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
@@ -828,10 +824,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_frame % m_update_physics == 0 && SynchronizeScene != null)
                         SynchronizeScene(this);
 
-                    physicsMS = System.Environment.TickCount - physicsMS;
+                    physicsMS = Environment.TickCount - physicsMS;
                     physicsMS += physicsMS2;
 
-                    otherMS = System.Environment.TickCount;
+                    otherMS = Environment.TickCount;
                     // run through all entities looking for updates (slow)
                     if (m_frame % m_update_entities == 0)
                         m_sceneGraph.UpdateEntities();
@@ -864,7 +860,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (m_frame % m_update_land == 0)
                             UpdateLand();
-                        otherMS = System.Environment.TickCount - otherMS;
+                        otherMS = Environment.TickCount - otherMS;
                         // if (m_frame%m_update_avatars == 0)
                         //   UpdateInWorldTime();
                         StatsReporter.AddPhysicsFPS(physicsFPS);
@@ -875,7 +871,7 @@ namespace OpenSim.Region.Framework.Scenes
                         StatsReporter.SetChildAgents(m_sceneGraph.GetChildAgentCount());
                         StatsReporter.SetObjects(m_sceneGraph.GetTotalObjectsCount());
                         StatsReporter.SetActiveObjects(m_sceneGraph.GetActiveObjectsCount());
-                        frameMS = System.Environment.TickCount - frameMS;
+                        frameMS = Environment.TickCount - frameMS;
                         StatsReporter.addFrameMS(frameMS);
                         StatsReporter.addPhysicsMS(physicsMS);
                         StatsReporter.addOtherMS(otherMS);
@@ -919,7 +915,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     m_lastupdate = DateTime.Now;
                 }
-                maintc = System.Environment.TickCount - maintc;
+                maintc = Environment.TickCount - maintc;
                 maintc = (int)(m_timespan * 1000) - maintc;
 
                 if ((maintc < (m_timespan * 1000)) && maintc > 0)
@@ -1184,7 +1180,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 #region Fallback default maptile generation
 
-                int tc = System.Environment.TickCount;
+                int tc = Environment.TickCount;
                 m_log.Info("[MAPTILE]: Generating Maptile Step 1: Terrain");
                 Bitmap mapbmp = new Bitmap(256, 256);
                 double[,] hm = Heightmap.GetDoubles();
@@ -1301,7 +1297,7 @@ namespace OpenSim.Region.Framework.Scenes
                                                 hfdiffi = hfdiffi + Math.Abs((int)(((hfdiff % 1) * 0.5f) * 10f) - 1);
                                             }
                                         }
-                                        catch (System.OverflowException)
+                                        catch (OverflowException)
                                         {
                                             m_log.Debug("[MAPTILE]: Shadow failed at value: " + hfdiff.ToString());
                                             ShadowDebugContinue = false;
@@ -1325,7 +1321,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     }
                                 }
                             }
-                            catch (System.ArgumentException)
+                            catch (ArgumentException)
                             {
                                 if (!terraincorruptedwarningsaid)
                                 {
@@ -1361,7 +1357,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 Color water = Color.FromArgb((int)heightvalue, (int)heightvalue, 255);
                                 mapbmp.SetPixel(x, (256 - y) - 1, water);
                             }
-                            catch (System.ArgumentException)
+                            catch (ArgumentException)
                             {
                                 if (!terraincorruptedwarningsaid)
                                 {
@@ -1379,7 +1375,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //m_log.Info("[MAPTILE]: Completed One row in " + tc + " ms");
                 }
 
-                m_log.Info("[MAPTILE]: Generating Maptile Step 1: Done in " + (System.Environment.TickCount - tc) + " ms");
+                m_log.Info("[MAPTILE]: Generating Maptile Step 1: Done in " + (Environment.TickCount - tc) + " ms");
 
                 bool drawPrimVolume = true;
 
@@ -1395,7 +1391,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (drawPrimVolume)
                 {
-                    tc = System.Environment.TickCount;
+                    tc = Environment.TickCount;
                     m_log.Info("[MAPTILE]: Generating Maptile Step 2: Object Volume Profile");
                     List<EntityBase> objs = GetEntities();
 
@@ -1547,7 +1543,7 @@ namespace OpenSim.Region.Framework.Scenes
                         } // foreach loop over entities
                     } // lock entities objs
 
-                    m_log.Info("[MAPTILE]: Generating Maptile Step 2: Done in " + (System.Environment.TickCount - tc) + " ms");
+                    m_log.Info("[MAPTILE]: Generating Maptile Step 2: Done in " + (Environment.TickCount - tc) + " ms");
                 } // end if drawPrimOnMaptle
 
                 byte[] data;
@@ -2146,7 +2142,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     string spath = Path.Combine("ScriptEngines", RegionInfo.RegionID.ToString());
                                     spath = Path.Combine(spath, uuid.ToString());
                                     FileStream sfs = File.Create(spath + ".state");
-                                    System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                                    ASCIIEncoding enc = new ASCIIEncoding();
                                     Byte[] buf = enc.GetBytes(sdoc.InnerXml);
                                     sfs.Write(buf, 0, buf.Length);
                                     sfs.Close();
@@ -2350,7 +2346,7 @@ namespace OpenSim.Region.Framework.Scenes
                 CreateAndAddScenePresence(client);
             }
 
-            m_LastLogin = System.Environment.TickCount;
+            m_LastLogin = Environment.TickCount;
             EventManager.TriggerOnNewClient(client);
         }
 
@@ -2891,7 +2887,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_sceneGridService.SendCloseChildAgentConnections(loggingOffUser.UUID, new List<ulong>(loggingOffUser.KnownRegions.Keys));
                     loggingOffUser.ControllingClient.Kick(message);
                     // Give them a second to receive the message!
-                    System.Threading.Thread.Sleep(1000);
+                    Thread.Sleep(1000);
                     loggingOffUser.ControllingClient.Close(true);
                 }
                 else
@@ -4157,7 +4153,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // A login in the last 4 mins? We can't be doing too badly
             //
-            if ((System.Environment.TickCount - m_LastLogin) < 240000)
+            if ((Environment.TickCount - m_LastLogin) < 240000)
                 health++;
 
             return 0;

@@ -25,16 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections;
-using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using OpenMetaverse;
 using log4net;
-using NHibernate;
+using OpenMetaverse;
 using OpenSim.Framework;
-using Environment=NHibernate.Cfg.Environment;
 
 namespace OpenSim.Data.NHibernate
 {

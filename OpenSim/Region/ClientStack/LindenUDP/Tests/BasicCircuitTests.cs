@@ -26,17 +26,13 @@
  */
 
 using System.Net;
-using System.Threading;
-using log4net;
+using log4net.Config;
 using Nini.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Region.ClientStack;
-using OpenSim.Region.ClientStack.LindenUDP;
 
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {
@@ -51,7 +47,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         {
             try
             {
-                log4net.Config.XmlConfigurator.Configure();
+                XmlConfigurator.Configure();
             }
             catch
             {
@@ -118,7 +114,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             UseCircuitCodePacket uccp = new UseCircuitCodePacket();
             
             UseCircuitCodePacket.CircuitCodeBlock uccpCcBlock 
-                = new OpenMetaverse.Packets.UseCircuitCodePacket.CircuitCodeBlock();
+                = new UseCircuitCodePacket.CircuitCodeBlock();
             uccpCcBlock.Code = circuitCode;
             uccpCcBlock.ID = agentId;
             uccpCcBlock.SessionID = sessionId;
@@ -169,7 +165,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             UseCircuitCodePacket uccp = new UseCircuitCodePacket();
             
             UseCircuitCodePacket.CircuitCodeBlock uccpCcBlock 
-                = new OpenMetaverse.Packets.UseCircuitCodePacket.CircuitCodeBlock();
+                = new UseCircuitCodePacket.CircuitCodeBlock();
             uccpCcBlock.Code = myCircuitCode;
             uccpCcBlock.ID = myAgentUuid;
             uccpCcBlock.SessionID = mySessionUuid;

@@ -27,8 +27,10 @@
 
 using System;
 using System.Collections.Generic;
-using OpenMetaverse;
+using System.Reflection;
+using log4net;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -38,7 +40,7 @@ namespace OpenSim.Region.CoreModules
     public class SunModule : IRegionModule
     {
 
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const double SeasonalTilt   =  0.03 * Math.PI;  // A daily shift of approximately 1.7188 degrees
         private const double AverageTilt    = -0.25 * Math.PI;  // A 45 degree tilt
@@ -104,7 +106,7 @@ namespace OpenSim.Region.CoreModules
         private ulong CurrentTime
         {
             get {
-                return (ulong)(((System.DateTime.Now.Ticks) - TicksToEpoch + TicksOffset + LindenHourOffset)/10000000);
+                return (ulong)(((DateTime.Now.Ticks) - TicksToEpoch + TicksOffset + LindenHourOffset)/10000000);
             }
         }
 
@@ -161,7 +163,7 @@ namespace OpenSim.Region.CoreModules
 
             // Align ticks with Second Life
 
-            TicksToEpoch = new System.DateTime(1970,1,1).Ticks;
+            TicksToEpoch = new DateTime(1970,1,1).Ticks;
 
             // Just in case they don't have the stanzas
             try

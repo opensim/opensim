@@ -27,8 +27,6 @@
 
 using System;
 using System.Data;
-using OpenMetaverse;
-using OpenSim.Framework;
 using NHibernate;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;

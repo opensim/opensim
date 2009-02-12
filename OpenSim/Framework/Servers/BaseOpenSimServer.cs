@@ -38,6 +38,7 @@ using log4net.Core;
 using log4net.Repository;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.Framework.Servers
 {
@@ -52,7 +53,7 @@ namespace OpenSim.Framework.Servers
         /// This will control a periodic log printout of the current 'show stats' (if they are active) for this
         /// server.
         /// </summary>
-        private System.Timers.Timer m_periodicDiagnosticsTimer = new System.Timers.Timer(60 * 60 * 1000);
+        private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
 
         protected ConsoleBase m_console;
 
@@ -266,7 +267,7 @@ namespace OpenSim.Framework.Servers
 
             // If there is no threshold set then the threshold is effectively everything.
             Level thresholdLevel
-                = (null != consoleAppender.Threshold ? consoleAppender.Threshold : log4net.Core.Level.All);
+                = (null != consoleAppender.Threshold ? consoleAppender.Threshold : Level.All);
 
             Notice(String.Format("Console log level is {0}", thresholdLevel));
         }

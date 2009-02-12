@@ -29,11 +29,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using GlynnTucker.Cache;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
-using log4net;
 using OpenSim.Framework.Statistics;
-using GlynnTucker.Cache;
 
 namespace OpenSim.Framework.Communications.Cache
 {

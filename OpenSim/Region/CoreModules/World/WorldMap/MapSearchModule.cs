@@ -24,17 +24,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-using System;
-using System.Reflection;
 using System.Collections.Generic;
-using System.Net;
+using System.Reflection;
+using log4net;
+using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
-using OpenMetaverse;
-using log4net;
-using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.World.WorldMap
 {

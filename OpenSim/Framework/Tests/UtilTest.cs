@@ -25,9 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenMetaverse;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
+using OpenMetaverse;
 using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Tests

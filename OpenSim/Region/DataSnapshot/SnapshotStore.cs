@@ -27,12 +27,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Xml;
-using System.IO;
-using OpenSim.Region.Framework.Scenes;
+using log4net;
 using OpenSim.Region.DataSnapshot.Interfaces;
-using OpenMetaverse;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.DataSnapshot
 {
@@ -42,7 +43,7 @@ namespace OpenSim.Region.DataSnapshot
         private String m_directory = "unyuu"; //not an attempt at adding RM references to core SVN, honest
         private Dictionary<Scene, bool> m_scenes = null;
         private List<IDataSnapshotProvider> m_providers = null;
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Dictionary<String, String> m_gridinfo = null;
         private bool m_cacheEnabled = true;
         private string m_listener_port = "9000"; //TODO: Set default port over 9000

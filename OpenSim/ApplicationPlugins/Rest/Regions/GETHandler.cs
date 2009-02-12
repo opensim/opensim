@@ -26,27 +26,12 @@
  */
 
 using System;
-using System.Threading;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using System.Timers;
-using System.Xml;
 using System.Xml.Serialization;
 using OpenMetaverse;
-using Mono.Addins;
-using Nwc.XmlRpc;
-using Nini.Config;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.ApplicationPlugins.Rest;
 
 namespace OpenSim.ApplicationPlugins.Rest.Regions
 {

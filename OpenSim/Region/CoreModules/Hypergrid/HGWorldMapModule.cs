@@ -27,35 +27,15 @@
  */
 
 
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Net;
 using System.Reflection;
-using System.Threading;
-using OpenMetaverse;
-using OpenMetaverse.Imaging;
-using OpenMetaverse.StructuredData;
 using log4net;
 using Nini.Config;
-using Nwc.XmlRpc;
-
+using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Communications.Capabilities;
-using OpenSim.Framework.Servers;
+using OpenSim.Region.CoreModules.World.WorldMap;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Scenes.Types;
-using OpenSim.Region.CoreModules.World.WorldMap;
-using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
-
-using OSD = OpenMetaverse.StructuredData.OSD;
-using OSDMap = OpenMetaverse.StructuredData.OSDMap;
-using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 
 namespace OpenSim.Region.CoreModules.Hypergrid
 {

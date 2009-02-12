@@ -28,8 +28,8 @@
 using System;
 using System.Data;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Data.MSSQL
@@ -71,7 +71,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="connectionString">connect string</param>
         override public void Initialise(string connectionString)
         {
-            TicksToEpoch = new System.DateTime(1970, 1, 1).Ticks;
+            TicksToEpoch = new DateTime(1970, 1, 1).Ticks;
 
             if (!string.IsNullOrEmpty(connectionString))
             {
@@ -162,7 +162,7 @@ namespace OpenSim.Data.MSSQL
                     " VALUES " +
                     "(@id, @name, @description, @assetType, @local, @temporary, @create_time, @access_time, @data)"))
             {
-                int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
+                int now = (int)((DateTime.Now.Ticks - TicksToEpoch) / 10000000);
                 command.Parameters.Add(database.CreateParameter("id", asset.Metadata.FullID));
                 command.Parameters.Add(database.CreateParameter("name", asset.Metadata.Name));
                 command.Parameters.Add(database.CreateParameter("description", asset.Metadata.Description));

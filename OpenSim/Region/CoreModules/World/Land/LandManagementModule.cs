@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -29,16 +29,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications.Capabilities;
+using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Framework;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Region.Physics.Manager;
-using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
+using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.CoreModules.World.Land
 {

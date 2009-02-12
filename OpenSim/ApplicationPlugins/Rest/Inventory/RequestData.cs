@@ -26,17 +26,14 @@
  */
 
 using System;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using OpenMetaverse;
-using System.Xml;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {

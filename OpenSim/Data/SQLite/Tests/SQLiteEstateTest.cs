@@ -25,16 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.IO;
-using System.Collections.Generic;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
-using OpenSim.Framework;
 using OpenSim.Data.Tests;
-using OpenSim.Data.SQLite;
-using OpenSim.Region.Framework.Scenes;
-using OpenMetaverse;
 
 namespace OpenSim.Data.SQLite.Tests
 {

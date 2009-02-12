@@ -25,20 +25,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using log4net;
-using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.RegionLoader.Filesystem;
 using OpenSim.Framework.RegionLoader.Web;
-
-using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
+using OpenSim.Region.CoreModules.Agent.AssetTransaction;
 using OpenSim.Region.CoreModules.Avatar.InstantMessage;
+using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
 using OpenSim.Region.CoreModules.Scripting.LoadImageURL;
 using OpenSim.Region.CoreModules.Scripting.XMLRPC;
-using OpenSim.Region.CoreModules.Agent.AssetTransaction;
 
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {
@@ -88,7 +87,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             if (!CheckRegionsForSanity(regionsToLoad))
             {
                 m_log.Error("[LOADREGIONS]: Halting startup due to conflicts in region configurations");
-                System.Environment.Exit(1);
+                Environment.Exit(1);
             }
 
             for (int i = 0; i < regionsToLoad.Length; i++)

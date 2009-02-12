@@ -30,12 +30,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Xml;
 using log4net;
+using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.World.Land;
-using OpenSim.Framework;
-using OpenMetaverse;
 
 namespace OpenSim.Region.DataSnapshot.Providers
 {

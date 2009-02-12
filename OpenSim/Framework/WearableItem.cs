@@ -132,7 +132,7 @@ namespace OpenSim.Framework
                 //int randNum = Util.RandomClass.Next(0, 1000);
                 float range = setting.VisualParam.MaxValue - setting.VisualParam.MinValue;
                 // float val =((float) randNum )/ ((float)(1000.0f / range));
-                float val = (float)OpenSim.Framework.Util.RandomClass.NextDouble() * range * 0.2f;
+                float val = (float)Util.RandomClass.NextDouble() * range * 0.2f;
                 setting.Value = setting.VisualParam.MinValue + (range / 2) + val;
             }
         }

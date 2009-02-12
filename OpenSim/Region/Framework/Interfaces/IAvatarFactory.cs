@@ -27,7 +27,6 @@
 
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Interfaces
 {

@@ -28,7 +28,6 @@
 
 using System.IO;
 using OpenMetaverse;
-using OpenSim.Framework;
 
 namespace OpenSim.Region.CoreModules.World.Terrain
 {

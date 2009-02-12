@@ -28,8 +28,8 @@
 using System;
 using System.Reflection;
 using System.Runtime.Remoting;
-using OpenMetaverse;
 using log4net;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Communications.OGS1

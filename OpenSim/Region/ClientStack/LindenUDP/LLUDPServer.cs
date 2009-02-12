@@ -31,11 +31,10 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using OpenMetaverse.Packets;
 using log4net;
 using Nini.Config;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
@@ -304,7 +303,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // the next set of UDP data is for a valid client.         
                 ResetServerEndPoint(e);
             }
-            catch (System.ObjectDisposedException)
+            catch (ObjectDisposedException)
             {
                 m_log.Info("[UDPSERVER]: UDP Object disposed.   No need to worry about this if you're restarting the simulator.");
             }            

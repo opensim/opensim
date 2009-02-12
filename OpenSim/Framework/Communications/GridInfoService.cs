@@ -34,7 +34,6 @@ using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications
 {

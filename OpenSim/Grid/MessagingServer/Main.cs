@@ -28,12 +28,9 @@
 using System;
 using System.IO;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
 using log4net.Config;
-
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 

@@ -31,13 +31,12 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
-using OpenMetaverse;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using System.Collections;
 
 /*****************************************************
  *

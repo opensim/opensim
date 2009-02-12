@@ -24,18 +24,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Net;
-using System.Threading;
-using OpenMetaverse;
+using System.Reflection;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
+using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -344,7 +341,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of region startup for region {0}", scene.RegionInfo.RegionName);
                 }
             }
-            catch (System.Net.WebException)
+            catch (WebException)
             {
                 m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of region startup for region {0}", scene.RegionInfo.RegionName);
             }
@@ -367,7 +364,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of region shutdown for region {0}", scene.RegionInfo.RegionName);
                 }
             }
-            catch (System.Net.WebException)
+            catch (WebException)
             {
                 m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of region shutdown for region {0}", scene.RegionInfo.RegionName);
             }
@@ -392,7 +389,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of agent location for {0}", agentID.ToString());
                 }
             }
-            catch (System.Net.WebException)
+            catch (WebException)
             {
                 m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of agent location for {0}", agentID.ToString());
             }
@@ -417,7 +414,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of agent leaving for {0}", agentID.ToString());
                 }
             }
-            catch (System.Net.WebException)
+            catch (WebException)
             {
                 m_log.ErrorFormat("[PRESENCE]: Failed to notify message server of agent leaving for {0}", agentID.ToString());
             }

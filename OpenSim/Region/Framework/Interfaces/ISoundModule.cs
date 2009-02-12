@@ -26,7 +26,6 @@
  */
 
 using System;
-using Nini.Config;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces

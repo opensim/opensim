@@ -31,15 +31,10 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-
 using HttpServer;
-using HttpServer.Exceptions;
 using HttpServer.FormDecoders;
-
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
-
-using OpenSim.Framework.Servers;
 
 namespace OpenSim.Framework.Servers.Tests
 {
@@ -47,7 +42,7 @@ namespace OpenSim.Framework.Servers.Tests
     public class OSHttpTests
     {
         // we need an IHttpClientContext for our tests
-        public class TestHttpClientContext: HttpServer.IHttpClientContext
+        public class TestHttpClientContext: IHttpClientContext
         {
             private bool _secured;
             public bool Secured
@@ -68,7 +63,7 @@ namespace OpenSim.Framework.Servers.Tests
             public void Send(byte[] buffer, int offset, int size) {}
         }
 
-        public class TestHttpRequest: HttpServer.IHttpRequest
+        public class TestHttpRequest: IHttpRequest
         {
             public bool BodyIsComplete 
             { 

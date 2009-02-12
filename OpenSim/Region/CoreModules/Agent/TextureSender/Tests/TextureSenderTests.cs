@@ -26,12 +26,10 @@
  */
 
 using System;
-using System.Collections;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.CoreModules.Agent.TextureSender;
 using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.CoreModules.Agent.TextureSender

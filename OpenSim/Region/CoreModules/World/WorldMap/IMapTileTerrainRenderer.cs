@@ -26,8 +26,8 @@
  */
 
 using System.Drawing;
-using OpenSim.Region.Framework.Scenes;
 using Nini.Config;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.WorldMap
 {

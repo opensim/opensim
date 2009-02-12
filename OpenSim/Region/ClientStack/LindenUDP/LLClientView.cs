@@ -33,17 +33,16 @@ using System.Text;
 using System.Threading;
 using System.Timers;
 using System.Xml;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
-using OpenMetaverse.StructuredData;
-using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using Timer = System.Timers.Timer;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -474,7 +473,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler.OnPacketStats += PopulateStats;
 
             RegisterLocalPacketHandlers();
-            m_imageManager = new LLImageManager(this, m_assetCache,Scene.RequestModuleInterface<OpenSim.Region.Framework.Interfaces.IJ2KDecoder>());
+            m_imageManager = new LLImageManager(this, m_assetCache,Scene.RequestModuleInterface<IJ2KDecoder>());
         }
 
         public void SetDebugPacketLevel(int newDebugPacketLevel)
@@ -1230,7 +1229,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             fromAgent, toAgent, false, false, false);
                     }
 
-                    System.Console.WriteLine("SendInstantMessage: " + msg);
+                    Console.WriteLine("SendInstantMessage: " + msg);
                 }
                 else
                     OutPacket(msg, ThrottleOutPacketType.Task);
@@ -6857,15 +6856,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                               groupTitlesRequest.AgentData.GroupID);
 
                         groupTitlesReply.GroupData =
-                            new GroupTitlesReplyPacket.
-                                GroupDataBlock[titles.Count];
+                            new GroupTitlesReplyPacket.GroupDataBlock[titles.Count];
 
                         int i = 0;
                         foreach (GroupTitlesData d in titles)
                         {
                             groupTitlesReply.GroupData[i] =
-                                new GroupTitlesReplyPacket.
-                                    GroupDataBlock();
+                                new GroupTitlesReplyPacket.GroupDataBlock();
 
                             groupTitlesReply.GroupData[i].Title =
                                 Utils.StringToBytes(d.Name);
@@ -6980,8 +6977,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         groupRolesReply.AgentData.AgentID = AgentId;
 
                         groupRolesReply.GroupData =
-                            new GroupRoleDataReplyPacket.
-                                GroupDataBlock();
+                            new GroupRoleDataReplyPacket.GroupDataBlock();
 
                         groupRolesReply.GroupData.GroupID =
                             groupRolesRequest.GroupData.GroupID;
@@ -6997,15 +6993,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             titles.Count;
 
                         groupRolesReply.RoleData =
-                            new GroupRoleDataReplyPacket.
-                                RoleDataBlock[titles.Count];
+                            new GroupRoleDataReplyPacket.RoleDataBlock[titles.Count];
 
                         int i = 0;
                         foreach (GroupRolesData d in titles)
                         {
                             groupRolesReply.RoleData[i] =
-                                new GroupRoleDataReplyPacket.
-                                    RoleDataBlock();
+                                new GroupRoleDataReplyPacket.RoleDataBlock();
 
                             groupRolesReply.RoleData[i].RoleID =
                                 d.RoleID;
@@ -7051,15 +7045,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             (uint)mappings.Count;
 
                         groupRoleMembersReply.MemberData =
-                            new GroupRoleMembersReplyPacket.
-                                MemberDataBlock[mappings.Count];
+                            new GroupRoleMembersReplyPacket.MemberDataBlock[mappings.Count];
 
                         int i = 0;
                         foreach (GroupRoleMembersData d in mappings)
                         {
                             groupRoleMembersReply.MemberData[i] =
-                                new GroupRoleMembersReplyPacket.
-                                    MemberDataBlock();
+                                new GroupRoleMembersReplyPacket.MemberDataBlock();
 
                             groupRoleMembersReply.MemberData[i].RoleID =
                                 d.RoleID;

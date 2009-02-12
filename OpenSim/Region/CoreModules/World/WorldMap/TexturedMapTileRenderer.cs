@@ -26,20 +26,15 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Reflection;
-using OpenMetaverse;
-using Nini.Config;
 using log4net;
+using Nini.Config;
+using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.World.Terrain;
 
 namespace OpenSim.Region.CoreModules.World.WorldMap
 {
@@ -269,7 +264,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public void TerrainToBitmap(Bitmap mapbmp)
         {
-            int tc = System.Environment.TickCount;
+            int tc = Environment.TickCount;
             m_log.Info("[MAPTILE]: Generating Maptile Step 1: Terrain");
 
             // These textures should be in the AssetCache anyway, as every client conneting to this
@@ -405,7 +400,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     }
                 }
             }
-            m_log.Info("[MAPTILE]: Generating Maptile Step 1: Done in " + (System.Environment.TickCount - tc) + " ms");
+            m_log.Info("[MAPTILE]: Generating Maptile Step 1: Done in " + (Environment.TickCount - tc) + " ms");
         }
     }
 }

@@ -30,26 +30,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Web;
-
-using OpenMetaverse;
-using OpenMetaverse.StructuredData;
-using OpenMetaverse.Packets;
-
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Capabilities;
-using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-
-using OSD = OpenMetaverse.StructuredData.OSD;
-using OSDMap = OpenMetaverse.StructuredData.OSDMap;
-using OSDArray = OpenMetaverse.StructuredData.OSDArray;
+using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
+using OSDArray=OpenMetaverse.StructuredData.OSDArray;
+using OSDMap=OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Region.CoreModules.InterGrid
 {
@@ -360,7 +355,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
         // Using OpenSim.Framework.Communications.Capabilities.Caps here one time..   
         // so the long name is probably better then a using statement
-        public void OnRegisterCaps(UUID agentID, OpenSim.Framework.Communications.Capabilities.Caps caps)
+        public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             /* If we ever want to register our own caps here....    
              * 
@@ -558,7 +553,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             string rezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar/rez";
             string derezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar/derez";
             // Get a reference to the user's cap so we can pull out the Caps Object Path
-            OpenSim.Framework.Communications.Capabilities.Caps userCap 
+            Caps userCap 
                 = homeScene.CapsModule.GetCapsHandlerForUser(agentData.AgentID);
 
             string rezHttpProtocol = "http://";
@@ -683,7 +678,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 if (homeScene != null)
                 {
                     // Get a referenceokay -  to their Cap object so we can pull out the capobjectroot
-                    OpenSim.Framework.Communications.Capabilities.Caps userCap 
+                    Caps userCap 
                         = homeScene.CapsModule.GetCapsHandlerForUser(userData.AgentID);
 
                     //Update the circuit data in the region so this user is authorized
@@ -889,7 +884,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
                     ShutdownConnection(LocalID,this);
                     // PLEASE STOP CHANGING THIS TO an M_LOG, M_LOG DOESN'T WORK ON MULTILINE .TOSTRINGS
-                    System.Console.WriteLine("RESPONSEDEREZ: " + responseMap.ToString());
+                    Console.WriteLine("RESPONSEDEREZ: " + responseMap.ToString());
                     return responseMap;
                 }
                 else
@@ -1202,7 +1197,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
         private string CreateRandomStr(int len)
         {
-            Random rnd = new Random(System.Environment.TickCount);
+            Random rnd = new Random(Environment.TickCount);
             string returnstring = "";
             string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
 

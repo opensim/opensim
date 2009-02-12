@@ -26,17 +26,16 @@
  */
 
 using System;
-using System.Reflection;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text.RegularExpressions;
-using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
-using log4net;
-using Nini.Config;
 using DotNetOpenMail;
 using DotNetOpenMail.SmtpAuth;
+using log4net;
+using Nini.Config;
+using OpenMetaverse;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 {

@@ -28,9 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using OpenSim.ApplicationPlugins.Rest;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {

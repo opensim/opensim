@@ -26,17 +26,10 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Reflection;
-using OpenMetaverse;
-using OpenMetaverse.Imaging;
-using Nini.Config;
 using log4net;
-using OpenSim.Region.Framework.Interfaces;
+using Nini.Config;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.WorldMap
@@ -57,7 +50,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public void TerrainToBitmap(Bitmap mapbmp)
         {
-            int tc = System.Environment.TickCount;
+            int tc = Environment.TickCount;
             m_log.Info("[MAPTILE]: Generating Maptile Step 1: Terrain");
 
             double[,] hm = m_scene.Heightmap.GetDoubles();
@@ -151,7 +144,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                                         hfdiffihighlight = hfdiffihighlight + Math.Abs((int)(((hfdiff * highlightfactor) % 1f) * 5f) - 1);
                                     }
                                 }
-                                catch (System.OverflowException)
+                                catch (OverflowException)
                                 {
                                     m_log.Debug("[MAPTILE]: Shadow failed at value: " + hfdiff.ToString());
                                     ShadowDebugContinue = false;
@@ -199,7 +192,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                                 }
                             }
                         }
-                        catch (System.ArgumentException)
+                        catch (ArgumentException)
                         {
                             if (!terraincorruptedwarningsaid)
                             {
@@ -230,7 +223,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                             Color water = Color.FromArgb((int)heightvalue, (int)heightvalue, 255);
                             mapbmp.SetPixel(x, yr, water);
                         }
-                        catch (System.ArgumentException)
+                        catch (ArgumentException)
                         {
                             if (!terraincorruptedwarningsaid)
                             {
@@ -243,7 +236,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     }
                 }
             }
-            m_log.Info("[MAPTILE]: Generating Maptile Step 1: Done in " + (System.Environment.TickCount - tc) + " ms");
+            m_log.Info("[MAPTILE]: Generating Maptile Step 1: Done in " + (Environment.TickCount - tc) + " ms");
         }
     }
 }

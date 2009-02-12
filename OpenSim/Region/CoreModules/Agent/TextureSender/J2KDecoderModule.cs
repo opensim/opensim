@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,11 +26,10 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Threading;
-using System.Collections.Generic;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -166,7 +165,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         private void doJ2kDecode(UUID AssetId, byte[] j2kdata)
         {
             int DecodeTime = 0;
-            DecodeTime = System.Environment.TickCount;
+            DecodeTime = Environment.TickCount;
             OpenJPEG.J2KLayerInfo[] layers = new OpenJPEG.J2KLayerInfo[0]; // Dummy result for if it fails.  Informs that there's only full quality
 
             if (!OpenJpegFail)
@@ -198,7 +197,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                                
 
                                     // Write out decode time
-                                    m_log.InfoFormat("[J2KDecoderModule]: {0} Decode Time: {1}", System.Environment.TickCount - DecodeTime,
+                                    m_log.InfoFormat("[J2KDecoderModule]: {0} Decode Time: {1}", Environment.TickCount - DecodeTime,
                                                      AssetId);
                                
                             }

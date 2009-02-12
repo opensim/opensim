@@ -28,13 +28,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using System.Drawing;
-using OpenMetaverse;
 using log4net;
 using MySql.Data.MySqlClient;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -89,7 +89,7 @@ namespace OpenSim.Data.MySQL
                 }
                 catch (Exception)
                 {
-                    System.Threading.Thread.Sleep(500);
+                    Thread.Sleep(500);
 
                     m_Connection.Close();
                     m_Connection = (MySqlConnection) ((ICloneable)m_Connection).Clone();
@@ -122,7 +122,7 @@ namespace OpenSim.Data.MySQL
                 }
                 catch (Exception)
                 {
-                    System.Threading.Thread.Sleep(500);
+                    Thread.Sleep(500);
 
                     m_Connection.Close();
                     m_Connection = (MySqlConnection) ((ICloneable)m_Connection).Clone();

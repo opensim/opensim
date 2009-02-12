@@ -31,9 +31,9 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 

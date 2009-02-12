@@ -32,11 +32,9 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
+using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.CoreModules.Agent.Capabilities
 {

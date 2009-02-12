@@ -26,16 +26,15 @@
 *
 */
 
-using System;
 using System.Collections;
 using System.Reflection;
 using System.Xml;
 using log4net;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Framework.Communications.Capabilities;
-using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 using OpenMetaverse;
+using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.Framework.Scenes;
+using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.DataSnapshot
 {

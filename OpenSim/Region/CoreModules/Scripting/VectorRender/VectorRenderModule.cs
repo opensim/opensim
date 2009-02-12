@@ -31,9 +31,9 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
-using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 

@@ -28,13 +28,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net;
 using System.Reflection;
 using System.Threading;
-using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Interfaces;
@@ -667,7 +666,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
                 if (resp != null)
                 {
                     Hashtable respParms;
-                    if (resp.Value.GetType().Equals(typeof(System.Collections.Hashtable)))
+                    if (resp.Value.GetType().Equals(typeof(Hashtable)))
                     {
                         respParms = (Hashtable) resp.Value;
                     }

@@ -31,13 +31,12 @@ using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Xml;
+using log4net;
 using OpenMetaverse;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using log4net;
+using OpenSim.Region.CoreModules.World.Archiver;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 {        

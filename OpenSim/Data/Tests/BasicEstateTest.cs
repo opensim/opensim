@@ -26,14 +26,11 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
+using log4net.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
-using OpenSim.Framework;
-using OpenSim.Data;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Data.Tests
@@ -49,7 +46,7 @@ namespace OpenSim.Data.Tests
         {
             try
             {
-                log4net.Config.XmlConfigurator.Configure();
+                XmlConfigurator.Configure();
             }
             catch (Exception)
             {

@@ -25,8 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Xml;
 using System.Xml.Serialization;
 
 namespace OpenSim.Framework.Communications.XMPP

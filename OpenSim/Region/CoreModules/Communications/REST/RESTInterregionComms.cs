@@ -26,26 +26,20 @@
  */
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
-using System.Threading;
-using System.Xml;
-using OpenMetaverse;
-using OpenMetaverse.StructuredData;
+using System.Text;
 using log4net;
 using Nini.Config;
-using Nwc.XmlRpc;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
+using OpenSim.Region.CoreModules.Communications.Local;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
-using OpenSim.Region.CoreModules.Communications.Local;
 
 namespace OpenSim.Region.CoreModules.Communications.REST
 {
@@ -278,7 +272,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             try
             {
                 strBuffer = OSDParser.SerializeJsonString(args);
-                System.Text.UTF8Encoding str = new System.Text.UTF8Encoding();
+                UTF8Encoding str = new UTF8Encoding();
                 buffer = str.GetBytes(strBuffer);
 
             }
@@ -363,7 +357,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             try
             {
                 strBuffer = OSDParser.SerializeJsonString(args);
-                System.Text.UTF8Encoding str = new System.Text.UTF8Encoding();
+                UTF8Encoding str = new UTF8Encoding();
                 buffer = str.GetBytes(strBuffer);
 
             }
@@ -509,7 +503,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             try
             {
                 strBuffer = OSDParser.SerializeJsonString(args);
-                System.Text.UTF8Encoding str = new System.Text.UTF8Encoding();
+                UTF8Encoding str = new UTF8Encoding();
                 buffer = str.GetBytes(strBuffer);
 
             }

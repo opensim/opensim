@@ -26,13 +26,12 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
-using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
-using System.Collections.Generic;
+using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.Framework.Scenes
 {

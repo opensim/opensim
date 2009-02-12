@@ -31,8 +31,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using OpenMetaverse;
+using System.Threading;
 using log4net;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Data.MySQL
@@ -93,7 +94,7 @@ namespace OpenSim.Data.MySQL
                 if (lockedCons > m_maxConnections)
                 {
                     lockedCons = 0;
-                    System.Threading.Thread.Sleep(1000); // Wait some time before searching them again.
+                    Thread.Sleep(1000); // Wait some time before searching them again.
                     m_log.Debug(
                         "WARNING: All threads are in use. Probable cause: Something didnt release a mutex properly, or high volume of requests inbound.");
                     m_log.Debug("Current connections-in-use dump:");

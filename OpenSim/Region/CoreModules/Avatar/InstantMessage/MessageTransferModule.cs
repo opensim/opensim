@@ -27,15 +27,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Net;
-using System.Threading;
-using OpenMetaverse;
+using System.Reflection;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
+using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 

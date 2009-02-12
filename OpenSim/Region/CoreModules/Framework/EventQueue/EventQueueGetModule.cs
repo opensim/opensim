@@ -29,28 +29,19 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
-using System.Xml;
+using log4net;
+using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
-using log4net;
-using Nini.Config;
-using Nwc.XmlRpc;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-
-using OSD = OpenMetaverse.StructuredData.OSD;
-using OSDMap = OpenMetaverse.StructuredData.OSDMap;
-using OSDArray = OpenMetaverse.StructuredData.OSDArray;
-using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 using BlockingLLSDQueue = OpenSim.Framework.BlockingQueue<OpenMetaverse.StructuredData.OSD>;
+using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.CoreModules.Framework.EventQueue
 {
@@ -326,7 +317,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             m_scene.CommsManager.HttpServer.AddHTTPHandler(
                 capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePath2);
 
-            Random rnd = new Random(System.Environment.TickCount);
+            Random rnd = new Random(Environment.TickCount);
             lock (m_ids)
             {
                 if (!m_ids.ContainsKey(agentID))

@@ -26,14 +26,14 @@
  */
 
 using System;
+using System.Data.Common;
 using System.Reflection;
-using System.IO;
 using log4net;
 using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Tool.hbm2ddl;
 using OpenMetaverse;
-using Environment = NHibernate.Cfg.Environment;
+using Environment=NHibernate.Cfg.Environment;
 
 namespace OpenSim.Data.NHibernate
 {
@@ -92,7 +92,7 @@ namespace OpenSim.Data.NHibernate
                 migrationSubType = "MySQLDialect";
             }
 
-            Migration migration = new Migration((System.Data.Common.DbConnection)sessionFactory.ConnectionProvider.GetConnection(), assembly, migrationSubType, store);
+            Migration migration = new Migration((DbConnection)sessionFactory.ConnectionProvider.GetConnection(), assembly, migrationSubType, store);
             migration.Update();
         }
 

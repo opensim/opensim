@@ -30,9 +30,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
 
 /// <summary>
 /// Loads assets from the filesystem location.  Not yet a plugin, though it should be.

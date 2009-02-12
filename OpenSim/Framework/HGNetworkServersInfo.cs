@@ -26,11 +26,7 @@
  * 
  */
 
-using System;
-using System.Collections.Generic;
 using System.Net;
-
-using OpenSim.Framework;
 
 namespace OpenSim.Framework
 {

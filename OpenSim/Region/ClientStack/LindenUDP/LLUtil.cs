@@ -26,7 +26,6 @@
  */
 
 using OpenMetaverse;
-using System;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {        

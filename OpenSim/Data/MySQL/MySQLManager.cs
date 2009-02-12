@@ -26,14 +26,14 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
 using MySql.Data.MySqlClient;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Data.MySQL
@@ -148,7 +148,7 @@ namespace OpenSim.Data.MySQL
                 cmd.Dispose();
             }
 
-            m_lastConnectionUse = System.DateTime.Now.Ticks;
+            m_lastConnectionUse = DateTime.Now.Ticks;
 
             m_log.DebugFormat(
                 "[REGION DB]: Connection wait timeout {0} seconds", m_waitTimeout / TimeSpan.TicksPerSecond);
@@ -161,7 +161,7 @@ namespace OpenSim.Data.MySQL
         {
             //m_log.Debug("[REGION DB]: Checking connection");
 
-            long timeNow = System.DateTime.Now.Ticks;
+            long timeNow = DateTime.Now.Ticks;
             if (timeNow - m_lastConnectionUse > m_waitTimeout || dbcon.State != ConnectionState.Open)
             {
                 m_log.DebugFormat("[REGION DB]: Database connection has gone away - reconnecting");

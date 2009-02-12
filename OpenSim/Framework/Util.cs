@@ -194,7 +194,7 @@ namespace OpenSim.Framework
         }
 
         public static T Clamp<T>(T x, T min, T max)
-            where T : System.IComparable<T>
+            where T : IComparable<T>
         {
             return x.CompareTo(max) > 0 ? max :
                 x.CompareTo(min) < 0 ? min :
@@ -758,8 +758,8 @@ namespace OpenSim.Framework
             memory.Read(compressed, 0, compressed.Length);
 
             byte[] compressedBuffer = new byte[compressed.Length + 4];
-            System.Buffer.BlockCopy(compressed, 0, compressedBuffer, 4, compressed.Length);
-            System.Buffer.BlockCopy(BitConverter.GetBytes(buffer.Length), 0, compressedBuffer, 0, 4);
+            Buffer.BlockCopy(compressed, 0, compressedBuffer, 4, compressed.Length);
+            Buffer.BlockCopy(BitConverter.GetBytes(buffer.Length), 0, compressedBuffer, 0, 4);
             return Convert.ToBase64String(compressedBuffer);
         }
 
@@ -872,9 +872,9 @@ namespace OpenSim.Framework
         {
             string os = String.Empty;
 
-            if (System.Environment.OSVersion.Platform != PlatformID.Unix)
+            if (Environment.OSVersion.Platform != PlatformID.Unix)
             {
-                os = System.Environment.OSVersion.ToString();
+                os = Environment.OSVersion.ToString();
             }
             else
             {

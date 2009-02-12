@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://www.openmetaverse.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -34,11 +34,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Serialization;
 using log4net;
 using OpenSim.Framework.Servers;
-using System.Security.Cryptography;
 
 namespace OpenSim.Framework.Communications.Cache
 {

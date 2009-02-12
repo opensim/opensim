@@ -26,16 +26,15 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 {

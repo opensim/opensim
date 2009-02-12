@@ -28,8 +28,6 @@
 
 using System;
 
-using OpenSim.Framework;
-
 namespace OpenSim.Framework
 {
     public class ForeignUserProfileData : UserProfileData

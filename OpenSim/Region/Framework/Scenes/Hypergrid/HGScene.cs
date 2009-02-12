@@ -26,15 +26,9 @@
  * 
  */
 
-using System;
-using System.Collections.Generic;
-
 using OpenMetaverse;
-
 using OpenSim.Framework;
-
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.Framework.Scenes;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 
 namespace OpenSim.Region.Framework.Scenes.Hypergrid

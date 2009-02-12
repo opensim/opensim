@@ -26,22 +26,15 @@
  */
 
 using System;
-using System.Threading;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Reflection;
-using System.Timers;
 using System.Xml;
-using OpenMetaverse;
-using Nwc.XmlRpc;
+using log4net;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Communications;
-using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.ApplicationPlugins.Rest
 {
@@ -49,8 +42,8 @@ namespace OpenSim.ApplicationPlugins.Rest
     {
         #region properties
 
-        protected static readonly log4net.ILog  m_log =
-            log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        protected static readonly ILog  m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IConfig        _config;       // Configuration source: Rest Plugins
         private IConfig        _pluginConfig; // Configuration source: Plugin specific
@@ -65,7 +58,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         private string _godkey;
         private int    _reqk;
 
-        [ThreadStaticAttribute]
+        [ThreadStatic]
         private static string  _threadRequestID = String.Empty;
 
         /// <summary>

@@ -26,15 +26,14 @@
  */
 
 using System;
-using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
+using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;

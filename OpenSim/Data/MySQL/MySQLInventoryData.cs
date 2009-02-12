@@ -28,9 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
 using MySql.Data.MySqlClient;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Data.MySQL

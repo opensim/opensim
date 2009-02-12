@@ -28,11 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using OpenMetaverse;
 using Nini.Config;
+using OpenMetaverse;
+using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 
 namespace OpenSim.Region.CoreModules.World.Serialiser
 {

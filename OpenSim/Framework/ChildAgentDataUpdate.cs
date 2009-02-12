@@ -26,14 +26,10 @@
  */
 
 using System;
-using OpenMetaverse;
 using System.Collections;
 using System.Collections.Generic;
-
-using OSD = OpenMetaverse.StructuredData.OSD;
-using OSDMap = OpenMetaverse.StructuredData.OSDMap;
-using OSDArray = OpenMetaverse.StructuredData.OSDArray;
-using OSDParser = OpenMetaverse.StructuredData.OSDParser;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
@@ -486,7 +482,7 @@ namespace OpenSim.Framework
             if (args["agent_access"] != null)
                 Byte.TryParse(args["agent_access"].AsString(), out AgentAccess);
 
-            if ((args["agent_textures"] != null) && (args["agent_textures"]).Type == OpenMetaverse.StructuredData.OSDType.Array)
+            if ((args["agent_textures"] != null) && (args["agent_textures"]).Type == OSDType.Array)
             {
                 OSDArray textures = (OSDArray)(args["agent_textures"]);
                 AgentTextures = new UUID[textures.Count];
@@ -498,28 +494,28 @@ namespace OpenSim.Framework
             if (args["active_group_id"] != null)
                 ActiveGroupID = args["active_group_id"].AsUUID();
 
-            if ((args["groups"] != null) && (args["groups"]).Type == OpenMetaverse.StructuredData.OSDType.Array)
+            if ((args["groups"] != null) && (args["groups"]).Type == OSDType.Array)
             {
                 OSDArray groups = (OSDArray)(args["groups"]);
                 Groups = new AgentGroupData[groups.Count];
                 int i = 0;
                 foreach (OSD o in groups)
                 {
-                    if (o.Type == OpenMetaverse.StructuredData.OSDType.Map)
+                    if (o.Type == OSDType.Map)
                     {
                         Groups[i++] = new AgentGroupData((OSDMap)o);
                     }
                 }
             }
 
-            if ((args["animations"] != null) && (args["animations"]).Type == OpenMetaverse.StructuredData.OSDType.Array)
+            if ((args["animations"] != null) && (args["animations"]).Type == OSDType.Array)
             {
                 OSDArray anims = (OSDArray)(args["animations"]);
                 Anims = new AgentAnimationData[anims.Count];
                 int i = 0;
                 foreach (OSD o in anims)
                 {
-                    if (o.Type == OpenMetaverse.StructuredData.OSDType.Map)
+                    if (o.Type == OSDType.Map)
                     {
                         Anims[i++] = new AgentAnimationData((OSDMap)o);
                     }

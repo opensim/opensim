@@ -25,6 +25,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,18 +36,14 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Security.Authentication;
-
+using log4net;
+using Nwc.XmlRpc;
+using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Framework.Scenes;
-
-using OpenMetaverse;
-using Nwc.XmlRpc;
-using log4net;
 
 namespace OpenSim.Region.Communications.Hypergrid
 {

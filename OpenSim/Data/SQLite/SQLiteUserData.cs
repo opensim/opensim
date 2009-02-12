@@ -29,9 +29,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
 using Mono.Data.SqliteClient;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Data.SQLite
@@ -645,7 +645,7 @@ namespace OpenSim.Data.SQLite
             try {
                 aa = aplist[user];
                 m_log.Info("[APPEARANCE] Found appearance for " + user.ToString() + aa.ToString());
-            } catch (System.Collections.Generic.KeyNotFoundException) {
+            } catch (KeyNotFoundException) {
                 m_log.InfoFormat("[APPEARANCE] No appearance found for {0}", user.ToString());
             }
             return aa;

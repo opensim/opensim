@@ -27,15 +27,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using OpenMetaverse;
 using log4net;
 using NHibernate;
 using NHibernate.Criterion;
+using OpenMetaverse;
 using OpenSim.Framework;
-using Environment=NHibernate.Cfg.Environment;
 
 namespace OpenSim.Data.NHibernate
 {

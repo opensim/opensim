@@ -31,9 +31,6 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Region.ClientStack;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.ClientStack
 {

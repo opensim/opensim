@@ -25,17 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text.RegularExpressions;
 using OpenMetaverse;
-using log4net;
-using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.MessagingServer
 {

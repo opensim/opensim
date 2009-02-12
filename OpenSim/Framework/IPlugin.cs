@@ -42,7 +42,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// This interface, describes a generic plugin
     /// </summary>
-    public interface IPlugin : System.IDisposable
+    public interface IPlugin : IDisposable
     {
         /// <summary>
         /// Returns the plugin version

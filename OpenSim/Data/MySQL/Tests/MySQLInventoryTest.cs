@@ -26,16 +26,8 @@
  */
 
 using System;
-using System.IO;
-using System.Collections.Generic;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
-using OpenSim.Framework;
 using OpenSim.Data.Tests;
-using OpenSim.Data.MySQL;
-using OpenSim.Region.Framework.Scenes;
-using OpenMetaverse;
-using log4net;
 
 namespace OpenSim.Data.MySQL.Tests
 {
@@ -62,7 +54,7 @@ namespace OpenSim.Data.MySQL.Tests
             } 
             catch (Exception e)
             {
-                System.Console.WriteLine("Exception {0}", e);
+                Console.WriteLine("Exception {0}", e);
                 Assert.Ignore();
             }
         }

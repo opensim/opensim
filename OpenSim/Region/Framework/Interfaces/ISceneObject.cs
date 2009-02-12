@@ -1,4 +1,3 @@
-using System;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces

@@ -26,18 +26,15 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Reflection;
-using Nini.Config;
-using OpenMetaverse.Imaging;
 using log4net;
+using Nini.Config;
+using OpenMetaverse;
+using OpenMetaverse.Imaging;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.World.WorldMap
 {
@@ -208,7 +205,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             int tc = 0;
             double[,] hm = whichScene.Heightmap.GetDoubles();
-            tc = System.Environment.TickCount;
+            tc = Environment.TickCount;
             m_log.Info("[MAPTILE]: Generating Maptile Step 2: Object Volume Profile");
             List<EntityBase> objs = whichScene.GetEntities();
             Dictionary<uint, DrawStruct> z_sort = new Dictionary<uint, DrawStruct>();
@@ -525,7 +522,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 g.Dispose();
             } // lock entities objs
 
-            m_log.Info("[MAPTILE]: Generating Maptile Step 2: Done in " + (System.Environment.TickCount - tc) + " ms");
+            m_log.Info("[MAPTILE]: Generating Maptile Step 2: Done in " + (Environment.TickCount - tc) + " ms");
             return mapbmp;
         }
 

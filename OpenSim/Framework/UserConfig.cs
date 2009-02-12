@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 
 namespace OpenSim.Framework
 {
@@ -113,7 +114,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("library_location",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Path to library control file",
-                                                string.Format(".{0}inventory{0}Libraries.xml", System.IO.Path.DirectorySeparatorChar), false);            
+                                                string.Format(".{0}inventory{0}Libraries.xml", Path.DirectorySeparatorChar), false);            
             
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);

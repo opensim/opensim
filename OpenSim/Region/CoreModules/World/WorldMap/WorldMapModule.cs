@@ -34,23 +34,19 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading;
+using log4net;
+using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenMetaverse.StructuredData;
-using log4net;
-using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Scenes.Types;
-using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
-
-using OSD = OpenMetaverse.StructuredData.OSD;
-using OSDMap = OpenMetaverse.StructuredData.OSDMap;
-using OSDArray = OpenMetaverse.StructuredData.OSDArray;
+using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
+using OSDArray=OpenMetaverse.StructuredData.OSDArray;
+using OSDMap=OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Region.CoreModules.World.WorldMap
 {
@@ -329,7 +325,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 {    
                     // Local Map Item Request
                     List<ScenePresence> avatars = m_scene.GetAvatars();
-                    int tc = System.Environment.TickCount;
+                    int tc = Environment.TickCount;
                     List<mapItemReply> mapitems = new List<mapItemReply>();
                     mapItemReply mapitem = new mapItemReply();
                     if (avatars.Count == 0 || avatars.Count == 1)
@@ -554,7 +550,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     lock (m_blacklistedregions)
                     {
                         if (!m_blacklistedregions.ContainsKey(regionhandle))
-                            m_blacklistedregions.Add(regionhandle, System.Environment.TickCount);
+                            m_blacklistedregions.Add(regionhandle, Environment.TickCount);
                     }
                     m_log.InfoFormat("[WORLD MAP]: Blacklisted region {0}", regionhandle.ToString());
                 }
@@ -610,7 +606,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 lock (m_blacklistedurls)
                 {
                     if (!m_blacklistedurls.ContainsKey(httpserver))
-                        m_blacklistedurls.Add(httpserver, System.Environment.TickCount);
+                        m_blacklistedurls.Add(httpserver, Environment.TickCount);
                 }
 
                 m_log.WarnFormat("[WORLD MAP]: Blacklisted {0}", httpserver);
@@ -639,7 +635,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     lock (m_blacklistedurls)
                     {
                         if (!m_blacklistedurls.ContainsKey(httpserver))
-                            m_blacklistedurls.Add(httpserver, System.Environment.TickCount);
+                            m_blacklistedurls.Add(httpserver, Environment.TickCount);
                     }
 
                     m_log.WarnFormat("[WORLD MAP]: Blacklisted {0}", httpserver);
@@ -804,7 +800,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             List<ScenePresence> avatars = m_scene.GetAvatars();
             OSDArray responsearr = new OSDArray(avatars.Count);
             OSDMap responsemapdata = new OSDMap();
-            int tc = System.Environment.TickCount;
+            int tc = Environment.TickCount;
             /* 
             foreach (ScenePresence av in avatars)
             {

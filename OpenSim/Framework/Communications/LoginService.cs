@@ -33,10 +33,10 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
-using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 

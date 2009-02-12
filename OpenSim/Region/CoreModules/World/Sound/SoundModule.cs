@@ -26,9 +26,7 @@
  */
 
 using System;
-using System.Reflection;
 using Nini.Config;
-using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;

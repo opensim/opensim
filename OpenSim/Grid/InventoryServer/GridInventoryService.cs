@@ -28,14 +28,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Threading;
 using System.Net;
-
-using OpenMetaverse;
+using System.Reflection;
 using log4net;
 using Nwc.XmlRpc;
-
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;

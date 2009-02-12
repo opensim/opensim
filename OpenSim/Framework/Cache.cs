@@ -383,7 +383,7 @@ namespace OpenSim.Framework
 
         // Find an object in cache by delegate.
         //
-        public Object Find(Predicate<OpenSim.Framework.CacheItemBase> d)
+        public Object Find(Predicate<CacheItemBase> d)
         {
             CacheItemBase item = m_Index.Find(d);
 
@@ -460,7 +460,7 @@ namespace OpenSim.Framework
 
             if (m_DefaultTTL.Ticks != 0)
             {
-                DateTime now= System.DateTime.Now;
+                DateTime now= DateTime.Now;
 
                 foreach (CacheItemBase item in new List<CacheItemBase>(m_Index))
                 {

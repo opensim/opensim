@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenMetaverse;
-using OpenMetaverse.Packets;
 using OpenSim.Framework.Statistics.Interfaces;
 
 namespace OpenSim.Framework.Statistics

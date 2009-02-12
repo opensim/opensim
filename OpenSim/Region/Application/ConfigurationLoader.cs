@@ -26,18 +26,13 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml;
-using System.Threading;
 using System.IO;
-using OpenSim.Framework;
-using Nini;
-using Nini.Config;
-
 using System.Reflection;
+using System.Threading;
+using System.Xml;
 using log4net;
-
+using Nini.Config;
+using OpenSim.Framework;
 
 namespace OpenSim
 {

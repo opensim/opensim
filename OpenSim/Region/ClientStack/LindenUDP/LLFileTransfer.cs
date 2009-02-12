@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -27,16 +27,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml;
 using OpenMetaverse;
-using OpenMetaverse.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.Client;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Statistics;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {

@@ -26,8 +26,6 @@
 * 
 */
 
-using System;
-
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
 

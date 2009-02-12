@@ -27,18 +27,10 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
 using System.Xml;
-using System.Drawing;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
-using OpenMetaverse;
-using OpenMetaverse.Imaging;
-using Nini.Config;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {

@@ -25,17 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenMetaverse;
-using Nini.Config;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
 using System.Xml;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {

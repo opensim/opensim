@@ -30,9 +30,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Cache
 {

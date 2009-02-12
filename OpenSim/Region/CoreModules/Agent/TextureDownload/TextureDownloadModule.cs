@@ -27,27 +27,29 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
-using OpenMetaverse;
+using log4net;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Framework.Communications.Cache;
 using BlockingQueue = OpenSim.Framework.BlockingQueue<OpenSim.Region.Framework.Interfaces.ITextureSender>;
 
 namespace OpenSim.Region.CoreModules.Agent.TextureDownload
 {
     public class TextureDownloadModule : IRegionModule
     {
-        private static readonly log4net.ILog m_log
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// There is one queue for all textures waiting to be sent, regardless of the requesting user.
         /// </summary>
-        private readonly OpenSim.Framework.BlockingQueue<ITextureSender> m_queueSenders
-            = new OpenSim.Framework.BlockingQueue<ITextureSender>();
+        private readonly BlockingQueue m_queueSenders
+            = new BlockingQueue();
 
         /// <summary>
         /// Each user has their own texture download service.

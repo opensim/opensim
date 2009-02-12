@@ -27,7 +27,6 @@
 
 using System;
 using System.Reflection;
-using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;

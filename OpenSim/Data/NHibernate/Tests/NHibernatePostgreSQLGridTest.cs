@@ -26,14 +26,8 @@
  */
 
 using System;
-using System.IO;
-using System.Collections.Generic;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
-using OpenSim.Framework;
 using OpenSim.Data.Tests;
-using OpenMetaverse;
-using OpenSim.Data.NHibernate;
 
 namespace OpenSim.Data.NHibernate.Tests
 {
@@ -60,7 +54,7 @@ namespace OpenSim.Data.NHibernate.Tests
             }
             catch (Exception e)
             {
-                System.Console.WriteLine("Exception {0}", e);
+                Console.WriteLine("Exception {0}", e);
                 Assert.Ignore();
             }
         }

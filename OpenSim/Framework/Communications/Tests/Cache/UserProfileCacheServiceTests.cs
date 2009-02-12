@@ -25,16 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using log4net;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
-//using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.Communications.Local;
-using OpenSim.Tests.Common.Mock;
 using OpenSim.Data;
+using OpenSim.Framework.Communications.Cache;
+using OpenSim.Tests.Common.Mock;
+//using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications.Tests
 {

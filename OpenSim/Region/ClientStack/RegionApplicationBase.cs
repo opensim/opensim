@@ -26,19 +26,16 @@
  */
 
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.ClientStack

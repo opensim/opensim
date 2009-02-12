@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -29,16 +29,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Reflection;
-using System.Xml;
 using System.Net;
-using OpenMetaverse;
+using System.Reflection;
+using System.Text;
 using log4net;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.World.Terrain;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
+        private static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
 
         private Scene m_scene;                        
         private Stream m_loadStream;

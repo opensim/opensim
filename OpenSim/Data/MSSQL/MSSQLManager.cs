@@ -31,8 +31,8 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
+using OpenMetaverse;
 
 namespace OpenSim.Data.MSSQL
 {
@@ -219,7 +219,7 @@ namespace OpenSim.Data.MSSQL
             {
                 return value.ToString();
             }
-            if (valueType == typeof(OpenMetaverse.UUID))
+            if (valueType == typeof(UUID))
             {
                 return value.ToString();
             }

@@ -27,7 +27,6 @@
 
 using System;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
 {

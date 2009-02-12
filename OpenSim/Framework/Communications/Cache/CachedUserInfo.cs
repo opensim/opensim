@@ -28,10 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
-
-using OpenMetaverse;
 using log4net;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Cache
 {

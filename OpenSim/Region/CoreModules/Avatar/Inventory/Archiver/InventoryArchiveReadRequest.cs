@@ -30,16 +30,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Text;
 using System.Xml;
+using log4net;
 using OpenMetaverse;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.World.Archiver;
-using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using log4net;
-
+using OpenSim.Region.CoreModules.World.Archiver;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 {
@@ -48,7 +46,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected TarArchiveReader archive;
-        private static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
+        private static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
 
         private string m_firstName;
         private string m_lastName;
@@ -98,13 +96,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             item.ID = UUID.Parse(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("InvType");
-            item.InvType = System.Convert.ToInt32(reader.ReadString());
+            item.InvType = Convert.ToInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("CreatorUUID");
             item.Creator = UUID.Parse(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("CreationDate");
-            item.CreationDate = System.Convert.ToInt32(reader.ReadString());
+            item.CreationDate = Convert.ToInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("Owner");
             item.Owner = UUID.Parse(reader.ReadString());
@@ -121,37 +119,37 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 reader.ReadEndElement();
             }
             reader.ReadStartElement("AssetType");
-            item.AssetType = System.Convert.ToInt32(reader.ReadString());
+            item.AssetType = Convert.ToInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("AssetID");
             item.AssetID = UUID.Parse(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("SaleType");
-            item.SaleType = System.Convert.ToByte(reader.ReadString());
+            item.SaleType = Convert.ToByte(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("SalePrice");
-            item.SalePrice = System.Convert.ToInt32(reader.ReadString());
+            item.SalePrice = Convert.ToInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("BasePermissions");
-            item.BasePermissions = System.Convert.ToUInt32(reader.ReadString());
+            item.BasePermissions = Convert.ToUInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("CurrentPermissions");
-            item.CurrentPermissions = System.Convert.ToUInt32(reader.ReadString());
+            item.CurrentPermissions = Convert.ToUInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("EveryOnePermssions");
-            item.EveryOnePermissions = System.Convert.ToUInt32(reader.ReadString());
+            item.EveryOnePermissions = Convert.ToUInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("NextPermissions");
-            item.NextPermissions = System.Convert.ToUInt32(reader.ReadString());
+            item.NextPermissions = Convert.ToUInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("Flags");
-            item.Flags = System.Convert.ToUInt32(reader.ReadString());
+            item.Flags = Convert.ToUInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("GroupID");
             item.GroupID = UUID.Parse(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("GroupOwned");
-            item.GroupOwned = System.Convert.ToBoolean(reader.ReadString());
+            item.GroupOwned = Convert.ToBoolean(reader.ReadString());
             reader.ReadEndElement();
             //reader.ReadStartElement("ParentFolderID");
             //item.Folder = UUID.Parse(reader.ReadString());

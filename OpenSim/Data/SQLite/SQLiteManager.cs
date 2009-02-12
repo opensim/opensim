@@ -30,8 +30,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.Reflection;
-using OpenMetaverse;
 using log4net;
+using OpenMetaverse;
 
 namespace OpenSim.Data.SQLite
 {
