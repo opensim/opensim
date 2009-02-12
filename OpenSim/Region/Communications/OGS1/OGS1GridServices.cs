@@ -1601,6 +1601,8 @@ namespace OpenSim.Region.Communications.OGS1
 
             if (timed_out)
             {                                
+                ar.AsyncWaitHandle.Close();
+                
                 m_log.DebugFormat(
                     "[OGS1 GRID SERVICES]: socket [{0}] timed out ({1}) waiting to obtain a connection.",
                     m_EndPoint, timeOut * 1000);
