@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Prebuild xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd" version="1.7">
-  <Solution name="OpenSim" activeConfig="Debug" path="./" version="0.5.0-$Rev$">
+  <Solution name="OpenSim" activeConfig="Debug" path="./" version="0.5.0-$Rev: 8318 $">
     <Configuration name="Debug">
       <Options>
         <CompilerDefines>TRACE;DEBUG</CompilerDefines>
@@ -1848,7 +1848,9 @@
       <Reference name="log4net.dll"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
       </Files>
     </Project>
 
@@ -2750,19 +2752,19 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Region.ScriptEngine.Shared.Tests" path="OpenSim/Region/ScriptEngine/Shared/Tests" type="Library">
+    <Project name="OpenSim.Region.ScriptEngine.Tests" path="OpenSim/Region/ScriptEngine" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../../bin/</ReferencePath>
+      <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Framework"/>
@@ -2773,30 +2775,21 @@
       <Reference name="nunit.framework.dll" />
       <Reference name="Nini.dll" />
       <Reference name="OpenMetaverseTypes.dll"/>
-      <Files>
-        <Match pattern="*.cs" recurse="false"/>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests" path="OpenSim/Region/ScriptEngine/Shared/CodeTools/Tests" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.CodeTools"/>
-      <Reference name="nunit.framework.dll" />
+      <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="Tools.dll" />
+
+      <!--
+           TODO: this is kind of lame, we basically build a duplicate
+           assembly but with tests added in, just so that we don't
+           need to hard code in a bunch of Test directories here.  If
+           pattern="Tests/*.cs" worked, we wouldn't need this.
+      -->
       <Files>
-        <Match pattern="*.cs" recurse="false"/>
+        <!-- SADLY the way this works means you need to keep adding these paths -->
+        <Match path="Shared/Tests" pattern="*.cs" recurse="true" />
+        <Match path="Shared/CodeTools/Tests" pattern="*.cs" recurse="true" />
+        <Match path="XEngine/Tests" pattern="*.cs" recurse="true" />
       </Files>
     </Project>
 
