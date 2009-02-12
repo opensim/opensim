@@ -1200,7 +1200,9 @@ namespace OpenSim.Region.Framework.Scenes
                         "[PRIM INVENTORY]: " +
                         "Avatar {0} cannot be found to add item",
                         avatarId);
+                    return null;
                 }
+                
                 if (!profile.HasReceivedInventory)
                     profile.FetchInventory();
                 
@@ -1845,173 +1847,170 @@ namespace OpenSim.Region.Framework.Scenes
                 userInfo.FetchInventory();
             }
 
-            if (userInfo != null)
+            // If we're returning someone's item, it goes back to the
+            // owner's Lost And Found folder.
+            // Delete is treated like return in this case
+            // Deleting your own items makes them go to trash
+            //
+
+            InventoryFolderBase folder = null;
+            InventoryItemBase item = null;
+
+            if (DeRezAction.SaveToExistingUserInventoryItem == action)
             {
-                // If we're returning someone's item, it goes back to the
-                // owner's Lost And Found folder.
-                // Delete is treated like return in this case
-                // Deleting your own items makes them go to trash
-                //
+                item = userInfo.RootFolder.FindItem(
+                        objectGroup.RootPart.FromUserInventoryItemID);
 
-                InventoryFolderBase folder = null;
-                InventoryItemBase item = null;
-
-                if (DeRezAction.SaveToExistingUserInventoryItem == action)
+                if (null == item)
                 {
-                    item = userInfo.RootFolder.FindItem(
-                            objectGroup.RootPart.FromUserInventoryItemID);
-
-                    if (null == item)
+                    m_log.DebugFormat(
+                        "[AGENT INVENTORY]: Object {0} {1} scheduled for save to inventory has already been deleted.",
+                        objectGroup.Name, objectGroup.UUID);
+                    return UUID.Zero;
+                }
+            }
+            else
+            {
+                // Folder magic
+                //
+                if (action == DeRezAction.Delete)
+                {
+                    // Deleting someone else's item
+                    //
+                    if (remoteClient == null ||
+                        objectGroup.OwnerID != remoteClient.AgentId)
                     {
-                        m_log.DebugFormat(
-                            "[AGENT INVENTORY]: Object {0} {1} scheduled for save to inventory has already been deleted.",
-                            objectGroup.Name, objectGroup.UUID);
+                        // Folder skeleton may not be loaded and we
+                        // have to wait for the inventory to find
+                        // the destination folder
+                        //
+                        if (!WaitForInventory(userInfo))
+                            return UUID.Zero;
+                        folder = userInfo.FindFolderForType(
+                                (int)AssetType.LostAndFoundFolder);
+                    }
+                    else
+                    {
+                        // Assume inventory skeleton was loaded during login
+                        // and all folders can be found
+                        //
+                        folder = userInfo.FindFolderForType(
+                                (int)AssetType.TrashFolder);
+                    }
+                }
+                else if (action == DeRezAction.Return)
+                {
+                    // Wait if needed
+                    //
+                    if (!userInfo.HasReceivedInventory)
+                    {
+                        if (!WaitForInventory(userInfo))
+                            return UUID.Zero;
+                    }
+
+                    // Dump to lost + found unconditionally
+                    //
+                    folder = userInfo.FindFolderForType(
+                            (int)AssetType.LostAndFoundFolder);
+                }
+
+                if (folderID == UUID.Zero && folder == null)
+                {
+                    // Catch all. Use lost & found
+                    //
+                    if (!userInfo.HasReceivedInventory)
+                    {
+                        if (!WaitForInventory(userInfo))
+                            return UUID.Zero;
+                    }
+
+                    folder = userInfo.FindFolderForType(
+                            (int)AssetType.LostAndFoundFolder);
+                }
+
+                if (folder == null) // None of the above
+                {
+                    folder = userInfo.RootFolder.FindFolder(folderID);
+
+                    if (folder == null) // Nowhere to put it
+                    {
                         return UUID.Zero;
                     }
                 }
-                else
+
+                item = new InventoryItemBase();
+                item.Creator = objectGroup.RootPart.CreatorID;
+                item.ID = UUID.Random();
+                item.InvType = (int)InventoryType.Object;
+                item.Folder = folder.ID;
+                item.Owner = userInfo.UserProfile.ID;
+
+            }
+
+            AssetBase asset = CreateAsset(
+                objectGroup.GetPartName(objectGroup.RootPart.LocalId),
+                objectGroup.GetPartDescription(objectGroup.RootPart.LocalId),
+                (sbyte)AssetType.Object,
+                Utils.StringToBytes(sceneObjectXml));
+            AssetCache.AddAsset(asset);
+            assetID = asset.Metadata.FullID;
+
+            if (DeRezAction.SaveToExistingUserInventoryItem == action)
+            {
+                item.AssetID = asset.Metadata.FullID;
+                userInfo.UpdateItem(item);
+            }
+            else
+            {
+                item.AssetID = asset.Metadata.FullID;
+
+                if (remoteClient != null && (remoteClient.AgentId != objectGroup.RootPart.OwnerID) && Permissions.PropagatePermissions())
                 {
-                    // Folder magic
-                    //
-                    if (action == DeRezAction.Delete)
-                    {
-                        // Deleting someone else's item
-                        //
-                        if (remoteClient == null ||
-                            objectGroup.OwnerID != remoteClient.AgentId)
-                        {
-                            // Folder skeleton may not be loaded and we
-                            // have to wait for the inventory to find
-                            // the destination folder
-                            //
-                            if (!WaitForInventory(userInfo))
-                                return UUID.Zero;
-                            folder = userInfo.FindFolderForType(
-                                    (int)AssetType.LostAndFoundFolder);
-                        }
-                        else
-                        {
-                            // Assume inventory skeleton was loaded during login
-                            // and all folders can be found
-                            //
-                            folder = userInfo.FindFolderForType(
-                                    (int)AssetType.TrashFolder);
-                        }
-                    }
-                    else if (action == DeRezAction.Return)
-                    {
-                        // Wait if needed
-                        //
-                        if (!userInfo.HasReceivedInventory)
-                        {
-                            if (!WaitForInventory(userInfo))
-                                return UUID.Zero;
-                        }
+                    uint perms=objectGroup.GetEffectivePermissions();
+                    uint nextPerms=(perms & 7) << 13;
+                    if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                        perms &= ~(uint)PermissionMask.Copy;
+                    if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                        perms &= ~(uint)PermissionMask.Transfer;
+                    if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                        perms &= ~(uint)PermissionMask.Modify;
 
-                        // Dump to lost + found unconditionally
-                        //
-                        folder = userInfo.FindFolderForType(
-                                (int)AssetType.LostAndFoundFolder);
-                    }
-
-                    if (folderID == UUID.Zero && folder == null)
-                    {
-                        // Catch all. Use lost & found
-                        //
-                        if (!userInfo.HasReceivedInventory)
-                        {
-                            if (!WaitForInventory(userInfo))
-                                return UUID.Zero;
-                        }
-
-                        folder = userInfo.FindFolderForType(
-                                (int)AssetType.LostAndFoundFolder);
-                    }
-
-                    if (folder == null) // None of the above
-                    {
-                        folder = userInfo.RootFolder.FindFolder(folderID);
-
-                        if (folder == null) // Nowhere to put it
-                        {
-                            return UUID.Zero;
-                        }
-                    }
-
-                    item = new InventoryItemBase();
-                    item.Creator = objectGroup.RootPart.CreatorID;
-                    item.ID = UUID.Random();
-                    item.InvType = (int)InventoryType.Object;
-                    item.Folder = folder.ID;
-                    item.Owner = userInfo.UserProfile.ID;
-
-                }
-
-                AssetBase asset = CreateAsset(
-                    objectGroup.GetPartName(objectGroup.RootPart.LocalId),
-                    objectGroup.GetPartDescription(objectGroup.RootPart.LocalId),
-                    (sbyte)AssetType.Object,
-                    Utils.StringToBytes(sceneObjectXml));
-                AssetCache.AddAsset(asset);
-                assetID = asset.Metadata.FullID;
-
-                if (DeRezAction.SaveToExistingUserInventoryItem == action)
-                {
-                    item.AssetID = asset.Metadata.FullID;
-                    userInfo.UpdateItem(item);
+                    item.BasePermissions = perms & objectGroup.RootPart.NextOwnerMask;
+                    item.CurrentPermissions = item.BasePermissions;
+                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
+                    item.GroupPermissions = objectGroup.RootPart.GroupMask & objectGroup.RootPart.NextOwnerMask;
+                    item.CurrentPermissions |= 8; // Slam!
                 }
                 else
                 {
-                    item.AssetID = asset.Metadata.FullID;
+                    item.BasePermissions = objectGroup.GetEffectivePermissions();
+                    item.CurrentPermissions = objectGroup.GetEffectivePermissions();
+                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
+                    item.GroupPermissions = objectGroup.RootPart.GroupMask;
 
-                    if (remoteClient != null && (remoteClient.AgentId != objectGroup.RootPart.OwnerID) && Permissions.PropagatePermissions())
+                    item.CurrentPermissions |= 8; // Slam!
+                }
+
+                // TODO: add the new fields (Flags, Sale info, etc)
+                item.CreationDate = Util.UnixTimeSinceEpoch();
+                item.Description = asset.Metadata.Description;
+                item.Name = asset.Metadata.Name;
+                item.AssetType = asset.Metadata.Type;
+
+                userInfo.AddItem(item);
+
+                if (remoteClient != null && item.Owner == remoteClient.AgentId)
+                {
+                    remoteClient.SendInventoryItemCreateUpdate(item);
+                }
+                else
+                {
+                    ScenePresence notifyUser = GetScenePresence(item.Owner);
+                    if (notifyUser != null)
                     {
-                        uint perms=objectGroup.GetEffectivePermissions();
-                        uint nextPerms=(perms & 7) << 13;
-                        if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                            perms &= ~(uint)PermissionMask.Copy;
-                        if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                            perms &= ~(uint)PermissionMask.Transfer;
-                        if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                            perms &= ~(uint)PermissionMask.Modify;
-
-                        item.BasePermissions = perms & objectGroup.RootPart.NextOwnerMask;
-                        item.CurrentPermissions = item.BasePermissions;
-                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                        item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
-                        item.GroupPermissions = objectGroup.RootPart.GroupMask & objectGroup.RootPart.NextOwnerMask;
-                        item.CurrentPermissions |= 8; // Slam!
-                    }
-                    else
-                    {
-                        item.BasePermissions = objectGroup.GetEffectivePermissions();
-                        item.CurrentPermissions = objectGroup.GetEffectivePermissions();
-                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                        item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
-                        item.GroupPermissions = objectGroup.RootPart.GroupMask;
-
-                        item.CurrentPermissions |= 8; // Slam!
-                    }
-
-                    // TODO: add the new fields (Flags, Sale info, etc)
-                    item.CreationDate = Util.UnixTimeSinceEpoch();
-                    item.Description = asset.Metadata.Description;
-                    item.Name = asset.Metadata.Name;
-                    item.AssetType = asset.Metadata.Type;
-
-                    userInfo.AddItem(item);
-
-                    if (remoteClient != null && item.Owner == remoteClient.AgentId)
-                    {
-                        remoteClient.SendInventoryItemCreateUpdate(item);
-                    }
-                    else
-                    {
-                        ScenePresence notifyUser = GetScenePresence(item.Owner);
-                        if (notifyUser != null)
-                        {
-                            notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
-                        }
+                        notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
                     }
                 }
             }
