@@ -66,15 +66,15 @@ namespace OpenSim.Data
         /// <summary>
         /// Request sim profile information from a grid server, by Region Handle
         /// </summary>
-        /// <param name="region_handle">the region handle to look for</param>
-        /// <param name="gridserver_url"></param>
-        /// <param name="gridserver_sendkey"></param>
-        /// <param name="gridserver_recvkey"></param>
+        /// <param name="regionHandle">the region handle to look for</param>
+        /// <param name="gridserverUrl"></param>
+        /// <param name="gridserverSendkey"></param>
+        /// <param name="gridserverRecvkey"></param>
         /// <returns>The sim profile.  Null if there was a request failure</returns>
-        public RegionProfileData RequestSimProfileData(ulong region_handle, Uri gridserver_url,
-                                                              string gridserver_sendkey, string gridserver_recvkey)
+        public RegionProfileData RequestSimProfileData(ulong regionHandle, Uri gridserverUrl,
+                                                              string gridserverSendkey, string gridserverRecvkey)
         {
-            return RequestSimData(gridserver_url, gridserver_sendkey, "region_handle", region_handle.ToString());
+            return RequestSimData(gridserverUrl, gridserverSendkey, "region_handle", regionHandle.ToString());
         }
 
         /// <summary>
