@@ -59,12 +59,12 @@ namespace OpenSim.Grid.UserServer
         private UserLoggedInAtLocation handlerUserLoggedInAtLocation;
 
         public UserConfig m_config;
-        private readonly RegionProfileService m_regionProfileService;
+        private readonly IRegionProfileService m_regionProfileService;
 
         public UserLoginService(
             UserManagerBase userManager, IInterServiceInventoryServices inventoryService,
             LibraryRootFolder libraryRootFolder,
-            UserConfig config, string welcomeMess, RegionProfileService regionProfileService)
+            UserConfig config, string welcomeMess, IRegionProfileService regionProfileService)
             : base(userManager, libraryRootFolder, welcomeMess)
         {
             m_config = config;

@@ -8,7 +8,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Data
 {
-    public class RegionProfileService
+    public class RegionProfileServiceProxy : IRegionProfileService
     {
         /// <summary>
         /// Request sim data based on arbitrary key/value
