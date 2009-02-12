@@ -729,88 +729,57 @@ namespace OpenSim.Region.Communications.Hypergrid
             }
             else
             {
-                RegionInfo[] regions = m_regionsOnInstance.ToArray();
-                //bool banned = false;
-                // Just check one region. We assume they all belong to the same estate.
-                if ((regions.Length > 0) && (regions[0].EstateSettings.IsBanned(userData.ID)))
+                // Finally, everything looks ok
+                //Console.WriteLine("XXX---- EVERYTHING OK ---XXX");
+
+                // 1 - Preload the user data
+                m_userProfileCache.PreloadUserCache(userData.ID, userData);
+
+                if (m_knownRegions.ContainsKey(userData.ID))
                 {
-                    m_log.InfoFormat(
-                        "[HGrid]: Denying access for user {0} {1} because user is banned",
-                        userData.FirstName, userData.SurName);
-
-                    Hashtable respdata = new Hashtable();
-                    respdata["success"] = "FALSE";
-                    respdata["reason"] = "banned";
-                    resp.Value = respdata;
+                    // This was left here when the user departed
+                    m_knownRegions.Remove(userData.ID);
                 }
-                else
+
+                // 2 - Load the region info into list of known regions
+                RegionInfo rinfo = new RegionInfo();
+                rinfo.RegionID         = userData.HomeRegionID;
+                rinfo.ExternalHostName = userData.UserHomeAddress;
+                rinfo.HttpPort         = Convert.ToUInt32(userData.UserHomePort);
+                rinfo.RemotingPort     = Convert.ToUInt32(userData.UserHomeRemotingPort);
+                rinfo.RegionID = userData.HomeRegionID;
+                // X=0 on the map
+                rinfo.RegionLocX = 0;
+                rinfo.RegionLocY = (uint)(random.Next(0, Int32.MaxValue)); //(uint)m_knownRegions.Count;
+                rinfo.regionSecret = userRegionHandle.ToString();
+                //Console.WriteLine("XXX--- Here: handle = " + rinfo.regionSecret);
+                try
                 {
-                    // Finally, everything looks ok
-                    //Console.WriteLine("XXX---- EVERYTHING OK ---XXX");
-
-                    // Nope, let's do it only for the *agent*
-                    //// 0 - Switch name if necessary
-                    //if (IsComingHome(userData))
-                    //{
-                    //    string[] parts = userData.FirstName.Split( new char[] {'.'});
-                    //    if (parts.Length >= 1)
-                    //        userData.FirstName = parts[0];
-                    //    if (parts.Length == 2)
-                    //        userData.SurName = parts[1];
-                    //    else
-                    //        m_log.Warn("[HGrid]: Something fishy with user " + userData.FirstName + userData.SurName);
-
-                    //    m_log.Info("[HGrid]: Welcome home, " + userData.FirstName + " " + userData.SurName);
-                    //}
-
-                    // 1 - Preload the user data
-                    m_userProfileCache.PreloadUserCache(userData.ID, userData);
-
-                    if (m_knownRegions.ContainsKey(userData.ID))
-                    {
-                        // This was left here when the user departed
-                        m_knownRegions.Remove(userData.ID);
-                    }
-
-                    // 2 - Load the region info into list of known regions
-                    RegionInfo rinfo = new RegionInfo();
-                    rinfo.RegionID         = userData.HomeRegionID;
-                    rinfo.ExternalHostName = userData.UserHomeAddress;
-                    rinfo.HttpPort         = Convert.ToUInt32(userData.UserHomePort);
-                    rinfo.RemotingPort     = Convert.ToUInt32(userData.UserHomeRemotingPort);
-                    rinfo.RegionID = userData.HomeRegionID;
-                    // X=0 on the map
-                    rinfo.RegionLocX = 0;
-                    rinfo.RegionLocY = (uint)(random.Next(0, Int32.MaxValue)); //(uint)m_knownRegions.Count;
-                    rinfo.regionSecret = userRegionHandle.ToString();
-                    //Console.WriteLine("XXX--- Here: handle = " + rinfo.regionSecret);
-                    try
-                    {
-                        rinfo.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int)userhomeinternalport);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.Warn("[HGrid]: Exception while constructing internal endpoint: " + e);
-                    }
-                    rinfo.RemotingAddress = rinfo.ExternalEndPoint.Address.ToString(); //userData.UserHomeAddress;
-
-                    if (!IsComingHome(userData))
-                    {
-                        // Change the user's home region here!!!
-                        userData.HomeRegion = rinfo.RegionHandle;
-                    }
-
-                    if (!m_knownRegions.ContainsKey(userData.ID))
-                        m_knownRegions.Add(userData.ID, rinfo);
-
-                    // 3 - Send the reply
-                    Hashtable respdata = new Hashtable();
-                    respdata["success"] = "TRUE";
-                    resp.Value = respdata;
-
-                    DumpUserData(userData);
-                    DumpRegionData(rinfo);
+                    rinfo.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int)userhomeinternalport);
                 }
+                catch (Exception e)
+                {
+                    m_log.Warn("[HGrid]: Exception while constructing internal endpoint: " + e);
+                }
+                rinfo.RemotingAddress = rinfo.ExternalEndPoint.Address.ToString(); //userData.UserHomeAddress;
+
+                if (!IsComingHome(userData))
+                {
+                    // Change the user's home region here!!!
+                    userData.HomeRegion = rinfo.RegionHandle;
+                }
+
+                if (!m_knownRegions.ContainsKey(userData.ID))
+                    m_knownRegions.Add(userData.ID, rinfo);
+
+                // 3 - Send the reply
+                Hashtable respdata = new Hashtable();
+                respdata["success"] = "TRUE";
+                resp.Value = respdata;
+
+                DumpUserData(userData);
+                DumpRegionData(rinfo);
+                
             }
 
             return resp;
