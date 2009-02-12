@@ -605,9 +605,15 @@ namespace OpenSim.Framework.Servers
                 {
                     xmlRprcRequest.Params.Add(request.RemoteIPEndPoint); // Param[1]
                     XmlRpcResponse xmlRpcResponse;
-
+                    
                     XmlRpcMethod method;
-                    if (m_rpcHandlers.TryGetValue(methodName, out method))
+                    bool methodWasFound;
+                    lock (m_rpcHandlers)
+                    {
+                        methodWasFound = m_rpcHandlers.TryGetValue(methodName, out method);
+                    }                            
+                    
+                    if (methodWasFound)
                     {
                         xmlRprcRequest.Params.Add(request.Url); // Param[2]
 
