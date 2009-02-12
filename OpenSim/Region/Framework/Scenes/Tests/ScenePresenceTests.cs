@@ -66,11 +66,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             scene2 = SceneSetupHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000, cm);
             scene3 = SceneSetupHelpers.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000, cm);
 
-	    IRegionModule interregionComms = new RESTInterregionComms();
-	    interregionComms.Initialise(scene, new IniConfigSource());
-	    interregionComms.Initialise(scene2, new IniConfigSource());
-	    interregionComms.Initialise(scene3, new IniConfigSource());
-	    interregionComms.PostInitialise();
+	        IRegionModule interregionComms = new RESTInterregionComms();
+	        interregionComms.Initialise(scene, new IniConfigSource());
+	        interregionComms.Initialise(scene2, new IniConfigSource());
+	        interregionComms.Initialise(scene3, new IniConfigSource());
+	        interregionComms.PostInitialise();
             SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
             SceneSetupHelpers.SetupSceneModules(scene2, new IniConfigSource(), interregionComms);
             SceneSetupHelpers.SetupSceneModules(scene3, new IniConfigSource(), interregionComms);
@@ -203,6 +203,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             scene.RegisterRegionWithGrid();
             scene2.RegisterRegionWithGrid();
             presence.Update();
+            // Crossings are asynchronous
+            while (presence.IsInTransit) { } ;
 
             Assert.That(presence.IsChildAgent, Is.True, "Did not complete region cross as expected.");
             Assert.That(presence2.IsChildAgent, Is.False, "Did not receive root status after receiving agent.");
@@ -210,6 +212,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Cross Back
             presence2.AbsolutePosition = new Vector3(-1, 3, 100);
             presence2.Update();
+            // Crossings are asynchronous
+            while (presence.IsInTransit) { };
 
             Assert.That(presence2.IsChildAgent, Is.True, "Did not return from region as expected.");
             Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");

@@ -3179,6 +3179,11 @@ namespace OpenSim.Region.Framework.Scenes
             return m_sceneGridService.CrossToNeighbouringRegion(regionHandle, agentID, position, isFlying);
         }
 
+        public void CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
+        {
+            m_sceneGridService.CrossAgentToNewRegion(this, agent, isFlying);
+        }
+
         public void SendOutChildAgentUpdates(AgentPosition cadu, ScenePresence presence)
         {
             m_sceneGridService.SendChildAgentDataUpdate(cadu, presence);

@@ -547,6 +547,13 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_animations;  }
         }
 
+        private bool m_inTransit;
+        public bool IsInTransit
+        {
+            get { return m_inTransit; }
+            set { m_inTransit = value; }
+        }
+
         #endregion
 
         #region Constructor(s)
@@ -850,7 +857,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid);
             if (userInfo != null)
-                userInfo.FetchInventory();
+                    userInfo.FetchInventory();
             else
                 m_log.ErrorFormat("[SCENE]: Could not find user info for {0} when making it a root agent", m_uuid);
             
@@ -2377,15 +2384,31 @@ namespace OpenSim.Region.Framework.Scenes
             pos2.Y = pos2.Y + (vel.Y*timeStep);
             pos2.Z = pos2.Z + (vel.Z*timeStep);
 
-            if ((pos2.X < 0) || (pos2.X > Constants.RegionSize))
+            if (!IsInTransit)
             {
-                CrossToNewRegion();
+                if ((pos2.X < 0) || (pos2.X > Constants.RegionSize))
+                {
+                    CrossToNewRegion();
+                }
+
+                if ((pos2.Y < 0) || (pos2.Y > Constants.RegionSize))
+                {
+                    CrossToNewRegion();
+                }
+            }
+            else
+            {
+                RemoveFromPhysicalScene();
+                // This constant has been inferred from experimentation
+                // I'm not sure what this value should be, so I tried a few values.
+                timeStep = 0.04f;
+                pos2 = AbsolutePosition;
+                pos2.X = pos2.X + (vel.X * timeStep);
+                pos2.Y = pos2.Y + (vel.Y * timeStep);
+                pos2.Z = pos2.Z + (vel.Z * timeStep);
+                m_pos = pos2;
             }
 
-            if ((pos2.Y < 0) || (pos2.Y > Constants.RegionSize))
-            {
-                CrossToNewRegion();
-            }
         }
 
         /// <summary>
@@ -2396,130 +2419,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected void CrossToNewRegion()
         {
-            Vector3 pos = AbsolutePosition;
-            Vector3 newpos = new Vector3(pos.X, pos.Y, pos.Z);
-            uint neighbourx = m_regionInfo.RegionLocX;
-            uint neighboury = m_regionInfo.RegionLocY;
+            m_inTransit = true;
+            m_scene.CrossAgentToNewRegion(this, m_physicsActor.Flying);
+        }
 
-            // distance to edge that will trigger crossing
-            const float boundaryDistance = 1.7f;
-
-            // distance into new region to place avatar
-            const float enterDistance = 0.1f;
-
-            if (pos.X < boundaryDistance)
-            {
-                neighbourx--;
-                newpos.X = Constants.RegionSize - enterDistance;
-            }
-            else if (pos.X > Constants.RegionSize - boundaryDistance)
-            {
-                neighbourx++;
-                newpos.X = enterDistance;
-            }
-
-            if (pos.Y < boundaryDistance)
-            {
-                neighboury--;
-                newpos.Y = Constants.RegionSize - enterDistance;
-            }
-            else if (pos.Y > Constants.RegionSize - boundaryDistance)
-            {
-                neighboury++;
-                newpos.Y = enterDistance;
-            }
-
-            Vector3 vel = m_velocity;
-            ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
-            SimpleRegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
-            if (neighbourRegion != null && ValidateAttachments())
-            {
-                // When the neighbour is informed of the border crossing, it will set up CAPS handlers for the avatar
-                // This means we need to remove the current caps handler here and possibly compensate later,
-                // in case both scenes are being hosted on the same region server.  Messy
-                //m_scene.RemoveCapsHandler(UUID);
-                newpos = newpos + (vel);
-
-                CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(UUID);
-                if (userInfo != null)
-                {
-                    userInfo.DropInventory();
-                }
-                else
-                {
-                    m_log.WarnFormat("[SCENE PRESENCE]: No cached user info found for {0} {1} on leaving region", Name, UUID);
-                }
-
-                bool crossingSuccessful =
-                    m_scene.InformNeighbourOfCrossing(neighbourHandle, m_controllingClient.AgentId, newpos,
-                                                      m_physicsActor.Flying);
-                if (crossingSuccessful)
-                {
-                    // Next, let's close the child agent connections that are too far away.
-                    CloseChildAgents(neighbourx, neighboury);
-
-                    //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
-                    m_controllingClient.RequestClientInfo();
-
-                    //Console.WriteLine("BEFORE CROSS");
-                    //Scene.DumpChildrenSeeds(UUID);
-                    //DumpKnownRegions();
-                    string agentcaps;
-                    if (!m_knownChildRegions.TryGetValue(neighbourRegion.RegionHandle, out agentcaps))
-                    {
-                        m_log.ErrorFormat("[SCENE PRESENCE]: No CAPS information for region handle {0}, exiting CrossToNewRegion.",
-                                         neighbourRegion.RegionHandle);
-                        return;
-                    }
-                    // TODO Should construct this behind a method
-                    string capsPath =
-                        "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
-                         + "/CAPS/" + agentcaps /*circuitdata.CapsPath*/ + "0000/";
-
-                    m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, m_uuid);
-
-                    IEventQueue eq = m_scene.RequestModuleInterface<IEventQueue>();
-                    if (eq != null)
-                    {   
-                        eq.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
-                                       capsPath, UUID, ControllingClient.SessionId);
-                    }
-                    else
-                    {
-                        m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
-                                                    capsPath);
-                    }                    
-                   
-                    MakeChildAgent();
-                    // now we have a child agent in this region. Request all interesting data about other (root) agents
-                    SendInitialFullUpdateToAllClients();
-
-                    CrossAttachmentsIntoNewRegion(neighbourHandle, true);
-
-                    //                    m_scene.SendKillObject(m_localId);
-
-                    m_scene.NotifyMyCoarseLocationChange();
-                    // the user may change their profile information in other region,
-                    // so the userinfo in UserProfileCache is not reliable any more, delete it
-                    if (m_scene.NeedSceneCacheClear(UUID))
-                    {
-                        m_scene.CommsManager.UserProfileCacheService.RemoveUser(UUID);
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: User {0} is going to another region, profile cache removed", UUID);
-                    }
-                }
-                else
-                {
-                    // Restore the user structures that we needed to delete before asking the receiving region 
-                    // to complete the crossing
-                    userInfo.FetchInventory();
-                    m_scene.CapsModule.AddCapsHandler(UUID);
-                }
-            }
-
-            //Console.WriteLine("AFTER CROSS");
-            //Scene.DumpChildrenSeeds(UUID);
-            //DumpKnownRegions();
+        public void RestoreInCurrentScene()
+        {
+            AddToPhysicalScene();
         }
 
         /// <summary>

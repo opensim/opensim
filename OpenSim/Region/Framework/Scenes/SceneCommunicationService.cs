@@ -35,6 +35,7 @@ using OpenMetaverse.StructuredData;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Region.Framework.Interfaces;
 using OSD = OpenMetaverse.StructuredData.OSD;
@@ -1017,6 +1018,175 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return m_commsProvider.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position, isFlying);
         }
+
+        public void CrossAgentToNewRegion(Scene scene, ScenePresence agent, bool isFlying)
+        {
+            Vector3 pos = agent.AbsolutePosition;
+            Vector3 newpos = new Vector3(pos.X, pos.Y, pos.Z);
+            uint neighbourx = m_regionInfo.RegionLocX;
+            uint neighboury = m_regionInfo.RegionLocY;
+
+            // distance to edge that will trigger crossing
+            const float boundaryDistance = 1.7f;
+
+            // distance into new region to place avatar
+            const float enterDistance = 0.1f;
+
+            if (pos.X < boundaryDistance)
+            {
+                neighbourx--;
+                newpos.X = Constants.RegionSize - enterDistance;
+            }
+            else if (pos.X > Constants.RegionSize - boundaryDistance)
+            {
+                neighbourx++;
+                newpos.X = enterDistance;
+            }
+
+            if (pos.Y < boundaryDistance)
+            {
+                neighboury--;
+                newpos.Y = Constants.RegionSize - enterDistance;
+            }
+            else if (pos.Y > Constants.RegionSize - boundaryDistance)
+            {
+                neighboury++;
+                newpos.Y = enterDistance;
+            }
+
+            Vector3 vel = agent.Velocity;
+
+            CrossAgentToNewRegionDelegate d = CrossAgentToNewRegionAsync;
+            d.BeginInvoke(agent, newpos, neighbourx, neighboury, isFlying, CrossAgentToNewRegionCompleted, d);
+
+
+        }
+
+        public delegate ScenePresence CrossAgentToNewRegionDelegate(ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, bool isFlying);
+
+                /// <summary>
+        /// This Closes child agents on neighboring regions
+        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
+        /// </summary>
+        protected ScenePresence CrossAgentToNewRegionAsync(ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, bool isFlying)
+        {
+            m_log.DebugFormat("[SCENE COMM]: Crossing agent {0} {1} to {2}-{3}", agent.Firstname, agent.Lastname, neighbourx, neighboury);
+
+            ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
+            SimpleRegionInfo neighbourRegion = RequestNeighbouringRegionInfo(neighbourHandle);
+            if (neighbourRegion != null && agent.ValidateAttachments())
+            {
+                pos = pos + (agent.Velocity);
+
+                CachedUserInfo userInfo = m_commsProvider.UserProfileCacheService.GetUserDetails(agent.UUID);
+                if (userInfo != null)
+                {
+                    userInfo.DropInventory();
+                }
+                else
+                {
+                    m_log.WarnFormat("[SCENE COMM]: No cached user info found for {0} {1} on leaving region {2}", 
+                            agent.Name, agent.UUID, agent.Scene.RegionInfo.RegionName);
+                }
+
+                bool crossingSuccessful =
+                    CrossToNeighbouringRegion(neighbourHandle, agent.ControllingClient.AgentId, pos,
+                                                      isFlying);
+                if (crossingSuccessful)
+                {
+                    // Next, let's close the child agent connections that are too far away.
+                    agent.CloseChildAgents(neighbourx, neighboury);
+
+                    //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
+                    agent.ControllingClient.RequestClientInfo();
+
+                    //Console.WriteLine("BEFORE CROSS");
+                    //Scene.DumpChildrenSeeds(UUID);
+                    //DumpKnownRegions();
+                    string agentcaps;
+                    if (!agent.KnownRegions.TryGetValue(neighbourRegion.RegionHandle, out agentcaps))
+                    {
+                        m_log.ErrorFormat("[SCENE COMM]: No CAPS information for region handle {0}, exiting CrossToNewRegion.",
+                                         neighbourRegion.RegionHandle);
+                        return agent;
+                    }
+                    // TODO Should construct this behind a method
+                    string capsPath =
+                        "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
+                         + "/CAPS/" + agentcaps /*circuitdata.CapsPath*/ + "0000/";
+
+                    m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
+
+                    IEventQueue eq = agent.Scene.RequestModuleInterface<IEventQueue>();
+                    if (eq != null)
+                    {
+                        eq.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
+                                       capsPath, agent.UUID, agent.ControllingClient.SessionId);
+                    }
+                    else
+                    {
+                        agent.ControllingClient.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
+                                                    capsPath);
+                    }
+
+                    agent.MakeChildAgent();
+                    // now we have a child agent in this region. Request all interesting data about other (root) agents
+                    agent.SendInitialFullUpdateToAllClients();
+
+                    agent.CrossAttachmentsIntoNewRegion(neighbourHandle, true);
+
+                    //                    m_scene.SendKillObject(m_localId);
+
+                    agent.Scene.NotifyMyCoarseLocationChange();
+                    // the user may change their profile information in other region,
+                    // so the userinfo in UserProfileCache is not reliable any more, delete it
+                    if (agent.Scene.NeedSceneCacheClear(agent.UUID))
+                    {
+                        agent.Scene.CommsManager.UserProfileCacheService.RemoveUser(agent.UUID);
+                        m_log.DebugFormat(
+                            "[SCENE COMM]: User {0} is going to another region, profile cache removed", agent.UUID);
+                    }
+                }
+                else
+                {
+                    //// Restore the user structures that we needed to delete before asking the receiving region 
+                    //// to complete the crossing
+                    //userInfo.FetchInventory();
+                    //agent.Scene.CapsModule.AddCapsHandler(agent.UUID);
+                }
+            }
+
+            //Console.WriteLine("AFTER CROSS");
+            //Scene.DumpChildrenSeeds(UUID);
+            //DumpKnownRegions();
+            return agent;
+        }
+
+        private void CrossAgentToNewRegionCompleted(IAsyncResult iar)
+        {
+            CrossAgentToNewRegionDelegate icon = (CrossAgentToNewRegionDelegate)iar.AsyncState;
+            ScenePresence agent = icon.EndInvoke(iar);
+
+            // If the cross was successful, this agent is a child agent
+            if (agent.IsChildAgent)
+            {
+                // Put the child agent back at the center
+                agent.AbsolutePosition = new Vector3(128, 128, 70);
+            }
+            else // Not successful
+            {
+                CachedUserInfo userInfo = m_commsProvider.UserProfileCacheService.GetUserDetails(agent.UUID);
+                if (userInfo != null)
+                {
+                    userInfo.FetchInventory();
+                }
+                agent.RestoreInCurrentScene();
+            }
+            agent.IsInTransit = false;
+
+            //m_log.DebugFormat("[SCENE COMM]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
+        }
+
 
         public bool PrimCrossToNeighboringRegion(ulong regionhandle, UUID primID, string objData, int XMLMethod)
         {
