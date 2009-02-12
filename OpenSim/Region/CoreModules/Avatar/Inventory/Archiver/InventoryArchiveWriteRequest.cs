@@ -48,8 +48,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected CommunicationsManager commsManager;
         protected Dictionary<UUID, int> assetUuids = new Dictionary<UUID, int>();
         
-        private string m_firstName;
-        private string m_lastName;
+        private CachedUserInfo m_userInfo;
         private string m_invPath;
         
         /// <value>
@@ -61,13 +60,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>        
         public InventoryArchiveWriteRequest(
-             string firstName, string lastName, string invPath, string savePath, CommunicationsManager commsManager)
+            CachedUserInfo userInfo, string invPath, string savePath, CommunicationsManager commsManager)
             : this(
-                firstName, 
-                 lastName, 
-                 invPath, 
-                 new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress),
-                 commsManager)
+                userInfo,
+                invPath, 
+                new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress),
+                commsManager)
         {
         }
         
@@ -75,10 +73,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>        
         public InventoryArchiveWriteRequest(
-             string firstName, string lastName, string invPath, Stream saveStream, CommunicationsManager commsManager)
+             CachedUserInfo userInfo, string invPath, Stream saveStream, CommunicationsManager commsManager)
         {
-            m_firstName = firstName;
-            m_lastName = lastName;
+            m_userInfo = userInfo;
             m_invPath = invPath;
             m_saveStream = saveStream;                        
             this.commsManager = commsManager;
@@ -183,26 +180,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         public void Execute()
         {
-            UserProfileData userProfile = commsManager.UserService.GetUserProfile(m_firstName, m_lastName);
-            if (null == userProfile)
-            {
-                m_log.ErrorFormat("[INVENTORY ARCHIVER]: Failed to find user {0} {1}", m_firstName, m_lastName);
-                return;
-            }
-
-            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
-            if (null == userInfo)
-            {
-                m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1} {2}", 
-                    m_firstName, m_lastName, userProfile.ID);
-                return;
-            }
-
             InventoryFolderImpl inventoryFolder = null;
             InventoryItemBase inventoryItem = null;
 
-            if (userInfo.HasReceivedInventory)
+            if (m_userInfo.HasReceivedInventory)
             {
                 // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
                 // itself (possibly at a small loss in efficiency).
@@ -218,25 +199,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 // Therefore if we still start with a / after the split, then we need the root folder
                 if (m_invPath.Length == 0)
                 {
-                    inventoryFolder = userInfo.RootFolder;
+                    inventoryFolder = m_userInfo.RootFolder;
                 }
                 else
                 {
                     m_invPath = m_invPath.Remove(m_invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
-                    inventoryFolder = userInfo.RootFolder.FindFolderByPath(m_invPath);
+                    inventoryFolder = m_userInfo.RootFolder.FindFolderByPath(m_invPath);
                 }
 
                 // The path may point to an item instead
                 if (inventoryFolder == null)
                 {
-                    inventoryItem = userInfo.RootFolder.FindItemByPath(m_invPath);
+                    inventoryItem = m_userInfo.RootFolder.FindItemByPath(m_invPath);
                 }
             }
             else
             {
                 m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1} {2}", 
-                    m_firstName, m_lastName, userProfile.ID);
+                    "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1}", 
+                    m_userInfo.UserProfile.Name, m_userInfo.UserProfile.ID);
                 return;
             }
 

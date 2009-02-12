@@ -33,6 +33,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -85,22 +86,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_scenes[scene.RegionInfo.RegionID] = scene;            
         }
         
-        public void PostInitialise()
-        {
-        }
+        public void PostInitialise() {}
 
-        public void Close()
-        {
-        }
+        public void Close() {}
                
         public void DearchiveInventory(string firstName, string lastName, string invPath, Stream loadStream)
         {
             if (m_scenes.Count > 0)
             {            
-                InventoryArchiveReadRequest request = 
-                    new InventoryArchiveReadRequest(firstName, lastName, invPath, loadStream, m_commsManager);
-                
-                UpdateClientWithLoadedNodes(firstName, lastName, request.Execute());
+                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
+                        
+                if (userInfo != null)
+                {
+                    InventoryArchiveReadRequest request = 
+                        new InventoryArchiveReadRequest(userInfo, invPath, loadStream, m_commsManager);                
+                    UpdateClientWithLoadedNodes(userInfo, request.Execute());
+                }
             }            
         }        
 
@@ -108,18 +109,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (m_scenes.Count > 0)
             {
-                new InventoryArchiveWriteRequest(firstName, lastName, invPath, saveStream, m_commsManager).Execute();
+                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
+
+                if (userInfo != null)
+                    new InventoryArchiveWriteRequest(userInfo, invPath, saveStream, m_commsManager).Execute();
             }              
         }
         
         public void DearchiveInventory(string firstName, string lastName, string invPath, string loadPath)
         {
             if (m_scenes.Count > 0)
-            {      
-                InventoryArchiveReadRequest request = 
-                    new InventoryArchiveReadRequest(firstName, lastName, invPath, loadPath, m_commsManager);
+            {   
+                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
                 
-                UpdateClientWithLoadedNodes(firstName, lastName, request.Execute());
+                if (userInfo != null)
+                {
+                    InventoryArchiveReadRequest request = 
+                        new InventoryArchiveReadRequest(userInfo, invPath, loadPath, m_commsManager);                
+                    UpdateClientWithLoadedNodes(userInfo, request.Execute());
+                }
             }                
         }
                 
@@ -127,9 +135,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (m_scenes.Count > 0)
             {
-                new InventoryArchiveWriteRequest(firstName, lastName, invPath, savePath, m_commsManager).Execute();
+                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
+                
+                if (userInfo != null)
+                    new InventoryArchiveWriteRequest(userInfo, invPath, savePath, m_commsManager).Execute();
             }            
-        }        
+        }                
         
         /// <summary>
         /// Load inventory from an inventory file archive
@@ -174,22 +185,45 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
         
         /// <summary>
-        /// Notify the client of loaded nodes if they are logged in
+        /// Get user information for the given name.
         /// </summary>
-        /// <param name="loadedNodes">Can be empty.  In which case, nothing happens</param>
-        private void UpdateClientWithLoadedNodes(string firstName, string lastName, List<InventoryNodeBase> loadedNodes)
-        {               
-            if (loadedNodes.Count == 0)
-                return;
-            
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <returns></returns>
+        protected CachedUserInfo GetUserInfo(string firstName, string lastName)
+        {
             UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(firstName, lastName);
             
             if (null == userProfile)
+            {
+                m_log.ErrorFormat("[INVENTORY ARCHIVER]: Failed to find user {0} {1}", firstName, lastName);
+                return null;
+            }
+
+            CachedUserInfo userInfo = m_commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
+            if (null == userInfo)
+            {
+                m_log.ErrorFormat(
+                    "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1} {2}", 
+                    firstName, lastName, userProfile.ID);
+                return null;
+            }
+            
+            return userInfo;
+        }
+        
+        /// <summary>
+        /// Notify the client of loaded nodes if they are logged in
+        /// </summary>
+        /// <param name="loadedNodes">Can be empty.  In which case, nothing happens</param>
+        private void UpdateClientWithLoadedNodes(CachedUserInfo userInfo, List<InventoryNodeBase> loadedNodes)
+        {               
+            if (loadedNodes.Count == 0)
                 return;
                    
             foreach (Scene scene in m_scenes.Values)
             {
-                ScenePresence user = scene.GetScenePresence(userProfile.ID);
+                ScenePresence user = scene.GetScenePresence(userInfo.UserProfile.ID);
                 
                 if (user != null && !user.IsChildAgent)
                 {        

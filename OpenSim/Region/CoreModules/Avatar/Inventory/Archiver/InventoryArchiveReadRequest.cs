@@ -48,8 +48,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected TarArchiveReader archive;
         private static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
 
-        private string m_firstName;
-        private string m_lastName;
+        private CachedUserInfo m_userInfo;
         private string m_invPath;
         
         /// <value>
@@ -60,10 +59,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         CommunicationsManager commsManager;
 
         public InventoryArchiveReadRequest(
-            string firstName, string lastName, string invPath, string loadPath, CommunicationsManager commsManager)
+            CachedUserInfo userInfo, string invPath, string loadPath, CommunicationsManager commsManager)
             : this(
-                firstName, 
-                lastName, 
+                userInfo,
                 invPath, 
                 new GZipStream(new FileStream(loadPath, FileMode.Open), CompressionMode.Decompress),
                 commsManager)
@@ -71,10 +69,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
         
         public InventoryArchiveReadRequest(
-            string firstName, string lastName, string invPath, Stream loadStream, CommunicationsManager commsManager)
+            CachedUserInfo userInfo, string invPath, Stream loadStream, CommunicationsManager commsManager)
         {
-            m_firstName = firstName;
-            m_lastName = lastName;
+            m_userInfo = userInfo;
             m_invPath = invPath;
             m_loadStream = loadStream;                        
             this.commsManager = commsManager;
@@ -174,33 +171,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             int successfulItemRestores = 0;
             List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
 
-            UserProfileData userProfile = commsManager.UserService.GetUserProfile(m_firstName, m_lastName);
-            if (null == userProfile)
-            {
-                m_log.ErrorFormat("[INVENTORY ARCHIVER]: Failed to find user {0} {1}", m_firstName, m_lastName);
-                return nodesLoaded;
-            }
-
-            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
-            if (null == userInfo)
+            if (!m_userInfo.HasReceivedInventory)
             {
                 m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1} {2}",
-                    m_firstName, m_lastName, userProfile.ID);
+                    "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1}",
+                    m_userInfo.UserProfile.Name, m_userInfo.UserProfile.ID);
 
                 return nodesLoaded;
             }
 
-            if (!userInfo.HasReceivedInventory)
-            {
-                m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1} {2}",
-                    m_firstName, m_lastName, userProfile.ID);
-
-                return nodesLoaded;
-            }
-
-            InventoryFolderImpl inventoryFolder = userInfo.RootFolder.FindFolderByPath(m_invPath);
+            InventoryFolderImpl inventoryFolder = m_userInfo.RootFolder.FindFolderByPath(m_invPath);
 
             if (null == inventoryFolder)
             {
@@ -232,15 +212,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                     if (item != null)
                     {
-                        item.Creator = userProfile.ID;
-                        item.Owner = userProfile.ID;
+                        item.Creator = m_userInfo.UserProfile.ID;
+                        item.Owner = m_userInfo.UserProfile.ID;
 
                         // Reset folder ID to the one in which we want to load it
                         // TODO: Properly restore entire folder structure.  At the moment all items are dumped in this
                         // single folder no matter where in the saved folder structure they are.
                         item.Folder = inventoryFolder.ID;
 
-                        userInfo.AddItem(item);
+                        m_userInfo.AddItem(item);
                         successfulItemRestores++;
                         nodesLoaded.Add(item);
                     }
