@@ -472,7 +472,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (recipientUserInfo != null)
                     {
                         if (!recipientUserInfo.HasReceivedInventory)
-                            CommsManager.UserProfileCacheService.RequestInventoryForUser(recipient);
+                            recipientUserInfo.FetchInventory();
 
                         // Insert a copy of the item into the recipient
                         InventoryItemBase itemCopy = new InventoryItemBase();
@@ -1202,7 +1202,8 @@ namespace OpenSim.Region.Framework.Scenes
                         avatarId);
                 }
                 if (!profile.HasReceivedInventory)
-                    CommsManager.UserProfileCacheService.RequestInventoryForUser(avatarId);
+                    profile.FetchInventory();
+                
                 InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(avatarId, part, itemId);
 
                 if (agentItem == null)
@@ -1841,8 +1842,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Async inventory requests will queue, but they will never
                 // execute unless inventory is actually fetched
                 //
-                CommsManager.UserProfileCacheService.RequestInventoryForUser(
-                        userInfo.UserProfile.ID);
+                userInfo.FetchInventory();
             }
 
             if (userInfo != null)

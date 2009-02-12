@@ -202,6 +202,25 @@ namespace OpenSim.Framework.Communications.Cache
                 m_rootFolder = null;
             }
         }
+        
+        /// <summary>
+        /// Fetch inventory for this user.
+        /// </summary>
+        /// This has to be executed as a separate step once user information is retreived.  
+        /// This will occur synchronously if the inventory service is in the same process as this class, and
+        /// asynchronously otherwise.
+        public void FetchInventory()
+        {
+            if (m_commsManager.SecureInventoryService != null)
+            {
+                m_commsManager.SecureInventoryService.RequestInventoryForUser(
+                    UserProfile.ID, SessionID, InventoryReceive);
+            }
+            else
+            {
+                m_commsManager.InventoryService.RequestInventoryForUser(UserProfile.ID, InventoryReceive);
+            }           
+        }
 
         /// <summary>
         /// Callback invoked when the inventory is received from an async request to the inventory service

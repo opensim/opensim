@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Communications.Tests
         /// Test requesting inventory for a user
         /// </summary>
         [Test]
-        public void TestRequestInventoryForUser()
+        public void TestFetchInventory()
         {
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);

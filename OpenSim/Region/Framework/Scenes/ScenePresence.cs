@@ -847,7 +847,13 @@ namespace OpenSim.Region.Framework.Scenes
             //SendAnimPack();
 
             m_scene.SwapRootAgentCount(false);
-            m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(m_uuid);            
+            
+            CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid);
+            if (userInfo != null)
+                userInfo.FetchInventory();
+            else
+                m_log.ErrorFormat("[SCENE]: Could not find user info for {0} when making it a root agent", m_uuid);
+            
             //m_scene.CapsModule.AddCapsHandler(m_uuid);
 
             // On the next prim update, all objects will be sent
@@ -2504,8 +2510,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    // Restore the user structures that we needed to delete before asking the receiving region to complete the crossing
-                    m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(UUID);
+                    // Restore the user structures that we needed to delete before asking the receiving region 
+                    // to complete the crossing
+                    userInfo.FetchInventory();
                     m_scene.CapsModule.AddCapsHandler(UUID);
                 }
             }

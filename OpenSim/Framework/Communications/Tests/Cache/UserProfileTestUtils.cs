@@ -59,9 +59,10 @@ namespace OpenSim.Framework.Communications.Tests
 
             lus.AddUser("Bill", "Bailey", "troll", "bill@bailey.com", 1000, 1000, userId);
             
-            commsManager.UserProfileCacheService.RequestInventoryForUser(userId);
+            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
+            userInfo.FetchInventory();
             
-            return commsManager.UserProfileCacheService.GetUserDetails(userId);            
+            return userInfo;
         }
     }
 }

@@ -105,36 +105,6 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Request the inventory data for the given user.  This will occur asynchronously if running on a grid
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="userInfo"></param>
-        public void RequestInventoryForUser(UUID userID)
-        {
-            CachedUserInfo userInfo = GetUserDetails(userID);
-            if (userInfo != null)
-            {
-                if (m_commsManager.SecureInventoryService != null)
-                {
-                    m_commsManager.SecureInventoryService.RequestInventoryForUser(userID, userInfo.SessionID, userInfo.InventoryReceive);
-                }
-                else
-                {
-                    m_commsManager.InventoryService.RequestInventoryForUser(userID, userInfo.InventoryReceive);
-                }
-                //IInventoryServices invService = userInfo.GetInventoryService();
-                //if (invService != null)
-                //{
-                //    invService.RequestInventoryForUser(userID, userInfo.InventoryReceive);
-                //}
-            }
-            else
-            {
-                m_log.ErrorFormat("[USER CACHE]: RequestInventoryForUser() - user profile for user {0} not found", userID);
-            }
-        }
-
-        /// <summary>
         /// Get cached details of the given user.  If the user isn't in cache then the user is requested from the 
         /// profile service.  
         /// </summary>
