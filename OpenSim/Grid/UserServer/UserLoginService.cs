@@ -59,15 +59,17 @@ namespace OpenSim.Grid.UserServer
         private UserLoggedInAtLocation handlerUserLoggedInAtLocation;
 
         public UserConfig m_config;
+        private readonly RegionProfileService m_regionProfileService;
 
         public UserLoginService(
             UserManagerBase userManager, IInterServiceInventoryServices inventoryService,
             LibraryRootFolder libraryRootFolder,
-            UserConfig config, string welcomeMess)
+            UserConfig config, string welcomeMess, RegionProfileService regionProfileService)
             : base(userManager, libraryRootFolder, welcomeMess)
         {
             m_config = config;
             m_inventoryService = inventoryService;
+            m_regionProfileService = regionProfileService;
         }
         
         public  void  setloginlevel(int level)
@@ -86,7 +88,7 @@ namespace OpenSim.Grid.UserServer
             RegionProfileData SimInfo;
             try
             {
-                SimInfo = RegionProfileService.RequestSimProfileData(
+                SimInfo = m_regionProfileService.RequestSimProfileData(
                     theUser.CurrentAgent.Handle, m_config.GridServerURL,
                     m_config.GridSendKey, m_config.GridRecvKey);
 
@@ -302,20 +304,20 @@ namespace OpenSim.Grid.UserServer
 
         protected RegionProfileData RequestClosestRegion(string region)
         {
-            return RegionProfileService.RequestSimProfileData(region,
+            return m_regionProfileService.RequestSimProfileData(region,
                                                            m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
         }
 
         protected RegionProfileData GetRegionInfo(ulong homeRegionHandle)
         {
-            return RegionProfileService.RequestSimProfileData(homeRegionHandle,
+            return m_regionProfileService.RequestSimProfileData(homeRegionHandle,
                                                            m_config.GridServerURL, m_config.GridSendKey,
                                                            m_config.GridRecvKey);
         }
 
         protected RegionProfileData GetRegionInfo(UUID homeRegionId)
         {
-            return RegionProfileService.RequestSimProfileData(homeRegionId,
+            return m_regionProfileService.RequestSimProfileData(homeRegionId,
                                                            m_config.GridServerURL, m_config.GridSendKey,
                                                            m_config.GridRecvKey);
         }

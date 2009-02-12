@@ -13,7 +13,7 @@ namespace OpenSim.Data
         /// <summary>
         /// Request sim data based on arbitrary key/value
         /// </summary>
-        private static RegionProfileData RequestSimData(Uri gridserverUrl, string gridserverSendkey, string keyField, string keyValue)
+        private RegionProfileData RequestSimData(Uri gridserverUrl, string gridserverSendkey, string keyField, string keyValue)
         {
             Hashtable requestData = new Hashtable();
             requestData[keyField] = keyValue;
@@ -57,7 +57,7 @@ namespace OpenSim.Data
         /// <param name="gridserverRecvkey"></param>
         /// <returns>The sim profile.  Null if there was a request failure</returns>
         /// <remarks>This method should be statics</remarks>
-        public static RegionProfileData RequestSimProfileData(UUID regionId, Uri gridserverUrl,
+        public RegionProfileData RequestSimProfileData(UUID regionId, Uri gridserverUrl,
                                                               string gridserverSendkey, string gridserverRecvkey)
         {
             return RequestSimData(gridserverUrl, gridserverSendkey, "region_UUID", regionId.Guid.ToString());
@@ -71,7 +71,7 @@ namespace OpenSim.Data
         /// <param name="gridserver_sendkey"></param>
         /// <param name="gridserver_recvkey"></param>
         /// <returns>The sim profile.  Null if there was a request failure</returns>
-        public static RegionProfileData RequestSimProfileData(ulong region_handle, Uri gridserver_url,
+        public RegionProfileData RequestSimProfileData(ulong region_handle, Uri gridserver_url,
                                                               string gridserver_sendkey, string gridserver_recvkey)
         {
             return RequestSimData(gridserver_url, gridserver_sendkey, "region_handle", region_handle.ToString());
@@ -85,7 +85,7 @@ namespace OpenSim.Data
         /// <param name="gridserverSendkey"></param>
         /// <param name="gridserverRecvkey"></param>
         /// <returns>The sim profile.  Null if there was a request failure</returns>
-        public static RegionProfileData RequestSimProfileData(string regionName, Uri gridserverUrl,
+        public RegionProfileData RequestSimProfileData(string regionName, Uri gridserverUrl,
                                                               string gridserverSendkey, string gridserverRecvkey)
         {
             return RequestSimData(gridserverUrl, gridserverSendkey, "region_name_search", regionName );
