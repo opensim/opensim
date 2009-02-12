@@ -157,6 +157,26 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+        /// <summary>
+        /// Gets the XML RPC handler for given method name
+        /// </summary>
+        /// <param name="method">Name of the method</param>
+        /// <returns>Returns null if not found</returns>
+        public XmlRpcMethod GetXmlRPCHandler(string method)
+        {
+            lock (m_rpcHandlers)
+            {
+                if (m_rpcHandlers.ContainsKey(method))
+                {
+                    return m_rpcHandlers[method];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         public bool AddHTTPHandler(string method, GenericHTTPMethod handler)
         {
             lock (m_HTTPHandlers)
