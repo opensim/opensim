@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -205,7 +206,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float[] _watermap;
         private bool m_filterCollisions = true;
 
-        // private float[] _origheightmap;
+        private float[] _origheightmap;    // Used for Fly height. Kitto Flora
 
         private d.NearCallback nearCallback;
         public d.TriCallback triCallback;
@@ -1284,12 +1285,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         #endregion
-
-// TODO: unused
-//         private float GetTerrainHeightAtXY(float x, float y)
-//         {
-//             return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
-//         }
+       
+// Recovered for use by fly height. Kitto Flora
+        public float GetTerrainHeightAtXY(float x, float y)
+        {
+            return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
+        }
+// End recovered. Kitto Flora
 
         public void addCollisionEventReporting(PhysicsActor obj)
         {
@@ -2958,7 +2960,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             // this._heightmap[i] = (double)heightMap[i];
             // dbm (danx0r) -- creating a buffer zone of one extra sample all around
-            // _origheightmap = heightMap;
+            _origheightmap = heightMap;    // Used for Fly height. Kitto Flora
             const uint heightmapWidth = m_regionWidth + 2;
             const uint heightmapHeight = m_regionHeight + 2;
             const uint heightmapWidthSamples = 2*m_regionWidth + 2;

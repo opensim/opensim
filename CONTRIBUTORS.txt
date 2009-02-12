@@ -61,6 +61,7 @@ Patches
 * Kayne
 * Kevin Cozens
 * kinoc (Daxtron Labs)
+* Kitto Flora
 * krtaylor (IBM)
 * lulurun 
 * M.Igarashi

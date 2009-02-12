@@ -832,8 +832,18 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (flying)
             {
                 vec.Z += ((-1 * _parent_scene.gravityz)*m_mass);
-            }
 
+                //Added for auto fly height. Kitto Flora
+                d.Vector3 pos = d.BodyGetPosition(Body);
+                float ground_height = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
+                float target_altitude = ground_height + 3.0f;    // This is  the min fly height
+                if(pos.Z < target_altitude)
+                {
+                    vec.Z += (target_altitude - pos.Z) * PID_P * 5.0f;
+                }
+                // end add Kitto Flora
+
+            }
 
             doForce(vec);
         }
