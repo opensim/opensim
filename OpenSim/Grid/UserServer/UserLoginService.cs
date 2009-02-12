@@ -86,7 +86,7 @@ namespace OpenSim.Grid.UserServer
             RegionProfileData SimInfo;
             try
             {
-                SimInfo = RegionProfileData.RequestSimProfileData(
+                SimInfo = RegionProfileService.RequestSimProfileData(
                     theUser.CurrentAgent.Handle, m_config.GridServerURL,
                     m_config.GridSendKey, m_config.GridRecvKey);
 
@@ -302,20 +302,20 @@ namespace OpenSim.Grid.UserServer
 
         protected RegionProfileData RequestClosestRegion(string region)
         {
-            return RegionProfileData.RequestSimProfileData(region,
+            return RegionProfileService.RequestSimProfileData(region,
                                                            m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
         }
 
         protected RegionProfileData GetRegionInfo(ulong homeRegionHandle)
         {
-            return RegionProfileData.RequestSimProfileData(homeRegionHandle,
+            return RegionProfileService.RequestSimProfileData(homeRegionHandle,
                                                            m_config.GridServerURL, m_config.GridSendKey,
                                                            m_config.GridRecvKey);
         }
 
         protected RegionProfileData GetRegionInfo(UUID homeRegionId)
         {
-            return RegionProfileData.RequestSimProfileData(homeRegionId,
+            return RegionProfileService.RequestSimProfileData(homeRegionId,
                                                            m_config.GridServerURL, m_config.GridSendKey,
                                                            m_config.GridRecvKey);
         }
