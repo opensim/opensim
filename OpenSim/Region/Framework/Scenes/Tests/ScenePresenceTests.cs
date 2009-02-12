@@ -213,7 +213,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             presence2.AbsolutePosition = new Vector3(-1, 3, 100);
             presence2.Update();
             // Crossings are asynchronous
-            while (presence.IsInTransit) { };
+            while (presence2.IsInTransit) { };
 
             Assert.That(presence2.IsChildAgent, Is.True, "Did not return from region as expected.");
             Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");
