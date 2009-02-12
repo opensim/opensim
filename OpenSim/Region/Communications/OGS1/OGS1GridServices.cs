@@ -1597,8 +1597,6 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
             
-            ar.AsyncWaitHandle.Close();
-
             if (timed_out)
             {                                
                 ar.AsyncWaitHandle.Close();
