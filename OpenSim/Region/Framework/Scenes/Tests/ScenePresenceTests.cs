@@ -36,7 +36,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.CoreModules.Communications.Local;
+using OpenSim.Region.CoreModules.Communications.REST;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
@@ -65,6 +65,15 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             scene = SceneSetupHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000, cm);
             scene2 = SceneSetupHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000, cm);
             scene3 = SceneSetupHelpers.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000, cm);
+
+	    IRegionModule interregionComms = new RESTInterregionComms();
+	    interregionComms.Initialise(scene, new IniConfigSource());
+	    interregionComms.Initialise(scene2, new IniConfigSource());
+	    interregionComms.Initialise(scene3, new IniConfigSource());
+	    interregionComms.PostInitialise();
+            SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
+            SceneSetupHelpers.SetupSceneModules(scene2, new IniConfigSource(), interregionComms);
+            SceneSetupHelpers.SetupSceneModules(scene3, new IniConfigSource(), interregionComms);
 
             agent1 = UUID.Random();
             agent2 = UUID.Random();
@@ -245,8 +254,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(presence2.CrossAttachmentsIntoNewRegion(region1, true), Is.True, "Cross was not successful");
             Assert.That(presence2.HasAttachments(), Is.False, "Presence2 objects were not deleted");
-            // Commenting this for now until we get the Comms module right...
-            //Assert.That(presence.HasAttachments(), Is.True, "Presence has not received new objects");
+            Assert.That(presence.HasAttachments(), Is.True, "Presence has not received new objects");
         }
 
         public static string GetRandomCapsObjectPath()
