@@ -104,7 +104,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pq[PQHandles[req.RequestedAssetID]].data.Update(req.DiscardLevel, (int)req.PacketNumber);
         }
 
-
         /// <summary>
         /// Callback for the asset system
         /// </summary>
@@ -128,14 +127,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             //else
 
-
             pq[PQHandles[assetID]].data.asset = asset;
 
             //lock (pq[PQHandles[assetID]].data)
             pq[PQHandles[assetID]].data.Update((int)pq[PQHandles[assetID]].data.Priority, pq[PQHandles[assetID]].data.CurrentPacket);
-
-
-
         }
 
         /// <summary>
@@ -147,11 +142,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_shuttingdown)
                 return;
 
-
             IPriorityQueueHandle<Prio<J2KImage>> h = null;
             for (int j = 0; j < count; j++)
             {
-
                 lock (pq)
                 {
                     if (!pq.IsEmpty)
@@ -221,9 +214,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                         // no module, no layers, full resolution only
                                         j2kDecodedCallback(process.data.AssetId, new OpenJPEG.J2KLayerInfo[0]);
                                     }
-
-
-
                                 } // Are we waiting?
                                 else if (!process.data.J2KDecodeWaiting)
                                 {
@@ -357,12 +347,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-
             lock (PQHandles)
                 PQHandles.Clear();
             m_client = null;
         }
-
     }
 
     /// <summary>
@@ -525,7 +513,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // No layers, send full image
                 DiscardLevel = 0;
-                StopPacket = TexturePacketCount() - 1;
+                StopPacket = TexturePacketCount();
                 CurrentPacket = Util.Clamp<int>(packet, 1, TexturePacketCount() - 1);
             }
         }
@@ -604,7 +592,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             catch (Exception e)
             {
                 Console.WriteLine(String.Format("Err: srcLen:{0}, BytePos:{1}, desLen:{2}, pktsize:{3}, currpak:{4}, stoppak:{5}, totalpak:{6}", m_asset_ref.Data.Length, CurrentBytePosition(),
-                    imageData.Length, imagePacketSize, CurrentPacket,StopPacket,TexturePacketCount()));
+                    imageData.Length, imagePacketSize, CurrentPacket, StopPacket, TexturePacketCount()));
                 Console.WriteLine(e.ToString());
                 //m_log.Error("Texture data copy failed for " + m_asset_ref.FullID.ToString());
                 //m_cancel = true;
