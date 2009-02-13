@@ -1085,70 +1085,82 @@ namespace OpenSim.Region.Framework.Scenes
                             agent.Name, agent.UUID, agent.Scene.RegionInfo.RegionName);
                 }
 
-                bool crossingSuccessful =
-                    CrossToNeighbouringRegion(neighbourHandle, agent.ControllingClient.AgentId, pos,
-                                                      isFlying);
-                if (crossingSuccessful)
+                //bool crossingSuccessful =
+                //    CrossToNeighbouringRegion(neighbourHandle, agent.ControllingClient.AgentId, pos,
+                                                      //isFlying);
+
+                SetInTransit(agent.UUID);
+                AgentData cAgent = new AgentData();
+                agent.CopyTo(cAgent);
+                cAgent.Position = pos;
+                if (isFlying)
+                    cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+                cAgent.CallbackURI = "http://" + m_regionInfo.ExternalHostName + ":" + m_regionInfo.HttpPort +
+                    "/agent/" + agent.UUID.ToString() + "/" + agent.Scene.RegionInfo.RegionHandle.ToString() + "/release/";
+
+                m_interregionCommsOut.SendChildAgentUpdate(neighbourHandle, cAgent);
+
+                // Next, let's close the child agent connections that are too far away.
+                agent.CloseChildAgents(neighbourx, neighboury);
+
+                //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
+                agent.ControllingClient.RequestClientInfo();
+
+                //Console.WriteLine("BEFORE CROSS");
+                //Scene.DumpChildrenSeeds(UUID);
+                //DumpKnownRegions();
+                string agentcaps;
+                if (!agent.KnownRegions.TryGetValue(neighbourRegion.RegionHandle, out agentcaps))
                 {
-                    // Next, let's close the child agent connections that are too far away.
-                    agent.CloseChildAgents(neighbourx, neighboury);
+                    m_log.ErrorFormat("[SCENE COMM]: No CAPS information for region handle {0}, exiting CrossToNewRegion.",
+                                     neighbourRegion.RegionHandle);
+                    return agent;
+                }
+                // TODO Should construct this behind a method
+                string capsPath =
+                    "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
+                     + "/CAPS/" + agentcaps /*circuitdata.CapsPath*/ + "0000/";
 
-                    //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
-                    agent.ControllingClient.RequestClientInfo();
+                m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
 
-                    //Console.WriteLine("BEFORE CROSS");
-                    //Scene.DumpChildrenSeeds(UUID);
-                    //DumpKnownRegions();
-                    string agentcaps;
-                    if (!agent.KnownRegions.TryGetValue(neighbourRegion.RegionHandle, out agentcaps))
-                    {
-                        m_log.ErrorFormat("[SCENE COMM]: No CAPS information for region handle {0}, exiting CrossToNewRegion.",
-                                         neighbourRegion.RegionHandle);
-                        return agent;
-                    }
-                    // TODO Should construct this behind a method
-                    string capsPath =
-                        "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
-                         + "/CAPS/" + agentcaps /*circuitdata.CapsPath*/ + "0000/";
-
-                    m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
-
-                    IEventQueue eq = agent.Scene.RequestModuleInterface<IEventQueue>();
-                    if (eq != null)
-                    {
-                        eq.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
-                                       capsPath, agent.UUID, agent.ControllingClient.SessionId);
-                    }
-                    else
-                    {
-                        agent.ControllingClient.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
-                                                    capsPath);
-                    }
-
-                    agent.MakeChildAgent();
-                    // now we have a child agent in this region. Request all interesting data about other (root) agents
-                    agent.SendInitialFullUpdateToAllClients();
-
-                    agent.CrossAttachmentsIntoNewRegion(neighbourHandle, true);
-
-                    //                    m_scene.SendKillObject(m_localId);
-
-                    agent.Scene.NotifyMyCoarseLocationChange();
-                    // the user may change their profile information in other region,
-                    // so the userinfo in UserProfileCache is not reliable any more, delete it
-                    if (agent.Scene.NeedSceneCacheClear(agent.UUID))
-                    {
-                        agent.Scene.CommsManager.UserProfileCacheService.RemoveUser(agent.UUID);
-                        m_log.DebugFormat(
-                            "[SCENE COMM]: User {0} is going to another region, profile cache removed", agent.UUID);
-                    }
+                IEventQueue eq = agent.Scene.RequestModuleInterface<IEventQueue>();
+                if (eq != null)
+                {
+                    eq.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
+                                   capsPath, agent.UUID, agent.ControllingClient.SessionId);
                 }
                 else
                 {
-                    //// Restore the user structures that we needed to delete before asking the receiving region 
-                    //// to complete the crossing
-                    //userInfo.FetchInventory();
-                    //agent.Scene.CapsModule.AddCapsHandler(agent.UUID);
+                    agent.ControllingClient.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
+                                                capsPath);
+                }
+
+                if (!WaitForCallback(agent.UUID))
+                {
+                    ResetFromTransit(agent.UUID);
+
+                    // Yikes! We should just have a ref to scene here.
+                    agent.Scene.InformClientOfNeighbours(agent);
+
+                    return agent;
+                }
+
+                agent.MakeChildAgent();
+                // now we have a child agent in this region. Request all interesting data about other (root) agents
+                agent.SendInitialFullUpdateToAllClients();
+
+                agent.CrossAttachmentsIntoNewRegion(neighbourHandle, true);
+
+                //                    m_scene.SendKillObject(m_localId);
+
+                agent.Scene.NotifyMyCoarseLocationChange();
+                // the user may change their profile information in other region,
+                // so the userinfo in UserProfileCache is not reliable any more, delete it
+                if (agent.Scene.NeedSceneCacheClear(agent.UUID))
+                {
+                    agent.Scene.CommsManager.UserProfileCacheService.RemoveUser(agent.UUID);
+                    m_log.DebugFormat(
+                        "[SCENE COMM]: User {0} is going to another region, profile cache removed", agent.UUID);
                 }
             }
 
