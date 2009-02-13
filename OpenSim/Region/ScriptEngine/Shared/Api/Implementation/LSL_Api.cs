@@ -6725,7 +6725,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetNumberOfPrims()
         {
             m_host.AddScriptLPS(1);
-            return m_host.ParentGroup.PrimCount;
+            List<ScenePresence> presences = World.GetScenePresences();
+            if (presences.Count == 0)
+                return 0;
+
+            int avatarCount = 0;
+            foreach (ScenePresence presence in presences)
+            {
+                if (!presence.IsChildAgent && presence.ParentID != 0)
+                {
+                    if (m_host.ParentGroup.HasChildPrim(presence.ParentID))
+                    {
+                        avatarCount++;
+                    }
+                }
+            }
+
+            return m_host.ParentGroup.PrimCount + avatarCount;
         }
 
         /// <summary>
@@ -8632,7 +8648,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                return part.ParentGroup.Children.Count;
+                return part.ParentGroup.PrimCount;
             }
         }
 
