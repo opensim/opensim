@@ -50,7 +50,7 @@ using OSDMap=OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Region.CoreModules.World.WorldMap
 {
-    public class WorldMapModule : IRegionModule
+    public class WorldMapModule : IRegionModule, IWorldMapModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -89,6 +89,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 return;
 
             m_scene = scene;
+            
+            m_scene.RegisterModuleInterface<IWorldMapModule>(this);
 
             m_scene.AddCommand(
                 this, "export-map",
@@ -935,6 +937,64 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
             return responsemap;
         }
+        
+        public void LazySaveGeneratedMaptile(byte[] data, bool temporary)
+        {
+            // Overwrites the local Asset cache with new maptile data
+            // Assets are single write, this causes the asset server to ignore this update,
+            // but the local asset cache does not
+
+            // this is on purpose!  The net result of this is the region always has the most up to date
+            // map tile while protecting the (grid) asset database from bloat caused by a new asset each
+            // time a mapimage is generated!
+
+            UUID lastMapRegionUUID = m_scene.RegionInfo.lastMapUUID;
+
+            int lastMapRefresh = 0;
+            int twoDays = 172800;
+            int RefreshSeconds = twoDays;
+
+            try
+            {
+                lastMapRefresh = Convert.ToInt32(m_scene.RegionInfo.lastMapRefresh);
+            }
+            catch (ArgumentException)
+            {
+            }
+            catch (FormatException)
+            {
+            }
+            catch (OverflowException)
+            {
+            }
+
+            UUID TerrainImageUUID = UUID.Random();
+
+            if (lastMapRegionUUID == UUID.Zero || (lastMapRefresh + RefreshSeconds) < Util.UnixTimeSinceEpoch())
+            {
+                m_scene.RegionInfo.SaveLastMapUUID(TerrainImageUUID);
+
+                m_log.Debug("[MAPTILE]: STORING MAPTILE IMAGE");
+            }
+            else
+            {
+                TerrainImageUUID = lastMapRegionUUID;
+                m_log.Debug("[MAPTILE]: REUSING OLD MAPTILE IMAGE ID");
+            }
+
+            m_scene.RegionInfo.RegionSettings.TerrainImageID = TerrainImageUUID;
+
+            AssetBase asset = new AssetBase();
+            asset.Metadata.FullID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
+            asset.Data = data;
+            asset.Metadata.Name 
+                = "terrainImage_" + m_scene.RegionInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
+            asset.Metadata.Description = m_scene.RegionInfo.RegionName;
+
+            asset.Metadata.Type = 0;
+            asset.Metadata.Temporary = temporary;
+            m_scene.CommsManager.AssetCache.AddAsset(asset);
+        }        
 
         private void MakeRootAgent(ScenePresence avatar)
         { 

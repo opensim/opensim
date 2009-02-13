@@ -1129,64 +1129,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             byte[] data = terrain.WriteJpeg2000Image("defaultstripe.png");
             if (data != null)
-                LazySaveGeneratedMaptile(data, temporary);
-        }
-
-        public void LazySaveGeneratedMaptile(byte[] data, bool temporary)
-        {
-            // Overwrites the local Asset cache with new maptile data
-            // Assets are single write, this causes the asset server to ignore this update,
-            // but the local asset cache does not
-
-            // this is on purpose!  The net result of this is the region always has the most up to date
-            // map tile while protecting the (grid) asset database from bloat caused by a new asset each
-            // time a mapimage is generated!
-
-            UUID lastMapRegionUUID = m_regInfo.lastMapUUID;
-
-            int lastMapRefresh = 0;
-            int twoDays = 172800;
-            int RefreshSeconds = twoDays;
-
-            try
             {
-                lastMapRefresh = Convert.ToInt32(m_regInfo.lastMapRefresh);
+                IWorldMapModule mapModule = RequestModuleInterface<IWorldMapModule>();
+                                
+                if (mapModule != null)    
+                    mapModule.LazySaveGeneratedMaptile(data, temporary);
             }
-            catch (ArgumentException)
-            {
-            }
-            catch (FormatException)
-            {
-            }
-            catch (OverflowException)
-            {
-            }
-
-            UUID TerrainImageUUID = UUID.Random();
-
-            if (lastMapRegionUUID == UUID.Zero || (lastMapRefresh + RefreshSeconds) < Util.UnixTimeSinceEpoch())
-            {
-                m_regInfo.SaveLastMapUUID(TerrainImageUUID);
-
-                m_log.Warn("[MAPTILE]: STORING MAPTILE IMAGE");
-            }
-            else
-            {
-                TerrainImageUUID = lastMapRegionUUID;
-                m_log.Warn("[MAPTILE]: REUSING OLD MAPTILE IMAGE ID");
-            }
-
-            m_regInfo.RegionSettings.TerrainImageID = TerrainImageUUID;
-
-            AssetBase asset = new AssetBase();
-            asset.Metadata.FullID = m_regInfo.RegionSettings.TerrainImageID;
-            asset.Data = data;
-            asset.Metadata.Name = "terrainImage_" + m_regInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
-            asset.Metadata.Description = RegionInfo.RegionName;
-
-            asset.Metadata.Type = 0;
-            asset.Metadata.Temporary = temporary;
-            AssetCache.AddAsset(asset);
         }
 
         #endregion
