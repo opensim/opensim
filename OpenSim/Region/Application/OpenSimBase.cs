@@ -154,7 +154,9 @@ namespace OpenSim
         protected override List<string> GetHelpTopics() 
         {
             List<string> topics = base.GetHelpTopics();
-            topics.AddRange(SceneManager.CurrentOrFirstScene.GetCommanders().Keys);
+            Scene s = SceneManager.CurrentOrFirstScene;
+            if (s != null && s.GetCommanders() != null)
+                topics.AddRange(s.GetCommanders().Keys);
             
             return topics;
         }        
@@ -204,8 +206,15 @@ namespace OpenSim
                         "Execute subcommand for plugin '" + topic + "'",
                         null);
 
-                ICommander commander =
-                        SceneManager.CurrentOrFirstScene.GetCommanders()[topic];
+                ICommander commander = null;
+                
+                Scene s = SceneManager.CurrentOrFirstScene;
+
+                if (s != null && s.GetCommanders() != null)
+                {
+                    if (s.GetCommanders().ContainsKey(topic))
+                        commander = s.GetCommanders()[topic];
+                }
 
                 if (commander == null)
                     continue;
@@ -227,6 +236,9 @@ namespace OpenSim
 
         private void HandleCommanderHelp(string module, string[] cmd)
         {
+            // Only safe for the interactive console, since it won't
+            // let us come here unless both scene and commander exist
+            //
             ICommander moduleCommander = SceneManager.CurrentOrFirstScene.GetCommander(cmd[1]);
             if (moduleCommander != null)
                 m_console.Notice(moduleCommander.Help);

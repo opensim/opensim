@@ -554,13 +554,39 @@ namespace OpenSim.Framework.Console
             WriteNewLine(DeriveColor(sender), sender, ConsoleColor.Gray, format, args);
         }
 
+        private int SetCursorTop(int top)
+        {
+            if (top >= 0 && top < System.Console.BufferHeight)
+            {
+                System.Console.CursorTop = top;
+                return top;
+            }
+            else
+            {
+                return System.Console.CursorTop;
+            }
+        }
+
+        private int SetCursorLeft(int left)
+        {
+            if (left >= 0 && left < System.Console.BufferWidth)
+            {
+                System.Console.CursorLeft = left;
+                return left;
+            }
+            else
+            {
+                return System.Console.CursorLeft;
+            }
+        }
+
         private void WriteNewLine(ConsoleColor senderColor, string sender, ConsoleColor color, string format, params object[] args)
         {
             lock (cmdline)
             {
                 if (y != -1)
                 {
-                    System.Console.CursorTop = y;
+                    y=SetCursorTop(y);
                     System.Console.CursorLeft = 0;
 
                     int count = cmdline.Length;
@@ -569,7 +595,7 @@ namespace OpenSim.Framework.Console
                     while (count-- > 0)
                         System.Console.Write(" ");
 
-                    System.Console.CursorTop = y;
+                    y=SetCursorTop(y);
                     System.Console.CursorLeft = 0;
                 }
                 WritePrefixLine(senderColor, sender);
@@ -585,7 +611,7 @@ namespace OpenSim.Framework.Console
             {
                 if (y != -1)
                 {
-                    System.Console.CursorTop = y;
+                    y=SetCursorTop(y);
                     System.Console.CursorLeft = 0;
 
                     int count = cmdline.Length;
@@ -594,7 +620,7 @@ namespace OpenSim.Framework.Console
                     while (count-- > 0)
                         System.Console.Write(" ");
 
-                    System.Console.CursorTop = y;
+                    y=SetCursorTop(y);
                     System.Console.CursorLeft = 0;
                 }
                 WriteConsoleLine(color, format, args);
@@ -695,7 +721,7 @@ namespace OpenSim.Framework.Console
                     System.Console.WriteLine(" ");
                 }
 
-                System.Console.CursorTop = y;
+                y=SetCursorTop(y);
                 System.Console.CursorLeft = 0;
 
                 if (echo)
@@ -703,8 +729,8 @@ namespace OpenSim.Framework.Console
                 else
                     System.Console.Write("{0}", prompt);
 
-                System.Console.CursorLeft = new_x;
-                System.Console.CursorTop = new_y;
+                SetCursorLeft(new_x);
+                SetCursorTop(new_y);
             }
         }
 
@@ -715,7 +741,7 @@ namespace OpenSim.Framework.Console
             {
                 if (y != -1)
                 {
-                    System.Console.CursorTop = y;
+                    y = SetCursorTop(y);
                     System.Console.CursorLeft = 0;
 
                     int count = cmdline.Length + prompt.Length;
@@ -723,7 +749,7 @@ namespace OpenSim.Framework.Console
                     while (count-- > 0)
                         System.Console.Write(" ");
 
-                    System.Console.CursorTop = y;
+                    y = SetCursorTop(y);
                     System.Console.CursorLeft = 0;
 
                 }
@@ -754,7 +780,7 @@ namespace OpenSim.Framework.Console
                     return;
                 }
 
-                System.Console.CursorTop = y;
+                y = SetCursorTop(y);
                 System.Console.CursorLeft = 0;
 
                 int count = cmdline.Length + prompt.Length;
@@ -762,7 +788,7 @@ namespace OpenSim.Framework.Console
                 while (count-- > 0)
                     System.Console.Write(" ");
 
-                System.Console.CursorTop = y;
+                y = SetCursorTop(y);
                 System.Console.CursorLeft = 0;
 
                 System.Console.WriteLine(text);
@@ -915,7 +941,7 @@ namespace OpenSim.Framework.Console
                         cp--;
 
                         System.Console.CursorLeft = 0;
-                        System.Console.CursorTop = y;
+                        y = SetCursorTop(y);
 
                         System.Console.Write("{0}{1} ", prompt, cmdline);
 
@@ -963,7 +989,7 @@ namespace OpenSim.Framework.Console
                         break;
                     case ConsoleKey.Enter:
                         System.Console.CursorLeft = 0;
-                        System.Console.CursorTop = y;
+                        y = SetCursorTop(y);
 
                         System.Console.WriteLine("{0}{1}", prompt, cmdline);
 
