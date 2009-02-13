@@ -43,7 +43,7 @@ namespace OpenSim.Region.Communications.Local
 
     public class LocalLoginService : LoginService
     {
-        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected NetworkServersInfo serversInfo;
         protected uint defaultHomeX;

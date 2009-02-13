@@ -41,7 +41,7 @@ namespace OpenSim.Region.CoreModules.Scripting.RegionReady
 {
     public class RegionReady : IRegionModule
     {
-        private readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IConfig m_config = null;
         private bool m_firstEmptyCompileQueue;
         private bool m_oarFileLoading;

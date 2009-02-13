@@ -56,7 +56,6 @@ namespace OpenSim
         {
         }
 
-
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
@@ -282,6 +281,7 @@ namespace OpenSim
         }
         */
 
+        /*
         private void ReadLinkFromConfig(IConfig config)
         {
             RegionInfo regInfo;
@@ -311,6 +311,7 @@ namespace OpenSim
                 }
             }
         }
+        */
 
         private void LinkRegionCmdUsage()
         {

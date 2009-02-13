@@ -1054,12 +1054,8 @@ namespace OpenSim.Region.Framework.Scenes
                 newpos.Y = enterDistance;
             }
 
-            Vector3 vel = agent.Velocity;
-
             CrossAgentToNewRegionDelegate d = CrossAgentToNewRegionAsync;
             d.BeginInvoke(agent, newpos, neighbourx, neighboury, isFlying, CrossAgentToNewRegionCompleted, d);
-
-
         }
 
         public delegate ScenePresence CrossAgentToNewRegionDelegate(ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, bool isFlying);

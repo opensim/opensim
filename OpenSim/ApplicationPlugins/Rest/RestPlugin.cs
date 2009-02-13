@@ -42,7 +42,7 @@ namespace OpenSim.ApplicationPlugins.Rest
     {
         #region properties
 
-        protected static readonly ILog  m_log =
+        protected static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IConfig        _config;       // Configuration source: Rest Plugins

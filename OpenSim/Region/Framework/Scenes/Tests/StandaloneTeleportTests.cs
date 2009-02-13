@@ -80,7 +80,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                         
             // FIXME: This is a hack to get the test working - really the normal OpenSim mechanisms should be used.
             client.TeleportTargetScene = sceneB;            
-	    // Commenting this out for now -- Diva
+            // Commenting this out for now -- Diva
             //client.Teleport(sceneB.RegionInfo.RegionHandle, new Vector3(100, 100, 100), new Vector3(40, 40, 40));
             
             //Assert.That(sceneB.GetScenePresence(agentId), Is.Not.Null, "Client does not have an agent in sceneB");                                   
@@ -93,7 +93,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             //    "http://" + sceneB.RegionInfo.ExternalHostName + ":" + sceneB.RegionInfo.HttpPort + "/CAPS/" + sceneBCapsModule.GetCapsPath(agentId) + "0000/", 
             //    Is.EqualTo(client.CapsSeedUrl), 
             //    "Incorrect caps object path set up in sceneB");  
-	    // ---- up to here -- Diva
+            // ---- up to here -- Diva
             
             // This assertion will currently fail since we don't remove the caps paths when no longer needed
             //Assert.That(sceneACapsModule.GetCapsPath(agentId), Is.Null, "sceneA still had a caps object path");

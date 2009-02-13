@@ -217,11 +217,13 @@ namespace pCampBot
             doBotShutdown();
         }
 
+        /*
         private void HandleQuit(string module, string[] cmd)
         {
             m_console.Warn("DANGER", "This should only be used to quit the program if you've already used the shutdown command and the program hasn't quit");
             Environment.Exit(0);
         }
+        */
 
         private void HandleAddBots(string module, string[] cmd)
         {

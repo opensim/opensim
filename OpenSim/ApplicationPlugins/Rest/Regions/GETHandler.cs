@@ -35,7 +35,6 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.ApplicationPlugins.Rest.Regions
 {
-
     public partial class RestRegionPlugin : RestPlugin
     {
         #region GET methods
