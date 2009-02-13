@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 {
     public class RESTInterregionComms : IRegionModule, IInterregionCommsOut
     {
-        private static bool initialized = false;
+        private bool initialized = false;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected bool m_enabled = false;
@@ -78,7 +78,6 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 return;
 
             InitEach(scene);
-
         }
 
         public virtual void PostInitialise()
@@ -162,7 +161,6 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             //else
             //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
-
         }
 
         public bool SendChildAgentUpdate(ulong regionHandle, AgentPosition cAgentData)
@@ -180,7 +178,6 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             //else
             //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
-
         }
         
         public bool SendReleaseAgent(ulong regionHandle, UUID id, string uri)

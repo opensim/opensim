@@ -221,7 +221,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestMergeOarV0p2()
         {
-            XmlConfigurator.Configure();
+            //XmlConfigurator.Configure();
             
             MemoryStream archiveWriteStream = new MemoryStream();
 

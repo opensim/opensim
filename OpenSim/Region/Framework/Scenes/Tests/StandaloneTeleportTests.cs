@@ -51,7 +51,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]        
         public void TestSimpleNotNeighboursTeleport()
         {
-            //log4net.Config.XmlConfigurator.Configure();
+            log4net.Config.XmlConfigurator.Configure();
             
             UUID sceneAId = UUID.Parse("00000000-0000-0000-0000-000000000100");
             UUID sceneBId = UUID.Parse("00000000-0000-0000-0000-000000000200");
@@ -80,20 +80,18 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                         
             // FIXME: This is a hack to get the test working - really the normal OpenSim mechanisms should be used.
             client.TeleportTargetScene = sceneB;            
-            // Commenting this out for now -- Diva
-            //client.Teleport(sceneB.RegionInfo.RegionHandle, new Vector3(100, 100, 100), new Vector3(40, 40, 40));
+            client.Teleport(sceneB.RegionInfo.RegionHandle, new Vector3(100, 100, 100), new Vector3(40, 40, 40));
             
-            //Assert.That(sceneB.GetScenePresence(agentId), Is.Not.Null, "Client does not have an agent in sceneB");                                   
-            //Assert.That(sceneA.GetScenePresence(agentId), Is.Null, "Client still had an agent in sceneA");
+            Assert.That(sceneB.GetScenePresence(agentId), Is.Not.Null, "Client does not have an agent in sceneB");                                   
+            Assert.That(sceneA.GetScenePresence(agentId), Is.Null, "Client still had an agent in sceneA");
             
-            //ICapabilitiesModule sceneBCapsModule = sceneB.RequestModuleInterface<ICapabilitiesModule>();
+            ICapabilitiesModule sceneBCapsModule = sceneB.RequestModuleInterface<ICapabilitiesModule>();
             
             // Temporary assertion - caps url construction should at least be doable through a method.
-            //Assert.That(
-            //    "http://" + sceneB.RegionInfo.ExternalHostName + ":" + sceneB.RegionInfo.HttpPort + "/CAPS/" + sceneBCapsModule.GetCapsPath(agentId) + "0000/", 
-            //    Is.EqualTo(client.CapsSeedUrl), 
-            //    "Incorrect caps object path set up in sceneB");  
-            // ---- up to here -- Diva
+            Assert.That(
+                "http://" + sceneB.RegionInfo.ExternalHostName + ":" + sceneB.RegionInfo.HttpPort + "/CAPS/" + sceneBCapsModule.GetCapsPath(agentId) + "0000/", 
+                Is.EqualTo(client.CapsSeedUrl), 
+                "Incorrect caps object path set up in sceneB");  
             
             // This assertion will currently fail since we don't remove the caps paths when no longer needed
             //Assert.That(sceneACapsModule.GetCapsPath(agentId), Is.Null, "sceneA still had a caps object path");

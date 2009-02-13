@@ -3750,7 +3750,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart jointProxyObject = GetSceneObjectPart(joint.ObjectNameInScene);
                 if (jointProxyObject != null)
                 {
-                    SimChat(Utils.StringToBytes("[NINJA] " + message),
+                    SimChat(Utils.StringToBytes("[NINJA]: " + message),
                         ChatTypeEnum.DebugChannel,
                         2147483647,
                         jointProxyObject.AbsolutePosition,
@@ -3762,7 +3762,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (joint.ErrorMessageCount > PhysicsJoint.maxErrorMessages)
                     {
-                        SimChat(Utils.StringToBytes("[NINJA] Too many messages for this joint, suppressing further messages."),
+                        SimChat(Utils.StringToBytes("[NINJA]: Too many messages for this joint, suppressing further messages."),
                             ChatTypeEnum.DebugChannel,
                             2147483647,
                             jointProxyObject.AbsolutePosition,
