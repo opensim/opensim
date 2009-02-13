@@ -280,9 +280,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             {
                 m_log.DebugFormat("[Concierge]: {0} logs off from {1}", client.Name, client.Scene.RegionInfo.RegionName);
                 RemoveFromAttendeeList(client.AgentId, client.Name, client.Scene);
-                AnnounceToAgentsRegion(client.Scene, String.Format(m_announceLeaving, client.Name, client.Scene.RegionInfo.RegionName,
-                                                                   m_sceneAttendees[client.Scene].Count));
-                UpdateBroker(client.Scene);
+                lock(m_sceneAttendees)
+                {
+                    AnnounceToAgentsRegion(client.Scene, String.Format(m_announceLeaving, client.Name, client.Scene.RegionInfo.RegionName,
+                                                                       m_sceneAttendees[client.Scene].Count));
+                    UpdateBroker(client.Scene);
+                    m_attendeeNames.Remove(client.AgentId);
+                }
             }
         }
 
@@ -348,7 +352,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                 }
 
                 attendees.Remove(agentID);
-                m_attendeeNames.Remove(agentID);
             }
         }
 
@@ -386,10 +389,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                                           attendees.Count, scene.RegionInfo.RegionName, 
                                           scene.RegionInfo.RegionID, 
                                           DateTime.UtcNow.ToString("s")));
-                foreach (UUID uuid in attendees)
+                lock(m_sceneAttendees)
                 {
-                    string name = m_attendeeNames[uuid];
-                    list.Append(String.Format("    <avatar name=\"{0}\" uuid=\"{1}\" />\n", name, uuid));
+                    foreach (UUID uuid in attendees)
+                    {
+                        if (m_attendeeNames.ContainsKey(uuid))
+                        {
+                            string name = m_attendeeNames[uuid];
+                            list.Append(String.Format("    <avatar name=\"{0}\" uuid=\"{1}\" />\n", name, uuid));
+                        }
+                    }
                 }
                 list.Append("</avatars>");
             }
