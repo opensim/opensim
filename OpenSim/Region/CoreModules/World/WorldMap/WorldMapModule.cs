@@ -54,6 +54,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        private static readonly string DEFAULT_WORLD_MAP_EXPORT_PATH = "exportmap.jpg";
 
         private static readonly string m_mapLayerPath = "0001/";
 
@@ -80,14 +82,18 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public virtual void Initialise(Scene scene, IConfigSource config)
         {
             IConfig startupConfig = config.Configs["Startup"];
-            if (startupConfig.GetString("WorldMapModule", "WorldMap") ==
-                    "WorldMap")
+            if (startupConfig.GetString("WorldMapModule", "WorldMap") == "WorldMap")
                 m_Enabled = true;
 
             if (!m_Enabled)
                 return;
 
             m_scene = scene;
+
+            m_scene.AddCommand(
+                this, "export-map",
+                "export-map [<path>]",
+                "Save an image of the world map", HandleExportWorldMapConsoleCommand);            
         }
 
         public virtual void PostInitialise()
@@ -788,6 +794,89 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
             return null;
         }
+        
+        /// <summary>
+        /// Export the world map
+        /// </summary>
+        /// <param name="fileName"></param>
+        public void HandleExportWorldMapConsoleCommand(string module, string[] cmdparams)
+        {   
+            if (m_scene.ConsoleScene() == null)
+            {
+                // FIXME: If console region is root then this will be printed by every module.  Currently, there is no
+                // way to prevent this, short of making the entire module shared (which is complete overkill).
+                // One possibility is to return a bool to signal whether the module has completely handled the command
+                m_log.InfoFormat("[WORLD MAP]: Please change to a specific region in order to export its world map");
+                return;
+            }
+            
+            if (m_scene.ConsoleScene() != m_scene)
+                return;
+            
+            string exportPath;
+            
+            if (cmdparams.Length > 1)
+                exportPath = cmdparams[1];
+            else
+                exportPath = DEFAULT_WORLD_MAP_EXPORT_PATH;
+            
+            m_log.InfoFormat(
+                "[WORLD MAP]: Exporting world map for {0} to {1}", m_scene.RegionInfo.RegionName, exportPath);
+            
+            List<MapBlockData> mapBlocks =
+                m_scene.CommsManager.GridService.RequestNeighbourMapBlocks(
+                    (int)(m_scene.RegionInfo.RegionLocX - 9),
+                    (int)(m_scene.RegionInfo.RegionLocY - 9),
+                    (int)(m_scene.RegionInfo.RegionLocX + 9),
+                    (int)(m_scene.RegionInfo.RegionLocY + 9));
+            List<AssetBase> textures = new List<AssetBase>();
+            List<Image> bitImages = new List<Image>();
+
+            foreach (MapBlockData mapBlock in mapBlocks)
+            {
+                AssetBase texAsset = m_scene.CommsManager.AssetCache.GetAsset(mapBlock.MapImageId, true);
+
+                if (texAsset != null)
+                {
+                    textures.Add(texAsset);
+                }
+                else
+                {
+                    texAsset = m_scene.CommsManager.AssetCache.GetAsset(mapBlock.MapImageId, true);
+                    if (texAsset != null)
+                    {
+                        textures.Add(texAsset);
+                    }
+                }
+            }
+
+            foreach (AssetBase asset in textures)
+            {
+                ManagedImage managedImage;
+                Image image;
+
+                if (OpenJPEG.DecodeToImage(asset.Data, out managedImage, out image))
+                    bitImages.Add(image);
+            }
+
+            Bitmap mapTexture = new Bitmap(2560, 2560);
+            Graphics g = Graphics.FromImage(mapTexture);
+            SolidBrush sea = new SolidBrush(Color.DarkBlue);
+            g.FillRectangle(sea, 0, 0, 2560, 2560);
+
+            for (int i = 0; i < mapBlocks.Count; i++)
+            {
+                ushort x = (ushort)((mapBlocks[i].X - m_scene.RegionInfo.RegionLocX) + 10);
+                ushort y = (ushort)((mapBlocks[i].Y - m_scene.RegionInfo.RegionLocY) + 10);
+                g.DrawImage(bitImages[i], (x * 128), (y * 128), 128, 128);
+            }
+            
+            mapTexture.Save(exportPath, ImageFormat.Jpeg);
+            
+            m_log.InfoFormat(
+                "[WORLD MAP]: Successfully exported world map for {0} to {1}", 
+                m_scene.RegionInfo.RegionName, exportPath);
+        }        
 
         public OSD HandleRemoteMapItemRequest(string path, OSD request, string endpoint)
         {

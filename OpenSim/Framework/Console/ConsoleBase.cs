@@ -361,6 +361,7 @@ namespace OpenSim.Framework.Console
                     fn(ci.module, result);
                 return result;
             }
+            
             return new string[0];
         }
     }

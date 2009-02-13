@@ -121,6 +121,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelReclaim += new ParcelReclaim(handleParcelReclaim);
             client.OnParcelInfoRequest += new ParcelInfoRequest(handleParcelInfo);
             client.OnParcelDwellRequest += new ParcelDwellRequest(handleParcelDwell);
+            
             if (m_scene.Entities.ContainsKey(client.AgentId))
             {
                 SendLandUpdate((ScenePresence)m_scene.Entities[client.AgentId], true);

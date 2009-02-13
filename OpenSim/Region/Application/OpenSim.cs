@@ -225,10 +225,6 @@ namespace OpenSim
                     "command-script <script>",
                     "Run a command script from file", RunCommand);
 
-            m_console.Commands.AddCommand("region", false, "export-map",
-                    "export-map <file>",
-                    "Save an image of the world map", RunCommand);
-
             m_console.Commands.AddCommand("region", false, "remove-region",
                     "remove-region <name>",
                     "Remove a region from this simulator", RunCommand);
@@ -607,17 +603,6 @@ namespace OpenSim
 
             case "restart":
                 m_sceneManager.RestartCurrentScene();
-                break;
-
-            case "export-map":
-                if (cmdparams.Length > 0)
-                {
-                    m_sceneManager.CurrentOrFirstScene.ExportWorldMap(cmdparams[0]);
-                }
-                else
-                {
-                    m_sceneManager.CurrentOrFirstScene.ExportWorldMap("exportmap.jpg");
-                }
                 break;
 
             case "Add-InventoryHost":

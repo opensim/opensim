@@ -266,9 +266,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
             }
-
         }
-
 
         /// <summary>
         /// Callback for when the image has been decoded
@@ -280,7 +278,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // are we shutting down? if so, end.
             if (m_shuttingdown)
                 return;
-
 
             lock (PQHandles)
             {
@@ -298,7 +295,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
         }
-
 
         /// <summary>
         /// This image has had a good life.  It's now expired.   Remove it off the queue
@@ -531,7 +527,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 DiscardLevel = 0;
                 StopPacket = TexturePacketCount() - 1;
                 CurrentPacket = Util.Clamp<int>(packet, 1, TexturePacketCount() - 1);
-
             }
         }
 
@@ -562,7 +557,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-
                     // Send first packet
                     byte[] firstImageData = new byte[FIRST_IMAGE_PACKET_SIZE];
                     try { Buffer.BlockCopy(m_asset_ref.Data, 0, firstImageData, 0, FIRST_IMAGE_PACKET_SIZE); }
