@@ -1816,7 +1816,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-
             SubscribeToClientEvents(client);
             ScenePresence presence;
 

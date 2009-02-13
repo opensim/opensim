@@ -502,8 +502,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // This event won't be raised unless we have that agent,
             // so we can depend on the above not trying to send
             // via grid again
-            m_log.DebugFormat("[FRIEND]: Got GridIM from {0}, to {1}, imSession {2}, message {3}, dialog {4}",
-                              msg.fromAgentID, msg.toAgentID, msg.imSessionID, msg.message, msg.dialog);
+            //m_log.DebugFormat("[FRIEND]: Got GridIM from {0}, to {1}, imSession {2}, message {3}, dialog {4}",
+            //                  msg.fromAgentID, msg.toAgentID, msg.imSessionID, msg.message, msg.dialog);
             
             if (msg.dialog == (byte)InstantMessageDialog.FriendshipOffered ||
                 msg.dialog == (byte)InstantMessageDialog.FriendshipAccepted ||
@@ -512,7 +512,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 // this should succeed as we *know* the root agent is here.
                 m_TransferModule.SendInstantMessage(msg,
                     delegate(bool success) {
-                        m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
+                        //m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
                     }
                 );
             }
@@ -894,7 +894,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         ScenePresence agent = GetAnyPresenceFromAgentID(uuid);
                         if (agent != null)
                         {
-                            m_log.DebugFormat("[FRIEND]: Found local agent {0}", agent.Name);
+                            //m_log.DebugFormat("[FRIEND]: Found local agent {0}", agent.Name);
 
                             // friend is online and on this server...
                             if (iAmOnline) agent.ControllingClient.SendAgentOnline(agentArr);
@@ -906,7 +906,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     }
                     else
                     {
-                        m_log.DebugFormat("[FRIEND]: Friend {0} ({1}) is offline; not sending.", uuid, i);
+                        //m_log.DebugFormat("[FRIEND]: Friend {0} ({1}) is offline; not sending.", uuid, i);
 
                         // friend is offline => no need to try sending
                         friendIDsToSendTo.RemoveAt(i);
@@ -939,8 +939,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     // send bulk updates to the region
                     foreach (KeyValuePair<ulong, List<UUID>> pair in friendsInRegion)
                     {
-                        m_log.DebugFormat("[FRIEND]: Inform {0} friends in region {1} that user {2} is {3}line",
-                                          pair.Value.Count, pair.Key, client.Name, iAmOnline ? "on" : "off");
+                        //m_log.DebugFormat("[FRIEND]: Inform {0} friends in region {1} that user {2} is {3}line",
+                        //                  pair.Value.Count, pair.Key, client.Name, iAmOnline ? "on" : "off");
 
                         friendIDsToSendTo.AddRange(m_initialScene.InformFriendsInOtherRegion(client.AgentId, pair.Key, pair.Value, iAmOnline));
                     }

@@ -526,7 +526,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                             SendGridInstantMessageViaXMLRPCAsync(im, result,
                                     upd.Handle);
                         }
-
                     }
                     else
                     {
@@ -544,7 +543,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 m_log.WarnFormat("[GRID INSTANT MESSAGE]: Unable to find user {0}", toAgentID);
                 result(false);
             }
-
         }
 
         /// <summary>
