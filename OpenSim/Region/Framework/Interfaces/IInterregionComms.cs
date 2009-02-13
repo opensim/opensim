@@ -70,7 +70,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns></returns>
         bool SendCloseAgent(ulong regionHandle, UUID id);
 
-        bool SendCreateObject(ulong regionHandle, ISceneObject sog);
+        bool SendCreateObject(ulong regionHandle, ISceneObject sog, bool isLocalCall);
 
     }
 

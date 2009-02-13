@@ -214,10 +214,10 @@ namespace OpenSim.Region.CoreModules.Communications.REST
          * Object-related communications 
          */
 
-        public bool SendCreateObject(ulong regionHandle, ISceneObject sog)
+        public bool SendCreateObject(ulong regionHandle, ISceneObject sog, bool isLocalCall)
         {
             // Try local first
-            if (m_localBackend.SendCreateObject(regionHandle, sog))
+            if (m_localBackend.SendCreateObject(regionHandle, sog, true))
             {
                 //m_log.Debug("[REST COMMS]: LocalBackEnd SendCreateObject succeeded");
                 return true;
@@ -865,7 +865,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 }
             }
             // This is the meaning of POST object
-            bool result = m_localBackend.SendCreateObject(regionhandle, sog);
+            bool result = m_localBackend.SendCreateObject(regionhandle, sog, false);
 
             responsedata["int_response_code"] = 200;
             responsedata["str_response_string"] = result.ToString();

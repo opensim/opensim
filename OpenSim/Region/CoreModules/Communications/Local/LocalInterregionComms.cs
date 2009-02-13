@@ -204,15 +204,24 @@ namespace OpenSim.Region.CoreModules.Communications.Local
          * Object-related communications 
          */
 
-        public bool SendCreateObject(ulong regionHandle, ISceneObject sog)
+        public bool SendCreateObject(ulong regionHandle, ISceneObject sog, bool isLocalCall)
         {
             foreach (Scene s in m_sceneList)
             {
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
                     //m_log.Debug("[LOCAL COMMS]: Found region to SendCreateObject");
-                    ISceneObject sogClone = sog.CloneForNewScene();
-                    return s.IncomingCreateObject(sogClone);
+                    if (isLocalCall)
+                    {
+                        // We need to make a local copy of the object
+                        ISceneObject sogClone = sog.CloneForNewScene();
+                        return s.IncomingCreateObject(sogClone);
+                    }
+                    else
+                    {
+                        // Use the object as it came through the wire
+                        return s.IncomingCreateObject(sog);
+                    }
                 }
             }
             return false;
