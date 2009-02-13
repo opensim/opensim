@@ -47,7 +47,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
         
         public static Random random;
         public TestClient testclient;
-        TestCommunicationsManager cm;
+        //TestCommunicationsManager cm;
 
         [TestFixtureSetUp]
         public void Init()

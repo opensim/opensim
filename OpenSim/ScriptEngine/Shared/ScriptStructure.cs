@@ -131,6 +131,5 @@ namespace OpenSim.ScriptEngine.Shared
                 }
             }
         }
-
     }
 }

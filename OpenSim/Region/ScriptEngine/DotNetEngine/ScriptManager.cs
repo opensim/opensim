@@ -505,7 +505,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             return 0;
         }
 
-
         #endregion
 
         #region Internal functions to keep track of script
@@ -591,7 +590,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             StartScript(localID, itemID, script, id.StartParam, false);
         }
 
-
         #region Script serialization/deserialization
 
         public void GetSerializedScript(uint localID, UUID itemID)
@@ -623,9 +621,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public int GetStartParameter(UUID itemID)
         {
-
             uint localID = GetLocalID(itemID);
-
             InstanceData id = GetScript(localID, itemID);
 
             if (id == null)

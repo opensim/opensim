@@ -39,7 +39,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// </summary>
     public class MaintenanceThread
     {
-
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         //public ScriptEngine m_ScriptEngine;

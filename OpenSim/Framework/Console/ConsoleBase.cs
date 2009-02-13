@@ -293,7 +293,7 @@ namespace OpenSim.Framework.Console
                     if (s == String.Empty)
                     {
                         CommandInfo ci = (CommandInfo)current[String.Empty];
-                        if (ci.fn.Count != null)
+                        if (ci.fn.Count != 0)
                             addcr = true;
                     }
                     else
@@ -355,7 +355,7 @@ namespace OpenSim.Framework.Console
             if (current.ContainsKey(String.Empty))
             {
                 CommandInfo ci = (CommandInfo)current[String.Empty];
-                if (ci.fn.Count == null)
+                if (ci.fn.Count == 0)
                     return new string[0];
                 foreach (CommandDelegate fn in ci.fn)
                     fn(ci.module, result);
