@@ -182,7 +182,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            try {
+            try 
+            {
                 Hashtable requestData = (Hashtable) request.Params[0];
 
                 checkStringParameters(request, new string[] { "password", "message" });
@@ -197,8 +198,14 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 responseData["accepted"] = "true";
                 responseData["success"] = "true";
                 response.Value = responseData;
-
-                m_app.SceneManager.SendGeneralMessage(message);
+                
+                m_app.SceneManager.ForEachScene(
+                    delegate(Scene scene)
+                    {
+                        IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
+                        if (dialogModule != null)
+                            dialogModule.SendGeneralAlert(message);
+                    });
             }
             catch(Exception e)
             {
@@ -283,19 +290,30 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 response.Value = responseData;
 
                 int timeout = 2000;
+                string message; 
 
-                if (requestData.ContainsKey("shutdown") &&
-                    ((string) requestData["shutdown"] == "delayed") &&
-                    requestData.ContainsKey("milliseconds"))
+                if (requestData.ContainsKey("shutdown") 
+                    && ((string) requestData["shutdown"] == "delayed") 
+                    && requestData.ContainsKey("milliseconds"))
                 {
                     timeout = (Int32) requestData["milliseconds"];
-                    m_app.SceneManager.SendGeneralMessage("Region is going down in " + ((int) (timeout/1000)).ToString() +
-                                                          " second(s). Please save what you are doing and log out.");
+                   
+                    message 
+                        = "Region is going down in " + ((int) (timeout/1000)).ToString() 
+                            + " second(s). Please save what you are doing and log out.";                                                 
                 }
                 else
                 {
-                    m_app.SceneManager.SendGeneralMessage("Region is going down now.");
+                    message = "Region is going down now.";
                 }
+                
+                m_app.SceneManager.ForEachScene(
+                    delegate(Scene scene)
+                    {
+                        IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
+                        if (dialogModule != null)
+                            dialogModule.SendGeneralAlert(message);
+                    });                    
 
                 // Perform shutdown
                 Timer shutdownTimer = new Timer(timeout); // Wait before firing

@@ -177,14 +177,6 @@ namespace OpenSim
                     "show queues",
                     "Show queue data", HandleShow);
 
-            m_console.Commands.AddCommand("region", false, "alert",
-                    "alert <first> <last> <message>",
-                    "Send an alert to a user", RunCommand);
-
-            m_console.Commands.AddCommand("region", false, "alert general",
-                    "alert general <message>",
-                    "Send an alert everyone", RunCommand);
-
             m_console.Commands.AddCommand("region", false, "backup",
                     "backup",
                     "Persist objects to the database now", RunCommand);
@@ -547,7 +539,6 @@ namespace OpenSim
             }
         }
 
-
         /// <summary>
         /// Runs commands issued by the server console from the operator
         /// </summary>
@@ -575,10 +566,6 @@ namespace OpenSim
 
             case "backup":
                 m_sceneManager.BackupCurrentScene();
-                break;
-
-            case "alert":
-                m_sceneManager.HandleAlertCommandOnCurrentScene(cmdparams);
                 break;
 
             case "remove-region":

@@ -296,16 +296,6 @@ namespace OpenSim.Region.Framework.Scenes
             ForEachCurrentScene(delegate(Scene scene) { scene.Backup(); });
         }
 
-        public void HandleAlertCommandOnCurrentScene(string[] cmdparams)
-        {
-            ForEachCurrentScene(delegate(Scene scene) { scene.HandleAlertCommand(cmdparams); });
-        }
-
-        public void SendGeneralMessage(string msg)
-        {
-            ForEachCurrentScene(delegate(Scene scene) { scene.HandleAlertCommand(new string[] { "general", msg }); });
-        }
-
         public bool TrySetCurrentScene(string regionName)
         {
             if ((String.Compare(regionName, "root") == 0) 

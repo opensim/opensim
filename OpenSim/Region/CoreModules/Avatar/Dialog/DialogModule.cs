@@ -26,6 +26,8 @@
  */
 
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -36,7 +38,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
 {
     public class DialogModule : IRegionModule, IDialogModule
     { 
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_scene;
         
@@ -44,6 +46,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         {
             m_scene = scene;
             m_scene.RegisterModuleInterface<IDialogModule>(this);
+            
+            m_scene.AddCommand(
+                this, "alert", "alert <first> <last> <message>", "Send an alert to a user", HandleAlertConsoleCommand);
+
+            m_scene.AddCommand(
+                this, "alert general", "alert general <message>", "Send an alert to everyone", HandleAlertConsoleCommand);            
         }
         
         public void PostInitialise() {}
@@ -137,5 +145,47 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                     presence.ControllingClient.SendBlueBoxMessage(fromAvatarID, fromAvatarName, message);
             }
         }
+        
+        /// <summary>
+        /// Handle an alert command from the console.
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmdparams"></param>
+        public void HandleAlertConsoleCommand(string module, string[] cmdparams)
+        {
+            if (m_scene.ConsoleScene() != null && m_scene.ConsoleScene() != m_scene)
+                return;
+            
+            if (cmdparams[1] == "general")
+            {
+                string message = CombineParams(cmdparams, 2);
+                
+                m_log.InfoFormat(
+                    "[DIALOG]: Sending general alert in region {0} with message {1}", m_scene.RegionInfo.RegionName, message);
+                SendGeneralAlert(message);
+            }
+            else
+            {
+                string firstName = cmdparams[1];
+                string lastName = cmdparams[2];
+                string message = CombineParams(cmdparams, 3);
+                
+                m_log.InfoFormat(
+                    "[DIALOG]: Sending alert in region {0} to {1} {2} with message {3}", 
+                    m_scene.RegionInfo.RegionName, firstName, lastName, message);  
+                SendAlertToUser(firstName, lastName, message, false);
+            }
+        }
+
+        private string CombineParams(string[] commandParams, int pos)
+        {
+            string result = string.Empty;
+            for (int i = pos; i < commandParams.Length; i++)
+            {
+                result += commandParams[i] + " ";
+            }
+            
+            return result;
+        }        
     }
 }

@@ -2213,7 +2213,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 lock (av)
                 {
-
                     for (int i = 0; i < regionslst.Count; i++)
                     {
                         av.KnownChildRegionHandles.Remove(regionslst[i]);
@@ -2900,35 +2899,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Handle an alert command from the console.
-        /// FIXME: Command parsing code really shouldn't be in this core Scene class.
-        /// </summary>
-        /// <param name="commandParams"></param>
-        public void HandleAlertCommand(string[] commandParams)
-        {
-            if (commandParams[0] == "general")
-            {
-                string message = CombineParams(commandParams, 1);
-                m_dialogModule.SendGeneralAlert(message);
-            }
-            else
-            {
-                string message = CombineParams(commandParams, 2);
-                m_dialogModule.SendAlertToUser(commandParams[0], commandParams[1], message, false);
-            }
-        }
-
-        private string CombineParams(string[] commandParams, int pos)
-        {
-            string result = String.Empty;
-            for (int i = pos; i < commandParams.Length; i++)
-            {
-                result += commandParams[i] + " ";
-            }
-            return result;
         }
 
         #endregion
