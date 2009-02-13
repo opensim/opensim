@@ -48,9 +48,9 @@ namespace OpenSim
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IHyperlink HGServices = null;
 
-        private uint m_autoMappingX = 0;
-        private uint m_autoMappingY = 0;
-        private bool m_enableAutoMapping = false;
+//        private uint m_autoMappingX = 0;
+//        private uint m_autoMappingY = 0;
+//        private bool m_enableAutoMapping = false;
 
         public HGOpenSimNode(IConfigSource configSource) : base(configSource)
         {
@@ -150,15 +150,15 @@ namespace OpenSim
                 {
                     try
                     {
-                        m_autoMappingX = Convert.ToUInt32(cmdparams[0]);
-                        m_autoMappingY = Convert.ToUInt32(cmdparams[1]);
-                        m_enableAutoMapping = true;
+//                        m_autoMappingX = Convert.ToUInt32(cmdparams[0]);
+//                        m_autoMappingY = Convert.ToUInt32(cmdparams[1]);
+//                        m_enableAutoMapping = true;
                     }
                     catch (Exception)
                     {
-                        m_autoMappingX = 0;
-                        m_autoMappingY = 0;
-                        m_enableAutoMapping = false;
+//                        m_autoMappingX = 0;
+//                        m_autoMappingY = 0;
+//                        m_enableAutoMapping = false;
                     }
                 }
             }
