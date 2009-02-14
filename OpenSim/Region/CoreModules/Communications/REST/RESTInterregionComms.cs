@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 {
     public class RESTInterregionComms : IRegionModule, IInterregionCommsOut
     {
-        private static bool initialized = false;
+        private bool initialized = false;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected bool m_enabled = false;
