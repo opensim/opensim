@@ -57,11 +57,31 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         private string SMTP_SERVER_LOGIN = string.Empty;
         private string SMTP_SERVER_PASSWORD = string.Empty;
 
+        private int m_MaxQueueSize = 50; // maximum size of an object mail queue
+        private Dictionary<UUID, List<Email>> m_MailQueues = new Dictionary<UUID, List<Email>>();
+        private string m_InterObjectHostname;
+
         // Scenes by Region Handle
         private Dictionary<ulong, Scene> m_Scenes =
             new Dictionary<ulong, Scene>();
 
         private bool m_Enabled = false;
+
+        public void InsertEmail(UUID to, Email email)
+        {
+            if (!m_MailQueues.ContainsKey(to))
+            {
+                m_MailQueues.Add(to, new List<Email>());
+            }
+
+            if (m_MailQueues[to].Count >= m_MaxQueueSize)
+            {
+                // fail silently
+                return;
+            }
+
+            m_MailQueues[to].Add(email);
+        }
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -93,7 +113,8 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 }
 
                 m_HostName = SMTPConfig.GetString("host_domain_header_from", m_HostName);
-                SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME",SMTP_SERVER_HOSTNAME);
+                m_InterObjectHostname = SMTPConfig.GetString("internal_object_host", "lsl.secondlife.com");
+                SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME", SMTP_SERVER_HOSTNAME);
                 SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
                 SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
                 SMTP_SERVER_PASSWORD = SMTPConfig.GetString("SMTP_SERVER_PASSWORD", SMTP_SERVER_PASSWORD);
@@ -158,6 +179,12 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             {
                 ;//Do nothing!!
             }
+        }
+
+        private bool IsLocal(UUID objectID)
+        {
+            string unused;
+            return (null != findPrim(objectID, out unused));
         }
 
         private SceneObjectPart findPrim(UUID objectID, out string ObjectRegionName)
@@ -228,47 +255,81 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 return;
             }
 
-            try
-            {
-                string LastObjectName = string.Empty;
-                string LastObjectPosition = string.Empty;
-                string LastObjectRegionName = string.Empty;
-                //DONE: Message as Second Life style
-                //20 second delay - AntiSpam System - for now only 10 seconds
-                DelayInSeconds(10);
-                //Creation EmailMessage
-                EmailMessage emailMessage = new EmailMessage();
-                //From
-                emailMessage.FromAddress = new EmailAddress(objectID.ToString()+"@"+m_HostName);
-                //To - Only One
-                emailMessage.AddToAddress(new EmailAddress(address));
-                //Subject
-                emailMessage.Subject = subject;
-                //TEXT Body
-                resolveNamePositionRegionName(objectID, out LastObjectName, out LastObjectPosition, out LastObjectRegionName);
-                emailMessage.TextPart = new TextAttachment("Object-Name: " + LastObjectName +
-                                                           "\r\nRegion: " + LastObjectRegionName + "\r\nLocal-Position: " +
-                                                           LastObjectPosition+"\r\n\r\n\r\n" + body);
-                //HTML Body
-                emailMessage.HtmlPart = new HtmlAttachment("<html><body><p>" +
-                                                           "<BR>Object-Name: " + LastObjectName +
-                                                           "<BR>Region: " + LastObjectRegionName +
-                                                           "<BR>Local-Position: " + LastObjectPosition + "<BR><BR><BR>"
-                                                           +body+"\r\n</p></body><html>");
+            string LastObjectName = string.Empty;
+            string LastObjectPosition = string.Empty;
+            string LastObjectRegionName = string.Empty;
+            //DONE: Message as Second Life style
+            //20 second delay - AntiSpam System - for now only 10 seconds
+            DelayInSeconds(10);
 
-                //Set SMTP SERVER config
-                SmtpServer smtpServer=new SmtpServer(SMTP_SERVER_HOSTNAME,SMTP_SERVER_PORT);
-                //Authentication
-                smtpServer.SmtpAuthToken=new SmtpAuthToken(SMTP_SERVER_LOGIN, SMTP_SERVER_PASSWORD);
-                //Send Email Message
-                emailMessage.Send(smtpServer);
-                //Log
-                m_log.Info("[EMAIL] EMail sent to: " + address + " from object: " + objectID.ToString());
-            }
-            catch (Exception e)
+            resolveNamePositionRegionName(objectID, out LastObjectName, out LastObjectPosition, out LastObjectRegionName);
+
+            if (!address.EndsWith(m_InterObjectHostname))
             {
-                m_log.Error("[EMAIL] DefaultEmailModule Exception: "+e.Message);
-                return;
+                // regular email, send it out
+                try
+                {
+                    //Creation EmailMessage
+                    EmailMessage emailMessage = new EmailMessage();
+                    //From
+                    emailMessage.FromAddress = new EmailAddress(objectID.ToString() + "@" + m_HostName);
+                    //To - Only One
+                    emailMessage.AddToAddress(new EmailAddress(address));
+                    //Subject
+                    emailMessage.Subject = subject;
+                    //TEXT Body
+                    resolveNamePositionRegionName(objectID, out LastObjectName, out LastObjectPosition, out LastObjectRegionName);
+                    emailMessage.TextPart = new TextAttachment("Object-Name: " + LastObjectName +
+                              "\r\nRegion: " + LastObjectRegionName + "\r\nLocal-Position: " +
+                              LastObjectPosition + "\r\n\r\n" + body);
+
+                    //HTML Body
+                    emailMessage.HtmlPart = new HtmlAttachment("<html><body><p>" +
+                                                               "<BR>Object-Name: " + LastObjectName +
+                                                               "<BR>Region: " + LastObjectRegionName +
+                                                               "<BR>Local-Position: " + LastObjectPosition + "<BR><BR><BR>"
+                                                               + body + "\r\n</p></body><html>");
+
+                    //Set SMTP SERVER config
+                    SmtpServer smtpServer = new SmtpServer(SMTP_SERVER_HOSTNAME, SMTP_SERVER_PORT);
+                    //Authentication
+                    smtpServer.SmtpAuthToken = new SmtpAuthToken(SMTP_SERVER_LOGIN, SMTP_SERVER_PASSWORD);
+                    //Send Email Message
+                    emailMessage.Send(smtpServer);
+                    //Log
+                    m_log.Info("[EMAIL] EMail sent to: " + address + " from object: " + objectID.ToString());
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[EMAIL] DefaultEmailModule Exception: " + e.Message);
+                    return;
+                }
+            }
+            else
+            {
+                // inter object email, keep it in the family
+                Email email = new Email();
+                email.time = ((DateTime.UtcNow - new DateTime(1970,1,1,0,0,0)).TotalSeconds).ToString();
+                email.subject = subject;
+                email.sender = objectID.ToString() + "@" + m_InterObjectHostname;
+                email.message = "Object-Name: " + LastObjectName +
+                              "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
+                              LastObjectPosition + "\n\n" + body;
+
+                UUID toID = new UUID(address.Substring(0, address.IndexOf("@")));
+
+                String unused;
+
+                if (IsLocal(toID)) // TODO FIX check to see if it is local
+                {
+                    // object in this region
+                    InsertEmail(toID, email);
+                }
+                else
+                {
+                    // object on another region
+                    // TODO FIX
+                }
             }
         }
 
@@ -281,6 +342,33 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         /// <returns></returns>
         public Email GetNextEmail(UUID objectID, string sender, string subject)
         {
+            if (m_MailQueues.ContainsKey(objectID))
+            {
+                List<Email> queue = m_MailQueues[objectID];
+
+                if (queue.Count > 0)
+                {
+                    int i;
+
+                    for (i = 0; i < queue.Count; i++)
+                    {
+                        if ((sender == null || sender.Equals("") || sender.Equals(queue[i].sender)) &&
+                            (subject == null || subject.Equals("") || subject.Equals(queue[i].subject)))
+                        {
+                            break;
+                        }
+                    }
+
+                    if (i != queue.Count)
+                    {
+                        Email ret = queue[i];
+                        queue.Remove(ret);
+                        ret.numLeft = queue.Count;
+                        return ret;
+                    }
+                }
+            }
+
             return null;
         }
     }

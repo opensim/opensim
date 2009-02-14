@@ -2702,7 +2702,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             IEmailModule emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
             if (emailModule == null)
+            {
+                ShoutError("llEmail: email module not configured");
                 return;
+            }
 
             emailModule.SendEmail(m_host.UUID, address, subject, message);
             // ScriptSleep(20000);
@@ -2713,7 +2716,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             IEmailModule emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
             if (emailModule == null)
+            {
+                ShoutError("llGetNextEmail: email module not configured");
                 return;
+            }
             Email email;
 
             email = emailModule.GetNextEmail(m_host.UUID, address, subject);
@@ -3668,11 +3674,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID partItemID;
             foreach (SceneObjectPart part in parts)
+            {
                 foreach (TaskInventoryItem item in part.TaskInventory.Values)
                 {
                     if (item.Type == ScriptBaseClass.INVENTORY_SCRIPT)
                     {
-
                         partItemID = item.ItemID;
                         int linkNumber = m_host.LinkNum;
                         if (m_host.ParentGroup.Children.Count == 1)
@@ -3689,6 +3695,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 resobj, new DetectParams[0]));
                     }
                 }
+            }
         }
 
         public void llPushObject(string target, LSL_Vector impulse, LSL_Vector ang_impulse, int local)
