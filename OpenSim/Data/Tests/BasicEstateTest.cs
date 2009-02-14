@@ -32,6 +32,7 @@ using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
+using System.Text;
 
 namespace OpenSim.Data.Tests
 {
@@ -39,9 +40,18 @@ namespace OpenSim.Data.Tests
     {
         public IEstateDataStore db;
         public IRegionDataStore regionDb;
-        public UUID prim1;
-        public static Random random;
-        
+
+        public static UUID REGION_ID = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed7");
+
+        public static UUID USER_ID_1 = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed1");
+        public static UUID USER_ID_2 = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed2");
+
+        public static UUID MANAGER_ID_1 = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed3");
+        public static UUID MANAGER_ID_2 = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed4");
+
+        public static UUID GROUP_ID_1 = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed5");
+        public static UUID GROUP_ID_2 = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed6");
+
         public void SuperInit()
         {
             try
@@ -52,103 +62,437 @@ namespace OpenSim.Data.Tests
             {
                 // I don't care, just leave log4net off
             }
-            prim1 = UUID.Random();
-            random = new Random();
-
         }
-        
+
+        #region 0Tests
+
         [Test]
-        public void T010_StoreEstateSettings()
+        public void T010_EstateSettingsSimpleStorage_MinimumParameterSet()
         {
-            // Initializing field values. Avoid randomness. For checking ranges use different parameter sets
-            // for mix and max values. If you use random values the tests are not _repeatable_.
-            string estateName = "test-estate";
-            uint parentEstateID = 2;
-            float billableFactor = 3;
-            int priceMeter = 4;
-            int redirectGridX = 5;
-            int redirectGridY = 6;
-            bool useGlobalTime = true;
-            bool fixedSun = true;
-            double sunPosition = 7;
-            bool allowVoice = true;
-            bool allowDirectTeleport = true;
-            bool resetHomeOnTeleport = true;
-            bool denyAnonymous = true;
-            bool denyIdentified = true;
-            bool denyTransacted = true;
-            bool abuseEmailtoEstateOwner = true;
-            bool blockDwell = true;
-            bool estateskipScripts = true;
-            bool taxFree = true;
-            bool publicAccess = true;
-            string abuseMail = "test-email@nowhere.com";
-            UUID estateOwner = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed7");
-            bool denyMinors = (random.NextDouble() > 0.5)? true : false;
+            EstateSettingsSimpleStorage(
+                REGION_ID,
+                DataTestUtil.STRING_MIN,
+                DataTestUtil.UNSIGNED_INTEGER_MIN,
+                DataTestUtil.FLOAT_MIN,
+                DataTestUtil.INTEGER_MIN,
+                DataTestUtil.INTEGER_MIN,
+                DataTestUtil.INTEGER_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.DOUBLE_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.STRING_MIN,
+                DataTestUtil.UUID_MIN
+                );
+        }
 
-            // Lets choose random region ID
-            UUID regionId = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed7");
+        [Test]
+        public void T011_EstateSettingsSimpleStorage_MaximumParameterSet()
+        {
+            EstateSettingsSimpleStorage(
+                REGION_ID,
+                DataTestUtil.STRING_MAX(64),
+                DataTestUtil.UNSIGNED_INTEGER_MAX,
+                DataTestUtil.FLOAT_MAX,
+                DataTestUtil.INTEGER_MAX,
+                DataTestUtil.INTEGER_MAX,
+                DataTestUtil.INTEGER_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.DOUBLE_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.BOOLEAN_MAX,
+                DataTestUtil.STRING_MAX(255),
+                DataTestUtil.UUID_MAX
+                );
+        }
 
+        [Test]
+        public void T012_EstateSettingsSimpleStorage_AccurateParameterSet()
+        {
+            EstateSettingsSimpleStorage(
+                REGION_ID,
+                DataTestUtil.STRING_MAX(1),
+                DataTestUtil.UNSIGNED_INTEGER_MIN,
+                DataTestUtil.FLOAT_ACCURATE,
+                DataTestUtil.INTEGER_MIN,
+                DataTestUtil.INTEGER_MIN,
+                DataTestUtil.INTEGER_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.DOUBLE_ACCURATE,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.BOOLEAN_MIN,
+                DataTestUtil.STRING_MAX(1),
+                DataTestUtil.UUID_MIN
+                );
+        }
+
+        [Test]
+        public void T020_EstateSettingsManagerList()
+        {
             // Letting estate store generate rows to database for us
-            EstateSettings es = db.LoadEstateSettings(regionId);
+            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
 
-            // Setting field values to the on demand create settings object.
-            es.EstateName = estateName;
-            es.ParentEstateID = parentEstateID;
-            es.BillableFactor = billableFactor;
-            es.PricePerMeter = priceMeter;
-            es.RedirectGridX = redirectGridX;
-            es.RedirectGridY = redirectGridY;
-            es.UseGlobalTime = useGlobalTime;
-            es.FixedSun = fixedSun;
-            es.SunPosition = sunPosition;
-            es.AllowVoice = allowVoice;
-            es.AllowDirectTeleport = allowDirectTeleport;
-            es.ResetHomeOnTeleport = resetHomeOnTeleport;
-            es.DenyAnonymous = denyAnonymous;
-            es.DenyIdentified = denyIdentified;
-            es.DenyTransacted = denyTransacted;
-            es.AbuseEmailToEstateOwner = abuseEmailtoEstateOwner;
-            es.BlockDwell = blockDwell;
-            es.EstateSkipScripts = estateskipScripts;
-            es.TaxFree = taxFree;
-            es.PublicAccess = publicAccess;
-            es.AbuseEmail = abuseMail;
-            es.EstateOwner = estateOwner;
-            es.DenyMinors = denyMinors;
+            originalSettings.EstateManagers = new UUID[] { MANAGER_ID_1, MANAGER_ID_2 };
 
             // Saving settings.
-            db.StoreEstateSettings(es);
+            db.StoreEstateSettings(originalSettings);
 
             // Loading settings to another instance variable.
-            EstateSettings nes = db.LoadEstateSettings(regionId);
+            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
 
-            // Checking that loaded values are correct.
-            Assert.That(estateName, Is.EqualTo(nes.EstateName));
-            Assert.That(parentEstateID, Is.EqualTo(nes.ParentEstateID));
-            Assert.That(billableFactor, Is.EqualTo(nes.BillableFactor));
-            Assert.That(priceMeter, Is.EqualTo(nes.PricePerMeter));
-            Assert.That(redirectGridX, Is.EqualTo(nes.RedirectGridX));
-            Assert.That(redirectGridY, Is.EqualTo(nes.RedirectGridY));
-            Assert.That(useGlobalTime, Is.EqualTo(nes.UseGlobalTime));
-            Assert.That(fixedSun, Is.EqualTo(nes.FixedSun));
-            Assert.That(sunPosition, Is.EqualTo(nes.SunPosition));
-            Assert.That(allowVoice, Is.EqualTo(nes.AllowVoice));
-            Assert.That(allowDirectTeleport, Is.EqualTo(nes.AllowDirectTeleport));
-            Assert.That(resetHomeOnTeleport, Is.EqualTo(nes.ResetHomeOnTeleport));
-            Assert.That(denyAnonymous, Is.EqualTo(nes.DenyAnonymous));
-            Assert.That(denyIdentified, Is.EqualTo(nes.DenyIdentified));
-            Assert.That(denyTransacted, Is.EqualTo(nes.DenyTransacted));
-            Assert.That(abuseEmailtoEstateOwner, Is.EqualTo(nes.AbuseEmailToEstateOwner));
-            Assert.That(blockDwell, Is.EqualTo(nes.BlockDwell));
-            Assert.That(estateskipScripts, Is.EqualTo(nes.EstateSkipScripts));
-            Assert.That(taxFree, Is.EqualTo(nes.TaxFree));
-            Assert.That(publicAccess, Is.EqualTo(nes.PublicAccess));
-            Assert.That(abuseMail, Is.EqualTo(nes.AbuseEmail));
-            Assert.That(estateOwner, Is.EqualTo(nes.EstateOwner));
-            Assert.That(denyMinors, Is.EqualTo(nes.DenyMinors));
+            Assert.AreEqual(2, loadedSettings.EstateManagers.Length);
+            Assert.AreEqual(MANAGER_ID_1, loadedSettings.EstateManagers[0]);
+            Assert.AreEqual(MANAGER_ID_2, loadedSettings.EstateManagers[1]);
+        }
+
+        [Test]
+        public void T021_EstateSettingsUserList()
+        {
+            // Letting estate store generate rows to database for us
+            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
+
+            originalSettings.EstateAccess = new UUID[] { USER_ID_1, USER_ID_2 };
+
+            // Saving settings.
+            db.StoreEstateSettings(originalSettings);
+
+            // Loading settings to another instance variable.
+            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
+
+            Assert.AreEqual(2, loadedSettings.EstateAccess.Length);
+            Assert.AreEqual(USER_ID_1, loadedSettings.EstateAccess[0]);
+            Assert.AreEqual(USER_ID_2, loadedSettings.EstateAccess[1]);
+        }
+
+        [Test]
+        public void T022_EstateSettingsGroupList()
+        {
+            // Letting estate store generate rows to database for us
+            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
+
+            originalSettings.EstateGroups = new UUID[] { GROUP_ID_1, GROUP_ID_2 };
+
+            // Saving settings.
+            db.StoreEstateSettings(originalSettings);
+
+            // Loading settings to another instance variable.
+            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
+
+            Assert.AreEqual(2, loadedSettings.EstateAccess.Length);
+            Assert.AreEqual(GROUP_ID_1, loadedSettings.EstateGroups[0]);
+            Assert.AreEqual(GROUP_ID_2, loadedSettings.EstateGroups[1]);
+        }
+
+        [Test]
+        public void T022_EstateSettingsBanList()
+        {
+            // This is not working on native MySQL so ignoring.
+            Assert.Ignore();
+
+            // Letting estate store generate rows to database for us
+            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
+
+            EstateBan estateBan1 = new EstateBan();
+            estateBan1.bannedIP = DataTestUtil.STRING_MIN;
+            estateBan1.bannedIPHostMask = DataTestUtil.STRING_MIN;
+            estateBan1.bannedNameMask = DataTestUtil.STRING_MIN;
+            estateBan1.bannedUUID = DataTestUtil.UUID_MIN;
+
+            EstateBan estateBan2 = new EstateBan();
+            estateBan2.bannedIP = DataTestUtil.STRING_MAX(16);
+            estateBan2.bannedIPHostMask = DataTestUtil.STRING_MAX(16);
+            estateBan2.bannedNameMask = DataTestUtil.STRING_MAX(64);
+            estateBan2.bannedUUID = DataTestUtil.UUID_MAX;
+
+            originalSettings.EstateBans = new EstateBan[] { estateBan1, estateBan2 };
+
+            // Saving settings.
+            db.StoreEstateSettings(originalSettings);
+
+            // Loading settings to another instance variable.
+            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
+
+            Assert.AreEqual(2, loadedSettings.EstateBans.Length);
+            Assert.AreEqual(DataTestUtil.STRING_MIN, loadedSettings.EstateBans[0].bannedIP);
+            Assert.AreEqual(DataTestUtil.STRING_MIN, loadedSettings.EstateBans[0].bannedIPHostMask);
+            Assert.AreEqual(DataTestUtil.STRING_MIN, loadedSettings.EstateBans[0].bannedNameMask);
+            Assert.AreEqual(DataTestUtil.UUID_MIN, loadedSettings.EstateBans[0].bannedUUID);
+
+            Assert.AreEqual(DataTestUtil.STRING_MAX(16), loadedSettings.EstateBans[1].bannedIP);
+            Assert.AreEqual(DataTestUtil.STRING_MAX(16), loadedSettings.EstateBans[1].bannedIPHostMask);
+            Assert.AreEqual(DataTestUtil.STRING_MAX(64), loadedSettings.EstateBans[1].bannedNameMask);
+            Assert.AreEqual(DataTestUtil.UUID_MAX, loadedSettings.EstateBans[1].bannedUUID);
 
         }
-        
+
+        #endregion
+
+        #region Parametrizable Test Implementations 
+
+        private void EstateSettingsSimpleStorage(
+            UUID regionId,
+            string estateName,
+            uint parentEstateID,
+            float billableFactor,
+            int pricePerMeter,
+            int redirectGridX,
+            int redirectGridY,
+            bool useGlobalTime,
+            bool fixedSun,
+            double sunPosition,
+            bool allowVoice,
+            bool allowDirectTeleport,
+            bool resetHomeOnTeleport,
+            bool denyAnonymous,
+            bool denyIdentified,
+            bool denyTransacted,
+            bool denyMinors,
+            bool abuseEmailToEstateOwner,
+            bool blockDwell,
+            bool estateSkipScripts,
+            bool taxFree,
+            bool publicAccess,
+            string abuseEmail,
+            UUID estateOwner
+            )
+        {
+
+            // Letting estate store generate rows to database for us
+            EstateSettings originalSettings = db.LoadEstateSettings(regionId);
+
+            SetEstateSettings(
+                originalSettings,
+                estateName,
+                parentEstateID,
+                billableFactor,
+                pricePerMeter,
+                redirectGridX,
+                redirectGridY,
+                useGlobalTime,
+                fixedSun,
+                sunPosition,
+                allowVoice,
+                allowDirectTeleport,
+                resetHomeOnTeleport,
+                denyAnonymous,
+                denyIdentified,
+                denyTransacted,
+                denyMinors,
+                abuseEmailToEstateOwner,
+                blockDwell,
+                estateSkipScripts,
+                taxFree,
+                publicAccess,
+                abuseEmail,
+                estateOwner
+                );
+
+            originalSettings.EstateName = estateName;
+            originalSettings.ParentEstateID = parentEstateID;
+            originalSettings.BillableFactor = billableFactor;
+            originalSettings.PricePerMeter = pricePerMeter;
+            originalSettings.RedirectGridX = redirectGridX;
+            originalSettings.RedirectGridY = redirectGridY;
+            originalSettings.UseGlobalTime = useGlobalTime;
+            originalSettings.FixedSun = fixedSun;
+            originalSettings.SunPosition = sunPosition;
+            originalSettings.AllowVoice = allowVoice;
+            originalSettings.AllowDirectTeleport = allowDirectTeleport;
+            originalSettings.ResetHomeOnTeleport = resetHomeOnTeleport;
+            originalSettings.DenyAnonymous = denyAnonymous;
+            originalSettings.DenyIdentified = denyIdentified;
+            originalSettings.DenyTransacted = denyTransacted;
+            originalSettings.DenyMinors = denyMinors;
+            originalSettings.AbuseEmailToEstateOwner = abuseEmailToEstateOwner;
+            originalSettings.BlockDwell = blockDwell;
+            originalSettings.EstateSkipScripts = estateSkipScripts;
+            originalSettings.TaxFree = taxFree;
+            originalSettings.PublicAccess = publicAccess;
+            originalSettings.AbuseEmail = abuseEmail;
+            originalSettings.EstateOwner = estateOwner;
+
+            // Saving settings.
+            db.StoreEstateSettings(originalSettings);
+
+            // Loading settings to another instance variable.
+            EstateSettings loadedSettings = db.LoadEstateSettings(regionId);
+
+            // Checking that loaded values are correct.
+            ValidateEstateSettings(
+                loadedSettings,
+                estateName,
+                parentEstateID,
+                billableFactor,
+                pricePerMeter,
+                redirectGridX,
+                redirectGridY,
+                useGlobalTime,
+                fixedSun,
+                sunPosition,
+                allowVoice,
+                allowDirectTeleport,
+                resetHomeOnTeleport,
+                denyAnonymous,
+                denyIdentified,
+                denyTransacted,
+                denyMinors,
+                abuseEmailToEstateOwner,
+                blockDwell,
+                estateSkipScripts,
+                taxFree,
+                publicAccess,
+                abuseEmail,
+                estateOwner
+                );
+
+        }
+
+        #endregion
+
+        #region EstateSetting Initialization and Validation Methods
+
+        private void SetEstateSettings(
+            EstateSettings estateSettings,
+            string estateName,
+            uint parentEstateID,
+            float billableFactor,
+            int pricePerMeter,
+            int redirectGridX,
+            int redirectGridY,
+            bool useGlobalTime,
+            bool fixedSun,
+            double sunPosition,
+            bool allowVoice,
+            bool allowDirectTeleport,
+            bool resetHomeOnTeleport,
+            bool denyAnonymous,
+            bool denyIdentified,
+            bool denyTransacted,
+            bool denyMinors,
+            bool abuseEmailToEstateOwner,
+            bool blockDwell,
+            bool estateSkipScripts,
+            bool taxFree,
+            bool publicAccess,
+            string abuseEmail,
+            UUID estateOwner
+            )
+        {
+            estateSettings.EstateName = estateName;
+            estateSettings.ParentEstateID = parentEstateID;
+            estateSettings.BillableFactor = billableFactor;
+            estateSettings.PricePerMeter = pricePerMeter;
+            estateSettings.RedirectGridX = redirectGridX;
+            estateSettings.RedirectGridY = redirectGridY;
+            estateSettings.UseGlobalTime = useGlobalTime;
+            estateSettings.FixedSun = fixedSun;
+            estateSettings.SunPosition = sunPosition;
+            estateSettings.AllowVoice = allowVoice;
+            estateSettings.AllowDirectTeleport = allowDirectTeleport;
+            estateSettings.ResetHomeOnTeleport = resetHomeOnTeleport;
+            estateSettings.DenyAnonymous = denyAnonymous;
+            estateSettings.DenyIdentified = denyIdentified;
+            estateSettings.DenyTransacted = denyTransacted;
+            estateSettings.DenyMinors = denyMinors;
+            estateSettings.AbuseEmailToEstateOwner = abuseEmailToEstateOwner;
+            estateSettings.BlockDwell = blockDwell;
+            estateSettings.EstateSkipScripts = estateSkipScripts;
+            estateSettings.TaxFree = taxFree;
+            estateSettings.PublicAccess = publicAccess;
+            estateSettings.AbuseEmail = abuseEmail;
+            estateSettings.EstateOwner = estateOwner;
+        }
+
+        private void ValidateEstateSettings(
+            EstateSettings estateSettings,
+            string estateName,
+            uint parentEstateID,
+            float billableFactor,
+            int pricePerMeter,
+            int redirectGridX,
+            int redirectGridY,
+            bool useGlobalTime,
+            bool fixedSun,
+            double sunPosition,
+            bool allowVoice,
+            bool allowDirectTeleport,
+            bool resetHomeOnTeleport,
+            bool denyAnonymous,
+            bool denyIdentified,
+            bool denyTransacted,
+            bool denyMinors,
+            bool abuseEmailToEstateOwner,
+            bool blockDwell,
+            bool estateSkipScripts,
+            bool taxFree,
+            bool publicAccess,
+            string abuseEmail,
+            UUID estateOwner
+            )
+        {
+            Assert.AreEqual(estateName, estateSettings.EstateName);
+            Assert.AreEqual(parentEstateID, estateSettings.ParentEstateID);
+
+            DataTestUtil.AssertFloatEqualsWithTolerance(billableFactor, estateSettings.BillableFactor);
+
+            Assert.AreEqual(pricePerMeter, estateSettings.PricePerMeter);
+            Assert.AreEqual(redirectGridX, estateSettings.RedirectGridX);
+            Assert.AreEqual(redirectGridY, estateSettings.RedirectGridY);
+            Assert.AreEqual(useGlobalTime, estateSettings.UseGlobalTime);
+            Assert.AreEqual(fixedSun, estateSettings.FixedSun);
+
+            DataTestUtil.AssertDoubleEqualsWithTolerance(sunPosition, estateSettings.SunPosition);
+
+            Assert.AreEqual(allowVoice, estateSettings.AllowVoice);
+            Assert.AreEqual(allowDirectTeleport, estateSettings.AllowDirectTeleport);
+            Assert.AreEqual(resetHomeOnTeleport, estateSettings.ResetHomeOnTeleport);
+            Assert.AreEqual(denyAnonymous, estateSettings.DenyAnonymous);
+            Assert.AreEqual(denyIdentified, estateSettings.DenyIdentified);
+            Assert.AreEqual(denyTransacted, estateSettings.DenyTransacted);
+            Assert.AreEqual(denyMinors, estateSettings.DenyMinors);
+            Assert.AreEqual(abuseEmailToEstateOwner, estateSettings.AbuseEmailToEstateOwner);
+            Assert.AreEqual(blockDwell, estateSettings.BlockDwell);
+            Assert.AreEqual(estateSkipScripts, estateSettings.EstateSkipScripts);
+            Assert.AreEqual(taxFree, estateSettings.TaxFree);
+            Assert.AreEqual(publicAccess, estateSettings.PublicAccess);
+            Assert.AreEqual(abuseEmail, estateSettings.AbuseEmail);
+            Assert.AreEqual(estateOwner, estateSettings.EstateOwner);
+        }
+
+        #endregion
+
     }
 }

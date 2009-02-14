@@ -7,7 +7,7 @@ CREATE TABLE EstateSettings (
   RedirectGridY INT NULL,
   BillableFactor REAL NULL,
   PricePerMeter INT NULL,
-  SunPosition REAL NULL,
+  SunPosition FLOAT NULL,
   
   UseGlobalTime BIT NULL,
   FixedSun BIT NULL,
