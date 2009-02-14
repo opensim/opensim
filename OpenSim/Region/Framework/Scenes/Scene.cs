@@ -438,6 +438,7 @@ namespace OpenSim.Region.Framework.Scenes
                         lock (m_neighbours)
                         {
                             m_neighbours[i] = otherRegion;
+
                         }
                     }
                 }
@@ -469,6 +470,10 @@ namespace OpenSim.Region.Framework.Scenes
                                                  {
                                                      //agent.ControllingClient.new
                                                      //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+
+                                                     List<ulong> old = new List<ulong>();
+                                                     old.Add(otherRegion.RegionHandle);
+                                                     agent.DropOldNeighbours(old);
                                                      InformClientOfNeighbor(agent, otherRegion);
                                                  }
                                              }
@@ -2578,7 +2583,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="region"></param>
         public void InformClientOfNeighbor(ScenePresence presence, RegionInfo region)
         {
-            m_sceneGridService.InformNeighborChildAgent(presence, region);
+            m_sceneGridService.EnableNeighbourChildAgents(presence, m_neighbours);
         }
 
         /// <summary>
