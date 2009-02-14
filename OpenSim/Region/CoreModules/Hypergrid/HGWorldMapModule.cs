@@ -56,6 +56,14 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                 return;
             m_log.Info("[HGMap] Initializing...");
             m_scene = scene;
+
+            m_scene.RegisterModuleInterface<IWorldMapModule>(this);
+
+            m_scene.AddCommand(
+                this, "export-map",
+                "export-map [<path>]",
+                "Save an image of the world map", HandleExportWorldMapConsoleCommand);            
+
         }
 
 
@@ -110,7 +118,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                         }
                     }
                 }
-                response = mapBlocks;
+
                 if (response.Count == 0)
                 {
                     // response still empty => couldn't find the map-tile the user clicked on => tell the client
