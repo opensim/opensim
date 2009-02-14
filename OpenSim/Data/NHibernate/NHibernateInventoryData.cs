@@ -42,6 +42,34 @@ namespace OpenSim.Data.NHibernate
 
         public NHibernateManager manager;
 
+        /// <summary>
+        /// The plugin being loaded
+        /// </summary>
+        /// <returns>A string containing the plugin name</returns>
+        public string Name
+        {
+            get { return "NHibernate Inventory Data Interface"; }
+        }
+
+        /// <summary>
+        /// The plugins version
+        /// </summary>
+        /// <returns>A string containing the plugin version</returns>
+        public string Version
+        {
+            get
+            {
+                Module module = GetType().Module;
+                // string dllName = module.Assembly.ManifestModule.Name;
+                Version dllVersion = module.Assembly.GetName().Version;
+
+
+                return
+                    string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
+                            dllVersion.Revision);
+            }
+        }
+
         public void Initialise() 
         { 
             m_log.Info("[NHibernateInventoryData]: " + Name + " cannot be default-initialized!");
@@ -55,6 +83,13 @@ namespace OpenSim.Data.NHibernate
         {
             m_log.InfoFormat("[NHIBERNATE] Initializing NHibernateInventoryData");
             manager = new NHibernateManager(connect, "InventoryStore");
+        }
+
+        /// <summary>
+        /// Closes the interface
+        /// </summary>
+        public void Dispose()
+        {
         }
 
         /*****************************************************************
@@ -92,7 +127,7 @@ namespace OpenSim.Data.NHibernate
         {
             if (!ExistsItem(item.ID))
             {
-                manager.Save(item);
+                manager.Insert(item);
             }
             else
             {
@@ -161,7 +196,7 @@ namespace OpenSim.Data.NHibernate
         {
             if (!ExistsFolder(folder.ID))
             {
-                manager.Save(folder);
+                manager.Insert(folder);
             }
             else
             {
@@ -218,41 +253,6 @@ namespace OpenSim.Data.NHibernate
         public void Shutdown()
         {
             // TODO: DataSet commit
-        }
-
-        /// <summary>
-        /// Closes the interface
-        /// </summary>
-        public void Dispose()
-        {
-        }
-
-        /// <summary>
-        /// The plugin being loaded
-        /// </summary>
-        /// <returns>A string containing the plugin name</returns>
-        public string Name
-        {
-            get { return "NHibernate Inventory Data Interface"; }
-        }
-
-        /// <summary>
-        /// The plugins version
-        /// </summary>
-        /// <returns>A string containing the plugin version</returns>
-        public string Version
-        {
-            get
-            {
-                Module module = GetType().Module;
-                // string dllName = module.Assembly.ManifestModule.Name;
-                Version dllVersion = module.Assembly.GetName().Version;
-
-
-                return
-                    string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
-                            dllVersion.Revision);
-            }
         }
 
         // Move seems to be just update

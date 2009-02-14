@@ -73,6 +73,7 @@ namespace OpenSim.Data.Tests
             double sunPosition = 7;
             bool allowVoice = true;
             bool allowDirectTeleport = true;
+            bool resetHomeOnTeleport = true;
             bool denyAnonymous = true;
             bool denyIdentified = true;
             bool denyTransacted = true;
@@ -103,6 +104,7 @@ namespace OpenSim.Data.Tests
             es.SunPosition = sunPosition;
             es.AllowVoice = allowVoice;
             es.AllowDirectTeleport = allowDirectTeleport;
+            es.ResetHomeOnTeleport = resetHomeOnTeleport;
             es.DenyAnonymous = denyAnonymous;
             es.DenyIdentified = denyIdentified;
             es.DenyTransacted = denyTransacted;
@@ -133,6 +135,7 @@ namespace OpenSim.Data.Tests
             Assert.That(sunPosition, Is.EqualTo(nes.SunPosition));
             Assert.That(allowVoice, Is.EqualTo(nes.AllowVoice));
             Assert.That(allowDirectTeleport, Is.EqualTo(nes.AllowDirectTeleport));
+            Assert.That(resetHomeOnTeleport, Is.EqualTo(nes.ResetHomeOnTeleport));
             Assert.That(denyAnonymous, Is.EqualTo(nes.DenyAnonymous));
             Assert.That(denyIdentified, Is.EqualTo(nes.DenyIdentified));
             Assert.That(denyTransacted, Is.EqualTo(nes.DenyTransacted));

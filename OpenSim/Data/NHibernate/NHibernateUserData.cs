@@ -102,7 +102,7 @@ namespace OpenSim.Data.NHibernate
             if (!ExistsUser(profile.ID))
             {
                 m_log.InfoFormat("[NHIBERNATE] AddNewUserProfile {0}", profile.ID);
-                manager.Save(profile);
+                manager.Insert(profile);
                 // Agent should not be saved according to BasicUserTest.T015_UserPersistency()
                 // SetAgentData(profile.ID, profile.CurrentAgent);
 
@@ -169,7 +169,7 @@ namespace OpenSim.Data.NHibernate
                 manager.Delete(old);
             }
             
-            manager.Save(agent);
+            manager.Insert(agent);
             
         }
 
@@ -245,11 +245,11 @@ namespace OpenSim.Data.NHibernate
         {
             if (!FriendRelationExists(ownerId,friendId))
             {
-                manager.Save(new UserFriend(UUID.Random(), ownerId, friendId, perms));
+                manager.Insert(new UserFriend(UUID.Random(), ownerId, friendId, perms));
             }
             if (!FriendRelationExists(friendId, ownerId))
             {
-                manager.Save(new UserFriend(UUID.Random(), friendId, ownerId, perms));
+                manager.Insert(new UserFriend(UUID.Random(), friendId, ownerId, perms));
             }
             return;         
         }
@@ -426,7 +426,7 @@ namespace OpenSim.Data.NHibernate
             }
             else
             {
-                manager.Save(appearance);
+                manager.Insert(appearance);
             }
         }
 

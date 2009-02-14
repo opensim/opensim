@@ -45,7 +45,8 @@ namespace OpenSim.Data.NHibernate
 
         public override void Initialise()
         {
-            Initialise("SQLiteDialect;SqliteClientDriver;URI=file:Asset.db,version=3");
+            m_log.Info("[NHibernateGridData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException(Name);
         }
 
         public override void Initialise(string connect)
@@ -66,7 +67,7 @@ namespace OpenSim.Data.NHibernate
             AssetBase temp = (AssetBase)manager.Load(typeof(AssetBase), asset.Metadata.FullID);
             if (temp == null)
             {
-                manager.Save(asset);
+                manager.Insert(asset);
             }
         }
 

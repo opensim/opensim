@@ -70,7 +70,7 @@ namespace OpenSim.Data.NHibernate
             }
             else
             {
-                manager.Save(rs);
+                manager.Insert(rs);
             }
         }
 
@@ -82,7 +82,7 @@ namespace OpenSim.Data.NHibernate
             {
                 regionSettings = new RegionSettings();
                 regionSettings.RegionUUID = regionUUID;
-                manager.Save(regionSettings);
+                manager.Insert(regionSettings);
             }
 
             regionSettings.OnSave += StoreRegionSettings;
@@ -105,7 +105,7 @@ namespace OpenSim.Data.NHibernate
                 else
                 {
                     m_log.InfoFormat("[NHIBERNATE] saving object {0}", p.UUID);
-                    manager.Save(p);
+                    manager.Insert(p);
                 }
                 
             }
@@ -129,7 +129,7 @@ namespace OpenSim.Data.NHibernate
                 else
                 {
                     m_log.InfoFormat("[NHIBERNATE] saving terrain {0}", t.RegionID);
-                    manager.Save(t);
+                    manager.Insert(t);
                 }
 
             }
@@ -394,7 +394,7 @@ namespace OpenSim.Data.NHibernate
 
                  foreach (TaskInventoryItem i in items)
                  {
-                     manager.Save(i);
+                     manager.Insert(i);
 
                  }
              }

@@ -131,25 +131,25 @@ namespace OpenSim.Data.NHibernate
             RunMigration(dialect, assembly, store);
         }
 
-        public object Load(Type type, UUID uuid)
+        public object Load(Type type, Object id)
         {
             using (IStatelessSession session = sessionFactory.OpenStatelessSession())
             {
                 object obj = null;
                 try
                 {
-                    obj = session.Get(type.FullName, uuid);
+                    obj = session.Get(type.FullName, id);
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[NHIBERNATE] {0} of id {1} loading threw exception: "+ e.ToString(), type.Name, uuid);
+                    m_log.ErrorFormat("[NHIBERNATE] {0} of id {1} loading threw exception: " + e.ToString(), type.Name, id);
                 }
                 return obj;
             }
             
         }
 
-        public bool Save(object obj)
+        public object Insert(object obj)
         {
             try
             {
@@ -157,16 +157,16 @@ namespace OpenSim.Data.NHibernate
                 {
                     using (ITransaction transaction=session.BeginTransaction())
                     {
-                        session.Insert(obj);
+                        Object identifier=session.Insert(obj);
                         transaction.Commit();
-                        return true;
+                        return identifier;
                     }
                 }
             }
             catch (Exception e)
             {
                 m_log.Error("[NHIBERNATE] issue inserting object ", e);
-                return false;
+                return null;
             }
         }
 

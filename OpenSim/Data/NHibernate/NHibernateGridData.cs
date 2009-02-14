@@ -113,7 +113,7 @@ namespace OpenSim.Data.NHibernate
         {
             if (manager.Load(typeof(RegionProfileData), profile.Uuid) == null)
             {
-                manager.Save(profile);
+                manager.Insert(profile);
                 return DataResponse.RESPONSE_OK;
             }
             else
