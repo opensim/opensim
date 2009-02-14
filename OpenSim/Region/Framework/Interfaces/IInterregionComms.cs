@@ -32,8 +32,11 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public delegate bool ChildAgentUpdateReceived(AgentData data);
 
-    public interface IInterregionCommsOut 
+    public interface IInterregionCommsOut
     {
+
+        #region Agents
+
         bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit);
 
         /// <summary>
@@ -70,8 +73,26 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns></returns>
         bool SendCloseAgent(ulong regionHandle, UUID id);
 
+        #endregion Agents
+
+        #region Objects
+
+        /// <summary>
+        /// Create an object in the destination region. This message is used primarily for prim crossing.
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="sog"></param>
+        /// <param name="isLocalCall"></param>
+        /// <returns></returns>
         bool SendCreateObject(ulong regionHandle, ISceneObject sog, bool isLocalCall);
 
+        #endregion Objects
+
+        #region Regions
+
+        bool SendHelloNeighbour(ulong regionHandle, RegionInfo thisRegion);
+
+        #endregion Regions
     }
 
     // This may not be needed, but having it here for now.

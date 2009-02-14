@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 {
     public class RESTInterregionComms : IRegionModule, IInterregionCommsOut
     {
-        private bool initialized = false;
+        private static bool initialized = false;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected bool m_enabled = false;
@@ -78,6 +78,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 return;
 
             InitEach(scene);
+
         }
 
         public virtual void PostInitialise()
@@ -115,8 +116,9 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected virtual void AddHTTPHandlers()
         {
-            m_aScene.CommsManager.HttpServer.AddHTTPHandler("/agent/", AgentHandler);
+            m_aScene.CommsManager.HttpServer.AddHTTPHandler("/agent/",  AgentHandler);
             m_aScene.CommsManager.HttpServer.AddHTTPHandler("/object/", ObjectHandler);
+            m_aScene.CommsManager.HttpServer.AddHTTPHandler("/region/", RegionHandler);
         }
 
         #endregion /* IRegionModule */
@@ -161,6 +163,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             //else
             //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
+
         }
 
         public bool SendChildAgentUpdate(ulong regionHandle, AgentPosition cAgentData)
@@ -178,6 +181,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             //else
             //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
+
         }
         
         public bool SendReleaseAgent(ulong regionHandle, UUID id, string uri)
@@ -225,6 +229,32 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             if (regInfo != null)
             {
                 return DoCreateObjectCall(regInfo, sog);
+            }
+            //else
+            //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
+            return false;
+        }
+
+        /**
+         * Region-related communications 
+        */
+
+        public bool SendHelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
+        {
+            // Try local first
+            if (m_localBackend.SendHelloNeighbour(regionHandle, thisRegion))
+            {
+                //m_log.Debug("[REST COMMS]: LocalBackEnd SendHelloNeighbour succeeded");
+                return true;
+            }
+
+            // else do the remote thing
+            RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+            if ((regInfo != null) && 
+                // Don't remote-call this instance; that's a startup hickup
+                !((regInfo.ExternalHostName == thisRegion.ExternalHostName) && (regInfo.HttpPort == thisRegion.HttpPort)))
+            {
+                return DoHelloNeighbourCall(regInfo, thisRegion);
             }
             //else
             //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
@@ -482,7 +512,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
             WebRequest ObjectCreateRequest = WebRequest.Create(uri);
             ObjectCreateRequest.Method = "POST";
-            ObjectCreateRequest.ContentType = "text/xml";
+            ObjectCreateRequest.ContentType = "application/json";
             ObjectCreateRequest.Timeout = 10000;
 
             OSDMap args = new OSDMap(2);
@@ -555,6 +585,90 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         }
 
+        protected bool DoHelloNeighbourCall(RegionInfo region, RegionInfo thisRegion)
+        {
+            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/region/" + thisRegion.RegionID + "/";
+            //Console.WriteLine("   >>> DoHelloNeighbourCall <<< " + uri);
+
+            WebRequest HelloNeighbourRequest = WebRequest.Create(uri);
+            HelloNeighbourRequest.Method = "POST";
+            HelloNeighbourRequest.ContentType = "application/json";
+            HelloNeighbourRequest.Timeout = 10000;
+
+            // Fill it in
+            OSDMap args = null;
+            try
+            {
+                args = thisRegion.PackRegionInfoData();
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[REST COMMS]: PackRegionInfoData failed with exception: " + e.Message);
+            }
+            // Add the regionhandle of the destination region
+            ulong regionHandle = GetRegionHandle(region.RegionHandle);
+            args["destination_handle"] = OSD.FromString(regionHandle.ToString());
+
+            string strBuffer = "";
+            byte[] buffer = new byte[1];
+            try
+            {
+                strBuffer = OSDParser.SerializeJsonString(args);
+                UTF8Encoding str = new UTF8Encoding();
+                buffer = str.GetBytes(strBuffer);
+
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[REST COMMS]: Exception thrown on serialization of HelloNeighbour: {0}", e.Message);
+                // ignore. buffer will be empty, caller should check.
+            }
+
+            Stream os = null;
+            try
+            { // send the Post
+                HelloNeighbourRequest.ContentLength = buffer.Length;   //Count bytes to send
+                os = HelloNeighbourRequest.GetRequestStream();
+                os.Write(buffer, 0, strBuffer.Length);         //Send it
+                os.Close();
+                //m_log.InfoFormat("[REST COMMS]: Posted HelloNeighbour request to remote sim {0}", uri);
+            }
+            //catch (WebException ex)
+            catch
+            {
+                //m_log.InfoFormat("[REST COMMS]: Bad send on HelloNeighbour {0}", ex.Message);
+
+                return false;
+            }
+
+            // Let's wait for the response
+            //m_log.Info("[REST COMMS]: Waiting for a reply after DoHelloNeighbourCall");
+
+            try
+            {
+                WebResponse webResponse = HelloNeighbourRequest.GetResponse();
+                if (webResponse == null)
+                {
+                    m_log.Info("[REST COMMS]: Null reply on DoHelloNeighbourCall post");
+                }
+
+                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                //reply = sr.ReadToEnd().Trim();
+                sr.ReadToEnd().Trim();
+                sr.Close();
+                //m_log.InfoFormat("[REST COMMS]: DoHelloNeighbourCall reply was {0} ", reply);
+
+            }
+            catch (WebException ex)
+            {
+                m_log.InfoFormat("[REST COMMS]: exception on reply of DoHelloNeighbourCall {0}", ex.Message);
+                // ignore, really
+            }
+
+            return true;
+
+        }
+
         #endregion /* Do Work */
 
         #region Incoming calls from remote instances
@@ -615,33 +729,6 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 return responsedata;
             }
 
-        }
-
-        protected OSDMap GetOSDMap(Hashtable request)
-        {
-            OSDMap args = null;
-            try
-            {
-                OSD buffer;
-                // We should pay attention to the content-type, but let's assume we know it's Json
-                buffer = OSDParser.DeserializeJson((string)request["body"]);
-                if (buffer.Type == OSDType.Map)
-                {
-                    args = (OSDMap)buffer;
-                    return args;
-                }
-                else
-                {
-                    // uh?
-                    m_log.Debug("[REST COMMS]: Got OSD of type " + buffer.Type.ToString());
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                m_log.InfoFormat("[REST COMMS]: exception on parse of REST message {0}", ex.Message);
-                return null;
-            }
         }
 
         protected virtual void DoAgentPost(Hashtable request, Hashtable responsedata, UUID id)
@@ -868,10 +955,129 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             responsedata["str_response_string"] = result.ToString();
         }
 
+        /*
+         * Region-related incoming calls
+         * 
+         */
+
+        public Hashtable RegionHandler(Hashtable request)
+        {
+            //m_log.Debug("[CONNECTION DEBUGGING]: RegionHandler Called");
+
+            //Console.WriteLine("---------------------------");
+            //Console.WriteLine(" >> uri=" + request["uri"]);
+            //Console.WriteLine(" >> content-type=" + request["content-type"]);
+            //Console.WriteLine(" >> http-method=" + request["http-method"]);
+            //Console.WriteLine("---------------------------\n");
+
+            Hashtable responsedata = new Hashtable();
+            responsedata["content_type"] = "text/html";
+
+            UUID regionID;
+            string action;
+            ulong regionHandle;
+            if (!GetParams((string)request["uri"], out regionID, out regionHandle, out action))
+            {
+                m_log.InfoFormat("[REST COMMS]: Invalid parameters for object message {0}", request["uri"]);
+                responsedata["int_response_code"] = 404;
+                responsedata["str_response_string"] = "false";
+
+                return responsedata;
+            }
+
+            // Next, let's parse the verb
+            string method = (string)request["http-method"];
+            if (method.Equals("POST"))
+            {
+                DoRegionPost(request, responsedata, regionID);
+                return responsedata;
+            }
+            //else if (method.Equals("PUT"))
+            //{
+            //    DoRegionPut(request, responsedata, regionID);
+            //    return responsedata;
+            //}
+            //else if (method.Equals("DELETE"))
+            //{
+            //    DoRegionDelete(request, responsedata, regiontID);
+            //    return responsedata;
+            //}
+            else
+            {
+                m_log.InfoFormat("[REST COMMS]: method {0} not supported in region message", method);
+                responsedata["int_response_code"] = 404;
+                responsedata["str_response_string"] = "false";
+
+                return responsedata;
+            }
+
+        }
+
+        protected virtual void DoRegionPost(Hashtable request, Hashtable responsedata, UUID id)
+        {
+            OSDMap args = GetOSDMap(request);
+            if (args == null)
+            {
+                responsedata["int_response_code"] = 400;
+                responsedata["str_response_string"] = "false";
+                return;
+            }
+
+            // retrieve the regionhandle
+            ulong regionhandle = 0;
+            if (args["destination_handle"] != null)
+                UInt64.TryParse(args["destination_handle"].AsString(), out regionhandle);
+
+            RegionInfo aRegion = new RegionInfo();
+            try
+            {
+                aRegion.UnpackRegionInfoData(args);
+            }
+            catch (Exception ex)
+            {
+                m_log.InfoFormat("[REST COMMS]: exception on unpacking HelloNeighbour message {0}", ex.Message);
+                return;
+            }
+
+            // This is the meaning of POST region
+            bool result = m_localBackend.SendHelloNeighbour(regionhandle, aRegion);
+
+            responsedata["int_response_code"] = 200;
+            responsedata["str_response_string"] = result.ToString();
+        }
+
+
         #endregion 
 
         #region Misc
-        
+
+        protected OSDMap GetOSDMap(Hashtable request)
+        {
+            OSDMap args = null;
+            try
+            {
+                OSD buffer;
+                // We should pay attention to the content-type, but let's assume we know it's Json
+                buffer = OSDParser.DeserializeJson((string)request["body"]);
+                if (buffer.Type == OSDType.Map)
+                {
+                    args = (OSDMap)buffer;
+                    return args;
+                }
+                else
+                {
+                    // uh?
+                    m_log.Debug("[REST COMMS]: Got OSD of type " + buffer.Type.ToString());
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                m_log.InfoFormat("[REST COMMS]: exception on parse of REST message {0}", ex.Message);
+                return null;
+            }
+        }
+
         /// <summary>
         /// Extract the param from an uri.
         /// </summary>

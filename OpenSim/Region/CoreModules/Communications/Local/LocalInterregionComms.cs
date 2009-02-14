@@ -227,6 +227,23 @@ namespace OpenSim.Region.CoreModules.Communications.Local
             return false;
         }
 
+        /**
+         * Region-related communications 
+         */
+
+        public bool SendHelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
+        {
+            foreach (Scene s in m_sceneList)
+            {
+                if (s.RegionInfo.RegionHandle == regionHandle)
+                {
+                    //m_log.Debug("[LOCAL COMMS]: Found region to SendHelloNeighbour");
+                    return s.IncomingHelloNeighbour(thisRegion);
+                }
+            }
+            return false;
+        }
+
         #endregion /* IInterregionComms */
 
         #region Misc

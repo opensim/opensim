@@ -459,7 +459,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// This informs a single neighboring region about agent "avatar".
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
-        public void InformNeighborChildAgent(ScenePresence avatar, SimpleRegionInfo region, List<RegionInfo> neighbours)
+        public void InformNeighborChildAgent(ScenePresence avatar, SimpleRegionInfo region)
         {
             AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
             agent.BaseFolder = UUID.Zero;
@@ -493,8 +493,10 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.Info("[INTERGRID]: Starting to inform neighbors that I'm here");
             //RegionUpData regiondata = new RegionUpData(region.RegionLocX, region.RegionLocY, region.ExternalHostName, region.InternalEndPoint.Port);
 
-            bool regionAccepted =
-                m_commsProvider.InterRegion.RegionUp(new SerializableRegionInfo(region), regionhandle);
+            //bool regionAccepted =
+            //    m_commsProvider.InterRegion.RegionUp(new SerializableRegionInfo(region), regionhandle);
+
+            bool regionAccepted = m_interregionCommsOut.SendHelloNeighbour(regionhandle, region);
 
             if (regionAccepted)
             {
@@ -519,7 +521,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
 
-
+            
             List<SimpleRegionInfo> neighbours = new List<SimpleRegionInfo>();
             // This stays uncached because we don't already know about our neighbors at this point.
             neighbours = m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);

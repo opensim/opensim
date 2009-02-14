@@ -422,6 +422,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>True after all operations complete, throws exceptions otherwise.</returns>
         public override bool OtherRegionUp(RegionInfo otherRegion)
         {
+            m_log.InfoFormat("[SCENE]: Region {0} up in coords {1}-{2}", otherRegion.RegionName, otherRegion.RegionLocX, otherRegion.RegionLocY);
+
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
                 for (int i = 0; i < m_neighbours.Count; i++)
@@ -515,6 +517,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             return found;
+        }
+
+
+        // Alias IncomingHelloNeighbour OtherRegionUp, for now
+        public bool IncomingHelloNeighbour(RegionInfo neighbour)
+        {
+            return OtherRegionUp(neighbour);
         }
 
         /// <summary>
@@ -2569,7 +2578,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="region"></param>
         public void InformClientOfNeighbor(ScenePresence presence, RegionInfo region)
         {
-            m_sceneGridService.InformNeighborChildAgent(presence, region, m_neighbours);
+            m_sceneGridService.InformNeighborChildAgent(presence, region);
         }
 
         /// <summary>

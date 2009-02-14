@@ -31,6 +31,7 @@ using System.Net.Sockets;
 using System.Xml;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
@@ -604,6 +605,74 @@ namespace OpenSim.Framework
 
             configMember.forceSetConfigurationOption("lastmap_uuid", mapUUID.ToString());
             configMember.forceSetConfigurationOption("lastmap_refresh", lastMapRefresh);
+        }
+
+        public OSDMap PackRegionInfoData()
+        {
+            OSDMap args = new OSDMap();
+            args["region_id"] = OSD.FromUUID(RegionID);
+            if ((RegionName != null) && !RegionName.Equals(""))
+                args["region_name"] = OSD.FromString(RegionName);
+            args["external_host_name"] = OSD.FromString(ExternalHostName);
+            args["http_port"] = OSD.FromString(HttpPort.ToString());
+            args["server_uri"] = OSD.FromString(ServerURI);
+            args["region_xloc"] = OSD.FromString(RegionLocX.ToString());
+            args["region_yloc"] = OSD.FromString(RegionLocY.ToString());
+            args["internal_ep_address"] = OSD.FromString(InternalEndPoint.Address.ToString());
+            args["internal_ep_port"] = OSD.FromString(InternalEndPoint.Port.ToString());
+            if ((RemotingAddress != null) && !RemotingAddress.Equals(""))
+                args["remoting_address"] = OSD.FromString(RemotingAddress);
+            args["remoting_port"] = OSD.FromString(RemotingPort.ToString());
+            args["allow_alt_ports"] = OSD.FromBoolean(m_allow_alternate_ports);
+            if ((proxyUrl != null) && !proxyUrl.Equals(""))
+                args["proxy_url"] = OSD.FromString(proxyUrl);
+
+            return args;
+        }
+
+        public void UnpackRegionInfoData(OSDMap args)
+        {
+            if (args["region_id"] != null)
+                RegionID = args["region_id"].AsUUID();
+            if (args["region_name"] != null)
+                RegionName = args["region_name"].AsString();
+            if (args["external_host_name"] != null)
+                ExternalHostName = args["external_host_name"].AsString();
+            if (args["http_port"] != null)
+                UInt32.TryParse(args["http_port"].AsString(), out m_httpPort);
+            if (args["server_uri"] != null)
+                ServerURI = args["server_uri"].AsString();
+            if (args["region_xloc"] != null)
+            {
+                uint locx;
+                UInt32.TryParse(args["region_xloc"].AsString(), out locx);
+                RegionLocX = locx;
+            }
+            if (args["region_yloc"] != null)
+            {
+                uint locy;
+                UInt32.TryParse(args["region_yloc"].AsString(), out locy);
+                RegionLocY = locy;
+            }
+            IPAddress ip_addr = null;
+            if (args["internal_ep_address"] != null)
+            {
+                IPAddress.TryParse(args["internal_ep_address"].AsString(), out ip_addr);
+            }
+            int port = 0;
+            if (args["internal_ep_port"] != null)
+            {
+                Int32.TryParse(args["internal_ep_port"].AsString(), out port);
+            }
+            InternalEndPoint = new IPEndPoint(ip_addr, port);
+            if (args["remoting_address"] != null)
+                RemotingAddress = args["remoting_address"].AsString();
+            if (args["remoting_port"] != null)
+                UInt32.TryParse(args["remoting_port"].AsString(), out m_remotingPort);
+            if (args["allow_alt_ports"] != null)
+                m_allow_alternate_ports = args["allow_alt_ports"].AsBoolean();
+            if (args["proxy_url"] != null)
+                proxyUrl = args["proxy_url"].AsString();
         }
     }
 }
