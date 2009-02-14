@@ -740,7 +740,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             //Lets create a new land object with bitmap activated at that point (keeping the old land objects info)
             ILandObject newLand = startLandObject.Copy();
-            newLand.landData.Name = "Subdivision of " + newLand.landData.Name;
+            newLand.landData.Name = newLand.landData.Name;
             newLand.landData.GlobalID = UUID.Random();
 
             newLand.setLandBitmap(newLand.getSquareLandBitmap(start_x, start_y, end_x, end_y));
