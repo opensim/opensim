@@ -611,7 +611,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_controllingClient.OnRequestWearables += SendWearables;
             m_controllingClient.OnSetAppearance += SetAppearance;
             m_controllingClient.OnCompleteMovementToRegion += CompleteMovement;
-            m_controllingClient.OnCompleteMovementToRegion += SendInitialData;
+            //m_controllingClient.OnCompleteMovementToRegion += SendInitialData;
             m_controllingClient.OnAgentUpdate += HandleAgentUpdate;
             m_controllingClient.OnAgentRequestSit += HandleAgentRequestSit;
             m_controllingClient.OnAgentSit += HandleAgentSit;
@@ -829,7 +829,6 @@ namespace OpenSim.Region.Framework.Scenes
                 pos = emergencyPos;
             }
 
-            m_isChildAgent = false;
 
             float localAVHeight = 1.56f;
             if (m_avHeight != 127.0f)
@@ -845,8 +844,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             AbsolutePosition = pos;
 
-            AddToPhysicalScene();
-            m_physicsActor.Flying = isFlying;
+            AddToPhysicalScene(isFlying);
+            SetHeight(m_appearance.AvatarHeight);
             
             // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
             // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
@@ -861,13 +860,16 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 m_log.ErrorFormat("[SCENE]: Could not find user info for {0} when making it a root agent", m_uuid);
             
-            //m_scene.CapsModule.AddCapsHandler(m_uuid);
-
             // On the next prim update, all objects will be sent
             //
             m_pendingObjects = null;
 
+            m_isChildAgent = false;
+
+            SendInitialData();
+
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
+
         }
 
         /// <summary>
@@ -916,10 +918,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         public void Teleport(Vector3 pos)
         {
+            bool isFlying = false;
+            if (m_physicsActor != null)
+                isFlying = m_physicsActor.Flying;
+
             RemoveFromPhysicalScene();
             Velocity = new Vector3(0, 0, 0);
             AbsolutePosition = pos;
-            AddToPhysicalScene();
+            AddToPhysicalScene(isFlying);
             SendTerseUpdateToAllClients();
         }
 
@@ -1021,8 +1027,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_isChildAgent)
             {
                 m_isChildAgent = false;
-
-                MakeRootAgent(AbsolutePosition, false);
+                bool m_flying = ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+                MakeRootAgent(AbsolutePosition, m_flying);
 
                 if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
                 {
@@ -1068,7 +1074,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.Error("[AVATAR]: NonFinite Avatar position detected...   Reset Position.  Mantis this please. Error# 9999903");
                 }
 
-                AddToPhysicalScene();
+                AddToPhysicalScene(false);
             }
             else
             {
@@ -1464,7 +1470,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_physicsActor == null)
                 {
-                    AddToPhysicalScene();
+                    AddToPhysicalScene(m_physicsActor.Flying);
                 }
 
                 m_pos += m_parentPosition + new Vector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
@@ -2231,7 +2237,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // just to add it back again, but it saves us from having to update
                 // 3 variables 10 times a second.
                 m_scene.PhysicsScene.RemoveAvatar(m_physicsActor);
-                AddToPhysicalScene();
+                AddToPhysicalScene(m_physicsActor.Flying);
             }
             m_appearance.SetAppearance(texture, visualParam);
             SetHeight(m_appearance.AvatarHeight);
@@ -2420,12 +2426,18 @@ namespace OpenSim.Region.Framework.Scenes
         protected void CrossToNewRegion()
         {
             m_inTransit = true;
+
+            if ((m_physicsActor != null) && m_physicsActor.Flying)
+                m_AgentControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+            else if ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
+                m_AgentControlFlags &= ~(uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+
             m_scene.CrossAgentToNewRegion(this, m_physicsActor.Flying);
         }
 
         public void RestoreInCurrentScene()
         {
-            AddToPhysicalScene();
+            AddToPhysicalScene(false); // not exactly false
         }
 
         /// <summary>
@@ -2583,10 +2595,6 @@ namespace OpenSim.Region.Framework.Scenes
             cAgent.HeadRotation = m_headrotation;
             cAgent.BodyRotation = m_bodyRot;
             cAgent.ControlFlags = m_AgentControlFlags;
-            if ((m_physicsActor != null) && (m_physicsActor.Flying))
-            {
-                cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
-            }
 
             if (m_scene.Permissions.IsGod(new UUID(cAgent.AgentID)))
                 cAgent.GodLevel = (byte)m_godlevel;
@@ -2625,10 +2633,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_headrotation = cAgent.HeadRotation;
             m_bodyRot = cAgent.BodyRotation;
             m_AgentControlFlags = cAgent.ControlFlags; // We need more flags!
-            if (m_physicsActor != null)
-            {
-                m_physicsActor.Flying = ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
-            }
+
             if (m_scene.Permissions.IsGod(new UUID(cAgent.AgentID)))
                 m_godlevel = cAgent.GodLevel;
             m_setAlwaysRun = cAgent.AlwaysRun;
@@ -2755,7 +2760,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Adds a physical representation of the avatar to the Physics plugin
         /// </summary>
-        public void AddToPhysicalScene()
+        public void AddToPhysicalScene(bool isFlying)
         {
             PhysicsScene scene = m_scene.PhysicsScene;
 
@@ -2765,13 +2770,13 @@ namespace OpenSim.Region.Framework.Scenes
             
             if (m_avHeight == 127.0f)
             {
-                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, 1.56f));
+                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, 1.56f), isFlying);
             }
             else
             {
-                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, m_avHeight));
+                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, m_avHeight), isFlying);
             }
-            
+
             //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             m_physicsActor.SubscribeEvents(1000);

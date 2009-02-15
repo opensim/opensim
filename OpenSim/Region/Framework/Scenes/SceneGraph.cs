@@ -646,7 +646,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 m_numRootAgents++;
-                presence.AddToPhysicalScene();
+                presence.AddToPhysicalScene(false);
             }
 
             Entities[presence.UUID] = presence;

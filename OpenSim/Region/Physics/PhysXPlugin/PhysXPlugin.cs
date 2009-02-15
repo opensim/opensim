@@ -102,13 +102,14 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
         }
 
-        public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size)
+        public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size, bool isFlying)
         {
             Vec3 pos = new Vec3();
             pos.X = position.X;
             pos.Y = position.Y;
             pos.Z = position.Z;
             PhysXCharacter act = new PhysXCharacter(scene.AddCharacter(pos));
+            act.Flying = isFlying;
             act.Position = position;
             _characters.Add(act);
             return act;

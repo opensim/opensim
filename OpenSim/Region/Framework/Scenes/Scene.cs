@@ -2090,8 +2090,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client)
         {
-            AvatarAppearance appearance = null;
-            GetAvatarAppearance(client, out appearance);
+            AvatarAppearance appearance = new AvatarAppearance();
+            //GetAvatarAppearance(client, out appearance);
 
             ScenePresence avatar = m_sceneGraph.CreateAndAddChildScenePresence(client, appearance);
             //avatar.KnownRegions = GetChildrenSeeds(avatar.UUID);
@@ -2339,7 +2339,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Don't disable this log message - it's too helpful
-            m_log.DebugFormat(
+            m_log.InfoFormat(
                 "[CONNECTION BEGIN]: Region {0} told of incoming client {1} {2} {3} (circuit code {4})",
                 RegionInfo.RegionName, agent.firstname, agent.lastname, agent.AgentID, agent.circuitcode);
 
@@ -3295,7 +3295,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[BUG]: " + e.ToString());
+                    m_log.Info("[BUG] in " + RegionInfo.RegionName + ": " + e.ToString());
                 }
             }
         }

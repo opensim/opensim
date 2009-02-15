@@ -573,13 +573,14 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         }
 
-        public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size)
+        public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size, bool isFlying)
         {
             PhysicsVector pos = new PhysicsVector();
             pos.X = position.X;
             pos.Y = position.Y;
             pos.Z = position.Z + 20;
             BulletXCharacter newAv = null;
+            newAv.Flying = isFlying;
             lock (BulletXLock)
             {
                 newAv = new BulletXCharacter(avName, this, pos);
