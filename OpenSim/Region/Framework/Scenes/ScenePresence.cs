@@ -1471,7 +1471,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_physicsActor == null)
                 {
-                    AddToPhysicalScene(m_physicsActor.Flying);
+                    AddToPhysicalScene(false);
                 }
 
                 m_pos += m_parentPosition + new Vector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
