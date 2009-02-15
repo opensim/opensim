@@ -845,7 +845,7 @@ namespace OpenSim.Region.Framework.Scenes
             AbsolutePosition = pos;
 
             AddToPhysicalScene(isFlying);
-            if (m_appearance != null)
+            if ((m_appearance != null) && (m_appearance.AvatarHeight > 0))
                 SetHeight(m_appearance.AvatarHeight);
             
             // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
