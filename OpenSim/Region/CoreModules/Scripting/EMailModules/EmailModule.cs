@@ -178,17 +178,15 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         }
 
         /// <summary>
-        ///
+        /// Delay function using thread in seconds
         /// </summary>
         /// <param name="seconds"></param>
-        private void DelayInSeconds(int seconds)
+        private void DelayInSeconds(int delay)
         {
-            TimeSpan DiffDelay = new TimeSpan(0, 0, seconds);
-            DateTime EndDelay = DateTime.Now.Add(DiffDelay);
-            while (DateTime.Now < EndDelay)
-            {
-                ;//Do nothing!!
-            }
+            delay = (int)((float)delay * 1000);
+            if (delay == 0)
+                return;
+            System.Threading.Thread.Sleep(delay);
         }
 
         private bool IsLocal(UUID objectID)
@@ -293,12 +291,19 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                               "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
                               LastObjectPosition + "\n\n" + body;
 
+                    //Config SMTP Server
                     //Set SMTP SERVER config
-                    SmtpServer smtpServer = new SmtpServer(SMTP_SERVER_HOSTNAME, SMTP_SERVER_PORT);
-                    //Authentication
-                    smtpServer.SmtpAuthToken = new SmtpAuthToken(SMTP_SERVER_LOGIN, SMTP_SERVER_PASSWORD);
+                    SmtpServer smtpServer=new SmtpServer(SMTP_SERVER_HOSTNAME,SMTP_SERVER_PORT);
+                    // Add authentication only when requested
+                    //
+                    if (SMTP_SERVER_LOGIN != String.Empty && SMTP_SERVER_PASSWORD != String.Empty)
+                    {
+                        //Authentication
+                        smtpServer.SmtpAuthToken=new SmtpAuthToken(SMTP_SERVER_LOGIN, SMTP_SERVER_PASSWORD);
+                    }
                     //Send Email Message
                     emailMessage.Send(smtpServer);
+
                     //Log
                     m_log.Info("[EMAIL] EMail sent to: " + address + " from object: " + objectID.ToString());
                 }
