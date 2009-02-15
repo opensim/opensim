@@ -59,7 +59,9 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         private int m_MaxQueueSize = 50; // maximum size of an object mail queue
         private Dictionary<UUID, List<Email>> m_MailQueues = new Dictionary<UUID, List<Email>>();
-        private string m_InterObjectHostname;
+        private Dictionary<UUID, DateTime> m_LastGetEmailCall = new Dictionary<UUID, DateTime>();
+        private TimeSpan m_QueueTimeout = new TimeSpan(2, 0, 0); // 2 hours without llGetNextEmail drops the queue
+        private string m_InterObjectHostname = "lsl.opensim.local";
 
         // Scenes by Region Handle
         private Dictionary<ulong, Scene> m_Scenes =
@@ -69,18 +71,26 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         public void InsertEmail(UUID to, Email email)
         {
-            if (!m_MailQueues.ContainsKey(to))
-            {
-                m_MailQueues.Add(to, new List<Email>());
-            }
+            // It's tempting to create the queue here.  Don't; objects which have
+            // not yet called GetNextEmail should have no queue, and emails to them
+            // should be silently dropped.
 
-            if (m_MailQueues[to].Count >= m_MaxQueueSize)
+            lock (m_MailQueues)
             {
-                // fail silently
-                return;
-            }
+                if (m_MailQueues.ContainsKey(to))
+                {
+                    if (m_MailQueues[to].Count >= m_MaxQueueSize)
+                    {
+                        // fail silently
+                        return;
+                    }
 
-            m_MailQueues[to].Add(email);
+                    lock (m_MailQueues[to])
+                    {
+                        m_MailQueues[to].Add(email);
+                    }
+                }
+            }
         }
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -113,7 +123,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 }
 
                 m_HostName = SMTPConfig.GetString("host_domain_header_from", m_HostName);
-                m_InterObjectHostname = SMTPConfig.GetString("internal_object_host", "lsl.secondlife.com");
+                m_InterObjectHostname = SMTPConfig.GetString("internal_object_host", m_InterObjectHostname);
                 SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME", SMTP_SERVER_HOSTNAME);
                 SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
                 SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
@@ -279,16 +289,9 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     emailMessage.Subject = subject;
                     //TEXT Body
                     resolveNamePositionRegionName(objectID, out LastObjectName, out LastObjectPosition, out LastObjectRegionName);
-                    emailMessage.TextPart = new TextAttachment("Object-Name: " + LastObjectName +
-                              "\r\nRegion: " + LastObjectRegionName + "\r\nLocal-Position: " +
-                              LastObjectPosition + "\r\n\r\n" + body);
-
-                    //HTML Body
-                    emailMessage.HtmlPart = new HtmlAttachment("<html><body><p>" +
-                                                               "<BR>Object-Name: " + LastObjectName +
-                                                               "<BR>Region: " + LastObjectRegionName +
-                                                               "<BR>Local-Position: " + LastObjectPosition + "<BR><BR><BR>"
-                                                               + body + "\r\n</p></body><html>");
+                    emailMessage.BodyText = "Object-Name: " + LastObjectName +
+                              "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
+                              LastObjectPosition + "\n\n" + body;
 
                     //Set SMTP SERVER config
                     SmtpServer smtpServer = new SmtpServer(SMTP_SERVER_HOSTNAME, SMTP_SERVER_PORT);
@@ -309,7 +312,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             {
                 // inter object email, keep it in the family
                 Email email = new Email();
-                email.time = ((DateTime.UtcNow - new DateTime(1970,1,1,0,0,0)).TotalSeconds).ToString();
+                email.time = ((int)((DateTime.UtcNow - new DateTime(1970,1,1,0,0,0)).TotalSeconds)).ToString();
                 email.subject = subject;
                 email.sender = objectID.ToString() + "@" + m_InterObjectHostname;
                 email.message = "Object-Name: " + LastObjectName +
@@ -342,30 +345,78 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         /// <returns></returns>
         public Email GetNextEmail(UUID objectID, string sender, string subject)
         {
-            if (m_MailQueues.ContainsKey(objectID))
+            List<Email> queue = null;
+
+            lock (m_LastGetEmailCall)
             {
-                List<Email> queue = m_MailQueues[objectID];
-
-                if (queue.Count > 0)
+                if (m_LastGetEmailCall.ContainsKey(objectID))
                 {
-                    int i;
+                    m_LastGetEmailCall.Remove(objectID);
+                }
 
-                    for (i = 0; i < queue.Count; i++)
+                m_LastGetEmailCall.Add(objectID, DateTime.Now);
+
+                // Hopefully this isn't too time consuming.  If it is, we can always push it into a worker thread.
+                DateTime now = DateTime.Now;
+                List<UUID> removal = new List<UUID>();
+                foreach (UUID uuid in m_LastGetEmailCall.Keys)
+                {
+                    if ((now - m_LastGetEmailCall[uuid]) > m_QueueTimeout)
                     {
-                        if ((sender == null || sender.Equals("") || sender.Equals(queue[i].sender)) &&
-                            (subject == null || subject.Equals("") || subject.Equals(queue[i].subject)))
+                        removal.Add(uuid);
+                    }
+                }
+
+                foreach (UUID remove in removal)
+                {
+                    m_LastGetEmailCall.Remove(remove);
+                    lock (m_MailQueues)
+                    {
+                        m_MailQueues.Remove(remove);
+                    }
+                }
+            }
+
+            lock (m_MailQueues)
+            {
+                if (m_MailQueues.ContainsKey(objectID))
+                {
+                    queue = m_MailQueues[objectID];
+                }
+            }
+
+            if (queue != null)
+            {
+                lock (queue)
+                {
+                    if (queue.Count > 0)
+                    {
+                        int i;
+
+                        for (i = 0; i < queue.Count; i++)
                         {
-                            break;
+                            if ((sender == null || sender.Equals("") || sender.Equals(queue[i].sender)) &&
+                                (subject == null || subject.Equals("") || subject.Equals(queue[i].subject)))
+                            {
+                                break;
+                            }
+                        }
+
+                        if (i != queue.Count)
+                        {
+                            Email ret = queue[i];
+                            queue.Remove(ret);
+                            ret.numLeft = queue.Count;
+                            return ret;
                         }
                     }
-
-                    if (i != queue.Count)
-                    {
-                        Email ret = queue[i];
-                        queue.Remove(ret);
-                        ret.numLeft = queue.Count;
-                        return ret;
-                    }
+                }
+            }
+            else
+            {
+                lock (m_MailQueues)
+                {
+                    m_MailQueues.Add(objectID, new List<Email>());
                 }
             }
 
