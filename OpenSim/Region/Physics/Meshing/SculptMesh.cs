@@ -59,6 +59,14 @@ namespace PrimMesher
             int destWidth = (int)(srcImage.Width * scale);
             int destHeight = (int)(srcImage.Height * scale);
 
+            if (srcImage.PixelFormat == PixelFormat.Format32bppArgb)
+                for (int y = 0; y < srcImage.Height; y++)
+                    for (int x = 0; x < srcImage.Width; x++)
+                    {
+                        Color c = srcImage.GetPixel(x, y);
+                        srcImage.SetPixel(x, y, Color.FromArgb(255, c.R, c.G, c.B));
+                    }
+
             Bitmap scaledImage = new Bitmap(destWidth, destHeight,
                                      PixelFormat.Format24bppRgb);
             scaledImage.SetResolution(srcImage.HorizontalResolution,
