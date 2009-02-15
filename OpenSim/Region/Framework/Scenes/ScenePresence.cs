@@ -1480,7 +1480,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
                 m_requestedSitTargetID = 0;
-                if (m_physicsActor != null)
+                if ((m_physicsActor != null) && (m_avHeight > 0))
                 {
                     SetHeight(m_avHeight);
                 }
@@ -2241,7 +2241,8 @@ namespace OpenSim.Region.Framework.Scenes
                 AddToPhysicalScene(m_physicsActor.Flying);
             }
             m_appearance.SetAppearance(texture, visualParam);
-            SetHeight(m_appearance.AvatarHeight);
+            if (m_appearance.AvatarHeight > 0)
+                SetHeight(m_appearance.AvatarHeight);
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
 
             SendAppearanceToAllOtherAgents();
