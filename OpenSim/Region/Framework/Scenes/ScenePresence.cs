@@ -845,7 +845,8 @@ namespace OpenSim.Region.Framework.Scenes
             AbsolutePosition = pos;
 
             AddToPhysicalScene(isFlying);
-            SetHeight(m_appearance.AvatarHeight);
+            if (m_appearance != null)
+                SetHeight(m_appearance.AvatarHeight);
             
             // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
             // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
@@ -865,8 +866,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_pendingObjects = null;
 
             m_isChildAgent = false;
-
-            SendInitialData();
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
 
@@ -1036,11 +1035,13 @@ namespace OpenSim.Region.Framework.Scenes
                     Scene.SendReleaseAgent(m_rootRegionHandle, UUID, m_callbackURI);
                     m_callbackURI = null;
                 }
-                
+
                 //m_log.DebugFormat("Completed movement");
             }
 
             m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
+
+            SendInitialData();
 
         }
 
