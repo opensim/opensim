@@ -87,7 +87,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         public string Name
         {
-            get { return "AssetInventoryServer Reference asset frontend"; }
+            get { return "ReferenceFrontend"; }
         }
 
         #endregion IPlugin implementation

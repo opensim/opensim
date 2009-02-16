@@ -145,7 +145,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         public string Name
         {
-            get { return "AssetInventoryServer Null Metrics"; }
+            get { return "NullMetrics"; }
         }
 
         #endregion IPlugin implementation

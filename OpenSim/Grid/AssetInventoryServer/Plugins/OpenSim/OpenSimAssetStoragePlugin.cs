@@ -183,6 +183,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             catch (Exception e)
             {
                 m_log.WarnFormat("[OPENSIMASSETSTORAGE]: Failure loading data plugin: {0}", e.ToString());
+                throw new PluginNotInitialisedException(Name);
             }
         }
 
@@ -206,7 +207,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         public string Name
         {
-            get { return "AssetInventoryServer OpenSim asset storage provider"; }
+            get { return "OpenSimAssetStorage"; }
         }
 
         #endregion IPlugin implementation

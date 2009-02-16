@@ -619,7 +619,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 
         public string Name
         {
-            get { return "AssetInventoryServer Simple inventory storage provider"; }
+            get { return "SimpleInventoryStorage"; }
         }
 
         #endregion IPlugin implementation

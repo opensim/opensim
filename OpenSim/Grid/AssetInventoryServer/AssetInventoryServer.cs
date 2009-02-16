@@ -75,15 +75,16 @@ namespace OpenSim.Grid.AssetInventoryServer
                 return false;
             }
 
-            IConfig pluginConfig = ConfigFile.Configs["Plugins"];
-
-            StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AssetStorageProvider", pluginConfig.GetString("asset_storage_provider")) as IAssetStorageProvider;
+            StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AssetStorageProvider",
+                                                             "asset_storage_provider", false) as IAssetStorageProvider;
             m_backends.Add(StorageProvider);
 
-            InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryStorageProvider", pluginConfig.GetString("inventory_storage_provider")) as IInventoryStorageProvider;
+            InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryStorageProvider",
+                                                               "inventory_storage_provider", false) as IInventoryStorageProvider;
             m_backends.Add(InventoryProvider);
 
-            MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider", pluginConfig.GetString("metrics_provider")) as IMetricsProvider;
+            MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider",
+                                                             "metrics_provider", false) as IMetricsProvider;
             m_backends.Add(MetricsProvider);
 
             try
@@ -97,13 +98,19 @@ namespace OpenSim.Grid.AssetInventoryServer
                 return false;
             }
 
-            AuthenticationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthenticationProvider", pluginConfig.GetString("authentication_provider")) as IAuthenticationProvider;
+            AuthenticationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthenticationProvider",
+                                                                    "authentication_provider", false) as IAuthenticationProvider;
             m_backends.Add(AuthenticationProvider);
 
-            AuthorizationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthorizationProvider", pluginConfig.GetString("authorization_provider")) as IAuthorizationProvider;
+            AuthorizationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthorizationProvider",
+                                                                   "authorization_provider", false) as IAuthorizationProvider;
             m_backends.Add(AuthorizationProvider);
 
-            m_frontends.AddRange(LoadAssetInventoryServerPlugins("/OpenSim/AssetInventoryServer/Frontend", pluginConfig.GetString("frontends")));
+            m_frontends.AddRange(LoadAssetInventoryServerPlugins("/OpenSim/AssetInventoryServer/Frontend", "frontends"));
+
+            // Inform the user if we don't have any frontends at this point.
+            if (m_frontends.Count == 0)
+                m_log.Info("[ASSETINVENTORY]: Starting with no frontends loaded, which isn't extremely useful. Did you set the 'frontends' configuration parameter?");
 
             return true;
         }
@@ -148,32 +155,47 @@ namespace OpenSim.Grid.AssetInventoryServer
             m_log.Info("[ASSETINVENTORY]: AssetInventory server is listening on port " + port);
         }
 
-        private IAssetInventoryServerPlugin LoadAssetInventoryServerPlugin(string addinPath, string provider)
+        private IAssetInventoryServerPlugin LoadAssetInventoryServerPlugin(string addinPath, string configParam, bool optional)
         {
-            PluginLoader<IAssetInventoryServerPlugin> loader = new PluginLoader<IAssetInventoryServerPlugin>(new AssetInventoryServerPluginInitialiser(this));
+            IAssetInventoryServerPlugin result = null;
+            List<IAssetInventoryServerPlugin> plugins = LoadAssetInventoryServerPlugins(addinPath, configParam);
 
-            if (provider == String.Empty)
-                loader.Add(addinPath);
-            else
-                loader.Add(addinPath, new PluginIdFilter(provider));
-            //loader.Add(addinPath, new PluginCountConstraint(1));
+            if (plugins.Count == 1)
+            {
+                result = plugins[0];
+            }
+            else if (plugins.Count > 1)
+            {
+                m_log.ErrorFormat("[ASSETINVENTORY]: Only 1 plugin expected for extension point '{0}', {1} plugins loaded. Check the '{2}' parameter in the config file.",
+                                  addinPath, plugins.Count, configParam);
+                Shutdown();
+                Environment.Exit(0);
+            }
+            else if (!optional)
+            {
+                m_log.ErrorFormat("[ASSETINVENTORY]: The extension point '{0}' is not optional. Check the '{1}' parameter in the config file.", addinPath, configParam);
+                Shutdown();
+                Environment.Exit(0);
+            }
 
-            loader.Load();
-
-            return loader.Plugin;
+            return result;
         }
 
-        private List<IAssetInventoryServerPlugin> LoadAssetInventoryServerPlugins(string addinPath, string provider)
+        private List<IAssetInventoryServerPlugin> LoadAssetInventoryServerPlugins(string addinPath, string configParam)
         {
             PluginLoader<IAssetInventoryServerPlugin> loader = new PluginLoader<IAssetInventoryServerPlugin>(new AssetInventoryServerPluginInitialiser(this));
+            loader.Add(addinPath, new PluginIdFilter(ConfigFile.Configs["Plugins"].GetString(configParam)));
 
-            if (provider == String.Empty)
-                loader.Add(addinPath);
-            else
-                loader.Add(addinPath, new PluginIdFilter(provider));
-            //loader.Add(addinPath, new PluginCountConstraint(1));
-
-            loader.Load();
+            try
+            {
+                loader.Load();
+            }
+            catch (PluginNotInitialisedException e)
+            {
+                m_log.ErrorFormat("[ASSETINVENTORY]: Error initialising plugin '{0}' for extension point '{1}'.", e.Message, addinPath);
+                Shutdown();
+                Environment.Exit(0);
+            }
 
             return loader.Plugins;
         }
