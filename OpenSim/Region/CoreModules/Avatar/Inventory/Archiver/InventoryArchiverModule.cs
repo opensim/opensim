@@ -160,7 +160,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string invPath = cmdparams[4];
             string loadPath = (cmdparams.Length > 5 ? cmdparams[5] : DEFAULT_INV_BACKUP_FILENAME);
 
+            m_log.InfoFormat(
+                "[INVENTORY ARCHIVER]: Loading archive {0} to inventory path {1} for {2} {3}",
+                loadPath, invPath, firstName, lastName);
+            
             DearchiveInventory(firstName, lastName, invPath, loadPath);
+            
+            m_log.InfoFormat(
+                "[INVENTORY ARCHIVER]: Loaded archive {0} for {1} {2}",
+                loadPath, firstName, lastName);
         }
         
         /// <summary>
@@ -181,7 +189,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string invPath = cmdparams[4];
             string savePath = (cmdparams.Length > 5 ? cmdparams[5] : DEFAULT_INV_BACKUP_FILENAME);
 
+            m_log.InfoFormat(
+                "[INVENTORY ARCHIVER]: Saving archive {0} from inventory path {1} for {2} {3}",
+                savePath, invPath, firstName, lastName);
+            
             ArchiveInventory(firstName, lastName, invPath, savePath);
+            
+            m_log.InfoFormat(
+                "[INVENTORY ARCHIVER]: Saved archive {0} for {1} {2}",
+                savePath, firstName, lastName);            
         }
         
         /// <summary>
