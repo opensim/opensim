@@ -4,7 +4,7 @@ using System.Xml;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
-namespace AssetServer
+namespace OpenSim.Grid.AssetInventoryServer
 {
     public class Metadata
     {

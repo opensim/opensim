@@ -746,7 +746,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Grid.NewAssetServer" path="OpenSim/Grid/NewAssetServer" type="Exe">
+    <Project name="OpenSim.Grid.AssetInventoryServer" path="OpenSim/Grid/AssetInventoryServer" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -783,7 +783,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Grid.AssetServer.Plugins.OpenSim" path="OpenSim/Grid/NewAssetServer/Plugins/OpenSim" type="Library">
+    <Project name="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim" path="OpenSim/Grid/AssetInventoryServer/Plugins/OpenSim" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../../bin/</OutputPath>
@@ -799,7 +799,7 @@
       <Reference name="System" />
       <Reference name="System.Data" />
       <Reference name="OpenSim.Framework" />
-      <Reference name="OpenSim.Grid.NewAssetServer" />
+      <Reference name="OpenSim.Grid.AssetInventoryServer" />
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData2" />
       <Reference name="HttpServer2"/>
@@ -814,7 +814,7 @@
       </Files>
     </Project>
 
-    <!--Project name="OpenSim.Grid.AssetServer.Simple" path="OpenSim/Grid/NewAssetServer/Extensions/Simple" type="Library">
+    <!--Project name="OpenSim.Grid.AssetInventoryServer.Simple" path="OpenSim/Grid/AssetInventoryServer/Extensions/Simple" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../../bin/</OutputPath>
@@ -842,7 +842,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Grid.AssetServer.OpenSimMySQL" path="OpenSim/Grid/NewAssetServer/Extensions/OpenSimMySQL" type="Library">
+    <Project name="OpenSim.Grid.AssetInventoryServer.OpenSimMySQL" path="OpenSim/Grid/AssetInventoryServer/Extensions/OpenSimMySQL" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../../bin/</OutputPath>

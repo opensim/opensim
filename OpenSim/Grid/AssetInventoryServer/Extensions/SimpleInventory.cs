@@ -36,14 +36,14 @@ using ExtensionLoader;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
-namespace AssetServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Extensions
 {
-    public class SimpleInventory : IExtension<AssetServer>, IInventoryProvider
+    public class SimpleInventory : IExtension<AssetInventoryServer>, IInventoryProvider
     {
         const string EXTENSION_NAME = "SimpleInventory"; // Used for metrics reporting
         const string DEFAULT_INVENTORY_DIR = "SimpleInventory";
 
-        AssetServer server;
+        AssetInventoryServer server;
         Dictionary<Uri, InventoryCollection> inventories = new Dictionary<Uri, InventoryCollection>();
         Dictionary<Uri, List<InventoryItem>> activeGestures = new Dictionary<Uri, List<InventoryItem>>();
         Utils.InventoryItemSerializer itemSerializer = new Utils.InventoryItemSerializer();
@@ -55,7 +55,7 @@ namespace AssetServer.Extensions
 
         #region Required Interfaces
 
-        public void Start(AssetServer server)
+        public void Start(AssetInventoryServer server)
         {
             this.server = server;
 

@@ -36,17 +36,17 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using HttpServer;
 
-namespace AssetServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Extensions
 {
-    public class ReferenceFrontend : IExtension<AssetServer>
+    public class ReferenceFrontend : IExtension<AssetInventoryServer>
     {
-        AssetServer server;
+        AssetInventoryServer server;
 
         public ReferenceFrontend()
         {
         }
 
-        public void Start(AssetServer server)
+        public void Start(AssetInventoryServer server)
         {
             this.server = server;
 

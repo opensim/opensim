@@ -37,11 +37,11 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using HttpServer;
 
-namespace AssetServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Extensions
 {
-    public class OpenSimInventoryFrontend : IExtension<AssetServer>
+    public class OpenSimInventoryFrontend : IExtension<AssetInventoryServer>
     {
-        AssetServer server;
+        AssetInventoryServer server;
         Utils.InventoryItemSerializer itemSerializer = new Utils.InventoryItemSerializer();
         Utils.InventoryFolderSerializer folderSerializer = new Utils.InventoryFolderSerializer();
         Utils.InventoryCollectionSerializer collectionSerializer = new Utils.InventoryCollectionSerializer();
@@ -50,7 +50,7 @@ namespace AssetServer.Extensions
         {
         }
 
-        public void Start(AssetServer server)
+        public void Start(AssetInventoryServer server)
         {
             this.server = server;
 

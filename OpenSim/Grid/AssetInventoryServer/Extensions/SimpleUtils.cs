@@ -2,7 +2,7 @@
 using System.IO;
 using OpenMetaverse;
 
-namespace AssetServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Extensions
 {
     public static class SimpleUtils
     {

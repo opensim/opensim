@@ -31,7 +31,7 @@ using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 
-namespace AssetServer
+namespace OpenSim.Grid.AssetInventoryServer
 {
     public class InventoryBase
     {

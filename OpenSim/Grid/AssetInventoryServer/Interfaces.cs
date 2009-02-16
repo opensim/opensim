@@ -34,7 +34,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 
-namespace AssetServer
+namespace OpenSim.Grid.AssetInventoryServer
 {
     /// <summary>
     /// Response from a call to a backend provider
@@ -50,27 +50,27 @@ namespace AssetServer
         Failure
     }
 
-    public class AssetServerPluginInitialiser : PluginInitialiserBase
+    public class AssetInventoryServerPluginInitialiser : PluginInitialiserBase
     {
-        private AssetServer server;
+        private AssetInventoryServer server;
 
-        public AssetServerPluginInitialiser (AssetServer server)
+        public AssetInventoryServerPluginInitialiser (AssetInventoryServer server)
         {
             this.server = server;
         }
 
         public override void Initialise (IPlugin plugin)
         {
-            IAssetServerPlugin p = plugin as IAssetServerPlugin;
+            IAssetInventoryServerPlugin p = plugin as IAssetInventoryServerPlugin;
             p.Initialise (server);
         }
     }
 
     #region Interfaces
 
-    public interface IAssetServerPlugin : IPlugin
+    public interface IAssetInventoryServerPlugin : IPlugin
     {
-        void Initialise(AssetServer server);
+        void Initialise(AssetInventoryServer server);
     }
 
     public interface IStorageProvider
@@ -83,7 +83,7 @@ namespace AssetServer
         int ForEach(Action<Metadata> action, int start, int count);
     }
 
-    public interface IAssetStorageProvider : IAssetServerPlugin
+    public interface IAssetStorageProvider : IAssetInventoryServerPlugin
     {
         BackendResponse TryFetchMetadata(UUID assetID, out Metadata metadata);
         BackendResponse TryFetchData(UUID assetID, out byte[] assetData);

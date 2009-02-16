@@ -31,17 +31,17 @@ using System;
 using ExtensionLoader;
 using OpenMetaverse;
 
-namespace AssetServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Extensions
 {
-    public class AuthorizeAll : IExtension<AssetServer>, IAuthorizationProvider
+    public class AuthorizeAll : IExtension<AssetInventoryServer>, IAuthorizationProvider
     {
-        AssetServer server;
+        AssetInventoryServer server;
 
         public AuthorizeAll()
         {
         }
 
-        public void Start(AssetServer server)
+        public void Start(AssetInventoryServer server)
         {
             this.server = server;
         }

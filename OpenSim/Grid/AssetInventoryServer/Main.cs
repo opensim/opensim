@@ -30,14 +30,14 @@
 using System;
 using System.ServiceProcess;
 
-namespace AssetServer
+namespace OpenSim.Grid.AssetInventoryServer
 {
     class MainEntry
     {
         static void Main(string[] args)
         {
 #if DEBUG
-            AssetServer server = new AssetServer();
+            AssetInventoryServer server = new AssetInventoryServer();
             if (server.Start())
             {
                 Console.WriteLine("Asset server is running. Press CTRL+C to quit");
@@ -54,7 +54,7 @@ namespace AssetServer
                     Console.ReadLine();
             }
 #else
-            ServiceBase[] servicesToRun = new ServiceBase[] { new AssetServer() };
+            ServiceBase[] servicesToRun = new ServiceBase[] { new AssetInventoryServer() };
             ServiceBase.Run(servicesToRun);
 #endif
         }

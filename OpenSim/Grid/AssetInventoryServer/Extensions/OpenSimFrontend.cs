@@ -36,17 +36,17 @@ using ExtensionLoader;
 using OpenMetaverse;
 using HttpServer;
 
-namespace AssetServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Extensions
 {
-    public class OpenSimFrontend : IExtension<AssetServer>
+    public class OpenSimFrontend : IExtension<AssetInventoryServer>
     {
-        AssetServer server;
+        AssetInventoryServer server;
 
         public OpenSimFrontend()
         {
         }
 
-        public void Start(AssetServer server)
+        public void Start(AssetInventoryServer server)
         {
             this.server = server;
 

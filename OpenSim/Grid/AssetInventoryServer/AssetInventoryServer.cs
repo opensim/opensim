@@ -40,11 +40,11 @@ using HttpServer;
 using log4net;
 using OpenSim.Framework;
 
-namespace AssetServer
+namespace OpenSim.Grid.AssetInventoryServer
 {
-    public class AssetServer : ServiceBase
+    public class AssetInventoryServer : ServiceBase
     {
-        public const string CONFIG_FILE = "AssetServer.ini";
+        public const string CONFIG_FILE = "AssetInventoryServer.ini";
 
         public WebServer HttpServer;
         public IniConfigSource ConfigFile;
@@ -55,9 +55,9 @@ namespace AssetServer
         public IAuthorizationProvider AuthorizationProvider;
         public IMetricsProvider MetricsProvider;
 
-        public AssetServer()
+        public AssetInventoryServer()
         {
-            this.ServiceName = "OpenSimAssetServer";
+            this.ServiceName = "OpenSimAssetInventoryServer";
         }
 
         public bool Start()
@@ -138,7 +138,7 @@ namespace AssetServer
             //    return false;
             //}
 
-            StorageProvider = LoadAssetServerPlugin() as IAssetStorageProvider;
+            StorageProvider = LoadAssetInventoryServerPlugin() as IAssetStorageProvider;
 
             try
             {
@@ -163,7 +163,7 @@ namespace AssetServer
 
         public void Shutdown()
         {
-            foreach (IExtension<AssetServer> extension in ExtensionLoader<AssetServer>.Extensions)
+            foreach (IExtension<AssetInventoryServer> extension in ExtensionLoader<AssetInventoryServer>.Extensions)
             {
                 Logger.Log.Debug("Disposing extension " + extension.GetType().Name);
                 try { extension.Stop(); }
@@ -215,12 +215,13 @@ namespace AssetServer
 
         #endregion
 
-        private IAssetServerPlugin LoadAssetServerPlugin()
+        private IAssetInventoryServerPlugin LoadAssetInventoryServerPlugin()
         {
-            PluginLoader<IAssetServerPlugin> loader = new PluginLoader<IAssetServerPlugin>(new AssetServerPluginInitialiser(this));
+            PluginLoader<IAssetInventoryServerPlugin> loader = new PluginLoader<IAssetInventoryServerPlugin>(new AssetInventoryServerPluginInitialiser(this));
 
-            //loader.Add ("/OpenSim/AssetServer/StorageProvider", new PluginProviderFilter (provider));
-            loader.Add("/OpenSim/AssetServer/StorageProvider", new PluginCountConstraint(1));
+            //loader.Add ("/OpenSim/AssetInventoryServer/StorageProvider", new PluginProviderFilter (provider));
+            //loader.Add("/OpenSim/AssetInventoryServer/StorageProvider", new PluginCountConstraint(1));
+            loader.Add("/OpenSim/AssetInventoryServer/StorageProvider");
             loader.Load();
 
             return loader.Plugin;

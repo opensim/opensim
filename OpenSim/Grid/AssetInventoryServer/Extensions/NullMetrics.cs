@@ -31,17 +31,17 @@ using System;
 using ExtensionLoader;
 using OpenMetaverse;
 
-namespace AssetServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Extensions
 {
-    public class NullMetrics : IExtension<AssetServer>, IMetricsProvider
+    public class NullMetrics : IExtension<AssetInventoryServer>, IMetricsProvider
     {
-        AssetServer server;
+        AssetInventoryServer server;
 
         public NullMetrics()
         {
         }
 
-        public void Start(AssetServer server)
+        public void Start(AssetInventoryServer server)
         {
             this.server = server;
         }

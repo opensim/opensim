@@ -35,15 +35,15 @@ using ExtensionLoader;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
-namespace AssetServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Extensions
 {
-    public class SimpleStorage : IExtension<AssetServer>, IStorageProvider
+    public class SimpleStorage : IExtension<AssetInventoryServer>, IStorageProvider
     {
         const string EXTENSION_NAME = ""; // Used in metrics reporting
         const string DEFAULT_DATA_DIR = "SimpleAssets";
         const string TEMP_DATA_DIR = "SimpleAssetsTemp";
 
-        AssetServer server;
+        AssetInventoryServer server;
         Dictionary<UUID, Metadata> metadataStorage;
         Dictionary<UUID, string> filenames;
 
@@ -53,7 +53,7 @@ namespace AssetServer.Extensions
 
         #region Required Interfaces
 
-        public void Start(AssetServer server)
+        public void Start(AssetInventoryServer server)
         {
             this.server = server;
             metadataStorage = new Dictionary<UUID, Metadata>();

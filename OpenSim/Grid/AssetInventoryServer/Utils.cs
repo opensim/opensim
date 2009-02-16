@@ -37,7 +37,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using HttpServer;
 
-namespace AssetServer
+namespace OpenSim.Grid.AssetInventoryServer
 {
     public static class Utils
     {

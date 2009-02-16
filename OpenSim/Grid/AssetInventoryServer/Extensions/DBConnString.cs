@@ -32,7 +32,7 @@ using System.Xml;
 using ExtensionLoader.Config;
 using MySql.Data.MySqlClient;
 
-namespace AssetServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Extensions
 {
     public static class DBConnString
     {
@@ -68,7 +68,7 @@ namespace AssetServer.Extensions
                 else
                 {
                     Logger.Log.Error("Database connection string is missing, check that the database_connect line is " +
-                        "correct and uncommented in AssetServer.ini");
+                        "correct and uncommented in AssetInventoryServer.ini");
                 }
             }
 

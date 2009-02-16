@@ -37,15 +37,15 @@ using ExtensionLoader.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using AssetServer.Extensions;
+using OpenSim.Grid.AssetInventoryServer.Extensions;
 
-namespace AssetServer.Plugins
+namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
     public class OpenSimAssetStoragePlugin : IAssetStorageProvider
     {
         const string EXTENSION_NAME = "OpenSimAssetStorage"; // Used in metrics reporting
 
-        private AssetServer server;
+        private AssetInventoryServer server;
         private IAssetProviderPlugin m_assetProvider;
 
         public OpenSimAssetStoragePlugin()
@@ -291,7 +291,7 @@ namespace AssetServer.Plugins
 
         #region IPlugin implementation
 
-        public void Initialise(AssetServer server)
+        public void Initialise(AssetInventoryServer server)
         {
             this.server = server;
 
@@ -332,7 +332,7 @@ namespace AssetServer.Plugins
 
         public string Name
         {
-            get { return "AssetServer storage provider"; }
+            get { return "AssetInventoryServer storage provider"; }
         }
 
         #endregion IPlugin implementation

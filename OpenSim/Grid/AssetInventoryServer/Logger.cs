@@ -28,41 +28,35 @@
  */
 
 using System;
-using ExtensionLoader;
-using OpenMetaverse;
+using log4net;
+using log4net.Config;
 
-namespace AssetServer.Extensions
+[assembly: log4net.Config.XmlConfigurator(ConfigFileExtension = "log4net")]
+
+namespace OpenSim.Grid.AssetInventoryServer
 {
-    public class NullAuthentication : IExtension<AssetServer>, IAuthenticationProvider
+    /// <summary>
+    /// Singleton logging class for the entire library
+    /// </summary>
+    public static class Logger
     {
-        AssetServer server;
+        /// <summary>log4net logging engine</summary>
+        public static ILog Log;
 
-        public NullAuthentication()
+        static Logger()
         {
-        }
+            Log = LogManager.GetLogger(System.Reflection.Assembly.GetExecutingAssembly().FullName);
 
-        public void Start(AssetServer server)
-        {
-            this.server = server;
-        }
+            // If error level reporting isn't enabled we assume no logger is configured and initialize a default
+            // ConsoleAppender
+            if (!Log.Logger.IsEnabledFor(log4net.Core.Level.Error))
+            {
+                log4net.Appender.ConsoleAppender appender = new log4net.Appender.ConsoleAppender();
+                appender.Layout = new log4net.Layout.PatternLayout("%timestamp [%thread] %-5level - %message%newline");
+                BasicConfigurator.Configure(appender);
 
-        public void Stop()
-        {
-        }
-
-        public void AddIdentifier(UUID authToken, Uri identifier)
-        {
-        }
-
-        public bool RemoveIdentifier(UUID authToken)
-        {
-            return true;
-        }
-
-        public bool TryGetIdentifier(UUID authToken, out Uri identifier)
-        {
-            identifier = null;
-            return true;
+                Log.Info("No log configuration found, defaulting to console logging");
+            }
         }
     }
 }

@@ -37,13 +37,13 @@ using ExtensionLoader.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
-namespace AssetServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Extensions
 {
-    public class OpenSimMySQLStorage : IExtension<AssetServer>, IStorageProvider
+    public class OpenSimMySQLStorage : IExtension<AssetInventoryServer>, IStorageProvider
     {
         const string EXTENSION_NAME = "OpenSimMySQLStorage"; // Used in metrics reporting
 
-        AssetServer server;
+        AssetInventoryServer server;
 
         public OpenSimMySQLStorage()
         {
@@ -51,7 +51,7 @@ namespace AssetServer.Extensions
 
         #region Required Interfaces
 
-        public void Start(AssetServer server)
+        public void Start(AssetInventoryServer server)
         {
             this.server = server;
 
