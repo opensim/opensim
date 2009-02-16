@@ -4,6 +4,7 @@
     </Runtime>
     <Dependencies>
         <Addin id="OpenSim.Data" version="0.5" />
+        <Addin id="OpenSim.Grid.AssetServer.Plugins.OpenSim" version="0.1" />
     </Dependencies>
     <Extension path = "/OpenSim/GridData">
         <Plugin id="SQLiteGridData" provider="OpenSim.Data.SQLite.dll" type="OpenSim.Data.SQLite.SQLiteGridData" />

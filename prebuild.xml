@@ -779,8 +779,38 @@
       <Files>
         <Match pattern="*.cs" recurse="false"/>
         <Match path="Extensions" pattern="*.cs" recurse="false"/>
-        <Match path="Plugins" pattern="*.cs" recurse="false"/>
-        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
+        <!--Match path="Resources" pattern="*.addin.xml" buildAction="EmbeddedResource" recurse="true"/-->
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Grid.AssetServer.Plugins.OpenSim" path="OpenSim/Grid/NewAssetServer/Plugins/OpenSim" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../bin/</ReferencePath>
+      <Reference name="System" />
+      <Reference name="System.Data" />
+      <Reference name="OpenSim.Framework" />
+      <Reference name="OpenSim.Grid.NewAssetServer" />
+      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="OpenMetaverse.StructuredData2" />
+      <Reference name="HttpServer2"/>
+
+      <!-- Remove these eventually -->
+      <Reference name="MySql.Data" />
+      <Reference name="ExtensionLoader" />
+
+      <Files>
+        <Match pattern="*.cs" recurse="false" />
+        <Match path="Resources" pattern="*.addin.xml" buildAction="EmbeddedResource" recurse="true" />
       </Files>
     </Project>
 
