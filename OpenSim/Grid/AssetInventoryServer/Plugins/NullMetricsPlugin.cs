@@ -37,7 +37,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
     public class NullMetricsPlugin : IMetricsProvider
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        AssetInventoryServer server;
+        //private AssetInventoryServer m_server;
 
         public NullMetricsPlugin()
         {
@@ -122,7 +122,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         public void Initialise(AssetInventoryServer server)
         {
-            this.server = server;
+            //m_server = server;
         }
 
         /// <summary>
@@ -130,7 +130,6 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         /// </summary>
         public void Initialise()
         {
-            this.server = null;
             m_log.Info("[ASSET] Null metrics loaded.");
         }
 

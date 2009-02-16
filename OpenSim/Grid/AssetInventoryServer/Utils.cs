@@ -28,14 +28,10 @@
  */
 
 using System;
-using System.Collections.Specialized;
 using System.Globalization;
-using System.Net;
 using System.Xml;
 using System.Xml.Serialization;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
-using HttpServer;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.AssetInventoryServer
@@ -791,11 +787,11 @@ namespace OpenSim.Grid.AssetInventoryServer
         public class GeneratedWriter : XmlSerializationWriter
         {
             const string xmlNamespace = "http://www.w3.org/2000/xmlns/";
-            static readonly System.Reflection.MethodInfo toBinHexStringMethod = typeof(XmlConvert).GetMethod("ToBinHexString", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic, null, new Type[] { typeof(byte[]) }, null);
-            static string ToBinHexString(byte[] input)
-            {
-                return input == null ? null : (string)toBinHexStringMethod.Invoke(null, new object[] { input });
-            }
+            //static readonly System.Reflection.MethodInfo toBinHexStringMethod = typeof(XmlConvert).GetMethod("ToBinHexString", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic, null, new Type[] { typeof(byte[]) }, null);
+            //static string ToBinHexString(byte[] input)
+            //{
+            //    return input == null ? null : (string)toBinHexStringMethod.Invoke(null, new object[] { input });
+            //}
             public void WriteRoot_InventoryFolder(object o)
             {
                 WriteStartDocument();

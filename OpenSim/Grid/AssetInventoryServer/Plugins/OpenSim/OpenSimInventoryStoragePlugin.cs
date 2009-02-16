@@ -30,11 +30,9 @@
 using System;
 using System.Reflection;
 using System.Collections.Generic;
-using System.Net;
 using System.Data;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Data;
 using Nini.Config;

@@ -38,7 +38,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
     public class AuthorizeAllPlugin : IAuthorizationProvider
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        AssetInventoryServer server;
+        //private AssetInventoryServer m_server;
 
         public AuthorizeAllPlugin()
         {
@@ -48,7 +48,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         public void Initialise(AssetInventoryServer server)
         {
-            this.server = server;
+            //m_server = server;
 
             m_log.Info("[ASSET] Authorize All loaded.");
         }

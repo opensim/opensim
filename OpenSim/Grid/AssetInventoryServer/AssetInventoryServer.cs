@@ -29,8 +29,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;

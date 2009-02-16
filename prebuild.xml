@@ -760,27 +760,17 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
-      <Reference name="System.ServiceProcess"/>
-      <Reference name="System.Web"/>
       <Reference name="System.Xml"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="log4net"/>
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData"/>
-      <Reference name="HttpServer"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Console"/>
       <Reference name="Nini.dll" />
-
-      <!-- for Simple Storage and MySQL storage -->
-      <Reference name="System.Data"/>
-      <Reference name="MySql.Data"/>
-      <Reference name="OpenMetaverse"/>
+      <Reference name="log4net"/>
 
       <Files>
         <Match pattern="*.cs" recurse="false"/>
-        <Match path="Extensions" pattern="*.cs" recurse="false"/>
-        <!--Match path="Resources" pattern="*.addin.xml" buildAction="EmbeddedResource" recurse="true"/-->
       </Files>
     </Project>
 
@@ -797,15 +787,13 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" />
+      <Reference name="System"/>
       <Reference name="System.Web"/>
-      <Reference name="OpenSim.Grid.AssetInventoryServer" />
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenMetaverse"/>
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData"/>
-      <Reference name="HttpServer"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Grid.AssetInventoryServer" />
       <Reference name="log4net"/>
 
       <Files>
@@ -827,19 +815,14 @@
       </Configuration>
 
       <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="System" />
-      <Reference name="System.Data" />
-      <Reference name="OpenSim.Framework" />
-      <Reference name="OpenSim.Data" />
-      <Reference name="OpenSim.Grid.AssetInventoryServer" />
+      <Reference name="System"/>
+      <Reference name="System.Xml" />
       <Reference name="OpenMetaverse"/>
       <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenMetaverse.StructuredData"/>
-      <Reference name="HttpServer"/>
+      <Reference name="OpenSim.Framework" />
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Grid.AssetInventoryServer" />
       <Reference name="log4net"/>
-
-      <!-- Remove these eventually -->
-      <Reference name="MySql.Data" />
 
       <Files>
         <Match pattern="*.cs" recurse="false" />
@@ -860,20 +843,17 @@
       </Configuration>
 
       <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="System" />
+      <Reference name="System"/>
+      <Reference name="System.Xml" />
       <Reference name="System.Data" />
-      <Reference name="OpenSim.Framework" />
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Data" />
-      <Reference name="OpenSim.Grid.AssetInventoryServer" />
       <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenMetaverse.StructuredData"/>
-      <Reference name="HttpServer"/>
-      <Reference name="Nini.dll" />
+      <Reference name="OpenSim.Data" />
+      <Reference name="OpenSim.Framework" />
+      <Reference name="OpenSim.Grid.AssetInventoryServer" />
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="MySql.Data"/>
       <Reference name="log4net"/>
-
-      <!-- Remove these eventually -->
-      <Reference name="MySql.Data" />
+      <Reference name="Nini.dll" />
 
       <Files>
         <Match pattern="*.cs" recurse="false" />

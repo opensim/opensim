@@ -29,9 +29,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 
 namespace OpenSim.Grid.AssetInventoryServer

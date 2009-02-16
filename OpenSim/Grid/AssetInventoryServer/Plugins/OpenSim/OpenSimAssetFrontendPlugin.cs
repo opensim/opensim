@@ -29,14 +29,12 @@
 
 using System;
 using System.Reflection;
-using System.Collections.Generic;
 using System.Net;
 using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using OpenMetaverse;
-using HttpServer;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using log4net;

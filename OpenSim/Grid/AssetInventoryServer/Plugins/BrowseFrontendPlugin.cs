@@ -30,7 +30,6 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
 using System.Text;
@@ -45,7 +44,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
     public class BrowseFrontendPlugin : IAssetInventoryServerPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        AssetInventoryServer m_server;
+        private AssetInventoryServer m_server;
 
         public BrowseFrontendPlugin()
         {

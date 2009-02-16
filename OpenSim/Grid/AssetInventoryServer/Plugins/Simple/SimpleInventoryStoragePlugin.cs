@@ -30,11 +30,9 @@
 using System;
 using System.Reflection;
 using System.Collections.Generic;
-using System.Net;
 using System.IO;
 using System.Text;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using log4net;
 
