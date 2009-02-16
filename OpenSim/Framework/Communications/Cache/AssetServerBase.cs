@@ -46,6 +46,61 @@ namespace OpenSim.Framework.Communications.Cache
         protected Thread m_localAssetServerThread;
         protected IAssetDataPlugin m_assetProvider;
 
+        #region IPlugin
+ 
+        /// <summary> 
+        /// The methods and properties in this region are needed to implement
+        /// the IPlugin interface and its local extensions.
+        /// These can all be overridden as appropriate by a derived class.
+        /// These methods are only applicable when a class is loaded by the
+        /// IPlugin mechanism.
+        ///
+        /// Note that in the case of AssetServerBase, all initialization is
+        /// performed by the default constructor, so nothing additional is
+        /// required here. A derived class may wish to do more.
+        /// </summary>
+
+        public virtual string Name
+        {
+            // get { return "OpenSim.Framework.Communications.Cache.AssetServerBase"; }
+            get { return "AssetServerBase"; }
+        }
+
+        public virtual string Version
+        {
+            get { return "1.0"; }
+        }
+
+        public virtual void Initialise()
+        {
+            m_log.Debug("[ASSET SERVER]: IPlugin null initialization");
+        }
+
+        public virtual void Initialise(ConfigSettings settings)
+        {
+            m_log.Debug("[ASSET SERVER]: IPlugin null configured initialization(1)");
+            m_log.InfoFormat("[ASSET SERVER]: Initializing client [{0}/{1}", Name, Version);
+        }
+
+        public virtual void Initialise(ConfigSettings settings, string p_url)
+        {
+            m_log.Debug("[ASSET SERVER]: IPlugin null configured initialization(2)");
+            m_log.InfoFormat("[ASSET SERVER]: Initializing client [{0}/{1}", Name, Version);
+        }
+
+        public virtual void Initialise(ConfigSettings settings, string p_url, string p_dir, bool p_t)
+        {
+            m_log.Debug("[ASSET SERVER]: IPlugin null configured initialization(3)");
+            m_log.InfoFormat("[ASSET SERVER]: Initializing client [{0}/{1}", Name, Version);
+        }
+
+        public virtual void Dispose()
+        {
+            m_log.Debug("[ASSET SERVER]: dispose");
+        }
+
+        #endregion
+
         public IAssetDataPlugin AssetProviderPlugin
         {
             get { return m_assetProvider; }

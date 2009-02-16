@@ -36,11 +36,40 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public class GridAssetClient : AssetServerBase
     {
+
+        #region IPlugin
+
+        public override string Name
+        {
+            get { return "Grid"; }
+        }
+
+        public override string Version
+        {
+            get { return "1.0"; }
+        }
+
+        public override void Initialise(ConfigSettings p_set, string p_url)
+        {
+            m_log.Debug("[GRIDASSET] Plugin configured initialisation");
+            Initialise(p_url);
+        }
+
+        #endregion
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string _assetServerUrl;
 
-        public GridAssetClient(string serverUrl)
+        public GridAssetClient() {}
+
+        public GridAssetClient(string p_url)
+        {
+            m_log.Debug("[GRIDASSET] Direct constructor");
+            Initialise(p_url);
+        }
+
+        public void Initialise(string serverUrl)
         {
             _assetServerUrl = serverUrl;
         }

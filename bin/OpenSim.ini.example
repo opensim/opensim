@@ -110,6 +110,8 @@
     ;
     ; If set to local then the local database based asset service will be used in standalone and grid modes
     ; If set to grid then the grid based asset service will be used in standalone and grid modes
+    ; All other values will cause a search for a matching assembly that contains an asset server client.
+    ; See also: AssetCache
     asset_database = "default"   
 
     ; Persistence of changed objects happens during regular sweeps. The following control that behaviour to
@@ -197,6 +199,17 @@
     ;WorldMapModule = "WorldMap"
     ;MapImageModule = "MapImageModule"
 	
+    ; ##
+    ; ## Customized Cache Implementation
+    ; ##
+    ;
+    ; The AssetCache value allows the name of an alternative caching
+    ; implementation to be specified. This can normally be omitted.
+    ; This value corresponds to the provider value associated with the
+    ; intended cache implementation plugin.
+    ; See also: asset_database
+
+    ; AssetCache = "OpenSim.Framework.Communications.Cache.AssetCache"
 
     ; ##
     ; ## EMAIL MODULE

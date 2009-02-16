@@ -156,6 +156,14 @@ namespace OpenSim.Framework
             set { m_assetStorage = value; }
         }
 
+        private string m_assetCache;
+
+        public string AssetCache
+        {
+            get { return m_assetCache; }
+            set { m_assetCache = value; }
+        }
+
         protected string m_storageConnectionString;
 
         public string StorageConnectionString

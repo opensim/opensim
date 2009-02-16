@@ -3,7 +3,13 @@
         <Import assembly="OpenSim.exe"/>
         <Import assembly="OpenSim.Framework.dll"/>
     </Runtime>
-    <ExtensionPoint path = "/OpenSim/Startup">
+    <ExtensionPoint path="/OpenSim/Startup">
         <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.IApplicationPlugin"/>
+    </ExtensionPoint>
+    <ExtensionPoint path="/OpenSim/AssetCache" name="Region Asset Cache Plugin-point" >
+        <ExtensionNode name="Cache" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Framework.IAssetCache"/>
+    </ExtensionPoint>
+    <ExtensionPoint path="/OpenSim/AssetServerClient" name="Region Asset Cache Server Interface Plugin-point">
+        <ExtensionNode name="ServerClient" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Framework.IAssetServer"/>
     </ExtensionPoint>
 </Addin>

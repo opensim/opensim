@@ -44,9 +44,37 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public class CryptoGridAssetClient : AssetServerBase
     {
+
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private string      _assetServerUrl;
+        private bool        m_encryptOnUpload;
+        private RjinKeyfile m_encryptKey;
+        private readonly Dictionary<string,RjinKeyfile> m_keyfiles = new Dictionary<string, RjinKeyfile>();
+
+        #region IPlugin
+
+        public override string Name
+        {
+            get { return "Crypto"; }
+        }
+
+        public override string Version
+        {
+            get { return "1.0"; }
+        }
+
+        public override void Initialise(ConfigSettings p_set, string p_url, string p_dir, bool p_t)
+        {
+            m_log.Debug("[CRYPTOGRID] Plugin configured initialisation");
+            Initialise(p_url, p_dir, p_t);
+        }
+
+        #endregion
+
         #region Keyfile Classes
         [Serializable]
-        private class RjinKeyfile
+        public class RjinKeyfile
         {
             public string Secret;
             public string AlsoKnownAs;
@@ -94,7 +122,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// this may not be the most efficient way of handling encryption, so - as
         /// soon as you feel comfortable with it - you may want to redesign this class.
         /// </summary>
-        private class UtilRijndael
+        public class UtilRijndael
         {
             /// <summary>
             /// Encrypts specified plaintext using Rijndael symmetric key algorithm
@@ -332,15 +360,19 @@ namespace OpenSim.Framework.Communications.Cache
         }
         #endregion
 
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private readonly string _assetServerUrl;
-        private readonly bool m_encryptOnUpload;
-        private readonly RjinKeyfile m_encryptKey;
-        private readonly Dictionary<string,RjinKeyfile> m_keyfiles = new Dictionary<string, RjinKeyfile>();
+        public CryptoGridAssetClient() {}
 
         public CryptoGridAssetClient(string serverUrl, string keydir, bool decOnly)
         {
+            m_log.Debug("[CRYPTOGRID] Direct constructor");
+            Initialise(serverUrl, keydir, decOnly);
+        }
+
+        public void Initialise(string serverUrl, string keydir, bool decOnly)
+        {
+
+            m_log.Debug("[CRYPTOGRID] Common constructor");
+
             _assetServerUrl = serverUrl;
 
             string[] keys = Directory.GetFiles(keydir, "*.deckey");

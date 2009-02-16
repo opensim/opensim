@@ -1,0 +1,17 @@
+<Addin id="OpenSim.Framework.Communications" version="1.0">
+    <Runtime>
+        <Import assembly="OpenSim.Framework.Communications.dll"/>
+    </Runtime>
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+    </Dependencies>
+    <Extension path="/OpenSim/AssetCache">
+    	<Cache id="Default" provider="Default" type="OpenSim.Framework.Communications.Cache.AssetCache" />
+    </Extension>
+    <Extension path="/OpenSim/AssetServerClient">
+    	<ServerClient id="Crypto" provider="Crypto" type="OpenSim.Framework.Communications.Cache.CryptoGridAssetClient" />
+    	<ServerClient id="Grid"   provider="Grid"   type="OpenSim.Framework.Communications.Cache.GridAssetClient" />
+    	<ServerClient id="File"   provider="File"   type="OpenSim.Framework.Communications.Cache.FileAssetClient" />
+    	<ServerClient id="SQL"    provider="SQL"    type="OpenSim.Framework.Communications.Cache.SQLAssetServer" />
+    </Extension>
+</Addin>

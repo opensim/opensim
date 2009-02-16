@@ -34,9 +34,38 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public class SQLAssetServer : AssetServerBase
     {
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        #region IPlugin
+
+        public override string Name
+        {
+            get { return "SQL"; }
+        }
+
+        public override string Version
+        {
+            get { return "1.0"; }
+        }
+
+        public override void Initialise(ConfigSettings p_set)
+        {
+            m_log.Debug("[SQLASSET] Plugin configured initialisation");
+            Initialise(p_set.StandaloneAssetPlugin,p_set.StandaloneAssetSource);
+        }
+
+        #endregion
+
+        public SQLAssetServer() {}
+
         public SQLAssetServer(string pluginName, string connect)
+        {
+            m_log.Debug("[SQLASSET] Direct constructor");
+            Initialise(pluginName, connect);
+        }
+
+        public void Initialise(string pluginName, string connect)
         {
             AddPlugin(pluginName, connect);
         }

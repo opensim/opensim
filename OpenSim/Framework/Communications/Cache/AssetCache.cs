@@ -48,8 +48,67 @@ namespace OpenSim.Framework.Communications.Cache
     /// sends packetised data directly back to the client.  The only point where they meet is AssetReceived() and
     /// AssetNotFound(), which means they do share the same asset and texture caches.I agr
 
-    public class AssetCache : IAssetCache, IAssetReceiver
+    public class AssetCache : IAssetCache
     {
+
+        #region IPlugin
+
+        /// <summary>
+        /// The methods and properties in this section are needed to
+        /// support the IPlugin interface. They cann all be overridden
+        /// as needed by a derived class.
+        /// </summary>
+
+        public virtual string Name
+        {
+            get { return "OpenSim.Framework.Communications.Cache.AssetCache"; }
+        }
+
+        public virtual string Version
+        {
+            get { return "1.0"; }
+        }
+
+        public virtual void Initialise()
+        {
+            m_log.Debug("[ASSET CACHE]: Asset cache null initialisation");
+        }
+
+        public virtual void Initialise(IAssetServer assetServer)
+        {
+            m_log.Debug("[ASSET CACHE]: Asset cache server-specified initialisation");
+            m_log.InfoFormat("[ASSET CACHE]: Asset cache initialisation [{0}/{1}]", Name, Version);
+
+            Initialize();
+
+            m_assetServer = assetServer;
+            m_assetServer.SetReceiver(this);
+
+            Thread assetCacheThread = new Thread(RunAssetManager);
+            assetCacheThread.Name = "AssetCacheThread";
+            assetCacheThread.IsBackground = true;
+            assetCacheThread.Start();
+            ThreadTracker.Add(assetCacheThread);
+
+        }
+
+        public virtual void Initialise(ConfigSettings settings, IAssetServer assetServer)
+        {
+            m_log.Debug("[ASSET CACHE]: Asset cache configured initialisation");
+            Initialise(assetServer);
+        }
+
+        public AssetCache()
+        {
+            m_log.Debug("[ASSET CACHE]: Asset cache (plugin constructor)");
+        }
+
+        public void Dispose()
+        {
+        }
+
+        #endregion
+
         protected ICache m_memcache = new SimpleMemoryCache();
 
         private static readonly ILog m_log
@@ -83,7 +142,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// The 'server' from which assets can be requested and to which assets are persisted.
         /// </summary>
-        private readonly IAssetServer m_assetServer;
+        private IAssetServer m_assetServer;
 
         public IAssetServer AssetServer
         {
@@ -132,17 +191,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="assetServer"></param>
         public AssetCache(IAssetServer assetServer)
         {
-            m_log.Info("[ASSET CACHE]: Creating Asset cache");
-            Initialize();
-
-            m_assetServer = assetServer;
-            m_assetServer.SetReceiver(this);
-
-            Thread assetCacheThread = new Thread(RunAssetManager);
-            assetCacheThread.Name = "AssetCacheThread";
-            assetCacheThread.IsBackground = true;
-            assetCacheThread.Start();
-            ThreadTracker.Add(assetCacheThread);
+            m_log.Info("[ASSET CACHE]: Asset cache direct constructor");
+            Initialise(assetServer);
         }
 
         /// <summary>
@@ -342,7 +392,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         // See IAssetReceiver
-        public void AssetReceived(AssetBase asset, bool IsTexture)
+        public virtual void AssetReceived(AssetBase asset, bool IsTexture)
         {
 
             AssetInfo assetInf = new AssetInfo(asset);
@@ -393,7 +443,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         // See IAssetReceiver
-        public void AssetNotFound(UUID assetID, bool IsTexture)
+        public virtual void AssetNotFound(UUID assetID, bool IsTexture)
         {
 //            m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
 

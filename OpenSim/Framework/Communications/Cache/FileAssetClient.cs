@@ -26,16 +26,49 @@
  */
 
 using System.IO;
+using System.Reflection;
+using log4net;
 using System.Xml.Serialization;
 
 namespace OpenSim.Framework.Communications.Cache
 {
     public class FileAssetClient : AssetServerBase
     {
-        private readonly string m_dir;
+
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        #region IPlugin
+
+        public override string Name
+        {
+            get { return "File"; }
+        }
+
+        public override string Version
+        {
+            get { return "1.0"; }
+        }
+
+        public override void Initialise(ConfigSettings p_set, string p_url)
+        {
+            m_log.Debug("[FILEASSET] Plugin configured initialisation");
+            Initialise(p_url);
+        }
+
+        #endregion
+
+        private string m_dir;
         private readonly XmlSerializer m_xs = new XmlSerializer(typeof(AssetBase));
 
-        public FileAssetClient(string dir)
+        public FileAssetClient() {}
+
+        public FileAssetClient(string p_url)
+        {
+            m_log.Debug("[FILEASSET] Direct constructor");
+            Initialise(p_url);
+        }
+
+        public void Initialise(string dir)
         {
             if (!Directory.Exists(dir))
             {

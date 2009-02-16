@@ -33,7 +33,7 @@ namespace OpenSim.Framework
 
     public delegate void AssetRequestCallback(UUID assetId, AssetBase asset);
 
-    public interface IAssetCache : IAssetReceiver
+    public interface IAssetCache : IAssetReceiver, IPlugin
     {
 
         IAssetServer AssetServer { get; }
@@ -47,5 +47,25 @@ namespace OpenSim.Framework
         void ExpireAsset(UUID assetID);
         void AddAssetRequest(IClientAPI userInfo, TransferRequestPacket transferRequest);
 
+        void Initialise(ConfigSettings cs, IAssetServer server);
+
     }
+
+    public class AssetCachePluginInitialiser : PluginInitialiserBase
+    {
+        private ConfigSettings config;
+        private IAssetServer   server;
+
+        public AssetCachePluginInitialiser (ConfigSettings p_sv, IAssetServer p_as)
+        {
+            config = p_sv;
+            server = p_as;
+        }
+        public override void Initialise (IPlugin plugin)
+        {
+            IAssetCache p = plugin as IAssetCache;
+            p.Initialise (config, server);
+        }
+    }
+
 }
