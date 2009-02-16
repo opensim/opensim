@@ -130,7 +130,7 @@ namespace OpenSim
             
             return
                 new HGScene(
-                    regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache, storageManager,
+                    regionInfo, circuitManager, m_commsManager, sceneGridService, storageManager,
                     m_moduleLoader, m_configSettings.DumpAssetsToFile, m_configSettings.PhysicalPrim, 
                     m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }

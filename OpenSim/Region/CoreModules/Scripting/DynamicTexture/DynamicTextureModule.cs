@@ -212,7 +212,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 if (BlendWithOldTexture)
                 {
                     UUID lastTextureID = part.Shape.Textures.DefaultTexture.TextureID;
-                    oldAsset = scene.AssetCache.GetAsset(lastTextureID, true);
+                    oldAsset = scene.CommsManager.AssetCache.GetAsset(lastTextureID, true);
                     if (oldAsset != null)
                     {
                         assetData = BlendTextures(data, oldAsset.Data, SetNewFrontAlpha, FrontAlpha);
@@ -238,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 asset.Metadata.Description = "dynamic image";
                 asset.Metadata.Local = false;
                 asset.Metadata.Temporary = true;
-                scene.AssetCache.AddAsset(asset);
+                scene.CommsManager.AssetCache.AddAsset(asset);
 
                 LastAssetID = asset.Metadata.FullID;
 
@@ -254,7 +254,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 // remove the old asset from the cache
                 UUID oldID = tmptex.DefaultTexture.TextureID;
-                scene.AssetCache.ExpireAsset(oldID);
+                scene.CommsManager.AssetCache.ExpireAsset(oldID);
 
                 tmptex.DefaultTexture.TextureID = asset.Metadata.FullID;
                 // I'm pretty sure we always want to force this to true

@@ -1040,7 +1040,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             + textLength.ToString() + "\n" + notecardData + "}\n";
 
             asset.Data = Encoding.ASCII.GetBytes(notecardData);
-            World.AssetCache.AddAsset(asset);
+            World.CommsManager.AssetCache.AddAsset(asset);
 
             // Create Task Entry
             TaskInventoryItem taskItem=new TaskInventoryItem();

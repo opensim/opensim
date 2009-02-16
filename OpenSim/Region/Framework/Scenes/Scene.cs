@@ -268,7 +268,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
                      CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
-                     IAssetCache assetCach, StorageManager storeManager,
+                     StorageManager storeManager,
                      ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
                      bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
         {
@@ -281,7 +281,6 @@ namespace OpenSim.Region.Framework.Scenes
             CommsManager = commsMan;
             m_sceneGridService = sceneGridService;
             m_storageManager = storeManager;
-            AssetCache = assetCach;
             m_regInfo = regInfo;
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
@@ -3543,7 +3542,7 @@ namespace OpenSim.Region.Framework.Scenes
                         group.GetPartDescription(localID),
                         (sbyte)AssetType.Object,
                         Utils.StringToBytes(sceneObjectXml));
-                    AssetCache.AddAsset(asset);
+                    CommsManager.AssetCache.AddAsset(asset);
 
                     InventoryItemBase item = new InventoryItemBase();
                     item.Creator = part.CreatorID;

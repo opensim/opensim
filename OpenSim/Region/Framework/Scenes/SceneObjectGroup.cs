@@ -2983,7 +2983,8 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (part.Shape.SculptEntry && part.Shape.SculptTexture != UUID.Zero)
                             {
-                                m_scene.AssetCache.GetAsset(part.Shape.SculptTexture, part.SculptTextureCallback, true);
+                                m_scene.CommsManager.AssetCache.GetAsset(
+                                    part.Shape.SculptTexture, part.SculptTextureCallback, true);
                             }
                         }
                     }

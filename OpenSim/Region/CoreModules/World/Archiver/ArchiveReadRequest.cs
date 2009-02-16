@@ -297,7 +297,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 asset.Metadata.Type = assetType;
                 asset.Data = data;
 
-                m_scene.AssetCache.AddAsset(asset);
+                m_scene.CommsManager.AssetCache.AddAsset(asset);
 
                 /**
                  * Create layers on decode for image assets.  This is likely to significantly increase the time to load archives so

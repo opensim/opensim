@@ -77,7 +77,7 @@ namespace OpenSim.Tests.Common.Setup
             IConfigSource configSource = new IniConfigSource();
             
             TestScene testScene = new TestScene(
-                regInfo, acm, cm, scs, cm.AssetCache, sm, null, false, false, false, configSource, null);
+                regInfo, acm, cm, scs, sm, null, false, false, false, configSource, null);
                        
             IRegionModule capsModule = new CapabilitiesModule();
             capsModule.Initialise(testScene, new IniConfigSource());

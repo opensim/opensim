@@ -1422,8 +1422,10 @@ if (m_shape != null) {
             {
                 if (dupe.m_shape.SculptEntry && dupe.m_shape.SculptTexture != UUID.Zero)
                 {
-                    m_parentGroup.Scene.AssetCache.GetAsset(dupe.m_shape.SculptTexture, dupe.SculptTextureCallback, true);
+                    m_parentGroup.Scene.CommsManager.AssetCache.GetAsset(
+                        dupe.m_shape.SculptTexture, dupe.SculptTextureCallback, true);
                 }
+                
                 bool UsePhysics = ((dupe.ObjectFlags & (uint)PrimFlags.Physics) != 0);
                 dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
@@ -3232,8 +3234,8 @@ if (m_shape != null) {
             {
                 if (m_shape.SculptEntry && m_shape.SculptTexture != UUID.Zero)
                 {
-                    //AssetBase tx = m_parentGroup.Scene.getase
-                    m_parentGroup.Scene.AssetCache.GetAsset(m_shape.SculptTexture, SculptTextureCallback, true);
+                    m_parentGroup.Scene.CommsManager.AssetCache.GetAsset(
+                        m_shape.SculptTexture, SculptTextureCallback, true);
                 }
             }
 

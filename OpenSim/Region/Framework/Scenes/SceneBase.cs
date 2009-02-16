@@ -126,14 +126,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected string m_datastore;
 
-        private IAssetCache m_assetCache;
-
-        public IAssetCache AssetCache
-        {
-            get { return m_assetCache; }
-            set { m_assetCache = value; }
-        }
-
         protected RegionStatus m_regStatus;
 
         public RegionStatus Region_Status

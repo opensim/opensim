@@ -114,7 +114,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         protected void AddHttpHandlers(Scene m_scene)
         {
-            IAssetDataPlugin m_assetProvider = ((AssetServerBase)m_scene.AssetCache.AssetServer).AssetProviderPlugin;
+            IAssetDataPlugin m_assetProvider 
+                = ((AssetServerBase)m_scene.CommsManager.AssetCache.AssetServer).AssetProviderPlugin;
 
             BaseHttpServer httpServer = m_scene.CommsManager.HttpServer;
             httpServer.AddStreamHandler(new GetAssetStreamHandler(m_assetProvider));

@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
                         TextureSender.TextureSender requestHandler = new TextureSender.TextureSender(m_client, e.DiscardLevel, e.PacketNumber);
                         m_textureSenders.Add(e.RequestedAssetID, requestHandler);
 
-                        m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback, true);
+                        m_scene.CommsManager.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback, true);
                     }
                 }
             }

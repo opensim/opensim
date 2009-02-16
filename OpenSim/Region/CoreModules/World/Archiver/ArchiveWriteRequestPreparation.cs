@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected AssetBase GetAsset(UUID uuid)
         {
             m_waitingForObjectAsset = true;
-            m_scene.AssetCache.GetAsset(uuid, AssetRequestCallback, true);
+            m_scene.CommsManager.AssetCache.GetAsset(uuid, AssetRequestCallback, true);
 
             // The asset cache callback can either
             //
@@ -324,7 +324,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     m_scene,
                     m_saveStream);
             
-            new AssetsRequest(assetUuids.Keys, m_scene.AssetCache, awre.ReceivedAllAssets).Execute();
+            new AssetsRequest(assetUuids.Keys, m_scene.CommsManager.AssetCache, awre.ReceivedAllAssets).Execute();
         }
     }
 }

@@ -129,7 +129,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                     {
                         AssetBase asset1 = new AssetBase();
                         Copy(asset, asset1);
-                        m_scene.AssetCache.AssetServer.StoreAsset(asset1);
+                        m_scene.CommsManager.AssetCache.AssetServer.StoreAsset(asset1);
                     }
                     return true;
                 }
