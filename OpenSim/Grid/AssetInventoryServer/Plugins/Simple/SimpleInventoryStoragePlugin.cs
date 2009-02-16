@@ -32,7 +32,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.IO;
 using System.Text;
-using ExtensionLoader;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;

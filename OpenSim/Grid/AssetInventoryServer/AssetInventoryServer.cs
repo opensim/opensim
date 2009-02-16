@@ -56,6 +56,7 @@ namespace OpenSim.Grid.AssetInventoryServer
         public IMetricsProvider MetricsProvider;
 
         private List<IAssetInventoryServerPlugin> frontends = new List<IAssetInventoryServerPlugin>();
+        private List<IAssetInventoryServerPlugin> backends = new List<IAssetInventoryServerPlugin>();
 
         public AssetInventoryServer()
         {
@@ -107,8 +108,13 @@ namespace OpenSim.Grid.AssetInventoryServer
             }
 
             StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/StorageProvider",  "OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll") as IAssetStorageProvider;
+            backends.Add(StorageProvider);
+
             InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryProvider",  "OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll") as IInventoryStorageProvider;
+            backends.Add(InventoryProvider);
+
             MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider", String.Empty) as IMetricsProvider;
+            backends.Add(MetricsProvider);
 
             try
             {
@@ -122,20 +128,32 @@ namespace OpenSim.Grid.AssetInventoryServer
             }
 
             frontends.AddRange(LoadAssetInventoryServerPlugins("/OpenSim/AssetInventoryServer/Frontend", String.Empty));
+
             AuthenticationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthenticationProvider", String.Empty) as IAuthenticationProvider;
+            backends.Add(AuthenticationProvider);
+
             AuthorizationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthorizationProvider", String.Empty) as IAuthorizationProvider;
+            backends.Add(AuthorizationProvider);
 
             return true;
         }
 
         public void Shutdown()
         {
-            foreach (IExtension<AssetInventoryServer> extension in ExtensionLoader<AssetInventoryServer>.Extensions)
+            foreach (IAssetInventoryServerPlugin plugin in frontends)
             {
-                Logger.Log.Debug("Disposing extension " + extension.GetType().Name);
-                try { extension.Stop(); }
+                Logger.Log.Debug("Disposing plugin " + plugin.Name);
+                try { plugin.Dispose(); }
                 catch (Exception ex)
-                { Logger.Log.ErrorFormat("Failure shutting down extension {0}: {1}", extension.GetType().Name, ex.Message); }
+                { Logger.Log.ErrorFormat("Failure shutting down plugin {0}: {1}", plugin.Name, ex.Message); }
+            }
+
+            foreach (IAssetInventoryServerPlugin plugin in backends)
+            {
+                Logger.Log.Debug("Disposing plugin " + plugin.Name);
+                try { plugin.Dispose(); }
+                catch (Exception ex)
+                { Logger.Log.ErrorFormat("Failure shutting down plugin {0}: {1}", plugin.Name, ex.Message); }
             }
 
             if (HttpServer != null)

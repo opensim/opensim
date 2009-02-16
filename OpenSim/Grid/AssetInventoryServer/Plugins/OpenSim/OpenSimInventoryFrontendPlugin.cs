@@ -32,7 +32,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.IO;
 using System.Xml;
-using ExtensionLoader;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using HttpServer;
@@ -92,7 +91,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         public string Name
         {
-            get { return "AssetInventoryServer OpenSim asset frontend"; }
+            get { return "AssetInventoryServer OpenSim inventory frontend"; }
         }
 
         #endregion IPlugin implementation

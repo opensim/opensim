@@ -71,7 +71,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         public string Name
         {
-            get { return "AssetInventoryServer Null authentication frontend"; }
+            get { return "AssetInventoryServer Authorize All"; }
         }
 
         #endregion IPlugin implementation

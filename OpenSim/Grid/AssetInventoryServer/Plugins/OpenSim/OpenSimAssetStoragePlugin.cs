@@ -32,8 +32,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Data;
 using MySql.Data.MySqlClient;
-using ExtensionLoader;
-using ExtensionLoader.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;

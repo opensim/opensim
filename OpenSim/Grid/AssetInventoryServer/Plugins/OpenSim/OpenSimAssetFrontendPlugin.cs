@@ -34,7 +34,6 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using ExtensionLoader;
 using OpenMetaverse;
 using HttpServer;
 using OpenSim.Framework;
@@ -147,8 +146,6 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             Metadata metadata = new Metadata();
 
-            Logger.Log.Debug("Handling OpenSim asset upload");
-
             try
             {
                 AssetBase asset = (AssetBase) new XmlSerializer(typeof (AssetBase)).Deserialize(request.Body);
@@ -185,7 +182,6 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                 response.Status = HttpStatusCode.BadRequest;
             }
 
-            Logger.Log.Debug("Finished handling OpenSim asset upload, Status: " + response.Status.ToString());
             return true;
         }
     }
