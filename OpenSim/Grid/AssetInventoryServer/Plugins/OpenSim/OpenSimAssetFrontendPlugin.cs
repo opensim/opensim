@@ -43,7 +43,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 {
     public class OpenSimAssetFrontendPlugin : IAssetInventoryServerPlugin
     {
-        private AssetInventoryServer server;
+        private AssetInventoryServer m_server;
 
         public OpenSimAssetFrontendPlugin()
         {
@@ -53,13 +53,13 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         public void Initialise(AssetInventoryServer server)
         {
-            this.server = server;
+            m_server = server;
 
             // Asset request
-            server.HttpServer.AddStreamHandler(new AssetRequestHandler(server));
+            m_server.HttpServer.AddStreamHandler(new AssetRequestHandler(server));
 
             // Asset creation
-            server.HttpServer.AddStreamHandler(new AssetPostHandler(server));
+            m_server.HttpServer.AddStreamHandler(new AssetPostHandler(server));
 
             Logger.Log.Info("[ASSET] OpenSim Asset Frontend loaded.");
         }
@@ -90,63 +90,31 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         #endregion IPlugin implementation
 
-        public class AssetRequestHandler : IStreamedRequestHandler
+        public class AssetRequestHandler : BaseStreamHandler
         {
             AssetInventoryServer m_server;
-            string m_contentType;
-            string m_httpMethod;
-            string m_path;
 
-            public AssetRequestHandler(AssetInventoryServer server)
+            //public AssetRequestHandler(AssetInventoryServer server) : base("GET", "^/assets")
+            public AssetRequestHandler(AssetInventoryServer server) : base("GET", "/assets")
             {
+                Logger.Log.Info("[REST]: In Get Request");
                 m_server = server;
-                m_contentType = null;
-                m_httpMethod = "GET";
-                m_path = @"^/assets/";
             }
 
-            #region IStreamedRequestHandler implementation
-
-            public string ContentType
+            public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
             {
-                get { return m_contentType; }
-            }
-
-            public string HttpMethod
-            {
-                get { return m_httpMethod; }
-            }
-
-            public string Path
-            {
-                get { return m_path; }
-            }
-
-            public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-            {
-                byte[] buffer = null;
+                byte[] buffer = new byte[] {};
                 UUID assetID;
                 // Split the URL up to get the asset ID out
                 string[] rawUrl = httpRequest.Url.PathAndQuery.Split('/');
 
                 if (rawUrl.Length >= 3 && rawUrl[2].Length >= 36 && UUID.TryParse(rawUrl[2].Substring(0, 36), out assetID))
                 {
-                    Metadata metadata;
-                    byte[] assetData;
                     BackendResponse dataResponse;
 
-                    if ((dataResponse = m_server.StorageProvider.TryFetchDataMetadata(assetID, out metadata, out assetData)) == BackendResponse.Success)
+                    AssetBase asset = new AssetBase();
+                    if ((dataResponse = m_server.StorageProvider.TryFetchDataMetadata(assetID, out asset)) == BackendResponse.Success)
                     {
-                        AssetBase asset = new AssetBase();
-                        asset.Data = assetData;
-                        asset.Metadata.FullID = metadata.ID;
-                        asset.Metadata.Name = metadata.Name;
-                        asset.Metadata.Description = metadata.Description;
-                        asset.Metadata.CreationDate = metadata.CreationDate;
-                        asset.Metadata.Type = (sbyte) Utils.ContentTypeToSLAssetType(metadata.ContentType);
-                        asset.Metadata.Local = false;
-                        asset.Metadata.Temporary = metadata.Temporary;
-
                         XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
                         MemoryStream ms = new MemoryStream();
                         XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
@@ -155,12 +123,8 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
                         ms.Seek(0, SeekOrigin.Begin);
                         buffer = ms.GetBuffer();
-
+                        Array.Resize<byte>(ref buffer, (int) ms.Length);
                         httpResponse.StatusCode = (int) HttpStatusCode.OK;
-                        httpResponse.ContentType = "application/xml";
-                        httpResponse.ContentLength = ms.Length;
-                        httpResponse.Body.Write(buffer, 0, (int) ms.Length);
-                        httpResponse.Body.Flush();
                     }
                     else
                     {
@@ -175,44 +139,19 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
                 return buffer;
             }
-
-            #endregion IStreamedRequestHandler implementation
         }
 
-        public class AssetPostHandler : IStreamedRequestHandler
+        public class AssetPostHandler : BaseStreamHandler
         {
             AssetInventoryServer m_server;
-            string m_contentType;
-            string m_httpMethod;
-            string m_path;
 
-            public AssetPostHandler(AssetInventoryServer server)
+            //public AssetPostHandler(AssetInventoryServer server) : base("POST", "/^assets")
+            public AssetPostHandler(AssetInventoryServer server) : base("POST", "/assets")
             {
                 m_server = server;
-                m_contentType = null;
-                m_httpMethod = "POST";
-                m_path = @"^/assets/";
             }
 
-            #region IStreamedRequestHandler implementation
-
-            public string ContentType
-            {
-                get { return m_contentType; }
-            }
-
-            public string HttpMethod
-            {
-                get { return m_httpMethod; }
-            }
-
-            public string Path
-            {
-                get { return m_path; }
-            }
-
-            public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-        //bool AssetPostHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+            public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
             {
                 Metadata metadata = new Metadata();
 
@@ -254,8 +193,6 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
                 return null;
             }
-
-            #endregion IStreamedRequestHandler implementation
         }
     }
 }

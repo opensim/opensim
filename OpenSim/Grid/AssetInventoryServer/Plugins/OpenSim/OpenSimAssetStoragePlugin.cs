@@ -137,28 +137,11 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             return ret;
         }
 
-        public BackendResponse TryFetchDataMetadata(UUID assetID, out Metadata metadata, out byte[] assetData)
+        public BackendResponse TryFetchDataMetadata(UUID assetID, out AssetBase asset)
         {
-            metadata = null;
-            assetData = null;
-            //BackendResponse ret;
+            asset = m_assetProvider.FetchAsset(assetID);
 
-            AssetBase asset = m_assetProvider.FetchAsset(assetID);
-
-            if (asset != null)
-            {
-                metadata = new Metadata();
-                metadata.ID = asset.Metadata.FullID;
-                metadata.CreationDate = OpenMetaverse.Utils.Epoch;
-                metadata.SHA1 = null;
-                metadata.Name = asset.Metadata.Name;
-                metadata.Description = asset.Metadata.Description;
-                metadata.ContentType = Utils.SLAssetTypeToContentType(asset.Metadata.Type);
-                metadata.Temporary = asset.Metadata.Temporary;
-
-                assetData = asset.Data;
-            }
-            else return BackendResponse.NotFound;
+            if (asset == null) return BackendResponse.NotFound;
 
             return BackendResponse.Success;
         }

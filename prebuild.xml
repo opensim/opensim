@@ -770,7 +770,7 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData2"/>
       <Reference name="ExtensionLoader"/>
-      <Reference name="HttpServer2"/>
+      <Reference name="HttpServer"/>
 
       <!-- for Simple Storage and MySQL storage -->
       <Reference name="System.Data"/>
@@ -805,7 +805,7 @@
       <Reference name="OpenMetaverse"/>
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData2"/>
-      <Reference name="HttpServer2"/>
+      <Reference name="HttpServer"/>
 
       <Files>
         <Match pattern="*.cs" recurse="false" />
@@ -834,7 +834,7 @@
       <Reference name="OpenMetaverse"/>
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData2" />
-      <Reference name="HttpServer2"/>
+      <Reference name="HttpServer"/>
 
       <!-- Remove these eventually -->
       <Reference name="MySql.Data" />
@@ -866,7 +866,7 @@
       <Reference name="OpenSim.Grid.AssetInventoryServer" />
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData2" />
-      <Reference name="HttpServer2"/>
+      <Reference name="HttpServer"/>
 
       <!-- Remove these eventually -->
       <Reference name="MySql.Data" />

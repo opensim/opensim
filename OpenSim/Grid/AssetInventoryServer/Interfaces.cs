@@ -77,7 +77,7 @@ namespace OpenSim.Grid.AssetInventoryServer
     {
         BackendResponse TryFetchMetadata(UUID assetID, out Metadata metadata);
         BackendResponse TryFetchData(UUID assetID, out byte[] assetData);
-        BackendResponse TryFetchDataMetadata(UUID assetID, out Metadata metadata, out byte[] assetData);
+        BackendResponse TryFetchDataMetadata(UUID assetID, out AssetBase asset);
         BackendResponse TryCreateAsset(Metadata metadata, byte[] assetData);
         BackendResponse TryCreateAsset(Metadata metadata, byte[] assetData, out UUID assetID);
         int ForEach(Action<Metadata> action, int start, int count);

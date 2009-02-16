@@ -95,10 +95,10 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             return ret;
         }
 
-        public BackendResponse TryFetchDataMetadata(UUID assetID, out Metadata metadata, out byte[] assetData)
+        public BackendResponse TryFetchDataMetadata(UUID assetID, out AssetBase asset)
         {
-            metadata = null;
-            assetData = null;
+            Metadata metadata = null;
+            byte[] assetData = null;
             string filename;
             BackendResponse ret;
 
@@ -120,6 +120,16 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             {
                 ret = BackendResponse.NotFound;
             }
+
+            asset = new AssetBase();
+            asset.Data = assetData;
+            asset.Metadata.FullID = metadata.ID;
+            asset.Metadata.Name = metadata.Name;
+            asset.Metadata.Description = metadata.Description;
+            asset.Metadata.CreationDate = metadata.CreationDate;
+            asset.Metadata.Type = (sbyte) Utils.ContentTypeToSLAssetType(metadata.ContentType);
+            asset.Metadata.Local = false;
+            asset.Metadata.Temporary = metadata.Temporary;
 
             server.MetricsProvider.LogAssetMetadataFetch(EXTENSION_NAME, ret, assetID, DateTime.Now);
             server.MetricsProvider.LogAssetDataFetch(EXTENSION_NAME, ret, assetID, (assetData != null ? assetData.Length : 0), DateTime.Now);
