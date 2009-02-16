@@ -247,6 +247,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osMakeNotecard(notecardName, contents);
         }
 
+        public string osGetGridNick()
+        {
+            return m_OSSL_Functions.osGetGridNick();
+        }
+
+        public string osGetGridName()
+        {
+            return m_OSSL_Functions.osGetGridName();
+        }
+
+        public string osGetGridLoginURI()
+        {
+            return m_OSSL_Functions.osGetGridLoginURI();
+        }
+
         public OSSLPrim Prim;
 
         [Serializable]

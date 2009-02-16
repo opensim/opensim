@@ -1066,5 +1066,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.Inventory.AddInventoryItem(taskItem, false);
         }
+
+        /// Threat level is Moderate because intentional abuse, for instance
+        /// scripts that are written to be malicious only on one grid,
+        /// for instance in a HG scenario, are a distinct possibility.
+        ///
+        /// Use value from the config file and return it.
+        ///         
+        public string osGetGridNick()
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridNick");
+            m_host.AddScriptLPS(1);
+            string nick = "hippogrid";
+            IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            if (config.Configs["GridInfo"] != null)
+                nick = config.Configs["GridInfo"].GetString("gridnick", nick);
+            return nick;
+        }
+
+        public string osGetGridName()
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridName");
+            m_host.AddScriptLPS(1);
+            string name = "the lost continent of hippo";
+            IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            if (config.Configs["GridInfo"] != null)
+                name = config.Configs["GridInfo"].GetString("gridname", name);
+            return name;
+        }
+
+        public string osGetGridLoginURI()
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridLoginURI");
+            m_host.AddScriptLPS(1);
+            string loginURI = "http://127.0.0.1:9000/";
+            IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            if (config.Configs["GridInfo"] != null)
+                loginURI = config.Configs["GridInfo"].GetString("login", loginURI);
+            return loginURI;
+        }
     }
 }
