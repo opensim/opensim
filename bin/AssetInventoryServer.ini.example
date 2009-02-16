@@ -117,8 +117,8 @@ inventory_database_provider = "OpenSim.Data.MySQL.dll"
 ; modification.
 
 ; For SQLite
-;asset_database_connect = "URI:file:Asset.db,version=3"
-;inventory_database_connect = "URI:file:Inventory.db,version=3"
+;asset_database_connect = "URI=file:Asset.db,version=3"
+;inventory_database_connect = "URI=file:Inventory.db,version=3"
 
 ; For MySQL
 asset_database_connect = "Server=localhost; Database=opensim; User=changeme; Password=changeme;"
