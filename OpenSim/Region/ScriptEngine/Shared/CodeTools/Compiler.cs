@@ -71,9 +71,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
         private string FilePrefix;
         private string ScriptEnginesPath = "ScriptEngines";
+        // mapping between LSL and C# line/column numbers
+        private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap; 
+        private ICodeConverter LSL_Converter;
 
-        private static ICodeConverter LSL_Converter;
-        private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap; // mapping between LSL and C# line/column numbers
+        // private object m_syncy = new object();
+
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
         private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
         private static JScriptCodeProvider JScodeProvider = new JScriptCodeProvider();
@@ -89,6 +92,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             m_scriptEngine = scriptEngine;
             ReadConfig();
         }
+
         public bool in_startup = true;
         public void ReadConfig()
         {
@@ -255,8 +259,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// <returns>Filename to .dll assembly</returns>
         public string PerformScriptCompile(string Script, string asset)
         {
+            // lock(m_syncy) 
             m_positionMap = null;
-
+                
             string OutFile = Path.Combine(ScriptEnginesPath, Path.Combine(
                     m_scriptEngine.World.RegionInfo.RegionID.ToString(),
                     FilePrefix + "_compiled_" + asset + ".dll"));
@@ -334,6 +339,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 LSL_Converter = (ICodeConverter)new CSCodeGenerator();
                 compileScript = LSL_Converter.Convert(Script);
 
+                // lock(m_syncy) 
                 m_positionMap = ((CSCodeGenerator) LSL_Converter).PositionMap;
             }
 
@@ -580,6 +586,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
         public KeyValuePair<int, int> FindErrorPosition(int line, int col)
         {
+            // lock(m_syncy) 
             return FindErrorPosition(line, col, m_positionMap);
         }
 
@@ -654,19 +661,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             return message;
         }
 
-        public Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
-                LineMap()
+        public Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> LineMap()
         {
+            // lock(m_syncy)
+            // {
             if (m_positionMap == null)
                 return null;
-
+            
             Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> ret =
                 new Dictionary<KeyValuePair<int,int>, KeyValuePair<int, int>>();
-
+            
             foreach (KeyValuePair<int, int> kvp in m_positionMap.Keys)
                 ret.Add(kvp, m_positionMap[kvp]);
-
+            
             return ret;
+            // }
         }
     }
 }
