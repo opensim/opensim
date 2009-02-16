@@ -30,7 +30,6 @@
 using System;
 using System.Reflection;
 using System.Data;
-using MySql.Data.MySqlClient;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
@@ -54,46 +53,18 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         #region IAssetStorageProvider implementation
 
-        public BackendResponse TryFetchMetadata(UUID assetID, out Metadata metadata)
+        public BackendResponse TryFetchMetadata(UUID assetID, out AssetMetadata metadata)
         {
             metadata = null;
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("asset_database_connect")))
+            AssetBase asset = m_assetProvider.FetchAsset(assetID);
+
+            if (asset == null) ret = BackendResponse.NotFound;
+            else
             {
-                IDataReader reader;
-
-                try
-                {
-                    dbConnection.Open();
-
-                    IDbCommand command = dbConnection.CreateCommand();
-                    command.CommandText = String.Format("SELECT name,description,assetType,temporary FROM assets WHERE id='{0}'", assetID.ToString());
-                    reader = command.ExecuteReader();
-
-                    if (reader.Read())
-                    {
-                        metadata = new Metadata();
-                        metadata.CreationDate = OpenMetaverse.Utils.Epoch;
-                        metadata.SHA1 = null;
-                        metadata.ID = assetID;
-                        metadata.Name = reader.GetString(0);
-                        metadata.Description = reader.GetString(1);
-                        metadata.ContentType = Utils.SLAssetTypeToContentType(reader.GetInt32(2));
-                        metadata.Temporary = reader.GetBoolean(3);
-
-                        ret = BackendResponse.Success;
-                    }
-                    else
-                    {
-                        ret = BackendResponse.NotFound;
-                    }
-                }
-                catch (MySqlException ex)
-                {
-                    m_log.Error("Connection to MySQL backend failed: " + ex.Message);
-                    ret = BackendResponse.Failure;
-                }
+                metadata = asset.Metadata;
+                ret = BackendResponse.Success;
             }
 
             m_server.MetricsProvider.LogAssetMetadataFetch(EXTENSION_NAME, ret, assetID, DateTime.Now);
@@ -105,33 +76,13 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             assetData = null;
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("asset_database_connect")))
+            AssetBase asset = m_assetProvider.FetchAsset(assetID);
+
+            if (asset == null) ret = BackendResponse.NotFound;
+            else
             {
-                IDataReader reader;
-
-                try
-                {
-                    dbConnection.Open();
-
-                    IDbCommand command = dbConnection.CreateCommand();
-                    command.CommandText = String.Format("SELECT data FROM assets WHERE id='{0}'", assetID.ToString());
-                    reader = command.ExecuteReader();
-
-                    if (reader.Read())
-                    {
-                        assetData = (byte[])reader.GetValue(0);
-                        ret = BackendResponse.Success;
-                    }
-                    else
-                    {
-                        ret = BackendResponse.NotFound;
-                    }
-                }
-                catch (MySqlException ex)
-                {
-                    m_log.Error("Connection to MySQL backend failed: " + ex.Message);
-                    ret = BackendResponse.Failure;
-                }
+                assetData = asset.Data;
+                ret = BackendResponse.Success;
             }
 
             m_server.MetricsProvider.LogAssetDataFetch(EXTENSION_NAME, ret, assetID, (assetData != null ? assetData.Length : 0), DateTime.Now);
@@ -147,101 +98,63 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             return BackendResponse.Success;
         }
 
-        public BackendResponse TryCreateAsset(Metadata metadata, byte[] assetData, out UUID assetID)
+        public BackendResponse TryCreateAsset(AssetBase asset, out UUID assetID)
         {
-            assetID = metadata.ID = UUID.Random();
-            return TryCreateAsset(metadata, assetData);
+            assetID = asset.FullID = UUID.Random();
+            return TryCreateAsset(asset);
         }
 
-        public BackendResponse TryCreateAsset(Metadata metadata, byte[] assetData)
+        public BackendResponse TryCreateAsset(AssetBase asset)
         {
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("asset_database_connect")))
-            {
-                try
-                {
-                    dbConnection.Open();
+            m_assetProvider.CreateAsset(asset);
+            ret = BackendResponse.Success;
 
-                    MySqlCommand command = new MySqlCommand(
-                        "REPLACE INTO assets (name,description,assetType,local,temporary,data,id) VALUES " +
-                        "(?name,?description,?assetType,?local,?temporary,?data,?id)", dbConnection);
-
-                    command.Parameters.AddWithValue("?name", metadata.Name);
-                    command.Parameters.AddWithValue("?description", metadata.Description);
-                    command.Parameters.AddWithValue("?assetType", Utils.ContentTypeToSLAssetType(metadata.ContentType));
-                    command.Parameters.AddWithValue("?local", 0);
-                    command.Parameters.AddWithValue("?temporary", metadata.Temporary);
-                    command.Parameters.AddWithValue("?data", assetData);
-                    command.Parameters.AddWithValue("?id", metadata.ID.ToString());
-
-                    int rowsAffected = command.ExecuteNonQuery();
-                    if (rowsAffected == 1)
-                    {
-                        ret = BackendResponse.Success;
-                    }
-                    else if (rowsAffected == 2)
-                    {
-                        m_log.Info("Replaced asset " + metadata.ID.ToString());
-                        ret = BackendResponse.Success;
-                    }
-                    else
-                    {
-                        m_log.ErrorFormat("MySQL REPLACE query affected {0} rows", rowsAffected);
-                        ret = BackendResponse.Failure;
-                    }
-                }
-                catch (MySqlException ex)
-                {
-                    m_log.Error("Connection to MySQL backend failed: " + ex.Message);
-                    ret = BackendResponse.Failure;
-                }
-            }
-
-            m_server.MetricsProvider.LogAssetCreate(EXTENSION_NAME, ret, metadata.ID, assetData.Length, DateTime.Now);
+            m_server.MetricsProvider.LogAssetCreate(EXTENSION_NAME, ret, asset.FullID, asset.Data.Length, DateTime.Now);
             return ret;
         }
 
-        public int ForEach(Action<Metadata> action, int start, int count)
+        public int ForEach(Action<AssetMetadata> action, int start, int count)
         {
             int rowCount = 0;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("asset_database_connect")))
-            {
-                MySqlDataReader reader;
+            //using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("asset_database_connect")))
+            //{
+            //    MySqlDataReader reader;
 
-                try
-                {
-                    dbConnection.Open();
+            //    try
+            //    {
+            //        dbConnection.Open();
 
-                    MySqlCommand command = dbConnection.CreateCommand();
-                    command.CommandText = String.Format("SELECT name,description,assetType,temporary,data,id FROM assets LIMIT {0}, {1}",
-                        start, count);
-                    reader = command.ExecuteReader();
-                }
-                catch (MySqlException ex)
-                {
-                    m_log.Error("Connection to MySQL backend failed: " + ex.Message);
-                    return 0;
-                }
+            //        MySqlCommand command = dbConnection.CreateCommand();
+            //        command.CommandText = String.Format("SELECT name,description,assetType,temporary,data,id FROM assets LIMIT {0}, {1}",
+            //            start, count);
+            //        reader = command.ExecuteReader();
+            //    }
+            //    catch (MySqlException ex)
+            //    {
+            //        m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //        return 0;
+            //    }
 
-                while (reader.Read())
-                {
-                    Metadata metadata = new Metadata();
-                    metadata.CreationDate = OpenMetaverse.Utils.Epoch;
-                    metadata.Description = reader.GetString(1);
-                    metadata.ID = UUID.Parse(reader.GetString(5));
-                    metadata.Name = reader.GetString(0);
-                    metadata.SHA1 = OpenMetaverse.Utils.SHA1((byte[])reader.GetValue(4));
-                    metadata.Temporary = reader.GetBoolean(3);
-                    metadata.ContentType = Utils.SLAssetTypeToContentType(reader.GetInt32(2));
+            //    while (reader.Read())
+            //    {
+            //        Metadata metadata = new Metadata();
+            //        metadata.CreationDate = OpenMetaverse.Utils.Epoch;
+            //        metadata.Description = reader.GetString(1);
+            //        metadata.ID = UUID.Parse(reader.GetString(5));
+            //        metadata.Name = reader.GetString(0);
+            //        metadata.SHA1 = OpenMetaverse.Utils.SHA1((byte[])reader.GetValue(4));
+            //        metadata.Temporary = reader.GetBoolean(3);
+            //        metadata.ContentType = Utils.SLAssetTypeToContentType(reader.GetInt32(2));
 
-                    action(metadata);
-                    ++rowCount;
-                }
+            //        action(metadata);
+            //        ++rowCount;
+            //    }
 
-                reader.Close();
-            }
+            //    reader.Close();
+            //}
 
             return rowCount;
         }

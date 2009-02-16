@@ -57,8 +57,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
             m_server = server;
 
             // Request for / or /?...
-            //server.HttpServer.AddHandler("get", null, @"(^/$)|(^/\?.*)", BrowseRequestHandler);
-            m_server.HttpServer.AddStreamHandler(new BrowseRequestHandler(server));
+            //m_server.HttpServer.AddStreamHandler(new BrowseRequestHandler(server));
 
             m_log.Info("[ASSET] Browser Frontend loaded.");
         }
@@ -89,102 +88,102 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         #endregion IPlugin implementation
 
-        public class BrowseRequestHandler : IStreamedRequestHandler
-        {
-            AssetInventoryServer m_server;
-            string m_contentType;
-            string m_httpMethod;
-            string m_path;
+        //public class BrowseRequestHandler : IStreamedRequestHandler
+        //{
+        //    AssetInventoryServer m_server;
+        //    string m_contentType;
+        //    string m_httpMethod;
+        //    string m_path;
 
-            public BrowseRequestHandler(AssetInventoryServer server)
-            {
-                m_server = server;
-                m_contentType = null;
-                m_httpMethod = "GET";
-                m_path = @"(^/$)|(^/\?.*)";
-            }
+        //    public BrowseRequestHandler(AssetInventoryServer server)
+        //    {
+        //        m_server = server;
+        //        m_contentType = null;
+        //        m_httpMethod = "GET";
+        //        m_path = @"(^/$)|(^/\?.*)";
+        //    }
 
-            #region IStreamedRequestHandler implementation
+        //    #region IStreamedRequestHandler implementation
 
-            public string ContentType
-            {
-                get { return m_contentType; }
-            }
+        //    public string ContentType
+        //    {
+        //        get { return m_contentType; }
+        //    }
 
-            public string HttpMethod
-            {
-                get { return m_httpMethod; }
-            }
+        //    public string HttpMethod
+        //    {
+        //        get { return m_httpMethod; }
+        //    }
 
-            public string Path
-            {
-                get { return m_path; }
-            }
+        //    public string Path
+        //    {
+        //        get { return m_path; }
+        //    }
 
-            public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-            {
-                const int ASSETS_PER_PAGE = 25;
-                const string HEADER = "<html><head><title>Asset Server</title></head><body>";
-                const string TABLE_HEADER =
-                    "<table><tr><th>Name</th><th>Description</th><th>Type</th><th>ID</th><th>Temporary</th><th>SHA-1</th></tr>";
-                const string TABLE_FOOTER = "</table>";
-                const string FOOTER = "</body></html>";
+        //    public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        //    {
+        //        const int ASSETS_PER_PAGE = 25;
+        //        const string HEADER = "<html><head><title>Asset Server</title></head><body>";
+        //        const string TABLE_HEADER =
+        //            "<table><tr><th>Name</th><th>Description</th><th>Type</th><th>ID</th><th>Temporary</th><th>SHA-1</th></tr>";
+        //        const string TABLE_FOOTER = "</table>";
+        //        const string FOOTER = "</body></html>";
 
-                UUID authToken = Utils.GetAuthToken(httpRequest);
+        //        UUID authToken = Utils.GetAuthToken(httpRequest);
 
-                StringBuilder html = new StringBuilder();
-                int start = 0;
-                uint page = 0;
+        //        StringBuilder html = new StringBuilder();
+        //        int start = 0;
+        //        uint page = 0;
 
-                if (!String.IsNullOrEmpty(httpRequest.Url.Query))
-                {
-                    NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
-                    if (!String.IsNullOrEmpty(query["page"]) && UInt32.TryParse(query["page"], out page))
-                        start = (int)page * ASSETS_PER_PAGE;
-                }
+        //        if (!String.IsNullOrEmpty(httpRequest.Url.Query))
+        //        {
+        //            NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
+        //            if (!String.IsNullOrEmpty(query["page"]) && UInt32.TryParse(query["page"], out page))
+        //                start = (int)page * ASSETS_PER_PAGE;
+        //        }
 
-                html.AppendLine(HEADER);
+        //        html.AppendLine(HEADER);
 
-                html.AppendLine("<p>");
-                if (page > 0)
-                    html.AppendFormat("<a href=\"{0}?page={1}\">&lt; Previous Page</a> | ", httpRequest.RawUrl, page - 1);
-                html.AppendFormat("<a href=\"{0}?page={1}\">Next Page &gt;</a>", httpRequest.RawUrl, page + 1);
-                html.AppendLine("</p>");
+        //        html.AppendLine("<p>");
+        //        if (page > 0)
+        //            html.AppendFormat("<a href=\"{0}?page={1}\">&lt; Previous Page</a> | ", httpRequest.RawUrl, page - 1);
+        //        html.AppendFormat("<a href=\"{0}?page={1}\">Next Page &gt;</a>", httpRequest.RawUrl, page + 1);
+        //        html.AppendLine("</p>");
 
-                html.AppendLine(TABLE_HEADER);
+        //        html.AppendLine(TABLE_HEADER);
 
-                m_server.StorageProvider.ForEach(
-                    delegate(Metadata data)
-                    {
-                        if (m_server.AuthorizationProvider.IsMetadataAuthorized(authToken, data.ID))
-                        {
-                            html.AppendLine(String.Format(
-                                "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td></tr>",
-                                data.Name, data.Description, data.ContentType, data.ID, data.Temporary,
-                                BitConverter.ToString(data.SHA1).Replace("-", String.Empty)));
-                        }
-                        else
-                        {
-                            html.AppendLine(String.Format(
-                                "<tr><td>[Protected Asset]</td><td>&nbsp;</td><td>&nbsp;</td><td>{0}</td><td>{1}</td><td>&nbsp;</td></tr>",
-                                data.ID, data.Temporary));
-                        }
-                    }, start, ASSETS_PER_PAGE
-                );
+        //        m_server.StorageProvider.ForEach(
+        //            delegate(Metadata data)
+        //            {
+        //                if (m_server.AuthorizationProvider.IsMetadataAuthorized(authToken, data.ID))
+        //                {
+        //                    html.AppendLine(String.Format(
+        //                        "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td></tr>",
+        //                        data.Name, data.Description, data.ContentType, data.ID, data.Temporary,
+        //                        BitConverter.ToString(data.SHA1).Replace("-", String.Empty)));
+        //                }
+        //                else
+        //                {
+        //                    html.AppendLine(String.Format(
+        //                        "<tr><td>[Protected Asset]</td><td>&nbsp;</td><td>&nbsp;</td><td>{0}</td><td>{1}</td><td>&nbsp;</td></tr>",
+        //                        data.ID, data.Temporary));
+        //                }
+        //            }, start, ASSETS_PER_PAGE
+        //        );
 
-                html.AppendLine(TABLE_FOOTER);
+        //        html.AppendLine(TABLE_FOOTER);
 
-                html.AppendLine(FOOTER);
+        //        html.AppendLine(FOOTER);
 
-                byte[] responseData = System.Text.Encoding.UTF8.GetBytes(html.ToString());
+        //        byte[] responseData = System.Text.Encoding.UTF8.GetBytes(html.ToString());
 
-                httpResponse.StatusCode = (int) HttpStatusCode.OK;
-                httpResponse.Body.Write(responseData, 0, responseData.Length);
-                httpResponse.Body.Flush();
-                return responseData;
-            }
+        //        httpResponse.StatusCode = (int) HttpStatusCode.OK;
+        //        httpResponse.Body.Write(responseData, 0, responseData.Length);
+        //        httpResponse.Body.Flush();
+        //        return responseData;
+        //    }
 
-            #endregion IStreamedRequestHandler implementation
-        }
+        //    #endregion IStreamedRequestHandler implementation
+        //}
     }
 }

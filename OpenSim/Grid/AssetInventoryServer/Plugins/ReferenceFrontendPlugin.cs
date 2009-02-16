@@ -55,13 +55,13 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
             m_server = server;
 
             // Asset metadata request
-            m_server.HttpServer.AddStreamHandler(new MetadataRequestHandler(server));
+            //m_server.HttpServer.AddStreamHandler(new MetadataRequestHandler(server));
 
             // Asset data request
             m_server.HttpServer.AddStreamHandler(new DataRequestHandler(server));
 
             // Asset creation
-            m_server.HttpServer.AddStreamHandler(new CreateRequestHandler(server));
+            //m_server.HttpServer.AddStreamHandler(new CreateRequestHandler(server));
 
             m_log.Info("[ASSET] Reference Frontend loaded.");
         }
@@ -92,95 +92,95 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         #endregion IPlugin implementation
 
-        public class MetadataRequestHandler : IStreamedRequestHandler
-        {
-            AssetInventoryServer m_server;
-            string m_contentType;
-            string m_httpMethod;
-            string m_path;
+        //public class MetadataRequestHandler : IStreamedRequestHandler
+        //{
+        //    AssetInventoryServer m_server;
+        //    string m_contentType;
+        //    string m_httpMethod;
+        //    string m_path;
 
-            public MetadataRequestHandler(AssetInventoryServer server)
-            {
-                m_server = server;
-                m_contentType = null;
-                m_httpMethod = "GET";
-                m_path = @"^/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/metadata";
-            }
+        //    public MetadataRequestHandler(AssetInventoryServer server)
+        //    {
+        //        m_server = server;
+        //        m_contentType = null;
+        //        m_httpMethod = "GET";
+        //        m_path = @"^/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/metadata";
+        //    }
 
-            #region IStreamedRequestHandler implementation
+        //    #region IStreamedRequestHandler implementation
 
-            public string ContentType
-            {
-                get { return m_contentType; }
-            }
+        //    public string ContentType
+        //    {
+        //        get { return m_contentType; }
+        //    }
 
-            public string HttpMethod
-            {
-                get { return m_httpMethod; }
-            }
+        //    public string HttpMethod
+        //    {
+        //        get { return m_httpMethod; }
+        //    }
 
-            public string Path
-            {
-                get { return m_path; }
-            }
+        //    public string Path
+        //    {
+        //        get { return m_path; }
+        //    }
 
-            public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-            {
-                byte[] serializedData = null;
-                UUID assetID;
-                // Split the URL up into an AssetID and a method
-                string[] rawUrl = httpRequest.Url.PathAndQuery.Split('/');
+        //    public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        //    {
+        //        byte[] serializedData = null;
+        //        UUID assetID;
+        //        // Split the URL up into an AssetID and a method
+        //        string[] rawUrl = httpRequest.Url.PathAndQuery.Split('/');
 
-                if (rawUrl.Length >= 3 && UUID.TryParse(rawUrl[1], out assetID))
-                {
-                    UUID authToken = Utils.GetAuthToken(httpRequest);
+        //        if (rawUrl.Length >= 3 && UUID.TryParse(rawUrl[1], out assetID))
+        //        {
+        //            UUID authToken = Utils.GetAuthToken(httpRequest);
 
-                    if (m_server.AuthorizationProvider.IsMetadataAuthorized(authToken, assetID))
-                    {
-                        Metadata metadata;
-                        BackendResponse storageResponse = m_server.StorageProvider.TryFetchMetadata(assetID, out metadata);
+        //            if (m_server.AuthorizationProvider.IsMetadataAuthorized(authToken, assetID))
+        //            {
+        //                AssetMetadata metadata;
+        //                BackendResponse storageResponse = m_server.StorageProvider.TryFetchMetadata(assetID, out metadata);
 
-                        if (storageResponse == BackendResponse.Success)
-                        {
-                            // If the asset data location wasn't specified in the metadata, specify it
-                            // manually here by pointing back to this asset server
-                            if (!metadata.Methods.ContainsKey("data"))
-                            {
-                                metadata.Methods["data"] = new Uri(String.Format("{0}://{1}/{2}/data",
-                                    httpRequest.Url.Scheme, httpRequest.Url.Authority, assetID));
-                            }
+        //                if (storageResponse == BackendResponse.Success)
+        //                {
+        //                    // If the asset data location wasn't specified in the metadata, specify it
+        //                    // manually here by pointing back to this asset server
+        //                    if (!metadata.Methods.ContainsKey("data"))
+        //                    {
+        //                        metadata.Methods["data"] = new Uri(String.Format("{0}://{1}/{2}/data",
+        //                            httpRequest.Url.Scheme, httpRequest.Url.Authority, assetID));
+        //                    }
 
-                            serializedData = metadata.SerializeToBytes();
+        //                    serializedData = metadata.SerializeToBytes();
 
-                            httpResponse.StatusCode = (int) HttpStatusCode.OK;
-                            httpResponse.ContentType = "application/json";
-                            httpResponse.ContentLength = serializedData.Length;
-                            httpResponse.Body.Write(serializedData, 0, serializedData.Length);
-                        }
-                        else if (storageResponse == BackendResponse.NotFound)
-                        {
-                            m_log.Warn("Could not find metadata for asset " + assetID.ToString());
-                            httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
-                        }
-                        else
-                        {
-                            httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
-                        }
-                    }
-                    else
-                    {
-                        httpResponse.StatusCode = (int) HttpStatusCode.Forbidden;
-                    }
+        //                    httpResponse.StatusCode = (int) HttpStatusCode.OK;
+        //                    httpResponse.ContentType = "application/json";
+        //                    httpResponse.ContentLength = serializedData.Length;
+        //                    httpResponse.Body.Write(serializedData, 0, serializedData.Length);
+        //                }
+        //                else if (storageResponse == BackendResponse.NotFound)
+        //                {
+        //                    m_log.Warn("Could not find metadata for asset " + assetID.ToString());
+        //                    httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
+        //                }
+        //                else
+        //                {
+        //                    httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                httpResponse.StatusCode = (int) HttpStatusCode.Forbidden;
+        //            }
 
-                    return serializedData;
-                }
+        //            return serializedData;
+        //        }
 
-                httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
-                return serializedData;
-            }
+        //        httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
+        //        return serializedData;
+        //    }
 
-            #endregion IStreamedRequestHandler implementation
-        }
+        //    #endregion IStreamedRequestHandler implementation
+        //}
 
         public class DataRequestHandler : IStreamedRequestHandler
         {
@@ -261,110 +261,110 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
             #endregion IStreamedRequestHandler implementation
         }
 
-        public class CreateRequestHandler : IStreamedRequestHandler
-        {
-            AssetInventoryServer m_server;
-            string m_contentType;
-            string m_httpMethod;
-            string m_path;
+        //public class CreateRequestHandler : IStreamedRequestHandler
+        //{
+        //    AssetInventoryServer m_server;
+        //    string m_contentType;
+        //    string m_httpMethod;
+        //    string m_path;
 
-            public CreateRequestHandler(AssetInventoryServer server)
-            {
-                m_server = server;
-                m_contentType = null;
-                m_httpMethod = "POST";
-                m_path = "^/createasset";
-            }
+        //    public CreateRequestHandler(AssetInventoryServer server)
+        //    {
+        //        m_server = server;
+        //        m_contentType = null;
+        //        m_httpMethod = "POST";
+        //        m_path = "^/createasset";
+        //    }
 
-            #region IStreamedRequestHandler implementation
+        //    #region IStreamedRequestHandler implementation
 
-            public string ContentType
-            {
-                get { return m_contentType; }
-            }
+        //    public string ContentType
+        //    {
+        //        get { return m_contentType; }
+        //    }
 
-            public string HttpMethod
-            {
-                get { return m_httpMethod; }
-            }
+        //    public string HttpMethod
+        //    {
+        //        get { return m_httpMethod; }
+        //    }
 
-            public string Path
-            {
-                get { return m_path; }
-            }
+        //    public string Path
+        //    {
+        //        get { return m_path; }
+        //    }
 
-            public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-            {
-                byte[] responseData = null;
-                UUID authToken = Utils.GetAuthToken(httpRequest);
+        //    public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        //    {
+        //        byte[] responseData = null;
+        //        UUID authToken = Utils.GetAuthToken(httpRequest);
 
-                if (m_server.AuthorizationProvider.IsCreateAuthorized(authToken))
-                {
-                    try
-                    {
-                        OSD osdata = OSDParser.DeserializeJson(new StreamReader(httpRequest.InputStream).ReadToEnd());
+        //        if (m_server.AuthorizationProvider.IsCreateAuthorized(authToken))
+        //        {
+        //            try
+        //            {
+        //                OSD osdata = OSDParser.DeserializeJson(new StreamReader(httpRequest.InputStream).ReadToEnd());
 
-                        if (osdata.Type == OSDType.Map)
-                        {
-                            OSDMap map = (OSDMap)osdata;
-                            Metadata metadata = new Metadata();
-                            metadata.Deserialize(map);
+        //                if (osdata.Type == OSDType.Map)
+        //                {
+        //                    OSDMap map = (OSDMap)osdata;
+        //                    Metadata metadata = new Metadata();
+        //                    metadata.Deserialize(map);
 
-                            byte[] assetData = map["data"].AsBinary();
+        //                    byte[] assetData = map["data"].AsBinary();
 
-                            if (assetData != null && assetData.Length > 0)
-                            {
-                                BackendResponse storageResponse;
+        //                    if (assetData != null && assetData.Length > 0)
+        //                    {
+        //                        BackendResponse storageResponse;
 
-                                if (metadata.ID != UUID.Zero)
-                                    storageResponse = m_server.StorageProvider.TryCreateAsset(metadata, assetData);
-                                else
-                                    storageResponse = m_server.StorageProvider.TryCreateAsset(metadata, assetData, out metadata.ID);
+        //                        if (metadata.ID != UUID.Zero)
+        //                            storageResponse = m_server.StorageProvider.TryCreateAsset(metadata, assetData);
+        //                        else
+        //                            storageResponse = m_server.StorageProvider.TryCreateAsset(metadata, assetData, out metadata.ID);
 
-                                if (storageResponse == BackendResponse.Success)
-                                {
-                                    httpResponse.StatusCode = (int) HttpStatusCode.Created;
-                                    OSDMap responseMap = new OSDMap(1);
-                                    responseMap["id"] = OSD.FromUUID(metadata.ID);
-                                    LitJson.JsonData jsonData = OSDParser.SerializeJson(responseMap);
-                                    responseData = System.Text.Encoding.UTF8.GetBytes(jsonData.ToJson());
-                                    httpResponse.Body.Write(responseData, 0, responseData.Length);
-                                    httpResponse.Body.Flush();
-                                }
-                                else if (storageResponse == BackendResponse.NotFound)
-                                {
-                                    httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
-                                }
-                                else
-                                {
-                                    httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
-                                }
-                            }
-                            else
-                            {
-                                httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
-                            }
-                        }
-                        else
-                        {
-                            httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
-                        httpResponse.StatusDescription = ex.Message;
-                    }
-                }
-                else
-                {
-                    httpResponse.StatusCode = (int) HttpStatusCode.Forbidden;
-                }
+        //                        if (storageResponse == BackendResponse.Success)
+        //                        {
+        //                            httpResponse.StatusCode = (int) HttpStatusCode.Created;
+        //                            OSDMap responseMap = new OSDMap(1);
+        //                            responseMap["id"] = OSD.FromUUID(metadata.ID);
+        //                            LitJson.JsonData jsonData = OSDParser.SerializeJson(responseMap);
+        //                            responseData = System.Text.Encoding.UTF8.GetBytes(jsonData.ToJson());
+        //                            httpResponse.Body.Write(responseData, 0, responseData.Length);
+        //                            httpResponse.Body.Flush();
+        //                        }
+        //                        else if (storageResponse == BackendResponse.NotFound)
+        //                        {
+        //                            httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
+        //                        }
+        //                        else
+        //                        {
+        //                            httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
+        //                }
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
+        //                httpResponse.StatusDescription = ex.Message;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            httpResponse.StatusCode = (int) HttpStatusCode.Forbidden;
+        //        }
 
-                return responseData;
-            }
+        //        return responseData;
+        //    }
 
-            #endregion IStreamedRequestHandler implementation
-        }
+        //    #endregion IStreamedRequestHandler implementation
+        //}
     }
 }

@@ -851,7 +851,6 @@
       <Reference name="OpenSim.Framework" />
       <Reference name="OpenSim.Grid.AssetInventoryServer" />
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="MySql.Data"/>
       <Reference name="log4net"/>
       <Reference name="Nini.dll" />
 

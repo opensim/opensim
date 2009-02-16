@@ -45,7 +45,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         AssetInventoryServer server;
-        Dictionary<UUID, Metadata> metadataStorage;
+        Dictionary<UUID, AssetMetadata> metadataStorage;
         Dictionary<UUID, string> filenames;
 
         public SimpleAssetStoragePlugin()
@@ -54,7 +54,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 
         #region Required Interfaces
 
-        public BackendResponse TryFetchMetadata(UUID assetID, out Metadata metadata)
+        public BackendResponse TryFetchMetadata(UUID assetID, out AssetMetadata metadata)
         {
             metadata = null;
             BackendResponse ret;
@@ -98,8 +98,9 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 
         public BackendResponse TryFetchDataMetadata(UUID assetID, out AssetBase asset)
         {
-            Metadata metadata = null;
-            byte[] assetData = null;
+            asset = new AssetBase();
+            AssetMetadata metadata = asset.Metadata;
+
             string filename;
             BackendResponse ret;
 
@@ -108,7 +109,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             {
                 try
                 {
-                    assetData = File.ReadAllBytes(filename);
+                    asset.Data = File.ReadAllBytes(filename);
                     ret = BackendResponse.Success;
                 }
                 catch (Exception ex)
@@ -116,80 +117,74 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                     m_log.ErrorFormat("Failed reading data for asset {0} from {1}: {2}", assetID, filename, ex.Message);
                     ret = BackendResponse.Failure;
                 }
+
+                asset.Metadata.Type = (sbyte) Utils.ContentTypeToSLAssetType(asset.Metadata.ContentType);
+                asset.Metadata.Local = false;
             }
             else
             {
+                asset = null;
                 ret = BackendResponse.NotFound;
             }
 
-            asset = new AssetBase();
-            asset.Data = assetData;
-            asset.Metadata.FullID = metadata.ID;
-            asset.Metadata.Name = metadata.Name;
-            asset.Metadata.Description = metadata.Description;
-            asset.Metadata.CreationDate = metadata.CreationDate;
-            asset.Metadata.Type = (sbyte) Utils.ContentTypeToSLAssetType(metadata.ContentType);
-            asset.Metadata.Local = false;
-            asset.Metadata.Temporary = metadata.Temporary;
-
             server.MetricsProvider.LogAssetMetadataFetch(EXTENSION_NAME, ret, assetID, DateTime.Now);
-            server.MetricsProvider.LogAssetDataFetch(EXTENSION_NAME, ret, assetID, (assetData != null ? assetData.Length : 0), DateTime.Now);
+            server.MetricsProvider.LogAssetDataFetch(EXTENSION_NAME, ret, assetID, (asset != null && asset.Data != null ? asset.Data.Length : 0), DateTime.Now);
             return ret;
         }
 
-        public BackendResponse TryCreateAsset(Metadata metadata, byte[] assetData, out UUID assetID)
+        public BackendResponse TryCreateAsset(AssetBase asset, out UUID assetID)
         {
-            assetID = metadata.ID = UUID.Random();
-            return TryCreateAsset(metadata, assetData);
+            assetID = asset.FullID = UUID.Random();
+            return TryCreateAsset(asset);
         }
 
-        public BackendResponse TryCreateAsset(Metadata metadata, byte[] assetData)
+        public BackendResponse TryCreateAsset(AssetBase asset)
         {
             BackendResponse ret;
 
             string path;
-            string filename = String.Format("{0}.{1}", metadata.ID, Utils.ContentTypeToExtension(metadata.ContentType));
+            string filename = String.Format("{0}.{1}", asset.FullID, Utils.ContentTypeToExtension(asset.Metadata.ContentType));
 
-            if (metadata.Temporary)
+            if (asset.Metadata.Temporary)
                 path = Path.Combine(TEMP_DATA_DIR, filename);
             else
                 path = Path.Combine(DEFAULT_DATA_DIR, filename);
 
             try
             {
-                File.WriteAllBytes(path, assetData);
-                lock (filenames) filenames[metadata.ID] = path;
+                File.WriteAllBytes(path, asset.Data);
+                lock (filenames) filenames[asset.FullID] = path;
 
                 // Set the creation date to right now
-                metadata.CreationDate = DateTime.Now;
+                asset.Metadata.CreationDate = DateTime.Now;
 
                 lock (metadataStorage)
-                    metadataStorage[metadata.ID] = metadata;
+                    metadataStorage[asset.FullID] = asset.Metadata;
 
                 ret = BackendResponse.Success;
             }
             catch (Exception ex)
             {
-                m_log.ErrorFormat("Failed writing data for asset {0} to {1}: {2}", metadata.ID, filename, ex.Message);
+                m_log.ErrorFormat("Failed writing data for asset {0} to {1}: {2}", asset.FullID, filename, ex.Message);
                 ret = BackendResponse.Failure;
             }
 
-            server.MetricsProvider.LogAssetCreate(EXTENSION_NAME, ret, metadata.ID, assetData.Length, DateTime.Now);
+            server.MetricsProvider.LogAssetCreate(EXTENSION_NAME, ret, asset.FullID, asset.Data.Length, DateTime.Now);
             return ret;
         }
 
-        public int ForEach(Action<Metadata> action, int start, int count)
+        public int ForEach(Action<AssetMetadata> action, int start, int count)
         {
             int rowCount = 0;
 
-            lock (metadataStorage)
-            {
-                foreach (Metadata metadata in metadataStorage.Values)
-                {
-                    action(metadata);
-                    ++rowCount;
-                }
-            }
+            //lock (metadataStorage)
+            //{
+            //    foreach (Metadata metadata in metadataStorage.Values)
+            //    {
+            //        action(metadata);
+            //        ++rowCount;
+            //    }
+            //}
 
             return rowCount;
         }
@@ -202,7 +197,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         {
             this.server = server;
 
-            metadataStorage = new Dictionary<UUID, Metadata>();
+            metadataStorage = new Dictionary<UUID, AssetMetadata>();
             filenames = new Dictionary<UUID, string>();
 
             LoadFiles(DEFAULT_DATA_DIR, false);
@@ -272,18 +267,18 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                         string filename = assets[i];
                         byte[] data = File.ReadAllBytes(filename);
 
-                        Metadata metadata = new Metadata();
+                        AssetMetadata metadata = new AssetMetadata();
                         metadata.CreationDate = File.GetCreationTime(filename);
                         metadata.Description = String.Empty;
-                        metadata.ID = SimpleUtils.ParseUUIDFromFilename(filename);
+                        metadata.FullID = SimpleUtils.ParseUUIDFromFilename(filename);
                         metadata.Name = SimpleUtils.ParseNameFromFilename(filename);
                         metadata.SHA1 = OpenMetaverse.Utils.SHA1(data);
                         metadata.Temporary = false;
                         metadata.ContentType = Utils.ExtensionToContentType(Path.GetExtension(filename).TrimStart('.'));
 
                         // Store the loaded data
-                        metadataStorage[metadata.ID] = metadata;
-                        filenames[metadata.ID] = filename;
+                        metadataStorage[metadata.FullID] = metadata;
+                        filenames[metadata.FullID] = filename;
                     }
                 }
                 catch (Exception ex)

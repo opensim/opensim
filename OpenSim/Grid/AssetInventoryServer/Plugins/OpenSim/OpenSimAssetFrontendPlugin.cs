@@ -153,41 +153,32 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
             {
-                Metadata metadata = new Metadata();
+                AssetBase asset = null;
 
                 try
                 {
-                    AssetBase asset = (AssetBase) new XmlSerializer(typeof (AssetBase)).Deserialize(httpRequest.InputStream);
-
-                    if (asset.Data != null && asset.Data.Length > 0)
-                    {
-                        metadata.ID = asset.Metadata.FullID;
-                        metadata.ContentType = Utils.SLAssetTypeToContentType((int) asset.Metadata.Type);
-                        metadata.Name = asset.Metadata.Name;
-                        metadata.Description = asset.Metadata.Description;
-                        metadata.Temporary = asset.Metadata.Temporary;
-
-                        metadata.SHA1 = OpenMetaverse.Utils.SHA1(asset.Data);
-                        metadata.CreationDate = DateTime.Now;
-
-                        BackendResponse storageResponse = m_server.StorageProvider.TryCreateAsset(metadata, asset.Data);
-
-                        if (storageResponse == BackendResponse.Success)
-                            httpResponse.StatusCode = (int) HttpStatusCode.Created;
-                        else if (storageResponse == BackendResponse.NotFound)
-                            httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
-                        else
-                            httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
-                    }
-                    else
-                    {
-                        m_log.Warn("AssetPostHandler called with no asset data");
-                        httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
-                    }
+                    asset = (AssetBase) new XmlSerializer(typeof (AssetBase)).Deserialize(httpRequest.InputStream);
                 }
                 catch (Exception ex)
                 {
                     m_log.Warn("Failed to parse POST data (expecting AssetBase): " + ex.Message);
+                    httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
+                }
+
+                if (asset != null && asset.Data != null && asset.Data.Length > 0)
+                {
+                    BackendResponse storageResponse = m_server.StorageProvider.TryCreateAsset(asset);
+
+                    if (storageResponse == BackendResponse.Success)
+                        httpResponse.StatusCode = (int) HttpStatusCode.Created;
+                    else if (storageResponse == BackendResponse.NotFound)
+                        httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
+                    else
+                        httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
+                }
+                else
+                {
+                    m_log.Warn("AssetPostHandler called with no asset data");
                     httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
                 }
 
