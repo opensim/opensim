@@ -1,0 +1,13 @@
+<Addin id="OpenSim.Grid.AssetInventoryServer.Plugins" version="0.1">
+    <Runtime>
+        <Import assembly="OpenSim.Grid.AssetInventoryServer.Plugins.dll" />
+    </Runtime>
+
+    <Dependencies>
+        <Addin id="OpenSim.Grid.AssetInventoryServer" version="0.1" />
+    </Dependencies>
+
+    <Extension path="/OpenSim/AssetInventoryServer/MetricsProvider">
+        <Plugin id="OpenSimMetrics" provider="OpenSim.Grid.AssetInventoryServer.Plugins.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.NullMetrics" />
+    </Extension>
+</Addin>

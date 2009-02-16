@@ -28,12 +28,11 @@
  */
 
 using System;
-using ExtensionLoader;
 using OpenMetaverse;
 
-namespace OpenSim.Grid.AssetInventoryServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
-    public class NullMetrics : IExtension<AssetInventoryServer>, IMetricsProvider
+    public class NullMetrics : IMetricsProvider
     {
         AssetInventoryServer server;
 
@@ -41,14 +40,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Extensions
         {
         }
 
-        public void Start(AssetInventoryServer server)
-        {
-            this.server = server;
-        }
-
-        public void Stop()
-        {
-        }
+        #region IMetricsProvider implementation
 
         public void LogAssetMetadataFetch(string extension, BackendResponse response, UUID assetID, DateTime time)
         {
@@ -120,5 +112,39 @@ namespace OpenSim.Grid.AssetInventoryServer.Extensions
             Logger.Log.DebugFormat("[{0}] InventoryPurgeFolder(): OwnerID: {1}, FolderID: {2}, Response: {3}", extension,
                 owner, response);
         }
+
+        #endregion IMetricsProvider implementation
+
+        #region IPlugin implementation
+
+        public void Initialise(AssetInventoryServer server)
+        {
+            this.server = server;
+        }
+
+        /// <summary>
+        /// <para>Initialises metrics interface</para>
+        /// </summary>
+        public void Initialise()
+        {
+            this.server = null;
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public string Version
+        {
+            // TODO: this should be something meaningful and not hardcoded?
+            get { return "0.1"; }
+        }
+
+        public string Name
+        {
+            get { return "AssetInventoryServer Null Metrics"; }
+        }
+
+        #endregion IPlugin implementation
     }
 }

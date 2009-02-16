@@ -31,7 +31,9 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.IO;
+using System.Text;
 using System.Xml;
+using System.Xml.Serialization;
 using ExtensionLoader;
 using OpenMetaverse;
 using HttpServer;
@@ -100,52 +102,29 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
                 if ((dataResponse = server.StorageProvider.TryFetchDataMetadata(assetID, out metadata, out assetData)) == BackendResponse.Success)
                 {
-                    MemoryStream stream = new MemoryStream();
+                    AssetBase asset = new AssetBase();
+                    asset.Data = assetData;
+                    asset.Metadata.FullID = metadata.ID;
+                    asset.Metadata.Name = metadata.Name;
+                    asset.Metadata.Description = metadata.Description;
+                    asset.Metadata.CreationDate = metadata.CreationDate;
+                    asset.Metadata.Type = (sbyte) Utils.ContentTypeToSLAssetType(metadata.ContentType);
+                    asset.Metadata.Local = false;
+                    asset.Metadata.Temporary = metadata.Temporary;
 
-                    XmlWriterSettings settings = new XmlWriterSettings();
-                    settings.Indent = true;
-                    XmlWriter writer = XmlWriter.Create(stream, settings);
+                    XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
+                    MemoryStream ms = new MemoryStream();
+                    XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
+                    xs.Serialize(xw, asset);
+                    xw.Flush();
 
-                    writer.WriteStartDocument();
-                    writer.WriteStartElement("AssetBase");
-                    writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance");
-                    writer.WriteAttributeString("xmlns", "xsd", null, "http://www.w3.org/2001/XMLSchema");
-                    writer.WriteStartElement("FullID");
-                    writer.WriteStartElement("Guid");
-                    writer.WriteString(assetID.ToString());
-                    writer.WriteEndElement();
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("ID");
-                    writer.WriteString(assetID.ToString());
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("Data");
-                    writer.WriteBase64(assetData, 0, assetData.Length);
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("Type");
-                    writer.WriteValue(Utils.ContentTypeToSLAssetType(metadata.ContentType));
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("Name");
-                    writer.WriteString(metadata.Name);
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("Description");
-                    writer.WriteString(metadata.Description);
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("Local");
-                    writer.WriteValue(false);
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("Temporary");
-                    writer.WriteValue(metadata.Temporary);
-                    writer.WriteEndElement();
-                    writer.WriteEndElement();
-                    writer.WriteEndDocument();
-
-                    writer.Flush();
-                    byte[] buffer = stream.GetBuffer();
+                    ms.Seek(0, SeekOrigin.Begin);
+                    byte[] buffer = ms.GetBuffer();
 
                     response.Status = HttpStatusCode.OK;
                     response.ContentType = "application/xml";
-                    response.ContentLength = stream.Length;
-                    response.Body.Write(buffer, 0, (int)stream.Length);
+                    response.ContentLength = ms.Length;
+                    response.Body.Write(buffer, 0, (int) ms.Length);
                     response.Body.Flush();
                 }
                 else
@@ -164,55 +143,26 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         bool AssetPostHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
         {
-            byte[] assetData = null;
             Metadata metadata = new Metadata();
 
             Logger.Log.Debug("Handling OpenSim asset upload");
 
             try
             {
-                using (XmlReader reader = XmlReader.Create(request.Body))
+                AssetBase asset = (AssetBase) new XmlSerializer(typeof (AssetBase)).Deserialize(request.Body);
+
+                if (asset.Data != null && asset.Data.Length > 0)
                 {
-                    reader.MoveToContent();
-                    reader.ReadStartElement("AssetBase");
+                    metadata.ID = asset.Metadata.FullID;
+                    metadata.ContentType = Utils.SLAssetTypeToContentType((int) asset.Metadata.Type);
+                    metadata.Name = asset.Metadata.Name;
+                    metadata.Description = asset.Metadata.Description;
+                    metadata.Temporary = asset.Metadata.Temporary;
 
-                    reader.ReadStartElement("FullID");
-                    UUID.TryParse(reader.ReadElementContentAsString("Guid", String.Empty), out metadata.ID);
-                    reader.ReadEndElement();
-                    reader.ReadStartElement("ID");
-                    reader.Skip();
-                    reader.ReadEndElement();
-
-                    // HACK: Broken on Mono. https://bugzilla.novell.com/show_bug.cgi?id=464229
-                    //int readBytes = 0;
-                    //byte[] buffer = new byte[1024];
-                    //MemoryStream stream = new MemoryStream();
-                    //BinaryWriter writer = new BinaryWriter(stream);
-                    //while ((readBytes = reader.ReadElementContentAsBase64(buffer, 0, buffer.Length)) > 0)
-                    //    writer.Write(buffer, 0, readBytes);
-                    //writer.Flush();
-                    //assetData = stream.GetBuffer();
-                    //Array.Resize<byte>(ref assetData, (int)stream.Length);
-
-                    assetData = Convert.FromBase64String(reader.ReadElementContentAsString());
-
-                    int type;
-                    Int32.TryParse(reader.ReadElementContentAsString("Type", String.Empty), out type);
-                    metadata.ContentType = Utils.SLAssetTypeToContentType(type);
-                    metadata.Name = reader.ReadElementContentAsString("Name", String.Empty);
-                    metadata.Description = reader.ReadElementContentAsString("Description", String.Empty);
-                    Boolean.TryParse(reader.ReadElementContentAsString("Local", String.Empty), out metadata.Temporary);
-                    Boolean.TryParse(reader.ReadElementContentAsString("Temporary", String.Empty), out metadata.Temporary);
-
-                    reader.ReadEndElement();
-                }
-
-                if (assetData != null && assetData.Length > 0)
-                {
-                    metadata.SHA1 = OpenMetaverse.Utils.SHA1(assetData);
+                    metadata.SHA1 = OpenMetaverse.Utils.SHA1(asset.Data);
                     metadata.CreationDate = DateTime.Now;
 
-                    BackendResponse storageResponse = server.StorageProvider.TryCreateAsset(metadata, assetData);
+                    BackendResponse storageResponse = server.StorageProvider.TryCreateAsset(metadata, asset.Data);
 
                     if (storageResponse == BackendResponse.Success)
                         response.Status = HttpStatusCode.Created;

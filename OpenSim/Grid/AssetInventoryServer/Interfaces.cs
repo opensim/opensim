@@ -54,12 +54,12 @@ namespace OpenSim.Grid.AssetInventoryServer
     {
         private AssetInventoryServer server;
 
-        public AssetInventoryServerPluginInitialiser (AssetInventoryServer server)
+        public AssetInventoryServerPluginInitialiser(AssetInventoryServer server)
         {
             this.server = server;
         }
 
-        public override void Initialise (IPlugin plugin)
+        public override void Initialise(IPlugin plugin)
         {
             IAssetInventoryServerPlugin p = plugin as IAssetInventoryServerPlugin;
             p.Initialise (server);
@@ -136,7 +136,7 @@ namespace OpenSim.Grid.AssetInventoryServer
         bool IsInventoryWriteAuthorized(UUID authToken, Uri owner);
     }
 
-    public interface IMetricsProvider
+    public interface IMetricsProvider : IAssetInventoryServerPlugin
     {
         void LogAssetMetadataFetch(string extension, BackendResponse response, UUID assetID, DateTime time);
         void LogAssetDataFetch(string extension, BackendResponse response, UUID assetID, int dataSize, DateTime time);

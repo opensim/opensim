@@ -106,41 +106,8 @@ namespace OpenSim.Grid.AssetInventoryServer
                 return false;
             }
 
-            //try
-            //{
-            //    // Create a reference list for C# extensions compiled at runtime
-            //    List<string> references = new List<string>();
-            //    references.Add("OpenMetaverseTypes.dll");
-            //    references.Add("OpenMetaverse.dll");
-            //    references.Add("OpenMetaverse.StructuredData.dll");
-            //    references.Add("OpenMetaverse.Http.dll");
-            //    references.Add("ExtensionLoader.dll");
-            //    references.Add("AssetServer.exe");
-
-            //    // Get a list of all of the members of AssetServer that are interfaces
-            //    List<FieldInfo> assignables = ExtensionLoader<AssetServer>.GetInterfaces(this);
-
-            //    // Load all of the extensions
-            //    ExtensionLoader<AssetServer>.LoadAllExtensions(
-            //        Assembly.GetExecutingAssembly(),
-            //        Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-            //        extensionList,
-            //        references,
-            //        "AssetServer.*.dll",
-            //        "AssetServer.*.cs",
-            //        this,
-            //        assignables);
-            //}
-            //catch (ExtensionException ex)
-            //{
-            //    Logger.Log.Error("Interface loading failed, shutting down: " + ex.Message);
-            //    if (ex.InnerException != null)
-            //        Logger.Log.Error(ex.InnerException.Message, ex.InnerException);
-            //    Stop();
-            //    return false;
-            //}
-
             StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/StorageProvider") as IAssetStorageProvider;
+            MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider") as IMetricsProvider;
 
             try
             {
@@ -154,13 +121,6 @@ namespace OpenSim.Grid.AssetInventoryServer
             }
 
             frontend = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/Frontend");
-
-            // Start all of the extensions
-            //foreach (IExtension<AssetServer> extension in ExtensionLoader<AssetServer>.Extensions)
-            //{
-            //    Logger.Log.Info("Starting extension " + extension.GetType().Name);
-            //    extension.Start(this);
-            //}
 
             return true;
         }

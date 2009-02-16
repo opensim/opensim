@@ -145,66 +145,24 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
             assetData = null;
             //BackendResponse ret;
 
-            AssetBase asset_base = m_assetProvider.FetchAsset(assetID);
+            AssetBase asset = m_assetProvider.FetchAsset(assetID);
 
-            if (asset_base != null)
+            if (asset != null)
             {
                 metadata = new Metadata();
+                metadata.ID = asset.Metadata.FullID;
                 metadata.CreationDate = OpenMetaverse.Utils.Epoch;
                 metadata.SHA1 = null;
-                metadata.Name = asset_base.Name;
-                metadata.Description = asset_base.Description;
-                metadata.ContentType = Utils.SLAssetTypeToContentType(asset_base.Type);
-                metadata.Temporary = asset_base.Temporary;
+                metadata.Name = asset.Metadata.Name;
+                metadata.Description = asset.Metadata.Description;
+                metadata.ContentType = Utils.SLAssetTypeToContentType(asset.Metadata.Type);
+                metadata.Temporary = asset.Metadata.Temporary;
 
-                assetData = asset_base.Data;
+                assetData = asset.Data;
             }
             else return BackendResponse.NotFound;
 
             return BackendResponse.Success;
-
-            //using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
-            //{
-            //    IDataReader reader;
-
-            //    try
-            //    {
-            //        dbConnection.Open();
-
-            //        IDbCommand command = dbConnection.CreateCommand();
-            //        command.CommandText = String.Format("SELECT name,description,assetType,temporary,data FROM assets WHERE id='{0}'", assetID.ToString());
-            //        reader = command.ExecuteReader();
-
-            //        if (reader.Read())
-            //        {
-            //            metadata = new Metadata();
-            //            metadata.CreationDate = OpenMetaverse.Utils.Epoch;
-            //            metadata.SHA1 = null;
-            //            metadata.ID = assetID;
-            //            metadata.Name = reader.GetString(0);
-            //            metadata.Description = reader.GetString(1);
-            //            metadata.ContentType = Utils.SLAssetTypeToContentType(reader.GetInt32(2));
-            //            metadata.Temporary = reader.GetBoolean(3);
-
-            //            assetData = (byte[])reader.GetValue(4);
-
-            //            ret = BackendResponse.Success;
-            //        }
-            //        else
-            //        {
-            //            ret = BackendResponse.NotFound;
-            //        }
-            //    }
-            //    catch (MySqlException ex)
-            //    {
-            //        Logger.Log.Error("Connection to MySQL backend failed: " + ex.Message);
-            //        ret = BackendResponse.Failure;
-            //    }
-            //}
-
-            //server.MetricsProvider.LogAssetMetadataFetch(EXTENSION_NAME, ret, assetID, DateTime.Now);
-            //server.MetricsProvider.LogAssetDataFetch(EXTENSION_NAME, ret, assetID, (assetData != null ? assetData.Length : 0), DateTime.Now);
-            //return ret;
         }
 
         public BackendResponse TryCreateAsset(Metadata metadata, byte[] assetData, out UUID assetID)

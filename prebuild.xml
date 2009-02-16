@@ -783,6 +783,29 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Grid.AssetInventoryServer.Plugins" path="OpenSim/Grid/AssetInventoryServer/Plugins" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System" />
+      <Reference name="OpenSim.Grid.AssetInventoryServer" />
+      <Reference name="OpenMetaverseTypes"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="false" />
+        <Match path="Resources" pattern="*.addin.xml" buildAction="EmbeddedResource" recurse="true" />
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim" path="OpenSim/Grid/AssetInventoryServer/Plugins/OpenSim" type="Library">
       <Configuration name="Debug">
         <Options>
