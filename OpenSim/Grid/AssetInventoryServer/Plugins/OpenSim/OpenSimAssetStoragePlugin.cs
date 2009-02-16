@@ -38,6 +38,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Grid.AssetInventoryServer.Extensions;
+using OpenSim.Data;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
@@ -46,7 +47,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         const string EXTENSION_NAME = "OpenSimAssetStorage"; // Used in metrics reporting
 
         private AssetInventoryServer server;
-        private IAssetProviderPlugin m_assetProvider;
+        private IAssetDataPlugin m_assetProvider;
 
         public OpenSimAssetStoragePlugin()
         {
@@ -315,7 +316,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
             try
             {
-                m_assetProvider = LoadDatabasePlugin("OpenSim.Data.MySQL.dll", server.ConfigFile.Configs["MySQL"].GetString("database_connect", null));
+                m_assetProvider = DataPluginFactory.LoadAssetDataPlugin("OpenSim.Data.MySQL.dll", server.ConfigFile.Configs["MySQL"].GetString("database_connect", null));
                 if (m_assetProvider == null)
                 {
                     Logger.Log.Error("[ASSET]: Failed to load a database plugin, server halting.");
@@ -354,17 +355,5 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         }
 
         #endregion IPlugin implementation
-
-        private IAssetProviderPlugin LoadDatabasePlugin(string provider, string connect)
-        {
-            PluginLoader<IAssetProviderPlugin> loader = new PluginLoader<IAssetProviderPlugin>(new AssetDataInitialiser(connect));
-
-            // Loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add("/OpenSim/AssetData", new PluginProviderFilter (provider));
-            loader.Load();
-
-            return loader.Plugin;
-        }
     }
 }
