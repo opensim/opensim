@@ -16,4 +16,10 @@
     <Extension path="/OpenSim/AssetInventoryServer/Frontend">
         <Plugin id="ReferenceFrontend" provider="OpenSim.Grid.AssetInventoryServer.Plugins.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.ReferenceFrontendPlugin" />
     </Extension>
+    <Extension path="/OpenSim/AssetInventoryServer/AuthenticationProvider">
+        <Plugin id="NullAuthentication" provider="OpenSim.Grid.AssetInventoryServer.Plugins.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.NullAuthenticationPlugin" />
+    </Extension>
+    <Extension path="/OpenSim/AssetInventoryServer/AuthorizationProvider">
+        <Plugin id="AuthorizeAll" provider="OpenSim.Grid.AssetInventoryServer.Plugins.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.AuthorizeAllPlugin" />
+    </Extension>
 </Addin>

@@ -102,14 +102,14 @@ namespace OpenSim.Grid.AssetInventoryServer
         BackendResponse TryPurgeFolder(Uri owner, UUID folderID);
     }
 
-    public interface IAuthenticationProvider
+    public interface IAuthenticationProvider : IAssetInventoryServerPlugin
     {
         void AddIdentifier(UUID authToken, Uri identifier);
         bool RemoveIdentifier(UUID authToken);
         bool TryGetIdentifier(UUID authToken, out Uri identifier);
     }
 
-    public interface IAuthorizationProvider
+    public interface IAuthorizationProvider : IAssetInventoryServerPlugin
     {
         bool IsMetadataAuthorized(UUID authToken, UUID assetID);
         /// <summary>

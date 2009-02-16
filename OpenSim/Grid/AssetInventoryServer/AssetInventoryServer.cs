@@ -122,6 +122,8 @@ namespace OpenSim.Grid.AssetInventoryServer
             }
 
             frontends.AddRange(LoadAssetInventoryServerPlugins("/OpenSim/AssetInventoryServer/Frontend", String.Empty));
+            AuthenticationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthenticationProvider", String.Empty) as IAuthenticationProvider;
+            AuthorizationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthorizationProvider", String.Empty) as IAuthorizationProvider;
 
             return true;
         }

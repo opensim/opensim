@@ -28,40 +28,76 @@
  */
 
 using System;
-using ExtensionLoader;
 using OpenMetaverse;
+using OpenSim.Framework;
 
-namespace OpenSim.Grid.AssetInventoryServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
-    public class NullAuthentication : IExtension<AssetInventoryServer>, IAuthenticationProvider
+    public class AuthorizeAllPlugin : IAuthorizationProvider
     {
         AssetInventoryServer server;
 
-        public NullAuthentication()
+        public AuthorizeAllPlugin()
         {
         }
 
-        public void Start(AssetInventoryServer server)
+        #region IPlugin implementation
+
+        public void Initialise(AssetInventoryServer server)
         {
             this.server = server;
+
+            Logger.Log.Info("[ASSET] Authorize All loaded.");
         }
 
-        public void Stop()
+        /// <summary>
+        /// <para>Initialises asset interface</para>
+        /// </summary>
+        public void Initialise()
+        {
+            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            throw new PluginNotInitialisedException(Name);
+        }
+
+        public void Dispose()
         {
         }
 
-        public void AddIdentifier(UUID authToken, Uri identifier)
+        public string Version
         {
+            // TODO: this should be something meaningful and not hardcoded?
+            get { return "0.1"; }
         }
 
-        public bool RemoveIdentifier(UUID authToken)
+        public string Name
+        {
+            get { return "AssetInventoryServer Null authentication frontend"; }
+        }
+
+        #endregion IPlugin implementation
+
+        public bool IsMetadataAuthorized(UUID authToken, UUID assetID)
         {
             return true;
         }
 
-        public bool TryGetIdentifier(UUID authToken, out Uri identifier)
+        public bool IsDataAuthorized(UUID authToken, UUID assetID)
         {
-            identifier = null;
+            return true;
+        }
+
+        public bool IsCreateAuthorized(UUID authToken)
+        {
+            return true;
+        }
+
+        public bool IsInventoryReadAuthorized(UUID authToken, Uri owner)
+        {
+            return true;
+        }
+
+        public bool IsInventoryWriteAuthorized(UUID authToken, Uri owner)
+        {
             return true;
         }
     }
