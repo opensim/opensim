@@ -142,50 +142,68 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         {
             metadata = null;
             assetData = null;
-            BackendResponse ret;
+            //BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            AssetBase asset_base = m_assetProvider.FetchAsset(assetID);
+
+            if (asset_base != null)
             {
-                IDataReader reader;
+                metadata = new Metadata();
+                metadata.CreationDate = OpenMetaverse.Utils.Epoch;
+                metadata.SHA1 = null;
+                metadata.Name = asset_base.Name;
+                metadata.Description = asset_base.Description;
+                metadata.ContentType = Utils.SLAssetTypeToContentType(asset_base.Type);
+                metadata.Temporary = asset_base.Temporary;
 
-                try
-                {
-                    dbConnection.Open();
-
-                    IDbCommand command = dbConnection.CreateCommand();
-                    command.CommandText = String.Format("SELECT name,description,assetType,temporary,data FROM assets WHERE id='{0}'", assetID.ToString());
-                    reader = command.ExecuteReader();
-
-                    if (reader.Read())
-                    {
-                        metadata = new Metadata();
-                        metadata.CreationDate = OpenMetaverse.Utils.Epoch;
-                        metadata.SHA1 = null;
-                        metadata.ID = assetID;
-                        metadata.Name = reader.GetString(0);
-                        metadata.Description = reader.GetString(1);
-                        metadata.ContentType = Utils.SLAssetTypeToContentType(reader.GetInt32(2));
-                        metadata.Temporary = reader.GetBoolean(3);
-
-                        assetData = (byte[])reader.GetValue(4);
-
-                        ret = BackendResponse.Success;
-                    }
-                    else
-                    {
-                        ret = BackendResponse.NotFound;
-                    }
-                }
-                catch (MySqlException ex)
-                {
-                    Logger.Log.Error("Connection to MySQL backend failed: " + ex.Message);
-                    ret = BackendResponse.Failure;
-                }
+                assetData = asset_base.Data;
             }
+            else return BackendResponse.NotFound;
 
-            server.MetricsProvider.LogAssetMetadataFetch(EXTENSION_NAME, ret, assetID, DateTime.Now);
-            server.MetricsProvider.LogAssetDataFetch(EXTENSION_NAME, ret, assetID, (assetData != null ? assetData.Length : 0), DateTime.Now);
-            return ret;
+            return BackendResponse.Success;
+
+            //using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            //{
+            //    IDataReader reader;
+
+            //    try
+            //    {
+            //        dbConnection.Open();
+
+            //        IDbCommand command = dbConnection.CreateCommand();
+            //        command.CommandText = String.Format("SELECT name,description,assetType,temporary,data FROM assets WHERE id='{0}'", assetID.ToString());
+            //        reader = command.ExecuteReader();
+
+            //        if (reader.Read())
+            //        {
+            //            metadata = new Metadata();
+            //            metadata.CreationDate = OpenMetaverse.Utils.Epoch;
+            //            metadata.SHA1 = null;
+            //            metadata.ID = assetID;
+            //            metadata.Name = reader.GetString(0);
+            //            metadata.Description = reader.GetString(1);
+            //            metadata.ContentType = Utils.SLAssetTypeToContentType(reader.GetInt32(2));
+            //            metadata.Temporary = reader.GetBoolean(3);
+
+            //            assetData = (byte[])reader.GetValue(4);
+
+            //            ret = BackendResponse.Success;
+            //        }
+            //        else
+            //        {
+            //            ret = BackendResponse.NotFound;
+            //        }
+            //    }
+            //    catch (MySqlException ex)
+            //    {
+            //        Logger.Log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //        ret = BackendResponse.Failure;
+            //    }
+            //}
+
+            //server.MetricsProvider.LogAssetMetadataFetch(EXTENSION_NAME, ret, assetID, DateTime.Now);
+            //server.MetricsProvider.LogAssetDataFetch(EXTENSION_NAME, ret, assetID, (assetData != null ? assetData.Length : 0), DateTime.Now);
+            //return ret;
         }
 
         public BackendResponse TryCreateAsset(Metadata metadata, byte[] assetData, out UUID assetID)
@@ -332,7 +350,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         public string Name
         {
-            get { return "AssetInventoryServer storage provider"; }
+            get { return "AssetInventoryServer OpenSim asset storage provider"; }
         }
 
         #endregion IPlugin implementation
