@@ -50,7 +50,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         {
             //m_server = server;
 
-            m_log.Info("[ASSET] Null Authentication loaded.");
+            m_log.Info("[NULLAUTHENTICATION]: Null Authentication loaded.");
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         /// </summary>
         public void Initialise()
         {
-            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[NULLAUTHENTICATION]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 

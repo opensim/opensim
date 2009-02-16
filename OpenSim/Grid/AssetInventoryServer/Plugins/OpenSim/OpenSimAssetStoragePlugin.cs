@@ -134,7 +134,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //    }
             //    catch (MySqlException ex)
             //    {
-            //        m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //        m_log.Error("[OPENSIMASSETSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //        return 0;
             //    }
 
@@ -174,15 +174,15 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                                                                                      m_openSimConfig.GetString("asset_database_connect"));
                 if (m_assetProvider == null)
                 {
-                    m_log.Error("[ASSET]: Failed to load a database plugin, server halting.");
+                    m_log.Error("[OPENSIMASSETSTORAGE]: Failed to load a database plugin, server halting.");
                     Environment.Exit(-1);
                 }
                 else
-                    m_log.InfoFormat("[ASSET]: Loaded storage backend: {0}", Version);
+                    m_log.InfoFormat("[OPENSIMASSETSTORAGE]: Loaded storage backend: {0}", Version);
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[ASSET]: Failure loading data plugin: {0}", e.ToString());
+                m_log.WarnFormat("[OPENSIMASSETSTORAGE]: Failure loading data plugin: {0}", e.ToString());
             }
         }
 
@@ -191,7 +191,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         /// </summary>
         public void Initialise()
         {
-            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[OPENSIMASSETSTORAGE]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 

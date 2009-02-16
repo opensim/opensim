@@ -107,7 +107,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //    }
             //    catch (MySqlException ex)
             //    {
-            //        m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //        m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //        ret = BackendResponse.Failure;
             //    }
             //}
@@ -155,7 +155,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //    }
             //    catch (MySqlException ex)
             //    {
-            //        m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //        m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //        ret = BackendResponse.Failure;
             //    }
             //}
@@ -253,7 +253,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //    }
             //    catch (MySqlException ex)
             //    {
-            //        m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //        m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //        ret = BackendResponse.Failure;
             //    }
             //}
@@ -303,7 +303,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //        }
             //        catch (MySqlException ex)
             //        {
-            //            m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //            m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //            ret = BackendResponse.Failure;
             //        }
             //    }
@@ -387,7 +387,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //            }
             //            catch (MySqlException ex)
             //            {
-            //                m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //                m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //                ret = BackendResponse.Failure;
             //            }
             //        }
@@ -458,7 +458,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //        }
             //        catch (MySqlException ex)
             //        {
-            //            m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //            m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //            ret = BackendResponse.Failure;
             //        }
             //    }
@@ -520,18 +520,18 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //        }
             //        else if (rowsAffected == 2)
             //        {
-            //            m_log.Info("Replaced inventory item " + item.ID.ToString());
+            //            m_log.Info("[OPENSIMINVENTORYSTORAGE]: Replaced inventory item " + item.ID.ToString());
             //            ret = BackendResponse.Success;
             //        }
             //        else
             //        {
-            //            m_log.ErrorFormat("MySQL REPLACE query affected {0} rows", rowsAffected);
+            //            m_log.ErrorFormat("[OPENSIMINVENTORYSTORAGE]: MySQL REPLACE query affected {0} rows", rowsAffected);
             //            ret = BackendResponse.Failure;
             //        }
             //    }
             //    catch (MySqlException ex)
             //    {
-            //        m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //        m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //        ret = BackendResponse.Failure;
             //    }
             //}
@@ -569,18 +569,18 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //        }
             //        else if (rowsAffected == 2)
             //        {
-            //            m_log.Info("Replaced inventory folder " + folder.ID.ToString());
+            //            m_log.Info("[OPENSIMINVENTORYSTORAGE]: Replaced inventory folder " + folder.ID.ToString());
             //            ret = BackendResponse.Success;
             //        }
             //        else
             //        {
-            //            m_log.ErrorFormat("MySQL REPLACE query affected {0} rows", rowsAffected);
+            //            m_log.ErrorFormat("[OPENSIMINVENTORYSTORAGE]: MySQL REPLACE query affected {0} rows", rowsAffected);
             //            ret = BackendResponse.Failure;
             //        }
             //    }
             //    catch (MySqlException ex)
             //    {
-            //        m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //        m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //        ret = BackendResponse.Failure;
             //    }
             //}
@@ -621,13 +621,13 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //            }
             //            else
             //            {
-            //                m_log.ErrorFormat("MySQL DELETE query affected {0} rows", rowsAffected);
+            //                m_log.ErrorFormat("[OPENSIMINVENTORYSTORAGE]: MySQL DELETE query affected {0} rows", rowsAffected);
             //                ret = BackendResponse.NotFound;
             //            }
             //        }
             //        catch (MySqlException ex)
             //        {
-            //            m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //            m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //            ret = BackendResponse.Failure;
             //        }
             //    }
@@ -668,13 +668,13 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //            }
             //            else
             //            {
-            //                m_log.ErrorFormat("MySQL DELETE query affected {0} rows", rowsAffected);
+            //                m_log.ErrorFormat("[OPENSIMINVENTORYSTORAGE]: MySQL DELETE query affected {0} rows", rowsAffected);
             //                ret = BackendResponse.NotFound;
             //            }
             //        }
             //        catch (MySqlException ex)
             //        {
-            //            m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //            m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //            ret = BackendResponse.Failure;
             //        }
             //    }
@@ -726,13 +726,13 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             //            #endregion Delete folders
 
-            //            m_log.DebugFormat("Deleted {0} inventory objects from MySQL in a folder purge", rowsAffected);
+            //            m_log.DebugFormat("[OPENSIMINVENTORYSTORAGE]: Deleted {0} inventory objects from MySQL in a folder purge", rowsAffected);
 
             //            ret = BackendResponse.Success;
             //        }
             //        catch (MySqlException ex)
             //        {
-            //            m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //            m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //            ret = BackendResponse.Failure;
             //        }
             //    }
@@ -766,7 +766,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //    }
             //    catch (MySqlException ex)
             //    {
-            //        m_log.Error("Connection to MySQL backend failed: " + ex.Message);
+            //        m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
             //        return 0;
             //    }
 
@@ -806,15 +806,15 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                                                                                              m_openSimConfig.GetString("inventory_database_connect"));
                 if (m_inventoryProvider == null)
                 {
-                    m_log.Error("[INVENTORY]: Failed to load a database plugin, server halting.");
+                    m_log.Error("[OPENSIMINVENTORYSTORAGE]: Failed to load a database plugin, server halting.");
                     Environment.Exit(-1);
                 }
                 else
-                    m_log.InfoFormat("[INVENTORY]: Loaded storage backend: {0}", Version);
+                    m_log.InfoFormat("[OPENSIMINVENTORYSTORAGE]: Loaded storage backend: {0}", Version);
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[INVENTORY]: Failure loading data plugin: {0}", e.ToString());
+                m_log.WarnFormat("[OPENSIMINVENTORYSTORAGE]: Failure loading data plugin: {0}", e.ToString());
             }
         }
 
@@ -824,7 +824,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         public void Initialise()
         {
-            m_log.InfoFormat("[INVENTORY]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[OPENSIMINVENTORYSTORAGE]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 

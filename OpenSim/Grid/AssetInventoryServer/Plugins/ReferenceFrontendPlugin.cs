@@ -63,7 +63,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
             // Asset creation
             //m_server.HttpServer.AddStreamHandler(new CreateRequestHandler(server));
 
-            m_log.Info("[ASSET] Reference Frontend loaded.");
+            m_log.Info("[REFERENCEFRONTEND]: Reference Frontend loaded.");
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         /// </summary>
         public void Initialise()
         {
-            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[REFERENCEFRONTEND]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 
@@ -159,7 +159,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         //                }
         //                else if (storageResponse == BackendResponse.NotFound)
         //                {
-        //                    m_log.Warn("Could not find metadata for asset " + assetID.ToString());
+        //                    m_log.Warn("[REFERENCEFRONTEND]: Could not find metadata for asset " + assetID.ToString());
         //                    httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
         //                }
         //                else

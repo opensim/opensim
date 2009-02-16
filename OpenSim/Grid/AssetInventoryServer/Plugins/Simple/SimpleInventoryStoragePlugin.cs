@@ -210,7 +210,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error(ex.Message);
+                    m_log.Error("[SIMPLEINVENTORYSTORAGE]: " + ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
@@ -252,7 +252,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error(ex.Message);
+                    m_log.Error("[SIMPLEINVENTORYSTORAGE]: " + ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
@@ -306,7 +306,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error(ex.Message);
+                    m_log.Error("[SIMPLEINVENTORYSTORAGE]: " + ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
@@ -354,7 +354,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 foreach (string match in matches)
                 {
                     try { File.Delete(match); }
-                    catch (Exception ex) { m_log.ErrorFormat("Failed to delete file {0}: {1}", match, ex.Message); }
+                    catch (Exception ex) { m_log.ErrorFormat("[SIMPLEINVENTORYSTORAGE]: Failed to delete file {0}: {1}", match, ex.Message); }
                 }
 
                 ret = BackendResponse.Success;
@@ -391,7 +391,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 foreach (string match in matches)
                 {
                     try { File.Delete(match); }
-                    catch (Exception ex) { m_log.ErrorFormat("Failed to delete folder file {0}: {1}", match, ex.Message); }
+                    catch (Exception ex) { m_log.ErrorFormat("[SIMPLEINVENTORYSTORAGE]: Failed to delete folder file {0}: {1}", match, ex.Message); }
                 }
 
                 ret = BackendResponse.Success;
@@ -502,7 +502,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 try { Directory.CreateDirectory(folder); }
                 catch (Exception ex)
                 {
-                    m_log.Warn(ex.Message);
+                    m_log.Warn("[SIMPLEINVENTORYSTORAGE]: " + ex.Message);
                     return;
                 }
             }
@@ -526,7 +526,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                     }
                     catch (Exception ex)
                     {
-                        m_log.WarnFormat("Failed loading the index file {0}: {1}", indexPath, ex.Message);
+                        m_log.WarnFormat("[SIMPLEINVENTORYSTORAGE]: Failed loading the index file {0}: {1}", indexPath, ex.Message);
                     }
 
                     if (ownerID != UUID.Zero && owner != null)
@@ -582,7 +582,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             }
             catch (Exception ex)
             {
-                m_log.ErrorFormat("Failed loading inventory from {0}: {1}", folder, ex.Message);
+                m_log.ErrorFormat("[SIMPLEINVENTORYSTORAGE]: Failed loading inventory from {0}: {1}", folder, ex.Message);
             }
         }
 
@@ -594,7 +594,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 
             LoadFiles(DEFAULT_INVENTORY_DIR);
 
-            m_log.InfoFormat("Initialized the inventory index with data for {0} avatars",
+            m_log.InfoFormat("[SIMPLEINVENTORYSTORAGE]: Initialized the inventory index with data for {0} avatars",
                 inventories.Count);
         }
 
@@ -603,7 +603,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         /// </summary>
         public void Initialise()
         {
-            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[SIMPLEINVENTORYSTORAGE]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 

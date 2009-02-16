@@ -50,7 +50,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         {
             //m_server = server;
 
-            m_log.Info("[ASSET] Authorize All loaded.");
+            m_log.Info("[AUTHORIZEALL]: Authorize All loaded.");
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         /// </summary>
         public void Initialise()
         {
-            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[AUTHORIZEALL]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 

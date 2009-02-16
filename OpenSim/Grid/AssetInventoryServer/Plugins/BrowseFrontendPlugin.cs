@@ -59,7 +59,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
             // Request for / or /?...
             //m_server.HttpServer.AddStreamHandler(new BrowseRequestHandler(server));
 
-            m_log.Info("[ASSET] Browser Frontend loaded.");
+            m_log.Info("[BROWSEFRONTEND]: Browser Frontend loaded.");
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         /// </summary>
         public void Initialise()
         {
-            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[BROWSEFRONTEND]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 

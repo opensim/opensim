@@ -62,7 +62,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             // Asset creation
             m_server.HttpServer.AddStreamHandler(new AssetPostHandler(server));
 
-            m_log.Info("[ASSET] OpenSim Asset Frontend loaded.");
+            m_log.Info("[OPENSIMASSETFRONTEND]: OpenSim Asset Frontend loaded.");
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         /// </summary>
         public void Initialise()
         {
-            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[OPENSIMASSETFRONTEND]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 
@@ -128,13 +128,13 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                     }
                     else
                     {
-                        m_log.WarnFormat("Failed to fetch asset data or metadata for {0}: {1}", assetID, dataResponse);
+                        m_log.WarnFormat("[OPENSIMASSETFRONTEND]: Failed to fetch asset data or metadata for {0}: {1}", assetID, dataResponse);
                         httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
                     }
                 }
                 else
                 {
-                    m_log.Warn("Unrecognized OpenSim asset request: " + httpRequest.Url.PathAndQuery);
+                    m_log.Warn("[OPENSIMASSETFRONTEND]: Unrecognized OpenSim asset request: " + httpRequest.Url.PathAndQuery);
                 }
 
                 return buffer;
@@ -161,7 +161,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                 }
                 catch (Exception ex)
                 {
-                    m_log.Warn("Failed to parse POST data (expecting AssetBase): " + ex.Message);
+                    m_log.Warn("[OPENSIMASSETFRONTEND]: Failed to parse POST data (expecting AssetBase): " + ex.Message);
                     httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
                 }
 
@@ -178,7 +178,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                 }
                 else
                 {
-                    m_log.Warn("AssetPostHandler called with no asset data");
+                    m_log.Warn("[OPENSIMASSETFRONTEND]: AssetPostHandler called with no asset data");
                     httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
                 }
 

@@ -55,8 +55,8 @@ namespace OpenSim.Grid.AssetInventoryServer
 
             if (!File.Exists(iniFilePath))
             {
-                m_log.FatalFormat("[CONFIG] File {0} not found, could not load any configuration.", iniFilePath);
-                m_log.FatalFormat("[CONFIG] Did you copy the AssetInventoryServer.ini.example file to AssetInventoryServer.ini?");
+                m_log.FatalFormat("[CONFIG]: File {0} not found, could not load any configuration.", iniFilePath);
+                m_log.FatalFormat("[CONFIG]: Did you copy the AssetInventoryServer.ini.example file to AssetInventoryServer.ini?");
                 Environment.Exit(1);
             }
 

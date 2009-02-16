@@ -47,72 +47,72 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         public void LogAssetMetadataFetch(string extension, BackendResponse response, UUID assetID, DateTime time)
         {
-            m_log.DebugFormat("[{0}] AssetMetadataFetch(): AssetID: {1}, Response: {2}", extension, assetID, response);
+            m_log.DebugFormat("[{0}]: AssetMetadataFetch(): AssetID: {1}, Response: {2}", extension, assetID, response);
         }
 
         public void LogAssetDataFetch(string extension, BackendResponse response, UUID assetID, int dataSize, DateTime time)
         {
-            m_log.DebugFormat("[{0}] AssetDataFetch(): AssetID: {1}, DataSize: {2}, Response: {3}", extension, assetID,
+            m_log.DebugFormat("[{0}]: AssetDataFetch(): AssetID: {1}, DataSize: {2}, Response: {3}", extension, assetID,
                 dataSize, response);
         }
 
         public void LogAssetCreate(string extension, BackendResponse response, UUID assetID, int dataSize, DateTime time)
         {
-            m_log.DebugFormat("[{0}] AssetCreate(): AssetID: {1}, DataSize: {2}, Response: {3}", extension, assetID,
+            m_log.DebugFormat("[{0}]: AssetCreate(): AssetID: {1}, DataSize: {2}, Response: {3}", extension, assetID,
                 dataSize, response);
         }
 
         public void LogInventoryFetch(string extension, BackendResponse response, Uri owner, UUID objID, bool folder, DateTime time)
         {
-            m_log.DebugFormat("[{0}] InventoryFetch(): ObjID: {1}, Folder: {2}, OwnerID: {3}, Response: {4}", extension,
+            m_log.DebugFormat("[{0}]: InventoryFetch(): ObjID: {1}, Folder: {2}, OwnerID: {3}, Response: {4}", extension,
                 objID, folder, owner, response);
         }
 
         public void LogInventoryFetchFolderContents(string extension, BackendResponse response, Uri owner, UUID folderID, DateTime time)
         {
-            m_log.DebugFormat("[{0}] InventoryFetchFolderContents(): FolderID: {1}, OwnerID: {2}, Response: {3}", extension,
+            m_log.DebugFormat("[{0}]: InventoryFetchFolderContents(): FolderID: {1}, OwnerID: {2}, Response: {3}", extension,
                 folderID, owner, response);
         }
 
         public void LogInventoryFetchFolderList(string extension, BackendResponse response, Uri owner, DateTime time)
         {
-            m_log.DebugFormat("[{0}] InventoryFetchFolderList(): OwnerID: {1}, Response: {2}", extension,
+            m_log.DebugFormat("[{0}]: InventoryFetchFolderList(): OwnerID: {1}, Response: {2}", extension,
                 owner, response);
         }
 
         public void LogInventoryFetchInventory(string extension, BackendResponse response, Uri owner, DateTime time)
         {
-            m_log.DebugFormat("[{0}] InventoryFetchInventory(): OwnerID: {1}, Response: {2}", extension,
+            m_log.DebugFormat("[{0}]: InventoryFetchInventory(): OwnerID: {1}, Response: {2}", extension,
                 owner, response);
         }
 
         public void LogInventoryFetchActiveGestures(string extension, BackendResponse response, Uri owner, DateTime time)
         {
-            m_log.DebugFormat("[{0}] InventoryFetchActiveGestures(): OwnerID: {1}, Response: {2}", extension,
+            m_log.DebugFormat("[{0}]: InventoryFetchActiveGestures(): OwnerID: {1}, Response: {2}", extension,
                 owner, response);
         }
 
         public void LogInventoryCreate(string extension, BackendResponse response, Uri owner, bool folder, DateTime time)
         {
-            m_log.DebugFormat("[{0}] InventoryCreate(): OwnerID: {1}, Response: {2}", extension,
+            m_log.DebugFormat("[{0}]: InventoryCreate(): OwnerID: {1}, Response: {2}", extension,
                 owner, response);
         }
 
         public void LogInventoryCreateInventory(string extension, BackendResponse response, DateTime time)
         {
-            m_log.DebugFormat("[{0}] InventoryCreateInventory(): Response: {1}", extension,
+            m_log.DebugFormat("[{0}]: InventoryCreateInventory(): Response: {1}", extension,
                 response);
         }
 
         public void LogInventoryDelete(string extension, BackendResponse response, Uri owner, UUID objID, bool folder, DateTime time)
         {
-            m_log.DebugFormat("[{0}] InventoryDelete(): OwnerID: {1}, Folder: {2}, Response: {3}", extension,
+            m_log.DebugFormat("[{0}]: InventoryDelete(): OwnerID: {1}, Folder: {2}, Response: {3}", extension,
                 owner, folder, response);
         }
 
         public void LogInventoryPurgeFolder(string extension, BackendResponse response, Uri owner, UUID folderID, DateTime time)
         {
-            m_log.DebugFormat("[{0}] InventoryPurgeFolder(): OwnerID: {1}, FolderID: {2}, Response: {3}", extension,
+            m_log.DebugFormat("[{0}]: InventoryPurgeFolder(): OwnerID: {1}, FolderID: {2}, Response: {3}", extension,
                 owner, response);
         }
 
@@ -130,7 +130,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         /// </summary>
         public void Initialise()
         {
-            m_log.Info("[ASSET] Null metrics loaded.");
+            m_log.Info("[NULLMETRICS]: Null metrics loaded.");
         }
 
         public void Dispose()

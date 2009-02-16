@@ -63,7 +63,7 @@ namespace OpenSim.Grid.AssetInventoryServer
         public bool Start()
         {
             Startup();
-            m_log.Info("[ASSETINVENTORY] Starting AssetInventory Server");
+            m_log.Info("[ASSETINVENTORY]: Starting AssetInventory Server");
 
             try
             {
@@ -71,7 +71,7 @@ namespace OpenSim.Grid.AssetInventoryServer
             }
             catch (Exception)
             {
-                m_log.Error("[ASSETINVENTORY] Failed to load the config.");
+                m_log.Error("[ASSETINVENTORY]: Failed to load the config.");
                 return false;
             }
 
@@ -92,7 +92,7 @@ namespace OpenSim.Grid.AssetInventoryServer
             }
             catch (Exception ex)
             {
-                m_log.Error("[ASSETINVENTORY] Initializing the HTTP server failed, shutting down: " + ex.Message);
+                m_log.Error("[ASSETINVENTORY]: Initializing the HTTP server failed, shutting down: " + ex.Message);
                 Shutdown();
                 return false;
             }
@@ -122,18 +122,18 @@ namespace OpenSim.Grid.AssetInventoryServer
         {
             foreach (IAssetInventoryServerPlugin plugin in m_frontends)
             {
-                m_log.Debug("[ASSETINVENTORY] Disposing plugin " + plugin.Name);
+                m_log.Debug("[ASSETINVENTORY]: Disposing plugin " + plugin.Name);
                 try { plugin.Dispose(); }
                 catch (Exception ex)
-                { m_log.ErrorFormat("[ASSETINVENTORY] Failure shutting down plugin {0}: {1}", plugin.Name, ex.Message); }
+                { m_log.ErrorFormat("[ASSETINVENTORY]: Failure shutting down plugin {0}: {1}", plugin.Name, ex.Message); }
             }
 
             foreach (IAssetInventoryServerPlugin plugin in m_backends)
             {
-                m_log.Debug("[ASSETINVENTORY] Disposing plugin " + plugin.Name);
+                m_log.Debug("[ASSETINVENTORY]: Disposing plugin " + plugin.Name);
                 try { plugin.Dispose(); }
                 catch (Exception ex)
-                { m_log.ErrorFormat("[ASSETINVENTORY] Failure shutting down plugin {0}: {1}", plugin.Name, ex.Message); }
+                { m_log.ErrorFormat("[ASSETINVENTORY]: Failure shutting down plugin {0}: {1}", plugin.Name, ex.Message); }
             }
 
             if (HttpServer != null)
@@ -145,7 +145,7 @@ namespace OpenSim.Grid.AssetInventoryServer
             m_httpServer = new BaseHttpServer(port);
             m_httpServer.Start();
 
-            m_log.Info("[ASSETINVENTORY] AssetInventory server is listening on port " + port);
+            m_log.Info("[ASSETINVENTORY]: AssetInventory server is listening on port " + port);
         }
 
         private IAssetInventoryServerPlugin LoadAssetInventoryServerPlugin(string addinPath, string provider)

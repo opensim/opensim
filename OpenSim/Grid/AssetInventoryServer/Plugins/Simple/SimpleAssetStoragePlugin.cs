@@ -83,7 +83,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    m_log.ErrorFormat("Failed reading data for asset {0} from {1}: {2}", assetID, filename, ex.Message);
+                    m_log.ErrorFormat("[SIMPLEASSETSTORAGE]: Failed reading data for asset {0} from {1}: {2}", assetID, filename, ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
@@ -114,7 +114,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    m_log.ErrorFormat("Failed reading data for asset {0} from {1}: {2}", assetID, filename, ex.Message);
+                    m_log.ErrorFormat("[SIMPLEASSETSTORAGE]: Failed reading data for asset {0} from {1}: {2}", assetID, filename, ex.Message);
                     ret = BackendResponse.Failure;
                 }
 
@@ -165,7 +165,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             }
             catch (Exception ex)
             {
-                m_log.ErrorFormat("Failed writing data for asset {0} to {1}: {2}", asset.FullID, filename, ex.Message);
+                m_log.ErrorFormat("[SIMPLEASSETSTORAGE]: Failed writing data for asset {0} to {1}: {2}", asset.FullID, filename, ex.Message);
                 ret = BackendResponse.Failure;
             }
 
@@ -203,7 +203,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             LoadFiles(DEFAULT_DATA_DIR, false);
             LoadFiles(TEMP_DATA_DIR, true);
 
-            m_log.InfoFormat("Initialized the store index with metadata for {0} assets",
+            m_log.InfoFormat("[SIMPLEASSETSTORAGE]: Initialized the store index with metadata for {0} assets",
                 metadataStorage.Count);
         }
 
@@ -212,7 +212,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         /// </summary>
         public void Initialise()
         {
-            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[SIMPLEASSETSTORAGE]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 
@@ -239,7 +239,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             if (Directory.Exists(TEMP_DATA_DIR))
             {
                 try { Directory.Delete(TEMP_DATA_DIR); }
-                catch (Exception ex) { m_log.Error(ex.Message); }
+                catch (Exception ex) { m_log.Error("[SIMPLEASSETSTORAGE]: " + ex.Message); }
             }
         }
 
@@ -251,7 +251,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 try { Directory.CreateDirectory(folder); }
                 catch (Exception ex)
                 {
-                    m_log.Warn(ex.Message);
+                    m_log.Warn("[SIMPLEASSETSTORAGE]: " + ex.Message);
                     return;
                 }
             }
@@ -283,7 +283,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    m_log.Warn(ex.Message);
+                    m_log.Warn("[SIMPLEASSETSTORAGE]: " + ex.Message);
                 }
             }
         }
