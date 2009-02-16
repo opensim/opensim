@@ -21,4 +21,7 @@
     <Extension path="/OpenSim/AssetInventoryServer/Frontend">
         <Plugin id="OpenSimAssetFrontend" provider="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.OpenSimAssetFrontendPlugin" />
     </Extension>
+    <Extension path="/OpenSim/AssetInventoryServer/Frontend">
+        <Plugin id="OpenSimInventoryFrontend" provider="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.OpenSimInventoryFrontendPlugin" />
+    </Extension>
 </Addin>

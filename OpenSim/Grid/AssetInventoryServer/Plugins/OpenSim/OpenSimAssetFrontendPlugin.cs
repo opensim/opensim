@@ -43,7 +43,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 {
     public class OpenSimAssetFrontendPlugin : IAssetInventoryServerPlugin
     {
-        AssetInventoryServer server;
+        private AssetInventoryServer server;
 
         public OpenSimAssetFrontendPlugin()
         {
@@ -60,6 +60,8 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             // Asset creation
             server.HttpServer.AddHandler("post", null, @"^/assets/", AssetPostHandler);
+
+            Logger.Log.Info("[ASSET] OpenSim Asset Frontend loaded.");
         }
 
         /// <summary>

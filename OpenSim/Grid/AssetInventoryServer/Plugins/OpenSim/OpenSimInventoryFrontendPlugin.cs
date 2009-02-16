@@ -36,21 +36,24 @@ using ExtensionLoader;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using HttpServer;
+using OpenSim.Framework;
 
-namespace OpenSim.Grid.AssetInventoryServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 {
-    public class OpenSimInventoryFrontend : IExtension<AssetInventoryServer>
+    public class OpenSimInventoryFrontendPlugin : IAssetInventoryServerPlugin
     {
-        AssetInventoryServer server;
-        Utils.InventoryItemSerializer itemSerializer = new Utils.InventoryItemSerializer();
-        Utils.InventoryFolderSerializer folderSerializer = new Utils.InventoryFolderSerializer();
-        Utils.InventoryCollectionSerializer collectionSerializer = new Utils.InventoryCollectionSerializer();
+        private AssetInventoryServer server;
+        private Utils.InventoryItemSerializer itemSerializer = new Utils.InventoryItemSerializer();
+        private Utils.InventoryFolderSerializer folderSerializer = new Utils.InventoryFolderSerializer();
+        private Utils.InventoryCollectionSerializer collectionSerializer = new Utils.InventoryCollectionSerializer();
 
-        public OpenSimInventoryFrontend()
+        public OpenSimInventoryFrontendPlugin()
         {
         }
 
-        public void Start(AssetInventoryServer server)
+        #region IPlugin implementation
+
+        public void Initialise(AssetInventoryServer server)
         {
             this.server = server;
 
@@ -64,11 +67,35 @@ namespace OpenSim.Grid.AssetInventoryServer.Extensions
             server.HttpServer.AddHandler("post", null, @"^/DeleteItem/", DeleteItemHandler);
             server.HttpServer.AddHandler("post", null, @"^/RootFolders/", RootFoldersHandler);
             server.HttpServer.AddHandler("post", null, @"^/ActiveGestures/", ActiveGesturesHandler);
+
+            Logger.Log.Info("[INVENTORY] OpenSim Inventory Frontend loaded.");
         }
 
-        public void Stop()
+        /// <summary>
+        /// <para>Initialises asset interface</para>
+        /// </summary>
+        public void Initialise()
+        {
+            Logger.Log.InfoFormat("[INVENTORY]: {0} cannot be default-initialized!", Name);
+            throw new PluginNotInitialisedException(Name);
+        }
+
+        public void Dispose()
         {
         }
+
+        public string Version
+        {
+            // TODO: this should be something meaningful and not hardcoded?
+            get { return "0.1"; }
+        }
+
+        public string Name
+        {
+            get { return "AssetInventoryServer OpenSim asset frontend"; }
+        }
+
+        #endregion IPlugin implementation
 
         bool GetInventoryHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
         {

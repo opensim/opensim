@@ -55,7 +55,7 @@ namespace OpenSim.Grid.AssetInventoryServer
         public IAuthorizationProvider AuthorizationProvider;
         public IMetricsProvider MetricsProvider;
 
-        private IAssetInventoryServerPlugin frontend;
+        private List<IAssetInventoryServerPlugin> frontends = new List<IAssetInventoryServerPlugin>();
 
         public AssetInventoryServer()
         {
@@ -107,7 +107,7 @@ namespace OpenSim.Grid.AssetInventoryServer
             }
 
             StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/StorageProvider",  "OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll") as IAssetStorageProvider;
-            InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryProvider",  "OpenSim.Grid.AssetInventoryServer.Plugins.Simple.dll") as IInventoryStorageProvider;
+            InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryProvider",  "OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll") as IInventoryStorageProvider;
             MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider", String.Empty) as IMetricsProvider;
 
             try
@@ -121,7 +121,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 return false;
             }
 
-            frontend = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/Frontend", String.Empty);
+            frontends.AddRange(LoadAssetInventoryServerPlugins("/OpenSim/AssetInventoryServer/Frontend", String.Empty));
 
             return true;
         }
@@ -193,6 +193,21 @@ namespace OpenSim.Grid.AssetInventoryServer
             loader.Load();
 
             return loader.Plugin;
+        }
+
+        private List<IAssetInventoryServerPlugin> LoadAssetInventoryServerPlugins(string addinPath, string provider)
+        {
+            PluginLoader<IAssetInventoryServerPlugin> loader = new PluginLoader<IAssetInventoryServerPlugin>(new AssetInventoryServerPluginInitialiser(this));
+
+            if (provider == String.Empty)
+                loader.Add(addinPath);
+            else
+                loader.Add(addinPath, new PluginProviderFilter(provider));
+            //loader.Add(addinPath, new PluginCountConstraint(1));
+
+            loader.Load();
+
+            return loader.Plugins;
         }
     }
 
