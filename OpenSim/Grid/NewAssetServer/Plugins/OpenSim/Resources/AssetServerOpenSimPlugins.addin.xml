@@ -1,0 +1,14 @@
+<Addin id="OpenSim.Grid.AssetServer.Plugins.OpenSim" version="0.1">
+    <Runtime>
+        <Import assembly="OpenSim.Grid.AssetServer.Plugins.OpenSim.dll"/>
+    </Runtime>
+    <Dependencies>
+        <Addin id="OpenSim.Grid.NewAssetServer" version="0.1" />
+    </Dependencies>
+    <ExtensionPoint path = "/OpenSim/AssetData">
+        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Framework.IAssetProviderPlugin"/>
+    </ExtensionPoint>
+    <Extension path="/OpenSim/AssetServer/StorageProvider">
+        <Plugin id="OpenSimAssetStorage" provider="OpenSim.Grid.AssetServer.Plugins.OpenSim.dll" type="AssetServer.Plugins.OpenSimAssetStoragePlugin" />
+    </Extension>
+</Addin>
