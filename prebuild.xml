@@ -769,7 +769,6 @@
       <Reference name="log4net2"/>
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData2"/>
-      <Reference name="ExtensionLoader"/>
       <Reference name="HttpServer"/>
 
       <!-- for Simple Storage and MySQL storage -->

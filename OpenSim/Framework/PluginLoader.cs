@@ -278,6 +278,9 @@ namespace OpenSim.Framework
     public class PluginExtensionNode : ExtensionNode
     {
         [NodeAttribute]
+        string id = "";
+
+        [NodeAttribute]
         string provider = "";
 
         [NodeAttribute]
@@ -285,6 +288,7 @@ namespace OpenSim.Framework
 
         Type typeobj;
 
+        public string ID { get { return id; } }
         public string Provider { get { return provider; } }
         public string TypeName { get { return type; } }
 
@@ -349,7 +353,7 @@ namespace OpenSim.Framework
     }
 
     /// <summary>
-    /// Filters out which plugin to load based on its the plugin name or names given.  Plugin names are contained in
+    /// Filters out which plugin to load based on the plugin name or names given.  Plugin names are contained in
     /// their addin.xml
     /// </summary>
     public class PluginProviderFilter : IPluginFilter
@@ -382,6 +386,48 @@ namespace OpenSim.Framework
             for (int i = 0; i < m_filters.Length; i++)
             {
                 if (m_filters[i] == plugin.Provider)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Filters plugins according to their ID. Plugin IDs are contained in their addin.xml
+    /// </summary>
+    public class PluginIdFilter : IPluginFilter
+    {
+        private string[] m_filters;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="p">
+        /// Plugin ID or IDs on which to filter. Multiple names should be separated by commas.
+        /// </param>
+        public PluginIdFilter(string p)
+        {
+            m_filters = p.Split(',');
+
+            for (int i = 0; i < m_filters.Length; i++)
+            {
+                m_filters[i] = m_filters[i].Trim();
+            }
+        }
+
+        /// <summary>
+        /// Apply this filter to <paramref name="plugin" />.
+        /// </summary>
+        /// <param name="plugin">PluginExtensionNode instance to check whether it passes the filter.</param>
+        /// <returns>true if the plugin's ID matches one of the filters, false otherwise.</returns>
+        public bool Apply (PluginExtensionNode plugin)
+        {
+            for (int i = 0; i < m_filters.Length; i++)
+            {
+                if (m_filters[i] == plugin.ID)
                 {
                     return true;
                 }

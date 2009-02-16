@@ -35,7 +35,6 @@ using MySql.Data.MySqlClient;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Grid.AssetInventoryServer.Extensions;
 using OpenSim.Data;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
@@ -58,7 +57,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             metadata = null;
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.AssetDatabaseConnect))
             {
                 IDataReader reader;
 
@@ -104,7 +103,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             assetData = null;
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.AssetDatabaseConnect))
             {
                 IDataReader reader;
 
@@ -156,7 +155,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.AssetDatabaseConnect))
             {
                 try
                 {
@@ -205,7 +204,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             int rowCount = 0;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.AssetDatabaseConnect))
             {
                 MySqlDataReader reader;
 
@@ -255,7 +254,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             try
             {
-                m_assetProvider = DataPluginFactory.LoadDataPlugin<IAssetDataPlugin>("OpenSim.Data.MySQL.dll", server.ConfigFile.Configs["MySQL"].GetString("database_connect", null));
+                m_assetProvider = DataPluginFactory.LoadDataPlugin<IAssetDataPlugin>("OpenSim.Data.MySQL.dll", server.ConfigFile.AssetDatabaseConnect);
                 if (m_assetProvider == null)
                 {
                     Logger.Log.Error("[ASSET]: Failed to load a database plugin, server halting.");

@@ -8,7 +8,7 @@
     </Dependencies>
 
     <Extension path="/OpenSim/AssetInventoryServer/MetricsProvider">
-        <Plugin id="AssetInventoryMetrics" provider="OpenSim.Grid.AssetInventoryServer.Plugins.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.NullMetricsPlugin" />
+        <Plugin id="NullMetrics" provider="OpenSim.Grid.AssetInventoryServer.Plugins.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.NullMetricsPlugin" />
     </Extension>
     <Extension path="/OpenSim/AssetInventoryServer/Frontend">
         <Plugin id="BrowseFrontend" provider="OpenSim.Grid.AssetInventoryServer.Plugins.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.BrowseFrontendPlugin" />

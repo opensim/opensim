@@ -1,153 +1,107 @@
-[Config]
+;[Config]
 
-; The port number for the asset server to listen on. If a valid SSL certificate
-; file is given for SSLCertFile, the HTTPS protocol will be used. Otherwise, the
-; HTTP protocol is used.
-ListenPort = 8003
+; The port number for the asset server to listen on.
+listen_port = 8003
 
-; An SSL certificate file for the server. If a valid raw certificate or PKCS#12
-; file is given the server will run in HTTPS mode.
-;SSLCertFile = server.p12
-
-[Extensions]
+;[Extensions]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Storage Providers
+; Asset Storage Provider
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Simple storage is a very basic storage system for the purposes of illustrating
-; a storage backend example. The assets are stored in SimpleAssets/ and 
+; a storage backend example. The assets are stored in SimpleAssets/ and
 ; TempAssets/ (which is deleted when the server shuts down). Metadata is
 ; generated for all of the files at startup and when new assets are uploaded.
-;SimpleStorage
+;asset_storage_provider = SimpleAssetStorage
 
 ; OpenSimMySQL storage connects to a MySQL server that has an assets table created
 ; by OpenSim. Open the AssetServer_Config.xml file from OpenSim and use the
 ; database connection string for the database_connect option in the MySQL section
-; below. This backend combined with the OpenSimFrontend will allow the asset 
-; server to be used as a drop-in replacement for OpenSim.Grid.AssetServer.exe, 
+; below. This backend combined with the OpenSimFrontend will allow the asset
+; server to be used as a drop-in replacement for OpenSim.Grid.AssetServer.exe,
 ; while also allowing other frontends to run.
-OpenSimMySQLStorage
-
-; Uses Amazon.com's Simple Storage Service (http://aws.amazon.com/s3/) to store
-; asset data and metadata. This backend does not handle any data requests, as the
-; data is stored remotely and metadata replies will contain the amazon.com URL
-; holding the actual asset data. Your Access Key ID and Secret Access Key must be
-; set in the [Amazon] section below for this backend to function. If
-; UseCloudFront is true and your Amazon account has CloudFront enabled, 
-; CloudFront URLs will be returned in metadata instead of normal S3 URLs.
-;AmazonS3Storage
-
-; Uses memcached (http://www.danga.com/memcached/) as a caching layer on top of
-; another storage backend. If you use this, make sure you enable another storage
-; provider as the actual backend, and that the MemcacheStorage line appears in 
-; this config file after the other storage provider.
-;MemcachedStorage
+asset_storage_provider = OpenSimAssetStorage
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Inventory Providers
+; Inventory Storage Provider
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Simple inventory is a very basic inventory storage system for the purposes of
-; illustrating an inventory backend example. The inventory is stored in 
+; illustrating an inventory backend example. The inventory is stored in
 ; SimpleInventory/ by creating a folder for each agent that contains all of the
 ; inventory items and folders serialized as XML files.
-;SimpleInventory
+;inventory_asset_provider = SimpleInventoryStorage
 
 ; OpenSimMySQL inventory connects to a MySQL server that has an inventory table
 ; created by OpenSim. If the OpenSimMySQLStorage backend is also being used, the
-; inventory and asset tables must be stored in the same database. The 
-; database_connect string in the MySQL section below is used to connect to the 
+; inventory and asset tables must be stored in the same database. The
+; database_connect string in the MySQL section below is used to connect to the
 ; database. This backend combined with the OpenSimInventoryFrontend will allow
-; the server to be used as a drop-in replacement for 
+; the server to be used as a drop-in replacement for
 ; OpenSim.Grid.InventoryServer.exe, while also allowing other frontends to run.
-OpenSimMySQLInventory
+inventory_asset_provider = OpenSimInventoryStorage
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Authentication Providers
+; Authentication Provider
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; OpenID provides a direct method of authenticating with the asset server. Users
-; can provide credentials and receive a session token directly from the asset 
-; server. The OpenIdAuth module provides a browser-based form login and an 
-; XML-based API, both accessible through the URL /authenticate.
-;OpenIdAuth
-NullAuthentication
+; NullAuthentication does nothing.
+authentication_provider = NullAuthentication
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Authorization Providers
+; Authorization Provider
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Authorize all is a dummy authorization module that allows all requests for
 ; metadata, data, and asset creation. Use this extension if your primary
 ; storage provider or front-end interface does not support authentication.
-AuthorizeAll
+authroization_provider = AuthorizeAll
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Metrics Providers
+; Metrics Provider
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; NullMetrics contains empty logging functions. Use this metrics provider if
 ; you want to disable metrics collection and reporting.
-NullMetrics
+metrics_provider = NullMetrics
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Frontends
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; A simple frontend that provides three basic REST methods. /assetid/metadata
-; will return the metadata for an asset (currently in LLSD format, that will
-; change soon). /assetid/data will return the raw asset data with proper
-; Content-Type and Content-Disposition headers to make downloading assets in a
-; web browser easy.
-ReferenceFrontend
+; Specify multiple frontends as a comma-separated list.
 
-; A frontend that matches the existing OpenSim XML for transferring grid
-; assets. This will allow the asset server to function as a drop-in replacement
-; for OpenSim.Grid.AssetServer.exe, and can be combined with OpenSimMySQLStorage
-; to provide an identical replacement or any other storage backend.
-OpenSimFrontend
+; ReferenceFrontend is a simple frontend that provides three basic REST
+; methods. /assetid/metadata will return the metadata for an asset (currently in
+; LLSD format, that will change soon). /assetid/data will return the raw asset
+; data with proper Content-Type and Content-Disposition headers to make
+; downloading assets in a web browser easy.
 
-; A frontend that matches the existing OpenSim XML for handling inventory
-; transactions. This will allow the asset server to function as a drop-in
-; replacement for OpenSim.Grid.InventoryServer.exe, and can be combined with 
-; OpenSimMySQLInventory to provide an identical replacement or any other 
-; inventory backend.
-OpenSimInventoryFrontend
+; OpenSimAssetFrontend is a frontend that matches the existing OpenSim XML for
+; transferring grid assets. This will allow the asset server to function as a
+; drop-in replacement for OpenSim.Grid.AssetServer.exe, and can be combined with
+; OpenSimAssetStorage to provide an identical replacement, or any other asset
+; storage backend.
 
-; An HTML interface for browsing through the asset store
-BrowseFrontend
+; OpenSimInventoryFrontend is a frontend that matches the existing OpenSim XML
+; for transferring inventory. This will allow the inventory server to function as
+; a drop-in replacement for OpenSim.Grid.InventoryServer.exe, and can be combined
+; with OpenSimInventoryStorage to provide an identical replacement, or any other
+; inventory storage backend.
+; *** NOTE: Inventory is not currently implemented.
 
-[MySQL]
+; BrowseFrontend is an HTML interface for browsing through the asset store.
 
-; Database connection string used by the OpenSim MySQL backend. If this line is
-; commented out or missing, the server will look for an AssetServer_Config.xml 
-; in the current working directory. This file is generated by 
-; OpenSim.Grid.AssetServer.exe and can be used without modification.
-database_connect = "Server=localhost; Database=opensim; User=changeme; Password=changeme;"
+frontends = ReferenceFrontend,OpenSimAssetFrontend,OpenSimInventoryFrontend,BrowseFrontend
 
-[Amazon]
+;[MySQL]
 
-; Get these values by logging in to your Amazon S3 account and going to
-; https://aws-portal.amazon.com/gp/aws/developer/account/index.html?ie=UTF8&action=access-key
-AccessKeyID = xxxxxxxxxxxxxxxxxxxx
-SecretAccessKey = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-; The bucket, or namespace, in your Amazon S3 account for storing assets in.
-; Bucket names on S3 are global identifiers, and must be unique. Think up 
-; something clever or random.
-BucketName = changeme
-
-; Amazon CloudFront is a Content Distribution Network for S3 stores. If this is
-; set to true, AmazonS3Storage will try to locate the first available CloudFront
-; distribution tied to the active S3 bucket. If no usable distribution is found,
-; a new one will be created.
-UseCloudFront = true
-
-[Memcached]
-
-; A comma-separated list of the memcached servers that make up your caching
-; pool. Each server is a hostname or IP address, optionally followed by a 
-; colon and port number if the server is not listening on the default 11211
-; port.
-Servers = localhost
+; Database connection string used by the OpenSim MySQL backend. If these lines
+; are commented out or missing, the server will look for an
+; AssetServer_Config.xml or InventoryServer_Config.xml file in the current
+; working directory. These files are generated by OpenSim.Grid.AssetServer.exe
+; and OpenSim.Grid.InventoryServer.exe, respectively, and can be used without
+; modification.
+asset_database_connect = "Server=localhost; Database=opensim; User=changeme; Password=changeme;"
+inventory_database_connect = "Server=localhost; Database=opensim; User=changeme; Password=changeme;"

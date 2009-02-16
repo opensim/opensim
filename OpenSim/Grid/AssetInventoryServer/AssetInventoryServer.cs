@@ -32,11 +32,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
-using System.ServiceProcess;
-using ExtensionLoader;
-using ExtensionLoader.Config;
-//using HttpServer;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
@@ -44,12 +39,11 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Grid.AssetInventoryServer
 {
-    public class AssetInventoryServer : BaseOpenSimServer//ServiceBase
+    public class AssetInventoryServer : BaseOpenSimServer
     {
         public const string CONFIG_FILE = "AssetInventoryServer.ini";
 
-        //public WebServer HttpServer;
-        public IniConfigSource ConfigFile;
+        public AssetInventoryConfig ConfigFile;
 
         public IAssetStorageProvider StorageProvider;
         public IInventoryStorageProvider InventoryProvider;
@@ -57,72 +51,39 @@ namespace OpenSim.Grid.AssetInventoryServer
         public IAuthorizationProvider AuthorizationProvider;
         public IMetricsProvider MetricsProvider;
 
-        private List<IAssetInventoryServerPlugin> frontends = new List<IAssetInventoryServerPlugin>();
-        private List<IAssetInventoryServerPlugin> backends = new List<IAssetInventoryServerPlugin>();
+        private List<IAssetInventoryServerPlugin> m_frontends = new List<IAssetInventoryServerPlugin>();
+        private List<IAssetInventoryServerPlugin> m_backends = new List<IAssetInventoryServerPlugin>();
 
         public AssetInventoryServer()
         {
             m_console = new ConsoleBase("Asset");
             MainConsole.Instance = m_console;
-            //this.ServiceName = "OpenSimAssetInventoryServer";
         }
 
         public bool Start()
         {
             Logger.Log.Info("Starting Asset Server");
-            List<string> extensionList = null;
-            int port = 0;
-            X509Certificate2 serverCert = null;
+            uint port = 0;
 
-            try { ConfigFile = new IniConfigSource(CONFIG_FILE); }
+            try { ConfigFile = new AssetInventoryConfig("AssetInventory Server", (Path.Combine(Util.configDir(), "AssetInventoryServer.ini"))); }
             catch (Exception)
             {
                 Logger.Log.Error("Failed to load the config file " + CONFIG_FILE);
                 return false;
             }
 
-            try
-            {
-                IConfig extensionConfig = ConfigFile.Configs["Config"];
+            StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/StorageProvider",  ConfigFile.AssetStorageProvider) as IAssetStorageProvider;
+            m_backends.Add(StorageProvider);
 
-                // Load the port number to listen on
-                port = extensionConfig.GetInt("ListenPort");
+            InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryProvider", ConfigFile.InventoryStorageProvider) as IInventoryStorageProvider;
+            m_backends.Add(InventoryProvider);
 
-                // Load the server certificate file
-                string certFile = extensionConfig.GetString("SSLCertFile");
-                if (!String.IsNullOrEmpty(certFile))
-                    serverCert = new X509Certificate2(certFile);
-            }
-            catch (Exception)
-            {
-                Logger.Log.Error("Failed to load [Config] section from " + CONFIG_FILE);
-                return false;
-            }
+            MetricsProvider = LoadAssetInventoryServerPlugins("/OpenSim/AssetInventoryServer/MetricsProvider", ConfigFile.MetricsProvider) as IMetricsProvider;
+            m_backends.Add(MetricsProvider);
 
             try
             {
-                // Load the extension list (and ordering) from our config file
-                IConfig extensionConfig = ConfigFile.Configs["Extensions"];
-                extensionList = new List<string>(extensionConfig.GetKeys());
-            }
-            catch (Exception)
-            {
-                Logger.Log.Error("Failed to load [Extensions] section from " + CONFIG_FILE);
-                return false;
-            }
-
-            StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/StorageProvider",  "OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll") as IAssetStorageProvider;
-            backends.Add(StorageProvider);
-
-            InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryProvider",  "OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll") as IInventoryStorageProvider;
-            backends.Add(InventoryProvider);
-
-            MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider", String.Empty) as IMetricsProvider;
-            backends.Add(MetricsProvider);
-
-            try
-            {
-                InitHttpServer(port, serverCert);
+                InitHttpServer(ConfigFile.HttpPort);
             }
             catch (Exception ex)
             {
@@ -131,13 +92,13 @@ namespace OpenSim.Grid.AssetInventoryServer
                 return false;
             }
 
-            frontends.AddRange(LoadAssetInventoryServerPlugins("/OpenSim/AssetInventoryServer/Frontend", String.Empty));
+            AuthenticationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthenticationProvider", ConfigFile.AuthenticationProvider) as IAuthenticationProvider;
+            m_backends.Add(AuthenticationProvider);
 
-            AuthenticationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthenticationProvider", String.Empty) as IAuthenticationProvider;
-            backends.Add(AuthenticationProvider);
+            AuthorizationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthorizationProvider", ConfigFile.AuthorizationProvider) as IAuthorizationProvider;
+            m_backends.Add(AuthorizationProvider);
 
-            AuthorizationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthorizationProvider", String.Empty) as IAuthorizationProvider;
-            backends.Add(AuthorizationProvider);
+            m_frontends.AddRange(LoadAssetInventoryServerPlugins("/OpenSim/AssetInventoryServer/Frontend", ConfigFile.Frontends));
 
             return true;
         }
@@ -154,7 +115,7 @@ namespace OpenSim.Grid.AssetInventoryServer
 
         public override void ShutdownSpecific()
         {
-            foreach (IAssetInventoryServerPlugin plugin in frontends)
+            foreach (IAssetInventoryServerPlugin plugin in m_frontends)
             {
                 Logger.Log.Debug("Disposing plugin " + plugin.Name);
                 try { plugin.Dispose(); }
@@ -162,7 +123,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 { Logger.Log.ErrorFormat("Failure shutting down plugin {0}: {1}", plugin.Name, ex.Message); }
             }
 
-            foreach (IAssetInventoryServerPlugin plugin in backends)
+            foreach (IAssetInventoryServerPlugin plugin in m_backends)
             {
                 Logger.Log.Debug("Disposing plugin " + plugin.Name);
                 try { plugin.Dispose(); }
@@ -174,46 +135,13 @@ namespace OpenSim.Grid.AssetInventoryServer
                 HttpServer.Stop();
         }
 
-        void InitHttpServer(int port, X509Certificate serverCert)
+        void InitHttpServer(uint port)
         {
-            //if (serverCert != null)
-            //    HttpServer = new WebServer(IPAddress.Any, port, serverCert, null, false);
-            //else
-            //    HttpServer = new WebServer(IPAddress.Any, port);
-
-            //HttpServer.LogWriter = new log4netLogWriter(Logger.Log);
-
-            //HttpServer.Set404Handler(
-            //    delegate(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-            //    {
-            //        Logger.Log.Warn("Requested page was not found: " + request.Uri.PathAndQuery);
-
-            //        string notFoundString = "<html><head><title>Page Not Found</title></head><body>The requested page or method was not found</body></html>";
-            //        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(notFoundString);
-            //        response.Body.Write(buffer, 0, buffer.Length);
-            //        response.Status = HttpStatusCode.NotFound;
-            //        return true;
-            //    }
-            //);
-
-            m_httpServer = new BaseHttpServer(8003);
-            HttpServer.Start();
+            m_httpServer = new BaseHttpServer(port);
+            m_httpServer.Start();
 
             Logger.Log.Info("Asset server is listening on port " + port);
         }
-
-        #region ServiceBase Overrides
-
-        //protected override void OnStart(string[] args)
-        //{
-        //    Start();
-        //}
-        //protected override void OnStop()
-        //{
-        //    Shutdown();
-        //}
-
-        #endregion
 
         private IAssetInventoryServerPlugin LoadAssetInventoryServerPlugin(string addinPath, string provider)
         {
@@ -222,7 +150,7 @@ namespace OpenSim.Grid.AssetInventoryServer
             if (provider == String.Empty)
                 loader.Add(addinPath);
             else
-                loader.Add(addinPath, new PluginProviderFilter(provider));
+                loader.Add(addinPath, new PluginIdFilter(provider));
             //loader.Add(addinPath, new PluginCountConstraint(1));
 
             loader.Load();
@@ -237,7 +165,7 @@ namespace OpenSim.Grid.AssetInventoryServer
             if (provider == String.Empty)
                 loader.Add(addinPath);
             else
-                loader.Add(addinPath, new PluginProviderFilter(provider));
+                loader.Add(addinPath, new PluginIdFilter(provider));
             //loader.Add(addinPath, new PluginCountConstraint(1));
 
             loader.Load();
@@ -245,37 +173,4 @@ namespace OpenSim.Grid.AssetInventoryServer
             return loader.Plugins;
         }
     }
-
-    //public class log4netLogWriter : ILogWriter
-    //{
-    //    ILog Log;
-
-    //    public log4netLogWriter(ILog log)
-    //    {
-    //        Log = log;
-    //    }
-
-    //    public void Write(object source, LogPrio prio, string message)
-    //    {
-    //        switch (prio)
-    //        {
-    //            case LogPrio.Trace:
-    //            case LogPrio.Debug:
-    //                Log.DebugFormat("{0}: {1}", source, message);
-    //                break;
-    //            case LogPrio.Info:
-    //                Log.InfoFormat("{0}: {1}", source, message);
-    //                break;
-    //            case LogPrio.Warning:
-    //                Log.WarnFormat("{0}: {1}", source, message);
-    //                break;
-    //            case LogPrio.Error:
-    //                Log.ErrorFormat("{0}: {1}", source, message);
-    //                break;
-    //            case LogPrio.Fatal:
-    //                Log.FatalFormat("{0}: {1}", source, message);
-    //                break;
-    //        }
-    //    }
-    //}
 }

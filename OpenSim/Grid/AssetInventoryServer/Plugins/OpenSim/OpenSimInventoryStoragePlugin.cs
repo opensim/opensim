@@ -35,7 +35,6 @@ using MySql.Data.MySqlClient;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Grid.AssetInventoryServer.Extensions;
 using OpenSim.Data;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
@@ -58,7 +57,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             item = null;
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
             {
                 IDataReader reader;
 
@@ -120,7 +119,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             folder = null;
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
             {
                 IDataReader reader;
 
@@ -167,7 +166,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             contents = null;
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
             {
                 IDataReader reader;
 
@@ -267,7 +266,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             if (Utils.TryGetOpenSimUUID(owner, out ownerID))
             {
-                using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+                using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
                 {
                     IDataReader reader;
 
@@ -333,7 +332,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                 // Fetch inventory items
                 if (Utils.TryGetOpenSimUUID(owner, out ownerID))
                 {
-                    using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+                    using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
                     {
                         IDataReader reader;
 
@@ -405,7 +404,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             if (Utils.TryGetOpenSimUUID(owner, out ownerID))
             {
-                using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+                using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
                 {
                     IDataReader reader;
 
@@ -470,7 +469,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
             {
                 try
                 {
@@ -537,7 +536,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
             {
                 try
                 {
@@ -593,7 +592,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             if (Utils.TryGetOpenSimUUID(owner, out ownerID))
             {
-                using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+                using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
                 {
                     try
                     {
@@ -639,7 +638,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             if (Utils.TryGetOpenSimUUID(owner, out ownerID))
             {
-                using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+                using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
                 {
                     try
                     {
@@ -685,7 +684,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             if (Utils.TryGetOpenSimUUID(owner, out ownerID))
             {
-                using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+                using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
                 {
                     try
                     {
@@ -739,7 +738,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             int rowCount = 0;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
+            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.InventoryDatabaseConnect))
             {
                 MySqlDataReader reader;
 
@@ -789,7 +788,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             try
             {
-                m_inventoryProvider = DataPluginFactory.LoadDataPlugin<IInventoryDataPlugin>("OpenSim.Data.MySQL.dll", server.ConfigFile.Configs["MySQL"].GetString("database_connect", null));
+                m_inventoryProvider = DataPluginFactory.LoadDataPlugin<IInventoryDataPlugin>("OpenSim.Data.MySQL.dll", server.ConfigFile.InventoryDatabaseConnect);
                 if (m_inventoryProvider == null)
                 {
                     Logger.Log.Error("[INVENTORY]: Failed to load a database plugin, server halting.");
