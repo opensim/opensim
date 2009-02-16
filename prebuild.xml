@@ -746,6 +746,101 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Grid.NewAssetServer" path="OpenSim/Grid/NewAssetServer" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.ServiceProcess"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="log4net2"/>
+      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="OpenMetaverse.StructuredData2"/>
+      <Reference name="OpenMetaverse.Http"/>
+      <Reference name="ExtensionLoader"/>
+      <Reference name="HttpServer2"/>
+
+      <!-- for Simple Storage and MySQL storage -->
+      <Reference name="System.Data"/>
+      <Reference name="MySql.Data"/>
+      <Reference name="OpenMetaverse"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="false"/>
+        <Match path="Extensions" pattern="*.cs" recurse="false"/>
+        <Match path="Plugins" pattern="*.cs" recurse="false"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
+      </Files>
+    </Project>
+
+    <!--Project name="OpenSim.Grid.AssetServer.Simple" path="OpenSim/Grid/NewAssetServer/Extensions/Simple" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.ServiceProcess"/>
+      <Reference name="System.Xml"/>
+      <Reference name="log4net2"/>
+      <Reference name="OpenSim.Grid.AssetServer.exe"/>
+      <Reference name="OpenMetaverse"/>
+      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="OpenMetaverse.StructuredData2"/>
+      <Reference name="ExtensionLoader"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Grid.AssetServer.OpenSimMySQL" path="OpenSim/Grid/NewAssetServer/Extensions/OpenSimMySQL" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.ServiceProcess"/>
+      <Reference name="System.Xml"/>
+      <Reference name="log4net2"/>
+      <Reference name="OpenSim.Grid.AssetServer.exe"/>
+      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="OpenMetaverse.StructuredData2"/>
+      <Reference name="ExtensionLoader"/>
+      <Reference name="MySql.Data"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project-->
+
     <Project name="OpenSim.Grid.UserServer" path="OpenSim/Grid/UserServer" type="Exe">
       <Configuration name="Debug">
         <Options>
