@@ -28,6 +28,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Net;
 using System.Xml;
@@ -35,12 +36,13 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using HttpServer;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
     public class ReferenceFrontendPlugin : IAssetInventoryServerPlugin
     {
-        AssetInventoryServer server;
+        AssetInventoryServer m_server;
 
         public ReferenceFrontendPlugin()
         {
@@ -50,18 +52,16 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         public void Initialise(AssetInventoryServer server)
         {
-            this.server = server;
+            m_server = server;
 
             // Asset metadata request
-            server.HttpServer.AddHandler("get", null, @"^/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/metadata",
-                MetadataRequestHandler);
+            m_server.HttpServer.AddStreamHandler(new MetadataRequestHandler(server));
 
             // Asset data request
-            server.HttpServer.AddHandler("get", null, @"^/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/data",
-                DataRequestHandler);
+            m_server.HttpServer.AddStreamHandler(new DataRequestHandler(server));
 
             // Asset creation
-            server.HttpServer.AddHandler("post", null, "^/createasset", CreateRequestHandler);
+            m_server.HttpServer.AddStreamHandler(new CreateRequestHandler(server));
 
             Logger.Log.Info("[ASSET] Reference Frontend loaded.");
         }
@@ -92,174 +92,279 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         #endregion IPlugin implementation
 
-        bool MetadataRequestHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        public class MetadataRequestHandler : IStreamedRequestHandler
         {
-            UUID assetID;
-            // Split the URL up into an AssetID and a method
-            string[] rawUrl = request.Uri.PathAndQuery.Split('/');
+            AssetInventoryServer m_server;
+            string m_contentType;
+            string m_httpMethod;
+            string m_path;
 
-            if (rawUrl.Length >= 3 && UUID.TryParse(rawUrl[1], out assetID))
+            public MetadataRequestHandler(AssetInventoryServer server)
             {
-                UUID authToken = Utils.GetAuthToken(request);
+                m_server = server;
+                m_contentType = null;
+                m_httpMethod = "GET";
+                m_path = @"^/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/metadata";
+            }
 
-                if (server.AuthorizationProvider.IsMetadataAuthorized(authToken, assetID))
+            #region IStreamedRequestHandler implementation
+
+            public string ContentType
+            {
+                get { return m_contentType; }
+            }
+
+            public string HttpMethod
+            {
+                get { return m_httpMethod; }
+            }
+
+            public string Path
+            {
+                get { return m_path; }
+            }
+
+            public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+            {
+                byte[] serializedData = null;
+                UUID assetID;
+                // Split the URL up into an AssetID and a method
+                string[] rawUrl = httpRequest.Url.PathAndQuery.Split('/');
+
+                if (rawUrl.Length >= 3 && UUID.TryParse(rawUrl[1], out assetID))
                 {
-                    Metadata metadata;
-                    BackendResponse storageResponse = server.StorageProvider.TryFetchMetadata(assetID, out metadata);
+                    UUID authToken = Utils.GetAuthToken(httpRequest);
 
-                    if (storageResponse == BackendResponse.Success)
+                    if (m_server.AuthorizationProvider.IsMetadataAuthorized(authToken, assetID))
                     {
-                        // If the asset data location wasn't specified in the metadata, specify it
-                        // manually here by pointing back to this asset server
-                        if (!metadata.Methods.ContainsKey("data"))
+                        Metadata metadata;
+                        BackendResponse storageResponse = m_server.StorageProvider.TryFetchMetadata(assetID, out metadata);
+
+                        if (storageResponse == BackendResponse.Success)
                         {
-                            metadata.Methods["data"] = new Uri(String.Format("{0}://{1}/{2}/data",
-                                request.Uri.Scheme, request.Uri.Authority, assetID));
+                            // If the asset data location wasn't specified in the metadata, specify it
+                            // manually here by pointing back to this asset server
+                            if (!metadata.Methods.ContainsKey("data"))
+                            {
+                                metadata.Methods["data"] = new Uri(String.Format("{0}://{1}/{2}/data",
+                                    httpRequest.Url.Scheme, httpRequest.Url.Authority, assetID));
+                            }
+
+                            serializedData = metadata.SerializeToBytes();
+
+                            httpResponse.StatusCode = (int) HttpStatusCode.OK;
+                            httpResponse.ContentType = "application/json";
+                            httpResponse.ContentLength = serializedData.Length;
+                            httpResponse.Body.Write(serializedData, 0, serializedData.Length);
                         }
-
-                        byte[] serializedData = metadata.SerializeToBytes();
-
-                        response.Status = HttpStatusCode.OK;
-                        response.ContentType = "application/json";
-                        response.ContentLength = serializedData.Length;
-                        response.Body.Write(serializedData, 0, serializedData.Length);
-
-                    }
-                    else if (storageResponse == BackendResponse.NotFound)
-                    {
-                        Logger.Log.Warn("Could not find metadata for asset " + assetID.ToString());
-                        response.Status = HttpStatusCode.NotFound;
-                    }
-                    else
-                    {
-                        response.Status = HttpStatusCode.InternalServerError;
-                    }
-                }
-                else
-                {
-                    response.Status = HttpStatusCode.Forbidden;
-                }
-
-                return true;
-            }
-
-            response.Status = HttpStatusCode.NotFound;
-            return true;
-        }
-
-        bool DataRequestHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            UUID assetID;
-            // Split the URL up into an AssetID and a method
-            string[] rawUrl = request.Uri.PathAndQuery.Split('/');
-
-            if (rawUrl.Length >= 3 && UUID.TryParse(rawUrl[1], out assetID))
-            {
-                UUID authToken = Utils.GetAuthToken(request);
-
-                if (server.AuthorizationProvider.IsDataAuthorized(authToken, assetID))
-                {
-                    byte[] assetData;
-                    BackendResponse storageResponse = server.StorageProvider.TryFetchData(assetID, out assetData);
-
-                    if (storageResponse == BackendResponse.Success)
-                    {
-                        response.Status = HttpStatusCode.OK;
-                        response.Status = HttpStatusCode.OK;
-                        response.ContentType = "application/octet-stream";
-                        response.AddHeader("Content-Disposition", "attachment; filename=" + assetID.ToString());
-                        response.ContentLength = assetData.Length;
-                        response.Body.Write(assetData, 0, assetData.Length);
-                    }
-                    else if (storageResponse == BackendResponse.NotFound)
-                    {
-                        response.Status = HttpStatusCode.NotFound;
-                    }
-                    else
-                    {
-                        response.Status = HttpStatusCode.InternalServerError;
-                    }
-                }
-                else
-                {
-                    response.Status = HttpStatusCode.Forbidden;
-                }
-
-                return true;
-            }
-
-            response.Status = HttpStatusCode.BadRequest;
-            return true;
-        }
-
-        bool CreateRequestHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            UUID authToken = Utils.GetAuthToken(request);
-
-            if (server.AuthorizationProvider.IsCreateAuthorized(authToken))
-            {
-                try
-                {
-                    OSD osdata = OSDParser.DeserializeJson(request.Body);
-
-                    if (osdata.Type == OSDType.Map)
-                    {
-                        OSDMap map = (OSDMap)osdata;
-                        Metadata metadata = new Metadata();
-                        metadata.Deserialize(map);
-
-                        byte[] assetData = map["data"].AsBinary();
-
-                        if (assetData != null && assetData.Length > 0)
+                        else if (storageResponse == BackendResponse.NotFound)
                         {
-                            BackendResponse storageResponse;
+                            Logger.Log.Warn("Could not find metadata for asset " + assetID.ToString());
+                            httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
+                        }
+                        else
+                        {
+                            httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
+                        }
+                    }
+                    else
+                    {
+                        httpResponse.StatusCode = (int) HttpStatusCode.Forbidden;
+                    }
 
-                            if (metadata.ID != UUID.Zero)
-                                storageResponse = server.StorageProvider.TryCreateAsset(metadata, assetData);
-                            else
-                                storageResponse = server.StorageProvider.TryCreateAsset(metadata, assetData, out metadata.ID);
+                    return serializedData;
+                }
 
-                            if (storageResponse == BackendResponse.Success)
+                httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
+                return serializedData;
+            }
+
+            #endregion IStreamedRequestHandler implementation
+        }
+
+        public class DataRequestHandler : IStreamedRequestHandler
+        {
+            AssetInventoryServer m_server;
+            string m_contentType;
+            string m_httpMethod;
+            string m_path;
+
+            public DataRequestHandler(AssetInventoryServer server)
+            {
+                m_server = server;
+                m_contentType = null;
+                m_httpMethod = "GET";
+                m_path = @"^/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/data";
+            }
+
+            #region IStreamedRequestHandler implementation
+
+            public string ContentType
+            {
+                get { return m_contentType; }
+            }
+
+            public string HttpMethod
+            {
+                get { return m_httpMethod; }
+            }
+
+            public string Path
+            {
+                get { return m_path; }
+            }
+
+            public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+            {
+                byte[] assetData = null;
+                UUID assetID;
+                // Split the URL up into an AssetID and a method
+                string[] rawUrl = httpRequest.Url.PathAndQuery.Split('/');
+
+                if (rawUrl.Length >= 3 && UUID.TryParse(rawUrl[1], out assetID))
+                {
+                    UUID authToken = Utils.GetAuthToken(httpRequest);
+
+                    if (m_server.AuthorizationProvider.IsDataAuthorized(authToken, assetID))
+                    {
+                        BackendResponse storageResponse = m_server.StorageProvider.TryFetchData(assetID, out assetData);
+
+                        if (storageResponse == BackendResponse.Success)
+                        {
+                            httpResponse.StatusCode = (int) HttpStatusCode.OK;
+                            httpResponse.ContentType = "application/octet-stream";
+                            httpResponse.AddHeader("Content-Disposition", "attachment; filename=" + assetID.ToString());
+                            httpResponse.ContentLength = assetData.Length;
+                            httpResponse.Body.Write(assetData, 0, assetData.Length);
+                        }
+                        else if (storageResponse == BackendResponse.NotFound)
+                        {
+                            httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
+                        }
+                        else
+                        {
+                            httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
+                        }
+                    }
+                    else
+                    {
+                        httpResponse.StatusCode = (int) HttpStatusCode.Forbidden;
+                    }
+
+                    return assetData;
+                }
+
+                httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
+                return assetData;
+            }
+
+            #endregion IStreamedRequestHandler implementation
+        }
+
+        public class CreateRequestHandler : IStreamedRequestHandler
+        {
+            AssetInventoryServer m_server;
+            string m_contentType;
+            string m_httpMethod;
+            string m_path;
+
+            public CreateRequestHandler(AssetInventoryServer server)
+            {
+                m_server = server;
+                m_contentType = null;
+                m_httpMethod = "POST";
+                m_path = "^/createasset";
+            }
+
+            #region IStreamedRequestHandler implementation
+
+            public string ContentType
+            {
+                get { return m_contentType; }
+            }
+
+            public string HttpMethod
+            {
+                get { return m_httpMethod; }
+            }
+
+            public string Path
+            {
+                get { return m_path; }
+            }
+
+            public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+            {
+                byte[] responseData = null;
+                UUID authToken = Utils.GetAuthToken(httpRequest);
+
+                if (m_server.AuthorizationProvider.IsCreateAuthorized(authToken))
+                {
+                    try
+                    {
+                        OSD osdata = OSDParser.DeserializeJson(httpRequest.InputStream);
+
+                        if (osdata.Type == OSDType.Map)
+                        {
+                            OSDMap map = (OSDMap)osdata;
+                            Metadata metadata = new Metadata();
+                            metadata.Deserialize(map);
+
+                            byte[] assetData = map["data"].AsBinary();
+
+                            if (assetData != null && assetData.Length > 0)
                             {
-                                response.Status = HttpStatusCode.Created;
-                                OSDMap responseMap = new OSDMap(1);
-                                responseMap["id"] = OSD.FromUUID(metadata.ID);
-                                LitJson.JsonData jsonData = OSDParser.SerializeJson(responseMap);
-                                byte[] responseData = System.Text.Encoding.UTF8.GetBytes(jsonData.ToJson());
-                                response.Body.Write(responseData, 0, responseData.Length);
-                                response.Body.Flush();
-                            }
-                            else if (storageResponse == BackendResponse.NotFound)
-                            {
-                                response.Status = HttpStatusCode.NotFound;
+                                BackendResponse storageResponse;
+
+                                if (metadata.ID != UUID.Zero)
+                                    storageResponse = m_server.StorageProvider.TryCreateAsset(metadata, assetData);
+                                else
+                                    storageResponse = m_server.StorageProvider.TryCreateAsset(metadata, assetData, out metadata.ID);
+
+                                if (storageResponse == BackendResponse.Success)
+                                {
+                                    httpResponse.StatusCode = (int) HttpStatusCode.Created;
+                                    OSDMap responseMap = new OSDMap(1);
+                                    responseMap["id"] = OSD.FromUUID(metadata.ID);
+                                    LitJson.JsonData jsonData = OSDParser.SerializeJson(responseMap);
+                                    responseData = System.Text.Encoding.UTF8.GetBytes(jsonData.ToJson());
+                                    httpResponse.Body.Write(responseData, 0, responseData.Length);
+                                    httpResponse.Body.Flush();
+                                }
+                                else if (storageResponse == BackendResponse.NotFound)
+                                {
+                                    httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
+                                }
+                                else
+                                {
+                                    httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
+                                }
                             }
                             else
                             {
-                                response.Status = HttpStatusCode.InternalServerError;
+                                httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
                             }
                         }
                         else
                         {
-                            response.Status = HttpStatusCode.BadRequest;
+                            httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        response.Status = HttpStatusCode.BadRequest;
+                        httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
+                        httpResponse.StatusDescription = ex.Message;
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    response.Status = HttpStatusCode.InternalServerError;
-                    response.Reason = ex.Message;
+                    httpResponse.StatusCode = (int) HttpStatusCode.Forbidden;
                 }
-            }
-            else
-            {
-                response.Status = HttpStatusCode.Forbidden;
+
+                return responseData;
             }
 
-            return true;
+            #endregion IStreamedRequestHandler implementation
         }
     }
 }

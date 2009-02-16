@@ -36,12 +36,13 @@ using System.Xml.Serialization;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using HttpServer;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.AssetInventoryServer
 {
     public static class Utils
     {
-        public static UUID GetAuthToken(IHttpRequest request)
+        public static UUID GetAuthToken(OSHttpRequest request)
         {
             UUID authToken = UUID.Zero;
 
@@ -55,13 +56,13 @@ namespace OpenSim.Grid.AssetInventoryServer
                     UUID.TryParse(authHeaderParts[1], out authToken);
             }
 
-            if (authToken == UUID.Zero && request.Cookies != null)
-            {
-                // Check for an authToken cookie to make logins browser-compatible
-                RequestCookie authCookie = request.Cookies["authToken"];
-                if (authCookie != null)
-                    UUID.TryParse(authCookie.Value, out authToken);
-            }
+            //if (authToken == UUID.Zero && request.Cookies != null)
+            //{
+            //    // Check for an authToken cookie to make logins browser-compatible
+            //    RequestCookie authCookie = request.Cookies["authToken"];
+            //    if (authCookie != null)
+            //        UUID.TryParse(authCookie.Value, out authToken);
+            //}
 
             return authToken;
         }

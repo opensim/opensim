@@ -50,8 +50,9 @@ namespace OpenSim.Grid.AssetInventoryServer
                         Environment.Exit(0);
                     };
 
-                while (true)
-                    Console.ReadLine();
+                server.Work();
+                //while (true)
+                //    Console.ReadLine();
             }
 #else
             ServiceBase[] servicesToRun = new ServiceBase[] { new AssetInventoryServer() };

@@ -36,17 +36,19 @@ using System.Security.Cryptography.X509Certificates;
 using System.ServiceProcess;
 using ExtensionLoader;
 using ExtensionLoader.Config;
-using HttpServer;
+//using HttpServer;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Grid.AssetInventoryServer
 {
-    public class AssetInventoryServer : ServiceBase
+    public class AssetInventoryServer : BaseOpenSimServer//ServiceBase
     {
         public const string CONFIG_FILE = "AssetInventoryServer.ini";
 
-        public WebServer HttpServer;
+        //public WebServer HttpServer;
         public IniConfigSource ConfigFile;
 
         public IAssetStorageProvider StorageProvider;
@@ -60,7 +62,9 @@ namespace OpenSim.Grid.AssetInventoryServer
 
         public AssetInventoryServer()
         {
-            this.ServiceName = "OpenSimAssetInventoryServer";
+            m_console = new ConsoleBase("Asset");
+            MainConsole.Instance = m_console;
+            //this.ServiceName = "OpenSimAssetInventoryServer";
         }
 
         public bool Start()
@@ -123,7 +127,7 @@ namespace OpenSim.Grid.AssetInventoryServer
             catch (Exception ex)
             {
                 Logger.Log.Error("Initializing the HTTP server failed, shutting down: " + ex.Message);
-                Stop();
+                Shutdown();
                 return false;
             }
 
@@ -138,7 +142,17 @@ namespace OpenSim.Grid.AssetInventoryServer
             return true;
         }
 
-        public void Shutdown()
+        public void Work()
+        {
+            m_console.Notice("Enter help for a list of commands");
+
+            while (true)
+            {
+                m_console.Prompt();
+            }
+        }
+
+        public override void ShutdownSpecific()
         {
             foreach (IAssetInventoryServerPlugin plugin in frontends)
             {
@@ -162,26 +176,27 @@ namespace OpenSim.Grid.AssetInventoryServer
 
         void InitHttpServer(int port, X509Certificate serverCert)
         {
-            if (serverCert != null)
-                HttpServer = new WebServer(IPAddress.Any, port, serverCert, null, false);
-            else
-                HttpServer = new WebServer(IPAddress.Any, port);
+            //if (serverCert != null)
+            //    HttpServer = new WebServer(IPAddress.Any, port, serverCert, null, false);
+            //else
+            //    HttpServer = new WebServer(IPAddress.Any, port);
 
-            HttpServer.LogWriter = new log4netLogWriter(Logger.Log);
+            //HttpServer.LogWriter = new log4netLogWriter(Logger.Log);
 
-            HttpServer.Set404Handler(
-                delegate(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-                {
-                    Logger.Log.Warn("Requested page was not found: " + request.Uri.PathAndQuery);
+            //HttpServer.Set404Handler(
+            //    delegate(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+            //    {
+            //        Logger.Log.Warn("Requested page was not found: " + request.Uri.PathAndQuery);
 
-                    string notFoundString = "<html><head><title>Page Not Found</title></head><body>The requested page or method was not found</body></html>";
-                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(notFoundString);
-                    response.Body.Write(buffer, 0, buffer.Length);
-                    response.Status = HttpStatusCode.NotFound;
-                    return true;
-                }
-            );
+            //        string notFoundString = "<html><head><title>Page Not Found</title></head><body>The requested page or method was not found</body></html>";
+            //        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(notFoundString);
+            //        response.Body.Write(buffer, 0, buffer.Length);
+            //        response.Status = HttpStatusCode.NotFound;
+            //        return true;
+            //    }
+            //);
 
+            m_httpServer = new BaseHttpServer(8003);
             HttpServer.Start();
 
             Logger.Log.Info("Asset server is listening on port " + port);
@@ -189,14 +204,14 @@ namespace OpenSim.Grid.AssetInventoryServer
 
         #region ServiceBase Overrides
 
-        protected override void OnStart(string[] args)
-        {
-            Start();
-        }
-        protected override void OnStop()
-        {
-            Shutdown();
-        }
+        //protected override void OnStart(string[] args)
+        //{
+        //    Start();
+        //}
+        //protected override void OnStop()
+        //{
+        //    Shutdown();
+        //}
 
         #endregion
 
@@ -231,36 +246,36 @@ namespace OpenSim.Grid.AssetInventoryServer
         }
     }
 
-    public class log4netLogWriter : ILogWriter
-    {
-        ILog Log;
+    //public class log4netLogWriter : ILogWriter
+    //{
+    //    ILog Log;
 
-        public log4netLogWriter(ILog log)
-        {
-            Log = log;
-        }
+    //    public log4netLogWriter(ILog log)
+    //    {
+    //        Log = log;
+    //    }
 
-        public void Write(object source, LogPrio prio, string message)
-        {
-            switch (prio)
-            {
-                case LogPrio.Trace:
-                case LogPrio.Debug:
-                    Log.DebugFormat("{0}: {1}", source, message);
-                    break;
-                case LogPrio.Info:
-                    Log.InfoFormat("{0}: {1}", source, message);
-                    break;
-                case LogPrio.Warning:
-                    Log.WarnFormat("{0}: {1}", source, message);
-                    break;
-                case LogPrio.Error:
-                    Log.ErrorFormat("{0}: {1}", source, message);
-                    break;
-                case LogPrio.Fatal:
-                    Log.FatalFormat("{0}: {1}", source, message);
-                    break;
-            }
-        }
-    }
+    //    public void Write(object source, LogPrio prio, string message)
+    //    {
+    //        switch (prio)
+    //        {
+    //            case LogPrio.Trace:
+    //            case LogPrio.Debug:
+    //                Log.DebugFormat("{0}: {1}", source, message);
+    //                break;
+    //            case LogPrio.Info:
+    //                Log.InfoFormat("{0}: {1}", source, message);
+    //                break;
+    //            case LogPrio.Warning:
+    //                Log.WarnFormat("{0}: {1}", source, message);
+    //                break;
+    //            case LogPrio.Error:
+    //                Log.ErrorFormat("{0}: {1}", source, message);
+    //                break;
+    //            case LogPrio.Fatal:
+    //                Log.FatalFormat("{0}: {1}", source, message);
+    //                break;
+    //        }
+    //    }
+    //}
 }

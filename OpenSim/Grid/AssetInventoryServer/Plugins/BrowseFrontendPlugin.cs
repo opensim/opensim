@@ -28,20 +28,21 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
 using System.Text;
 using System.Web;
 using OpenMetaverse;
-using HttpServer;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
     public class BrowseFrontendPlugin : IAssetInventoryServerPlugin
     {
-        AssetInventoryServer server;
+        AssetInventoryServer m_server;
 
         public BrowseFrontendPlugin()
         {
@@ -51,10 +52,11 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         public void Initialise(AssetInventoryServer server)
         {
-            this.server = server;
+            m_server = server;
 
             // Request for / or /?...
-            server.HttpServer.AddHandler("get", null, @"(^/$)|(^/\?.*)", BrowseRequestHandler);
+            //server.HttpServer.AddHandler("get", null, @"(^/$)|(^/\?.*)", BrowseRequestHandler);
+            m_server.HttpServer.AddStreamHandler(new BrowseRequestHandler(server));
 
             Logger.Log.Info("[ASSET] Browser Frontend loaded.");
         }
@@ -85,67 +87,102 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         #endregion IPlugin implementation
 
-        bool BrowseRequestHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        public class BrowseRequestHandler : IStreamedRequestHandler
         {
-            const int ASSETS_PER_PAGE = 25;
-            const string HEADER = "<html><head><title>Asset Server</title></head><body>";
-            const string TABLE_HEADER =
-                "<table><tr><th>Name</th><th>Description</th><th>Type</th><th>ID</th><th>Temporary</th><th>SHA-1</th></tr>";
-            const string TABLE_FOOTER = "</table>";
-            const string FOOTER = "</body></html>";
+            AssetInventoryServer m_server;
+            string m_contentType;
+            string m_httpMethod;
+            string m_path;
 
-            UUID authToken = Utils.GetAuthToken(request);
-
-            StringBuilder html = new StringBuilder();
-            int start = 0;
-            uint page = 0;
-
-            if (!String.IsNullOrEmpty(request.Uri.Query))
+            public BrowseRequestHandler(AssetInventoryServer server)
             {
-                NameValueCollection query = HttpUtility.ParseQueryString(request.Uri.Query);
-                if (!String.IsNullOrEmpty(query["page"]) && UInt32.TryParse(query["page"], out page))
-                    start = (int)page * ASSETS_PER_PAGE;
+                m_server = server;
+                m_contentType = null;
+                m_httpMethod = "GET";
+                m_path = @"(^/$)|(^/\?.*)";
             }
 
-            html.AppendLine(HEADER);
+            #region IStreamedRequestHandler implementation
 
-            html.AppendLine("<p>");
-            if (page > 0)
-                html.AppendFormat("<a href=\"{0}?page={1}\">&lt; Previous Page</a> | ", request.Uri.AbsolutePath, page - 1);
-            html.AppendFormat("<a href=\"{0}?page={1}\">Next Page &gt;</a>", request.Uri.AbsolutePath, page + 1);
-            html.AppendLine("</p>");
+            public string ContentType
+            {
+                get { return m_contentType; }
+            }
 
-            html.AppendLine(TABLE_HEADER);
+            public string HttpMethod
+            {
+                get { return m_httpMethod; }
+            }
 
-            server.StorageProvider.ForEach(
-                delegate(Metadata data)
+            public string Path
+            {
+                get { return m_path; }
+            }
+
+            public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+            {
+                const int ASSETS_PER_PAGE = 25;
+                const string HEADER = "<html><head><title>Asset Server</title></head><body>";
+                const string TABLE_HEADER =
+                    "<table><tr><th>Name</th><th>Description</th><th>Type</th><th>ID</th><th>Temporary</th><th>SHA-1</th></tr>";
+                const string TABLE_FOOTER = "</table>";
+                const string FOOTER = "</body></html>";
+
+                UUID authToken = Utils.GetAuthToken(httpRequest);
+
+                StringBuilder html = new StringBuilder();
+                int start = 0;
+                uint page = 0;
+
+                if (!String.IsNullOrEmpty(httpRequest.Url.Query))
                 {
-                    if (server.AuthorizationProvider.IsMetadataAuthorized(authToken, data.ID))
+                    NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
+                    if (!String.IsNullOrEmpty(query["page"]) && UInt32.TryParse(query["page"], out page))
+                        start = (int)page * ASSETS_PER_PAGE;
+                }
+
+                html.AppendLine(HEADER);
+
+                html.AppendLine("<p>");
+                if (page > 0)
+                    html.AppendFormat("<a href=\"{0}?page={1}\">&lt; Previous Page</a> | ", httpRequest.RawUrl, page - 1);
+                html.AppendFormat("<a href=\"{0}?page={1}\">Next Page &gt;</a>", httpRequest.RawUrl, page + 1);
+                html.AppendLine("</p>");
+
+                html.AppendLine(TABLE_HEADER);
+
+                m_server.StorageProvider.ForEach(
+                    delegate(Metadata data)
                     {
-                        html.AppendLine(String.Format(
-                            "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td></tr>",
-                            data.Name, data.Description, data.ContentType, data.ID, data.Temporary,
-                            BitConverter.ToString(data.SHA1).Replace("-", String.Empty)));
-                    }
-                    else
-                    {
-                        html.AppendLine(String.Format(
-                            "<tr><td>[Protected Asset]</td><td>&nbsp;</td><td>&nbsp;</td><td>{0}</td><td>{1}</td><td>&nbsp;</td></tr>",
-                            data.ID, data.Temporary));
-                    }
-                }, start, ASSETS_PER_PAGE
-            );
+                        if (m_server.AuthorizationProvider.IsMetadataAuthorized(authToken, data.ID))
+                        {
+                            html.AppendLine(String.Format(
+                                "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td></tr>",
+                                data.Name, data.Description, data.ContentType, data.ID, data.Temporary,
+                                BitConverter.ToString(data.SHA1).Replace("-", String.Empty)));
+                        }
+                        else
+                        {
+                            html.AppendLine(String.Format(
+                                "<tr><td>[Protected Asset]</td><td>&nbsp;</td><td>&nbsp;</td><td>{0}</td><td>{1}</td><td>&nbsp;</td></tr>",
+                                data.ID, data.Temporary));
+                        }
+                    }, start, ASSETS_PER_PAGE
+                );
 
-            html.AppendLine(TABLE_FOOTER);
+                html.AppendLine(TABLE_FOOTER);
 
-            html.AppendLine(FOOTER);
+                html.AppendLine(FOOTER);
 
-            byte[] responseData = System.Text.Encoding.UTF8.GetBytes(html.ToString());
+                byte[] responseData = System.Text.Encoding.UTF8.GetBytes(html.ToString());
 
-            response.Status = HttpStatusCode.OK;
-            response.Body.Write(responseData, 0, responseData.Length);
-            response.Body.Flush();
-            return true;
+                httpResponse.StatusCode = (int) HttpStatusCode.OK;
+                httpResponse.Body.Write(responseData, 0, responseData.Length);
+                httpResponse.Body.Flush();
+                return responseData;
+            }
+
+            #endregion IStreamedRequestHandler implementation
         }
     }
 }

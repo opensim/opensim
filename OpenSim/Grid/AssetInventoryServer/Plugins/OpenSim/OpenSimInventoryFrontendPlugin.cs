@@ -56,16 +56,16 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             this.server = server;
 
-            server.HttpServer.AddHandler("post", null, @"^/GetInventory/", GetInventoryHandler);
-            server.HttpServer.AddHandler("post", null, @"^/CreateInventory/", CreateInventoryHandler);
-            server.HttpServer.AddHandler("post", null, @"^/NewFolder/", NewFolderHandler);
-            server.HttpServer.AddHandler("post", null, @"^/UpdateFolder/", UpdateFolderHandler);
-            server.HttpServer.AddHandler("post", null, @"^/MoveFolder/", MoveFolderHandler);
-            server.HttpServer.AddHandler("post", null, @"^/PurgeFolder/", PurgeFolderHandler);
-            server.HttpServer.AddHandler("post", null, @"^/NewItem/", NewItemHandler);
-            server.HttpServer.AddHandler("post", null, @"^/DeleteItem/", DeleteItemHandler);
-            server.HttpServer.AddHandler("post", null, @"^/RootFolders/", RootFoldersHandler);
-            server.HttpServer.AddHandler("post", null, @"^/ActiveGestures/", ActiveGesturesHandler);
+            //server.HttpServer.AddHandler("post", null, @"^/GetInventory/", GetInventoryHandler);
+            //server.HttpServer.AddHandler("post", null, @"^/CreateInventory/", CreateInventoryHandler);
+            //server.HttpServer.AddHandler("post", null, @"^/NewFolder/", NewFolderHandler);
+            //server.HttpServer.AddHandler("post", null, @"^/UpdateFolder/", UpdateFolderHandler);
+            //server.HttpServer.AddHandler("post", null, @"^/MoveFolder/", MoveFolderHandler);
+            //server.HttpServer.AddHandler("post", null, @"^/PurgeFolder/", PurgeFolderHandler);
+            //server.HttpServer.AddHandler("post", null, @"^/NewItem/", NewItemHandler);
+            //server.HttpServer.AddHandler("post", null, @"^/DeleteItem/", DeleteItemHandler);
+            //server.HttpServer.AddHandler("post", null, @"^/RootFolders/", RootFoldersHandler);
+            //server.HttpServer.AddHandler("post", null, @"^/ActiveGestures/", ActiveGesturesHandler);
 
             Logger.Log.Info("[INVENTORY] OpenSim Inventory Frontend loaded.");
         }
@@ -96,253 +96,253 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         #endregion IPlugin implementation
 
-        bool GetInventoryHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            UUID sessionID, agentID;
-            UUID ownerID = DeserializeUUID(request.Body, out agentID, out sessionID);
+        //bool GetInventoryHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        //{
+        //    UUID sessionID, agentID;
+        //    UUID ownerID = DeserializeUUID(request.Body, out agentID, out sessionID);
 
-            if (ownerID != UUID.Zero)
-            {
-                Logger.Log.Warn("GetInventory is not scalable on some inventory backends, avoid calling it wherever possible");
+        //    if (ownerID != UUID.Zero)
+        //    {
+        //        Logger.Log.Warn("GetInventory is not scalable on some inventory backends, avoid calling it wherever possible");
 
-                Uri owner = Utils.GetOpenSimUri(ownerID);
-                InventoryCollection inventory;
-                BackendResponse storageResponse = server.InventoryProvider.TryFetchInventory(owner, out inventory);
+        //        Uri owner = Utils.GetOpenSimUri(ownerID);
+        //        InventoryCollection inventory;
+        //        BackendResponse storageResponse = server.InventoryProvider.TryFetchInventory(owner, out inventory);
 
-                if (storageResponse == BackendResponse.Success)
-                {
-                    collectionSerializer.Serialize(response.Body, inventory);
-                    response.Body.Flush();
-                }
-                else if (storageResponse == BackendResponse.NotFound)
-                {
-                    // Return an empty inventory set to mimic OpenSim.Grid.InventoryServer.exe
-                    inventory = new InventoryCollection();
-                    inventory.UserID = ownerID;
-                    inventory.Folders = new Dictionary<UUID, InventoryFolder>();
-                    inventory.Items = new Dictionary<UUID, InventoryItem>();
-                    collectionSerializer.Serialize(response.Body, inventory);
-                    response.Body.Flush();
-                }
-                else
-                {
-                    response.Status = HttpStatusCode.InternalServerError;
-                }
-            }
-            else
-            {
-                response.Status = HttpStatusCode.BadRequest;
-            }
+        //        if (storageResponse == BackendResponse.Success)
+        //        {
+        //            collectionSerializer.Serialize(response.Body, inventory);
+        //            response.Body.Flush();
+        //        }
+        //        else if (storageResponse == BackendResponse.NotFound)
+        //        {
+        //            // Return an empty inventory set to mimic OpenSim.Grid.InventoryServer.exe
+        //            inventory = new InventoryCollection();
+        //            inventory.UserID = ownerID;
+        //            inventory.Folders = new Dictionary<UUID, InventoryFolder>();
+        //            inventory.Items = new Dictionary<UUID, InventoryItem>();
+        //            collectionSerializer.Serialize(response.Body, inventory);
+        //            response.Body.Flush();
+        //        }
+        //        else
+        //        {
+        //            response.Status = HttpStatusCode.InternalServerError;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        response.Status = HttpStatusCode.BadRequest;
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
 
-        bool CreateInventoryHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            UUID ownerID = DeserializeUUID(request.Body);
+        //bool CreateInventoryHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        //{
+        //    UUID ownerID = DeserializeUUID(request.Body);
 
-            if (ownerID != UUID.Zero)
-            {
-                Uri owner = Utils.GetOpenSimUri(ownerID);
-                Logger.Log.DebugFormat("Created URI {0} for inventory creation", owner);
+        //    if (ownerID != UUID.Zero)
+        //    {
+        //        Uri owner = Utils.GetOpenSimUri(ownerID);
+        //        Logger.Log.DebugFormat("Created URI {0} for inventory creation", owner);
 
-                InventoryFolder rootFolder = new InventoryFolder("My Inventory", ownerID, UUID.Zero, (short)AssetType.Folder);
-                BackendResponse storageResponse = server.InventoryProvider.TryCreateInventory(owner, rootFolder);
-                if (storageResponse == BackendResponse.Success)
-                {
-                    CreateFolder("Animations", ownerID, rootFolder.ID, AssetType.Animation);
-                    CreateFolder("Body Parts", ownerID, rootFolder.ID, AssetType.Bodypart);
-                    CreateFolder("Calling Cards", ownerID, rootFolder.ID, AssetType.CallingCard);
-                    CreateFolder("Clothing", ownerID, rootFolder.ID, AssetType.Clothing);
-                    CreateFolder("Gestures", ownerID, rootFolder.ID, AssetType.Gesture);
-                    CreateFolder("Landmarks", ownerID, rootFolder.ID, AssetType.Landmark);
-                    CreateFolder("Lost and Found", ownerID, rootFolder.ID, AssetType.LostAndFoundFolder);
-                    CreateFolder("Notecards", ownerID, rootFolder.ID, AssetType.Notecard);
-                    CreateFolder("Objects", ownerID, rootFolder.ID, AssetType.Object);
-                    CreateFolder("Photo Album", ownerID, rootFolder.ID, AssetType.SnapshotFolder);
-                    CreateFolder("Scripts", ownerID, rootFolder.ID, AssetType.LSLText);
-                    CreateFolder("Sounds", ownerID, rootFolder.ID, AssetType.Sound);
-                    CreateFolder("Textures", ownerID, rootFolder.ID, AssetType.Texture);
-                    CreateFolder("Trash", ownerID, rootFolder.ID, AssetType.TrashFolder);
+        //        InventoryFolder rootFolder = new InventoryFolder("My Inventory", ownerID, UUID.Zero, (short)AssetType.Folder);
+        //        BackendResponse storageResponse = server.InventoryProvider.TryCreateInventory(owner, rootFolder);
+        //        if (storageResponse == BackendResponse.Success)
+        //        {
+        //            CreateFolder("Animations", ownerID, rootFolder.ID, AssetType.Animation);
+        //            CreateFolder("Body Parts", ownerID, rootFolder.ID, AssetType.Bodypart);
+        //            CreateFolder("Calling Cards", ownerID, rootFolder.ID, AssetType.CallingCard);
+        //            CreateFolder("Clothing", ownerID, rootFolder.ID, AssetType.Clothing);
+        //            CreateFolder("Gestures", ownerID, rootFolder.ID, AssetType.Gesture);
+        //            CreateFolder("Landmarks", ownerID, rootFolder.ID, AssetType.Landmark);
+        //            CreateFolder("Lost and Found", ownerID, rootFolder.ID, AssetType.LostAndFoundFolder);
+        //            CreateFolder("Notecards", ownerID, rootFolder.ID, AssetType.Notecard);
+        //            CreateFolder("Objects", ownerID, rootFolder.ID, AssetType.Object);
+        //            CreateFolder("Photo Album", ownerID, rootFolder.ID, AssetType.SnapshotFolder);
+        //            CreateFolder("Scripts", ownerID, rootFolder.ID, AssetType.LSLText);
+        //            CreateFolder("Sounds", ownerID, rootFolder.ID, AssetType.Sound);
+        //            CreateFolder("Textures", ownerID, rootFolder.ID, AssetType.Texture);
+        //            CreateFolder("Trash", ownerID, rootFolder.ID, AssetType.TrashFolder);
 
-                    SerializeBool(response.Body, true);
-                    return true;
-                }
-            }
+        //            SerializeBool(response.Body, true);
+        //            return true;
+        //        }
+        //    }
 
-            SerializeBool(response.Body, false);
-            return true;
-        }
+        //    SerializeBool(response.Body, false);
+        //    return true;
+        //}
 
-        bool NewFolderHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            UUID agentID, sessionID;
-            InventoryFolder folder = DeserializeFolder(request.Body, out agentID, out sessionID);
+        //bool NewFolderHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        //{
+        //    UUID agentID, sessionID;
+        //    InventoryFolder folder = DeserializeFolder(request.Body, out agentID, out sessionID);
 
-            if (folder != null)
-            {
-                Uri owner = Utils.GetOpenSimUri(folder.Owner);
+        //    if (folder != null)
+        //    {
+        //        Uri owner = Utils.GetOpenSimUri(folder.Owner);
 
-                // Some calls that are moving or updating a folder instead of creating a new one
-                // will pass in an InventoryFolder without the name set. If this is the case we
-                // need to look up the name first
-                if (String.IsNullOrEmpty(folder.Name))
-                {
-                    InventoryFolder oldFolder;
-                    if (server.InventoryProvider.TryFetchFolder(owner, folder.ID, out oldFolder) == BackendResponse.Success)
-                        folder.Name = oldFolder.Name;
-                }
+        //        // Some calls that are moving or updating a folder instead of creating a new one
+        //        // will pass in an InventoryFolder without the name set. If this is the case we
+        //        // need to look up the name first
+        //        if (String.IsNullOrEmpty(folder.Name))
+        //        {
+        //            InventoryFolder oldFolder;
+        //            if (server.InventoryProvider.TryFetchFolder(owner, folder.ID, out oldFolder) == BackendResponse.Success)
+        //                folder.Name = oldFolder.Name;
+        //        }
 
-                BackendResponse storageResponse = server.InventoryProvider.TryCreateFolder(owner, folder);
+        //        BackendResponse storageResponse = server.InventoryProvider.TryCreateFolder(owner, folder);
 
-                if (storageResponse == BackendResponse.Success)
-                {
-                    SerializeBool(response.Body, true);
-                    return true;
-                }
-            }
+        //        if (storageResponse == BackendResponse.Success)
+        //        {
+        //            SerializeBool(response.Body, true);
+        //            return true;
+        //        }
+        //    }
 
-            SerializeBool(response.Body, false);
-            return true;
-        }
+        //    SerializeBool(response.Body, false);
+        //    return true;
+        //}
 
-        bool UpdateFolderHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            return NewFolderHandler(client, request, response);
-        }
+        //bool UpdateFolderHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        //{
+        //    return NewFolderHandler(client, request, response);
+        //}
 
-        bool MoveFolderHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            return NewFolderHandler(client, request, response);
-        }
+        //bool MoveFolderHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        //{
+        //    return NewFolderHandler(client, request, response);
+        //}
 
-        bool PurgeFolderHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            UUID agentID, sessionID;
-            InventoryFolder folder = DeserializeFolder(request.Body, out agentID, out sessionID);
+        //bool PurgeFolderHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        //{
+        //    UUID agentID, sessionID;
+        //    InventoryFolder folder = DeserializeFolder(request.Body, out agentID, out sessionID);
 
-            if (folder != null)
-            {
-                Uri owner = Utils.GetOpenSimUri(folder.Owner);
-                BackendResponse storageResponse = server.InventoryProvider.TryPurgeFolder(owner, folder.ID);
+        //    if (folder != null)
+        //    {
+        //        Uri owner = Utils.GetOpenSimUri(folder.Owner);
+        //        BackendResponse storageResponse = server.InventoryProvider.TryPurgeFolder(owner, folder.ID);
 
-                if (storageResponse == BackendResponse.Success)
-                {
-                    SerializeBool(response.Body, true);
-                    return true;
-                }
-            }
+        //        if (storageResponse == BackendResponse.Success)
+        //        {
+        //            SerializeBool(response.Body, true);
+        //            return true;
+        //        }
+        //    }
 
-            SerializeBool(response.Body, false);
-            return true;
-        }
+        //    SerializeBool(response.Body, false);
+        //    return true;
+        //}
 
-        bool NewItemHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            UUID agentID, sessionID;
-            InventoryItem item = DeserializeItem(request.Body, out agentID, out sessionID);
+        //bool NewItemHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        //{
+        //    UUID agentID, sessionID;
+        //    InventoryItem item = DeserializeItem(request.Body, out agentID, out sessionID);
 
-            if (item != null)
-            {
-                Uri owner = Utils.GetOpenSimUri(agentID);
-                BackendResponse storageResponse = server.InventoryProvider.TryCreateItem(owner, item);
+        //    if (item != null)
+        //    {
+        //        Uri owner = Utils.GetOpenSimUri(agentID);
+        //        BackendResponse storageResponse = server.InventoryProvider.TryCreateItem(owner, item);
 
-                if (storageResponse == BackendResponse.Success)
-                {
-                    SerializeBool(response.Body, true);
-                    return true;
-                }
-            }
+        //        if (storageResponse == BackendResponse.Success)
+        //        {
+        //            SerializeBool(response.Body, true);
+        //            return true;
+        //        }
+        //    }
 
-            SerializeBool(response.Body, false);
-            return true;
-        }
+        //    SerializeBool(response.Body, false);
+        //    return true;
+        //}
 
-        bool DeleteItemHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            UUID agentID, sessionID;
-            InventoryItem item = DeserializeItem(request.Body, out agentID, out sessionID);
+        //bool DeleteItemHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        //{
+        //    UUID agentID, sessionID;
+        //    InventoryItem item = DeserializeItem(request.Body, out agentID, out sessionID);
 
-            if (item != null)
-            {
-                Uri owner = Utils.GetOpenSimUri(item.Owner);
-                BackendResponse storageResponse = server.InventoryProvider.TryDeleteItem(owner, item.ID);
+        //    if (item != null)
+        //    {
+        //        Uri owner = Utils.GetOpenSimUri(item.Owner);
+        //        BackendResponse storageResponse = server.InventoryProvider.TryDeleteItem(owner, item.ID);
 
-                if (storageResponse == BackendResponse.Success)
-                {
-                    SerializeBool(response.Body, true);
-                    return true;
-                }
-            }
+        //        if (storageResponse == BackendResponse.Success)
+        //        {
+        //            SerializeBool(response.Body, true);
+        //            return true;
+        //        }
+        //    }
 
-            SerializeBool(response.Body, false);
-            return true;
-        }
+        //    SerializeBool(response.Body, false);
+        //    return true;
+        //}
 
-        bool RootFoldersHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            UUID ownerID = DeserializeUUID(request.Body);
+        //bool RootFoldersHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        //{
+        //    UUID ownerID = DeserializeUUID(request.Body);
 
-            if (ownerID != UUID.Zero)
-            {
-                Uri owner = Utils.GetOpenSimUri(ownerID);
-                List<InventoryFolder> skeleton;
-                BackendResponse storageResponse = server.InventoryProvider.TryFetchFolderList(owner, out skeleton);
+        //    if (ownerID != UUID.Zero)
+        //    {
+        //        Uri owner = Utils.GetOpenSimUri(ownerID);
+        //        List<InventoryFolder> skeleton;
+        //        BackendResponse storageResponse = server.InventoryProvider.TryFetchFolderList(owner, out skeleton);
 
-                if (storageResponse == BackendResponse.Success)
-                {
-                    SerializeFolderList(response.Body, skeleton);
-                }
-                else if (storageResponse == BackendResponse.NotFound)
-                {
-                    // Return an empty set of inventory so the requester knows that
-                    // an inventory needs to be created for this agent
-                    SerializeFolderList(response.Body, new List<InventoryFolder>(0));
-                }
-                else
-                {
-                    response.Status = HttpStatusCode.InternalServerError;
-                }
-            }
-            else
-            {
-                response.Status = HttpStatusCode.BadRequest;
-            }
+        //        if (storageResponse == BackendResponse.Success)
+        //        {
+        //            SerializeFolderList(response.Body, skeleton);
+        //        }
+        //        else if (storageResponse == BackendResponse.NotFound)
+        //        {
+        //            // Return an empty set of inventory so the requester knows that
+        //            // an inventory needs to be created for this agent
+        //            SerializeFolderList(response.Body, new List<InventoryFolder>(0));
+        //        }
+        //        else
+        //        {
+        //            response.Status = HttpStatusCode.InternalServerError;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        response.Status = HttpStatusCode.BadRequest;
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
 
-        bool ActiveGesturesHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
-        {
-            UUID ownerID = DeserializeUUID(request.Body);
+        //bool ActiveGesturesHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        //{
+        //    UUID ownerID = DeserializeUUID(request.Body);
 
-            if (ownerID != UUID.Zero)
-            {
-                Uri owner = Utils.GetOpenSimUri(ownerID);
-                List<InventoryItem> gestures;
-                BackendResponse storageResponse = server.InventoryProvider.TryFetchActiveGestures(owner, out gestures);
+        //    if (ownerID != UUID.Zero)
+        //    {
+        //        Uri owner = Utils.GetOpenSimUri(ownerID);
+        //        List<InventoryItem> gestures;
+        //        BackendResponse storageResponse = server.InventoryProvider.TryFetchActiveGestures(owner, out gestures);
 
-                if (storageResponse == BackendResponse.Success)
-                {
-                    SerializeItemList(response.Body, gestures);
-                }
-                else if (storageResponse == BackendResponse.NotFound)
-                {
-                    // Return an empty set of gestures to match OpenSim.Grid.InventoryServer.exe behavior
-                    SerializeItemList(response.Body, new List<InventoryItem>(0));
-                }
-                else
-                {
-                    response.Status = HttpStatusCode.InternalServerError;
-                }
-            }
-            else
-            {
-                response.Status = HttpStatusCode.BadRequest;
-            }
+        //        if (storageResponse == BackendResponse.Success)
+        //        {
+        //            SerializeItemList(response.Body, gestures);
+        //        }
+        //        else if (storageResponse == BackendResponse.NotFound)
+        //        {
+        //            // Return an empty set of gestures to match OpenSim.Grid.InventoryServer.exe behavior
+        //            SerializeItemList(response.Body, new List<InventoryItem>(0));
+        //        }
+        //        else
+        //        {
+        //            response.Status = HttpStatusCode.InternalServerError;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        response.Status = HttpStatusCode.BadRequest;
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
 
         BackendResponse CreateFolder(string name, UUID ownerID, UUID parentID, AssetType assetType)
         {

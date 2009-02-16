@@ -37,6 +37,7 @@ using System.Xml.Serialization;
 using OpenMetaverse;
 using HttpServer;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 {
@@ -55,10 +56,10 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             this.server = server;
 
             // Asset request
-            server.HttpServer.AddHandler("get", null, @"^/assets/", AssetRequestHandler);
+            server.HttpServer.AddStreamHandler(new AssetRequestHandler(server));
 
             // Asset creation
-            server.HttpServer.AddHandler("post", null, @"^/assets/", AssetPostHandler);
+            server.HttpServer.AddStreamHandler(new AssetPostHandler(server));
 
             Logger.Log.Info("[ASSET] OpenSim Asset Frontend loaded.");
         }
@@ -89,100 +90,172 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         #endregion IPlugin implementation
 
-        bool AssetRequestHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        public class AssetRequestHandler : IStreamedRequestHandler
         {
-            UUID assetID;
-            // Split the URL up to get the asset ID out
-            string[] rawUrl = request.Uri.PathAndQuery.Split('/');
+            AssetInventoryServer m_server;
+            string m_contentType;
+            string m_httpMethod;
+            string m_path;
 
-            if (rawUrl.Length >= 3 && rawUrl[2].Length >= 36 && UUID.TryParse(rawUrl[2].Substring(0, 36), out assetID))
+            public AssetRequestHandler(AssetInventoryServer server)
             {
-                Metadata metadata;
-                byte[] assetData;
-                BackendResponse dataResponse;
+                m_server = server;
+                m_contentType = null;
+                m_httpMethod = "GET";
+                m_path = @"^/assets/";
+            }
 
-                if ((dataResponse = server.StorageProvider.TryFetchDataMetadata(assetID, out metadata, out assetData)) == BackendResponse.Success)
+            #region IStreamedRequestHandler implementation
+
+            public string ContentType
+            {
+                get { return m_contentType; }
+            }
+
+            public string HttpMethod
+            {
+                get { return m_httpMethod; }
+            }
+
+            public string Path
+            {
+                get { return m_path; }
+            }
+
+            public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+            {
+                byte[] buffer = null;
+                UUID assetID;
+                // Split the URL up to get the asset ID out
+                string[] rawUrl = httpRequest.Url.PathAndQuery.Split('/');
+
+                if (rawUrl.Length >= 3 && rawUrl[2].Length >= 36 && UUID.TryParse(rawUrl[2].Substring(0, 36), out assetID))
                 {
-                    AssetBase asset = new AssetBase();
-                    asset.Data = assetData;
-                    asset.Metadata.FullID = metadata.ID;
-                    asset.Metadata.Name = metadata.Name;
-                    asset.Metadata.Description = metadata.Description;
-                    asset.Metadata.CreationDate = metadata.CreationDate;
-                    asset.Metadata.Type = (sbyte) Utils.ContentTypeToSLAssetType(metadata.ContentType);
-                    asset.Metadata.Local = false;
-                    asset.Metadata.Temporary = metadata.Temporary;
+                    Metadata metadata;
+                    byte[] assetData;
+                    BackendResponse dataResponse;
 
-                    XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
-                    MemoryStream ms = new MemoryStream();
-                    XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
-                    xs.Serialize(xw, asset);
-                    xw.Flush();
+                    if ((dataResponse = m_server.StorageProvider.TryFetchDataMetadata(assetID, out metadata, out assetData)) == BackendResponse.Success)
+                    {
+                        AssetBase asset = new AssetBase();
+                        asset.Data = assetData;
+                        asset.Metadata.FullID = metadata.ID;
+                        asset.Metadata.Name = metadata.Name;
+                        asset.Metadata.Description = metadata.Description;
+                        asset.Metadata.CreationDate = metadata.CreationDate;
+                        asset.Metadata.Type = (sbyte) Utils.ContentTypeToSLAssetType(metadata.ContentType);
+                        asset.Metadata.Local = false;
+                        asset.Metadata.Temporary = metadata.Temporary;
 
-                    ms.Seek(0, SeekOrigin.Begin);
-                    byte[] buffer = ms.GetBuffer();
+                        XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
+                        MemoryStream ms = new MemoryStream();
+                        XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
+                        xs.Serialize(xw, asset);
+                        xw.Flush();
 
-                    response.Status = HttpStatusCode.OK;
-                    response.ContentType = "application/xml";
-                    response.ContentLength = ms.Length;
-                    response.Body.Write(buffer, 0, (int) ms.Length);
-                    response.Body.Flush();
+                        ms.Seek(0, SeekOrigin.Begin);
+                        buffer = ms.GetBuffer();
+
+                        httpResponse.StatusCode = (int) HttpStatusCode.OK;
+                        httpResponse.ContentType = "application/xml";
+                        httpResponse.ContentLength = ms.Length;
+                        httpResponse.Body.Write(buffer, 0, (int) ms.Length);
+                        httpResponse.Body.Flush();
+                    }
+                    else
+                    {
+                        Logger.Log.WarnFormat("Failed to fetch asset data or metadata for {0}: {1}", assetID, dataResponse);
+                        httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
+                    }
                 }
                 else
                 {
-                    Logger.Log.WarnFormat("Failed to fetch asset data or metadata for {0}: {1}", assetID, dataResponse);
-                    response.Status = HttpStatusCode.NotFound;
+                    Logger.Log.Warn("Unrecognized OpenSim asset request: " + httpRequest.Url.PathAndQuery);
                 }
-            }
-            else
-            {
-                Logger.Log.Warn("Unrecognized OpenSim asset request: " + request.Uri.PathAndQuery);
+
+                return buffer;
             }
 
-            return true;
+            #endregion IStreamedRequestHandler implementation
         }
 
-        bool AssetPostHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+        public class AssetPostHandler : IStreamedRequestHandler
         {
-            Metadata metadata = new Metadata();
+            AssetInventoryServer m_server;
+            string m_contentType;
+            string m_httpMethod;
+            string m_path;
 
-            try
+            public AssetPostHandler(AssetInventoryServer server)
             {
-                AssetBase asset = (AssetBase) new XmlSerializer(typeof (AssetBase)).Deserialize(request.Body);
+                m_server = server;
+                m_contentType = null;
+                m_httpMethod = "POST";
+                m_path = @"^/assets/";
+            }
 
-                if (asset.Data != null && asset.Data.Length > 0)
+            #region IStreamedRequestHandler implementation
+
+            public string ContentType
+            {
+                get { return m_contentType; }
+            }
+
+            public string HttpMethod
+            {
+                get { return m_httpMethod; }
+            }
+
+            public string Path
+            {
+                get { return m_path; }
+            }
+
+            public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        //bool AssetPostHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
+            {
+                Metadata metadata = new Metadata();
+
+                try
                 {
-                    metadata.ID = asset.Metadata.FullID;
-                    metadata.ContentType = Utils.SLAssetTypeToContentType((int) asset.Metadata.Type);
-                    metadata.Name = asset.Metadata.Name;
-                    metadata.Description = asset.Metadata.Description;
-                    metadata.Temporary = asset.Metadata.Temporary;
+                    AssetBase asset = (AssetBase) new XmlSerializer(typeof (AssetBase)).Deserialize(httpRequest.InputStream);
 
-                    metadata.SHA1 = OpenMetaverse.Utils.SHA1(asset.Data);
-                    metadata.CreationDate = DateTime.Now;
+                    if (asset.Data != null && asset.Data.Length > 0)
+                    {
+                        metadata.ID = asset.Metadata.FullID;
+                        metadata.ContentType = Utils.SLAssetTypeToContentType((int) asset.Metadata.Type);
+                        metadata.Name = asset.Metadata.Name;
+                        metadata.Description = asset.Metadata.Description;
+                        metadata.Temporary = asset.Metadata.Temporary;
 
-                    BackendResponse storageResponse = server.StorageProvider.TryCreateAsset(metadata, asset.Data);
+                        metadata.SHA1 = OpenMetaverse.Utils.SHA1(asset.Data);
+                        metadata.CreationDate = DateTime.Now;
 
-                    if (storageResponse == BackendResponse.Success)
-                        response.Status = HttpStatusCode.Created;
-                    else if (storageResponse == BackendResponse.NotFound)
-                        response.Status = HttpStatusCode.NotFound;
+                        BackendResponse storageResponse = m_server.StorageProvider.TryCreateAsset(metadata, asset.Data);
+
+                        if (storageResponse == BackendResponse.Success)
+                            httpResponse.StatusCode = (int) HttpStatusCode.Created;
+                        else if (storageResponse == BackendResponse.NotFound)
+                            httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
+                        else
+                            httpResponse.StatusCode = (int) HttpStatusCode.InternalServerError;
+                    }
                     else
-                        response.Status = HttpStatusCode.InternalServerError;
+                    {
+                        Logger.Log.Warn("AssetPostHandler called with no asset data");
+                        httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    Logger.Log.Warn("AssetPostHandler called with no asset data");
-                    response.Status = HttpStatusCode.BadRequest;
+                    Logger.Log.Warn("Failed to parse POST data (expecting AssetBase): " + ex.Message);
+                    httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
                 }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log.Warn("Failed to parse POST data (expecting AssetBase): " + ex.Message);
-                response.Status = HttpStatusCode.BadRequest;
+
+                return null;
             }
 
-            return true;
+            #endregion IStreamedRequestHandler implementation
         }
     }
 }
