@@ -92,7 +92,7 @@ namespace OpenSim.Region.CoreModules.Scripting.RegionReady
 
         public string Name
         {
-            get { return "Region Ready Module"; }
+            get { return "RegionReadyModule"; }
         }
 
         public bool IsSharedModule
@@ -125,8 +125,8 @@ namespace OpenSim.Region.CoreModules.Scripting.RegionReady
                 c.Sender = null;
                 c.SenderUUID = UUID.Zero;
 
-                m_log.InfoFormat("[RegionReady] Region is ready: \"{0}\" on channel {1}",
-                                 c.Message, m_channelNotify);
+                m_log.InfoFormat("[RegionReady] Region \"{0}\" is ready: \"{1}\" on channel {2}",
+                                 m_scene.RegionInfo.RegionName, c.Message, m_channelNotify);
                 m_scene.EventManager.TriggerOnChatBroadcast(this, c); 
             }
         }
