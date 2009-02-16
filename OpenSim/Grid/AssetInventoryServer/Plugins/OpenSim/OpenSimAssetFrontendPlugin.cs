@@ -191,7 +191,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                     httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
                 }
 
-                return null;
+                return new byte[] {};
             }
         }
     }
