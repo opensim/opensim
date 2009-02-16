@@ -73,16 +73,6 @@ namespace OpenSim.Grid.AssetInventoryServer
         void Initialise(AssetInventoryServer server);
     }
 
-    public interface IStorageProvider
-    {
-        BackendResponse TryFetchMetadata(UUID assetID, out Metadata metadata);
-        BackendResponse TryFetchData(UUID assetID, out byte[] assetData);
-        BackendResponse TryFetchDataMetadata(UUID assetID, out Metadata metadata, out byte[] assetData);
-        BackendResponse TryCreateAsset(Metadata metadata, byte[] assetData);
-        BackendResponse TryCreateAsset(Metadata metadata, byte[] assetData, out UUID assetID);
-        int ForEach(Action<Metadata> action, int start, int count);
-    }
-
     public interface IAssetStorageProvider : IAssetInventoryServerPlugin
     {
         BackendResponse TryFetchMetadata(UUID assetID, out Metadata metadata);

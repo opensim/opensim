@@ -106,8 +106,8 @@ namespace OpenSim.Grid.AssetInventoryServer
                 return false;
             }
 
-            StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/StorageProvider") as IAssetStorageProvider;
-            MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider") as IMetricsProvider;
+            StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/StorageProvider",  "OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll") as IAssetStorageProvider;
+            MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider", "") as IMetricsProvider;
 
             try
             {
@@ -120,7 +120,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 return false;
             }
 
-            frontend = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/Frontend");
+            frontend = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/Frontend", "");
 
             return true;
         }
@@ -179,13 +179,16 @@ namespace OpenSim.Grid.AssetInventoryServer
 
         #endregion
 
-        private IAssetInventoryServerPlugin LoadAssetInventoryServerPlugin(string addinPath)
+        private IAssetInventoryServerPlugin LoadAssetInventoryServerPlugin(string addinPath, string provider)
         {
             PluginLoader<IAssetInventoryServerPlugin> loader = new PluginLoader<IAssetInventoryServerPlugin>(new AssetInventoryServerPluginInitialiser(this));
 
-            //loader.Add ("/OpenSim/AssetInventoryServer/StorageProvider", new PluginProviderFilter (provider));
-            //loader.Add("/OpenSim/AssetInventoryServer/StorageProvider", new PluginCountConstraint(1));
-            loader.Add(addinPath);
+            if (provider == String.Empty)
+                loader.Add(addinPath);
+            else
+                loader.Add(addinPath, new PluginProviderFilter(provider));
+            //loader.Add(addinPath, new PluginCountConstraint(1));
+
             loader.Load();
 
             return loader.Plugin;

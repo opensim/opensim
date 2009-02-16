@@ -40,7 +40,7 @@ using OpenSim.Framework;
 using OpenSim.Grid.AssetInventoryServer.Extensions;
 using OpenSim.Data;
 
-namespace OpenSim.Grid.AssetInventoryServer.Plugins
+namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 {
     public class OpenSimAssetStoragePlugin : IAssetStorageProvider
     {

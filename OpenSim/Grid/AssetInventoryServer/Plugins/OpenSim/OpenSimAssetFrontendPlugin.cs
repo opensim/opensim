@@ -39,7 +39,7 @@ using OpenMetaverse;
 using HttpServer;
 using OpenSim.Framework;
 
-namespace OpenSim.Grid.AssetInventoryServer.Plugins
+namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 {
     public class OpenSimAssetFrontendPlugin : IAssetInventoryServerPlugin
     {

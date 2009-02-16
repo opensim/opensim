@@ -34,12 +34,13 @@ using System.IO;
 using ExtensionLoader;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using OpenSim.Framework;
 
-namespace OpenSim.Grid.AssetInventoryServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 {
-    public class SimpleStorage : IExtension<AssetInventoryServer>, IStorageProvider
+    public class SimpleAssetStoragePlugin : IAssetStorageProvider
     {
-        const string EXTENSION_NAME = ""; // Used in metrics reporting
+        const string EXTENSION_NAME = "SimpleAssetStorage"; // Used in metrics reporting
         const string DEFAULT_DATA_DIR = "SimpleAssets";
         const string TEMP_DATA_DIR = "SimpleAssetsTemp";
 
@@ -47,29 +48,11 @@ namespace OpenSim.Grid.AssetInventoryServer.Extensions
         Dictionary<UUID, Metadata> metadataStorage;
         Dictionary<UUID, string> filenames;
 
-        public SimpleStorage()
+        public SimpleAssetStoragePlugin()
         {
         }
 
         #region Required Interfaces
-
-        public void Start(AssetInventoryServer server)
-        {
-            this.server = server;
-            metadataStorage = new Dictionary<UUID, Metadata>();
-            filenames = new Dictionary<UUID, string>();
-
-            LoadFiles(DEFAULT_DATA_DIR, false);
-            LoadFiles(TEMP_DATA_DIR, true);
-
-            Logger.Log.InfoFormat("Initialized the store index with metadata for {0} assets",
-                metadataStorage.Count);
-        }
-
-        public void Stop()
-        {
-            WipeTemporary();
-        }
 
         public BackendResponse TryFetchMetadata(UUID assetID, out Metadata metadata)
         {
@@ -202,6 +185,49 @@ namespace OpenSim.Grid.AssetInventoryServer.Extensions
         }
 
         #endregion Required Interfaces
+
+        #region IPlugin implementation
+
+        public void Initialise(AssetInventoryServer server)
+        {
+            this.server = server;
+
+            metadataStorage = new Dictionary<UUID, Metadata>();
+            filenames = new Dictionary<UUID, string>();
+
+            LoadFiles(DEFAULT_DATA_DIR, false);
+            LoadFiles(TEMP_DATA_DIR, true);
+
+            Logger.Log.InfoFormat("Initialized the store index with metadata for {0} assets",
+                metadataStorage.Count);
+        }
+
+        /// <summary>
+        /// <para>Initialises asset interface</para>
+        /// </summary>
+        public void Initialise()
+        {
+            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            throw new PluginNotInitialisedException(Name);
+        }
+
+        public void Dispose()
+        {
+            WipeTemporary();
+        }
+
+        public string Version
+        {
+            // TODO: this should be something meaningful and not hardcoded?
+            get { return "0.1"; }
+        }
+
+        public string Name
+        {
+            get { return "AssetInventoryServer Simple asset storage provider"; }
+        }
+
+        #endregion IPlugin implementation
 
         public void WipeTemporary()
         {

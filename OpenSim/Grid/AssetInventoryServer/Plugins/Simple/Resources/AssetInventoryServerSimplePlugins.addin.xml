@@ -1,0 +1,13 @@
+<Addin id="OpenSim.Grid.AssetInventoryServer.Plugins.Simple" version="0.1">
+    <Runtime>
+        <Import assembly="OpenSim.Grid.AssetInventoryServer.Plugins.Simple.dll" />
+    </Runtime>
+
+    <Dependencies>
+        <Addin id="OpenSim.Grid.AssetInventoryServer" version="0.1" />
+    </Dependencies>
+
+    <Extension path="/OpenSim/AssetInventoryServer/StorageProvider">
+        <Plugin id="SimpleAssetStorage" provider="OpenSim.Grid.AssetInventoryServer.Plugins.Simple.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.Simple.SimpleAssetStoragePlugin" />
+    </Extension>
+</Addin>
