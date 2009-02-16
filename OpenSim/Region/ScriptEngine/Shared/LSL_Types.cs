@@ -372,6 +372,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return !(lhs == rhs);
             }
 
+            public static double Mag(Quaternion q)
+            {
+                return Math.Sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.s * q.s);
+            }
+
             #endregion
 
             public static Quaternion operator +(Quaternion a, Quaternion b)
@@ -742,95 +747,72 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
             }
 
-            private class AlphanumComparatorFast : IComparer
+            private static int compare(object left, object right, int ascending)
             {
-                public int Compare(object x, object y)
+                if (!left.GetType().Equals(right.GetType()))
                 {
-                    string s1 = x as string;
-                    if (s1 == null)
-                    {
-                        return 0;
-                    }
-                    string s2 = y as string;
-                    if (s2 == null)
-                    {
-                        return 0;
-                    }
+                    // unequal types are always "equal" for comparison purposes.
+                    // this way, the bubble sort will never swap them, and we'll
+                    // get that feathered effect we're looking for
+                    return 0;
+                }
 
-                    int len1 = s1.Length;
-                    int len2 = s2.Length;
-                    int marker1 = 0;
-                    int marker2 = 0;
+                int ret = 0;
 
-                    // Walk through two the strings with two markers.
-                    while (marker1 < len1 && marker2 < len2)
-                    {
-                        char ch1 = s1[marker1];
-                        char ch2 = s2[marker2];
+                if (left is key)
+                {
+                    key l = (key)left;
+                    key r = (key)right;
+                    ret = String.CompareOrdinal(l.value, r.value);
+                }
+                else if (left is LSLString)
+                {
+                    LSLString l = (LSLString)left;
+                    LSLString r = (LSLString)right;
+                    ret = String.CompareOrdinal(l.m_string, r.m_string);
+                }
+                else if (left is LSLInteger)
+                {
+                    LSLInteger l = (LSLInteger)left;
+                    LSLInteger r = (LSLInteger)right;
+                    ret = Math.Sign(l.value - r.value);
+                }
+                else if (left is LSLFloat)
+                {
+                    LSLFloat l = (LSLFloat)left;
+                    LSLFloat r = (LSLFloat)right;
+                    ret = Math.Sign(l.value - r.value);
+                }
+                else if (left is Vector3)
+                {
+                    Vector3 l = (Vector3)left;
+                    Vector3 r = (Vector3)right;
+                    ret = Math.Sign(Vector3.Mag(l) - Vector3.Mag(r));
+                }
+                else if (left is Quaternion)
+                {
+                    Quaternion l = (Quaternion)left;
+                    Quaternion r = (Quaternion)right;
+                    ret = Math.Sign(Quaternion.Mag(l) - Quaternion.Mag(r));
+                }
 
-                        // Some buffers we can build up characters in for each chunk.
-                        char[] space1 = new char[len1];
-                        int loc1 = 0;
-                        char[] space2 = new char[len2];
-                        int loc2 = 0;
+                if (ascending == 0)
+                {
+                    ret = 0 - ret;
+                }
 
-                        // Walk through all following characters that are digits or
-                        // characters in BOTH strings starting at the appropriate marker.
-                        // Collect char arrays.
-                        do
-                        {
-                            space1[loc1++] = ch1;
-                            marker1++;
+                return ret;
+            }
 
-                            if (marker1 < len1)
-                            {
-                                ch1 = s1[marker1];
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        } while (char.IsDigit(ch1) == char.IsDigit(space1[0]));
+            class HomogeneousComparer : IComparer
+            {
+                public HomogeneousComparer()
+                {
+                }
 
-                        do
-                        {
-                            space2[loc2++] = ch2;
-                            marker2++;
-
-                            if (marker2 < len2)
-                            {
-                                ch2 = s2[marker2];
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        } while (char.IsDigit(ch2) == char.IsDigit(space2[0]));
-
-                        // If we have collected numbers, compare them numerically.
-                        // Otherwise, if we have strings, compare them alphabetically.
-                        string str1 = new string(space1);
-                        string str2 = new string(space2);
-
-                        int result;
-
-                        if (char.IsDigit(space1[0]) && char.IsDigit(space2[0]))
-                        {
-                            int thisNumericChunk = int.Parse(str1);
-                            int thatNumericChunk = int.Parse(str2);
-                            result = thisNumericChunk.CompareTo(thatNumericChunk);
-                        }
-                        else
-                        {
-                            result = str1.CompareTo(str2);
-                        }
-
-                        if (result != 0)
-                        {
-                            return result;
-                        }
-                    }
-                    return len1 - len2;
+                public int Compare(object lhs, object rhs)
+                {
+                    return compare(lhs, rhs, 1);
                 }
             }
 
@@ -839,68 +821,70 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 if (Data.Length == 0)
                     return new list(); // Don't even bother
 
-                string[] keys;
+                object[] ret = new object[Data.Length];
+                Array.Copy(Data, 0, ret, 0, Data.Length);
 
-                if (stride == 1) // The simple case
+                if (stride <= 0)
                 {
-                    Object[] ret=new Object[Data.Length];
-
-                    Array.Copy(Data, 0, ret, 0, Data.Length);
-
-                    keys=new string[Data.Length];
-
-                    for (int k = 0; k < Data.Length; k++)
-                        keys[k] = Data[k].ToString();
-
-                    Array.Sort( keys, ret, new AlphanumComparatorFast() );
-
-                    if (ascending == 0)
-                        Array.Reverse(ret);
-                    return new list(ret);
+                    stride = 1;
                 }
 
-                int src=0;
+                // we can optimize here in the case where stride == 1 and the list
+                // consists of homogeneous types
 
-                int len=(Data.Length+stride-1)/stride;
-
-                keys=new string[len];
-                Object[][] vals=new Object[len][];
-
-                int i;
-
-                while (src < Data.Length)
+                if (stride == 1)
                 {
-                    Object[] o=new Object[stride];
-
-                    for (i = 0; i < stride; i++)
+                    bool homogeneous = true;
+                    int index;
+                    for (index = 1; index < Data.Length; index++)
                     {
-                        if (src < Data.Length)
-                            o[i]=Data[src++];
-                        else
+                        if (!Data[0].GetType().Equals(Data[index].GetType()))
                         {
-                            o[i]=new Object();
-                            src++;
+                            homogeneous = false;
+                            break;
                         }
                     }
 
-                    int idx=src/stride-1;
-                    keys[idx]=o[0].ToString();
-                    vals[idx]=o;
+                    if (homogeneous)
+                    {
+                        Array.Sort(ret, new HomogeneousComparer());
+                        if (ascending == 0)
+                        {
+                            Array.Reverse(ret);
+                        }
+                        return new list(ret);
+                    }
                 }
 
-                Array.Sort(keys, vals, new AlphanumComparatorFast());
-                if (ascending == 0)
+                // Because of the desired type specific feathered sorting behavior
+                // requried by the spec, we MUST use a non-optimized bubble sort here.
+                // Anything else will give you the incorrect behavior.
+
+                // begin bubble sort...
+                int i;
+                int j;
+                int k;
+                int n = Data.Length;
+
+                for (i = 0; i < (n-stride); i += stride)
                 {
-                    Array.Reverse(vals);
+                    for (j = i + stride; j < n; j += stride)
+                    {
+                        if (compare(ret[i], ret[j], ascending) > 0)
+                        {
+                            for (k = 0; k < stride; k++)
+                            {
+                                object tmp = ret[i + k];
+                                ret[i + k] = ret[j + k];
+                                ret[j + k] = tmp;
+                            }
+                        }
+                    }
                 }
 
-                Object[] sorted=new Object[stride*vals.Length];
+                // end bubble sort
 
-                for (i = 0; i < vals.Length; i++)
-                    for (int j = 0; j < stride; j++)
-                        sorted[i*stride+j] = vals[i][j];
-
-                return new list(sorted);
+                return new list(ret);
             }
 
             #region CSV Methods

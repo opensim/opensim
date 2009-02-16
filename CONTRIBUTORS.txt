@@ -46,6 +46,7 @@ Patches
 * ChrisDown
 * Chris Yeoh
 * Daedius
+* DoranZemlja
 * daTwitch 
 * devalnor-#708
 * dmiles (Daxtron Labs)
