@@ -73,14 +73,11 @@ namespace OpenSim.Tests.Common.Setup
             AgentCircuitManager acm = new AgentCircuitManager();
             SceneCommunicationService scs = new SceneCommunicationService(cm);
             
-            SQLAssetServer assetService = new SQLAssetServer(new TestAssetDataPlugin());
-            IAssetCache ac = (IAssetCache) new AssetCache(assetService);
-            
             StorageManager sm = new StorageManager("OpenSim.Data.Null.dll", "", "");            
             IConfigSource configSource = new IniConfigSource();
             
             TestScene testScene = new TestScene(
-                regInfo, acm, cm, scs, ac, sm, null, false, false, false, configSource, null);
+                regInfo, acm, cm, scs, cm.AssetCache, sm, null, false, false, false, configSource, null);
                        
             IRegionModule capsModule = new CapabilitiesModule();
             capsModule.Initialise(testScene, new IniConfigSource());
