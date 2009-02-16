@@ -272,7 +272,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             try
             {
-                m_assetProvider = DataPluginFactory.LoadAssetDataPlugin("OpenSim.Data.MySQL.dll", server.ConfigFile.Configs["MySQL"].GetString("database_connect", null));
+                m_assetProvider = DataPluginFactory.LoadDataPlugin<IAssetDataPlugin>("OpenSim.Data.MySQL.dll", server.ConfigFile.Configs["MySQL"].GetString("database_connect", null));
                 if (m_assetProvider == null)
                 {
                     Logger.Log.Error("[ASSET]: Failed to load a database plugin, server halting.");
