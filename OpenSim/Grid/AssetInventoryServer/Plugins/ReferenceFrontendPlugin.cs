@@ -305,7 +305,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
                 {
                     try
                     {
-                        OSD osdata = OSDParser.DeserializeJson(httpRequest.InputStream);
+                        OSD osdata = OSDParser.DeserializeJson(new StreamReader(httpRequest.InputStream).ReadToEnd());
 
                         if (osdata.Type == OSDType.Map)
                         {

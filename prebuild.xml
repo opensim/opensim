@@ -768,7 +768,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="log4net"/>
       <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenMetaverse.StructuredData2"/>
+      <Reference name="OpenMetaverse.StructuredData"/>
       <Reference name="HttpServer"/>
       <Reference name="Nini.dll" />
 
@@ -804,7 +804,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenMetaverse"/>
       <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenMetaverse.StructuredData2"/>
+      <Reference name="OpenMetaverse.StructuredData"/>
       <Reference name="HttpServer"/>
       <Reference name="log4net"/>
 
@@ -834,7 +834,7 @@
       <Reference name="OpenSim.Grid.AssetInventoryServer" />
       <Reference name="OpenMetaverse"/>
       <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenMetaverse.StructuredData2" />
+      <Reference name="OpenMetaverse.StructuredData"/>
       <Reference name="HttpServer"/>
       <Reference name="log4net"/>
 
@@ -867,7 +867,7 @@
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Grid.AssetInventoryServer" />
       <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenMetaverse.StructuredData2" />
+      <Reference name="OpenMetaverse.StructuredData"/>
       <Reference name="HttpServer"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net"/>
