@@ -43,6 +43,7 @@ using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
+using System.Text.RegularExpressions;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -1104,6 +1105,54 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (config.Configs["GridInfo"] != null)
                 loginURI = config.Configs["GridInfo"].GetString("login", loginURI);
             return loginURI;
+        }
+
+        public LSL_String osFormatString(string str, LSL_List strings)
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osFormatString");
+            m_host.AddScriptLPS(1);
+
+            return String.Format(str, strings.Data);
+        }
+
+        public LSL_List osMatchString(string src, string pattern, int start)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osMatchString");
+            m_host.AddScriptLPS(1);
+
+            LSL_List result = new LSL_List();
+
+            // Normalize indices (if negative).
+            // After normlaization they may still be
+            // negative, but that is now relative to
+            // the start, rather than the end, of the
+            // sequence.
+            if (start < 0)
+            {
+                start = src.Length + start;
+            }
+
+            if (start < 0 || start >= src.Length)
+            {
+                return result;  // empty list
+            }
+                 
+            // Find matches beginning at start position
+            Regex matcher = new Regex(pattern);
+            Match match = matcher.Match(src, start);
+            if (match.Success) 
+            {
+                foreach (System.Text.RegularExpressions.Group g in match.Groups)
+                {
+                    if (g.Success) 
+                    {
+                        result.Add(g.Value);
+                        result.Add(g.Index);
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

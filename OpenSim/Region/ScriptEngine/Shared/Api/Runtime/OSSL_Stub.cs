@@ -38,6 +38,8 @@ using integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
+using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
@@ -260,6 +262,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public string osGetGridLoginURI()
         {
             return m_OSSL_Functions.osGetGridLoginURI();
+        }
+
+        public LSL_String osFormatString(string str, LSL_List strings)
+        {
+            return m_OSSL_Functions.osFormatString(str, strings);
+        }
+
+        public LSL_List osMatchString(string src, string pattern, int start)
+        {
+            return m_OSSL_Functions.osMatchString(src, pattern, start);
         }
 
         public OSSLPrim Prim;
