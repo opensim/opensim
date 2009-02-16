@@ -33,31 +33,57 @@ using System.Collections.Specialized;
 using System.Net;
 using System.Text;
 using System.Web;
-using ExtensionLoader;
 using OpenMetaverse;
 using HttpServer;
+using OpenSim.Framework;
 
-namespace OpenSim.Grid.AssetInventoryServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
-    public class BrowseFrontend : IExtension<AssetInventoryServer>
+    public class BrowseFrontendPlugin : IAssetInventoryServerPlugin
     {
         AssetInventoryServer server;
 
-        public BrowseFrontend()
+        public BrowseFrontendPlugin()
         {
         }
 
-        public void Start(AssetInventoryServer server)
+        #region IPlugin implementation
+
+        public void Initialise(AssetInventoryServer server)
         {
             this.server = server;
 
             // Request for / or /?...
             server.HttpServer.AddHandler("get", null, @"(^/$)|(^/\?.*)", BrowseRequestHandler);
+
+            Logger.Log.Info("[ASSET] Browser Frontend loaded.");
         }
 
-        public void Stop()
+        /// <summary>
+        /// <para>Initialises asset interface</para>
+        /// </summary>
+        public void Initialise()
+        {
+            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            throw new PluginNotInitialisedException(Name);
+        }
+
+        public void Dispose()
         {
         }
+
+        public string Version
+        {
+            // TODO: this should be something meaningful and not hardcoded?
+            get { return "0.1"; }
+        }
+
+        public string Name
+        {
+            get { return "AssetInventoryServer Browse asset frontend"; }
+        }
+
+        #endregion IPlugin implementation
 
         bool BrowseRequestHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
         {

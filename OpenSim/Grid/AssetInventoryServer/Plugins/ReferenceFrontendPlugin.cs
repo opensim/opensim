@@ -31,22 +31,24 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Xml;
-using ExtensionLoader;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using HttpServer;
+using OpenSim.Framework;
 
-namespace OpenSim.Grid.AssetInventoryServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
-    public class ReferenceFrontend : IExtension<AssetInventoryServer>
+    public class ReferenceFrontendPlugin : IAssetInventoryServerPlugin
     {
         AssetInventoryServer server;
 
-        public ReferenceFrontend()
+        public ReferenceFrontendPlugin()
         {
         }
 
-        public void Start(AssetInventoryServer server)
+        #region IPlugin implementation
+
+        public void Initialise(AssetInventoryServer server)
         {
             this.server = server;
 
@@ -60,11 +62,35 @@ namespace OpenSim.Grid.AssetInventoryServer.Extensions
 
             // Asset creation
             server.HttpServer.AddHandler("post", null, "^/createasset", CreateRequestHandler);
+
+            Logger.Log.Info("[ASSET] Reference Frontend loaded.");
         }
 
-        public void Stop()
+        /// <summary>
+        /// <para>Initialises asset interface</para>
+        /// </summary>
+        public void Initialise()
+        {
+            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            throw new PluginNotInitialisedException(Name);
+        }
+
+        public void Dispose()
         {
         }
+
+        public string Version
+        {
+            // TODO: this should be something meaningful and not hardcoded?
+            get { return "0.1"; }
+        }
+
+        public string Name
+        {
+            get { return "AssetInventoryServer Reference asset frontend"; }
+        }
+
+        #endregion IPlugin implementation
 
         bool MetadataRequestHandler(IHttpClientContext client, IHttpRequest request, IHttpResponse response)
         {
