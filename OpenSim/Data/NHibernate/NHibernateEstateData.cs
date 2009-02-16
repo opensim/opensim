@@ -89,7 +89,7 @@ namespace OpenSim.Data.NHibernate
             // Ensure that estate settings exist for the link
             if (link != null)
             {
-                if (manager.Load(typeof(EstateSettings), link.EstateID) == null)
+                if (manager.GetWithStatefullSession(typeof(EstateSettings), link.EstateID) == null)
                 {
                     // Delete broken link
                     manager.Delete(link);
@@ -116,11 +116,11 @@ namespace OpenSim.Data.NHibernate
                 link.EstateRegionLinkID = UUID.Random();
                 link.RegionID = regionID;
                 link.EstateID = estateID;
-                manager.Insert(link);
+                manager.InsertWithStatefullSession(link);
             }
 
             // Load estate settings according to the existing or created link.
-            return (EstateSettings)manager.Load(typeof(EstateSettings), link.EstateID);
+            return (EstateSettings)manager.GetWithStatefullSession(typeof(EstateSettings), link.EstateID);
         }
 
         public void StoreEstateSettings(EstateSettings estateSettings)
@@ -128,7 +128,7 @@ namespace OpenSim.Data.NHibernate
             // Estates are always updated when stored.
             // Insert is always done via. load method as with the current API
             // this is explicitly the only way to create region link.
-            manager.Update(estateSettings);
+            manager.UpdateWithStatefullSession(estateSettings);
         }
 
         #endregion

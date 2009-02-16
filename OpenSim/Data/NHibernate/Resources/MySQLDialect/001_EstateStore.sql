@@ -38,3 +38,25 @@ CREATE TABLE EstateRegionLink (
 
 CREATE INDEX EstateRegionLinkEstateIDIndex ON EstateRegionLink (EstateID);
 CREATE INDEX EstateRegionLinkERegionIDIndex ON EstateRegionLink (RegionID);
+
+CREATE TABLE EstateManagers (
+  EstateID INT NOT NULL,
+  ManagerID VARCHAR(36) NOT NULL,
+  ArrayIndex INT NOT NULL,
+  PRIMARY KEY (EstateID,ArrayIndex)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
+
+CREATE TABLE EstateUsers (
+  EstateID INT NOT NULL,
+  UserID VARCHAR(36) NOT NULL,
+  ArrayIndex INT NOT NULL,
+  PRIMARY KEY (EstateID,ArrayIndex)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
+
+CREATE TABLE EstateGroups (
+  EstateID INT NOT NULL,
+  GroupID VARCHAR(36) NOT NULL,
+  ArrayIndex INT NOT NULL,
+  PRIMARY KEY (EstateID,ArrayIndex)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
+

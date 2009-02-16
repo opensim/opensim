@@ -59,12 +59,12 @@ namespace OpenSim.Data.NHibernate
 
         override public AssetBase FetchAsset(UUID uuid)
         {
-            return (AssetBase)manager.Load(typeof(AssetBase), uuid);
+            return (AssetBase)manager.Get(typeof(AssetBase), uuid);
         }
 
         private void Save(AssetBase asset)
         {
-            AssetBase temp = (AssetBase)manager.Load(typeof(AssetBase), asset.Metadata.FullID);
+            AssetBase temp = (AssetBase)manager.Get(typeof(AssetBase), asset.Metadata.FullID);
             if (temp == null)
             {
                 manager.Insert(asset);

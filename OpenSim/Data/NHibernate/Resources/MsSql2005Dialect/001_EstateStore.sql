@@ -38,3 +38,25 @@ CREATE TABLE EstateRegionLink (
 
 CREATE INDEX EstateRegionLinkEstateIDIndex ON EstateRegionLink (EstateID);
 CREATE INDEX EstateRegionLinkERegionIDIndex ON EstateRegionLink (RegionID);
+
+
+CREATE TABLE EstateManagers (
+  EstateID INT NOT NULL,
+  ManagerID NVARCHAR(36) NOT NULL,
+  ArrayIndex INT NOT NULL,
+  PRIMARY KEY (EstateID,ArrayIndex)
+);
+
+CREATE TABLE EstateUsers (
+  EstateID INT NOT NULL,
+  UserID NVARCHAR(36) NOT NULL,
+  ArrayIndex INT NOT NULL,
+  PRIMARY KEY (EstateID,ArrayIndex)
+);
+
+CREATE TABLE EstateGroups (
+  EstateID INT NOT NULL,
+  GroupID NVARCHAR(36) NOT NULL,
+  ArrayIndex INT NOT NULL,
+  PRIMARY KEY (EstateID,ArrayIndex)
+);

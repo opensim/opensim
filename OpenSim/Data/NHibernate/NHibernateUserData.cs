@@ -61,7 +61,7 @@ namespace OpenSim.Data.NHibernate
             UserProfileData user = null;
 
             m_log.InfoFormat("[NHIBERNATE] ExistsUser; {0}", uuid);
-            user = (UserProfileData)manager.Load(typeof(UserProfileData), uuid);
+            user = (UserProfileData)manager.Get(typeof(UserProfileData), uuid);
             
             if (user == null)
             {
@@ -78,7 +78,7 @@ namespace OpenSim.Data.NHibernate
             UserProfileData user;
             m_log.InfoFormat("[NHIBERNATE] GetUserByUUID: {0} ", uuid);
             
-            user = (UserProfileData)manager.Load(typeof(UserProfileData), uuid);
+            user = (UserProfileData)manager.Get(typeof(UserProfileData), uuid);
             if (user != null)    
             {
                 UserAgentData agent = GetAgentByUUID(uuid);
@@ -163,7 +163,7 @@ namespace OpenSim.Data.NHibernate
             }
 
 
-            UserAgentData old = (UserAgentData)manager.Load(typeof(UserAgentData), agent.ProfileID);
+            UserAgentData old = (UserAgentData)manager.Get(typeof(UserAgentData), agent.ProfileID);
             if (old != null)
             {
                 manager.Delete(old);
@@ -182,7 +182,7 @@ namespace OpenSim.Data.NHibernate
         override public UserAgentData GetAgentByUUID(UUID uuid)
         {
             m_log.InfoFormat("[NHIBERNATE] GetAgentByUUID: {0} ", uuid);
-            return (UserAgentData)manager.Load(typeof(UserAgentData), uuid);
+            return (UserAgentData)manager.Get(typeof(UserAgentData), uuid);
         }
 
         override public UserProfileData GetUserByName(string fname, string lname)
@@ -397,12 +397,12 @@ namespace OpenSim.Data.NHibernate
         /// TODO: stubs for now to get us to a compiling state gently
         public override AvatarAppearance GetUserAppearance(UUID user)
         {
-            return (AvatarAppearance)manager.Load(typeof(AvatarAppearance), user);
+            return (AvatarAppearance)manager.Get(typeof(AvatarAppearance), user);
         }
 
         private bool ExistsAppearance(UUID uuid)
         {
-            AvatarAppearance appearance = (AvatarAppearance)manager.Load(typeof(AvatarAppearance), uuid);
+            AvatarAppearance appearance = (AvatarAppearance)manager.Get(typeof(AvatarAppearance), uuid);
             if (appearance == null)
             {
                 return false;

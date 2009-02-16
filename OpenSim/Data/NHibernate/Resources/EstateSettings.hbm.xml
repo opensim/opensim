@@ -35,5 +35,23 @@
       
         <property name="AbuseEmail" type="String" length="255" />
 
+        <array name="EstateManagers" table="EstateManagers" cascade="all">
+          <key column="EstateID" />
+          <index column="ArrayIndex" />
+          <element column="ManagerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
+        </array>
+
+        <array name="EstateAccess" table="EstateUsers" cascade="all">
+          <key column="EstateID" />
+          <index column="ArrayIndex" />
+          <element column="UserID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
+        </array>
+
+        <array name="EstateGroups" table="EstateGroups" cascade="all">
+          <key column="EstateID" />
+          <index column="ArrayIndex" />
+          <element column="GroupID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
+        </array>
+      
     </class>
 </hibernate-mapping>

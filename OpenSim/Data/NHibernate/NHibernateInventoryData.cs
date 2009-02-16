@@ -110,7 +110,7 @@ namespace OpenSim.Data.NHibernate
             try
             {
                 m_log.InfoFormat("[NHIBERNATE] getInventoryItem {0}", item);
-                return (InventoryItemBase)manager.Load(typeof(InventoryItemBase), item);
+                return (InventoryItemBase)manager.Get(typeof(InventoryItemBase), item);
             }
             catch
             {
@@ -158,7 +158,7 @@ namespace OpenSim.Data.NHibernate
         /// <param name="item"></param>
         public void deleteInventoryItem(UUID itemID)
         {
-            InventoryItemBase item = (InventoryItemBase)manager.Load(typeof(InventoryItemBase), itemID);
+            InventoryItemBase item = (InventoryItemBase)manager.Get(typeof(InventoryItemBase), itemID);
             if (item != null)
             {
                 manager.Delete(item);
@@ -179,7 +179,7 @@ namespace OpenSim.Data.NHibernate
         {
             try
             {
-                return (InventoryFolderBase)manager.Load(typeof(InventoryFolderBase), folder);
+                return (InventoryFolderBase)manager.Get(typeof(InventoryFolderBase), folder);
             }
             catch
             {
@@ -227,7 +227,7 @@ namespace OpenSim.Data.NHibernate
         /// <param name="folder"></param>
         public void deleteInventoryFolder(UUID folderID)
         {
-            InventoryFolderBase item = (InventoryFolderBase)manager.Load(typeof(InventoryFolderBase), folderID);
+            InventoryFolderBase item = (InventoryFolderBase)manager.Get(typeof(InventoryFolderBase), folderID);
             if (item != null)
             {
                 manager.Delete(item);

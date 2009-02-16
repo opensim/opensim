@@ -63,7 +63,7 @@ namespace OpenSim.Data.NHibernate
 
         public void StoreRegionSettings(RegionSettings rs)
         {
-            RegionSettings oldRegionSettings = (RegionSettings)manager.Load(typeof(RegionSettings), rs.RegionUUID);
+            RegionSettings oldRegionSettings = (RegionSettings)manager.Get(typeof(RegionSettings), rs.RegionUUID);
             if (oldRegionSettings != null)
             {
                 manager.Update(rs);
@@ -76,7 +76,7 @@ namespace OpenSim.Data.NHibernate
 
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
-            RegionSettings regionSettings = (RegionSettings) manager.Load(typeof(RegionSettings), regionUUID);
+            RegionSettings regionSettings = (RegionSettings) manager.Get(typeof(RegionSettings), regionUUID);
 
             if (regionSettings == null)
             {
@@ -96,7 +96,7 @@ namespace OpenSim.Data.NHibernate
         {
             try
             {
-                SceneObjectPart old = (SceneObjectPart)manager.Load(typeof(SceneObjectPart), p.UUID);
+                SceneObjectPart old = (SceneObjectPart)manager.Get(typeof(SceneObjectPart), p.UUID);
                 if (old != null)
                 {
                     m_log.InfoFormat("[NHIBERNATE] updating object {0}", p.UUID);
@@ -120,7 +120,7 @@ namespace OpenSim.Data.NHibernate
             try
             {
                 
-                Terrain old = (Terrain)manager.Load(typeof(Terrain), t.RegionID);
+                Terrain old = (Terrain)manager.Get(typeof(Terrain), t.RegionID);
                 if (old != null)
                 {
                     m_log.InfoFormat("[NHIBERNATE] updating terrain {0}", t.RegionID);
@@ -279,7 +279,7 @@ namespace OpenSim.Data.NHibernate
         /// <returns>Heightfield data</returns>
         public double[,] LoadTerrain(UUID regionID)
         {
-            Terrain t = (Terrain)manager.Load(typeof(Terrain), regionID);
+            Terrain t = (Terrain)manager.Get(typeof(Terrain), regionID);
             if (t != null)
             {
                 return t.Doubles;

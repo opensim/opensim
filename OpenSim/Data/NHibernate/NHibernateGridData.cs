@@ -111,7 +111,7 @@ namespace OpenSim.Data.NHibernate
 
         public override DataResponse AddProfile(RegionProfileData profile)
         {
-            if (manager.Load(typeof(RegionProfileData), profile.Uuid) == null)
+            if (manager.Get(typeof(RegionProfileData), profile.Uuid) == null)
             {
                 manager.Insert(profile);
                 return DataResponse.RESPONSE_OK;
@@ -124,7 +124,7 @@ namespace OpenSim.Data.NHibernate
 
         public override DataResponse UpdateProfile(RegionProfileData profile)
         {
-            if (manager.Load(typeof(RegionProfileData), profile.Uuid) != null)
+            if (manager.Get(typeof(RegionProfileData), profile.Uuid) != null)
             {
                 manager.Update(profile);
                 return DataResponse.RESPONSE_OK;
@@ -137,7 +137,7 @@ namespace OpenSim.Data.NHibernate
 
         public override DataResponse DeleteProfile(string uuid)
         {
-            RegionProfileData regionProfileData = (RegionProfileData)manager.Load(typeof(RegionProfileData), new UUID(uuid));
+            RegionProfileData regionProfileData = (RegionProfileData)manager.Get(typeof(RegionProfileData), new UUID(uuid));
             if (regionProfileData != null)
             {
                 manager.Delete(regionProfileData);
@@ -148,7 +148,7 @@ namespace OpenSim.Data.NHibernate
 
         public override RegionProfileData GetProfileByUUID(UUID UUID)
         {
-            return (RegionProfileData)manager.Load(typeof(RegionProfileData), UUID);
+            return (RegionProfileData)manager.Get(typeof(RegionProfileData), UUID);
         }
 
         public override RegionProfileData GetProfileByHandle(ulong regionHandle)
