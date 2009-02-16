@@ -32,11 +32,11 @@ using OpenMetaverse;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
-    public class NullMetrics : IMetricsProvider
+    public class NullMetricsPlugin : IMetricsProvider
     {
         AssetInventoryServer server;
 
-        public NullMetrics()
+        public NullMetricsPlugin()
         {
         }
 

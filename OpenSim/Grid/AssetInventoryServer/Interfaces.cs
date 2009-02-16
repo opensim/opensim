@@ -83,7 +83,7 @@ namespace OpenSim.Grid.AssetInventoryServer
         int ForEach(Action<Metadata> action, int start, int count);
     }
 
-    public interface IInventoryProvider
+    public interface IInventoryStorageProvider : IAssetInventoryServerPlugin
     {
         BackendResponse TryFetchItem(Uri owner, UUID itemID, out InventoryItem item);
         BackendResponse TryFetchFolder(Uri owner, UUID folderID, out InventoryFolder folder);

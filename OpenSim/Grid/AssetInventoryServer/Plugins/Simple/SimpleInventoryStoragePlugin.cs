@@ -35,12 +35,13 @@ using System.Text;
 using ExtensionLoader;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using OpenSim.Framework;
 
-namespace OpenSim.Grid.AssetInventoryServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 {
-    public class SimpleInventory : IExtension<AssetInventoryServer>, IInventoryProvider
+    public class SimpleInventoryStoragePlugin : IInventoryStorageProvider
     {
-        const string EXTENSION_NAME = "SimpleInventory"; // Used for metrics reporting
+        const string EXTENSION_NAME = "SimpleInventoryStorage"; // Used for metrics reporting
         const string DEFAULT_INVENTORY_DIR = "SimpleInventory";
 
         AssetInventoryServer server;
@@ -49,25 +50,11 @@ namespace OpenSim.Grid.AssetInventoryServer.Extensions
         Utils.InventoryItemSerializer itemSerializer = new Utils.InventoryItemSerializer();
         Utils.InventoryFolderSerializer folderSerializer = new Utils.InventoryFolderSerializer();
 
-        public SimpleInventory()
+        public SimpleInventoryStoragePlugin()
         {
         }
 
         #region Required Interfaces
-
-        public void Start(AssetInventoryServer server)
-        {
-            this.server = server;
-
-            LoadFiles(DEFAULT_INVENTORY_DIR);
-
-            Logger.Log.InfoFormat("Initialized the inventory index with data for {0} avatars",
-                inventories.Count);
-        }
-
-        public void Stop()
-        {
-        }
 
         public BackendResponse TryFetchItem(Uri owner, UUID itemID, out InventoryItem item)
         {
@@ -598,5 +585,43 @@ namespace OpenSim.Grid.AssetInventoryServer.Extensions
                 Logger.Log.ErrorFormat("Failed loading inventory from {0}: {1}", folder, ex.Message);
             }
         }
+
+        #region IPlugin implementation
+
+        public void Initialise(AssetInventoryServer server)
+        {
+            this.server = server;
+
+            LoadFiles(DEFAULT_INVENTORY_DIR);
+
+            Logger.Log.InfoFormat("Initialized the inventory index with data for {0} avatars",
+                inventories.Count);
+        }
+
+        /// <summary>
+        /// <para>Initialises asset interface</para>
+        /// </summary>
+        public void Initialise()
+        {
+            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            throw new PluginNotInitialisedException(Name);
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public string Version
+        {
+            // TODO: this should be something meaningful and not hardcoded?
+            get { return "0.1"; }
+        }
+
+        public string Name
+        {
+            get { return "AssetInventoryServer Simple inventory storage provider"; }
+        }
+
+        #endregion IPlugin implementation
     }
 }

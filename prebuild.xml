@@ -824,6 +824,7 @@
       <Reference name="OpenSim.Framework" />
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Grid.AssetInventoryServer" />
+      <Reference name="OpenMetaverse"/>
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData2" />
       <Reference name="HttpServer2"/>

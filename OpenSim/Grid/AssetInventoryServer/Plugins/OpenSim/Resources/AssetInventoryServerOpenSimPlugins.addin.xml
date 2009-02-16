@@ -15,6 +15,9 @@
     <Extension path="/OpenSim/AssetInventoryServer/StorageProvider">
         <Plugin id="OpenSimAssetStorage" provider="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.OpenSimAssetStoragePlugin" />
     </Extension>
+    <Extension path="/OpenSim/AssetInventoryServer/InventoryProvider">
+        <Plugin id="OpenSimInventoryStorage" provider="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.OpenSimInventoryStoragePlugin" />
+    </Extension>
     <Extension path="/OpenSim/AssetInventoryServer/Frontend">
         <Plugin id="OpenSimAssetFrontend" provider="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.OpenSimAssetFrontendPlugin" />
     </Extension>

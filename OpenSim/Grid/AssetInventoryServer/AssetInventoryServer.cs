@@ -50,7 +50,7 @@ namespace OpenSim.Grid.AssetInventoryServer
         public IniConfigSource ConfigFile;
 
         public IAssetStorageProvider StorageProvider;
-        public IInventoryProvider InventoryProvider;
+        public IInventoryStorageProvider InventoryProvider;
         public IAuthenticationProvider AuthenticationProvider;
         public IAuthorizationProvider AuthorizationProvider;
         public IMetricsProvider MetricsProvider;
@@ -107,7 +107,8 @@ namespace OpenSim.Grid.AssetInventoryServer
             }
 
             StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/StorageProvider",  "OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim.dll") as IAssetStorageProvider;
-            MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider", "") as IMetricsProvider;
+            InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryProvider",  "OpenSim.Grid.AssetInventoryServer.Plugins.Simple.dll") as IInventoryStorageProvider;
+            MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider", String.Empty) as IMetricsProvider;
 
             try
             {
@@ -120,7 +121,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 return false;
             }
 
-            frontend = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/Frontend", "");
+            frontend = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/Frontend", String.Empty);
 
             return true;
         }

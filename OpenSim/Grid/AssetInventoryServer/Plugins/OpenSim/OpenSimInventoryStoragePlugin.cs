@@ -36,42 +36,24 @@ using ExtensionLoader;
 using ExtensionLoader.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using OpenSim.Framework;
+using OpenSim.Grid.AssetInventoryServer.Extensions;
+using OpenSim.Data;
 
-namespace OpenSim.Grid.AssetInventoryServer.Extensions
+namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 {
-    public class OpenSimMySQLInventory : IExtension<AssetInventoryServer>, IInventoryProvider
+    public class OpenSimInventoryStoragePlugin : IInventoryStorageProvider
     {
-        const string EXTENSION_NAME = "OpenSimMySQLInventory"; // Used in metrics reporting
+        const string EXTENSION_NAME = "OpenSimInventoryStorage"; // Used in metrics reporting
 
-        AssetInventoryServer server;
+        private AssetInventoryServer server;
+        private IInventoryDataPlugin m_inventoryProvider;
 
-        public OpenSimMySQLInventory()
+        public OpenSimInventoryStoragePlugin()
         {
         }
 
         #region Required Interfaces
-
-        public void Start(AssetInventoryServer server)
-        {
-            this.server = server;
-
-            using (MySqlConnection dbConnection = new MySqlConnection(DBConnString.GetConnectionString(server.ConfigFile)))
-            {
-                try
-                {
-                    dbConnection.Open();
-                    Logger.Log.Info("Connected to MySQL inventory backend: " + dbConnection.ServerVersion);
-                }
-                catch (MySqlException ex)
-                {
-                    Logger.Log.Error("Connection to MySQL inventory backend failed: " + ex.Message);
-                }
-            }
-        }
-
-        public void Stop()
-        {
-        }
 
         public BackendResponse TryFetchItem(Uri owner, UUID itemID, out InventoryItem item)
         {
@@ -800,5 +782,54 @@ namespace OpenSim.Grid.AssetInventoryServer.Extensions
         }
 
         #endregion Required Interfaces
+
+        #region IPlugin implementation
+
+        public void Initialise(AssetInventoryServer server)
+        {
+            this.server = server;
+
+            try
+            {
+                m_inventoryProvider = DataPluginFactory.LoadInventoryDataPlugin("OpenSim.Data.MySQL.dll", server.ConfigFile.Configs["MySQL"].GetString("database_connect", null));
+                if (m_inventoryProvider == null)
+                {
+                    Logger.Log.Error("[INVENTORY]: Failed to load a database plugin, server halting.");
+                    Environment.Exit(-1);
+                }
+                else
+                    Logger.Log.InfoFormat("[INVENTORY]: Loaded storage backend: {0}", Version);
+            }
+            catch (Exception e)
+            {
+                Logger.Log.WarnFormat("[INVENTORY]: Failure loading data plugin: {0}", e.ToString());
+            }
+        }
+
+        public void Stop()
+        {
+        }
+
+        public void Initialise()
+        {
+            Logger.Log.InfoFormat("[INVENTORY]: {0} cannot be default-initialized!", Name);
+            throw new PluginNotInitialisedException(Name);
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public string Version
+        {
+            get { return m_inventoryProvider.Version; }
+        }
+
+        public string Name
+        {
+            get { return "AssetInventoryServer OpenSim inventory storage provider"; }
+        }
+
+        #endregion IPlugin implementation
     }
 }
