@@ -6,10 +6,10 @@
     <ExtensionPoint path="/OpenSim/AssetInventoryServer/Frontend">
         <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Grid.AssetInventoryServer.IAssetInventoryServerPlugin" />
     </ExtensionPoint>
-    <ExtensionPoint path="/OpenSim/AssetInventoryServer/StorageProvider">
+    <ExtensionPoint path="/OpenSim/AssetInventoryServer/AssetStorageProvider">
         <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Grid.AssetInventoryServer.IAssetStorageProvider" />
     </ExtensionPoint>
-    <ExtensionPoint path="/OpenSim/AssetInventoryServer/InventoryProvider">
+    <ExtensionPoint path="/OpenSim/AssetInventoryServer/InventoryStorageProvider">
         <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Grid.AssetInventoryServer.IInventoryStorageProvider" />
     </ExtensionPoint>
     <ExtensionPoint path="/OpenSim/AssetInventoryServer/AuthenticationProvider">

@@ -79,10 +79,10 @@ namespace OpenSim.Grid.AssetInventoryServer
 
             IConfig pluginConfig = ConfigFile.Configs["Plugins"];
 
-            StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/StorageProvider", pluginConfig.GetString("asset_storage_provider")) as IAssetStorageProvider;
+            StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AssetStorageProvider", pluginConfig.GetString("asset_storage_provider")) as IAssetStorageProvider;
             m_backends.Add(StorageProvider);
 
-            InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryProvider", pluginConfig.GetString("inventory_storage_provider")) as IInventoryStorageProvider;
+            InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryStorageProvider", pluginConfig.GetString("inventory_storage_provider")) as IInventoryStorageProvider;
             m_backends.Add(InventoryProvider);
 
             MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider", pluginConfig.GetString("metrics_provider")) as IMetricsProvider;
