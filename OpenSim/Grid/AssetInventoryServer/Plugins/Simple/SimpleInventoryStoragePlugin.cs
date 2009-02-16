@@ -28,6 +28,7 @@
  */
 
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Net;
 using System.IO;
@@ -35,6 +36,7 @@ using System.Text;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
+using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 {
@@ -43,6 +45,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         const string EXTENSION_NAME = "SimpleInventoryStorage"; // Used for metrics reporting
         const string DEFAULT_INVENTORY_DIR = "SimpleInventory";
 
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         AssetInventoryServer server;
         Dictionary<Uri, InventoryCollection> inventories = new Dictionary<Uri, InventoryCollection>();
         Dictionary<Uri, List<InventoryItem>> activeGestures = new Dictionary<Uri, List<InventoryItem>>();
@@ -209,7 +212,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log.Error(ex.Message);
+                    m_log.Error(ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
@@ -251,7 +254,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log.Error(ex.Message);
+                    m_log.Error(ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
@@ -305,7 +308,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log.Error(ex.Message);
+                    m_log.Error(ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
@@ -353,7 +356,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 foreach (string match in matches)
                 {
                     try { File.Delete(match); }
-                    catch (Exception ex) { Logger.Log.ErrorFormat("Failed to delete file {0}: {1}", match, ex.Message); }
+                    catch (Exception ex) { m_log.ErrorFormat("Failed to delete file {0}: {1}", match, ex.Message); }
                 }
 
                 ret = BackendResponse.Success;
@@ -390,7 +393,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 foreach (string match in matches)
                 {
                     try { File.Delete(match); }
-                    catch (Exception ex) { Logger.Log.ErrorFormat("Failed to delete folder file {0}: {1}", match, ex.Message); }
+                    catch (Exception ex) { m_log.ErrorFormat("Failed to delete folder file {0}: {1}", match, ex.Message); }
                 }
 
                 ret = BackendResponse.Success;
@@ -501,7 +504,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 try { Directory.CreateDirectory(folder); }
                 catch (Exception ex)
                 {
-                    Logger.Log.Warn(ex.Message);
+                    m_log.Warn(ex.Message);
                     return;
                 }
             }
@@ -525,7 +528,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log.WarnFormat("Failed loading the index file {0}: {1}", indexPath, ex.Message);
+                        m_log.WarnFormat("Failed loading the index file {0}: {1}", indexPath, ex.Message);
                     }
 
                     if (ownerID != UUID.Zero && owner != null)
@@ -581,7 +584,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             }
             catch (Exception ex)
             {
-                Logger.Log.ErrorFormat("Failed loading inventory from {0}: {1}", folder, ex.Message);
+                m_log.ErrorFormat("Failed loading inventory from {0}: {1}", folder, ex.Message);
             }
         }
 
@@ -593,7 +596,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 
             LoadFiles(DEFAULT_INVENTORY_DIR);
 
-            Logger.Log.InfoFormat("Initialized the inventory index with data for {0} avatars",
+            m_log.InfoFormat("Initialized the inventory index with data for {0} avatars",
                 inventories.Count);
         }
 
@@ -602,7 +605,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         /// </summary>
         public void Initialise()
         {
-            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 

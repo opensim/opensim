@@ -28,13 +28,16 @@
  */
 
 using System;
+using System.Reflection;
 using OpenMetaverse;
 using OpenSim.Framework;
+using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
     public class AuthorizeAllPlugin : IAuthorizationProvider
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         AssetInventoryServer server;
 
         public AuthorizeAllPlugin()
@@ -47,7 +50,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         {
             this.server = server;
 
-            Logger.Log.Info("[ASSET] Authorize All loaded.");
+            m_log.Info("[ASSET] Authorize All loaded.");
         }
 
         /// <summary>
@@ -55,7 +58,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         /// </summary>
         public void Initialise()
         {
-            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 

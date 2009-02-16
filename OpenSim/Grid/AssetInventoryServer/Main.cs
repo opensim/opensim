@@ -28,7 +28,8 @@
  */
 
 using System;
-using System.ServiceProcess;
+using Nini.Config;
+using log4net.Config;
 
 namespace OpenSim.Grid.AssetInventoryServer
 {
@@ -36,28 +37,24 @@ namespace OpenSim.Grid.AssetInventoryServer
     {
         static void Main(string[] args)
         {
-#if DEBUG
-            AssetInventoryServer server = new AssetInventoryServer();
+            XmlConfigurator.Configure();
+
+            ArgvConfigSource configSource = new ArgvConfigSource(args);
+            configSource.AddSwitch("Startup", "inifile");
+
+            AssetInventoryServer server = new AssetInventoryServer(configSource);
             if (server.Start())
             {
-                Console.WriteLine("Asset server is running. Press CTRL+C to quit");
-
                 Console.CancelKeyPress +=
                     delegate(object sender, ConsoleCancelEventArgs e)
                     {
-                        Console.WriteLine("Asset server is shutting down...");
+                        Console.WriteLine("AssetInventory server is shutting down...");
                         server.Shutdown();
                         Environment.Exit(0);
                     };
 
                 server.Work();
-                //while (true)
-                //    Console.ReadLine();
             }
-#else
-            ServiceBase[] servicesToRun = new ServiceBase[] { new AssetInventoryServer() };
-            ServiceBase.Run(servicesToRun);
-#endif
         }
     }
 }

@@ -32,18 +32,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Console;
+using Nini.Config;
+using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer
 {
     public class AssetInventoryServer : BaseOpenSimServer
     {
-        public const string CONFIG_FILE = "AssetInventoryServer.ini";
-
-        public AssetInventoryConfig ConfigFile;
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        public IConfigSource ConfigFile;
 
         public IAssetStorageProvider StorageProvider;
         public IInventoryStorageProvider InventoryProvider;
@@ -54,51 +54,58 @@ namespace OpenSim.Grid.AssetInventoryServer
         private List<IAssetInventoryServerPlugin> m_frontends = new List<IAssetInventoryServerPlugin>();
         private List<IAssetInventoryServerPlugin> m_backends = new List<IAssetInventoryServerPlugin>();
 
-        public AssetInventoryServer()
+        public AssetInventoryServer(IConfigSource config)
         {
-            m_console = new ConsoleBase("Asset");
+            ConfigFile = config;
+
+            m_console = new ConsoleBase("AssetInventory");
             MainConsole.Instance = m_console;
         }
 
         public bool Start()
         {
-            Logger.Log.Info("Starting Asset Server");
-            uint port = 0;
+            Startup();
+            m_log.Info("[ASSETINVENTORY] Starting AssetInventory Server");
 
-            try { ConfigFile = new AssetInventoryConfig("AssetInventory Server", (Path.Combine(Util.configDir(), "AssetInventoryServer.ini"))); }
+            try
+            {
+                ConfigFile = AssetInventoryConfig.LoadConfig(ConfigFile);
+            }
             catch (Exception)
             {
-                Logger.Log.Error("Failed to load the config file " + CONFIG_FILE);
+                m_log.Error("[ASSETINVENTORY] Failed to load the config.");
                 return false;
             }
 
-            StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/StorageProvider",  ConfigFile.AssetStorageProvider) as IAssetStorageProvider;
+            IConfig pluginConfig = ConfigFile.Configs["Plugins"];
+
+            StorageProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/StorageProvider", pluginConfig.GetString("asset_storage_provider")) as IAssetStorageProvider;
             m_backends.Add(StorageProvider);
 
-            InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryProvider", ConfigFile.InventoryStorageProvider) as IInventoryStorageProvider;
+            InventoryProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/InventoryProvider", pluginConfig.GetString("inventory_storage_provider")) as IInventoryStorageProvider;
             m_backends.Add(InventoryProvider);
 
-            MetricsProvider = LoadAssetInventoryServerPlugins("/OpenSim/AssetInventoryServer/MetricsProvider", ConfigFile.MetricsProvider) as IMetricsProvider;
+            MetricsProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/MetricsProvider", pluginConfig.GetString("metrics_provider")) as IMetricsProvider;
             m_backends.Add(MetricsProvider);
 
             try
             {
-                InitHttpServer(ConfigFile.HttpPort);
+                InitHttpServer((uint) ConfigFile.Configs["Config"].GetInt("listen_port"));
             }
             catch (Exception ex)
             {
-                Logger.Log.Error("Initializing the HTTP server failed, shutting down: " + ex.Message);
+                m_log.Error("[ASSETINVENTORY] Initializing the HTTP server failed, shutting down: " + ex.Message);
                 Shutdown();
                 return false;
             }
 
-            AuthenticationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthenticationProvider", ConfigFile.AuthenticationProvider) as IAuthenticationProvider;
+            AuthenticationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthenticationProvider", pluginConfig.GetString("authentication_provider")) as IAuthenticationProvider;
             m_backends.Add(AuthenticationProvider);
 
-            AuthorizationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthorizationProvider", ConfigFile.AuthorizationProvider) as IAuthorizationProvider;
+            AuthorizationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthorizationProvider", pluginConfig.GetString("authorization_provider")) as IAuthorizationProvider;
             m_backends.Add(AuthorizationProvider);
 
-            m_frontends.AddRange(LoadAssetInventoryServerPlugins("/OpenSim/AssetInventoryServer/Frontend", ConfigFile.Frontends));
+            m_frontends.AddRange(LoadAssetInventoryServerPlugins("/OpenSim/AssetInventoryServer/Frontend", pluginConfig.GetString("frontends")));
 
             return true;
         }
@@ -117,18 +124,18 @@ namespace OpenSim.Grid.AssetInventoryServer
         {
             foreach (IAssetInventoryServerPlugin plugin in m_frontends)
             {
-                Logger.Log.Debug("Disposing plugin " + plugin.Name);
+                m_log.Debug("[ASSETINVENTORY] Disposing plugin " + plugin.Name);
                 try { plugin.Dispose(); }
                 catch (Exception ex)
-                { Logger.Log.ErrorFormat("Failure shutting down plugin {0}: {1}", plugin.Name, ex.Message); }
+                { m_log.ErrorFormat("[ASSETINVENTORY] Failure shutting down plugin {0}: {1}", plugin.Name, ex.Message); }
             }
 
             foreach (IAssetInventoryServerPlugin plugin in m_backends)
             {
-                Logger.Log.Debug("Disposing plugin " + plugin.Name);
+                m_log.Debug("[ASSETINVENTORY] Disposing plugin " + plugin.Name);
                 try { plugin.Dispose(); }
                 catch (Exception ex)
-                { Logger.Log.ErrorFormat("Failure shutting down plugin {0}: {1}", plugin.Name, ex.Message); }
+                { m_log.ErrorFormat("[ASSETINVENTORY] Failure shutting down plugin {0}: {1}", plugin.Name, ex.Message); }
             }
 
             if (HttpServer != null)
@@ -140,7 +147,7 @@ namespace OpenSim.Grid.AssetInventoryServer
             m_httpServer = new BaseHttpServer(port);
             m_httpServer.Start();
 
-            Logger.Log.Info("Asset server is listening on port " + port);
+            m_log.Info("[ASSETINVENTORY] AssetInventory server is listening on port " + port);
         }
 
         private IAssetInventoryServerPlugin LoadAssetInventoryServerPlugin(string addinPath, string provider)

@@ -28,12 +28,14 @@
  */
 
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Net;
 using System.IO;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
+using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 {
@@ -43,6 +45,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         const string DEFAULT_DATA_DIR = "SimpleAssets";
         const string TEMP_DATA_DIR = "SimpleAssetsTemp";
 
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         AssetInventoryServer server;
         Dictionary<UUID, Metadata> metadataStorage;
         Dictionary<UUID, string> filenames;
@@ -82,7 +85,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log.ErrorFormat("Failed reading data for asset {0} from {1}: {2}", assetID, filename, ex.Message);
+                    m_log.ErrorFormat("Failed reading data for asset {0} from {1}: {2}", assetID, filename, ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
@@ -112,7 +115,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log.ErrorFormat("Failed reading data for asset {0} from {1}: {2}", assetID, filename, ex.Message);
+                    m_log.ErrorFormat("Failed reading data for asset {0} from {1}: {2}", assetID, filename, ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
@@ -169,7 +172,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             }
             catch (Exception ex)
             {
-                Logger.Log.ErrorFormat("Failed writing data for asset {0} to {1}: {2}", metadata.ID, filename, ex.Message);
+                m_log.ErrorFormat("Failed writing data for asset {0} to {1}: {2}", metadata.ID, filename, ex.Message);
                 ret = BackendResponse.Failure;
             }
 
@@ -207,7 +210,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             LoadFiles(DEFAULT_DATA_DIR, false);
             LoadFiles(TEMP_DATA_DIR, true);
 
-            Logger.Log.InfoFormat("Initialized the store index with metadata for {0} assets",
+            m_log.InfoFormat("Initialized the store index with metadata for {0} assets",
                 metadataStorage.Count);
         }
 
@@ -216,7 +219,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         /// </summary>
         public void Initialise()
         {
-            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 
@@ -243,7 +246,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             if (Directory.Exists(TEMP_DATA_DIR))
             {
                 try { Directory.Delete(TEMP_DATA_DIR); }
-                catch (Exception ex) { Logger.Log.Error(ex.Message); }
+                catch (Exception ex) { m_log.Error(ex.Message); }
             }
         }
 
@@ -255,7 +258,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 try { Directory.CreateDirectory(folder); }
                 catch (Exception ex)
                 {
-                    Logger.Log.Warn(ex.Message);
+                    m_log.Warn(ex.Message);
                     return;
                 }
             }
@@ -287,7 +290,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log.Warn(ex.Message);
+                    m_log.Warn(ex.Message);
                 }
             }
         }

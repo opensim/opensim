@@ -28,6 +28,7 @@
  */
 
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Net;
 using System.IO;
@@ -36,11 +37,13 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using HttpServer;
 using OpenSim.Framework;
+using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 {
     public class OpenSimInventoryFrontendPlugin : IAssetInventoryServerPlugin
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private AssetInventoryServer server;
         private Utils.InventoryItemSerializer itemSerializer = new Utils.InventoryItemSerializer();
         private Utils.InventoryFolderSerializer folderSerializer = new Utils.InventoryFolderSerializer();
@@ -67,7 +70,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //server.HttpServer.AddHandler("post", null, @"^/RootFolders/", RootFoldersHandler);
             //server.HttpServer.AddHandler("post", null, @"^/ActiveGestures/", ActiveGesturesHandler);
 
-            Logger.Log.Info("[INVENTORY] OpenSim Inventory Frontend loaded.");
+            m_log.Info("[INVENTORY] OpenSim Inventory Frontend loaded.");
         }
 
         /// <summary>
@@ -75,7 +78,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         /// </summary>
         public void Initialise()
         {
-            Logger.Log.InfoFormat("[INVENTORY]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[INVENTORY]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 
@@ -103,7 +106,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         //    if (ownerID != UUID.Zero)
         //    {
-        //        Logger.Log.Warn("GetInventory is not scalable on some inventory backends, avoid calling it wherever possible");
+        //        m_log.Warn("GetInventory is not scalable on some inventory backends, avoid calling it wherever possible");
 
         //        Uri owner = Utils.GetOpenSimUri(ownerID);
         //        InventoryCollection inventory;
@@ -144,7 +147,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         //    if (ownerID != UUID.Zero)
         //    {
         //        Uri owner = Utils.GetOpenSimUri(ownerID);
-        //        Logger.Log.DebugFormat("Created URI {0} for inventory creation", owner);
+        //        m_log.DebugFormat("Created URI {0} for inventory creation", owner);
 
         //        InventoryFolder rootFolder = new InventoryFolder("My Inventory", ownerID, UUID.Zero, (short)AssetType.Folder);
         //        BackendResponse storageResponse = server.InventoryProvider.TryCreateInventory(owner, rootFolder);
@@ -365,7 +368,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             }
             catch (Exception ex)
             {
-                Logger.Log.Warn("Failed to parse POST data (expecting guid): " + ex.Message);
+                m_log.Warn("Failed to parse POST data (expecting guid): " + ex.Message);
             }
 
             return id;
@@ -389,7 +392,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             }
             catch (Exception ex)
             {
-                Logger.Log.Warn("Failed to parse GetInventory POST data: " + ex.Message);
+                m_log.Warn("Failed to parse GetInventory POST data: " + ex.Message);
                 agentID = UUID.Zero;
                 sessionID = UUID.Zero;
                 return UUID.Zero;
@@ -426,7 +429,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             }
             catch (Exception ex)
             {
-                Logger.Log.Warn("Failed to parse POST data (expecting InventoryFolderBase): " + ex.Message);
+                m_log.Warn("Failed to parse POST data (expecting InventoryFolderBase): " + ex.Message);
                 agentID = UUID.Zero;
                 sessionID = UUID.Zero;
                 return null;
@@ -474,7 +477,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             }
             catch (Exception ex)
             {
-                Logger.Log.Warn("Failed to parse POST data (expecting InventoryItemBase): " + ex.Message);
+                m_log.Warn("Failed to parse POST data (expecting InventoryItemBase): " + ex.Message);
                 agentID = UUID.Zero;
                 sessionID = UUID.Zero;
                 return null;

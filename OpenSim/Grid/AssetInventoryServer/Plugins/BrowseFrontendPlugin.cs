@@ -29,6 +29,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
@@ -37,11 +38,13 @@ using System.Web;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
     public class BrowseFrontendPlugin : IAssetInventoryServerPlugin
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         AssetInventoryServer m_server;
 
         public BrowseFrontendPlugin()
@@ -58,7 +61,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
             //server.HttpServer.AddHandler("get", null, @"(^/$)|(^/\?.*)", BrowseRequestHandler);
             m_server.HttpServer.AddStreamHandler(new BrowseRequestHandler(server));
 
-            Logger.Log.Info("[ASSET] Browser Frontend loaded.");
+            m_log.Info("[ASSET] Browser Frontend loaded.");
         }
 
         /// <summary>
@@ -66,7 +69,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         /// </summary>
         public void Initialise()
         {
-            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 

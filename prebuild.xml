@@ -766,10 +766,11 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="log4net2"/>
+      <Reference name="log4net"/>
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData2"/>
       <Reference name="HttpServer"/>
+      <Reference name="Nini.dll" />
 
       <!-- for Simple Storage and MySQL storage -->
       <Reference name="System.Data"/>
@@ -805,6 +806,7 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData2"/>
       <Reference name="HttpServer"/>
+      <Reference name="log4net"/>
 
       <Files>
         <Match pattern="*.cs" recurse="false" />
@@ -834,6 +836,7 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData2" />
       <Reference name="HttpServer"/>
+      <Reference name="log4net"/>
 
       <!-- Remove these eventually -->
       <Reference name="MySql.Data" />
@@ -866,6 +869,8 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData2" />
       <Reference name="HttpServer"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net"/>
 
       <!-- Remove these eventually -->
       <Reference name="MySql.Data" />

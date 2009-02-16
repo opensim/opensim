@@ -28,6 +28,7 @@
  */
 
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Net;
 using System.Data;
@@ -36,15 +37,19 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Data;
+using Nini.Config;
+using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 {
     public class OpenSimAssetStoragePlugin : IAssetStorageProvider
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         const string EXTENSION_NAME = "OpenSimAssetStorage"; // Used in metrics reporting
 
-        private AssetInventoryServer server;
+        private AssetInventoryServer m_server;
         private IAssetDataPlugin m_assetProvider;
+        private IConfig m_openSimConfig;
 
         public OpenSimAssetStoragePlugin()
         {
@@ -57,7 +62,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             metadata = null;
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.AssetDatabaseConnect))
+            using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("asset_database_connect")))
             {
                 IDataReader reader;
 
@@ -89,12 +94,12 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                 }
                 catch (MySqlException ex)
                 {
-                    Logger.Log.Error("Connection to MySQL backend failed: " + ex.Message);
+                    m_log.Error("Connection to MySQL backend failed: " + ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
 
-            server.MetricsProvider.LogAssetMetadataFetch(EXTENSION_NAME, ret, assetID, DateTime.Now);
+            m_server.MetricsProvider.LogAssetMetadataFetch(EXTENSION_NAME, ret, assetID, DateTime.Now);
             return ret;
         }
 
@@ -103,7 +108,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             assetData = null;
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.AssetDatabaseConnect))
+            using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("asset_database_connect")))
             {
                 IDataReader reader;
 
@@ -127,12 +132,12 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                 }
                 catch (MySqlException ex)
                 {
-                    Logger.Log.Error("Connection to MySQL backend failed: " + ex.Message);
+                    m_log.Error("Connection to MySQL backend failed: " + ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
 
-            server.MetricsProvider.LogAssetDataFetch(EXTENSION_NAME, ret, assetID, (assetData != null ? assetData.Length : 0), DateTime.Now);
+            m_server.MetricsProvider.LogAssetDataFetch(EXTENSION_NAME, ret, assetID, (assetData != null ? assetData.Length : 0), DateTime.Now);
             return ret;
         }
 
@@ -155,7 +160,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             BackendResponse ret;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.AssetDatabaseConnect))
+            using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("asset_database_connect")))
             {
                 try
                 {
@@ -180,23 +185,23 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                     }
                     else if (rowsAffected == 2)
                     {
-                        Logger.Log.Info("Replaced asset " + metadata.ID.ToString());
+                        m_log.Info("Replaced asset " + metadata.ID.ToString());
                         ret = BackendResponse.Success;
                     }
                     else
                     {
-                        Logger.Log.ErrorFormat("MySQL REPLACE query affected {0} rows", rowsAffected);
+                        m_log.ErrorFormat("MySQL REPLACE query affected {0} rows", rowsAffected);
                         ret = BackendResponse.Failure;
                     }
                 }
                 catch (MySqlException ex)
                 {
-                    Logger.Log.Error("Connection to MySQL backend failed: " + ex.Message);
+                    m_log.Error("Connection to MySQL backend failed: " + ex.Message);
                     ret = BackendResponse.Failure;
                 }
             }
 
-            server.MetricsProvider.LogAssetCreate(EXTENSION_NAME, ret, metadata.ID, assetData.Length, DateTime.Now);
+            m_server.MetricsProvider.LogAssetCreate(EXTENSION_NAME, ret, metadata.ID, assetData.Length, DateTime.Now);
             return ret;
         }
 
@@ -204,7 +209,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             int rowCount = 0;
 
-            using (MySqlConnection dbConnection = new MySqlConnection(server.ConfigFile.AssetDatabaseConnect))
+            using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("asset_database_connect")))
             {
                 MySqlDataReader reader;
 
@@ -219,7 +224,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                 }
                 catch (MySqlException ex)
                 {
-                    Logger.Log.Error("Connection to MySQL backend failed: " + ex.Message);
+                    m_log.Error("Connection to MySQL backend failed: " + ex.Message);
                     return 0;
                 }
 
@@ -250,22 +255,24 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         public void Initialise(AssetInventoryServer server)
         {
-            this.server = server;
+            m_server = server;
+            m_openSimConfig = server.ConfigFile.Configs["OpenSim"];
 
             try
             {
-                m_assetProvider = DataPluginFactory.LoadDataPlugin<IAssetDataPlugin>("OpenSim.Data.MySQL.dll", server.ConfigFile.AssetDatabaseConnect);
+                m_assetProvider = DataPluginFactory.LoadDataPlugin<IAssetDataPlugin>(m_openSimConfig.GetString("asset_database_provider"),
+                                                                                     m_openSimConfig.GetString("asset_database_connect"));
                 if (m_assetProvider == null)
                 {
-                    Logger.Log.Error("[ASSET]: Failed to load a database plugin, server halting.");
+                    m_log.Error("[ASSET]: Failed to load a database plugin, server halting.");
                     Environment.Exit(-1);
                 }
                 else
-                    Logger.Log.InfoFormat("[ASSET]: Loaded storage backend: {0}", Version);
+                    m_log.InfoFormat("[ASSET]: Loaded storage backend: {0}", Version);
             }
             catch (Exception e)
             {
-                Logger.Log.WarnFormat("[ASSET]: Failure loading data plugin: {0}", e.ToString());
+                m_log.WarnFormat("[ASSET]: Failure loading data plugin: {0}", e.ToString());
             }
         }
 
@@ -274,7 +281,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         /// </summary>
         public void Initialise()
         {
-            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 

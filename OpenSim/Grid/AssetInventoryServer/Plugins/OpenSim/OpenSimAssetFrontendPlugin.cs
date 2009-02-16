@@ -28,6 +28,7 @@
  */
 
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Net;
 using System.IO;
@@ -38,11 +39,13 @@ using OpenMetaverse;
 using HttpServer;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 {
     public class OpenSimAssetFrontendPlugin : IAssetInventoryServerPlugin
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private AssetInventoryServer m_server;
 
         public OpenSimAssetFrontendPlugin()
@@ -61,7 +64,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             // Asset creation
             m_server.HttpServer.AddStreamHandler(new AssetPostHandler(server));
 
-            Logger.Log.Info("[ASSET] OpenSim Asset Frontend loaded.");
+            m_log.Info("[ASSET] OpenSim Asset Frontend loaded.");
         }
 
         /// <summary>
@@ -69,7 +72,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         /// </summary>
         public void Initialise()
         {
-            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 
@@ -97,7 +100,6 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //public AssetRequestHandler(AssetInventoryServer server) : base("GET", "^/assets")
             public AssetRequestHandler(AssetInventoryServer server) : base("GET", "/assets")
             {
-                Logger.Log.Info("[REST]: In Get Request");
                 m_server = server;
             }
 
@@ -128,13 +130,13 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                     }
                     else
                     {
-                        Logger.Log.WarnFormat("Failed to fetch asset data or metadata for {0}: {1}", assetID, dataResponse);
+                        m_log.WarnFormat("Failed to fetch asset data or metadata for {0}: {1}", assetID, dataResponse);
                         httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
                     }
                 }
                 else
                 {
-                    Logger.Log.Warn("Unrecognized OpenSim asset request: " + httpRequest.Url.PathAndQuery);
+                    m_log.Warn("Unrecognized OpenSim asset request: " + httpRequest.Url.PathAndQuery);
                 }
 
                 return buffer;
@@ -181,13 +183,13 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                     }
                     else
                     {
-                        Logger.Log.Warn("AssetPostHandler called with no asset data");
+                        m_log.Warn("AssetPostHandler called with no asset data");
                         httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log.Warn("Failed to parse POST data (expecting AssetBase): " + ex.Message);
+                    m_log.Warn("Failed to parse POST data (expecting AssetBase): " + ex.Message);
                     httpResponse.StatusCode = (int) HttpStatusCode.BadRequest;
                 }
 

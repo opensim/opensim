@@ -29,6 +29,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Net;
 using System.Xml;
@@ -37,11 +38,13 @@ using OpenMetaverse.StructuredData;
 using HttpServer;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins
 {
     public class ReferenceFrontendPlugin : IAssetInventoryServerPlugin
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         AssetInventoryServer m_server;
 
         public ReferenceFrontendPlugin()
@@ -63,7 +66,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
             // Asset creation
             m_server.HttpServer.AddStreamHandler(new CreateRequestHandler(server));
 
-            Logger.Log.Info("[ASSET] Reference Frontend loaded.");
+            m_log.Info("[ASSET] Reference Frontend loaded.");
         }
 
         /// <summary>
@@ -71,7 +74,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         /// </summary>
         public void Initialise()
         {
-            Logger.Log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
+            m_log.InfoFormat("[ASSET]: {0} cannot be default-initialized!", Name);
             throw new PluginNotInitialisedException(Name);
         }
 
@@ -159,7 +162,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
                         }
                         else if (storageResponse == BackendResponse.NotFound)
                         {
-                            Logger.Log.Warn("Could not find metadata for asset " + assetID.ToString());
+                            m_log.Warn("Could not find metadata for asset " + assetID.ToString());
                             httpResponse.StatusCode = (int) HttpStatusCode.NotFound;
                         }
                         else
