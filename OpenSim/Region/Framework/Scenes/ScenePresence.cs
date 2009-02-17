@@ -2831,7 +2831,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, m_avHeight), isFlying);
             }
-
+            scene.AddPhysicsActorTaint(m_physicsActor);
             //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             m_physicsActor.SubscribeEvents(1000);
