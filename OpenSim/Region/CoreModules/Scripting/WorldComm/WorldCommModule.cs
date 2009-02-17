@@ -381,25 +381,25 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
             if (m_curlisteners < m_maxlisteners)
             {
-                int newHandle = GetNewHandle(itemID);
-
-                if (newHandle > 0)
+                lock (m_listeners)
                 {
-                    ListenerInfo li = new ListenerInfo(newHandle, localID, itemID, hostID, channel, name, id, msg);
+                    int newHandle = GetNewHandle(itemID);
 
-                    lock (m_listeners)
+                    if (newHandle > 0)
                     {
-                        List<ListenerInfo> listeners;
-                        if (!m_listeners.TryGetValue(channel,out listeners))
-                        {
-                            listeners = new List<ListenerInfo>();
-                            m_listeners.Add(channel, listeners);
-                        }
-                        listeners.Add(li);
-                        m_curlisteners++;
-                    }
+                        ListenerInfo li = new ListenerInfo(newHandle, localID, itemID, hostID, channel, name, id, msg);
 
-                    return newHandle;
+                            List<ListenerInfo> listeners;
+                            if (!m_listeners.TryGetValue(channel,out listeners))
+                            {
+                                listeners = new List<ListenerInfo>();
+                                m_listeners.Add(channel, listeners);
+                            }
+                            listeners.Add(li);
+                            m_curlisteners++;
+
+                        return newHandle;
+                    }
                 }
             }
             return -1;
