@@ -898,5 +898,25 @@ namespace OpenSim.Framework
         {
             return UUIDPattern.IsMatch(s);
         }
+
+        public static string GetDisplayConnectionString(string connectionString)
+        {
+            int passPosition = 0;
+            int passEndPosition = 0;
+            string displayConnectionString = null;
+
+            // hide the password in the connection string
+            passPosition = connectionString.IndexOf("password", StringComparison.OrdinalIgnoreCase);
+            passPosition = connectionString.IndexOf("=", passPosition);
+            if (passPosition < connectionString.Length)
+                passPosition += 1;
+            passEndPosition = connectionString.IndexOf(";", passPosition);
+
+            displayConnectionString = connectionString.Substring(0, passPosition);
+            displayConnectionString += "***";
+            displayConnectionString += connectionString.Substring(passEndPosition, connectionString.Length - passEndPosition);
+
+            return displayConnectionString;
+        }
     }
 }

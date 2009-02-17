@@ -58,30 +58,14 @@ namespace OpenSim.Data.MySQL
         {
             m_connectionString = connectionString;
 
-            int passPosition = 0;
-            int passEndPosition = 0;
-            string displayConnectionString = null;
-
             try
-            {  // hide the password in the connection string
-                passPosition = m_connectionString.IndexOf("password", StringComparison.OrdinalIgnoreCase);
-                passPosition = m_connectionString.IndexOf("=", passPosition);
-                if (passPosition < m_connectionString.Length)
-                    passPosition += 1;
-                passEndPosition = m_connectionString.IndexOf(";", passPosition);
-
-                displayConnectionString = m_connectionString.Substring(0, passPosition);
-                displayConnectionString += "***";
-                displayConnectionString += m_connectionString.Substring(passEndPosition, m_connectionString.Length - passEndPosition);
+            {
+                m_log.Info("[REGION DB]: MySql - connecting: " + Util.GetDisplayConnectionString(m_connectionString));
             }
             catch (Exception e)
             {
                 m_log.Debug("Exception: password not found in connection string\n" + e.ToString());
             }
-
-            m_log.Info("[REGION DB]: MySql - connecting: " + displayConnectionString);
-
-            //m_log.Info("[ESTATE DB]: MySql - connecting: "+m_connectionString);
 
             m_connection = new MySqlConnection(m_connectionString);
             m_connection.Open();
@@ -159,7 +143,7 @@ namespace OpenSim.Data.MySQL
             EstateSettings es = new EstateSettings();
             es.OnSave += StoreEstateSettings;
 
-            string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = ?RegionID";
+            string sql = "select estate_settings." + String.Join(",estate_settings.", FieldList) + " from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = ?RegionID";
 
             CheckConnection();
 
@@ -206,7 +190,7 @@ namespace OpenSim.Data.MySQL
 
                 names.Remove("EstateID");
 
-                sql = "insert into estate_settings ("+String.Join(",", names.ToArray())+") values ( ?"+String.Join(", ?", names.ToArray())+")";
+                sql = "insert into estate_settings (" + String.Join(",", names.ToArray()) + ") values ( ?" + String.Join(", ?", names.ToArray()) + ")";
 
                 cmd.CommandText = sql;
                 cmd.Parameters.Clear();
@@ -216,13 +200,13 @@ namespace OpenSim.Data.MySQL
                     if (m_FieldMap[name].GetValue(es) is bool)
                     {
                         if ((bool)m_FieldMap[name].GetValue(es))
-                            cmd.Parameters.AddWithValue("?"+name, "1");
+                            cmd.Parameters.AddWithValue("?" + name, "1");
                         else
-                            cmd.Parameters.AddWithValue("?"+name, "0");
+                            cmd.Parameters.AddWithValue("?" + name, "0");
                     }
                     else
                     {
-                        cmd.Parameters.AddWithValue("?"+name, m_FieldMap[name].GetValue(es).ToString());
+                        cmd.Parameters.AddWithValue("?" + name, m_FieldMap[name].GetValue(es).ToString());
                     }
                 }
 
@@ -255,7 +239,7 @@ namespace OpenSim.Data.MySQL
                 // Munge and transfer the ban list
                 //
                 cmd.Parameters.Clear();
-                cmd.CommandText = "insert into estateban select "+es.EstateID.ToString()+", bannedUUID, bannedIp, bannedIpHostMask, '' from regionban where regionban.regionUUID = ?UUID";
+                cmd.CommandText = "insert into estateban select " + es.EstateID.ToString() + ", bannedUUID, bannedIp, bannedIpHostMask, '' from regionban where regionban.regionUUID = ?UUID";
                 cmd.Parameters.AddWithValue("?UUID", regionID.ToString());
 
                 try
@@ -279,7 +263,7 @@ namespace OpenSim.Data.MySQL
 
         public void StoreEstateSettings(EstateSettings es)
         {
-            string sql = "replace into estate_settings ("+String.Join(",", FieldList)+") values ( ?"+String.Join(", ?", FieldList)+")";
+            string sql = "replace into estate_settings (" + String.Join(",", FieldList) + ") values ( ?" + String.Join(", ?", FieldList) + ")";
 
             CheckConnection();
 
@@ -292,13 +276,13 @@ namespace OpenSim.Data.MySQL
                 if (m_FieldMap[name].GetValue(es) is bool)
                 {
                     if ((bool)m_FieldMap[name].GetValue(es))
-                        cmd.Parameters.AddWithValue("?"+name, "1");
+                        cmd.Parameters.AddWithValue("?" + name, "1");
                     else
-                        cmd.Parameters.AddWithValue("?"+name, "0");
+                        cmd.Parameters.AddWithValue("?" + name, "0");
                 }
                 else
                 {
-                    cmd.Parameters.AddWithValue("?"+name, m_FieldMap[name].GetValue(es).ToString());
+                    cmd.Parameters.AddWithValue("?" + name, m_FieldMap[name].GetValue(es).ToString());
                 }
             }
 
@@ -369,14 +353,14 @@ namespace OpenSim.Data.MySQL
 
             MySqlCommand cmd = m_connection.CreateCommand();
 
-            cmd.CommandText = "delete from "+table+" where EstateID = ?EstateID";
+            cmd.CommandText = "delete from " + table + " where EstateID = ?EstateID";
             cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
 
             cmd.ExecuteNonQuery();
 
             cmd.Parameters.Clear();
 
-            cmd.CommandText = "insert into "+table+" (EstateID, uuid) values ( ?EstateID, ?uuid )";
+            cmd.CommandText = "insert into " + table + " (EstateID, uuid) values ( ?EstateID, ?uuid )";
 
             foreach (UUID uuid in data)
             {
@@ -396,7 +380,7 @@ namespace OpenSim.Data.MySQL
 
             MySqlCommand cmd = m_connection.CreateCommand();
 
-            cmd.CommandText = "select uuid from "+table+" where EstateID = ?EstateID";
+            cmd.CommandText = "select uuid from " + table + " where EstateID = ?EstateID";
             cmd.Parameters.AddWithValue("?EstateID", EstateID);
 
             IDataReader r = cmd.ExecuteReader();
