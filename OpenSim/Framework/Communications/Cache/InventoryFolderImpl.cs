@@ -307,7 +307,8 @@ namespace OpenSim.Framework.Communications.Cache
         }        
 
         /// <summary>
-        /// Find a folder given a PATH_DELIMITOR delimited path starting from this folder
+        /// Find a folder given a PATH_DELIMITER delimited path starting from this folder
+        /// </summary>        
         ///
         /// This method does not handle paths that contain multiple delimitors
         ///
@@ -315,14 +316,20 @@ namespace OpenSim.Framework.Communications.Cache
         /// XPath like expression
         ///
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
-        /// </summary>
+        /// 
         /// <param name="path">
-        /// The path to the required folder.  It this is empty then this folder itself is returned.
+        /// The path to the required folder.  
+        /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
         /// </param>
         /// <returns>null if the folder is not found</returns>
         public InventoryFolderImpl FindFolderByPath(string path)
         {
             if (path == string.Empty)
+                return this;
+            
+            path = path.Trim();
+            
+            if (path == PATH_DELIMITER)
                 return this;
 
             string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
