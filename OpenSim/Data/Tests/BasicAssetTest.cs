@@ -83,16 +83,16 @@ namespace OpenSim.Data.Tests
             db.CreateAsset(a3);
 
             AssetBase a1a = db.FetchAsset(uuid1);
-            Assert.That(a1.Metadata.ID, Is.EqualTo(a1a.Metadata.ID));
-            Assert.That(a1.Metadata.Name, Is.EqualTo(a1a.Metadata.Name));
+            Assert.That(a1.ID, Is.EqualTo(a1a.ID));
+            Assert.That(a1.Name, Is.EqualTo(a1a.Name));
 
             AssetBase a2a = db.FetchAsset(uuid2);
-            Assert.That(a2.Metadata.ID, Is.EqualTo(a2a.Metadata.ID));
-            Assert.That(a2.Metadata.Name, Is.EqualTo(a2a.Metadata.Name));
+            Assert.That(a2.ID, Is.EqualTo(a2a.ID));
+            Assert.That(a2.Name, Is.EqualTo(a2a.Name));
 
             AssetBase a3a = db.FetchAsset(uuid3);
-            Assert.That(a3.Metadata.ID, Is.EqualTo(a3a.Metadata.ID));
-            Assert.That(a3.Metadata.Name, Is.EqualTo(a3a.Metadata.Name));
+            Assert.That(a3.ID, Is.EqualTo(a3a.ID));
+            Assert.That(a3.Name, Is.EqualTo(a3a.Name));
         }
 
         [Test]

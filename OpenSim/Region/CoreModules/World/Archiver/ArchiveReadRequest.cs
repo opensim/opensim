@@ -294,7 +294,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 //m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
                 AssetBase asset = new AssetBase(new UUID(uuid), String.Empty);
-                asset.Metadata.Type = assetType;
+                asset.Type = assetType;
                 asset.Data = data;
 
                 m_scene.CommsManager.AssetCache.AddAsset(asset);

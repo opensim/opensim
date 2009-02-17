@@ -405,7 +405,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public UUID AssetId
         {
-            get { return m_asset_ref.Metadata.FullID; }
+            get { return m_asset_ref.FullID; }
         }
 
         /// <summary>

@@ -326,8 +326,6 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
                 UUID toID = new UUID(address.Substring(0, address.IndexOf("@")));
 
-                String unused;
-
                 if (IsLocal(toID)) // TODO FIX check to see if it is local
                 {
                     // object in this region

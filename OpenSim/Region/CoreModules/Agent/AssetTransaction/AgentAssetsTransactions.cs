@@ -172,10 +172,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                         "[ASSET TRANSACTIONS]: Updating task item {0} in {1} with asset in transaction {2}",
                         item.Name, part.Name, transactionID);
 
-                    asset.Metadata.Name = item.Name;
-                    asset.Metadata.Description = item.Description;
-                    asset.Metadata.Type = (sbyte)item.Type;
-                    item.AssetID = asset.Metadata.FullID;
+                    asset.Name = item.Name;
+                    asset.Description = item.Description;
+                    asset.Type = (sbyte)item.Type;
+                    item.AssetID = asset.FullID;
 
                     Manager.MyScene.CommsManager.AssetCache.AddAsset(asset);
 
@@ -207,14 +207,14 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                         asset = GetTransactionAsset(transactionID);
                     }
 
-                    if (asset != null && asset.Metadata.FullID == assetID)
+                    if (asset != null && asset.FullID == assetID)
                     {
                         // Assets never get updated, new ones get created
-                        asset.Metadata.FullID = UUID.Random();
-                        asset.Metadata.Name = item.Name;
-                        asset.Metadata.Description = item.Description;
-                        asset.Metadata.Type = (sbyte)item.AssetType;
-                        item.AssetID = asset.Metadata.FullID;
+                        asset.FullID = UUID.Random();
+                        asset.Name = item.Name;
+                        asset.Description = item.Description;
+                        asset.Type = (sbyte)item.AssetType;
+                        item.AssetID = asset.FullID;
 
                         Manager.MyScene.CommsManager.AssetCache.AddAsset(asset);
                     }

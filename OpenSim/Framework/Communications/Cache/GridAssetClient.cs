@@ -126,7 +126,7 @@ namespace OpenSim.Framework.Communications.Cache
                 //  rc.Request(s);
                 //m_log.InfoFormat("[ASSET]: Stored {0}", rc);
 
-                m_log.InfoFormat("[GRID ASSET CLIENT]: Sending store request for asset {0}", asset.Metadata.FullID);
+                m_log.InfoFormat("[GRID ASSET CLIENT]: Sending store request for asset {0}", asset.FullID);
 
                 RestObjectPoster.BeginPostObject<AssetBase>(assetUrl, asset);
             }

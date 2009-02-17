@@ -79,7 +79,7 @@ namespace OpenSim.Framework.Communications.Cache
         
         public override void StoreAsset(AssetBase asset)
         {
-            byte[] idBytes = asset.Metadata.FullID.Guid.ToByteArray();
+            byte[] idBytes = asset.FullID.Guid.ToByteArray();
 
             string cdir = m_dir + Path.DirectorySeparatorChar + idBytes[0]
                                 + Path.DirectorySeparatorChar + idBytes[1];
@@ -90,7 +90,7 @@ namespace OpenSim.Framework.Communications.Cache
             if (!Directory.Exists(cdir))
                 Directory.CreateDirectory(cdir);
 
-            FileStream x = new FileStream(cdir + Path.DirectorySeparatorChar + asset.Metadata.FullID + ".xml", FileMode.Create);
+            FileStream x = new FileStream(cdir + Path.DirectorySeparatorChar + asset.FullID + ".xml", FileMode.Create);
             m_xs.Serialize(x, asset);
 
             x.Flush();

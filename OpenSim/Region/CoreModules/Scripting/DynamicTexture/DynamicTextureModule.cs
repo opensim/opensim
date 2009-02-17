@@ -231,21 +231,21 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 // Create a new asset for user
                 AssetBase asset = new AssetBase();
-                asset.Metadata.FullID = UUID.Random();
+                asset.FullID = UUID.Random();
                 asset.Data = assetData;
-                asset.Metadata.Name = "DynamicImage" + Util.RandomClass.Next(1, 10000);
-                asset.Metadata.Type = 0;
-                asset.Metadata.Description = "dynamic image";
-                asset.Metadata.Local = false;
-                asset.Metadata.Temporary = true;
+                asset.Name = "DynamicImage" + Util.RandomClass.Next(1, 10000);
+                asset.Type = 0;
+                asset.Description = "dynamic image";
+                asset.Local = false;
+                asset.Temporary = true;
                 scene.CommsManager.AssetCache.AddAsset(asset);
 
-                LastAssetID = asset.Metadata.FullID;
+                LastAssetID = asset.FullID;
 
                 IJ2KDecoder cacheLayerDecode = scene.RequestModuleInterface<IJ2KDecoder>();
                 if (cacheLayerDecode != null)
                 {
-                    cacheLayerDecode.syncdecode(asset.Metadata.FullID, asset.Data);
+                    cacheLayerDecode.syncdecode(asset.FullID, asset.Data);
                 }
                 cacheLayerDecode = null;
 
@@ -256,7 +256,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 UUID oldID = tmptex.DefaultTexture.TextureID;
                 scene.CommsManager.AssetCache.ExpireAsset(oldID);
 
-                tmptex.DefaultTexture.TextureID = asset.Metadata.FullID;
+                tmptex.DefaultTexture.TextureID = asset.FullID;
                 // I'm pretty sure we always want to force this to true
                 tmptex.DefaultTexture.Fullbright = true;
 

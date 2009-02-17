@@ -97,7 +97,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         public BackendResponse TryFetchDataMetadata(UUID assetID, out AssetBase asset)
         {
             asset = new AssetBase();
-            AssetMetadata metadata = asset.Metadata;
+            AssetMetadata metadata = asset.getMetadata();
 
             string filename;
             BackendResponse ret;
@@ -116,8 +116,8 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                     ret = BackendResponse.Failure;
                 }
 
-                asset.Metadata.Type = (sbyte) Utils.ContentTypeToSLAssetType(asset.Metadata.ContentType);
-                asset.Metadata.Local = false;
+                asset.Type = (sbyte) Utils.ContentTypeToSLAssetType(metadata.ContentType);
+                asset.Local = false;
             }
             else
             {
@@ -139,11 +139,12 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         public BackendResponse TryCreateAsset(AssetBase asset)
         {
             BackendResponse ret;
+            AssetMetadata metadata = asset.getMetadata();
 
             string path;
-            string filename = String.Format("{0}.{1}", asset.FullID, Utils.ContentTypeToExtension(asset.Metadata.ContentType));
+            string filename = String.Format("{0}.{1}", asset.FullID, Utils.ContentTypeToExtension(metadata.ContentType));
 
-            if (asset.Metadata.Temporary)
+            if (asset.Temporary)
                 path = Path.Combine(TEMP_DATA_DIR, filename);
             else
                 path = Path.Combine(DEFAULT_DATA_DIR, filename);
@@ -154,10 +155,10 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 lock (filenames) filenames[asset.FullID] = path;
 
                 // Set the creation date to right now
-                asset.Metadata.CreationDate = DateTime.Now;
+                metadata.CreationDate = DateTime.Now;
 
                 lock (metadataStorage)
-                    metadataStorage[asset.FullID] = asset.Metadata;
+                    metadataStorage[asset.FullID] = metadata;
 
                 ret = BackendResponse.Success;
             }

@@ -145,7 +145,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
                         AssetBase newAsset = CreateAsset(assetIdStr, name, assetPath, false);
 
-                        newAsset.Metadata.Type = type;
+                        newAsset.Type = type;
                         assets.Add(newAsset);
                     }
                 }

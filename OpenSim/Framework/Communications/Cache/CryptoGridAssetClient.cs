@@ -441,17 +441,17 @@ namespace OpenSim.Framework.Communications.Cache
             string salt = Convert.ToBase64String(rand);
 
             x.Data = UtilRijndael.Encrypt(x.Data, file.Secret, salt, "SHA1", 2, file.IVBytes, file.Keysize);
-            x.Metadata.Description = String.Format("ENCASS#:~:#{0}#:~:#{1}#:~:#{2}#:~:#{3}",
-                                                   "OPENSIM_AES_AF1",
-                                                   file.AlsoKnownAs,
-                                                   salt,
-                                                   x.Metadata.Description);
+            x.Description = String.Format("ENCASS#:~:#{0}#:~:#{1}#:~:#{2}#:~:#{3}",
+                                          "OPENSIM_AES_AF1",
+                                          file.AlsoKnownAs,
+                                          salt,
+                                          x.Description);
         }
 
         private bool DecryptAssetBase(AssetBase x)
         {
             // Check it's encrypted first.
-            if (!x.Metadata.Description.Contains("ENCASS"))
+            if (!x.Description.Contains("ENCASS"))
                 return true;
 
             // ENCASS:ALG:AKA:SALT:Description
@@ -459,7 +459,7 @@ namespace OpenSim.Framework.Communications.Cache
             string[] splitchars = new string[1];
             splitchars[0] = "#:~:#";
 
-            string[] meta = x.Metadata.Description.Split(splitchars, StringSplitOptions.None);
+            string[] meta = x.Description.Split(splitchars, StringSplitOptions.None);
             if (meta.Length < 5)
             {
                 m_log.Warn("[ENCASSETS] Recieved Encrypted Asset, but header is corrupt");
@@ -470,7 +470,7 @@ namespace OpenSim.Framework.Communications.Cache
             if (m_keyfiles.ContainsKey(meta[2]))
             {
                 RjinKeyfile deckey = m_keyfiles[meta[2]];
-                x.Metadata.Description = meta[4];
+                x.Description = meta[4];
                 switch (meta[1])
                 {
                     case "OPENSIM_AES_AF1":
@@ -544,7 +544,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 string assetUrl = _assetServerUrl + "/assets/";
 
-                m_log.InfoFormat("[CRYPTO GRID ASSET CLIENT]: Sending store request for asset {0}", asset.Metadata.FullID);
+                m_log.InfoFormat("[CRYPTO GRID ASSET CLIENT]: Sending store request for asset {0}", asset.FullID);
 
                 RestObjectPoster.BeginPostObject<AssetBase>(assetUrl, asset);
             }

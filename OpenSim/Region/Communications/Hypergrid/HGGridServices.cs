@@ -318,9 +318,9 @@ namespace OpenSim.Region.Communications.Hypergrid
                 //Console.WriteLine("Size: " + m.PhysicalDimension.Height + "-" + m.PhysicalDimension.Width);
                 byte[] imageData = OpenJPEG.EncodeFromImage(m, true);
                 AssetBase ass = new AssetBase(UUID.Random(), "region " + info.RegionID.ToString());
-                info.RegionSettings.TerrainImageID = ass.Metadata.FullID;
-                ass.Metadata.Type = (int)AssetType.Texture;
-                ass.Metadata.Temporary = false;
+                info.RegionSettings.TerrainImageID = ass.FullID;
+                ass.Type = (int)AssetType.Texture;
+                ass.Temporary = false;
                 ass.Data = imageData;
                 m_assetcache.AddAsset(ass);
 

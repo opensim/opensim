@@ -488,12 +488,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     foreach (AssetBase asset in entity.Assets)
                     {
                         Rest.Log.DebugFormat("{0} Rest asset: {1} {2} {3}",
-                                             MsgId, asset.Metadata.ID, asset.Metadata.Type, asset.Metadata.Name);
+                                             MsgId, asset.ID, asset.Type, asset.Name);
                         Rest.AssetServices.AddAsset(asset);
 
                         created = true;
                         rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>",
-                                        asset.Metadata.Name, asset.Metadata.ID));
+                                        asset.Name, asset.ID));
 
                         if (Rest.DEBUG && Rest.DumpAsset)
                         {
@@ -691,14 +691,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 foreach (AssetBase asset in entity.Assets)
                 {
                     Rest.Log.DebugFormat("{0} Rest asset: {1} {2} {3}",
-                                         MsgId, asset.Metadata.ID, asset.Metadata.Type, asset.Metadata.Name);
+                                         MsgId, asset.ID, asset.Type, asset.Name);
 
                     // The asset was validated during the collection process
 
                     Rest.AssetServices.AddAsset(asset);
 
                     created = true;
-                    rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Metadata.Name, asset.Metadata.ID));
+                    rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Name, asset.ID));
 
                     if (Rest.DEBUG && Rest.DumpAsset)
                     {
@@ -1884,10 +1884,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 asset = new AssetBase(uuid, name);
 
-                asset.Metadata.Description = desc;
-                asset.Metadata.Type        = type; // type == 0 == texture
-                asset.Metadata.Local       = local;
-                asset.Metadata.Temporary   = temp;
+                asset.Description = desc;
+                asset.Type        = type; // type == 0 == texture
+                asset.Local       = local;
+                asset.Temporary   = temp;
 
                 b64string         = ic.xml.ReadElementContentAsString();
 
@@ -2039,10 +2039,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (ic.Asset != null)
             {
-                if (ic.Asset.Metadata.Name == String.Empty)
-                    ic.Asset.Metadata.Name = ic.Item.Name;
-                if (ic.Asset.Metadata.Description == String.Empty)
-                    ic.Asset.Metadata.Description = ic.Item.Description;
+                if (ic.Asset.Name == String.Empty)
+                    ic.Asset.Name = ic.Item.Name;
+                if (ic.Asset.Description == String.Empty)
+                    ic.Asset.Description = ic.Item.Description;
             }
 
             // Assign permissions

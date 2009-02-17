@@ -54,13 +54,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
 
             m_asset = new AssetBase();
-            m_asset.Metadata.FullID = UUID.Zero;
-            m_asset.Metadata.Type = type;
+            m_asset.FullID = UUID.Zero;
+            m_asset.Type = type;
             m_asset.Data = new byte[0];
-            m_asset.Metadata.Name = pClientFilename;
-            m_asset.Metadata.Description = "empty";
-            m_asset.Metadata.Local = true;
-            m_asset.Metadata.Temporary = true;
+            m_asset.Name = pClientFilename;
+            m_asset.Description = "empty";
+            m_asset.Local = true;
+            m_asset.Temporary = true;
 
         }
 
@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         public void RequestStartXfer(IClientAPI pRemoteClient)
         {
             mXferID = Util.GetNextXferID();
-            pRemoteClient.SendXferRequest(mXferID, m_asset.Metadata.Type, m_asset.Metadata.FullID, 0, Utils.StringToBytes(m_asset.Metadata.Name));
+            pRemoteClient.SendXferRequest(mXferID, m_asset.Type, m_asset.FullID, 0, Utils.StringToBytes(m_asset.Name));
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             handlerTerrainUploadDone = TerrainUploadDone;
             if (handlerTerrainUploadDone != null)
             {
-                handlerTerrainUploadDone(m_asset.Metadata.Name, m_asset.Data, remoteClient);
+                handlerTerrainUploadDone(m_asset.Name, m_asset.Data, remoteClient);
             }
         }
     }

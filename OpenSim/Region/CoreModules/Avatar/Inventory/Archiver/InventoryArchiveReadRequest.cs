@@ -281,7 +281,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 AssetBase asset = new AssetBase(new UUID(uuid), "RandomName");
 
-                asset.Metadata.Type = assetType;
+                asset.Type = assetType;
                 asset.Data = data;
 
                 commsManager.AssetCache.AddAsset(asset);

@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         /// </summary>
         private AssetBase m_asset;
 
-        //public UUID assetID { get { return m_asset.Metadata.FullID; } }
+        //public UUID assetID { get { return m_asset.FullID; } }
 
         // private bool m_cancel = false;
 
@@ -116,7 +116,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         // See ITextureSender
         public bool SendTexturePacket()
         {
-            //m_log.DebugFormat("[TEXTURE SENDER]: Sending packet for {0}", m_asset.Metadata.FullID);
+            //m_log.DebugFormat("[TEXTURE SENDER]: Sending packet for {0}", m_asset.FullID);
 
             SendPacket();
             counter++;
@@ -153,7 +153,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                 {
                     if (NumPackets == 0)
                     {
-                        RequestUser.SendImageFirstPart(1, m_asset.Metadata.FullID, (uint)m_asset.Data.Length, m_asset.Data, 2);
+                        RequestUser.SendImageFirstPart(1, m_asset.FullID, (uint)m_asset.Data.Length, m_asset.Data, 2);
                         PacketCounter++;
                     }
                     else
@@ -162,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                         Array.Copy(m_asset.Data, 0, ImageData1, 0, 600);
 
                         RequestUser.SendImageFirstPart(
-                            (ushort)(NumPackets), m_asset.Metadata.FullID, (uint)m_asset.Data.Length, ImageData1, 2);
+                            (ushort)(NumPackets), m_asset.FullID, (uint)m_asset.Data.Length, ImageData1, 2);
                         PacketCounter++;
                     }
                 }
@@ -178,11 +178,11 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     catch (ArgumentOutOfRangeException)
                     {
                         m_log.Error("[TEXTURE SENDER]: Unable to separate texture into multiple packets: Array bounds failure on asset:" +
-                                    m_asset.Metadata.ID);
+                                    m_asset.ID);
                         return;
                     }
 
-                    RequestUser.SendImageNextPart((ushort)PacketCounter, m_asset.Metadata.FullID, imageData);
+                    RequestUser.SendImageNextPart((ushort)PacketCounter, m_asset.FullID, imageData);
                     PacketCounter++;
                 }
             }

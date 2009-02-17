@@ -33,128 +33,166 @@ namespace OpenSim.Framework
     [Serializable]
     public class AssetBase
     {
-        private byte[] _data;
-        private AssetMetadata _metadata;
+        private byte[] m_data;
+        private AssetMetadata m_metadata;
 
         public AssetBase()
         {
-            Metadata = new AssetMetadata();
+            m_metadata = new AssetMetadata();
         }
 
         public AssetBase(UUID assetId, string name)
         {
-            Metadata = new AssetMetadata();
-            Metadata.FullID = assetId;
-            Metadata.Name = name;
+            m_metadata = new AssetMetadata();
+            m_metadata.FullID = assetId;
+            m_metadata.Name = name;
         }
 
         public virtual byte[] Data
         {
-            get { return _data; }
-            set { _data = value; }
+            get { return m_data; }
+            set { m_data = value; }
         }
-
-        public virtual AssetMetadata Metadata
-        {
-            get { return _metadata; }
-            set { _metadata = value; }
-        }
-
-        // We expose FullID here because the NHibernate mappers require a
-        // property on the AssetBase class for its primary key (see
-        // OpenSim/Data/NHibernate/Resources/AssetBase.hbm.xml).
-        public UUID FullID
-        {
-            get { return Metadata.FullID; }
-            set { Metadata.FullID = value; }
-        }
-    }
-
-    [Serializable]
-    public class AssetMetadata
-    {
-        private UUID _fullid;
-        private string _name = String.Empty;
-        private string _description = String.Empty;
-        private DateTime _creation_date;
-        private sbyte _type;
-        private string _content_type;
-        private byte[] _sha1;
-        private bool _local = false;
-        private bool _temporary = false;
-        //private Dictionary<string, Uri> _methods = new Dictionary<string, Uri>();
-        //private OSDMap _extra_data;
 
         public UUID FullID
         {
-            get { return _fullid; }
-            set { _fullid = value; }
+            get { return m_metadata.FullID; }
+            set { m_metadata.FullID = value; }
         }
 
         public string ID
         {
-            get { return _fullid.ToString(); }
-            set { _fullid = new UUID(value); }
+            get { return m_metadata.ID; }
+            set { m_metadata.ID = value; }
         }
 
         public string Name
         {
-            get { return _name; }
-            set { _name = value; }
+            get { return m_metadata.Name; }
+            set { m_metadata.Name = value; }
         }
 
         public string Description
         {
-            get { return _description; }
-            set { _description = value; }
-        }
-
-        public DateTime CreationDate
-        {
-            get { return _creation_date; }
-            set { _creation_date = value; }
+            get { return m_metadata.Description; }
+            set { m_metadata.Description = value; }
         }
 
         public sbyte Type
         {
-            get { return _type; }
-            set { _type = value; }
-        }
-
-        public string ContentType
-        {
-            get { return _content_type; }
-            set { _content_type = value; }
-        }
-
-        public byte[] SHA1
-        {
-            get { return _sha1; }
-            set { _sha1 = value; }
+            get { return m_metadata.Type; }
+            set { m_metadata.Type = value; }
         }
 
         public bool Local
         {
-            get { return _local; }
-            set { _local = value; }
+            get { return m_metadata.Local; }
+            set { m_metadata.Local = value; }
         }
 
         public bool Temporary
         {
-            get { return _temporary; }
-            set { _temporary = value; }
+            get { return m_metadata.Temporary; }
+            set { m_metadata.Temporary = value; }
+        }
+
+        // We have methods here because properties are serialized, and we don't
+        // want that.
+        public virtual AssetMetadata getMetadata()
+        {
+            return m_metadata;
+        }
+
+        public virtual void setMetadata(AssetMetadata metadata)
+        {
+            m_metadata = metadata;
+        }
+    }
+
+    public class AssetMetadata
+    {
+        private UUID m_fullid;
+        private string m_name = String.Empty;
+        private string m_description = String.Empty;
+        private DateTime m_creation_date;
+        private sbyte m_type;
+        private string m_content_type;
+        private byte[] m_sha1;
+        private bool m_local = false;
+        private bool m_temporary = false;
+        //private Dictionary<string, Uri> m_methods = new Dictionary<string, Uri>();
+        //private OSDMap m_extra_data;
+
+        public UUID FullID
+        {
+            get { return m_fullid; }
+            set { m_fullid = value; }
+        }
+
+        public string ID
+        {
+            get { return m_fullid.ToString(); }
+            set { m_fullid = new UUID(value); }
+        }
+
+        public string Name
+        {
+            get { return m_name; }
+            set { m_name = value; }
+        }
+
+        public string Description
+        {
+            get { return m_description; }
+            set { m_description = value; }
+        }
+
+        public DateTime CreationDate
+        {
+            get { return m_creation_date; }
+            set { m_creation_date = value; }
+        }
+
+        public sbyte Type
+        {
+            get { return m_type; }
+            set { m_type = value; }
+        }
+
+        public string ContentType
+        {
+            get { return m_content_type; }
+            set { m_content_type = value; }
+        }
+
+        public byte[] SHA1
+        {
+            get { return m_sha1; }
+            set { m_sha1 = value; }
+        }
+
+        public bool Local
+        {
+            get { return m_local; }
+            set { m_local = value; }
+        }
+
+        public bool Temporary
+        {
+            get { return m_temporary; }
+            set { m_temporary = value; }
         }
 
         //public Dictionary<string, Uri> Methods
         //{
-        //    get { return _methods; }
-        //    set { _methods = value; }
+        //    get { return m_methods; }
+        //    set { m_methods = value; }
         //}
 
         //public OSDMap ExtraData
         //{
-        //    get { return _extra_data; }
-        //    set { _extra_data = value; }
+        //    get { return m_extra_data; }
+        //    set { m_extra_data = value; }
         //}
     }
 }

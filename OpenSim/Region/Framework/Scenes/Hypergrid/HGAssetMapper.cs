@@ -120,12 +120,12 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
                 if (m_scene.CommsManager.AssetCache.TryGetCachedAsset(assetID, out asset) && (asset != null))
                 {
-                    m_log.Debug("[HGScene]: Asset made it to asset cache. " + asset.Metadata.Name + " " + assetID);
+                    m_log.Debug("[HGScene]: Asset made it to asset cache. " + asset.Name + " " + assetID);
                     // I think I need to store it in the asset DB too.
                     // For now, let me just do it for textures and scripts
-                    if (((AssetType)asset.Metadata.Type == AssetType.Texture) ||
-                        ((AssetType)asset.Metadata.Type == AssetType.LSLBytecode) ||
-                        ((AssetType)asset.Metadata.Type == AssetType.LSLText))
+                    if (((AssetType)asset.Type == AssetType.Texture) ||
+                        ((AssetType)asset.Type == AssetType.LSLBytecode) ||
+                        ((AssetType)asset.Type == AssetType.LSLText))
                     {
                         AssetBase asset1 = new AssetBase();
                         Copy(asset, asset1);
@@ -149,7 +149,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             if (asset1 != null)
             {
                 // See long comment in AssetCache.AddAsset
-                if (!asset1.Metadata.Temporary || asset1.Metadata.Local)
+                if (!asset1.Temporary || asset1.Local)
                 {
                     // The asset cache returns instances of subclasses of AssetBase:
                     // TextureImage or AssetInfo. So in passing them to the remote
@@ -170,14 +170,14 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         private void Copy(AssetBase from, AssetBase to)
         {
-            to.Data         = from.Data;
-            to.Metadata.Description  = from.Metadata.Description;
-            to.Metadata.FullID       = from.Metadata.FullID;
-            to.Metadata.ID           = from.Metadata.ID;
-            to.Metadata.Local        = from.Metadata.Local;
-            to.Metadata.Name         = from.Metadata.Name;
-            to.Metadata.Temporary    = from.Metadata.Temporary;
-            to.Metadata.Type         = from.Metadata.Type;
+            to.Data        = from.Data;
+            to.Description = from.Description;
+            to.FullID      = from.FullID;
+            to.ID          = from.ID;
+            to.Local       = from.Local;
+            to.Name        = from.Name;
+            to.Temporary   = from.Temporary;
+            to.Type        = from.Type;
 
         }
 
@@ -235,7 +235,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
         private Dictionary<UUID, bool> SniffUUIDs(AssetBase asset)
         {
             Dictionary<UUID, bool> uuids = new Dictionary<UUID, bool>();
-            if ((asset != null) && ((AssetType)asset.Metadata.Type == AssetType.Object))
+            if ((asset != null) && ((AssetType)asset.Type == AssetType.Object))
             {
                 string ass_str = Utils.BytesToString(asset.Data);
                 SceneObjectGroup sog = new SceneObjectGroup(ass_str, true);

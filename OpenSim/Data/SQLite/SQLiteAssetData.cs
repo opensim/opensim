@@ -125,8 +125,8 @@ namespace OpenSim.Data.SQLite
         /// <param name="asset">Asset Base</param>
         override public void CreateAsset(AssetBase asset)
         {
-            //m_log.Info("[ASSET DB]: Creating Asset " + Util.ToRawUuidString(asset.Metadata.FullID));
-            if (ExistsAsset(asset.Metadata.FullID))
+            //m_log.Info("[ASSET DB]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
+            if (ExistsAsset(asset.FullID))
             {
                 //m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
             }
@@ -136,12 +136,12 @@ namespace OpenSim.Data.SQLite
                 {
                     using (SqliteCommand cmd = new SqliteCommand(InsertAssetSQL, m_conn))
                     {
-                        cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.Metadata.FullID)));
-                        cmd.Parameters.Add(new SqliteParameter(":Name", asset.Metadata.Name));
-                        cmd.Parameters.Add(new SqliteParameter(":Description", asset.Metadata.Description));
-                        cmd.Parameters.Add(new SqliteParameter(":Type", asset.Metadata.Type));
-                        cmd.Parameters.Add(new SqliteParameter(":Local", asset.Metadata.Local));
-                        cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Metadata.Temporary));
+                        cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.FullID)));
+                        cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
+                        cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
+                        cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
+                        cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
+                        cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
                         cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
 
                         cmd.ExecuteNonQuery();
@@ -162,12 +162,12 @@ namespace OpenSim.Data.SQLite
             {
                 using (SqliteCommand cmd = new SqliteCommand(UpdateAssetSQL, m_conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.Metadata.FullID)));
-                    cmd.Parameters.Add(new SqliteParameter(":Name", asset.Metadata.Name));
-                    cmd.Parameters.Add(new SqliteParameter(":Description", asset.Metadata.Description));
-                    cmd.Parameters.Add(new SqliteParameter(":Type", asset.Metadata.Type));
-                    cmd.Parameters.Add(new SqliteParameter(":Local", asset.Metadata.Local));
-                    cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Metadata.Temporary));
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.FullID)));
+                    cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
+                    cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
+                    cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
+                    cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
+                    cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
                     cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
 
                     cmd.ExecuteNonQuery();
@@ -181,14 +181,14 @@ namespace OpenSim.Data.SQLite
         /// <param name="asset"></param>
         private static void LogAssetLoad(AssetBase asset)
         {
-            string temporary = asset.Metadata.Temporary ? "Temporary" : "Stored";
-            string local = asset.Metadata.Local ? "Local" : "Remote";
+            string temporary = asset.Temporary ? "Temporary" : "Stored";
+            string local = asset.Local ? "Local" : "Remote";
 
             int assetLength = (asset.Data != null) ? asset.Data.Length : 0;
 
             m_log.Info("[ASSET DB]: " +
                                      string.Format("Loaded {6} {5} Asset: [{0}][{3}] \"{1}\":{2} ({7} bytes)",
-                                                   asset.Metadata.FullID, asset.Metadata.Name, asset.Metadata.Description, asset.Metadata.Type,
+                                                   asset.FullID, asset.Name, asset.Description, asset.Type,
                                                    temporary, local, assetLength));
         }
 
@@ -246,12 +246,12 @@ namespace OpenSim.Data.SQLite
             // back out.  Not enough time to figure it out yet.
             AssetBase asset = new AssetBase();
 
-            asset.Metadata.FullID = new UUID((String) row["UUID"]);
-            asset.Metadata.Name = (String) row["Name"];
-            asset.Metadata.Description = (String) row["Description"];
-            asset.Metadata.Type = Convert.ToSByte(row["Type"]);
-            asset.Metadata.Local = Convert.ToBoolean(row["Local"]);
-            asset.Metadata.Temporary = Convert.ToBoolean(row["Temporary"]);
+            asset.FullID = new UUID((String) row["UUID"]);
+            asset.Name = (String) row["Name"];
+            asset.Description = (String) row["Description"];
+            asset.Type = Convert.ToSByte(row["Type"]);
+            asset.Local = Convert.ToBoolean(row["Local"]);
+            asset.Temporary = Convert.ToBoolean(row["Temporary"]);
             asset.Data = (byte[]) row["Data"];
             return asset;
         }

@@ -740,9 +740,9 @@ namespace OpenSim.Framework.Communications.Capabilities
 
             AssetBase asset;
             asset = new AssetBase();
-            asset.Metadata.FullID = assetID;
-            asset.Metadata.Type = assType;
-            asset.Metadata.Name = assetName;
+            asset.FullID = assetID;
+            asset.Type = assType;
+            asset.Name = assetName;
             asset.Data = data;
             m_assetCache.AddAsset(asset);
 
@@ -750,7 +750,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             item.Owner = m_agentID;
             item.Creator = m_agentID;
             item.ID = inventoryItem;
-            item.AssetID = asset.Metadata.FullID;
+            item.AssetID = asset.FullID;
             item.Description = assetDescription;
             item.Name = assetName;
             item.AssetType = assType;

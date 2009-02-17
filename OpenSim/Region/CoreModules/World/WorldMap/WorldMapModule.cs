@@ -985,14 +985,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_scene.RegionInfo.RegionSettings.TerrainImageID = TerrainImageUUID;
 
             AssetBase asset = new AssetBase();
-            asset.Metadata.FullID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
+            asset.FullID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
             asset.Data = data;
-            asset.Metadata.Name 
+            asset.Name 
                 = "terrainImage_" + m_scene.RegionInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
-            asset.Metadata.Description = m_scene.RegionInfo.RegionName;
+            asset.Description = m_scene.RegionInfo.RegionName;
 
-            asset.Metadata.Type = 0;
-            asset.Metadata.Temporary = temporary;
+            asset.Type = 0;
+            asset.Temporary = temporary;
             m_scene.CommsManager.AssetCache.AddAsset(asset);
         }        
 

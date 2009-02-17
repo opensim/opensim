@@ -7679,7 +7679,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 Transfer.TransferInfo.Params = new byte[20];
                 Array.Copy(req.RequestAssetID.GetBytes(), 0, Transfer.TransferInfo.Params, 0, 16);
-                int assType = req.AssetInf.Metadata.Type;
+                int assType = req.AssetInf.Type;
                 Array.Copy(Utils.IntToBytes(assType), 0, Transfer.TransferInfo.Params, 16, 4);
             }
             else if (req.AssetRequestSource == 3)

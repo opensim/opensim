@@ -3555,10 +3555,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                     item.ID = UUID.Random();
                     item.Owner = remoteClient.AgentId;
-                    item.AssetID = asset.Metadata.FullID;
-                    item.Description = asset.Metadata.Description;
-                    item.Name = asset.Metadata.Name;
-                    item.AssetType = asset.Metadata.Type;
+                    item.AssetID = asset.FullID;
+                    item.Description = asset.Description;
+                    item.Name = asset.Name;
+                    item.AssetType = asset.Type;
                     item.InvType = (int)InventoryType.Object;
                     item.Folder = categoryID;
 

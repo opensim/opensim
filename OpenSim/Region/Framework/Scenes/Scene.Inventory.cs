@@ -193,11 +193,11 @@ namespace OpenSim.Region.Framework.Scenes
                             CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data);
                         CommsManager.AssetCache.AddAsset(asset);
 
-                        item.AssetID = asset.Metadata.FullID;
+                        item.AssetID = asset.FullID;
                         userInfo.UpdateItem(item);
 
                         // remoteClient.SendInventoryItemCreateUpdate(item);
-                        return (asset.Metadata.FullID);
+                        return (asset.FullID);
                     }
                 }
             }
@@ -285,7 +285,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Update item with new asset
-            item.AssetID = asset.Metadata.FullID;
+            item.AssetID = asset.FullID;
             group.UpdateInventoryItem(item);
             part.GetProperties(remoteClient);
 
@@ -688,7 +688,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (newName != String.Empty)
                 {
-                    asset.Metadata.Name = newName;
+                    asset.Name = newName;
                 }
                 else
                 {
@@ -728,10 +728,10 @@ namespace OpenSim.Region.Framework.Scenes
         private AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data)
         {
             AssetBase asset = new AssetBase();
-            asset.Metadata.Name = name;
-            asset.Metadata.Description = description;
-            asset.Metadata.Type = assetType;
-            asset.Metadata.FullID = UUID.Random();
+            asset.Name = name;
+            asset.Description = description;
+            asset.Type = assetType;
+            asset.FullID = UUID.Random();
             asset.Data = (data == null) ? new byte[1] : data;
 
             return asset;
@@ -831,11 +831,11 @@ namespace OpenSim.Region.Framework.Scenes
                 item.Owner = remoteClient.AgentId;
                 item.Creator = remoteClient.AgentId;
                 item.ID = UUID.Random();
-                item.AssetID = asset.Metadata.FullID;
-                item.Description = asset.Metadata.Description;
+                item.AssetID = asset.FullID;
+                item.Description = asset.Description;
                 item.Name = name;
                 item.Flags = flags;
-                item.AssetType = asset.Metadata.Type;
+                item.AssetType = asset.Type;
                 item.InvType = invType;
                 item.Folder = folderID;
                 item.CurrentPermissions = currentMask;
@@ -905,7 +905,7 @@ namespace OpenSim.Region.Framework.Scenes
                     AssetBase asset = CreateAsset(name, description, assetType, data);
                     CommsManager.AssetCache.AddAsset(asset);
 
-                    CreateNewInventoryItem(remoteClient, folderID, asset.Metadata.Name, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
+                    CreateNewInventoryItem(remoteClient, folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
                 }
                 else
                 {
@@ -1553,7 +1553,7 @@ namespace OpenSim.Region.Framework.Scenes
                 taskItem.Flags = itemBase.Flags;
                 taskItem.PermsGranter = UUID.Zero;
                 taskItem.PermsMask = 0;
-                taskItem.AssetID = asset.Metadata.FullID;
+                taskItem.AssetID = asset.FullID;
 
                 part.Inventory.AddInventoryItem(taskItem, false);
                 part.GetProperties(remoteClient);
@@ -1953,16 +1953,16 @@ namespace OpenSim.Region.Framework.Scenes
                 (sbyte)AssetType.Object,
                 Utils.StringToBytes(sceneObjectXml));
             CommsManager.AssetCache.AddAsset(asset);
-            assetID = asset.Metadata.FullID;
+            assetID = asset.FullID;
 
             if (DeRezAction.SaveToExistingUserInventoryItem == action)
             {
-                item.AssetID = asset.Metadata.FullID;
+                item.AssetID = asset.FullID;
                 userInfo.UpdateItem(item);
             }
             else
             {
-                item.AssetID = asset.Metadata.FullID;
+                item.AssetID = asset.FullID;
 
                 if (remoteClient != null && (remoteClient.AgentId != objectGroup.RootPart.OwnerID) && Permissions.PropagatePermissions())
                 {
@@ -1995,9 +1995,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // TODO: add the new fields (Flags, Sale info, etc)
                 item.CreationDate = Util.UnixTimeSinceEpoch();
-                item.Description = asset.Metadata.Description;
-                item.Name = asset.Metadata.Name;
-                item.AssetType = asset.Metadata.Type;
+                item.Description = asset.Description;
+                item.Name = asset.Name;
+                item.AssetType = asset.Type;
 
                 userInfo.AddItem(item);
 
@@ -2080,10 +2080,10 @@ namespace OpenSim.Region.Framework.Scenes
                             Utils.StringToBytes(sceneObjectXml));
                         CommsManager.AssetCache.AddAsset(asset);
 
-                        item.AssetID = asset.Metadata.FullID;
-                        item.Description = asset.Metadata.Description;
-                        item.Name = asset.Metadata.Name;
-                        item.AssetType = asset.Metadata.Type;
+                        item.AssetID = asset.FullID;
+                        item.Description = asset.Description;
+                        item.Name = asset.Name;
+                        item.AssetType = asset.Type;
                         item.InvType = (int)InventoryType.Object;
                         item.Folder = foundFolder;
 
@@ -2121,10 +2121,10 @@ namespace OpenSim.Region.Framework.Scenes
                     item.Creator = grp.RootPart.CreatorID;
                     item.Owner = remoteClient.AgentId;
                     item.ID = UUID.Random();
-                    item.AssetID = asset.Metadata.FullID;
-                    item.Description = asset.Metadata.Description;
-                    item.Name = asset.Metadata.Name;
-                    item.AssetType = asset.Metadata.Type;
+                    item.AssetID = asset.FullID;
+                    item.Description = asset.Description;
+                    item.Name = asset.Name;
+                    item.AssetType = asset.Type;
                     item.InvType = (int)InventoryType.Object;
 
                     item.Folder = UUID.Zero; // Objects folder!

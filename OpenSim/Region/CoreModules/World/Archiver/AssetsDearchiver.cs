@@ -157,8 +157,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", filename);
 
                 AssetBase asset = new AssetBase(new UUID(filename), metadata.Name);
-                asset.Metadata.Description = metadata.Description;
-                asset.Metadata.Type = metadata.AssetType;
+                asset.Description = metadata.Description;
+                asset.Type = metadata.AssetType;
                 asset.Data = data;
 
                 m_cache.AddAsset(asset);

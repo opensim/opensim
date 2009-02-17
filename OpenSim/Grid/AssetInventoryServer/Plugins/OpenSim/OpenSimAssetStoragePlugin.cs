@@ -61,7 +61,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             if (asset == null) ret = BackendResponse.NotFound;
             else
             {
-                metadata = asset.Metadata;
+                metadata = asset.getMetadata();
                 ret = BackendResponse.Success;
             }
 

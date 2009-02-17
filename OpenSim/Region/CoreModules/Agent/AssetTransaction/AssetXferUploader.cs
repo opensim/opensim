@@ -111,13 +111,13 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             ourClient = remoteClient;
             m_asset = new AssetBase();
-            m_asset.Metadata.FullID = assetID;
-            m_asset.Metadata.Type = type;
+            m_asset.FullID = assetID;
+            m_asset.Type = type;
             m_asset.Data = data;
-            m_asset.Metadata.Name = "blank";
-            m_asset.Metadata.Description = "empty";
-            m_asset.Metadata.Local = storeLocal;
-            m_asset.Metadata.Temporary = tempFile;
+            m_asset.Name = "blank";
+            m_asset.Description = "empty";
+            m_asset.Local = storeLocal;
+            m_asset.Temporary = tempFile;
 
             TransactionID = transaction;
             m_storeLocal = storeLocal;
@@ -138,12 +138,12 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         protected void RequestStartXfer()
         {
             XferID = Util.GetNextXferID();
-            ourClient.SendXferRequest(XferID, m_asset.Metadata.Type, m_asset.Metadata.FullID, 0, new byte[0]);
+            ourClient.SendXferRequest(XferID, m_asset.Type, m_asset.FullID, 0, new byte[0]);
         }
 
         protected void SendCompleteMessage()
         {
-            ourClient.SendAssetUploadCompleteMessage(m_asset.Metadata.Type, true, m_asset.Metadata.FullID);
+            ourClient.SendAssetUploadCompleteMessage(m_asset.Type, true, m_asset.FullID);
 
             m_finished = true;
             if (m_createItem)
@@ -162,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 DateTime now = DateTime.Now;
                 string filename =
                     String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}.dat", now.Year, now.Month, now.Day,
-                                  now.Hour, now.Minute, now.Second, m_asset.Metadata.Name, m_asset.Metadata.Type);
+                                  now.Hour, now.Minute, now.Second, m_asset.Name, m_asset.Type);
                 SaveAssetToFile(filename, m_asset.Data);
             }
         }
@@ -194,9 +194,9 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 this.invType = invType;
                 this.wearableType = wearableType;
                 nextPerm = nextOwnerMask;
-                m_asset.Metadata.Name = name;
-                m_asset.Metadata.Description = description;
-                m_asset.Metadata.Type = type;
+                m_asset.Name = name;
+                m_asset.Description = description;
+                m_asset.Type = type;
 
                 if (m_finished)
                 {
@@ -223,7 +223,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 item.Owner = ourClient.AgentId;
                 item.Creator = ourClient.AgentId;
                 item.ID = UUID.Random();
-                item.AssetID = m_asset.Metadata.FullID;
+                item.AssetID = m_asset.FullID;
                 item.Description = m_description;
                 item.Name = m_name;
                 item.AssetType = type;
