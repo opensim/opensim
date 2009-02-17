@@ -89,6 +89,15 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             int ti = (int)(v * (1f - (1f - f) * s) * 255f);
             int vi = (int)(v * 255f);
 
+            if (pi < 0) pi = 0;
+            if (pi > 255) pi = 255;
+            if (qi < 0) qi = 0;
+            if (qi > 255) qi = 255;
+            if (ti < 0) ti = 0;
+            if (ti > 255) ti = 255;
+            if (vi < 0) vi = 0;
+            if (vi > 255) vi = 255;
+
             switch (sector)
             {
             case 0:
