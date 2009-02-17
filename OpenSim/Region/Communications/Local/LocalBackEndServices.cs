@@ -441,7 +441,7 @@ namespace OpenSim.Region.Communications.Local
             agent.InventoryFolder = loginData.InventoryFolder;
             agent.startpos = loginData.StartPos;
             agent.CapsPath = loginData.CapsPath;
-            if (agent.Appearance != null)
+            if (loginData.Appearance != null)
                 agent.Appearance = loginData.Appearance;
             else
             {
