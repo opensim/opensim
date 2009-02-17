@@ -26,7 +26,9 @@
  */
 
 using System;
+using System.IO;
 using System.Text;
+using System.Threading;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Data;
@@ -42,10 +44,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
     [TestFixture]
     public class InventoryArchiverTests
     {
+        private EventWaitHandle m_waitHandle = new AutoResetEvent(false);
+        
+        private void SaveCompleted(
+            bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException)
+        {
+            m_waitHandle.Set();
+        }
+        
         /// <summary>
         /// Test saving a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet).
         /// </summary>
-        [Test]        
+        [Test]
         public void TestSaveIarV0p1()
         {        
             //log4net.Config.XmlConfigurator.Configure();
@@ -94,16 +104,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.Name = "My Little Dog";
             item1.AssetID = asset1.FullID;
             item1.Folder = userInfo.RootFolder.FindFolderByPath("Objects").ID;            
-            scene.AddInventoryItem(userId, item1);
-            
-            /*
+            scene.AddInventoryItem(userId, item1);            
             
             MemoryStream archiveWriteStream = new MemoryStream();
-            
-            scene.EventManager.OnOarFileSaved += SaveCompleted;
-            archiverModule.ArchiveRegion(archiveWriteStream);            
+            archiverModule.OnInventoryArchiveSaved += SaveCompleted;                
+             
+            archiverModule.ArchiveInventory(userFirstName, userLastName, "Objects", archiveWriteStream);            
             m_waitHandle.WaitOne(60000, true);
 
+            /*
             byte[] archive = archiveWriteStream.ToArray();           
             MemoryStream archiveReadStream = new MemoryStream(archive);
             TarArchiveReader tar = new TarArchiveReader(archiveReadStream);

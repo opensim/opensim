@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -38,7 +39,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
-{      
+{          
     /// <summary>
     /// This module loads and saves OpenSimulator inventory archives
     /// </summary>    
@@ -50,10 +51,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         
         public bool IsSharedModule { get { return true; } }
         
+        public event InventoryArchiveSaved OnInventoryArchiveSaved;        
+        
         /// <summary>
         /// The file to load and save inventory if no filename has been specified
         /// </summary>
-        protected const string DEFAULT_INV_BACKUP_FILENAME = "user-inventory_iar.tar.gz";        
+        protected const string DEFAULT_INV_BACKUP_FILENAME = "user-inventory_iar.tar.gz";               
         
         /// <value>
         /// All scenes that this module knows about
@@ -63,14 +66,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <value>
         /// The comms manager we will use for all comms requests
         /// </value>
-        private CommunicationsManager m_commsManager;
+        protected internal CommunicationsManager CommsManager;
 
         public void Initialise(Scene scene, IConfigSource source)
         {            
             if (m_scenes.Count == 0)
             {
                 scene.RegisterModuleInterface<IInventoryArchiverModule>(this);
-                m_commsManager = scene.CommsManager;                                
+                CommsManager = scene.CommsManager;                                
                 
                 scene.AddCommand(
                     this, "load iar",
@@ -89,6 +92,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         public void PostInitialise() {}
 
         public void Close() {}
+        
+        /// <summary>
+        /// Trigger the inventory archive saved event.
+        /// </summary>
+        protected internal void TriggerInventoryArchiveSaved(
+            bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException)
+        {
+            InventoryArchiveSaved handlerInventoryArchiveSaved = OnInventoryArchiveSaved;
+            if (handlerInventoryArchiveSaved != null)
+                handlerInventoryArchiveSaved(succeeded, userInfo, invPath, saveStream, reportedException);
+        }
                
         public void DearchiveInventory(string firstName, string lastName, string invPath, Stream loadStream)
         {
@@ -99,7 +113,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (userInfo != null)
                 {
                     InventoryArchiveReadRequest request = 
-                        new InventoryArchiveReadRequest(userInfo, invPath, loadStream, m_commsManager);                
+                        new InventoryArchiveReadRequest(userInfo, invPath, loadStream, CommsManager);                
                     UpdateClientWithLoadedNodes(userInfo, request.Execute());
                 }
             }            
@@ -112,7 +126,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
 
                 if (userInfo != null)
-                    new InventoryArchiveWriteRequest(userInfo, invPath, saveStream, m_commsManager).Execute();
+                    new InventoryArchiveWriteRequest(this, userInfo, invPath, saveStream).Execute();
             }              
         }
         
@@ -125,7 +139,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (userInfo != null)
                 {
                     InventoryArchiveReadRequest request = 
-                        new InventoryArchiveReadRequest(userInfo, invPath, loadPath, m_commsManager);                
+                        new InventoryArchiveReadRequest(userInfo, invPath, loadPath, CommsManager);                
                     UpdateClientWithLoadedNodes(userInfo, request.Execute());
                 }
             }                
@@ -138,7 +152,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
                 
                 if (userInfo != null)
-                    new InventoryArchiveWriteRequest(userInfo, invPath, savePath, m_commsManager).Execute();
+                    new InventoryArchiveWriteRequest(this, userInfo, invPath, savePath).Execute();
             }            
         }                
         
@@ -208,7 +222,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns></returns>
         protected CachedUserInfo GetUserInfo(string firstName, string lastName)
         {
-            UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(firstName, lastName);
+            UserProfileData userProfile = CommsManager.UserService.GetUserProfile(firstName, lastName);
             
             if (null == userProfile)
             {
@@ -216,7 +230,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return null;
             }
 
-            CachedUserInfo userInfo = m_commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
+            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
             if (null == userInfo)
             {
                 m_log.ErrorFormat(

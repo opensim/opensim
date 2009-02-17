@@ -42,7 +42,7 @@ namespace OpenSim.Framework
             get { return m_name; }
             set { m_name = value; }
         } 
-        private string m_name;
+        private string m_name = string.Empty;
         
         /// <summary>
         /// A UUID containing the ID for the inventory node itself

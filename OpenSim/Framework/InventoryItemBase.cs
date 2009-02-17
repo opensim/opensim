@@ -65,7 +65,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// The description of the inventory item (must be less than 64 characters)
         /// </summary>
-        private string _description;
+        private string _description = string.Empty;
 
         /// <summary>
         ///

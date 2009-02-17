@@ -25,12 +25,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.IO;
+using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Framework.Interfaces
-{        
-    public interface IInventoryArchiverModule
+{    
+    /// <summary>
+    /// Used for the OnInventoryArchiveSaved event.
+    /// </summary>
+    /// <param name="succeeded">true if the save succeeded, false otherwise</param>
+    /// <param name="userInfo">The user for whom the save was conducted</param>
+    /// <param name="invPath">The inventory path saved</param>
+    /// <param name="savePath">The stream to which the archive was saved</param>
+    /// <param name="reportedException">Contains the exception generated if the save did not succeed</param>
+    public delegate void InventoryArchiveSaved(
+        bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException);
+    
+    public interface IInventoryArchiverModule       
     {
+        /// <summary>
+        /// Fired when an archive inventory save has been completed.
+        /// </summary>        
+        event InventoryArchiveSaved OnInventoryArchiveSaved;
+        
         /// <summary>
         /// Dearchive a user's inventory folder from the given stream
         /// </summary>

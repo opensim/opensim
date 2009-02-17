@@ -45,9 +45,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);      
         
         protected TarArchiveWriter archive = new TarArchiveWriter();
-        protected CommunicationsManager commsManager;
         protected Dictionary<UUID, int> assetUuids = new Dictionary<UUID, int>();
         
+        private InventoryArchiverModule m_module;
         private CachedUserInfo m_userInfo;
         private string m_invPath;
         
@@ -60,12 +60,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>        
         public InventoryArchiveWriteRequest(
-            CachedUserInfo userInfo, string invPath, string savePath, CommunicationsManager commsManager)
+            InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, string savePath)
             : this(
+                module,
                 userInfo,
                 invPath, 
-                new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress),
-                commsManager)
+                new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress))
         {
         }
         
@@ -73,19 +73,33 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>        
         public InventoryArchiveWriteRequest(
-             CachedUserInfo userInfo, string invPath, Stream saveStream, CommunicationsManager commsManager)
+            InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, Stream saveStream)
         {
+            m_module = module;
             m_userInfo = userInfo;
             m_invPath = invPath;
-            m_saveStream = saveStream;                        
-            this.commsManager = commsManager;
+            m_saveStream = saveStream;             
         }
 
         protected void ReceivedAllAssets(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids)
         {
             AssetsArchiver assetsArchiver = new AssetsArchiver(assetsFound);
             assetsArchiver.Archive(archive);
-            archive.WriteTar(m_saveStream);
+            
+            Exception reportedException = null;
+            bool succeeded = true;
+            
+            try
+            {
+                archive.WriteTar(m_saveStream);
+            } 
+            catch (IOException e)
+            {
+                reportedException = e;
+                succeeded = false;
+            }
+                   
+            m_module.TriggerInventoryArchiveSaved(succeeded, m_userInfo, m_invPath, m_saveStream, reportedException);          
         }
 
         protected void saveInvItem(InventoryItemBase inventoryItem, string path)
@@ -115,9 +129,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             writer.WriteString(inventoryItem.Owner.ToString());
             writer.WriteEndElement();
             writer.WriteStartElement("Description");
-            if (inventoryItem.Description.Length > 0)
-                writer.WriteString(inventoryItem.Description);
-            else writer.WriteString("No Description");
+            writer.WriteString(inventoryItem.Description);
             writer.WriteEndElement();
             writer.WriteStartElement("AssetType");
             writer.WriteString(inventoryItem.AssetType.ToString());
@@ -191,7 +203,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 //
                 // FIXME: FetchInventory should probably be assumed to by async anyway, since even standalones might
                 // use a remote inventory service, though this is vanishingly rare at the moment.
-                if (null == commsManager.UserAdminService)
+                if (null == m_module.CommsManager.UserAdminService)
                 {
                     m_log.ErrorFormat(
                         "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1}",
@@ -242,7 +254,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 }
                 else
                 {
-                    m_log.InfoFormat(
+                    m_log.DebugFormat(
                         "[INVENTORY ARCHIVER]: Found item {0} {1} at {2}", 
                         inventoryItem.Name, inventoryItem.ID, m_invPath);
                     
@@ -252,7 +264,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
             else
             {
-                m_log.InfoFormat(
+                m_log.DebugFormat(
                     "[INVENTORY ARCHIVER]: Found folder {0} {1} at {2}", 
                     inventoryFolder.Name, inventoryFolder.ID, m_invPath);
                 
@@ -260,7 +272,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 saveInvDir(inventoryFolder, "");
             }
 
-            new AssetsRequest(assetUuids.Keys, commsManager.AssetCache, ReceivedAllAssets).Execute();
+            new AssetsRequest(assetUuids.Keys, m_module.CommsManager.AssetCache, ReceivedAllAssets).Execute();
         }
     }
 }
