@@ -364,6 +364,21 @@ namespace Prebuild.Core.Targets
             return ret;
         }
 
+        private static bool ExtensionSpecified(string refName)
+        {
+            return refName.EndsWith(".dll") || refName.EndsWith(".exe");
+        }
+
+        private static string GetProjectExtension(ProjectNode project)
+        {
+            string extension = ".dll";
+            if (project.Type == ProjectType.Exe)
+            {
+                extension = ".exe";
+            }
+            return extension;
+        }
+
         private void WriteProject(SolutionNode solution, ProjectNode project)
         {
             if (!tools.ContainsKey(project.Language))
@@ -474,14 +489,21 @@ namespace Prebuild.Core.Targets
                         ps.WriteLine("\" >");
 
                         string path;
-                        
-                        if (refr.Name.EndsWith(".dll", StringComparison.InvariantCultureIgnoreCase))
+
+                        if (String.IsNullOrEmpty(refr.Path))
                         {
-                            path = Helper.NormalizePath(Path.Combine( refPath, refr.Name), '\\');
+                            if ( ExtensionSpecified( refr.Name ) )
+                            {
+                                path = Helper.NormalizePath(Path.Combine(refPath, refr.Name), '\\');
+                            }
+                            else
+                            {
+                                path = refr.Name + ".dll";
+                            }
                         }
                         else
                         {
-                            path = refr.Name + ".dll";
+                            path = refr.Path;
                         }
 
                         // TODO: Allow reference to *.exe files

@@ -94,42 +94,45 @@ namespace Prebuild.Core.Targets
             string ret = "";
             string referencePath = ((ReferencePathNode)currentProject.ReferencePaths[0]).Path;
 
-            if (solution.ProjectsTable.ContainsKey(refr.Name))
+            if (String.IsNullOrEmpty(refr.Path))
             {
-                ProjectNode project = (ProjectNode)solution.ProjectsTable[refr.Name];
-                string finalPath = Helper.NormalizePath(referencePath + refr.Name + GetProjectExtension(project), '/');
-                return finalPath;
+                if (solution.ProjectsTable.ContainsKey(refr.Name))
+                {
+                    ProjectNode project = (ProjectNode) solution.ProjectsTable[refr.Name];
+                    string finalPath =
+                        Helper.NormalizePath(referencePath + refr.Name + GetProjectExtension(project), '/');
+                    return finalPath;
+                }
+                else
+                {
+                    ProjectNode project = (ProjectNode) refr.Parent;
+
+                    // Do we have an explicit file reference?
+                    string fileRef = FindFileReference(refr.Name, project);
+                    if (fileRef != null)
+                    {
+                        return fileRef;
+                    }
+
+                    // Is there an explicit path in the project ref?
+                    if (refr.Path != null)
+                    {
+                        return Helper.NormalizePath(refr.Path + "/" + refr.Name + GetProjectExtension(project), '/');
+                    }
+
+                    // Is it a specified extension (dll or exe?)
+                    if (ExtensionSpecified(refr.Name))
+                    {
+                        return Helper.NormalizePath(referencePath + GetRefFileName(refr.Name), '/');
+                    }
+
+                    // No, it's an extensionless GAC ref, but nant needs the .dll extension anyway
+                    return refr.Name + ".dll";
+                }
             }
             else
             {
-                if (refr.Name == "Pootface.exe")
-                {
-                    Console.WriteLine("Poot!");
-                }
-
-                ProjectNode project = (ProjectNode) refr.Parent;
-
-                // Do we have an explicit file reference?
-                string fileRef = FindFileReference(refr.Name, project);
-                if( fileRef != null )
-                {
-                    return fileRef;
-                }
-
-                // Is there an explicit path in the project ref?
-                if (refr.Path != null)
-                {
-                    return Helper.NormalizePath( refr.Path + "/" + refr.Name + GetProjectExtension(project), '/');
-                }
-
-                // Is it a specified extension (dll or exe?)
-                if (ExtensionSpecified(refr.Name))
-                {
-                    return Helper.NormalizePath( referencePath + GetRefFileName(refr.Name), '/');
-                }
-
-                // No, it's an extensionless GAC ref, but nant needs the .dll extension anyway
-                return refr.Name + ".dll";
+                return refr.Path;
             }
         }
 
@@ -160,47 +163,54 @@ namespace Prebuild.Core.Targets
             return extension;
         }
 
-        private static string BuildReferencePath(SolutionNode solution, ReferenceNode refr)
-        {
-            string ret = "";
-            if (solution.ProjectsTable.ContainsKey(refr.Name))
-            {
-                ProjectNode project = (ProjectNode)solution.ProjectsTable[refr.Name];
-                string finalPath = Helper.NormalizePath(((ReferencePathNode)project.ReferencePaths[0]).Path, '/');
-                return finalPath;
-            }
-            else
-            {
-                ProjectNode project = (ProjectNode)refr.Parent;
-                string fileRef = FindFileReference(refr.Name, project);
+        //private static string BuildReferencePath(SolutionNode solution, ReferenceNode refr)
+        //{
+        //    string ret = "";
+        //    if (solution.ProjectsTable.ContainsKey(refr.Name))
+        //    {
+        //        ProjectNode project = (ProjectNode)solution.ProjectsTable[refr.Name];
+        //        string finalPath = Helper.NormalizePath(((ReferencePathNode)project.ReferencePaths[0]).Path, '/');
+        //        return finalPath;
+        //    }
+        //    else
+        //    {
+        //        if (refr.Path == null)
+        //        {
+        //            ProjectNode project = (ProjectNode) refr.Parent;
+        //            string fileRef = FindFileReference(refr.Name, project);
 
-                if (refr.Path != null || fileRef != null)
-                {
-                    string finalPath = (refr.Path != null) ? Helper.NormalizePath(refr.Path, '/') : fileRef;
-                    ret += finalPath;
-                    return ret;
-                }
+        //            if (refr.Path != null || fileRef != null)
+        //            {
+        //                string finalPath = (refr.Path != null) ? Helper.NormalizePath(refr.Path, '/') : fileRef;
+        //                ret += finalPath;
+        //                return ret;
+        //            }
 
-                try
-                {
-                    Assembly assem = Assembly.Load(refr.Name);
-                    if (assem != null)
-                    {
-                        ret += "";
-                    }
-                    else
-                    {
-                        ret += "";
-                    }
-                }
-                catch (System.NullReferenceException e)
-                {
-                    e.ToString();
-                    ret += "";
-                }
-            }
-            return ret;
-        }
+        //            try
+        //            {
+        //                Assembly assem = Assembly.Load(refr.Name);
+        //                if (assem != null)
+        //                {
+        //                    ret += "";
+        //                }
+        //                else
+        //                {
+        //                    ret += "";
+        //                }
+        //            }
+        //            catch (System.NullReferenceException e)
+        //            {
+        //                e.ToString();
+        //                ret += "";
+        //            }
+        //        }
+        //        else
+        //        {
+        //            ret = refr.Path;
+        //        }
+        //    }
+        //    return ret;
+        //}
 
         private static string FindFileReference(string refName, ProjectNode project)
         {
