@@ -44,12 +44,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
     [TestFixture]
     public class InventoryArchiverTests
     {
-        private EventWaitHandle m_waitHandle = new AutoResetEvent(false);
-        
         private void SaveCompleted(
             bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException)
         {
-            m_waitHandle.Set();
+            lock (this)
+            {
+                Monitor.PulseAll(this);
+            }            
         }
         
         /// <summary>
@@ -109,8 +110,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;                
              
-            archiverModule.ArchiveInventory(userFirstName, userLastName, "Objects", archiveWriteStream);            
-            m_waitHandle.WaitOne(60000, true);
+            archiverModule.ArchiveInventory(userFirstName, userLastName, "Objects", archiveWriteStream);
+            
+            lock (this)
+            {
+                archiverModule.ArchiveInventory(userFirstName, userLastName, "Objects", archiveWriteStream);                            
+                Monitor.Wait(this, 60000);
+            } 
 
             /*
             byte[] archive = archiveWriteStream.ToArray();           
