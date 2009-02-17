@@ -113,8 +113,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;                
-             
-            archiverModule.ArchiveInventory(userFirstName, userLastName, "Objects", archiveWriteStream);
             
             lock (this)
             {

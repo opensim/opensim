@@ -109,6 +109,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         path, inventoryItem.Name, inventoryItem.ID);
             StringWriter sw = new StringWriter();
             XmlTextWriter writer = new XmlTextWriter(sw);
+            writer.Formatting = Formatting.Indented;
+            
             writer.WriteStartElement("InventoryObject");
             writer.WriteStartElement("Name");
             writer.WriteString(inventoryItem.Name);

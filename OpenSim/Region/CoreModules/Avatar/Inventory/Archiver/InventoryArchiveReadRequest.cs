@@ -104,17 +104,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             reader.ReadStartElement("Owner");
             item.Owner = UUID.Parse(reader.ReadString());
             reader.ReadEndElement();
-            //No description would kill it
-            if (reader.IsEmptyElement)
-            {
-                reader.ReadStartElement("Description");
-            }
-            else
-            {
-                reader.ReadStartElement("Description");
-                item.Description = reader.ReadString();
-                reader.ReadEndElement();
-            }
+            reader.ReadElementString("Description");
             reader.ReadStartElement("AssetType");
             item.AssetType = Convert.ToInt32(reader.ReadString());
             reader.ReadEndElement();
@@ -225,6 +215,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                     if (item != null)
                     {
+                        // Don't use the item ID that's in the file
+                        item.ID = UUID.Random();
+                        
                         item.Creator = m_userInfo.UserProfile.ID;
                         item.Owner = m_userInfo.UserProfile.ID;
 
