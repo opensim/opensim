@@ -43,11 +43,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
     [TestFixture]
     public class ArchiverTests
     {
-        private EventWaitHandle m_waitHandle = new AutoResetEvent(false);
+        private EventWaitHandle m_waitHandle = new ManualResetEvent(false);
         
         private void SaveCompleted(string errorMessage)
         {
-            m_waitHandle.Set();
+            m_waitHandle.Set();            
         }
         
         /// <summary>
@@ -108,6 +108,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             scene.EventManager.OnOarFileSaved += SaveCompleted;
             archiverModule.ArchiveRegion(archiveWriteStream);            
             m_waitHandle.WaitOne(60000, true);
+            m_waitHandle.Reset();
 
             byte[] archive = archiveWriteStream.ToArray();           
             MemoryStream archiveReadStream = new MemoryStream(archive);
@@ -252,6 +253,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 scene.EventManager.OnOarFileSaved += SaveCompleted;
                 archiverModule.ArchiveRegion(archiveWriteStream);            
                 m_waitHandle.WaitOne(60000, true);
+                m_waitHandle.Reset();
             }
             
             {
