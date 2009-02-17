@@ -60,13 +60,13 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
-        public bool Add(UUID animID, int sequenceNum)
+        public bool Add(UUID animID, int sequenceNum, UUID objectID)
         {
             lock (m_animations)
             {
                 if (!HasAnimation(animID))
                 {
-                    m_animations.Add(new Animation(animID, sequenceNum));
+                    m_animations.Add(new Animation(animID, sequenceNum, objectID));
                     return true;
                 }
             }
@@ -106,11 +106,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// The default animation is reserved for "main" animations
         /// that are mutually exclusive, e.g. flying and sitting.
         /// </summary>
-        public bool SetDefaultAnimation(UUID animID, int sequenceNum)
+        public bool SetDefaultAnimation(UUID animID, int sequenceNum, UUID objectID)
         {
             if (m_defaultAnimation.AnimID != animID)
             {
-                m_defaultAnimation = new Animation(animID, sequenceNum);
+                m_defaultAnimation = new Animation(animID, sequenceNum, objectID);
                 return true;
             }
             return false;
@@ -118,27 +118,28 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected bool ResetDefaultAnimation()
         {
-            return TrySetDefaultAnimation("STAND", 1);
+            return TrySetDefaultAnimation("STAND", 1, UUID.Zero);
         }
 
         /// <summary>
         /// Set the animation as the default animation if it's known
         /// </summary>
-        public bool TrySetDefaultAnimation(string anim, int sequenceNum)
+        public bool TrySetDefaultAnimation(string anim, int sequenceNum, UUID objectID)
         {
             if (Animations.AnimsUUID.ContainsKey(anim))
             {
-                return SetDefaultAnimation(Animations.AnimsUUID[anim], sequenceNum);
+                return SetDefaultAnimation(Animations.AnimsUUID[anim], sequenceNum, objectID);
             }
             return false;
         }
 
-        public void GetArrays(out UUID[] animIDs, out int[] sequenceNums)
+        public void GetArrays(out UUID[] animIDs, out int[] sequenceNums, out UUID[] objectIDs)
         {
             lock (m_animations)
             {
                 animIDs = new UUID[m_animations.Count + 1];
                 sequenceNums = new int[m_animations.Count + 1];
+                objectIDs = new UUID[m_animations.Count + 1];
 
                 animIDs[0] = m_defaultAnimation.AnimID;
                 sequenceNums[0] = m_defaultAnimation.SequenceNum;
@@ -147,6 +148,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     animIDs[i + 1] = m_animations[i].AnimID;
                     sequenceNums[i + 1] = m_animations[i].SequenceNum;
+                    objectIDs[i + i] = m_animations[i].ObjectID;
                 }
             }
         }

@@ -393,7 +393,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
 
-        public virtual void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId)
+        public virtual void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId, UUID[] objectIDs)
         {
         }
 

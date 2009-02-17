@@ -559,7 +559,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (World.Entities.ContainsKey((UUID)avatar) && World.Entities[avatarID] is ScenePresence)
             {
                 ScenePresence target = (ScenePresence)World.Entities[avatarID];
-                target.AddAnimation(animation);
+                target.AddAnimation(animation, m_host.UUID);
             }
         }
 

@@ -1754,18 +1754,18 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void AddAnimation(UUID animID)
+        public void AddAnimation(UUID animID, UUID objectID)
         {
             if (m_isChildAgent)
                 return;
 
-            if (m_animations.Add(animID, m_controllingClient.NextAnimationSequenceNumber))
+            if (m_animations.Add(animID, m_controllingClient.NextAnimationSequenceNumber, objectID))
             {
                 SendAnimPack();
             }
         }
 
-        public void AddAnimation(string name)
+        public void AddAnimation(string name, UUID objectID)
         {
             if (m_isChildAgent)
                 return;
@@ -1774,7 +1774,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (animID == UUID.Zero)
                 return;
 
-            AddAnimation(animID);
+            AddAnimation(animID, objectID);
         }
 
         public void RemoveAnimation(UUID animID)
@@ -1804,13 +1804,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             UUID[] animIDs;
             int[] sequenceNums;
-            m_animations.GetArrays( out animIDs, out sequenceNums );
+            UUID[] objectIDs;
+            m_animations.GetArrays( out animIDs, out sequenceNums, out objectIDs);
             return animIDs;
         }
 
         public void HandleStartAnim(IClientAPI remoteClient, UUID animID)
         {
-            AddAnimation(animID);
+            AddAnimation(animID, UUID.Zero);
         }
 
         public void HandleStopAnim(IClientAPI remoteClient, UUID animID)
@@ -1826,7 +1827,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //m_log.DebugFormat("Updating movement animation to {0}", anim);
             
-            if (m_animations.TrySetDefaultAnimation(anim, m_controllingClient.NextAnimationSequenceNumber))
+            if (m_animations.TrySetDefaultAnimation(anim, m_controllingClient.NextAnimationSequenceNumber, UUID.Zero))
             {
                 SendAnimPack();
             }
@@ -2284,13 +2285,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="animations"></param>
         /// <param name="seqs"></param>
-        public void SendAnimPack(UUID[] animations, int[] seqs)
+        public void SendAnimPack(UUID[] animations, int[] seqs, UUID[] objectIDs)
         {
             if (m_isChildAgent)
                 return;
 
             m_scene.Broadcast(
-                delegate(IClientAPI client) { client.SendAnimations(animations, seqs, m_controllingClient.AgentId); });
+                delegate(IClientAPI client) { client.SendAnimations(animations, seqs, m_controllingClient.AgentId, objectIDs); });
         }
 
         public void SendAnimPackToClient(IClientAPI client)
@@ -2299,10 +2300,11 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             UUID[] animIDs;
             int[] sequenceNums;
+            UUID[] objectIDs;
 
-            m_animations.GetArrays(out animIDs, out sequenceNums);
+            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
 
-            client.SendAnimations(animIDs, sequenceNums, m_controllingClient.AgentId);
+            client.SendAnimations(animIDs, sequenceNums, m_controllingClient.AgentId, objectIDs);
         }
 
         /// <summary>
@@ -2317,10 +2319,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             UUID[] animIDs;
             int[] sequenceNums;
+            UUID[] objectIDs;
 
-            m_animations.GetArrays(out animIDs, out sequenceNums);
+            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
 
-            SendAnimPack(animIDs, sequenceNums);
+            SendAnimPack(animIDs, sequenceNums, objectIDs);
         }
 
         #endregion

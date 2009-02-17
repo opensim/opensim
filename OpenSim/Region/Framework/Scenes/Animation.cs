@@ -45,14 +45,22 @@ namespace OpenSim.Region.Framework.Scenes
             set { sequenceNum = value; }
         }
 
+        private UUID objectID;
+        public UUID ObjectID
+        {
+            get { return objectID; }
+            set { objectID = value; }
+        }
+
         public Animation()
         {
         }
 
-        public Animation(UUID animID, int sequenceNum)
+        public Animation(UUID animID, int sequenceNum, UUID objectID)
         {
             this.animID = animID;
             this.sequenceNum = sequenceNum;
+            this.objectID = objectID;
         }
     }
 }

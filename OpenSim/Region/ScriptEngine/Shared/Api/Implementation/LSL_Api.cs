@@ -2854,9 +2854,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // Do NOT try to parse UUID, animations cannot be triggered by ID
                     UUID animID=InventoryKey(anim, (int)AssetType.Animation);
                     if (animID == UUID.Zero)
-                        presence.AddAnimation(anim);
+                        presence.AddAnimation(anim, m_host.UUID);
                     else
-                        presence.AddAnimation(animID);
+                        presence.AddAnimation(animID, m_host.UUID);
                 }
             }
         }

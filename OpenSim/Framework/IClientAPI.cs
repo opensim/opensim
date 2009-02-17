@@ -794,7 +794,7 @@ namespace OpenSim.Framework
         /// <param name="localID"></param>        
         void SendKillObject(ulong regionHandle, uint localID);
 
-        void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId);
+        void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs);
         void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);
 
         void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source,
