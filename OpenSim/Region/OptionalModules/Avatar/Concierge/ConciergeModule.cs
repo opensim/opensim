@@ -72,6 +72,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         private string m_announceLeaving = "{0} leaves {1} (back to {2} visitors in this region)";
         private string m_xmlRpcPassword = String.Empty;
         private string m_brokerURI = String.Empty;
+        private int m_brokerUpdateTimeout = 300;
 
         internal object m_syncy = new object();
 
@@ -126,6 +127,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             m_announceLeaving = m_config.GetString("announce_leaving", m_announceLeaving);
             m_xmlRpcPassword = m_config.GetString("password", m_xmlRpcPassword);
             m_brokerURI = m_config.GetString("broker", m_brokerURI);
+            m_brokerUpdateTimeout = m_config.GetInt("broker_timeout", m_brokerUpdateTimeout);
             
             m_log.InfoFormat("[Concierge] reporting as \"{0}\" to our users", m_whoami);
 
@@ -355,6 +357,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             }
         }
 
+        internal class BrokerState
+        {
+            public string Uri;
+            public string Payload;
+            public HttpWebRequest Poster;
+            public Timer Timer;
+
+            public BrokerState(string uri, string payload, HttpWebRequest poster)
+            {
+                Uri = uri;
+                Payload = payload;
+                Poster = poster;
+            }
+        }
+
         protected void UpdateBroker(IScene scene)
         {
             if (String.IsNullOrEmpty(m_brokerURI))
@@ -411,13 +428,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             updatePost.ContentLength = payload.Length;
             updatePost.UserAgent = "OpenSim.Concierge";
 
+
+            BrokerState bs = new BrokerState(uri, payload, updatePost);
+            bs.Timer = new Timer(delegate(object state)
+                                 {
+                                     BrokerState b = state as BrokerState;
+                                     b.Poster.Abort();
+                                     b.Timer.Dispose();
+                                     m_log.Debug("[Concierge]: async broker POST abort due to timeout");
+                                 }, bs, m_brokerUpdateTimeout * 1000, Timeout.Infinite);
+
             try
             {
-                StreamWriter payloadStream = new StreamWriter(updatePost.GetRequestStream());
-                payloadStream.Write(payload);
-                payloadStream.Close();
-
-                updatePost.BeginGetResponse(UpdateBrokerDone, updatePost);
+                updatePost.BeginGetRequestStream(UpdateBrokerSend, bs);
                 m_log.DebugFormat("[Concierge] async broker POST to {0} started", uri);
             }
             catch (WebException we)
@@ -426,33 +449,60 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             }
         }
 
+        private void UpdateBrokerSend(IAsyncResult result)
+        {
+            BrokerState bs = null;
+            try
+            {
+                bs = result.AsyncState as BrokerState;
+                string payload = bs.Payload;
+                HttpWebRequest updatePost = bs.Poster;
+
+                using(StreamWriter payloadStream = new StreamWriter(updatePost.EndGetRequestStream(result)))
+                {
+                    payloadStream.Write(payload);
+                    payloadStream.Close();
+                }
+                updatePost.BeginGetResponse(UpdateBrokerDone, bs);
+            }
+            catch (WebException we)
+            {
+                m_log.DebugFormat("[Concierge]: async broker POST to {0} failed: {1}", bs.Uri, we.Status);
+            }
+            catch (Exception)
+            {
+                m_log.DebugFormat("[Concierge]: async broker POST to {0} failed", bs.Uri);
+            }
+        }
+
         private void UpdateBrokerDone(IAsyncResult result)
         {
-            HttpWebRequest updatePost = null;
+            BrokerState bs = null;
             try 
             {
-                updatePost = result.AsyncState as HttpWebRequest;
+                bs = result.AsyncState as BrokerState;
+                HttpWebRequest updatePost = bs.Poster;
                 using (HttpWebResponse response = updatePost.EndGetResponse(result) as HttpWebResponse)
                 {
                     m_log.DebugFormat("[Concierge] broker update: status {0}", response.StatusCode);
                 }
+                bs.Timer.Dispose();
             }
             catch (WebException we)
             {
-                string uri = updatePost.RequestUri.OriginalString;
-                m_log.ErrorFormat("[Concierge] broker update to {0} failed with status {1}", uri, we.Status);
+                m_log.ErrorFormat("[Concierge] broker update to {0} failed with status {1}", bs.Uri, we.Status);
                 if (null != we.Response) 
                 {
                     using (HttpWebResponse resp = we.Response as HttpWebResponse)
                     {
-                        m_log.ErrorFormat("[Concierge] response from {0} status code: {1}", uri, resp.StatusCode);
-                        m_log.ErrorFormat("[Concierge] response from {0} status desc: {1}", uri, resp.StatusDescription);
-                        m_log.ErrorFormat("[Concierge] response from {0} server:      {1}", uri, resp.Server);
+                        m_log.ErrorFormat("[Concierge] response from {0} status code: {1}", bs.Uri, resp.StatusCode);
+                        m_log.ErrorFormat("[Concierge] response from {0} status desc: {1}", bs.Uri, resp.StatusDescription);
+                        m_log.ErrorFormat("[Concierge] response from {0} server:      {1}", bs.Uri, resp.Server);
                         
                         if (resp.ContentLength > 0) 
                         {
                             StreamReader content = new StreamReader(resp.GetResponseStream());
-                            m_log.ErrorFormat("[Concierge] response from {0} content:     {1}", uri, content.ReadToEnd());
+                            m_log.ErrorFormat("[Concierge] response from {0} content:     {1}", bs.Uri, content.ReadToEnd());
                             content.Close();
                         }
                     }
