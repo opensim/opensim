@@ -2678,10 +2678,10 @@ namespace OpenSim.Region.Framework.Scenes
             m_setAlwaysRun = cAgent.AlwaysRun;
 
             uint i = 0;
-            AvatarWearable[] wearables = new AvatarWearable[cAgent.AgentTextures.Length / 2];
-            Primitive.TextureEntry te = new Primitive.TextureEntry(UUID.Random());
             try
             {
+                AvatarWearable[] wearables = new AvatarWearable[cAgent.AgentTextures.Length / 2];
+                Primitive.TextureEntry te = new Primitive.TextureEntry(UUID.Random());
                 for (uint n = 0; n < cAgent.AgentTextures.Length; n += 2)
                 {
                     UUID itemId = cAgent.AgentTextures[n];
@@ -2689,15 +2689,13 @@ namespace OpenSim.Region.Framework.Scenes
                     wearables[i] = new AvatarWearable(itemId, assetId);
                     te.CreateFace(i++).TextureID = assetId;
                 }
+                m_appearance.Wearables = wearables;
+                m_appearance.SetAppearance(te.ToBytes(), new List<byte>(cAgent.VisualParams));
             }
             catch (Exception e)
             {
                 m_log.Warn("[SCENE PRESENCE]: exception in CopyFrom " + e.Message);
             }
-            //m_appearance.Texture = te;
-            m_appearance.Wearables = wearables;
-            //m_appearance.VisualParams = cAgent.VisualParams;
-            m_appearance.SetAppearance(te.ToBytes(), new List<byte>(cAgent.VisualParams));
 
             //cAgent.GroupID = ??
             //Groups???
