@@ -143,7 +143,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 animIDs[0] = m_defaultAnimation.AnimID;
                 sequenceNums[0] = m_defaultAnimation.SequenceNum;
-                objectIDs[0] = m_defaultAnimation.objectID;
+                objectIDs[0] = m_defaultAnimation.ObjectID;
 
                 for (int i = 0; i < m_animations.Count; ++i)
                 {
