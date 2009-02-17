@@ -103,6 +103,13 @@ namespace OpenSim.Framework
             }
         }
 
+        public AgentCircuitData GetAgentCircuitData(uint circuitCode)
+        {
+            AgentCircuitData agentCircuit = null;
+            AgentCircuits.TryGetValue(circuitCode, out agentCircuit);
+            return agentCircuit;
+        }
+
         public void UpdateAgentData(AgentCircuitData agentData)
         {
             if (AgentCircuits.ContainsKey((uint) agentData.circuitcode))

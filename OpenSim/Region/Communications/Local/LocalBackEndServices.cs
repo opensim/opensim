@@ -441,6 +441,13 @@ namespace OpenSim.Region.Communications.Local
             agent.InventoryFolder = loginData.InventoryFolder;
             agent.startpos = loginData.StartPos;
             agent.CapsPath = loginData.CapsPath;
+            if (agent.Appearance != null)
+                agent.Appearance = loginData.Appearance;
+            else
+            {
+                m_log.WarnFormat("[INTER]: Appearance not found for {0} {1}. Creating default.", agent.firstname, agent.lastname);
+                agent.Appearance = new AvatarAppearance();
+            }
 
             TriggerExpectUser(regionHandle, agent);
         }

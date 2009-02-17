@@ -610,8 +610,12 @@ namespace OpenSim.Region.Communications.OGS1
             agentData.lastname = (string) requestData["lastname"];
             agentData.AgentID = new UUID((string) requestData["agent_id"]);
             agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-            agentData.CapsPath = (string) requestData["caps_path"];
+            agentData.CapsPath = (string)requestData["caps_path"];
             ulong regionHandle = Convert.ToUInt64((string) requestData["regionhandle"]);
+
+            // Appearance
+            if (requestData["appearance"] != null)
+                agentData.Appearance = new AvatarAppearance((Hashtable)requestData["appearance"]);
 
             m_log.DebugFormat(
                 "[CLIENT]: Told by user service to prepare for a connection from {0} {1} {2}, circuit {3}",

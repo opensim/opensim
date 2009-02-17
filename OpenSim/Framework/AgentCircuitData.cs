@@ -35,6 +35,7 @@ namespace OpenSim.Framework
     public class AgentCircuitData
     {
         public UUID AgentID;
+        public AvatarAppearance Appearance;
         public UUID BaseFolder;
         public string CapsPath = String.Empty;
         public Dictionary<ulong, string> ChildrenCapSeeds;

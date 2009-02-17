@@ -42,6 +42,7 @@ namespace OpenSim.Framework
         public UUID SecureSession = UUID.Zero;
         public UUID Session;
         public Vector3 StartPos;
+        public AvatarAppearance Appearance;
 
         public Login()
         {

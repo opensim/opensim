@@ -2089,8 +2089,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client)
         {
-            AvatarAppearance appearance = new AvatarAppearance();
-            //GetAvatarAppearance(client, out appearance);
+            AvatarAppearance appearance = null;
+            GetAvatarAppearance(client, out appearance);
 
             ScenePresence avatar = m_sceneGraph.CreateAndAddChildScenePresence(client, appearance);
             //avatar.KnownRegions = GetChildrenSeeds(avatar.UUID);
@@ -2104,23 +2104,29 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="appearance"></param>
         public void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
         {
-            appearance = new AvatarAppearance();
-
-            try
+            AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
+            appearance = aCircuit.Appearance;
+            if (appearance == null)
             {
-                if (m_AvatarFactory != null)
-                {
-                    if (m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
-                        return;
-                }
+                m_log.DebugFormat("[APPEARANCE]: Appearance not found in {0}, returning default", RegionInfo.RegionName);
+                appearance = new AvatarAppearance();
             }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[APPEARANCE]: Problem fetching appearance for avatar {0}, {1}",
-                    client.Name, e);
-            }
+        
+            //try
+            //{
+            //    if (m_AvatarFactory != null)
+            //    {
+            //        if (m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
+            //            return;
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    m_log.ErrorFormat("[APPEARANCE]: Problem fetching appearance for avatar {0}, {1}",
+            //        client.Name, e);
+            //}
 
-            m_log.Warn("[APPEARANCE]: Appearance not found, returning default");
+            //m_log.Warn("[APPEARANCE]: Appearance not found, returning default");
         }
 
         /// <summary>

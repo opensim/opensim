@@ -396,6 +396,16 @@ namespace OpenSim.Grid.UserServer
                 loginParams["regionhandle"] = user.CurrentAgent.Handle.ToString();
                 loginParams["caps_path"] = capsPath;
 
+                // Get appearance
+                AvatarAppearance appearance = m_userManager.GetUserAppearance(user.ID);
+                if (appearance != null)
+                {
+                    loginParams["appearance"] = appearance.ToHashTable();
+                    m_log.DebugFormat("[LOGIN]: Found appearance for {0}, {1}", user.FirstName, user.SurName);
+                }
+                else
+                    m_log.DebugFormat("[LOGIN]: Appearance not for {0}, {1}", user.FirstName, user.SurName);
+
                 ArrayList SendParams = new ArrayList();
                 SendParams.Add(loginParams);
 

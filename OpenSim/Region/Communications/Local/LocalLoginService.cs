@@ -359,6 +359,9 @@ namespace OpenSim.Region.Communications.Local
             loginParams.StartPos = user.CurrentAgent.Position;
             loginParams.CapsPath = capsPath;
 
+            // Appearance
+            loginParams.Appearance = m_userManager.GetUserAppearance(user.ID);
+
             if (m_gridService.RegionLoginsEnabled)
             {
                 handlerLoginToRegion = OnLoginToRegion;
