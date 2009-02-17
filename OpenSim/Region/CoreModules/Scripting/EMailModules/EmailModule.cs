@@ -266,9 +266,6 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             string LastObjectName = string.Empty;
             string LastObjectPosition = string.Empty;
             string LastObjectRegionName = string.Empty;
-            //DONE: Message as Second Life style
-            //20 second delay - AntiSpam System - for now only 10 seconds
-            DelayInSeconds(10);
 
             resolveNamePositionRegionName(objectID, out LastObjectName, out LastObjectPosition, out LastObjectRegionName);
 
@@ -310,7 +307,6 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 catch (Exception e)
                 {
                     m_log.Error("[EMAIL] DefaultEmailModule Exception: " + e.Message);
-                    return;
                 }
             }
             else
@@ -324,7 +320,8 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                               "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
                               LastObjectPosition + "\n\n" + body;
 
-                UUID toID = new UUID(address.Substring(0, address.IndexOf("@")));
+                string guid = address.Substring(0, address.IndexOf("@"));
+                UUID toID = new UUID(guid);
 
                 if (IsLocal(toID)) // TODO FIX check to see if it is local
                 {
@@ -337,6 +334,10 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     // TODO FIX
                 }
             }
+
+            //DONE: Message as Second Life style
+            //20 second delay - AntiSpam System - for now only 10 seconds
+            DelayInSeconds(10);
         }
 
         /// <summary>
