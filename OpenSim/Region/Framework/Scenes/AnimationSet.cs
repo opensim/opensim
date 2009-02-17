@@ -149,7 +149,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     animIDs[i + 1] = m_animations[i].AnimID;
                     sequenceNums[i + 1] = m_animations[i].SequenceNum;
-                    objectIDs[i + i] = m_animations[i].ObjectID;
+                    objectIDs[i + 1] = m_animations[i].ObjectID;
                 }
             }
         }
