@@ -439,7 +439,20 @@ namespace OpenSim.Region.Framework.Scenes
         {
 
             XmlDocument doc = new XmlDocument();
-            doc.LoadXml(objXMLData);
+            try
+            {
+                doc.LoadXml(objXMLData);
+            }
+            catch (System.Xml.XmlException)
+            {
+                // We will get here if the XML is invalid or in unit
+                // tests. Really should determine which it is and either
+                // fail silently or log it
+                // Fail silently, for now.
+                // TODO: Fix this
+                //
+                return;
+            }
 
             XmlNodeList rootL = doc.GetElementsByTagName("ScriptData");
             if (rootL.Count == 1)
