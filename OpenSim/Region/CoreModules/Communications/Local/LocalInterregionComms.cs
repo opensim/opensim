@@ -215,6 +215,8 @@ namespace OpenSim.Region.CoreModules.Communications.Local
                     {
                         // We need to make a local copy of the object
                         ISceneObject sogClone = sog.CloneForNewScene();
+                        sogClone.SetState(sog.GetStateSnapshot(),
+                                s.RegionInfo.RegionID);
                         return s.IncomingCreateObject(sogClone);
                     }
                     else
