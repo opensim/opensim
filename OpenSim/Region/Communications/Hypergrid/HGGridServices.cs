@@ -700,8 +700,8 @@ namespace OpenSim.Region.Communications.Hypergrid
             userData.UserHomeRemotingPort = (string)requestData["home_remoting"];
 
 
-            m_log.DebugFormat("[HGrid]: Told by user service to prepare for a connection from {0} {1} {2}",
-                              userData.FirstName, userData.SurName, userData.ID);
+            m_log.DebugFormat("[HGrid]: Prepare for connection from {0} {1} (@{2}) UUID={3}",
+                              userData.FirstName, userData.SurName, userData.UserServerURI, userData.ID);
             m_log.Debug("[HGrid]: home_address: " + userData.UserHomeAddress +
                        "; home_port: " + userData.UserHomePort + "; remoting: " + userData.UserHomeRemotingPort);
 
