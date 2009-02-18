@@ -1195,7 +1195,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 agent.RestoreInCurrentScene();
             }
-            agent.IsInTransit = false;
+            // In any case
+            agent.NotInTransit();
 
             //m_log.DebugFormat("[SCENE COMM]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
         }

@@ -934,6 +934,12 @@ namespace OpenSim.Region.Framework.Scenes
             Velocity = new Vector3(0, 0, 0);
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
+            if (m_appearance != null)
+            {
+                if (m_appearance.AvatarHeight > 0)
+                    SetHeight(m_appearance.AvatarHeight);
+            }
+
             SendTerseUpdateToAllClients();
         }
 
@@ -2438,14 +2444,23 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected void CrossToNewRegion()
         {
+            InTransit();
+            m_scene.CrossAgentToNewRegion(this, m_physicsActor.Flying);
+        }
+
+        public void InTransit()
+        {
             m_inTransit = true;
 
             if ((m_physicsActor != null) && m_physicsActor.Flying)
                 m_AgentControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
             else if ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
                 m_AgentControlFlags &= ~(uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+        }
 
-            m_scene.CrossAgentToNewRegion(this, m_physicsActor.Flying);
+        public void NotInTransit()
+        {
+            m_inTransit = false;
         }
 
         public void RestoreInCurrentScene()
