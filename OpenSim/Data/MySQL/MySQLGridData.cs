@@ -148,63 +148,8 @@ namespace OpenSim.Data.MySQL
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(database.Connection, assem, "GridStore");
-
-            // TODO: After rev 6000, remove this.  People should have
-            // been rolled onto the new migration code by then.
-            TestTables(m);
-
             m.Update();
         }
-
-        #region Test and initialization code
-
-        /// <summary>
-        /// Ensure that the user related tables exists and are at the latest version
-        /// </summary>
-        private void TestTables(Migration m)
-        {
-            // we already have migrations, get out of here
-            if (m.Version > 0)
-                return;
-
-            Dictionary<string, string> tableList = new Dictionary<string, string>();
-
-            tableList["regions"] = null;
-            database.GetTableVersion(tableList);
-
-            UpgradeRegionsTable(tableList["regions"]);
-
-            // we have tables, but not a migration model yet
-            if (m.Version == 0)
-                m.Version = 1;
-        }
-
-        /// <summary>
-        /// Create or upgrade the table if necessary
-        /// </summary>
-        /// <param name="oldVersion">A null indicates that the table does not
-        /// currently exist</param>
-        private void UpgradeRegionsTable(string oldVersion)
-        {
-            // null as the version, indicates that the table didn't exist
-            if (oldVersion == null)
-            {
-                database.ExecuteResourceSql("CreateRegionsTable.sql");
-                return;
-            }
-            if (oldVersion.Contains("Rev. 1"))
-            {
-                database.ExecuteResourceSql("UpgradeRegionsTableToVersion2.sql");
-                return;
-            }
-            if (oldVersion.Contains("Rev. 2"))
-            {
-                database.ExecuteResourceSql("UpgradeRegionsTableToVersion3.sql");
-                return;
-            }
-        }
-
-        #endregion
 
         /// <summary>
         /// Shuts down the grid interface
