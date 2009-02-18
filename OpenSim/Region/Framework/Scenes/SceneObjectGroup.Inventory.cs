@@ -353,30 +353,58 @@ namespace OpenSim.Region.Framework.Scenes
                 if (fn == String.Empty)
                     continue;
 
-                FileInfo fi = new FileInfo(assembly);
+                String filedata = String.Empty;
 
-                if (fi == null)
-                    continue;
-
-                Byte[] data = new Byte[fi.Length];
-
-                try
+                if (File.Exists(assembly+".text"))
                 {
-                    FileStream fs = File.Open(assembly, FileMode.Open, FileAccess.Read);
-                    fs.Read(data, 0, data.Length);
-                    fs.Close();
-                }
-                catch (Exception e)
-                {
-                    m_log.DebugFormat("[SOG]: Unable to open script assembly {0}, reason: {1}", assembly, e.Message);
-                }
+                    FileInfo tfi = new FileInfo(assembly+".text");
 
+                    if (tfi == null)
+                        continue;
+
+                    Byte[] tdata = new Byte[tfi.Length];
+
+                    try
+                    {
+                        FileStream tfs = File.Open(assembly+".text", FileMode.Open, FileAccess.Read);
+                        tfs.Read(tdata, 0, tdata.Length);
+                        tfs.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.DebugFormat("[SOG]: Unable to open script textfile {0}, reason: {1}", assembly+".text", e.Message);
+                    }
+
+                    filedata = new System.Text.ASCIIEncoding().GetString(tdata);
+                }
+                else
+                {
+                    FileInfo fi = new FileInfo(assembly);
+
+                    if (fi == null)
+                        continue;
+
+                    Byte[] data = new Byte[fi.Length];
+
+                    try
+                    {
+                        FileStream fs = File.Open(assembly, FileMode.Open, FileAccess.Read);
+                        fs.Read(data, 0, data.Length);
+                        fs.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.DebugFormat("[SOG]: Unable to open script assembly {0}, reason: {1}", assembly, e.Message);
+                    }
+
+                    filedata = System.Convert.ToBase64String(data);
+                }
                 XmlElement assemblyData = xmldoc.CreateElement("", "Assembly", "");
                 XmlAttribute assemblyName = xmldoc.CreateAttribute("", "Filename", "");
                 assemblyName.Value = fn;
                 assemblyData.Attributes.Append(assemblyName);
 
-                assemblyData.InnerText = System.Convert.ToBase64String(data);
+                assemblyData.InnerText = filedata;
 
                 wrapper.AppendChild(assemblyData);
             }
@@ -440,6 +468,11 @@ namespace OpenSim.Region.Framework.Scenes
                                     {
                                         FileStream fs = File.Create(path);
                                         fs.Write(filedata, 0, filedata.Length);
+                                        fs.Close();
+
+                                        Byte[] textbytes = new System.Text.ASCIIEncoding().GetBytes(asm.InnerText);
+                                        fs = File.Create(path+".text");
+                                        fs.Write(textbytes, 0, textbytes.Length);
                                         fs.Close();
                                     }
                                 }

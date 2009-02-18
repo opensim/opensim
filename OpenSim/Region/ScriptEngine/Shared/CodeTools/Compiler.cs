@@ -343,7 +343,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             // Check this late so the map is generated on sim start
             //
-            if (File.Exists(OutFile))
+            if (File.Exists(OutFile) && File.Exists(OutFile+".text"))
             {
 //                m_scriptEngine.Log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
                 return OutFile;
@@ -579,6 +579,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             }
 //            m_scriptEngine.Log.DebugFormat("[Compiler] Compiled new assembly "+
 //                    "for {0}", asset);
+
+            // Because windows likes to perform exclusive locks, we simply
+            // write out a textual representation of the file here
+            //
+            // Read the binary file into a buffer
+            //
+            FileInfo fi = new FileInfo(OutFile);
+
+            if (fi == null)
+            {
+                string errtext = String.Empty;
+                errtext += "No compile error. But not able to stat file.";
+                throw new Exception(errtext);
+            }
+
+            Byte[] data = new Byte[fi.Length];
+
+            try
+            {
+                FileStream fs = File.Open(OutFile, FileMode.Open, FileAccess.Read);
+                fs.Read(data, 0, data.Length);
+                fs.Close();
+            }
+            catch (Exception e)
+            {
+                string errtext = String.Empty;
+                errtext += "No compile error. But not able to open file.";
+                throw new Exception(errtext);
+            }
+
+            // Convert to base64
+            //
+            string filetext = System.Convert.ToBase64String(data);
+
+            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+
+            Byte[] buf = enc.GetBytes(filetext);
+
+            FileStream sfs = File.Create(OutFile+".text");
+            sfs.Write(buf, 0, buf.Length);
+            sfs.Close();
+
             return OutFile;
         }
 

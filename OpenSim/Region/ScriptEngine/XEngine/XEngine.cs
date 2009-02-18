@@ -744,8 +744,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             if (File.Exists(m_Assemblies[assetID]))
                                 File.Delete(m_Assemblies[assetID]);
                             
-                            if (File.Exists(m_Assemblies[assetID]+".state"))
-                                File.Delete(m_Assemblies[assetID]+".state");
+                            if (File.Exists(m_Assemblies[assetID]+".text"))
+                                File.Delete(m_Assemblies[assetID]+".text");
                             
                             if (File.Exists(m_Assemblies[assetID]+".mdb"))
                                 File.Delete(m_Assemblies[assetID]+".mdb");
