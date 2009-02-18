@@ -37,6 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.CoreModules.World.Archiver;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 {        
@@ -45,6 +46,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);      
         
         protected TarArchiveWriter archive = new TarArchiveWriter();
+        protected AssetGatherer m_assetGatherer;
         protected Dictionary<UUID, int> assetUuids = new Dictionary<UUID, int>();
         
         private InventoryArchiverModule m_module;
@@ -78,7 +80,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_module = module;
             m_userInfo = userInfo;
             m_invPath = invPath;
-            m_saveStream = saveStream;             
+            m_saveStream = saveStream;          
+            m_assetGatherer = new AssetGatherer(m_module.CommsManager.AssetCache);
         }
 
         protected void ReceivedAllAssets(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids)
