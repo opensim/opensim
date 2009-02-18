@@ -73,7 +73,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (m_scenes.Count == 0)
             {
                 scene.RegisterModuleInterface<IInventoryArchiverModule>(this);
-                CommsManager = scene.CommsManager;                                
+                CommsManager = scene.CommsManager;
+                OnInventoryArchiveSaved += SaveInvConsoleCommandCompleted;
                 
                 scene.AddCommand(
                     this, "load iar",
@@ -207,11 +208,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 "[INVENTORY ARCHIVER]: Saving archive {0} from inventory path {1} for {2} {3}",
                 savePath, invPath, firstName, lastName);
             
-            ArchiveInventory(firstName, lastName, invPath, savePath);
-            
-            m_log.InfoFormat(
-                "[INVENTORY ARCHIVER]: Saved archive {0} for {1} {2}",
-                savePath, firstName, lastName);            
+            ArchiveInventory(firstName, lastName, invPath, savePath);                      
+        }
+        
+        private void SaveInvConsoleCommandCompleted(
+            bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException)
+        {
+            if (succeeded)
+            {
+                m_log.InfoFormat("[INVENTORY ARCHIVER]: Saved archive for {0}", userInfo.UserProfile.Name);
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[INVENTORY ARCHIVER]: Archive save for {0} failed - {1}", 
+                    userInfo.UserProfile.Name, reportedException.Message);
+            }
         }
         
         /// <summary>

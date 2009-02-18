@@ -95,6 +95,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             } 
             catch (IOException e)
             {
+                m_saveStream.Close();                
                 reportedException = e;
                 succeeded = false;
             }
@@ -104,9 +105,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         protected void saveInvItem(InventoryItemBase inventoryItem, string path)
         {
-            string filename
-                    = string.Format("{0}{1}_{2}.xml",
-                        path, inventoryItem.Name, inventoryItem.ID);
+            string filename = string.Format("{0}{1}_{2}.xml", path, inventoryItem.Name, inventoryItem.ID);
             StringWriter sw = new StringWriter();
             XmlTextWriter writer = new XmlTextWriter(sw);
             writer.Formatting = Formatting.Indented;
@@ -182,6 +181,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             List<InventoryItemBase> items = inventoryFolder.RequestListOfItems();
             string newPath = path + inventoryFolder.Name + InventoryFolderImpl.PATH_DELIMITER;
             archive.AddDir(newPath);
+            
             foreach (InventoryFolderImpl folder in inventories)
             {
                 saveInvDir(folder, newPath);
@@ -192,6 +192,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
         }
 
+        /// <summary>
+        /// Execute the inventory write request
+        /// </summary>
         public void Execute()
         {
             InventoryFolderImpl inventoryFolder = null;
@@ -251,7 +254,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 if (null == inventoryItem)
                 {
-                    m_log.ErrorFormat("[INVENTORY ARCHIVER]: Could not find inventory entry at path {0}", m_invPath);
+                    m_saveStream.Close();
+                    m_module.TriggerInventoryArchiveSaved(
+                        false, m_userInfo, m_invPath, m_saveStream, 
+                        new Exception(string.Format("Could not find inventory entry at path {0}", m_invPath)));
                     return;
                 }
                 else
