@@ -479,7 +479,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             reader.Close();
             sr.Close();
-            m_log.DebugFormat("[SOG]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
+            //m_log.DebugFormat("[SOG]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
         }
 
         /// <summary>
@@ -768,7 +768,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ToXml2(XmlTextWriter writer)
         {
-            m_log.DebugFormat("[SOG]: Starting serialization of SOG {0} to XML2", Name);
+            //m_log.DebugFormat("[SOG]: Starting serialization of SOG {0} to XML2", Name);
             int time = System.Environment.TickCount;
 
             writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
@@ -788,7 +788,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             writer.WriteEndElement();
             writer.WriteEndElement();
-            m_log.DebugFormat("[SOG]: Finished serialization of SOG {0} to XML2, {1}ms", Name, System.Environment.TickCount - time);
+            //m_log.DebugFormat("[SOG]: Finished serialization of SOG {0} to XML2, {1}ms", Name, System.Environment.TickCount - time);
         }
 
         /// <summary>
