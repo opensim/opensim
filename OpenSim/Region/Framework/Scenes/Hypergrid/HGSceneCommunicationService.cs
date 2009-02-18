@@ -71,6 +71,9 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
             IEventQueue eq = avatar.Scene.RequestModuleInterface<IEventQueue>();
 
+            // Reset animations; the viewer does that in teleports.
+            avatar.ResetAnimations();
+
             if (regionHandle == m_regionInfo.RegionHandle)
             {
                 // Teleport within the same region

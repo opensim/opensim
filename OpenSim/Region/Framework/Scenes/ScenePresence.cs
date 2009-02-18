@@ -2472,6 +2472,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // Put the child agent back at the center
             AbsolutePosition = new Vector3(128, 128, 70);
+            ResetAnimations();
+        }
+
+        public void ResetAnimations()
+        {
             m_animations.Clear();
         }
 
