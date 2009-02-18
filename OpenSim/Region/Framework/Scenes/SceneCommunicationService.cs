@@ -904,6 +904,10 @@ namespace OpenSim.Region.Framework.Scenes
                             avatar.Close();
                             CloseConnection(avatar.UUID);
                         }
+                        else
+                            // now we have a child agent in this region. 
+                            avatar.Reset();
+
 
                         // if (teleport success) // seems to be always success here
                         // the user may change their profile information in other region,
@@ -1180,8 +1184,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If the cross was successful, this agent is a child agent
             if (agent.IsChildAgent)
             {
-                // Put the child agent back at the center
-                agent.AbsolutePosition = new Vector3(128, 128, 70);
+                agent.Reset();
             }
             else // Not successful
             {

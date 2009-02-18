@@ -54,36 +54,37 @@ namespace OpenSim.Framework
         {
         }
 
-        public ChildAgentDataUpdate(AgentData agent)
-        {
-            ActiveGroupID = agent.ActiveGroupID.Guid;
-            AgentID = agent.AgentID.Guid;
-            alwaysrun = agent.AlwaysRun;
-            AVHeight = agent.Size.Z;
-            cameraPosition = new sLLVector3(agent.Center);
-            drawdistance = agent.Far;
-            godlevel = (float)agent.GodLevel;
-            if (agent.Groups.Length > 0)
-                GroupAccess = (uint)agent.Groups[0].GroupPowers;
-            Position = new sLLVector3(agent.Position);
-            regionHandle = agent.RegionHandle;
-            throttles = agent.Throttles;
-            Velocity = new sLLVector3(agent.Velocity);
-        }
+        //public ChildAgentDataUpdate(AgentData agent)
+        //{
+        //    ActiveGroupID = agent.ActiveGroupID.Guid;
+        //    AgentID = agent.AgentID.Guid;
+        //    alwaysrun = agent.AlwaysRun;
+        //    AVHeight = agent.Size.Z;
+        //    cameraPosition = new sLLVector3(agent.Center);
+        //    drawdistance = agent.Far;
+        //    godlevel = (float)agent.GodLevel;
+        //    if (agent.Groups.Length > 0)
+        //        GroupAccess = (uint)agent.Groups[0].GroupPowers;
+        //    Position = new sLLVector3(agent.Position);
+        //    regionHandle = agent.RegionHandle;
+        //    throttles = agent.Throttles;
+        //    Velocity = new sLLVector3(agent.Velocity);
+        //}
 
-        public ChildAgentDataUpdate(AgentPosition agent)
-        {
-            AgentID = agent.AgentID.Guid;
-            AVHeight = agent.Size.Z;
-            cameraPosition = new sLLVector3(agent.Center);
-            drawdistance = agent.Far;
-            Position = new sLLVector3(agent.Position);
-            regionHandle = agent.RegionHandle;
-            throttles = agent.Throttles;
-            Velocity = new sLLVector3(agent.Velocity);
-        }
+        //public ChildAgentDataUpdate(AgentPosition agent)
+        //{
+        //    AgentID = agent.AgentID.Guid;
+        //    AVHeight = agent.Size.Z;
+        //    cameraPosition = new sLLVector3(agent.Center);
+        //    drawdistance = agent.Far;
+        //    Position = new sLLVector3(agent.Position);
+        //    regionHandle = agent.RegionHandle;
+        //    throttles = agent.Throttles;
+        //    Velocity = new sLLVector3(agent.Velocity);
+        //}
     }
 
+    /*
     public interface IAgentData
     {
         UUID AgentID { get; set; }
@@ -581,5 +582,6 @@ namespace OpenSim.Framework
             System.Console.WriteLine("Position: " + Position);
         }
     }
+  */
 
 }

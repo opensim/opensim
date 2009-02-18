@@ -1049,7 +1049,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
-
             SendInitialData();
 
         }
@@ -1760,11 +1759,10 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             if (m_animations.Add(animID, m_controllingClient.NextAnimationSequenceNumber, objectID))
-            {
                 SendAnimPack();
-            }
         }
 
+        // Called from scripts
         public void AddAnimation(string name, UUID objectID)
         {
             if (m_isChildAgent)
@@ -1783,11 +1781,10 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             if (m_animations.Remove(animID))
-            {
                 SendAnimPack();
-            }
         }
 
+        // Called from scripts
         public void RemoveAnimation(string name)
         {
             if (m_isChildAgent)
@@ -2152,6 +2149,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             m_scene.AddAgentUpdates(avatars.Count);
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
+
+            //SendAnimPack();
         }
 
         public void SendFullUpdateToAllClients()
@@ -2256,7 +2255,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
 
             SendAppearanceToAllOtherAgents();
-            //SendWearables();
             if (!m_startAnimationSet)
             {
                 UpdateMovementAnimations();
@@ -2312,7 +2310,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendAnimPack()
         {
-            //m_log.Debug("Sending animation pack");
+            //m_log.Debug("Sending animation pack to all");
             
             if (m_isChildAgent)
                 return;
@@ -2325,6 +2323,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             SendAnimPack(animIDs, sequenceNums, objectIDs);
         }
+
 
         #endregion
 
@@ -2452,6 +2451,13 @@ namespace OpenSim.Region.Framework.Scenes
         public void RestoreInCurrentScene()
         {
             AddToPhysicalScene(false); // not exactly false
+        }
+
+        public void Reset()
+        {
+            // Put the child agent back at the center
+            AbsolutePosition = new Vector3(128, 128, 70);
+            m_animations.Clear();
         }
 
         /// <summary>
@@ -2618,11 +2624,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             cAgent.AlwaysRun = m_setAlwaysRun;
 
-            //cAgent.GroupID = ??
-            // Groups???
-
-            // Animations???
-
             try
             {
                 int i = 0;
@@ -2644,10 +2645,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.Warn("[SCENE PRESENCE]: exception in CopyTo " + e.Message);
             }
-            //cAgent.GroupID = ??
-            // Groups???
 
-            // Animations???
+            // Animations
+            try
+            {
+                cAgent.Anims = m_animations.ToArray();
+            }
+            catch { }
+
+            // cAgent.GroupID = ??
+            // Groups???
 
         }
 
@@ -2697,10 +2704,17 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Warn("[SCENE PRESENCE]: exception in CopyFrom " + e.Message);
             }
 
+            // Animations
+            try
+            {
+                m_animations.Clear();
+                m_animations.FromArray(cAgent.Anims);
+            }
+            catch {  }
+
             //cAgent.GroupID = ??
             //Groups???
 
-            // Animations???
 
         }
 

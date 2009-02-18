@@ -26,6 +26,7 @@
  */
 
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -62,5 +63,30 @@ namespace OpenSim.Region.Framework.Scenes
             this.sequenceNum = sequenceNum;
             this.objectID = objectID;
         }
+
+        public Animation(OSDMap args)
+        {
+            UnpackUpdateMessage(args);
+        }
+
+        public OSDMap PackUpdateMessage()
+        {
+            OSDMap anim = new OSDMap();
+            anim["animation"] = OSD.FromUUID(animID);
+            anim["object_id"] = OSD.FromUUID(objectID);
+            anim["seq_num"] = OSD.FromInteger(sequenceNum);
+            return anim;
+        }
+
+        public void UnpackUpdateMessage(OSDMap args)
+        {
+            if (args["animation"] != null)
+                animID = args["animation"].AsUUID();
+            if (args["object_id"] != null)
+                objectID = args["object_id"].AsUUID();
+            if (args["seq_num"] != null)
+                sequenceNum = args["seq_num"].AsInteger();
+        }
+
     }
 }

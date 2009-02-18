@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Xml;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -69,6 +70,8 @@ namespace OpenSim
 
             MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>] <cr>", "Set local coordinate to map HG regions to", RunCommand);
             MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region", "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>", "Link a hypergrid region", RunCommand);
+            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-URI", "link-URI <URL of xml files>", "ok", RunCommand);
+        
         }
 
         protected override void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
@@ -144,6 +147,32 @@ namespace OpenSim
             string command = cmdparams[0];
             cmdparams.RemoveAt(0);
 
+
+            if (command.Equals("link-URI"))
+            {
+
+                if (cmdparams.Count > 1 | cmdparams.Count < 1)
+                {
+                    m_log.Info("Invalid usage");
+                    m_log.Info("link-URI <URL of xml files>");
+                    return;
+                }
+
+
+                m_log.Info(cmdparams[0].ToString());
+
+                LoadXmlLinkFile(cmdparams[0].ToString());
+            }
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
             if (command.Equals("link-mapping"))
             {
                 if (cmdparams.Count == 2)
@@ -233,6 +262,56 @@ namespace OpenSim
             }
         }
 
+        private void LoadXmlLinkFile(string URI)
+        {
+
+
+            //use http://www.hgurl.com/hypergrid.xml for test
+
+            RegionInfo RegInfo;
+
+            try
+            {
+
+
+                XmlReader r = XmlReader.Create(URI);
+                XmlConfigSource reader = new XmlConfigSource(r);
+                
+
+                for (int t = 0; t < reader.Configs.Count; t++)
+                {
+
+                    m_log.Info(reader.Configs[t].Name);
+                    m_log.Info(reader.Configs[t].Get("xloc").ToString());
+                    string region_Name = reader.Configs[t].Name;
+                    uint xloc = (uint)reader.Configs[t].GetInt("xloc");
+                    uint yloc = (uint)reader.Configs[t].GetInt("yloc");
+                    uint externalPort = (uint)reader.Configs[t].GetInt("externalPort");
+                    string externalHostName = reader.Configs[t].Get("externalHostName");
+
+                    
+
+                    HGHyperlink.TryCreateLink(m_sceneManager.CurrentOrFirstScene, null, xloc, yloc, region_Name, externalPort, externalHostName, out RegInfo);
+
+
+                }
+
+                r.Close();
+
+
+
+            }
+
+            catch (Exception e)
+            {
+                m_log.Info(e.ToString());
+            }
+
+
+        }
+        
+        
+        
         /*
         private void LoadXmlLinkFile(string[] cmdparams)
         {

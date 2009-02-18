@@ -153,5 +153,27 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+
+        public Animation[] ToArray()
+        {
+            Animation[] theArray = new Animation[m_animations.Count];
+            uint i = 0;
+            try
+            {
+                foreach (Animation anim in m_animations)
+                    theArray[i++] = anim;
+            }
+            catch 
+            {
+                /* S%^t happens. Ignore. */ 
+            }
+            return theArray;
+        }
+
+        public void FromArray(Animation[] theArray)
+        {
+            foreach (Animation anim in theArray)
+                m_animations.Add(anim);
+        }
     }
 }
