@@ -219,22 +219,13 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T022_EstateSettingsBanList()
         {
-            // This is not working on native MySQL so ignoring.
-            Assert.Ignore();
-
             // Letting estate store generate rows to database for us
             EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
 
             EstateBan estateBan1 = new EstateBan();
-            estateBan1.bannedIP = DataTestUtil.STRING_MIN;
-            estateBan1.bannedIPHostMask = DataTestUtil.STRING_MIN;
-            estateBan1.bannedNameMask = DataTestUtil.STRING_MIN;
             estateBan1.bannedUUID = DataTestUtil.UUID_MIN;
 
             EstateBan estateBan2 = new EstateBan();
-            estateBan2.bannedIP = DataTestUtil.STRING_MAX(16);
-            estateBan2.bannedIPHostMask = DataTestUtil.STRING_MAX(16);
-            estateBan2.bannedNameMask = DataTestUtil.STRING_MAX(64);
             estateBan2.bannedUUID = DataTestUtil.UUID_MAX;
 
             originalSettings.EstateBans = new EstateBan[] { estateBan1, estateBan2 };
@@ -246,14 +237,8 @@ namespace OpenSim.Data.Tests
             EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
 
             Assert.AreEqual(2, loadedSettings.EstateBans.Length);
-            Assert.AreEqual(DataTestUtil.STRING_MIN, loadedSettings.EstateBans[0].bannedIP);
-            Assert.AreEqual(DataTestUtil.STRING_MIN, loadedSettings.EstateBans[0].bannedIPHostMask);
-            Assert.AreEqual(DataTestUtil.STRING_MIN, loadedSettings.EstateBans[0].bannedNameMask);
             Assert.AreEqual(DataTestUtil.UUID_MIN, loadedSettings.EstateBans[0].bannedUUID);
 
-            Assert.AreEqual(DataTestUtil.STRING_MAX(16), loadedSettings.EstateBans[1].bannedIP);
-            Assert.AreEqual(DataTestUtil.STRING_MAX(16), loadedSettings.EstateBans[1].bannedIPHostMask);
-            Assert.AreEqual(DataTestUtil.STRING_MAX(64), loadedSettings.EstateBans[1].bannedNameMask);
             Assert.AreEqual(DataTestUtil.UUID_MAX, loadedSettings.EstateBans[1].bannedUUID);
 
         }

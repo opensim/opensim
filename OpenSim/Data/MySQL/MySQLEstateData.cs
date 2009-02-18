@@ -335,7 +335,7 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.Clear();
 
-            cmd.CommandText = "insert into estateban (EstateID, bannedUUID) values ( ?EstateID, ?bannedUUID )";
+            cmd.CommandText = "insert into estateban (EstateID, bannedUUID, bannedIp, bannedIpHostMask, bannedNameMask) values ( ?EstateID, ?bannedUUID, '', '', '' )";
 
             foreach (EstateBan b in es.EstateBans)
             {
