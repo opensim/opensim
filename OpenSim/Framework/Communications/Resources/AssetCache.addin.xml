@@ -8,10 +8,10 @@
     <Extension path="/OpenSim/AssetCache">
     	<Cache id="Default" provider="Default" type="OpenSim.Framework.Communications.Cache.AssetCache" />
     </Extension>
-    <Extension path="/OpenSim/AssetServerClient">
-    	<ServerClient id="Crypto" provider="Crypto" type="OpenSim.Framework.Communications.Cache.CryptoGridAssetClient" />
-    	<ServerClient id="Grid"   provider="Grid"   type="OpenSim.Framework.Communications.Cache.GridAssetClient" />
-    	<ServerClient id="File"   provider="File"   type="OpenSim.Framework.Communications.Cache.FileAssetClient" />
-    	<ServerClient id="SQL"    provider="SQL"    type="OpenSim.Framework.Communications.Cache.SQLAssetServer" />
+    <Extension path="/OpenSim/AssetClient">
+    	<AssetClient id="Crypto" provider="Crypto" type="OpenSim.Framework.Communications.Cache.CryptoGridAssetClient" />
+    	<AssetClient id="Grid"   provider="Grid"   type="OpenSim.Framework.Communications.Cache.GridAssetClient" />
+    	<AssetClient id="File"   provider="File"   type="OpenSim.Framework.Communications.Cache.FileAssetClient" />
+    	<AssetClient id="SQL"    provider="SQL"    type="OpenSim.Framework.Communications.Cache.SQLAssetServer" />
     </Extension>
 </Addin>

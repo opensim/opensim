@@ -9,7 +9,7 @@
     <ExtensionPoint path="/OpenSim/AssetCache" name="Region Asset Cache Plugin-point" >
         <ExtensionNode name="Cache" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Framework.IAssetCache"/>
     </ExtensionPoint>
-    <ExtensionPoint path="/OpenSim/AssetServerClient" name="Region Asset Cache Server Interface Plugin-point">
-        <ExtensionNode name="ServerClient" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Framework.IAssetServer"/>
+    <ExtensionPoint path="/OpenSim/AssetClient" name="Region Asset Cache Server Interface Plugin-point">
+        <ExtensionNode name="AssetClient" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Framework.IAssetServer"/>
     </ExtensionPoint>
 </Addin>

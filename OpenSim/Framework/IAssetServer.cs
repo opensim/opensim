@@ -65,11 +65,11 @@ namespace OpenSim.Framework
         void AssetNotFound(UUID assetID, bool IsTexture);
     }
 
-    public class AssetServerClientPluginInitialiser : PluginInitialiserBase
+    public class AssetClientPluginInitialiser : PluginInitialiserBase
     {
         private ConfigSettings config;
 
-        public AssetServerClientPluginInitialiser (ConfigSettings p_sv)
+        public AssetClientPluginInitialiser (ConfigSettings p_sv)
         {
             config = p_sv;
         }
@@ -80,12 +80,12 @@ namespace OpenSim.Framework
         }
     }
 
-    public class LegacyAssetServerClientPluginInitialiser : PluginInitialiserBase
+    public class LegacyAssetClientPluginInitialiser : PluginInitialiserBase
     {
         private ConfigSettings config;
         private string assetURL;
 
-        public LegacyAssetServerClientPluginInitialiser (ConfigSettings p_sv, string p_url)
+        public LegacyAssetClientPluginInitialiser (ConfigSettings p_sv, string p_url)
         {
             config   = p_sv;
             assetURL = p_url;
@@ -97,14 +97,14 @@ namespace OpenSim.Framework
         }
     }
 
-    public class CryptoAssetServerClientPluginInitialiser : PluginInitialiserBase
+    public class CryptoAssetClientPluginInitialiser : PluginInitialiserBase
     {
         private ConfigSettings config;
         private string assetURL;
         private string currdir;
         private bool   test;
 
-        public CryptoAssetServerClientPluginInitialiser (ConfigSettings p_sv, string p_url, string p_dir, bool p_test)
+        public CryptoAssetClientPluginInitialiser (ConfigSettings p_sv, string p_url, string p_dir, bool p_test)
         {
             config   = p_sv;
             assetURL = p_url;

@@ -59,7 +59,7 @@ namespace OpenSim
         // class during system startup.
 
         private const string PLUGIN_ASSET_CACHE         = "/OpenSim/AssetCache";
-        private const string PLUGIN_ASSET_SERVER_CLIENT = "/OpenSim/AssetServerClient";
+        private const string PLUGIN_ASSET_SERVER_CLIENT = "/OpenSim/AssetClient";
 
         protected string proxyUrl;
         protected int proxyOffset = 0;                
@@ -329,9 +329,9 @@ namespace OpenSim
         protected virtual void InitialiseAssetCache()
         {
 
-            LegacyAssetServerClientPluginInitialiser linit = null;
-            CryptoAssetServerClientPluginInitialiser cinit = null;
-            AssetServerClientPluginInitialiser        init = null;
+            LegacyAssetClientPluginInitialiser linit = null;
+            CryptoAssetClientPluginInitialiser cinit = null;
+            AssetClientPluginInitialiser        init = null;
 
             IAssetServer assetServer = null;
             string mode = m_configSettings.AssetStorage;
@@ -358,7 +358,7 @@ namespace OpenSim
                 // of whether the server is standalone.
 
                 case "grid" :
-                    linit = new LegacyAssetServerClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL);
+                    linit = new LegacyAssetClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL);
                     assetServer = loadAssetServer("Grid", linit);
                     break;
 
@@ -367,7 +367,7 @@ namespace OpenSim
                 // of whether the server is standalone.
 
                 case "cryptogrid" :
-                    cinit = new CryptoAssetServerClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL,
+                    cinit = new CryptoAssetClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL,
                                                         Environment.CurrentDirectory, true);
                     assetServer = loadAssetServer("Crypto", cinit);
                     break;
@@ -376,7 +376,7 @@ namespace OpenSim
                 // of whether the server is standalone.
 
                 case "cryptogrid_eou" :
-                    cinit = new CryptoAssetServerClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL,
+                    cinit = new CryptoAssetClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL,
                                                         Environment.CurrentDirectory, false);
                     assetServer = loadAssetServer("Crypto", cinit);
                     break;
@@ -385,7 +385,7 @@ namespace OpenSim
                 // of whether the server is standalone.
 
                 case "file" :
-                    linit = new LegacyAssetServerClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL);
+                    linit = new LegacyAssetClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL);
                     assetServer = loadAssetServer("File", linit);
                     break;
 
@@ -403,7 +403,7 @@ namespace OpenSim
                 default :
                     try
                     {
-                        init = new AssetServerClientPluginInitialiser(m_configSettings);
+                        init = new AssetClientPluginInitialiser(m_configSettings);
                         assetServer = loadAssetServer(m_configSettings.AssetStorage, init);
                         break;
                     }
@@ -417,7 +417,7 @@ namespace OpenSim
 
            if (assetServer == null)
             {
-                init = new AssetServerClientPluginInitialiser(m_configSettings);
+                init = new AssetClientPluginInitialiser(m_configSettings);
                 SQLAssetServer sqlAssetServer = (SQLAssetServer) loadAssetServer("SQL", init);
                 sqlAssetServer.LoadDefaultAssets(m_configSettings.AssetSetsXMLFile);
                 assetServer = sqlAssetServer;
@@ -437,15 +437,29 @@ namespace OpenSim
         private IAssetServer loadAssetServer(string id, PluginInitialiserBase pi)
         {
 
-            m_log.DebugFormat("[OPENSIMBASE] Attempting to load asset server id={0}", id);
+            if(id != null && id != String.Empty)
+            {
+                m_log.DebugFormat("[OPENSIMBASE] Attempting to load asset server id={0}", id);
 
-            PluginLoader<IAssetServer> loader = new PluginLoader<IAssetServer>(pi);
-            loader.AddFilter(PLUGIN_ASSET_SERVER_CLIENT, new PluginProviderFilter(id));
-            loader.Load(PLUGIN_ASSET_SERVER_CLIENT);
-           if (loader.Plugins.Count > 0)
-                return (IAssetServer) loader.Plugins[0];
-            else
-                return null;
+                try
+                {
+                    PluginLoader<IAssetServer> loader = new PluginLoader<IAssetServer>(pi);
+                    loader.AddFilter(PLUGIN_ASSET_SERVER_CLIENT, new PluginProviderFilter(id));
+                    loader.Load(PLUGIN_ASSET_SERVER_CLIENT);
+
+                    if (loader.Plugins.Count > 0)
+                    {
+                        m_log.DebugFormat("[OPENSIMBASE] Asset server {0} loaded", id);
+                        return (IAssetServer) loader.Plugins[0];
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[OPENSIMBASE] Asset server {0} not loaded ({1})", id, e.Message);
+                }
+            }
+
+            return null;
 
         }
 
@@ -465,10 +479,12 @@ namespace OpenSim
 
             IAssetCache assetCache = null;
 
-            m_log.DebugFormat("[OPENSIMBASE] Attempting to load asset cache id={0}", m_configSettings.AssetCache);
 
             if (m_configSettings.AssetCache != null && m_configSettings.AssetCache != String.Empty)
             {
+
+                m_log.DebugFormat("[OPENSIMBASE] Attempting to load asset cache id={0}", m_configSettings.AssetCache);
+
                 try
                 {
 
