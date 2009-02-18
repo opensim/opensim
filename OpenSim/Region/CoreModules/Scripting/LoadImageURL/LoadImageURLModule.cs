@@ -84,6 +84,13 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             return false;
         }
 
+        public void GetDrawStringSize(string text, string fontName, int fontSize, 
+                                      out double xSize, out double ySize)
+        {
+            xSize = 0;
+            ySize = 0;
+        }
+
         #endregion
 
         #region IRegionModule Members

@@ -89,6 +89,20 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             return true;
         }
 
+        public void GetDrawStringSize(string text, string fontName, int fontSize, 
+                                      out double xSize, out double ySize)
+        {
+            Bitmap bitmap = new Bitmap(1024, 1024, PixelFormat.Format32bppArgb);
+            Graphics graph = Graphics.FromImage(bitmap);
+
+            Font myFont = new Font(fontName, fontSize);
+            SizeF stringSize = new SizeF();
+            stringSize = graph.MeasureString(text, myFont);
+            xSize = stringSize.Width;
+            ySize = stringSize.Height;
+        }
+
+
         #endregion
 
         #region IRegionModule Members

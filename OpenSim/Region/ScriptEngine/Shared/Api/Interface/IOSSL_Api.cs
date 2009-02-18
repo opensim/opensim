@@ -88,6 +88,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osSetPenSize(string drawList, int penSize);
         string osSetPenColour(string drawList, string colour);
         string osDrawImage(string drawList, int width, int height, string imageUrl);
+        vector osGetDrawStringSize(string contentType, string text, string fontName, int fontSize);
         void osSetStateEvents(int events);
 
         double osList2Double(LSL_Types.list src, int index);

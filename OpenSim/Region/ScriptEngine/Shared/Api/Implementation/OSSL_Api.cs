@@ -677,6 +677,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return drawList;
         }
 
+        public LSL_Vector osGetDrawStringSize(string contentType, string text, string fontName, int fontSize)
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osGetDrawStringSize");
+            m_host.AddScriptLPS(1);
+
+            LSL_Vector vec = new LSL_Vector(0,0,0);
+            IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
+            if (textureManager != null) 
+            {
+                double xSize, ySize;
+                textureManager.GetDrawStringSize(contentType, text, fontName, fontSize,
+                                                 out xSize, out ySize);
+                vec.x = xSize;
+                vec.y = ySize;
+            }
+            return vec;
+        }
+
         public void osSetStateEvents(int events)
         {
             // This function is a hack. There is no reason for it's existence

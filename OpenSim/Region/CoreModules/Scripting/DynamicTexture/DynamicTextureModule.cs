@@ -143,6 +143,18 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             return UUID.Zero;
         }
 
+
+        public void GetDrawStringSize(string contentType, string text, string fontName, int fontSize,
+                                      out double xSize, out double ySize)
+        {
+            xSize = 0;
+            ySize = 0;
+            if (RenderPlugins.ContainsKey(contentType))
+            {
+                RenderPlugins[contentType].GetDrawStringSize(text, fontName, fontSize, out xSize, out ySize);
+            }
+        }
+
         #endregion
 
         #region IRegionModule Members
