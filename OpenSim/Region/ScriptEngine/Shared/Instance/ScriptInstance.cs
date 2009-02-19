@@ -948,7 +948,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             // This is meant to work around a Windows only race
             //
             m_InEvent = false;
-            SaveState(m_Assembly);
 
             return ScriptSerializer.Serialize(this);
         }
