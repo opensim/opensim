@@ -73,7 +73,7 @@ namespace OpenSim.Data.NHibernate
             int ord = rs.GetOrdinal(names[0]);
             if (!rs.IsDBNull(ord))
             {
-                uint1 = (UInt16)rs.GetInt16(ord);
+                uint1 = (UInt16)rs.GetInt32(ord);
             }
 
             return uint1;
@@ -82,7 +82,7 @@ namespace OpenSim.Data.NHibernate
         public void NullSafeSet(IDbCommand cmd, object obj, int index)
         {
             UInt16 uint1 = (UInt16)obj;
-            ((IDataParameter)cmd.Parameters[index]).Value = Convert.ToInt16(uint1);
+            ((IDataParameter)cmd.Parameters[index]).Value = Convert.ToInt32(uint1);
         }
 
         public object Replace(object original, object target, object owner)
@@ -97,7 +97,7 @@ namespace OpenSim.Data.NHibernate
 
         public SqlType[] SqlTypes
         {
-            get { return new SqlType [] { NHibernateUtil.Int16.SqlType }; }
+            get { return new SqlType [] { NHibernateUtil.Int32.SqlType }; }
         }
     }
 }

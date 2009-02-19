@@ -1,7 +1,7 @@
 create table InventoryFolders (
   ID NVARCHAR(255) not null,
    Type SMALLINT null,
-   Version SMALLINT null,
+   Version INT null,
    ParentID NVARCHAR(255) null,
    Owner NVARCHAR(255) null,
    Name NVARCHAR(64) null,

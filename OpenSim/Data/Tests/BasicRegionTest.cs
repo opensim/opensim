@@ -243,6 +243,11 @@ namespace OpenSim.Data.Tests
             byte clickaction = (byte) random.Next(127);
             PrimitiveBaseShape pbshap = new PrimitiveBaseShape();
             pbshap = PrimitiveBaseShape.Default;
+            pbshap.PathBegin = ushort.MaxValue;
+            pbshap.PathEnd = ushort.MaxValue;
+            pbshap.ProfileBegin = ushort.MaxValue;
+            pbshap.ProfileEnd = ushort.MaxValue;
+            pbshap.ProfileHollow = ushort.MaxValue;
             Vector3 scale = new Vector3(random.Next(),random.Next(),random.Next());
             byte updatef = (byte) random.Next(127);
 
@@ -366,7 +371,14 @@ namespace OpenSim.Data.Tests
             //Assert.That(linknum,Is.EqualTo(p.LinkNum));
             Assert.That(clickaction,Is.EqualTo(p.ClickAction));
             Assert.That(scale,Is.EqualTo(p.Scale));
+
             //Assert.That(updatef,Is.EqualTo(p.UpdateFlag));
+
+            Assert.That(pbshap.PathBegin, Is.EqualTo(p.Shape.PathBegin));
+            Assert.That(pbshap.PathEnd, Is.EqualTo(p.Shape.PathEnd));
+            Assert.That(pbshap.ProfileBegin, Is.EqualTo(p.Shape.ProfileBegin));
+            Assert.That(pbshap.ProfileEnd, Is.EqualTo(p.Shape.ProfileEnd));
+            Assert.That(pbshap.ProfileHollow, Is.EqualTo(p.Shape.ProfileHollow));
         }
         
         [Test]

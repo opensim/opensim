@@ -71,7 +71,6 @@ CREATE TABLE Prims (
   PathTaperX INT DEFAULT NULL,
   PathTaperY INT DEFAULT NULL,
   PathTwist INT DEFAULT NULL,
-  PathTwistBegin INT DEFAULT NULL,
   ProfileBegin INT DEFAULT NULL,
   ProfileEnd INT DEFAULT NULL,
   ProfileCurve INT DEFAULT NULL,
