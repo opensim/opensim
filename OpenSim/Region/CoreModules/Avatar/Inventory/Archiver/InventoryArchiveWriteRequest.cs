@@ -175,7 +175,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             archive.AddFile(filename, sw.ToString());
 
-            assetUuids[inventoryItem.AssetID] = 1;
+            m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, assetUuids);
         }
 
         protected void saveInvDir(InventoryFolderImpl inventoryFolder, string path)
