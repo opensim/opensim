@@ -23,10 +23,18 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #endregion
 
+#region CVS Information
+/*
+ * $Source$
+ * $Author: jendave $
+ * $Date: 2007-04-26 17:10:27 +0900 (Thu, 26 Apr 2007) $
+ * $Revision: 236 $
+ */
+#endregion
+
 using System;
 using System.Collections;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace Prebuild.Core.Parse
@@ -71,16 +79,6 @@ namespace Prebuild.Core.Parse
 	/// </summary>
 	public class Preprocessor
 	{
-		#region Constants
-
-		/// <summary>
-		/// Includes the regex to look for file tags in the <?include
-		/// ?> processing instruction.
-		/// </summary>
-		private static readonly Regex includeFileRegex = new Regex("file=\"(.+?)\"");
-
-		#endregion
-
 		#region Fields
 
 		XmlDocument m_OutDoc;
@@ -140,10 +138,10 @@ namespace Prebuild.Core.Parse
 				return "Win32";
 			}
 
-			if (File.Exists("/System/Library/Frameworks/Cocoa.framework/Cocoa"))
-			{
-				return "MACOSX";
-			}
+            if (File.Exists("/System/Library/Frameworks/Cocoa.framework/Cocoa"))
+            {
+                return "MACOSX";
+            }
 
 			/*
 			 * .NET 1.x, under Mono, the UNIX code is 128. Under
@@ -238,7 +236,7 @@ namespace Prebuild.Core.Parse
 			OperatorSymbol oper = OperatorSymbol.None;
 			bool inStr = false;
 			char c;
-			
+            
 			for(int i = 0; i < exp.Length; i++)
 			{
 				c = exp[i];
@@ -285,7 +283,7 @@ namespace Prebuild.Core.Parse
 								{
 									oper = OperatorSymbol.NotEqual;
 								}
-								
+                                
 								break;
 
 							case '<':
@@ -297,7 +295,7 @@ namespace Prebuild.Core.Parse
 								{
 									oper = OperatorSymbol.LessThan;
 								}
-								
+                                
 								break;
 
 							case '>':
@@ -316,7 +314,7 @@ namespace Prebuild.Core.Parse
 				}
 			}
 
-			
+            
 			if(inStr)
 			{
 				throw new WarningException("Expected end of string in expression");
@@ -394,9 +392,9 @@ namespace Prebuild.Core.Parse
 		/// <exception cref="ArgumentException">For invalid use of conditional expressions or for invalid XML syntax.  If a XmlValidatingReader is passed, then will also throw exceptions for non-schema-conforming xml</exception>
 		/// <param name="reader"></param>
 		/// <returns>the output xml </returns>
-		public string Process(XmlReader initialReader)
+		public string Process(XmlReader reader)
 		{
-			if(initialReader == null)
+			if(reader == null)
 			{
 				throw new ArgumentException("Invalid XML reader to pre-process");
 			}
@@ -405,175 +403,119 @@ namespace Prebuild.Core.Parse
 			StringWriter xmlText = new StringWriter();
 			XmlTextWriter writer = new XmlTextWriter(xmlText);
 			writer.Formatting = Formatting.Indented;
-
-			// Create a queue of XML readers and add the initial
-			// reader to it. Then we process until we run out of
-			// readers which lets the <?include?> operation add more
-			// readers to generate a multi-file parser and not require
-			// XML fragments that a recursive version would use.
-			Stack readerStack = new Stack();
-			readerStack.Push(initialReader);
-			
-			while(readerStack.Count > 0)
+			while(reader.Read())
 			{
-				// Pop off the next reader.
-				XmlReader reader = (XmlReader) readerStack.Pop();
-
-				// Process through this XML reader until it is
-				// completed (or it is replaced by the include
-				// operation).
-				while(reader.Read())
+				if(reader.NodeType == XmlNodeType.ProcessingInstruction)
 				{
-					// The prebuild file has a series of processing
-					// instructions which allow for specific
-					// inclusions based on operating system or to
-					// include additional files.
-					if(reader.NodeType == XmlNodeType.ProcessingInstruction)
+					bool ignore = false;
+					switch(reader.LocalName)
 					{
-						bool ignore = false;
+						case "if":
+							m_IfStack.Push(context);
+							context = new IfContext(context.Keep & context.Active, ParseExpression(reader.Value), IfState.If);
+							ignore = true;
+							break;
 
-						switch(reader.LocalName)
-						{
-							case "include":
-								// use regular expressions to parse out the attributes.
-								MatchCollection matches = includeFileRegex.Matches(reader.Value);
-								
-								// make sure there is only one file attribute.
-								if(matches.Count > 1)
-								{
-									throw new WarningException("An <?include ?> node was found, but it specified more than one file.");
-								}
+						case "elseif":
+							if(m_IfStack.Count == 0)
+							{
+								throw new WarningException("Unexpected 'elseif' outside of 'if'");
+							}
+							else if(context.State != IfState.If && context.State != IfState.ElseIf)
+							{
+								throw new WarningException("Unexpected 'elseif' outside of 'if'");
+							}
 
-								if(matches.Count == 0)
-								{
-									throw new WarningException("An <?include ?> node was found, but it did not specify the file attribute.");
-								}
-								
-								// Pull the file out from the regex and make sure it is a valid file before using it.
-								string filename = matches[0].Groups[1].Value;
-								FileInfo includeFile = new FileInfo(filename);
+							context.State = IfState.ElseIf;
+							if(!context.EverKept)
+							{
+								context.Keep = ParseExpression(reader.Value);
+							}
+							else
+							{
+								context.Keep = false;
+							}
 
-								if(!includeFile.Exists)
-								{
-									throw new WarningException("Cannot include file: " + includeFile.FullName);
-								}
+							ignore = true;
+							break;
 
-								// Create a new reader object for this file. Then put the old reader back on the stack and start
-								// processing using this new XML reader.
-								XmlReader newReader = new XmlTextReader(includeFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read));
+						case "else":
+							if(m_IfStack.Count == 0)
+							{
+								throw new WarningException("Unexpected 'else' outside of 'if'");
+							}
+							else if(context.State != IfState.If && context.State != IfState.ElseIf)
+							{
+								throw new WarningException("Unexpected 'else' outside of 'if'");
+							}
 
-								readerStack.Push(reader);
-								reader = newReader;
-								ignore = true;
-								break;
+							context.State = IfState.Else;
+							context.Keep = !context.EverKept;
+							ignore = true;
+							break;
 
-							case "if":
-								m_IfStack.Push(context);
-								context = new IfContext(context.Keep & context.Active, ParseExpression(reader.Value), IfState.If);
-								ignore = true;
-								break;
+						case "endif":
+							if(m_IfStack.Count == 0)
+							{
+								throw new WarningException("Unexpected 'endif' outside of 'if'");
+							}
 
-							case "elseif":
-								if(m_IfStack.Count == 0)
-								{
-									throw new WarningException("Unexpected 'elseif' outside of 'if'");
-								}
-								else if(context.State != IfState.If && context.State != IfState.ElseIf)
-								{
-									throw new WarningException("Unexpected 'elseif' outside of 'if'");
-								}
+							context = (IfContext)m_IfStack.Pop();
+							ignore = true;
+							break;
+					}
 
-								context.State = IfState.ElseIf;
-								if(!context.EverKept)
-								{
-									context.Keep = ParseExpression(reader.Value);
-								}
-								else
-								{
-									context.Keep = false;
-								}
-
-								ignore = true;
-								break;
-
-							case "else":
-								if(m_IfStack.Count == 0)
-								{
-									throw new WarningException("Unexpected 'else' outside of 'if'");
-								}
-								else if(context.State != IfState.If && context.State != IfState.ElseIf)
-								{
-									throw new WarningException("Unexpected 'else' outside of 'if'");
-								}
-
-								context.State = IfState.Else;
-								context.Keep = !context.EverKept;
-								ignore = true;
-								break;
-
-							case "endif":
-								if(m_IfStack.Count == 0)
-								{
-									throw new WarningException("Unexpected 'endif' outside of 'if'");
-								}
-
-								context = (IfContext)m_IfStack.Pop();
-								ignore = true;
-								break;
-						}
-
-						if(ignore)
-						{
-							continue;
-						}
-					}//end pre-proc instruction
-
-					if(!context.Active || !context.Keep)
+					if(ignore)
 					{
 						continue;
 					}
+				}//end pre-proc instruction
 
-					switch(reader.NodeType)
-					{
-						case XmlNodeType.Element:
-							bool empty = reader.IsEmptyElement;
-							writer.WriteStartElement(reader.Name);
-
-							while (reader.MoveToNextAttribute())
-							{
-								writer.WriteAttributeString(reader.Name, reader.Value);
-							}
-
-							if(empty)
-							{
-								writer.WriteEndElement();
-							}
-						
-							break;
-
-						case XmlNodeType.EndElement:
-							writer.WriteEndElement();
-							break;
-
-						case XmlNodeType.Text:
-							writer.WriteString(reader.Value);
-							break;
-
-						case XmlNodeType.CDATA:
-							writer.WriteCData(reader.Value);
-							break;
-
-						default:
-							break;
-					}
+				if(!context.Active || !context.Keep)
+				{
+					continue;
 				}
 
-				if(m_IfStack.Count != 0)
+				switch(reader.NodeType)
 				{
-					throw new WarningException("Mismatched 'if', 'endif' pair");
+					case XmlNodeType.Element:
+						bool empty = reader.IsEmptyElement;
+						writer.WriteStartElement(reader.Name);
+
+						while (reader.MoveToNextAttribute())
+						{
+							writer.WriteAttributeString(reader.Name, reader.Value);
+						}
+
+						if(empty)
+						{
+							writer.WriteEndElement();
+						}
+                        
+						break;
+
+					case XmlNodeType.EndElement:
+						writer.WriteEndElement();
+						break;
+
+					case XmlNodeType.Text:
+						writer.WriteString(reader.Value);
+						break;
+
+					case XmlNodeType.CDATA:
+						writer.WriteCData(reader.Value);
+						break;
+
+					default:
+						break;
 				}
 			}
-			
+
+			if(m_IfStack.Count != 0)
+			{
+				throw new WarningException("Mismatched 'if', 'endif' pair");
+			}
+            
 			return xmlText.ToString();
 		}
 

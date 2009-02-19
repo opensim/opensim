@@ -23,6 +23,15 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #endregion
 
+#region CVS Information
+/*
+ * $Source$
+ * $Author: borrillis $
+ * $Date: 2007-05-25 01:03:16 +0900 (Fri, 25 May 2007) $
+ * $Revision: 243 $
+ */
+#endregion
+
 using System;
 using System.IO;
 using System.Xml;
@@ -30,7 +39,6 @@ using System.Xml;
 using Prebuild.Core.Attributes;
 using Prebuild.Core.Interfaces;
 using Prebuild.Core.Utilities;
-using Prebuild.Core.Targets;
 
 namespace Prebuild.Core.Nodes
 {
@@ -85,11 +93,7 @@ namespace Prebuild.Core.Nodes
 		/// <summary>
 		/// 
 		/// </summary>
-		UserControl,
-		/// <summary>
-		/// 
-		/// </summary>
-		CodeBehind,
+		UserControl
 	}
 
 	public enum CopyToOutput
@@ -109,9 +113,9 @@ namespace Prebuild.Core.Nodes
 
 		private string m_Path;
 		private string m_ResourceName = "";
-		private BuildAction? m_BuildAction;
+		private BuildAction m_BuildAction = BuildAction.Compile;
 		private bool m_Valid;
-		private SubType? m_SubType;
+		private SubType m_SubType = SubType.Code;
 		private CopyToOutput m_CopyToOutput = CopyToOutput.Never;
 		private bool m_Link = false;
 		private string m_LinkPath = string.Empty;
@@ -151,11 +155,7 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				if (m_BuildAction != null)
-					return m_BuildAction.Value;
-				else
-					return GetBuildActionByFileName(this.Path);
-
+				return m_BuildAction;
 			}
 		}
 
@@ -189,10 +189,7 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				if (m_SubType != null)
-					return m_SubType.Value;
-				else
-					return GetSubTypeByFileName(this.Path);
+				return m_SubType;
 			}
 		}
 
@@ -230,13 +227,10 @@ namespace Prebuild.Core.Nodes
 		/// <param name="node"></param>
 		public override void Parse(XmlNode node)
 		{
-			string buildAction = Helper.AttributeValue(node, "buildAction", String.Empty);
-			if (buildAction != string.Empty)
-				m_BuildAction = (BuildAction)Enum.Parse(typeof(BuildAction), buildAction);
-			string subType = Helper.AttributeValue(node, "subType", string.Empty);
-			if (subType != String.Empty)
-				m_SubType = (SubType)Enum.Parse(typeof(SubType), subType);
-
+			m_BuildAction = (BuildAction)Enum.Parse(typeof(BuildAction), 
+				Helper.AttributeValue(node, "buildAction", m_BuildAction.ToString()));
+			m_SubType = (SubType)Enum.Parse(typeof(SubType), 
+				Helper.AttributeValue(node, "subType", m_SubType.ToString()));
 			m_ResourceName = Helper.AttributeValue(node, "resourceName", m_ResourceName.ToString());
 			this.m_Link = bool.Parse(Helper.AttributeValue(node, "link", bool.FalseString));
 			if ( this.m_Link == true )

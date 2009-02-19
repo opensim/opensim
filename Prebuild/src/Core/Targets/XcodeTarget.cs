@@ -23,6 +23,15 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #endregion
 
+#region CVS Information
+/*
+ * $Source$
+ * $Author: jendave $
+ * $Date: 2007-02-13 12:58:03 -0800 (Tue, 13 Feb 2007) $
+ * $Revision: 205 $
+ */
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Specialized;
