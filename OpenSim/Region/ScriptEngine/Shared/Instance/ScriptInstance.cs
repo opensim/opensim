@@ -683,7 +683,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             if (m_SaveState)
                             {
                                 // This will be the very first event we deliver
-                                // (state_entry) in defualt state
+                                // (state_entry) in default state
                                 //
 
                                 SaveState(m_Assembly);
@@ -942,6 +942,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             bool run = Running;
             Stop(100);
             Running = run;
+
+            // We should not be doing this, but since we are about to
+            // dispose this, it really doesn't make a difference
+            // This is meant to work around a Windows only race
+            //
+            m_InEvent = false;
+
             return ScriptSerializer.Serialize(this);
         }
     }
