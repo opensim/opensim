@@ -572,7 +572,6 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Grid.AssetServer"/>
 
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
@@ -986,7 +985,6 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Grid.AssetServer"/>
 
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
@@ -1060,7 +1058,6 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Grid.AssetServer"/>
 
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
@@ -2338,7 +2335,6 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Grid.AssetServer"/>
       <Reference name="Mono.Data.SqliteClient"/>
 
       <!-- For scripting in funny languages by default -->
