@@ -1,6 +1,6 @@
 #region BSD License
 /*
-Copyright (c) 2007 C.J. Adams-Collier (cjac@colliertech.org)
+Copyright (c) 2008-2009 Matthew Holmes (matthew@wildfiregames.com), Dan Moorehead (dan05a@gmail.com), John Anderson (sontek@gmail.com)
 
 Redistribution and use in source and binary forms, with or without modification, are permitted
 provided that the following conditions are met:
@@ -23,67 +23,28 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #endregion
 
-using System;
-using System.Collections;
-using System.Collections.Specialized;
-using System.Xml;
-
-using Prebuild.Core.Attributes;
-using Prebuild.Core.Interfaces;
-using Prebuild.Core.Utilities;
-
-namespace Prebuild.Core.Nodes
+namespace Prebuild.Core.Targets
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	[DataNode("Author")]
-	public class AuthorNode : DataNode
+	public enum VSVersion
 	{
-		#region Fields
-
-		private string m_Signature;
-
-		#endregion
-
-		#region Properties
-
 		/// <summary>
-		/// Gets the signature.
+		/// Visual Studio 2002 
 		/// </summary>
-		/// <value>The signature.</value>
-		public string Signature
-		{
-			get
-			{
-				return m_Signature;
-			}
-		}
-
-		#endregion
-
-		#region Public Methods
-
+		VS70,
 		/// <summary>
-		/// Parses the specified node.
+		/// Visual Studio 2003 
 		/// </summary>
-		/// <param name="node">The node.</param>
-		public override void Parse(XmlNode node)
-		{
-			if( node == null )
-			{
-				throw new ArgumentNullException("node");
-			}
-
-			m_Signature = Helper.InterpolateForEnvironmentVariables(node.InnerText);
-			if(m_Signature == null)
-			{
-				m_Signature = "";
-			}
-
-			m_Signature = m_Signature.Trim();
-		}
-
-		#endregion
+		VS71,
+		/// <summary>
+		/// Visual Studio 2005 
+		/// </summary>
+		VS80,
+		/// <summary>
+		/// Visual Studio 2008 
+		/// </summary>
+		VS90
 	}
 }

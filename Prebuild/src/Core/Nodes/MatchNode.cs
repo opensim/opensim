@@ -23,16 +23,8 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #endregion
 
-#region CVS Information
-/*
- * $Source$
- * $Author: borrillis $
- * $Date: 2007-05-25 01:03:16 +0900 (Fri, 25 May 2007) $
- * $Revision: 243 $
- */
-#endregion
-
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -53,29 +45,16 @@ namespace Prebuild.Core.Nodes
 	{
 		#region Fields
 
-		private StringCollection m_Files;
+        private readonly StringCollection m_Files = new StringCollection();
 		private Regex m_Regex;
-		private BuildAction m_BuildAction = BuildAction.Compile;
-		private SubType m_SubType = SubType.Code;
+		private BuildAction? m_BuildAction;
+		private SubType? m_SubType;
 		string m_ResourceName = "";
 		private CopyToOutput m_CopyToOutput;
 		private bool m_Link;
 		private string m_LinkPath;
         private bool m_PreservePath;
-        private ArrayList m_Exclusions;
-
-		#endregion
-
-		#region Constructors
-
-		/// <summary>
-		/// 
-		/// </summary>
-		public MatchNode()
-		{
-			m_Files = new StringCollection();
-            m_Exclusions = new ArrayList();
-		}
+        private readonly List<ExcludeNode> m_Exclusions = new List<ExcludeNode>();
 
 		#endregion
 
@@ -95,7 +74,7 @@ namespace Prebuild.Core.Nodes
 		/// <summary>
 		/// 
 		/// </summary>
-		public BuildAction BuildAction
+		public BuildAction? BuildAction
 		{
 			get
 			{
@@ -106,7 +85,7 @@ namespace Prebuild.Core.Nodes
 		/// <summary>
 		/// 
 		/// </summary>
-		public SubType SubType
+		public SubType? SubType
 		{
 			get
 			{
@@ -167,7 +146,7 @@ namespace Prebuild.Core.Nodes
 		/// <param name="pattern">The pattern.</param>
 		/// <param name="recurse">if set to <c>true</c> [recurse].</param>
 		/// <param name="useRegex">if set to <c>true</c> [use regex].</param>
-		private void RecurseDirectories(string path, string pattern, bool recurse, bool useRegex, ArrayList exclusions)
+		private void RecurseDirectories(string path, string pattern, bool recurse, bool useRegex, List<ExcludeNode> exclusions)
 		{
 			Match match;
             Boolean excludeFile;
@@ -279,10 +258,14 @@ namespace Prebuild.Core.Nodes
 			string pattern = Helper.AttributeValue(node, "pattern", "*");
 			bool recurse = (bool)Helper.TranslateValue(typeof(bool), Helper.AttributeValue(node, "recurse", "false"));
 			bool useRegex = (bool)Helper.TranslateValue(typeof(bool), Helper.AttributeValue(node, "useRegex", "false"));
-			m_BuildAction = (BuildAction)Enum.Parse(typeof(BuildAction), 
-				Helper.AttributeValue(node, "buildAction", m_BuildAction.ToString()));
-			m_SubType = (SubType)Enum.Parse(typeof(SubType), 
-				Helper.AttributeValue(node, "subType", m_SubType.ToString()));
+			string buildAction = Helper.AttributeValue(node, "buildAction", String.Empty);
+			if (buildAction != string.Empty)
+				m_BuildAction = (BuildAction)Enum.Parse(typeof(BuildAction), buildAction);
+			
+			//TODO: Figure out where the subtype node is being assigned
+			//string subType = Helper.AttributeValue(node, "subType", string.Empty);
+			//if (subType != String.Empty)
+			//    m_SubType = (SubType)Enum.Parse(typeof(SubType), subType);
 			m_ResourceName = Helper.AttributeValue(node, "resourceName", m_ResourceName.ToString());
 			this.m_CopyToOutput = (CopyToOutput) Enum.Parse(typeof(CopyToOutput), Helper.AttributeValue(node, "copyToOutput", this.m_CopyToOutput.ToString()));
 			this.m_Link = bool.Parse(Helper.AttributeValue(node, "link", bool.FalseString));
@@ -329,7 +312,7 @@ namespace Prebuild.Core.Nodes
 				if(dataNode is ExcludeNode)
 				{
 					ExcludeNode excludeNode = (ExcludeNode)dataNode;
-                    m_Exclusions.Add( dataNode );
+                    m_Exclusions.Add( excludeNode );
 				}
 			}
 

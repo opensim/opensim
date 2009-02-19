@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Prebuild xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd" version="1.7">
+<Prebuild version="1.7">
   <Solution name="OpenSim" activeConfig="Debug" path="./" version="0.5.0-$Rev$">
     <Configuration name="Debug">
       <Options>
@@ -47,8 +47,8 @@
           </Configuration>
 
           <ReferencePath>../../../bin/</ReferencePath>
-          <Reference name="System" localCopy="false"/>
-          <Reference name="System.Xml" localCopy="false"/>
+          <Reference name="System"/>
+          <Reference name="System.Xml"/>
           <Files>
             <Match pattern="*.cs" recurse="true"/>
           </Files>
@@ -68,7 +68,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="log4net.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -141,7 +141,7 @@
       </Configuration>
 
       <ReferencePath>../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="XMLRPC.dll"/>
@@ -223,7 +223,7 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenMetaverseTypes.dll"/>
@@ -336,11 +336,11 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false" />
+      <Reference name="System"/>
+      <Reference name="System.Xml" />
       <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenSim.Framework" localCopy="false"/>
-      <Reference name="OpenSim.Framework.Console" localCopy="false"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
       <Reference name="nunit.framework.dll" />
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
@@ -364,11 +364,11 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -387,11 +387,11 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -410,12 +410,12 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="Nini.dll" />
-      <Reference name="PhysX_Wrapper_Dotnet.dll" localCopy="false"/>
+      <Reference name="PhysX_Wrapper_Dotnet.dll"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -434,13 +434,13 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
-      <Reference name="Ode.NET.dll" localCopy="false" />
+      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="Ode.NET.dll" />
       <Reference name="nunit.framework.dll" />
       <Reference name="log4net.dll"/>
 
@@ -462,14 +462,14 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console" localCopy="false"/>
-      <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
-      <Reference name="MonoXnaCompactMaths.dll" localCopy="false"/>
-      <Reference name="Modified.XnaDevRu.BulletX.dll" localCopy="false" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="MonoXnaCompactMaths.dll"/>
+      <Reference name="Modified.XnaDevRu.BulletX.dll" />
       <Reference name="log4net.dll"/>
 
       <Files>
@@ -490,14 +490,14 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Drawing"/>
-      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
-      <Reference name="OpenMetaverse.dll" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="log4net.dll"/>
 
       <Files>
@@ -557,7 +557,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Runtime.Remoting"/>
@@ -696,9 +696,9 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Xml"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -729,9 +729,9 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.AssetLoader.Filesystem"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -874,10 +874,10 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Web"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -909,9 +909,9 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -939,9 +939,9 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -970,7 +970,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Runtime.Remoting"/>
@@ -1017,7 +1017,7 @@
       </Configuration>
 
       <ReferencePath>../../../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
@@ -1040,7 +1040,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Runtime.Remoting"/>
@@ -1124,7 +1124,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Region.Framework"/>
@@ -1160,7 +1160,7 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
@@ -1199,7 +1199,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -1226,7 +1226,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="OpenMetaverseTypes.dll"/>
@@ -1453,7 +1453,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
@@ -1487,7 +1487,7 @@
 
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="Nini.dll" />
@@ -1511,7 +1511,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="System.Drawing"/>
@@ -1547,7 +1547,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="System.Drawing"/>
@@ -1580,7 +1580,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="System.Data.SQLite.dll"/>
@@ -1617,7 +1617,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="System.Drawing"/>
@@ -1657,7 +1657,7 @@
       </Configuration>
 
       <ReferencePath>../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="System.Web"/>
@@ -1679,10 +1679,10 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
@@ -1716,10 +1716,10 @@
       </Configuration>
 
       <ReferencePath>../../../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
@@ -1751,10 +1751,10 @@
       </Configuration>
 
       <ReferencePath>../../../../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
@@ -1785,10 +1785,10 @@
       </Configuration>
 
       <ReferencePath>../../../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
@@ -1823,7 +1823,7 @@
       </Configuration>
 
       <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="Microsoft.JScript"/>
       <Reference name="OpenSim.Framework" />
       <Reference name="OpenSim.Region.Framework" />
@@ -1856,10 +1856,10 @@
       </Configuration>
 
       <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
@@ -1872,7 +1872,7 @@
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime"/>
       <Reference name="SmartThreadPool"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Axiom.MathLib.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="log4net.dll"/>
@@ -1895,10 +1895,10 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenSim" />
@@ -1938,10 +1938,10 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="System.Runtime.Remoting" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Runtime.Remoting"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="RAIL.dll"/>
@@ -1976,7 +1976,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true" >
@@ -1998,10 +1998,10 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
@@ -2036,10 +2036,10 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
@@ -2077,10 +2077,10 @@
       </Configuration>
 
       <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
@@ -2116,10 +2116,10 @@
       </Configuration>
 
       <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
@@ -2156,10 +2156,10 @@
 
       <ReferencePath>../../../../../bin/</ReferencePath>
       <ReferencePath>../../../../../bin/ScriptEngines/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
@@ -2197,10 +2197,10 @@
       </Configuration>
 
       <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
@@ -2238,10 +2238,10 @@
 
       <ReferencePath>../../../../../bin/</ReferencePath>
       <ReferencePath>../../../../../bin/ScriptEngines/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
@@ -2278,10 +2278,10 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Web"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
@@ -2321,7 +2321,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Data"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
@@ -2371,7 +2371,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -2398,7 +2398,7 @@
       </Configuration>
 
       <ReferencePath>../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -2461,7 +2461,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Data"/>
@@ -2492,7 +2492,7 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="System.Drawing"/>
@@ -2527,7 +2527,7 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="System.Drawing"/>
@@ -2565,7 +2565,7 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="System.Data.SQLite.dll"/>
@@ -2687,7 +2687,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Runtime.Remoting"/>
@@ -2746,7 +2746,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Runtime.Remoting"/>
@@ -2835,7 +2835,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
+      <Reference name="System"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Framework"/>

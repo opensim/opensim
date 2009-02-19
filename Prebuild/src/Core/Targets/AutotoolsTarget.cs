@@ -65,18 +65,9 @@ POSSIBILITY OF SUCH DAMAGE.
  */
 
 #endregion
-
-#region CVS Information
-/*
- * $Source$
- * $Author: jendave $
- * $Date: 2006-07-28 22:43:24 -0700 (Fri, 28 Jul 2006) $
- * $Revision: 136 $
- */
-#endregion
-
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
@@ -182,8 +173,7 @@ namespace Prebuild.Core.Targets
         Hashtable assemblyPathToPackage = new Hashtable();
         Hashtable assemblyFullNameToPath = new Hashtable();
         Hashtable packagesHash = new Hashtable();
-        ArrayList packages = new ArrayList();
-        ClrVersion currentVersion;
+        readonly List<SystemPackage> packages = new List<SystemPackage>();
 
         #endregion
 
@@ -201,22 +191,6 @@ namespace Prebuild.Core.Targets
                 mkdirDashP(parentDirName);
 
             di.Create();
-        }
-
-        private void mkStubFiles(string dirName, ArrayList fileNames)
-        {
-            for (int i = 0; i < fileNames.Count; i++)
-            {
-                string tmpFile = dirName + "/" + (string)fileNames[i];
-
-                FileStream tmpFileStream =
-                    new FileStream(tmpFile, FileMode.Create);
-
-                StreamWriter sw = new StreamWriter(tmpFileStream);
-                sw.WriteLine("These are not the files you are looking for.");
-                sw.Flush();
-                tmpFileStream.Close();
-            }
         }
 
         private void chkMkDir(string dirName)
@@ -273,11 +247,11 @@ namespace Prebuild.Core.Targets
             }
         }
 
-        private ArrayList GetAssembliesWithLibInfo(string line, string file)
+        private List<string> GetAssembliesWithLibInfo(string line, string file)
         {
-            ArrayList references = new ArrayList();
-            ArrayList libdirs = new ArrayList();
-            ArrayList retval = new ArrayList();
+            List<string> references = new List<string>();
+            List<string> libdirs = new List<string>();
+            List<string> retval = new List<string>();
             foreach (string piece in line.Split(' '))
             {
                 if (piece.ToLower().Trim().StartsWith("/r:") || piece.ToLower().Trim().StartsWith("-r:"))
@@ -304,9 +278,9 @@ namespace Prebuild.Core.Targets
             return retval;
         }
 
-        private ArrayList GetAssembliesWithoutLibInfo(string line, string file)
+        private List<string> GetAssembliesWithoutLibInfo(string line, string file)
         {
-            ArrayList references = new ArrayList();
+            List<string> references = new List<string>();
             foreach (string reference in line.Split(' '))
             {
                 if (reference.ToLower().Trim().StartsWith("/r:") || reference.ToLower().Trim().StartsWith("-r:"))
@@ -356,7 +330,7 @@ namespace Prebuild.Core.Targets
             if (packagesHash.Contains(pname))
                 return;
 
-            ArrayList fullassemblies = null;
+            List<string> fullassemblies = null;
             string version = "";
             string desc = "";
 
@@ -404,7 +378,7 @@ namespace Prebuild.Core.Targets
             package.Initialize(pname,
                                version,
                                desc,
-                               (string[])fullassemblies.ToArray(typeof(string)),
+                               fullassemblies.ToArray(),
                                ClrVersion.Default,
                                false);
             packages.Add(package);
@@ -414,7 +388,7 @@ namespace Prebuild.Core.Targets
         void RegisterSystemAssemblies(string prefix, string version, ClrVersion ver)
         {
             SystemPackage package = new SystemPackage();
-            ArrayList list = new ArrayList();
+            List<string> list = new List<string>();
 
             string dir = Path.Combine(prefix, version);
             if (!Directory.Exists(dir))
@@ -431,7 +405,7 @@ namespace Prebuild.Core.Targets
             package.Initialize("mono",
                                version,
                                "The Mono runtime",
-                               (string[])list.ToArray(typeof(string)),
+                               list.ToArray(),
                                ver,
                                false);
             packages.Add(package);
@@ -444,12 +418,10 @@ namespace Prebuild.Core.Targets
             if (Environment.Version.Major == 1)
             {
                 versionDir = "1.0";
-                currentVersion = ClrVersion.Net_1_1;
             }
             else
             {
                 versionDir = "2.0";
-                currentVersion = ClrVersion.Net_2_0;
             }
 
             //Pull up assemblies from the installed mono system.
@@ -483,9 +455,9 @@ namespace Prebuild.Core.Targets
                 }
             }
             search_dirs += Path.PathSeparator + libpath;
-            if (search_dirs != null && search_dirs.Length > 0)
+            if (!string.IsNullOrEmpty(search_dirs))
             {
-                ArrayList scanDirs = new ArrayList();
+                List<string> scanDirs = new List<string>();
                 foreach (string potentialDir in search_dirs.Split(Path.PathSeparator))
                 {
                     if (!scanDirs.Contains(potentialDir))
@@ -763,20 +735,22 @@ namespace Prebuild.Core.Targets
             bool hasAssemblyConfig = false;
             chkMkDir(projectDir);
 
-            ArrayList
-                compiledFiles = new ArrayList(),
-                contentFiles = new ArrayList(),
-                embeddedFiles = new ArrayList(),
+            List<string>
+                compiledFiles = new List<string>(),
+                contentFiles = new List<string>(),
+                embeddedFiles = new List<string>(),
 
-                binaryLibs = new ArrayList(),
-                pkgLibs = new ArrayList(),
-                systemLibs = new ArrayList(),
-                runtimeLibs = new ArrayList(),
+                binaryLibs = new List<string>(),
+                pkgLibs = new List<string>(),
+                systemLibs = new List<string>(),
+                runtimeLibs = new List<string>(),
 
-                extraDistFiles = new ArrayList(),
-                localCopyTargets = new ArrayList();
+                extraDistFiles = new List<string>(),
+                localCopyTargets = new List<string>();
 
-            // If there exists a .config file for this assembly, copy it to the project folder 
+            // If there exists a .config file for this assembly, copy
+            // it to the project folder
+
             // TODO: Support copying .config.osx files
             // TODO: support processing the .config file for native library deps
             string projectAssemblyName = project.Name;
@@ -839,11 +813,15 @@ namespace Prebuild.Core.Targets
                     foreach (System.CodeDom.Compiler.CompilerError error in cr.Errors)
                         Console.WriteLine("Error! '{0}'", error.ErrorText);
 
-                    string projectFullName = cr.CompiledAssembly.FullName;
-                    Regex verRegex = new Regex("Version=([\\d\\.]+)");
-                    Match verMatch = verRegex.Match(projectFullName);
-                    if (verMatch.Success)
+                    try {
+                      string projectFullName = cr.CompiledAssembly.FullName;
+                      Regex verRegex = new Regex("Version=([\\d\\.]+)");
+                      Match verMatch = verRegex.Match(projectFullName);
+                      if (verMatch.Success)
                         projectVersion = verMatch.Groups[1].Value;
+                    }catch{
+                      Console.WriteLine("Couldn't compile AssemblyInfo.cs");
+                    }
 
                     // Clean up the temp file
                     try
@@ -853,7 +831,7 @@ namespace Prebuild.Core.Targets
                     }
                     catch 
                     {
-                        //Console.WriteLine("Error! '{0}'", e.ToString());
+                        Console.WriteLine("Error! '{0}'", e.ToString());
                     }
                    
                 }
@@ -1013,46 +991,46 @@ namespace Prebuild.Core.Targets
                 }
             }
 
-            string lineSep = " \\\n\t";
+            const string lineSep = " \\\n\t";
             string compiledFilesString = string.Empty;
             if (compiledFiles.Count > 0)
                 compiledFilesString =
-                    lineSep + string.Join(lineSep, (string[])compiledFiles.ToArray(typeof(string)));
+                    lineSep + string.Join(lineSep, compiledFiles.ToArray());
 
             string embeddedFilesString = "";
             if (embeddedFiles.Count > 0)
                 embeddedFilesString =
-                    lineSep + string.Join(lineSep, (string[])embeddedFiles.ToArray(typeof(string)));
+                    lineSep + string.Join(lineSep, embeddedFiles.ToArray());
 
             string contentFilesString = "";
             if (contentFiles.Count > 0)
                 contentFilesString =
-                    lineSep + string.Join(lineSep, (string[])contentFiles.ToArray(typeof(string)));
+                    lineSep + string.Join(lineSep, contentFiles.ToArray());
 
             string extraDistFilesString = "";
             if (extraDistFiles.Count > 0)
                 extraDistFilesString =
-                    lineSep + string.Join(lineSep, (string[])extraDistFiles.ToArray(typeof(string)));
+                    lineSep + string.Join(lineSep, extraDistFiles.ToArray());
 
             string pkgLibsString = "";
             if (pkgLibs.Count > 0)
                 pkgLibsString =
-                    lineSep + string.Join(lineSep, (string[])pkgLibs.ToArray(typeof(string)));
+                    lineSep + string.Join(lineSep, pkgLibs.ToArray());
 
             string binaryLibsString = "";
             if (binaryLibs.Count > 0)
                 binaryLibsString =
-                    lineSep + string.Join(lineSep, (string[])binaryLibs.ToArray(typeof(string)));
+                    lineSep + string.Join(lineSep, binaryLibs.ToArray());
 
             string systemLibsString = "";
             if (systemLibs.Count > 0)
                 systemLibsString =
-                    lineSep + string.Join(lineSep, (string[])systemLibs.ToArray(typeof(string)));
+                    lineSep + string.Join(lineSep, systemLibs.ToArray());
 
             string localCopyTargetsString = "";
             if (localCopyTargets.Count > 0)
                 localCopyTargetsString =
-                    string.Join("\n", (string[])localCopyTargets.ToArray(typeof(string)));
+                    string.Join("\n", localCopyTargets.ToArray());
 
             string monoPath = "";
             foreach (string runtimeLib in runtimeLibs)

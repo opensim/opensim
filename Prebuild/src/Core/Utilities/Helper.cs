@@ -23,15 +23,6 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #endregion
 
-#region CVS Information
-/*
- * $Source$
- * $Author: jendave $
- * $Date: 2007-02-14 05:58:03 +0900 (Wed, 14 Feb 2007) $
- * $Revision: 205 $
- */
-#endregion
-
 using System;
 using System.Collections;
 using System.Diagnostics;
@@ -289,6 +280,8 @@ namespace Prebuild.Core.Utilities
 			return true;
 		}
 
+        static readonly char seperator = Path.DirectorySeparatorChar;
+
 		// This little gem was taken from the NeL source, thanks guys!
 		/// <summary>
 		/// Makes a relative path
@@ -298,8 +291,8 @@ namespace Prebuild.Core.Utilities
 		/// <returns>Path that will get from startPath to endPath</returns>
 		public static string MakePathRelativeTo(string startPath, string endPath)
 		{
-			string tmp = NormalizePath(startPath, '/');
-			string src = NormalizePath(endPath, '/');
+			string tmp = NormalizePath(startPath, seperator);
+			string src = NormalizePath(endPath, seperator);
 			string prefix = "";
 
 			while(true)
@@ -312,14 +305,14 @@ namespace Prebuild.Core.Utilities
 					{
 						return "./";
 					}
-					if  ((src.Length > tmp.Length) && src[tmp.Length-1] != '/' && src[tmp.Length-1] != '\\')
+                    if((src.Length > tmp.Length) && src[tmp.Length - 1] != seperator)
 					{
 					}
 					else
 					{
 						ret = prefix + endPath.Substring(size, endPath.Length - size);
 						ret = ret.Trim();
-						if(ret[0] == '/' || ret[0] == '\\')
+                        if(ret[0] == seperator)
 						{
 							ret = "." + ret;
 						}
@@ -334,8 +327,8 @@ namespace Prebuild.Core.Utilities
 					break;
 				}
 
-				int lastPos = tmp.LastIndexOf('/', tmp.Length - 2);
-				int prevPos = tmp.IndexOf('/');
+                int lastPos = tmp.LastIndexOf(seperator, tmp.Length - 2);
+                int prevPos = tmp.IndexOf(seperator);
 
 				if((lastPos == prevPos) || (lastPos == -1))
 				{
@@ -343,7 +336,7 @@ namespace Prebuild.Core.Utilities
 				}
 
 				tmp = tmp.Substring(0, lastPos + 1);
-				prefix += "../";
+				prefix += ".." + seperator.ToString();
 			}
 
 			return endPath;

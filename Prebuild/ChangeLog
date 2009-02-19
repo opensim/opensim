@@ -1,3 +1,90 @@
+2008-12-09T02:15	D. Moonfire <d.moonfire@mfgames.com>
+	* src/Core/Kernel.cs
+	- Added a /ppi target to get the results of processing but before
+	processing the actual results.
+	* src/Core/Preprocessor.cs
+	- Applied the patch from kanato with formatting changes.
+	- Uses the <?include file="" ?> format.
+	* tests/
+	- Added some lightweight tests to test the functionality of the
+	include patch.
+	
+2008-06-19T09:37	John Anderson <sontek@gmail.com>
+	* src/Core/Kernel.cs
+	- Only Loop through targets that are not abstract.
+	* src/Core/Targets/VSGenericTarget.cs
+	- Marked abstract and removed the Target attribute.
+
+2008-06-16T17:37	John Anderson <sontek@gmail.com>
+	* src/Core/Nodes/ProjectNode.cs,data/prebuild-1.7.xsd
+	- Added the ability to hardcode guid's in the projects 
+
+2008-05-21T0737		C.J. Adams-Collier <cjac@colliertech.org>
+	* src/Core/Targets/AutotoolsTarget.cs
+	- catch exception when unable to compile AssemblyInfo.cs
+
+2008-05-07T17:29	John Anderson <sontek@gmail.com>
+	* src/Core/Targets/VSGenericTarget.cs
+	  - Generate asp.net output in bin\ folder (asp.net requires it there)
+
+2008-04-30T17:29	John Anderson <sontek@gmail.com>
+	* src/Core/Nodes/DatabaseReferenceNode.cs,
+	  src/Core/Nodes/Datanode.cs,
+	  src/Core/Nodes/FileNode.cs,
+	  src/Core/Nodes/FileNodes.cs,
+	  src/Core/Nodes/MatchNode.cs,
+	  src/Core/Targets/VS2008Target.cs,
+	  src/data/prebuild-1.7.xsd
+	- Refactored the project generation code to handle web projects and more
+	  logically handle embedded resources and designer files.
+
+2008-04-30T17:29	Joseph Lombrozo <digitaljeebus@gmail.com>
+	* src/Core/Nodes/SolutionNode.cs
+	- Had solutions inherit Configurations in the same way that Projects do.
+
+2008-04-29T06:35	Joseph Lombrozo <digitaljeebus@gmail.com>
+	* src/Core/Targets/VS2008Target.cs,
+	  src/Core/Nodes/DatabaseProjectNode.cs,
+	  src/Core/Nodes/DatabaseReferenceNode.cs,
+	  src/data/prebuild-1.7.xsd
+	- Added database references to database projects.
+	- Prevented nested solutions from being written to disk.
+
+2008-04-29T05:43	Joseph Lombrozo <digitaljeebus@gmail.com>
+	* src/Core/Targets/VS2008Target.cs
+	- Enabled embedded solutions to contain Files.
+
+2008-04-29T04:13	Joseph Lombrozo <digitaljeebus@gmail.com>	
+	* src/Core/VSVersion.cs
+	- Fixed spelling mistake in enum comment.
+	* src/Core/Attributes/DataNodeAttribute.cs
+	- Allowed the DataNodeAttribute to be attached to a single class 
+	  more than once, allowing one class to be used to parse more than 
+	  one node at a time.
+	* src/Core/Kernel.cs
+	- Changed CacheNodeTypes() to allow for multiple DataNodeAttribute 
+	  instances in one class. Refactored ProcessFile(...) to return Solutions, 
+	  rather than adding them to the Kernel.
+	* src/Core/Nodes/SolutionNode.cs
+	- Added Guid (for embedded folders)
+	- Added DatabaseProjects, Solutions and Processes to the SolutionNode 
+	  when parsing.
+	* src/Core/Nodes/ProjectNode.cs
+	- Added FrameworkVersion property to allow for 2.0/3.0/3.5 differentiation.
+	* src/Core/Targets/VS2008Target.cs, src/data/prebuild-1.7.xsd
+	- Added ability to have embedded solutions, and externally referenced
+	  prebuild scripts.
+
+2008-04-24T04:33	John M. Anderson <sontek@gmail.com>	
+	* src/Core/Targets/VS2003Target.cs, src/Core/Targets/VSVersion.cs 
+	- Moved the VSVersion enum into its own file. 
+	* src/Core/Targets/VS2008Target.cs
+	- added support for VS2008 
+	* src/Core/Nodes/ProjectNode.cs
+	- Added initial support for ASP.NET projects 
+	* src/Core/Nodes/DatabaseProjectNode.cs
+	- Added support for Visual Studio database projects 
+
 2008-02-19T07:08	C.J. Adams-Collier <cjac@colliertech.org>
 	* TODO
 	- added some tasks from Sam Hocevar

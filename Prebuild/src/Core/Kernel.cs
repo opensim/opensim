@@ -36,16 +36,8 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 #endregion
 
-#region CVS Information
-/*
- * $Source$
- * $Author: cjcollier $
- * $Date: 2008-02-08 01:31:29 +0900 (Fri, 08 Feb 2008) $
- * $Revision: 256 $
- */
-#endregion
-
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Collections;
 using System.Collections.Specialized;
@@ -80,17 +72,17 @@ namespace Prebuild.Core
 
 		#region Fields
 
-		private static Kernel m_Instance = new Kernel();
+		private static readonly Kernel m_Instance = new Kernel();
 
 		/// <summary>
 		/// This must match the version of the schema that is embeeded
 		/// </summary>
-		private static string m_SchemaVersion = "1.7";
-		private static string m_Schema = "prebuild-" + m_SchemaVersion + ".xsd";
-		private static string m_SchemaURI = "http://dnpb.sourceforge.net/schemas/" + m_Schema;
+		private const string m_SchemaVersion = "1.7";
+		private const string m_Schema = "prebuild-" + m_SchemaVersion + ".xsd";
+		private const string m_SchemaURI = "http://dnpb.sourceforge.net/schemas/" + m_Schema;
 		bool disposed;
 		private Version m_Version;
-		private string m_Revision = "";
+		private const string m_Revision = "";
 		private CommandLineCollection m_CommandLine;
 		private Log m_Log;
 		private CurrentDirectory m_CurrentWorkingDirectory;
@@ -98,19 +90,16 @@ namespace Prebuild.Core
         
 		private Hashtable m_Targets;
 		private Hashtable m_Nodes;
-        
-		ArrayList m_Solutions;        
+
+	    readonly List<SolutionNode> m_Solutions = new List<SolutionNode>();        
 		string m_Target;
 		string m_Clean;
 		string[] m_RemoveDirectories;
-		string m_CurrentFile;
-		XmlDocument m_CurrentDoc;
+	    XmlDocument m_CurrentDoc;
 		bool m_PauseAfterFinish;
 		string[] m_ProjectGroups;
-		StringCollection m_Refs;
 
-		
-		#endregion
+	    #endregion
 
 		#region Constructors
 
@@ -210,7 +199,7 @@ namespace Prebuild.Core
 		/// Gets the solutions.
 		/// </summary>
 		/// <value>The solutions.</value>
-		public ArrayList Solutions
+		public List<SolutionNode> Solutions
 		{
 			get
 			{
@@ -235,7 +224,7 @@ namespace Prebuild.Core
 
 		#region Private Methods
 
-		private void RemoveDirectories(string rootDir, string[] dirNames) 
+		private static void RemoveDirectories(string rootDir, string[] dirNames) 
 		{
 			foreach(string dir in Directory.GetDirectories(rootDir)) 
 			{
@@ -297,13 +286,15 @@ namespace Prebuild.Core
 			foreach(Type t in assm.GetTypes())
 			{
 				TargetAttribute ta = (TargetAttribute)Helper.CheckType(t, typeof(TargetAttribute), typeof(ITarget));
-				if(ta == null)
-				{
-					continue;
-				}
 
+				if(ta == null)
+					continue;
+				
+				if (t.IsAbstract)
+					continue;
+				
 				ITarget target = (ITarget)assm.CreateInstance(t.FullName);
-				if(target == null)
+				if (target == null)
 				{
 					throw new MissingMethodException("Could not create ITarget instance");
 				}
@@ -316,16 +307,13 @@ namespace Prebuild.Core
 		{
 			foreach(Type t in assm.GetTypes())
 			{
-				DataNodeAttribute dna = (DataNodeAttribute)Helper.CheckType(t, typeof(DataNodeAttribute), typeof(IDataNode));
-				if(dna == null)
-				{
-					continue;
-				}
-
-				NodeEntry ne = new NodeEntry();
-				ne.Type = t;
-				ne.Attribute = dna;
-				m_Nodes[dna.Name] = ne;
+                foreach (DataNodeAttribute dna in t.GetCustomAttributes(typeof(DataNodeAttribute), true))
+                {
+                    NodeEntry ne = new NodeEntry();
+                    ne.Type = t;
+                    ne.Attribute = dna;
+                    m_Nodes[dna.Name] = ne;
+                }
 			}
 		}
 
@@ -343,7 +331,32 @@ namespace Prebuild.Core
                   m_Log.Write();
 		}
 
-		private void ProcessFile(string file)
+
+
+        private void ProcessFile(string file)
+        {
+            ProcessFile(file, this.m_Solutions);
+        }
+
+        public void ProcessFile(ProcessNode node, SolutionNode parent)
+        {
+            if (node.IsValid)
+            {
+                List<SolutionNode> list = new List<SolutionNode>();
+                ProcessFile(node.Path, list);
+
+                foreach (SolutionNode solution in list)
+                    parent.SolutionsTable[solution.Name] = solution;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="solutions"></param>
+        /// <returns></returns>
+		public void ProcessFile(string file, IList<SolutionNode> solutions)
 		{
 			m_CurrentWorkingDirectory.Push();
             
@@ -361,8 +374,7 @@ namespace Prebuild.Core
 					return;
 				}
 
-				m_CurrentFile = path;
-				Helper.SetCurrentDir(Path.GetDirectoryName(path));
+			    Helper.SetCurrentDir(Path.GetDirectoryName(path));
 				
 				XmlTextReader reader = new XmlTextReader(path);
 
@@ -379,6 +391,33 @@ namespace Prebuild.Core
 
 				string xml = pre.Process(reader);//remove script and evaulate pre-proccessing to get schema-conforming XML
 
+				// See if the user put into a pseudo target of "prebuild:preprocessed-input" to indicate they want to see the
+				// output before the system processes it.
+				if (m_CommandLine.WasPassed("ppi"))
+				{
+					// Get the filename if there is one, otherwise use a default.
+					string ppiFile = m_CommandLine["ppi"];
+					if (ppiFile == null || ppiFile.Trim().Length == 0)
+					{
+						ppiFile = "preprocessed-input.xml";
+					}
+
+					// Write out the string to the given stream.
+					try
+					{
+						using (StreamWriter ppiWriter = new StreamWriter(ppiFile))
+						{
+							ppiWriter.WriteLine(xml);
+						}
+					}
+					catch(IOException ex)
+					{
+						Console.WriteLine("Could not write PPI file '{0}': {1}", ppiFile, ex.Message);
+					}
+
+					// Finish processing this special tag.
+					return;
+				}
 				
 				m_CurrentDoc = new XmlDocument();
 				try
@@ -443,7 +482,7 @@ namespace Prebuild.Core
 					}
 					else if(dataNode is SolutionNode)
 					{
-						m_Solutions.Add(dataNode);
+						solutions.Add((SolutionNode)dataNode);
 					}
 				}
 			}
@@ -527,7 +566,7 @@ namespace Prebuild.Core
 		/// <returns></returns>
 		public IDataNode ParseNode(XmlNode node, IDataNode parent, IDataNode preNode)
 		{
-			IDataNode dataNode = null;
+			IDataNode dataNode;
 
 			try
 			{
@@ -629,9 +668,6 @@ namespace Prebuild.Core
 			m_PauseAfterFinish = m_CommandLine.WasPassed("pause");
 
 			LoadSchema();
-
-			m_Solutions = new ArrayList();
-			m_Refs = new StringCollection();
 		}
 
 		/// <summary>
@@ -664,17 +700,18 @@ namespace Prebuild.Core
 				m_Log.Write(LogType.Error, "The options /target and /clean cannot be passed together");
 				return;
 			}
-			else if(m_Target == null && m_Clean == null)
-			{
-				if(perfomedOtherTask) //finished
-				{
-					return;
-				}
-				m_Log.Write(LogType.Error, "Must pass either /target or /clean to process a Prebuild file");
-				return;
-			}
+		    
+            if(m_Target == null && m_Clean == null)
+		    {
+		        if(perfomedOtherTask) //finished
+		        {
+		            return;
+		        }
+		        m_Log.Write(LogType.Error, "Must pass either /target or /clean to process a Prebuild file");
+		        return;
+		    }
 
-			string file = "./prebuild.xml";
+		    string file = "./prebuild.xml";
 			if(m_CommandLine.WasPassed("file"))
 			{
 				file = m_CommandLine["file"];
