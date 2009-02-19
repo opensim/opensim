@@ -28,7 +28,6 @@
 using System;
 using System.Reflection;
 using log4net;
-using OpenSim.Data;
 
 namespace OpenSim.Framework.Communications.Cache
 {
