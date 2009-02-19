@@ -395,17 +395,17 @@ namespace OpenSim.Data.MSSQL
 
             retval.regionHandle = tmp64;
 
-            UUID tmp_uuid;
-            if (!UUID.TryParse((string)reader["uuid"], out tmp_uuid))
-            {
-                return null;
-            }
+//            UUID tmp_uuid;
+//            if (!UUID.TryParse((string)reader["uuid"], out tmp_uuid))
+//            {
+//                return null;
+//            }
 
-            retval.UUID = tmp_uuid;
+            retval.UUID = new UUID((Guid)reader["uuid"]); // tmp_uuid;
 
             // non-critical parts
             retval.regionName = reader["regionName"].ToString();
-            retval.originUUID = new UUID((string)reader["originUUID"]);
+            retval.originUUID = new UUID((Guid)reader["originUUID"]);
 
             // Secrets
             retval.regionRecvKey = reader["regionRecvKey"].ToString();
@@ -443,8 +443,10 @@ namespace OpenSim.Data.MSSQL
             retval.regionUserSendKey = reader["regionUserSendKey"].ToString();
 
             // World Map Addition
-            UUID.TryParse((string)reader["regionMapTexture"], out retval.regionMapTextureID);
-            UUID.TryParse((string)reader["owner_uuid"], out retval.owner_uuid);
+            retval.regionMapTextureID = new UUID((Guid)reader["regionMapTexture"]);
+            retval.owner_uuid = new UUID((Guid)reader["owner_uuid"]);
+//            UUID.TryParse((string)reader["regionMapTexture"], out retval.regionMapTextureID);
+//            UUID.TryParse((string)reader["owner_uuid"], out retval.owner_uuid);
 
             return retval;
         }

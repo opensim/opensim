@@ -445,8 +445,8 @@ namespace OpenSim.Data.MSSQL
                         while (reader.Read())
                         {
                             FriendListItem fli = new FriendListItem();
-                            fli.FriendListOwner = new UUID((string)reader["ownerID"]);
-                            fli.Friend = new UUID((string)reader["friendID"]);
+                            fli.FriendListOwner = new UUID((Guid)reader["ownerID"]);
+                            fli.Friend = new UUID((Guid)reader["friendID"]);
                             fli.FriendPerms = (uint)Convert.ToInt32(reader["friendPerms"]);
 
                             // This is not a real column in the database table, it's a joined column from the opposite record
@@ -703,14 +703,14 @@ namespace OpenSim.Data.MSSQL
                     {
                         command.Parameters.Add(database.CreateParameter("@uuid", agentID));
                         command.Parameters.Add(database.CreateParameter("@attachpoint", attachpoint));
-                        command.Parameters.Add(database.CreateParameter("@item", item["item"].ToString()));
-                        command.Parameters.Add(database.CreateParameter("@asset", item["asset"].ToString()));
+                        command.Parameters.Add(database.CreateParameter("@item", new UUID(item["item"].ToString())));
+                        command.Parameters.Add(database.CreateParameter("@asset", new UUID(item["asset"].ToString())));
                         firstTime = false;
                     }
-                    command.Parameters["@uuid"].Value = agentID.ToString();
+                    command.Parameters["@uuid"].Value = agentID.Guid; //.ToString();
                     command.Parameters["@attachpoint"].Value = attachpoint;
-                    command.Parameters["@item"].Value = item["item"].ToString();
-                    command.Parameters["@asset"].Value = item["asset"].ToString();
+                    command.Parameters["@item"].Value = new Guid(item["item"].ToString());
+                    command.Parameters["@asset"].Value = new Guid(item["asset"].ToString());
 
                     try
                     {
@@ -769,7 +769,7 @@ namespace OpenSim.Data.MSSQL
                             while (reader.Read())
                             {
                                 AvatarPickerAvatar user = new AvatarPickerAvatar();
-                                user.AvatarID = new UUID((string)reader["UUID"]);
+                                user.AvatarID = new UUID((Guid)reader["UUID"]);
                                 user.firstName = (string)reader["username"];
                                 user.lastName = (string)reader["lastname"];
                                 returnlist.Add(user);
@@ -795,7 +795,7 @@ namespace OpenSim.Data.MSSQL
                             while (reader.Read())
                             {
                                 AvatarPickerAvatar user = new AvatarPickerAvatar();
-                                user.AvatarID = new UUID((string)reader["UUID"]);
+                                user.AvatarID = new UUID((Guid)reader["UUID"]);
                                 user.firstName = (string)reader["username"];
                                 user.lastName = (string)reader["lastname"];
                                 returnlist.Add(user);
@@ -858,37 +858,37 @@ namespace OpenSim.Data.MSSQL
             {
                 AvatarAppearance appearance = new AvatarAppearance();
 
-                appearance.Owner = new UUID((string)reader["owner"]);
+                appearance.Owner = new UUID((Guid)reader["owner"]);
                 appearance.Serial = Convert.ToInt32(reader["serial"]);
                 appearance.VisualParams = (byte[])reader["visual_params"];
                 appearance.Texture = new Primitive.TextureEntry((byte[])reader["texture"], 0, ((byte[])reader["texture"]).Length);
                 appearance.AvatarHeight = (float)Convert.ToDouble(reader["avatar_height"]);
-                appearance.BodyItem = new UUID((string)reader["body_item"]);
-                appearance.BodyAsset = new UUID((string)reader["body_asset"]);
-                appearance.SkinItem = new UUID((string)reader["skin_item"]);
-                appearance.SkinAsset = new UUID((string)reader["skin_asset"]);
-                appearance.HairItem = new UUID((string)reader["hair_item"]);
-                appearance.HairAsset = new UUID((string)reader["hair_asset"]);
-                appearance.EyesItem = new UUID((string)reader["eyes_item"]);
-                appearance.EyesAsset = new UUID((string)reader["eyes_asset"]);
-                appearance.ShirtItem = new UUID((string)reader["shirt_item"]);
-                appearance.ShirtAsset = new UUID((string)reader["shirt_asset"]);
-                appearance.PantsItem = new UUID((string)reader["pants_item"]);
-                appearance.PantsAsset = new UUID((string)reader["pants_asset"]);
-                appearance.ShoesItem = new UUID((string)reader["shoes_item"]);
-                appearance.ShoesAsset = new UUID((string)reader["shoes_asset"]);
-                appearance.SocksItem = new UUID((string)reader["socks_item"]);
-                appearance.SocksAsset = new UUID((string)reader["socks_asset"]);
-                appearance.JacketItem = new UUID((string)reader["jacket_item"]);
-                appearance.JacketAsset = new UUID((string)reader["jacket_asset"]);
-                appearance.GlovesItem = new UUID((string)reader["gloves_item"]);
-                appearance.GlovesAsset = new UUID((string)reader["gloves_asset"]);
-                appearance.UnderShirtItem = new UUID((string)reader["undershirt_item"]);
-                appearance.UnderShirtAsset = new UUID((string)reader["undershirt_asset"]);
-                appearance.UnderPantsItem = new UUID((string)reader["underpants_item"]);
-                appearance.UnderPantsAsset = new UUID((string)reader["underpants_asset"]);
-                appearance.SkirtItem = new UUID((string)reader["skirt_item"]);
-                appearance.SkirtAsset = new UUID((string)reader["skirt_asset"]);
+                appearance.BodyItem = new UUID((Guid)reader["body_item"]);
+                appearance.BodyAsset = new UUID((Guid)reader["body_asset"]);
+                appearance.SkinItem = new UUID((Guid)reader["skin_item"]);
+                appearance.SkinAsset = new UUID((Guid)reader["skin_asset"]);
+                appearance.HairItem = new UUID((Guid)reader["hair_item"]);
+                appearance.HairAsset = new UUID((Guid)reader["hair_asset"]);
+                appearance.EyesItem = new UUID((Guid)reader["eyes_item"]);
+                appearance.EyesAsset = new UUID((Guid)reader["eyes_asset"]);
+                appearance.ShirtItem = new UUID((Guid)reader["shirt_item"]);
+                appearance.ShirtAsset = new UUID((Guid)reader["shirt_asset"]);
+                appearance.PantsItem = new UUID((Guid)reader["pants_item"]);
+                appearance.PantsAsset = new UUID((Guid)reader["pants_asset"]);
+                appearance.ShoesItem = new UUID((Guid)reader["shoes_item"]);
+                appearance.ShoesAsset = new UUID((Guid)reader["shoes_asset"]);
+                appearance.SocksItem = new UUID((Guid)reader["socks_item"]);
+                appearance.SocksAsset = new UUID((Guid)reader["socks_asset"]);
+                appearance.JacketItem = new UUID((Guid)reader["jacket_item"]);
+                appearance.JacketAsset = new UUID((Guid)reader["jacket_asset"]);
+                appearance.GlovesItem = new UUID((Guid)reader["gloves_item"]);
+                appearance.GlovesAsset = new UUID((Guid)reader["gloves_asset"]);
+                appearance.UnderShirtItem = new UUID((Guid)reader["undershirt_item"]);
+                appearance.UnderShirtAsset = new UUID((Guid)reader["undershirt_asset"]);
+                appearance.UnderPantsItem = new UUID((Guid)reader["underpants_item"]);
+                appearance.UnderPantsAsset = new UUID((Guid)reader["underpants_asset"]);
+                appearance.SkirtItem = new UUID((Guid)reader["skirt_item"]);
+                appearance.SkirtAsset = new UUID((Guid)reader["skirt_asset"]);
 
                 return appearance;
             }
@@ -969,9 +969,9 @@ ELSE
             if (reader.Read())
             {
                 // Agent IDs
-                retval.ProfileID = new UUID((string)reader["UUID"]);
-                retval.SessionID = new UUID((string)reader["sessionID"]);
-                retval.SecureSessionID = new UUID((string)reader["secureSessionID"]);
+                retval.ProfileID = new UUID((Guid)reader["UUID"]);
+                retval.SessionID = new UUID((Guid)reader["sessionID"]);
+                retval.SecureSessionID = new UUID((Guid)reader["secureSessionID"]);
 
                 // Agent Who?
                 retval.AgentIP = (string)reader["agentIP"];
@@ -983,7 +983,7 @@ ELSE
                 retval.LogoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
 
                 // Current position
-                retval.Region = (UUID)(string)reader["currentRegion"];
+                retval.Region = new UUID((Guid)reader["currentRegion"]);
                 retval.Handle = Convert.ToUInt64(reader["currentHandle"].ToString());
                 Vector3 tmp_v;
                 Vector3.TryParse((string)reader["currentPos"], out tmp_v);
@@ -1110,7 +1110,7 @@ ELSE
 
             if (reader.Read())
             {
-                retval.ID = new UUID((string)reader["UUID"]);
+                retval.ID = new UUID((Guid)reader["UUID"]);
                 retval.FirstName = (string)reader["username"];
                 retval.SurName = (string)reader["lastname"];
 
@@ -1139,9 +1139,9 @@ ELSE
                 retval.AboutText = (string)reader["profileAboutText"];
                 retval.FirstLifeAboutText = (string)reader["profileFirstText"];
 
-                retval.Image = new UUID((string)reader["profileImage"]);
-                retval.FirstLifeImage = new UUID((string)reader["profileFirstImage"]);
-                retval.WebLoginKey = new UUID((string)reader["webLoginKey"]);
+                retval.Image = new UUID((Guid)reader["profileImage"]);
+                retval.FirstLifeImage = new UUID((Guid)reader["profileFirstImage"]);
+                retval.WebLoginKey = new UUID((Guid)reader["webLoginKey"]);
             }
             else
             {

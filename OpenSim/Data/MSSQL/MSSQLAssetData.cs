@@ -28,8 +28,8 @@
 using System;
 using System.Data;
 using System.Reflection;
-using log4net;
 using OpenMetaverse;
+using log4net;
 using OpenSim.Framework;
 
 namespace OpenSim.Data.MSSQL
@@ -71,7 +71,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="connectionString">connect string</param>
         override public void Initialise(string connectionString)
         {
-            TicksToEpoch = new DateTime(1970, 1, 1).Ticks;
+            TicksToEpoch = new System.DateTime(1970, 1, 1).Ticks;
 
             if (!string.IsNullOrEmpty(connectionString))
             {
@@ -132,7 +132,7 @@ namespace OpenSim.Data.MSSQL
                     {
                         AssetBase asset = new AssetBase();
                         // Region Main
-                        asset.FullID = new UUID((string)reader["id"]);
+                        asset.FullID = new UUID((Guid)reader["id"]);
                         asset.Name = (string)reader["name"];
                         asset.Description = (string)reader["description"];
                         asset.Type = Convert.ToSByte(reader["assetType"]);
@@ -162,7 +162,7 @@ namespace OpenSim.Data.MSSQL
                     " VALUES " +
                     "(@id, @name, @description, @assetType, @local, @temporary, @create_time, @access_time, @data)"))
             {
-                int now = (int)((DateTime.Now.Ticks - TicksToEpoch) / 10000000);
+                int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
                 command.Parameters.Add(database.CreateParameter("id", asset.FullID));
                 command.Parameters.Add(database.CreateParameter("name", asset.Name));
                 command.Parameters.Add(database.CreateParameter("description", asset.Description));

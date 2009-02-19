@@ -128,7 +128,7 @@ namespace OpenSim.Data.MSSQL
                         sceneObjectPart.FolderID = sceneObjectPart.UUID; 
                         sceneObjectParts.Add(sceneObjectPart);
 
-                        UUID groupID = new UUID(reader["SceneGroupID"].ToString());
+                        UUID groupID = new UUID((Guid)reader["SceneGroupID"]);
 
                         if (groupID != lastGroupID) // New SOG
                         {
@@ -198,7 +198,7 @@ namespace OpenSim.Data.MSSQL
                     }
                     else
                     {
-                        command.Parameters["@PrimID"].Value = objectPart.UUID.ToString();
+                        command.Parameters["@PrimID"].Value = objectPart.UUID.Guid; //.ToString(); //TODO check if this works
                     }
 
                     List<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
@@ -418,15 +418,16 @@ ELSE
             _Log.InfoFormat("[MSSQL]: Removing obj: {0} from region: {1}", objectID, regionUUID);
 
             //Remove from prims and primsitem table
-            string sqlPrims = string.Format("DELETE FROM PRIMS WHERE SceneGroupID = '{0}'", objectID);
-            string sqlPrimItems = string.Format("DELETE FROM PRIMITEMS WHERE primID in (SELECT UUID FROM PRIMS WHERE SceneGroupID = '{0}')", objectID);
-            string sqlPrimShapes = string.Format("DELETE FROM PRIMSHAPES WHERE uuid in (SELECT UUID FROM PRIMS WHERE SceneGroupID = '{0}')", objectID);
+            string sqlPrims = "DELETE FROM PRIMS WHERE SceneGroupID = @objectID";
+            string sqlPrimItems = "DELETE FROM PRIMITEMS WHERE primID in (SELECT UUID FROM PRIMS WHERE SceneGroupID = @objectID)";
+            string sqlPrimShapes = "DELETE FROM PRIMSHAPES WHERE uuid in (SELECT UUID FROM PRIMS WHERE SceneGroupID = @objectID)";
 
             lock (_Database)
             {
                 //Using the non transaction mode.
                 using (AutoClosingSqlCommand cmd = _Database.Query(sqlPrimShapes))
                 {
+                    cmd.Parameters.Add(_Database.CreateParameter("objectID", objectID));
                     cmd.ExecuteNonQuery();
 
                     cmd.CommandText = sqlPrimItems;
@@ -495,7 +496,7 @@ ELSE
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
                 // MySqlParameter param = new MySqlParameter();
-                cmd.Parameters.AddWithValue("@RegionUUID", regionID.ToString());
+                cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionID));
 
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
@@ -805,7 +806,7 @@ VALUES
             //TODO change this is some more generic code so we doesnt have to change it every time a new field is added?
             RegionSettings newSettings = new RegionSettings();
 
-            newSettings.RegionUUID = new UUID((string)row["regionUUID"]);
+            newSettings.RegionUUID = new UUID((Guid)row["regionUUID"]);
             newSettings.BlockTerraform = Convert.ToBoolean(row["block_terraform"]);
             newSettings.AllowDamage = Convert.ToBoolean(row["allow_damage"]);
             newSettings.BlockFly = Convert.ToBoolean(row["block_fly"]);
@@ -819,10 +820,10 @@ VALUES
             newSettings.DisableScripts = Convert.ToBoolean(row["disable_scripts"]);
             newSettings.DisableCollisions = Convert.ToBoolean(row["disable_collisions"]);
             newSettings.DisablePhysics = Convert.ToBoolean(row["disable_physics"]);
-            newSettings.TerrainTexture1 = new UUID((String)row["terrain_texture_1"]);
-            newSettings.TerrainTexture2 = new UUID((String)row["terrain_texture_2"]);
-            newSettings.TerrainTexture3 = new UUID((String)row["terrain_texture_3"]);
-            newSettings.TerrainTexture4 = new UUID((String)row["terrain_texture_4"]);
+            newSettings.TerrainTexture1 = new UUID((Guid)row["terrain_texture_1"]);
+            newSettings.TerrainTexture2 = new UUID((Guid)row["terrain_texture_2"]);
+            newSettings.TerrainTexture3 = new UUID((Guid)row["terrain_texture_3"]);
+            newSettings.TerrainTexture4 = new UUID((Guid)row["terrain_texture_4"]);
             newSettings.Elevation1NW = Convert.ToDouble(row["elevation_1_nw"]);
             newSettings.Elevation2NW = Convert.ToDouble(row["elevation_2_nw"]);
             newSettings.Elevation1NE = Convert.ToDouble(row["elevation_1_ne"]);
@@ -843,7 +844,7 @@ VALUES
                                                  Convert.ToSingle(row["sunvectory"]),
                                                  Convert.ToSingle(row["sunvectorz"])
                                                  );
-            newSettings.Covenant = new UUID((String)row["covenant"]);
+            newSettings.Covenant = new UUID((Guid)row["covenant"]);
 
             return newSettings;
         }
@@ -857,15 +858,15 @@ VALUES
         {
             LandData newData = new LandData();
 
-            newData.GlobalID = new UUID((String)row["UUID"]);
+            newData.GlobalID = new UUID((Guid)row["UUID"]);
             newData.LocalID = Convert.ToInt32(row["LocalLandID"]);
 
             // Bitmap is a byte[512]
             newData.Bitmap = (Byte[])row["Bitmap"];
 
-            newData.Name = (String)row["Name"];
-            newData.Description = (String)row["Description"];
-            newData.OwnerID = (UUID)(String)row["OwnerUUID"];
+            newData.Name = (string)row["Name"];
+            newData.Description = (string)row["Description"];
+            newData.OwnerID = new UUID((Guid)row["OwnerUUID"]);
             newData.IsGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]);
             newData.Area = Convert.ToInt32(row["Area"]);
             newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
@@ -873,27 +874,29 @@ VALUES
             //Enum libsecondlife.Parcel.ParcelCategory
             newData.ClaimDate = Convert.ToInt32(row["ClaimDate"]);
             newData.ClaimPrice = Convert.ToInt32(row["ClaimPrice"]);
-            newData.GroupID = new UUID((String)row["GroupUUID"]);
+            newData.GroupID = new UUID((Guid)row["GroupUUID"]);
             newData.SalePrice = Convert.ToInt32(row["SalePrice"]);
             newData.Status = (Parcel.ParcelStatus)Convert.ToInt32(row["LandStatus"]);
             //Enum. libsecondlife.Parcel.ParcelStatus
             newData.Flags = Convert.ToUInt32(row["LandFlags"]);
             newData.LandingType = Convert.ToByte(row["LandingType"]);
             newData.MediaAutoScale = Convert.ToByte(row["MediaAutoScale"]);
-            newData.MediaID = new UUID((String)row["MediaTextureUUID"]);
-            newData.MediaURL = (String)row["MediaURL"];
-            newData.MusicURL = (String)row["MusicURL"];
+            newData.MediaID = new UUID((Guid)row["MediaTextureUUID"]);
+            newData.MediaURL = (string)row["MediaURL"];
+            newData.MusicURL = (string)row["MusicURL"];
             newData.PassHours = Convert.ToSingle(row["PassHours"]);
             newData.PassPrice = Convert.ToInt32(row["PassPrice"]);
 
-            UUID authedbuyer;
-            UUID snapshotID;
-
-            if (UUID.TryParse((string)row["AuthBuyerID"], out authedbuyer))
-                newData.AuthBuyerID = authedbuyer;
-
-            if (UUID.TryParse((string)row["SnapshotUUID"], out snapshotID))
-                newData.SnapshotID = snapshotID;
+//            UUID authedbuyer;
+//            UUID snapshotID;
+//
+//            if (UUID.TryParse((string)row["AuthBuyerID"], out authedbuyer))
+//                newData.AuthBuyerID = authedbuyer;
+//
+//            if (UUID.TryParse((string)row["SnapshotUUID"], out snapshotID))
+//                newData.SnapshotID = snapshotID;
+            newData.AuthBuyerID = new UUID((Guid) row["AuthBuyerID"]);
+            newData.SnapshotID = new UUID((Guid)row["SnapshotUUID"]);
 
             newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
             newData.Dwell = Convert.ToInt32(row["Dwell"]);
@@ -927,7 +930,7 @@ VALUES
         private static ParcelManager.ParcelAccessEntry BuildLandAccessData(IDataRecord row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-            entry.AgentID = new UUID((string)row["AccessUUID"]);
+            entry.AgentID = new UUID((Guid)row["AccessUUID"]);
             entry.Flags = (AccessList)Convert.ToInt32(row["Flags"]);
             entry.Time = new DateTime();
             return entry;
@@ -942,26 +945,26 @@ VALUES
         {
             SceneObjectPart prim = new SceneObjectPart();
 
-            prim.UUID = new UUID((String)primRow["UUID"]);
+            prim.UUID = new UUID((Guid)primRow["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
             prim.CreationDate = Convert.ToInt32(primRow["CreationDate"]);
-            prim.Name = (String)primRow["Name"];
+            prim.Name = (string)primRow["Name"];
             // various text fields
-            prim.Text = (String)primRow["Text"];
+            prim.Text = (string)primRow["Text"];
             prim.Color = Color.FromArgb(Convert.ToInt32(primRow["ColorA"]),
                                         Convert.ToInt32(primRow["ColorR"]),
                                         Convert.ToInt32(primRow["ColorG"]),
                                         Convert.ToInt32(primRow["ColorB"]));
-            prim.Description = (String)primRow["Description"];
-            prim.SitName = (String)primRow["SitName"];
-            prim.TouchName = (String)primRow["TouchName"];
+            prim.Description = (string)primRow["Description"];
+            prim.SitName = (string)primRow["SitName"];
+            prim.TouchName = (string)primRow["TouchName"];
             // permissions
             prim.ObjectFlags = Convert.ToUInt32(primRow["ObjectFlags"]);
-            prim.CreatorID = new UUID((String)primRow["CreatorID"]);
-            prim.OwnerID = new UUID((String)primRow["OwnerID"]);
-            prim.GroupID = new UUID((String)primRow["GroupID"]);
-            prim.LastOwnerID = new UUID((String)primRow["LastOwnerID"]);
+            prim.CreatorID = new UUID((Guid)primRow["CreatorID"]);
+            prim.OwnerID = new UUID((Guid)primRow["OwnerID"]);
+            prim.GroupID = new UUID((Guid)primRow["GroupID"]);
+            prim.LastOwnerID = new UUID((Guid)primRow["LastOwnerID"]);
             prim.OwnerMask = Convert.ToUInt32(primRow["OwnerMask"]);
             prim.NextOwnerMask = Convert.ToUInt32(primRow["NextOwnerMask"]);
             prim.GroupMask = Convert.ToUInt32(primRow["GroupMask"]);
@@ -1017,7 +1020,7 @@ VALUES
             prim.PayPrice[3] = Convert.ToInt32(primRow["PayButton3"]);
             prim.PayPrice[4] = Convert.ToInt32(primRow["PayButton4"]);
 
-            prim.Sound = new UUID(primRow["LoopedSound"].ToString());
+            prim.Sound = new UUID((Guid)primRow["LoopedSound"]);
             prim.SoundGain = Convert.ToSingle(primRow["LoopedSoundGain"]);
             prim.SoundFlags = 1; // If it's persisted at all, it's looped
 
@@ -1062,7 +1065,7 @@ VALUES
             if (!(primRow["ClickAction"] is DBNull))
                 prim.ClickAction = Convert.ToByte(primRow["ClickAction"]);
 
-            prim.CollisionSound = new UUID(primRow["CollisionSound"].ToString());
+            prim.CollisionSound = new UUID((Guid)primRow["CollisionSound"]);
             prim.CollisionSoundVolume = Convert.ToSingle(primRow["CollisionSoundVolume"]);
 
             prim.LinkNum = Convert.ToInt32(primRow["LinkNumber"]);
@@ -1131,21 +1134,21 @@ VALUES
         {
             TaskInventoryItem taskItem = new TaskInventoryItem();
 
-            taskItem.ItemID = new UUID((String)inventoryRow["itemID"]);
-            taskItem.ParentPartID = new UUID((String)inventoryRow["primID"]);
-            taskItem.AssetID = new UUID((String)inventoryRow["assetID"]);
-            taskItem.ParentID = new UUID((String)inventoryRow["parentFolderID"]);
+            taskItem.ItemID = new UUID((Guid)inventoryRow["itemID"]);
+            taskItem.ParentPartID = new UUID((Guid)inventoryRow["primID"]);
+            taskItem.AssetID = new UUID((Guid)inventoryRow["assetID"]);
+            taskItem.ParentID = new UUID((Guid)inventoryRow["parentFolderID"]);
 
             taskItem.InvType = Convert.ToInt32(inventoryRow["invType"]);
             taskItem.Type = Convert.ToInt32(inventoryRow["assetType"]);
 
-            taskItem.Name = (String)inventoryRow["name"];
-            taskItem.Description = (String)inventoryRow["description"];
+            taskItem.Name = (string)inventoryRow["name"];
+            taskItem.Description = (string)inventoryRow["description"];
             taskItem.CreationDate = Convert.ToUInt32(inventoryRow["creationDate"]);
-            taskItem.CreatorID = new UUID((String)inventoryRow["creatorID"]);
-            taskItem.OwnerID = new UUID((String)inventoryRow["ownerID"]);
-            taskItem.LastOwnerID = new UUID((String)inventoryRow["lastOwnerID"]);
-            taskItem.GroupID = new UUID((String)inventoryRow["groupID"]);
+            taskItem.CreatorID = new UUID((Guid)inventoryRow["creatorID"]);
+            taskItem.OwnerID = new UUID((Guid)inventoryRow["ownerID"]);
+            taskItem.LastOwnerID = new UUID((Guid)inventoryRow["lastOwnerID"]);
+            taskItem.GroupID = new UUID((Guid)inventoryRow["groupID"]);
 
             taskItem.NextPermissions = Convert.ToUInt32(inventoryRow["nextPermissions"]);
             taskItem.CurrentPermissions = Convert.ToUInt32(inventoryRow["currentPermissions"]);

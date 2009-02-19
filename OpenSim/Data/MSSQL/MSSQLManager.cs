@@ -102,6 +102,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="dt"></param>
         /// <returns></returns>
+/*
         [Obsolete("Do not use!")]
         protected static string defineTable(DataTable dt)
         {
@@ -125,6 +126,7 @@ namespace OpenSim.Data.MSSQL
             sql += ")";
             return sql;
         }
+*/
 
         #endregion
 
@@ -134,6 +136,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="type">a type</param>
         /// <returns>a sqltype</returns>
         /// <remarks>this is something we'll need to implement for each db slightly differently.</remarks>
+/*
         [Obsolete("Used by a obsolete methods")]
         public static string SqlType(Type type)
         {
@@ -155,6 +158,7 @@ namespace OpenSim.Data.MSSQL
             }
             return "varchar(255)";
         }
+*/
 
         /// <summary>
         /// Type conversion to a SQLDbType functions
@@ -185,7 +189,7 @@ namespace OpenSim.Data.MSSQL
             }
             if (type == typeof(UUID))
             {
-                return SqlDbType.VarChar;
+                return SqlDbType.UniqueIdentifier;
             }
             if (type == typeof(sbyte))
             {
@@ -215,13 +219,13 @@ namespace OpenSim.Data.MSSQL
         {
             Type valueType = value.GetType();
 
-            if (valueType == typeof(UUID))
+            if (valueType == typeof(UUID)) //TODO check if this works
             {
-                return value.ToString();
+                return ((UUID) value).Guid;
             }
             if (valueType == typeof(UUID))
             {
-                return value.ToString();
+                return ((UUID)value).Guid;
             }
             if (valueType == typeof(bool))
             {

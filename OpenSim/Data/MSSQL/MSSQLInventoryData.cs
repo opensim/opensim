@@ -317,7 +317,7 @@ namespace OpenSim.Data.MSSQL
                 List<InventoryFolderBase> subFolders;
                 using (SqlCommand command = new SqlCommand("SELECT * FROM inventoryfolders WHERE parentFolderID = @parentID", connection))
                 {
-                    command.Parameters.Add(database.CreateParameter("@parentID", string.Empty));
+                    command.Parameters.Add(database.CreateParameter("@parentID", UUID.Zero));
 
                     AutoClosingSqlCommand autoCommand = new AutoClosingSqlCommand(command);
 
@@ -589,7 +589,7 @@ namespace OpenSim.Data.MSSQL
         /// <returns></returns>
         private static List<InventoryFolderBase> getFolderHierarchy(UUID parentID, AutoClosingSqlCommand command)
         {
-            command.Parameters["@parentID"].Value = parentID.ToString();
+            command.Parameters["@parentID"].Value = parentID.Guid; //.ToString();
 
             List<InventoryFolderBase> folders = getInventoryFolders(command);
 
@@ -663,9 +663,9 @@ namespace OpenSim.Data.MSSQL
             try
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
-                folder.Owner = new UUID((string)reader["agentID"]);
-                folder.ParentID = new UUID((string)reader["parentFolderID"]);
-                folder.ID = new UUID((string)reader["folderID"]);
+                folder.Owner = new UUID((Guid)reader["agentID"]);
+                folder.ParentID = new UUID((Guid)reader["parentFolderID"]);
+                folder.ID = new UUID((Guid)reader["folderID"]);
                 folder.Name = (string)reader["folderName"];
                 folder.Type = (short)reader["type"];
                 folder.Version = Convert.ToUInt16(reader["version"]);
@@ -691,24 +691,24 @@ namespace OpenSim.Data.MSSQL
             {
                 InventoryItemBase item = new InventoryItemBase();
 
-                item.ID = new UUID(reader["inventoryID"].ToString());
-                item.AssetID = new UUID(reader["assetID"].ToString());
+                item.ID = new UUID((Guid)reader["inventoryID"]);
+                item.AssetID = new UUID((Guid)reader["assetID"]);
                 item.AssetType = Convert.ToInt32(reader["assetType"].ToString());
-                item.Folder = new UUID(reader["parentFolderID"].ToString());
-                item.Owner = new UUID(reader["avatarID"].ToString());
+                item.Folder = new UUID((Guid)reader["parentFolderID"]);
+                item.Owner = new UUID((Guid)reader["avatarID"]);
                 item.Name = reader["inventoryName"].ToString();
                 item.Description = reader["inventoryDescription"].ToString();
                 item.NextPermissions = Convert.ToUInt32(reader["inventoryNextPermissions"]);
                 item.CurrentPermissions = Convert.ToUInt32(reader["inventoryCurrentPermissions"]);
                 item.InvType = Convert.ToInt32(reader["invType"].ToString());
-                item.Creator = new UUID(reader["creatorID"].ToString());
+                item.Creator = new UUID((Guid)reader["creatorID"]);
                 item.BasePermissions = Convert.ToUInt32(reader["inventoryBasePermissions"]);
                 item.EveryOnePermissions = Convert.ToUInt32(reader["inventoryEveryOnePermissions"]);
                 item.GroupPermissions = Convert.ToUInt32(reader["inventoryGroupPermissions"]);
                 item.SalePrice = Convert.ToInt32(reader["salePrice"]);
                 item.SaleType = Convert.ToByte(reader["saleType"]);
                 item.CreationDate = Convert.ToInt32(reader["creationDate"]);
-                item.GroupID = new UUID(reader["groupID"].ToString());
+                item.GroupID = new UUID((Guid)reader["groupID"]);
                 item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
                 item.Flags = Convert.ToUInt32(reader["flags"]);
 
