@@ -2062,7 +2062,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <see>IClientAPI.SendInventoryItemCreateUpdate(InventoryItemBase)</see>
-        public void SendInventoryItemCreateUpdate(InventoryItemBase Item)
+        public void SendInventoryItemCreateUpdate(InventoryItemBase Item, uint callbackId)
         {
             const uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
 
@@ -2088,6 +2088,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             InventoryReply.InventoryData[0].OwnerID = Item.Owner;
             InventoryReply.InventoryData[0].OwnerMask = Item.CurrentPermissions;
             InventoryReply.InventoryData[0].Type = (sbyte)Item.AssetType;
+            InventoryReply.InventoryData[0].CallbackID = callbackId;
 
             InventoryReply.InventoryData[0].GroupID = Item.GroupID;
             InventoryReply.InventoryData[0].GroupOwned = Item.GroupOwned;

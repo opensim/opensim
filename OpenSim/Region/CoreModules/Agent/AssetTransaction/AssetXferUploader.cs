@@ -148,7 +148,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             m_finished = true;
             if (m_createItem)
             {
-                DoCreateItem();
+                DoCreateItem(0);
             }
             else if (m_storeLocal)
             {
@@ -200,7 +200,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                 if (m_finished)
                 {
-                    DoCreateItem();
+                    DoCreateItem(callbackID);
                 }
                 else
                 {
@@ -210,7 +210,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         }
 
 
-        private void DoCreateItem()
+        private void DoCreateItem(uint callbackID)
         {
             m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
             CachedUserInfo userInfo =
@@ -238,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 
                 userInfo.AddItem(item);
-                ourClient.SendInventoryItemCreateUpdate(item);
+                ourClient.SendInventoryItemCreateUpdate(item, callbackID);
             }
             else
             {

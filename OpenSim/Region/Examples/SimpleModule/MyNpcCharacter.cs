@@ -540,7 +540,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public virtual void SendInventoryItemCreateUpdate(InventoryItemBase Item)
+        public virtual void SendInventoryItemCreateUpdate(InventoryItemBase Item, uint callbackID)
         {
         }
 

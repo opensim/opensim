@@ -619,7 +619,7 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public virtual void SendInventoryItemCreateUpdate(InventoryItemBase Item)
+        public virtual void SendInventoryItemCreateUpdate(InventoryItemBase Item, uint callbackID)
         {
         }
 

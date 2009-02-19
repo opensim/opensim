@@ -3581,7 +3581,7 @@ namespace OpenSim.Region.Framework.Scenes
                     item.CreationDate = Util.UnixTimeSinceEpoch();
 
                     userInfo.AddItem(item);
-                    remoteClient.SendInventoryItemCreateUpdate(item);
+                    remoteClient.SendInventoryItemCreateUpdate(item, 0);
                 }
                 else
                 {
