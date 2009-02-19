@@ -48,10 +48,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private List<Scene> m_Scenes = new List<Scene>();
         private Dictionary<UUID, ulong> m_UserRegionMap = new Dictionary<UUID, ulong>();
 
-        public event ExternalHandleIM OnExternalIMCapture;
-
-        private ExternalHandleIM handlerExternalIMCapture;
-
         public void Initialise(Scene scene, IConfigSource config)
         {
             IConfig cnf = config.Configs["Messaging"];
@@ -99,16 +95,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         public void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)
         {
-            handlerExternalIMCapture = OnExternalIMCapture;
-            if (handlerExternalIMCapture != null)
-            {
-                if (handlerExternalIMCapture(im))
-                {
-                    result(true);
-                    return;
-                }
-            }
-
             UUID toAgentID = new UUID(im.toAgentID);
 
             m_log.DebugFormat("[INSTANT MESSAGE]: Attempting delivery of IM from {0} to {1}", im.fromAgentName, toAgentID.ToString());
