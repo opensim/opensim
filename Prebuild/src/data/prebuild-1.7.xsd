@@ -2,40 +2,39 @@
 <xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd" xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd">
   <xs:annotation>
     <xs:documentation>
-      Copyright (c) 2004-2007
-      Matthew Holmes (calefaction at houston . rr . com),
-      Dan Moorehead (dan05a at gmail . com),
-      David Hudson (jendave at  yahoo dot com),
-      C.J. Adams-Collier (cjac at colliertech dot com)
+			Copyright (c) 2004-2007
+			Matthew Holmes (calefaction at houston . rr . com),
+			Dan Moorehead (dan05a at gmail . com),
+			David Hudson (jendave at  yahoo dot com),
+			C.J. Adams-Collier (cjac at colliertech dot com)
 
-      .NET Prebuild is a cross-platform XML-driven pre-build tool which
-      allows developers to easily generate project or make files for major
-      IDE's and .NET development tools including: Visual Studio .NET 2002,
-      2003, and 2005, SharpDevelop, MonoDevelop, NAnt, Xcode and the GNU Autotools.
+			.NET Prebuild is a cross-platform XML-driven pre-build tool which
+			allows developers to easily generate project or make files for major
+			IDE's and .NET development tools including: Visual Studio .NET 2002,
+			2003, and 2005, SharpDevelop, MonoDevelop, NAnt, Xcode and the GNU Autotools.
 
-      BSD License:
+			BSD License:
+			
+			Redistribution and use in source and binary forms, with or without modification, are permitted
+			provided that the following conditions are met:
 
-      Redistribution and use in source and binary forms, with or without modification, are permitted
-      provided that the following conditions are met:
+			* Redistributions of source code must retain the above copyright notice, this list of conditions 
+			  and the following disclaimer. 
+			* Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+			  and the following disclaimer in the documentation and/or other materials provided with the 
+			  distribution. 
+			* The name of the author may not be used to endorse or promote products derived from this software 
+			  without specific prior written permission. 
 
-      * Redistributions of source code must retain the above copyright notice, this list of conditions
-      and the following disclaimer.
-      * Redistributions in binary form must reproduce the above copyright notice, this list of conditions
-      and the following disclaimer in the documentation and/or other materials provided with the
-      distribution.
-      * The name of the author may not be used to endorse or promote products derived from this software
-      without specific prior written permission.
-
-      THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-      BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-      ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-      EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-      OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-      OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-      IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-    </xs:documentation>
+			THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, 
+			BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+			ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+			EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+			OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+			OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+			IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+		</xs:documentation>
   </xs:annotation>
-  
   <xs:element name="Prebuild">
     <xs:complexType>
       <xs:sequence>
@@ -46,19 +45,14 @@
       <xs:attribute name="checkOsVars" />
     </xs:complexType>
   </xs:element>
-  
   <xs:element name="Process" type="xs:string" />
-
   <xs:element name="Solution">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="Configuration" minOccurs="1" maxOccurs="unbounded" />
-        <xs:element ref="Process" minOccurs="0" maxOccurs="unbounded" />
         <xs:element ref="Options" minOccurs="0" />
+        <xs:element ref="Configuration" minOccurs="1" maxOccurs="unbounded" />
         <xs:element ref="Files" minOccurs="0" />
-        <xs:element ref="Project" minOccurs="0" maxOccurs="unbounded" />
-        <xs:element ref="DatabaseProject" minOccurs="0" maxOccurs="unbounded" />
-        <xs:element ref="EmbeddedSolution" minOccurs="0" maxOccurs="unbounded" />
+        <xs:element ref="Project" minOccurs="1" maxOccurs="unbounded" />
       </xs:sequence>
       <xs:attribute name="name" type="xs:string" use="required" />
       <xs:attribute name="activeConfig" type="xs:string" default="Debug" />
@@ -66,49 +60,12 @@
       <xs:attribute name="version" type="xs:string" default="1.0.0" />
     </xs:complexType>
   </xs:element>
-
-  <xs:element name="EmbeddedSolution">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="Process" minOccurs="0" maxOccurs="unbounded" />
-        <xs:element ref="Files" minOccurs="0" />
-        <xs:element ref="Project" minOccurs="0" maxOccurs="unbounded" />
-        <xs:element ref="DatabaseProject" minOccurs="0" maxOccurs="unbounded" />
-        <xs:element ref="EmbeddedSolution" minOccurs="0" maxOccurs="unbounded" />
-      </xs:sequence>
-      <xs:attribute name="name" type="xs:string" use="required" />
-      <xs:attribute name="activeConfig" type="xs:string" default="Debug" />
-      <xs:attribute name="path" type="xs:string" default="" />
-      <xs:attribute name="version" type="xs:string" default="1.0.0" />
-    </xs:complexType>
-  </xs:element>
-  
-  <xs:element name="DatabaseProject">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element name="Author" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
-        <xs:element ref="DatabaseReference" minOccurs="0" maxOccurs="unbounded" />
-      </xs:sequence>
-      <xs:attribute name="name" type="xs:string" use="required" />
-      <xs:attribute name="path" type="xs:string" />
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="DatabaseReference">
-    <xs:complexType>
-      <xs:attribute name="name" type="xs:string" use="required" />
-      <xs:attribute name="providerId" type="xs:string" />
-      <xs:attribute name="providerName" type="xs:string" />
-      <xs:attribute name="connectionString" type="xs:string" use="required" />
-    </xs:complexType>
-  </xs:element>
-  
   <xs:element name="Project">
     <xs:complexType>
       <xs:sequence>
         <xs:element name="Author" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
         <xs:element name="Description" type="xs:string" minOccurs="0" maxOccurs="1" />
-        <xs:element ref="Configuration" minOccurs="1" maxOccurs="unbounded" />
+        <xs:element ref="Configuration" minOccurs="0" maxOccurs="unbounded" />
         <xs:element name="ReferencePath" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
         <xs:element name="Reference" minOccurs="0" maxOccurs="unbounded">
           <xs:complexType>
@@ -127,7 +84,6 @@
       <xs:attribute name="icon" type="xs:string" default="" />
       <xs:attribute name="configFile" type="xs:string" default="" />
       <xs:attribute name="version" type="xs:string" default="1.0.0" />
-      <xs:attribute name="guid" type="xs:string"/>
       <xs:attribute name="language" default="C#">
         <xs:simpleType>
           <xs:restriction base="xs:string">
@@ -142,7 +98,6 @@
             <xs:enumeration value="Exe" />
             <xs:enumeration value="WinExe" />
             <xs:enumeration value="Library" />
-            <xs:enumeration value="Web" />
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
@@ -154,23 +109,12 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-      <xs:attribute name="frameworkVersion" default="v2_0">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:enumeration value="v2_0" />
-            <xs:enumeration value="v3_0" />
-            <xs:enumeration value="v3_5" />
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
       <xs:attribute name="startupObject" type="xs:string" default="" />
       <xs:attribute name="rootNamespace" type="xs:string" />
-      <xs:attribute name="debugStartParameters" type="xs:string" />
       <xs:attribute name="assemblyName" type="xs:string" />
       <xs:attribute name="generateAssemblyInfoFile" type="xs:boolean" default="false" />
     </xs:complexType>
   </xs:element>
-  
   <xs:element name="Configuration">
     <xs:complexType>
       <xs:sequence>
@@ -251,7 +195,6 @@
             <xs:simpleType>
               <xs:restriction base="xs:string">
                 <xs:enumeration value="Code" />
-                <xs:enumeration value="CodeBehind" />
                 <xs:enumeration value="Component" />
                 <xs:enumeration value="Form" />
                 <xs:enumeration value="Settings" />
@@ -299,7 +242,6 @@
         <xs:simpleType>
           <xs:restriction base="xs:string">
             <xs:enumeration value="Code" />
-            <xs:enumeration value="CodeBehind" />
             <xs:enumeration value="Component" />
             <xs:enumeration value="Designer" />
             <xs:enumeration value="Form" />

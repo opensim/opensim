@@ -23,6 +23,15 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #endregion
 
+#region CVS Information
+/*
+ * $Source$
+ * $Author: jendave $
+ * $Date: 2006-01-27 16:49:58 -0800 (Fri, 27 Jan 2006) $
+ * $Revision: 71 $
+ */
+#endregion
+
 using System;
 
 using Prebuild.Core.Attributes;
@@ -34,36 +43,16 @@ namespace Prebuild.Core.Targets
 	/// </summary>
 	[Target("sharpdev2")]
 	public class SharpDevelop2Target : VS2005Target
-    {
-        #region Properties
-        public override string VersionName
+	{
+        protected override string VersionName
         {
             get
             {
                 return "SharpDevelop2";
             }
         }
-        #endregion
 
 		#region Public Methods
-
-		/// <summary>
-		/// Writes the specified kern.
-		/// </summary>
-		/// <param name="kern">The kern.</param>
-		public override void Write(Kernel kern)
-		{
-			base.Write(kern);
-		}
-
-		/// <summary>
-		/// Cleans the specified kern.
-		/// </summary>
-		/// <param name="kern">The kern.</param>
-		public override void Clean(Kernel kern)
-		{
-			base.Clean(kern);
-		}
 
 		/// <summary>
 		/// Gets the name.

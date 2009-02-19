@@ -23,6 +23,15 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #endregion
 
+#region CVS Information
+/*
+ * $Source$
+ * $Author: jendave $
+ * $Date: 2006-09-30 04:11:40 +0900 (Sat, 30 Sep 2006) $
+ * $Revision: 177 $
+ */
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Specialized;
@@ -35,6 +44,28 @@ using Prebuild.Core.Utilities;
 
 namespace Prebuild.Core.Targets
 {
+	/// <summary>
+	/// 
+	/// </summary>
+	public enum VSVersion
+	{
+		/// <summary>
+		/// 
+		/// </summary>
+		VS70,
+		/// <summary>
+		/// 
+		/// </summary>
+		VS71,
+		/// <summary>
+		/// 
+		/// </summary>
+		VS80
+	}
+
+	/// <summary>
+	/// 
+	/// </summary>
 	[Target("vs2003")]
 	public class VS2003Target : ITarget
 	{

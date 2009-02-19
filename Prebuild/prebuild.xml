@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?> 
 <Prebuild xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd" version="1.7">
-    <Solution name="Prebuild" version="2.0.4">
+    <Solution name="Prebuild" version="2.0.3">
 	<Configuration name="Debug">
 	    <Options>
 		<CompilerDefines>DEBUG;TRACE</CompilerDefines>
