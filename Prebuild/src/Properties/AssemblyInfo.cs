@@ -38,15 +38,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 #endregion
 
-#region CVS Information
-/*
- * $Source$
- * $Author: cjcollier $
- * $Date: 2008-02-08 01:31:29 +0900 (Fri, 08 Feb 2008) $
- * $Revision: 256 $
- */
-#endregion
-
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -79,7 +70,7 @@ using System.Resources;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguageAttribute("en-US")]
-[assembly: AssemblyVersion("2.0.3.*")]
+[assembly: AssemblyVersion("2.0.4.*")]
 
 //
 // Version information for an assembly consists of the following four values:

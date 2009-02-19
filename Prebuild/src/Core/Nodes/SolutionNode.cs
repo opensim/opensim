@@ -23,17 +23,9 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #endregion
 
-#region CVS Information
-/*
- * $Source$
- * $Author: jendave $
- * $Date: 2006-03-01 01:15:42 +0900 (Wed, 01 Mar 2006) $
- * $Revision: 92 $
- */
-#endregion
-
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
@@ -48,40 +40,62 @@ namespace Prebuild.Core.Nodes
 	/// 
 	/// </summary>
 	[DataNode("Solution")]
+    [DataNode("EmbeddedSolution")]
+    [DebuggerDisplay("{Name}")]
 	public class SolutionNode : DataNode
 	{
 		#region Fields
-        
+
+        private Guid m_Guid = Guid.NewGuid();
 		private string m_Name = "unknown";
 		private string m_Path = "";
 		private string m_FullPath = "";
 		private string m_ActiveConfig = "Debug";
         private string m_Version = "1.0.0";
-
+        
 		private OptionsNode m_Options;
 		private FilesNode m_Files;
-		private Hashtable m_Configurations;
-		private Hashtable m_Projects;
-		private ArrayList m_ProjectsOrder;
-
-		#endregion
-
-		#region Constructors
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="SolutionNode"/> class.
-		/// </summary>
-		public SolutionNode()
-		{
-			m_Configurations = new Hashtable();
-			m_Projects = new Hashtable();
-			m_ProjectsOrder = new ArrayList();
-		}
+        private readonly Hashtable m_Configurations = new Hashtable();
+        private readonly Hashtable m_Projects = new Hashtable();
+        private readonly Hashtable m_DatabaseProjects = new Hashtable();
+        private readonly List<ProjectNode> m_ProjectsOrder = new List<ProjectNode>();
+        private readonly Hashtable m_Solutions = new Hashtable();
 
 		#endregion
 
 		#region Properties
+        public override IDataNode Parent
+        {
+            get
+            {
+                return base.Parent;
+            }
+            set
+            {
+                if (value is SolutionNode)
+                {
+                    SolutionNode solution = (SolutionNode)value;
+                    foreach (ConfigurationNode conf in solution.Configurations)
+                    {
+                        m_Configurations[conf.Name] = conf.Clone();
+                    }
+                }
 
+                base.Parent = value;
+            }
+        }
+
+        public Guid Guid
+        {
+            get 
+            { 
+                return m_Guid; 
+            }
+            set
+            {
+                m_Guid = value; 
+            }
+        }
 		/// <summary>
 		/// Gets or sets the active config.
 		/// </summary>
@@ -195,7 +209,36 @@ namespace Prebuild.Core.Nodes
 				return m_Configurations;
 			}
 		}
-        
+        /// <summary>
+        /// Gets the database projects.
+        /// </summary>
+        public ICollection DatabaseProjects
+        {
+            get
+            {
+                return m_DatabaseProjects.Values;
+            }
+        }
+        /// <summary>
+        /// Gets the nested solutions.
+        /// </summary>
+        public ICollection Solutions
+        {
+            get
+            {
+                return m_Solutions.Values;
+            }
+        }
+        /// <summary>
+        /// Gets the nested solutions hash table.
+        /// </summary>
+        public Hashtable SolutionsTable
+        {
+            get
+            {
+                return this.m_Solutions;
+            }
+        }
 		/// <summary>
 		/// Gets the projects.
 		/// </summary>
@@ -226,7 +269,7 @@ namespace Prebuild.Core.Nodes
 		/// Gets the projects table.
 		/// </summary>
 		/// <value>The projects table.</value>
-		public ArrayList ProjectsTableOrder
+		public List<ProjectNode> ProjectsTableOrder
 		{
 			get
 			{
@@ -287,8 +330,21 @@ namespace Prebuild.Core.Nodes
 					else if(dataNode is ProjectNode)
 					{
 						m_Projects[((ProjectNode)dataNode).Name] = dataNode;
-						m_ProjectsOrder.Add(dataNode);
+						m_ProjectsOrder.Add((ProjectNode)dataNode);
 					}
+                    else if(dataNode is SolutionNode)
+                    {
+                        m_Solutions[((SolutionNode)dataNode).Name] = dataNode;
+                    }
+                    else if (dataNode is ProcessNode)
+                    {
+                        ProcessNode p = (ProcessNode)dataNode;
+                        Kernel.Instance.ProcessFile(p, this);
+                    }
+                    else if (dataNode is DatabaseProjectNode)
+                    {
+                        m_DatabaseProjects[((DatabaseProjectNode)dataNode).Name] = dataNode;
+                    }
 				}
 			}
 			finally

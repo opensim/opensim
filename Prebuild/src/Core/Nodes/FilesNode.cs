@@ -23,15 +23,6 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #endregion
 
-#region CVS Information
-/*
- * $Source$
- * $Author: borrillis $
- * $Date: 2007-05-25 01:03:16 +0900 (Fri, 25 May 2007) $
- * $Revision: 243 $
- */
-#endregion
-
 using System;
 using System.Collections;
 using System.Collections.Specialized;
@@ -39,6 +30,7 @@ using System.Xml;
 
 using Prebuild.Core.Attributes;
 using Prebuild.Core.Interfaces;
+using System.IO;
 
 namespace Prebuild.Core.Nodes
 {
@@ -224,8 +216,8 @@ namespace Prebuild.Core.Nodes
 						if (!m_Files.Contains(file))
 						{
 							m_Files.Add(file);
-                            m_BuildActions[ file ] = matchNode.BuildAction;
-                            m_SubTypes[ file ] = matchNode.SubType;
+                            m_BuildActions[ file ] = matchNode.BuildAction == null ? GetBuildActionByFileName(file) : matchNode.BuildAction;
+							m_SubTypes[file] = matchNode.SubType == null ? GetSubTypeByFileName(file) : matchNode.SubType.Value;
                             m_ResourceNames[ file ] = matchNode.ResourceName;
                             this.m_PreservePaths[ file ] = matchNode.PreservePath;
                             this.m_Links[ file ] = matchNode.IsLink;

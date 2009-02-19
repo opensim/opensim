@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<Prebuild xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd" version="1.7">
+  <Solution name="include-002" version="1.2.3">
+    <?include file="include-002-2.include"?>
+    <?include file="include-002.include"?>
+  </Solution>
+</Prebuild>

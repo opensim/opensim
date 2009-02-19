@@ -23,17 +23,9 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #endregion
 
-#region CVS Information
-/*
- * $Source$
- * $Author: jendave $
- * $Date: 2007-05-26 06:58:26 +0900 (Sat, 26 May 2007) $
- * $Revision: 244 $
- */
-#endregion
-
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 
@@ -59,7 +51,11 @@ namespace Prebuild.Core.Nodes
 		/// <summary>
 		/// The project is a library
 		/// </summary>
-		Library
+		Library,
+        /// <summary>
+		/// The project is a website
+		/// </summary>
+		Web,
 	}
 
 	/// <summary>
@@ -76,7 +72,25 @@ namespace Prebuild.Core.Nodes
 		/// </summary>
 		Mono
 	}
-
+	/// <summary>
+	/// The version of the .NET framework to use (Required for VS2008)
+	/// <remarks>We don't need .NET 1.1 in here, it'll default when using vs2003.</remarks>
+	/// </summary>
+	public enum FrameworkVersion
+	{
+		/// <summary>
+		/// .NET 2.0
+		/// </summary>
+		v2_0,
+		/// <summary>
+		/// .NET 3.0
+		/// </summary>
+		v3_0,
+		/// <summary>
+		/// .NET 3.5
+		/// </summary>
+		v3_5,
+	}
 	/// <summary>
 	/// The Node object representing /Prebuild/Solution/Project elements
 	/// </summary>
@@ -95,32 +109,19 @@ namespace Prebuild.Core.Nodes
 		private string m_Language = "C#";
 		private ProjectType m_Type = ProjectType.Exe;
 		private ClrRuntime m_Runtime = ClrRuntime.Microsoft;
+        private FrameworkVersion m_Framework = FrameworkVersion.v2_0;
 		private string m_StartupObject = "";
 		private string m_RootNamespace;
 		private string m_FilterGroups = "";
 		private string m_Version = "";
 		private Guid m_Guid;
+        private string m_DebugStartParameters;
 
-		private Hashtable m_Configurations;
-		private ArrayList m_ReferencePaths;
-		private ArrayList m_References;
-		private ArrayList m_Authors;
+        private Hashtable m_Configurations = new Hashtable();
+        private readonly List<ReferencePathNode> m_ReferencePaths = new List<ReferencePathNode>();
+		private readonly List<ReferenceNode> m_References = new List<ReferenceNode>();
+        private readonly List<AuthorNode> m_Authors = new List<AuthorNode>();
 		private FilesNode m_Files;
-
-		#endregion
-
-		#region Constructors
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ProjectNode"/> class.
-		/// </summary>
-		public ProjectNode()
-		{
-			m_Configurations = new Hashtable();
-			m_ReferencePaths = new ArrayList();
-			m_References = new ArrayList();
-			m_Authors = new ArrayList();
-		}
 
 		#endregion
 
@@ -134,10 +135,19 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return m_Name;
+			    return m_Name;
 			}
 		}
-
+		/// <summary>
+		/// The version of the .NET Framework to compile under
+		/// </summary>
+		public FrameworkVersion FrameworkVersion
+		{
+			get
+			{
+			    return this.m_Framework;
+			}
+		}
 		/// <summary>
 		/// Gets the path.
 		/// </summary>
@@ -210,17 +220,17 @@ namespace Prebuild.Core.Nodes
 			}
 		}
 
-        /// <summary>
-        /// Gets the app icon.
-        /// </summary>
-        /// <value>The app icon.</value>
-        public string ConfigFile
-        {
-            get
-            {
-                return m_ConfigFile;
-            }
-        }
+		/// <summary>
+		/// Gets the app icon.
+		/// </summary>
+		/// <value>The app icon.</value>
+		public string ConfigFile
+		{
+		    get
+		    {
+		        return m_ConfigFile;
+		    }
+		}
 
 		/// <summary>
 		/// 
@@ -269,22 +279,22 @@ namespace Prebuild.Core.Nodes
 			}
 		}
 
-        private bool m_GenerateAssemblyInfoFile = false;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool GenerateAssemblyInfoFile
-        {
-            get
-            {
-                return m_GenerateAssemblyInfoFile;
-            }
-            set
-            {
-                m_GenerateAssemblyInfoFile = value;
-            }
-        }
+		private bool m_GenerateAssemblyInfoFile = false;
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool GenerateAssemblyInfoFile
+		{
+			get
+			{
+			    return m_GenerateAssemblyInfoFile;
+			}
+			set
+			{
+			    m_GenerateAssemblyInfoFile = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets the startup object.
@@ -314,7 +324,7 @@ namespace Prebuild.Core.Nodes
 		/// Gets the configurations.
 		/// </summary>
 		/// <value>The configurations.</value>
-		public ICollection Configurations
+		public IList Configurations
 		{
 			get
 			{
@@ -340,11 +350,11 @@ namespace Prebuild.Core.Nodes
 		/// Gets the reference paths.
 		/// </summary>
 		/// <value>The reference paths.</value>
-		public ArrayList ReferencePaths
+		public List<ReferencePathNode> ReferencePaths
 		{
 			get
 			{
-                ArrayList tmp = new ArrayList(m_ReferencePaths);
+                List<ReferencePathNode> tmp = new List<ReferencePathNode>(m_ReferencePaths);
                 tmp.Sort();
                 return tmp;
 			}
@@ -354,11 +364,11 @@ namespace Prebuild.Core.Nodes
 		/// Gets the references.
 		/// </summary>
 		/// <value>The references.</value>
-		public ArrayList References
+        public List<ReferenceNode> References
 		{
 			get
 			{
-                ArrayList tmp = new ArrayList(m_References);
+                List<ReferenceNode> tmp = new List<ReferenceNode>(m_References);
                 tmp.Sort();
                 return tmp;
 			}
@@ -368,7 +378,7 @@ namespace Prebuild.Core.Nodes
 		/// Gets the Authors list.
 		/// </summary>
 		/// <value>The list of the project's authors.</value>
-		public ArrayList Authors
+		public List<AuthorNode> Authors
 		{
 			get
 			{
@@ -424,7 +434,15 @@ namespace Prebuild.Core.Nodes
 			}
 		}
 
-		#endregion
+	    public string DebugStartParameters
+	    {
+            get
+            {
+                return m_DebugStartParameters;
+            }
+	    }
+
+	    #endregion
 
 		#region Private Methods
 
@@ -470,13 +488,18 @@ namespace Prebuild.Core.Nodes
 			m_Language = Helper.AttributeValue(node, "language", m_Language);
 			m_Type = (ProjectType)Helper.EnumAttributeValue(node, "type", typeof(ProjectType), m_Type);
 			m_Runtime = (ClrRuntime)Helper.EnumAttributeValue(node, "runtime", typeof(ClrRuntime), m_Runtime);
+            m_Framework = (FrameworkVersion)Helper.EnumAttributeValue(node, "frameworkVersion", typeof(FrameworkVersion), m_Framework);
 			m_StartupObject = Helper.AttributeValue(node, "startupObject", m_StartupObject);
 			m_RootNamespace = Helper.AttributeValue(node, "rootNamespace", m_RootNamespace);
-            m_GenerateAssemblyInfoFile = Helper.ParseBoolean(node, "generateAssemblyInfoFile", false);
-
+			
             int hash = m_Name.GetHashCode();
-			m_Guid = new Guid(hash, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+ 			Guid guidByHash = new Guid(hash, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+			string guid = Helper.AttributeValue(node, "guid", guidByHash.ToString());
+			m_Guid = new Guid(guid);
 
+            m_GenerateAssemblyInfoFile = Helper.ParseBoolean(node, "generateAssemblyInfoFile", false);
+		    m_DebugStartParameters = Helper.AttributeValue(node, "debugStartParameters", string.Empty);
+            
 			if(m_AssemblyName == null || m_AssemblyName.Length < 1)
 			{
 				m_AssemblyName = m_Name;
@@ -516,15 +539,15 @@ namespace Prebuild.Core.Nodes
 					}
 					else if(dataNode is ReferencePathNode)
 					{
-						m_ReferencePaths.Add(dataNode);
+                        m_ReferencePaths.Add((ReferencePathNode)dataNode);
 					}
 					else if(dataNode is ReferenceNode)
 					{
-						m_References.Add(dataNode);
+                        m_References.Add((ReferenceNode)dataNode);
 					}
 					else if(dataNode is AuthorNode)
 					{
-						m_Authors.Add(dataNode);
+                        m_Authors.Add((AuthorNode)dataNode);
 					}
 					else if(dataNode is FilesNode)
 					{
@@ -548,6 +571,6 @@ namespace Prebuild.Core.Nodes
             return this.m_Name.CompareTo(that.m_Name);
         }
 
-        #endregion
+		#endregion
 	}
 }
