@@ -27,6 +27,7 @@
 
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Data;
 
 namespace OpenSim.Tests.Common.Mock
 {

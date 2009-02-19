@@ -30,6 +30,7 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using OpenMetaverse;
+using OpenSim.Data;
 using OpenSim.Framework.AssetLoader.Filesystem;
 using OpenSim.Framework.Statistics;
 

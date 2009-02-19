@@ -30,6 +30,15 @@ using OpenSim.Framework;
 
 namespace OpenSim.Data
 {
+    public interface IAssetDataPlugin : IPlugin
+    {
+        AssetBase FetchAsset(UUID uuid);
+        void CreateAsset(AssetBase asset);
+        void UpdateAsset(AssetBase asset);
+        bool ExistsAsset(UUID uuid);
+        void Initialise(string connect);
+    }
+
     public class AssetDataInitialiser : PluginInitialiserBase
     {
         private string connect;
