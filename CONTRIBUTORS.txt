@@ -41,6 +41,7 @@ Patches
 * alex_carnell
 * awebb (IBM)
 * BigFootAg
+* BlueWall Slade
 * brianw/Sir_Ahzz
 * CharlieO
 * ChrisDown

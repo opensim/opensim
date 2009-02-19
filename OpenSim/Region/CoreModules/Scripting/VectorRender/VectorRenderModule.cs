@@ -147,6 +147,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             int width = 256;
             int height = 256;
             int alpha = 255; // 0 is transparent
+			Color bgColour = Color.White;  // Default background color
             
             char[] paramDelimiter = { ',' };
             char[] nvpDelimiter = { ':' };
@@ -229,6 +230,18 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                               }
                           }
                           break;
+					 case "bgcolour":
+						 int hex = 0;
+		                 if (Int32.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
+		                 {
+		                     bgColour = Color.FromArgb(hex);
+		                 } 
+		                 else
+		                 {
+		                     
+		                     bgColour = Color.FromName(value);
+		                 }
+					     break;	
                      case "":
                          // blank string has been passed do nothing just use defaults
                      break;
@@ -266,10 +279,11 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             Graphics graph = Graphics.FromImage(bitmap);
 
             // this is really just to save people filling the 
-            // background white in their scripts, only do when fully opaque
-            if (alpha == 255) 
+            // background color in their scripts, only do when fully opaque
+            if (alpha == 255)
             {
-                graph.FillRectangle(new SolidBrush(Color.White), 0, 0, width, height); 
+				graph.FillRectangle(new SolidBrush(bgColour), 0, 0, width, height); 
+             
             }
 
             for (int w = 0; w < bitmap.Width; w++)
@@ -448,6 +462,38 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     fontSize = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
                     myFont = new Font(fontName, fontSize);
                 }
+				else if (nextLine.StartsWith("FontProp"))
+				{
+					nextLine = nextLine.Remove(0, 8);
+                    nextLine = nextLine.Trim();
+
+					string [] fprops = nextLine.Split(partsDelimiter);
+					foreach (string prop in  fprops) {
+						
+						switch (prop)
+						{
+							case "B":
+							    if(!(myFont.Bold))
+								    myFont = new Font(myFont, myFont.Style | FontStyle.Bold);
+							break;
+							case "I":
+							    if(!(myFont.Italic))
+								    myFont = new Font(myFont, myFont.Style | FontStyle.Italic);
+							break;
+							case "U":
+							    if(!(myFont.Underline))
+								    myFont = new Font(myFont, myFont.Style | FontStyle.Underline);
+							break;
+						    case "S":
+							    if(!(myFont.Strikeout))
+								    myFont = new Font(myFont, myFont.Style | FontStyle.Strikeout);
+							break;
+						    case "R":
+								myFont = new Font(myFont, FontStyle.Regular);
+							break;
+						}
+					}
+				}
                 else if (nextLine.StartsWith("FontName"))
                 {
                     nextLine = nextLine.Remove(0, 8);
