@@ -37,14 +37,14 @@ using OpenSim.Framework;
 namespace OpenSim.Region.Framework.Scenes
 {
     /// <summary>
-    /// Gather assets for a given object.
+    /// Gather uuids for a given entity.
     /// </summary>        
     ///
-    /// This does a deep inspection of the object to retrieve all the assets it uses (whether as textures, as scripts
+    /// This does a deep inspection of the entity to retrieve all the assets it uses (whether as textures, as scripts
     /// contained in inventory, as scripts contained in objects contained in another object's inventory, etc.  Assets
     /// are only retrieved when they are necessary to carry out the inspection (i.e. a serialized object needs to be
     /// retrieved to work out which assets it references).
-    public class AssetGatherer
+    public class UuidGatherer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -64,7 +64,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected bool m_waitingForObjectAsset;
                 
-        public AssetGatherer(IAssetCache assetCache)
+        public UuidGatherer(IAssetCache assetCache)
         {
             m_assetCache = assetCache;
         }

@@ -96,7 +96,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
             }
             
-            AssetGatherer assetGatherer = new AssetGatherer(m_scene.CommsManager.AssetCache);
+            UuidGatherer assetGatherer = new UuidGatherer(m_scene.CommsManager.AssetCache);
 
             foreach (SceneObjectGroup sceneObject in sceneObjects)
             {
