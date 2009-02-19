@@ -949,6 +949,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             //
             m_InEvent = false;
 
+            // Force an update of the in-memory plugin data
+            //
+            PluginData = AsyncCommandManager.GetSerializationData(m_Engine, m_ItemID);
+
             return ScriptSerializer.Serialize(this);
         }
     }
