@@ -44,11 +44,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // private bool m_Enabled = false;
-        private bool m_Gridmode = false;
-        private List<Scene> m_Scenes = new List<Scene>();
-        private Dictionary<UUID, ulong> m_UserRegionMap = new Dictionary<UUID, ulong>();
+        protected bool m_Gridmode = false;
+        protected List<Scene> m_Scenes = new List<Scene>();
+        protected Dictionary<UUID, ulong> m_UserRegionMap = new Dictionary<UUID, ulong>();
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public virtual void Initialise(Scene scene, IConfigSource config)
         {
             IConfig cnf = config.Configs["Messaging"];
             if (cnf != null && cnf.GetString(
@@ -75,25 +75,25 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             }
         }
 
-        public void PostInitialise()
+        public virtual void PostInitialise()
         {
         }
 
-        public void Close()
+        public virtual void Close()
         {
         }
 
-        public string Name
+        public virtual string Name
         {
             get { return "MessageTransferModule"; }
         }
 
-        public bool IsSharedModule
+        public virtual bool IsSharedModule
         {
             get { return true; }
         }
 
-        public void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)
+        public virtual void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)
         {
             UUID toAgentID = new UUID(im.toAgentID);
 
@@ -402,7 +402,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// </summary>
         public delegate void GridInstantMessageDelegate(GridInstantMessage im, MessageResultNotification result, ulong prevRegionHandle);
 
-        private void GridInstantMessageCompleted(IAsyncResult iar)
+        protected virtual void GridInstantMessageCompleted(IAsyncResult iar)
         {
             GridInstantMessageDelegate icon =
                     (GridInstantMessageDelegate)iar.AsyncState;
@@ -551,7 +551,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// <param name="reginfo">RegionInfo we pull the data out of to send the request to</param>
         /// <param name="xmlrpcdata">The Instant Message data Hashtable</param>
         /// <returns>Bool if the message was successfully delivered at the other side.</returns>
-        private bool doIMSending(RegionInfo reginfo, Hashtable xmlrpcdata)
+        protected virtual bool doIMSending(RegionInfo reginfo, Hashtable xmlrpcdata)
         {
 
             ArrayList SendParams = new ArrayList();
@@ -595,7 +595,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// </summary>
         /// <param name="regionID">UUID of region to get the region handle for</param>
         /// <returns></returns>
-//        private ulong getLocalRegionHandleFromUUID(UUID regionID)
+//        private virtual ulong getLocalRegionHandleFromUUID(UUID regionID)
 //        {
 //            ulong returnhandle = 0;
 //
@@ -618,7 +618,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// </summary>
         /// <param name="msg">The GridInstantMessage object</param>
         /// <returns>Hashtable containing the XMLRPC request</returns>
-        private Hashtable ConvertGridInstantMessageToXMLRPC(GridInstantMessage msg)
+        protected virtual Hashtable ConvertGridInstantMessageToXMLRPC(GridInstantMessage msg)
         {
             Hashtable gim = new Hashtable();
             gim["from_agent_id"] = msg.fromAgentID.ToString();
