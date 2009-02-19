@@ -6,7 +6,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 
-namespace OpenSim.Grid.AssetServer
+namespace OpenSim.Framework.Servers
 {
     public class PostAssetStreamHandler : BaseStreamHandler
     {
