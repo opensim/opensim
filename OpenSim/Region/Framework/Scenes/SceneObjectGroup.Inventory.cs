@@ -437,13 +437,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetState(string objXMLData, UUID RegionID)
         {
+            if (objXMLData == String.Empty)
+                return;
 
             XmlDocument doc = new XmlDocument();
             try
             {
                 doc.LoadXml(objXMLData);
             }
-            catch (System.Xml.XmlException)
+            catch (Exception) // (System.Xml.XmlException)
             {
                 // We will get here if the XML is invalid or in unit
                 // tests. Really should determine which it is and either
