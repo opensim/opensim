@@ -282,7 +282,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             {
                 m_log.DebugFormat("[Concierge]: {0} logs off from {1}", client.Name, client.Scene.RegionInfo.RegionName);
                 RemoveFromAttendeeList(client.AgentId, client.Name, client.Scene);
-                lock(m_sceneAttendees)
+                lock (m_sceneAttendees)
                 {
                     AnnounceToAgentsRegion(client.Scene, String.Format(m_announceLeaving, client.Name, client.Scene.RegionInfo.RegionName,
                                                                        m_sceneAttendees[client.Scene].Count));
@@ -406,7 +406,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                                           attendees.Count, scene.RegionInfo.RegionName, 
                                           scene.RegionInfo.RegionID, 
                                           DateTime.UtcNow.ToString("s")));
-                lock(m_sceneAttendees)
+                lock (m_sceneAttendees)
                 {
                     foreach (UUID uuid in attendees)
                     {
@@ -458,7 +458,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                 string payload = bs.Payload;
                 HttpWebRequest updatePost = bs.Poster;
 
-                using(StreamWriter payloadStream = new StreamWriter(updatePost.EndGetRequestStream(result)))
+                using (StreamWriter payloadStream = new StreamWriter(updatePost.EndGetRequestStream(result)))
                 {
                     payloadStream.Write(payload);
                     payloadStream.Close();

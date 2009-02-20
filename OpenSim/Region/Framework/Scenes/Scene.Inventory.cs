@@ -1379,7 +1379,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (part != null)
             {
-				
                 TaskInventoryItem currentItem = part.Inventory.GetInventoryItem(itemID);
                 bool allowInventoryDrop = (part.GetEffectiveObjectFlags()
                                            & (uint)PrimFlags.AllowInventoryDrop) != 0;
