@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// The scene graph for this scene
         /// </value>
         /// TODO: Possibly stop other classes being able to manipulate this directly.
-        public SceneGraph m_sceneGraph;
+        private SceneGraph m_sceneGraph;
 
         /// <summary>
         /// Are we applying physics to any of the prims in this scene?
@@ -391,6 +391,15 @@ namespace OpenSim.Region.Framework.Scenes
         public bool ShuttingDown
         {
             get { return shuttingdown; }
+        }
+
+        /// <value>
+        /// The scene graph for this scene
+        /// </value>
+        /// TODO: Possibly stop other classes being able to manipulate this directly.
+        public SceneGraph SceneGraph
+        {
+            get { return m_sceneGraph; }
         }
 
         protected virtual void RegisterDefaultSceneEvents()

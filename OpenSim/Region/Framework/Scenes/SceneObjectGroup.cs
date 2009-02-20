@@ -1116,13 +1116,13 @@ namespace OpenSim.Region.Framework.Scenes
                 scriptScore = 0;
 
             scriptScore += (float)count;
-            SceneGraph d = m_scene.m_sceneGraph;
+            SceneGraph d = m_scene.SceneGraph;
             d.AddToScriptLPS(count);
         }
 
         public void AddActiveScriptCount(int count)
         {
-            SceneGraph d = m_scene.m_sceneGraph;
+            SceneGraph d = m_scene.SceneGraph;
             d.AddActiveScripts(count);
         }
 
@@ -1858,7 +1858,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_scene == null) // Need to check here as it's null during object creation
                 return;
-            m_scene.m_sceneGraph.AddToUpdateList(this);
+            m_scene.SceneGraph.AddToUpdateList(this);
         }
 
         /// <summary>
