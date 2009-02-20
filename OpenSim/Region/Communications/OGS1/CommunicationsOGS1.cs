@@ -41,7 +41,6 @@ namespace OpenSim.Region.Communications.OGS1
         {
             OGS1GridServices gridInterComms = new OGS1GridServices(serversInfo, httpServer);
             m_gridService = gridInterComms;
-            m_interRegion = gridInterComms;
 
             if (serversInfo.secureInventoryServer)
             {

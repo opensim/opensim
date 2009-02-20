@@ -41,7 +41,6 @@ namespace OpenSim.Region.Communications.Local
             IUserService userService,
             IUserAdminService userServiceAdmin,
             LocalInventoryService inventoryService,
-            IInterRegionCommunications interRegionService,
             IGridServices gridService, IMessagingService messageService,
             LibraryRootFolder libraryRootFolder, bool dumpAssetsToFile)
             : base(serversInfo, httpServer, assetCache, dumpAssetsToFile, libraryRootFolder)
@@ -53,7 +52,6 @@ namespace OpenSim.Region.Communications.Local
             m_userAdminService = userServiceAdmin;
             m_avatarService = (IAvatarService)userService;
             m_gridService = gridService;
-            m_interRegion = interRegionService;
             m_messageService = messageService;
         }
     }

@@ -71,9 +71,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             : base(servers_info, httpServe, asscache, sman)
         {
             m_remoteBackend = new OGS1GridServices(servers_info, httpServe);
-            // Let's deregister this, so we can handle it here first
-            InterRegionSingleton.Instance.OnChildAgent -= m_remoteBackend.IncomingChildAgent;
-            InterRegionSingleton.Instance.OnChildAgent += IncomingChildAgent;
             m_userProfileCache = userv;
         }
 
@@ -158,125 +155,6 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         #endregion
 
-        #region IInterRegionCommunications interface
-
-        public override bool AcknowledgeAgentCrossed(ulong regionHandle, UUID agentId)
-        {
-            return m_remoteBackend.AcknowledgeAgentCrossed(regionHandle, agentId);
-        }
-
-        public override bool AcknowledgePrimCrossed(ulong regionHandle, UUID primID)
-        {
-            return m_remoteBackend.AcknowledgePrimCrossed(regionHandle, primID);
-        }
-
-        public override bool CheckRegion(string address, uint port)
-        {
-            return m_remoteBackend.CheckRegion(address, port);
-        }
-
-        public override bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
-        {
-            return m_remoteBackend.ChildAgentUpdate(regionHandle, cAgentData);
-        }
-
-        public override bool ExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
-        {
-            if (base.ExpectAvatarCrossing(regionHandle, agentID, position, isFlying))
-                return true;
-            return m_remoteBackend.ExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
-        }
-
-        public override bool ExpectPrimCrossing(ulong regionHandle, UUID primID, Vector3 position, bool isFlying)
-        {
-            return m_remoteBackend.ExpectPrimCrossing(regionHandle, primID, position, isFlying);
-        }
-
-        public override bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
-        {
-            CachedUserInfo user = m_userProfileCache.GetUserDetails(agentData.AgentID);
-
-            if (IsLocalUser(user))
-            {
-                Console.WriteLine("XXX Home User XXX");
-                if (IsHyperlinkRegion(regionHandle))
-                {
-                    Console.WriteLine("XXX Going Hyperlink XXX");
-                    return base.InformRegionOfChildAgent(regionHandle, agentData);
-                }
-                else
-                {
-                    // non-hypergrid case
-                    Console.WriteLine("XXX Going local-grid region XXX");
-                    return m_remoteBackend.InformRegionOfChildAgent(regionHandle, agentData);
-                }
-            }
-
-            // Foregin users 
-            Console.WriteLine("XXX Foreign User XXX");
-            if (IsLocalRegion(regionHandle)) // regions on the same instance
-            {
-                Console.WriteLine("XXX Going onInstance region XXX");
-                return m_remoteBackend.InformRegionOfChildAgent(regionHandle, agentData);
-            }
-
-            if (IsHyperlinkRegion(regionHandle)) // hyperlinked regions
-            {
-                Console.WriteLine("XXX Going Hyperlink XXX");
-                return base.InformRegionOfChildAgent(regionHandle, agentData);
-            }
-            else
-            {
-                // foreign user going to a non-local region on the same grid
-                // We need to inform that region about this user before
-                // proceeding to the normal backend process.
-                Console.WriteLine("XXX Going local-grid region XXX");
-                RegionInfo regInfo = RequestNeighbourInfo(regionHandle);
-                if (regInfo != null)
-                    // For now, don't test if this succeeds/fails; until someone complains, this is a feature :-)
-                    InformRegionOfUser(regInfo, agentData);
-                return m_remoteBackend.InformRegionOfChildAgent(regionHandle, agentData);
-            }
-
-        }
-
-        public override bool InformRegionOfPrimCrossing(ulong regionHandle, UUID primID, string objData, int XMLMethod)
-        {
-            return m_remoteBackend.InformRegionOfPrimCrossing(regionHandle, primID, objData, XMLMethod);
-        }
-
-        public override bool RegionUp(SerializableRegionInfo region, ulong regionhandle)
-        {
-            if (m_remoteBackend.RegionUp(region, regionhandle))
-                return true;
-            return base.RegionUp(region, regionhandle);
-        }
-
-        public override bool TellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
-        {
-            return m_remoteBackend.TellRegionToCloseChildConnection(regionHandle, agentID);
-        }
-
-
-        #endregion
-
-        #region Methods triggered by calls from external instances
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="agentData"></param>
-        /// <returns></returns>
-        public bool IncomingChildAgent(ulong regionHandle, AgentCircuitData agentData)
-        {
-            AdjustUserInformation(agentData);
-
-            m_log.Info("[HGrid]: Incoming HGrid Agent " + agentData.firstname + " " + agentData.lastname);
-
-            return m_remoteBackend.IncomingChildAgent(regionHandle, agentData);
-        }
-        #endregion
 
     }
 }

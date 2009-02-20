@@ -56,7 +56,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             // From constructor at CommunicationsOGS1
             HGGridServices gridInterComms = new HGGridServicesGridMode(serversInfo, httpServer, assetCache, sman, m_userProfileCacheService);
             m_gridService = gridInterComms;
-            m_interRegion = gridInterComms;
             m_osw = gridInterComms;
 
             // The HG InventoryService always uses secure handlers

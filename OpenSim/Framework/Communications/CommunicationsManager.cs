@@ -59,12 +59,6 @@ namespace OpenSim.Framework.Communications
         }
         protected IGridServices m_gridService;
 
-        public IInterRegionCommunications InterRegion
-        {
-            get { return m_interRegion; }
-        }
-        protected IInterRegionCommunications m_interRegion;
-
         public UserProfileCacheService UserProfileCacheService
         {
             get { return m_userProfileCacheService; }

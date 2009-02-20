@@ -44,9 +44,8 @@ namespace OpenSim.Region.Communications.Hypergrid
             IUserService userService,
             IUserAdminService userServiceAdmin,
             LocalInventoryService inventoryService,
-            IInterRegionCommunications interRegionService,
             HGGridServices gridService, IMessagingService messageService, LibraryRootFolder libraryRootFolder, bool dumpAssetsToFile)
-            : base(serversInfo, httpServer, assetCache, userService, userServiceAdmin, inventoryService, interRegionService, gridService, messageService, libraryRootFolder, dumpAssetsToFile)
+            : base(serversInfo, httpServer, assetCache, userService, userServiceAdmin, inventoryService, gridService, messageService, libraryRootFolder, dumpAssetsToFile)
         {
             gridService.UserProfileCache = m_userProfileCacheService;
             m_assetCache = assetCache;

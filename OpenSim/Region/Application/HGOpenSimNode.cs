@@ -95,7 +95,7 @@ namespace OpenSim
 
 
             m_commsManager = new HGCommunicationsStandalone(m_networkServersInfo, m_httpServer, m_assetCache,
-                userService, userService, inventoryService, gridService, gridService, userService, libraryRootFolder, m_configSettings.DumpAssetsToFile);
+                userService, userService, inventoryService, gridService, userService, libraryRootFolder, m_configSettings.DumpAssetsToFile);
 
             inventoryService.UserProfileCache = m_commsManager.UserProfileCacheService;
             HGServices = gridService;

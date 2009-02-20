@@ -36,7 +36,7 @@ using OpenSim.Framework.Communications;
 
 namespace OpenSim.Region.Communications.Local
 {
-    public class LocalBackEndServices : IGridServices, IInterRegionCommunications
+    public class LocalBackEndServices : IGridServices
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -244,46 +244,6 @@ namespace OpenSim.Region.Communications.Local
             return mapBlocks;
         }
 
-        public bool TellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                return m_regionListeners[regionHandle].TriggerTellRegionToCloseChildConnection(agentID);
-            }
-            
-            return false;
-        }
-
-        public virtual bool RegionUp(SerializableRegionInfo sregion, ulong regionhandle)
-        {
-            RegionInfo region = new RegionInfo(sregion);
-
-            //region.RegionLocX = sregion.X;
-            //region.RegionLocY = sregion.Y;
-            //region.SetEndPoint(sregion.IPADDR, sregion.PORT);
-
-            //sregion);
-            if (m_regionListeners.ContainsKey(regionhandle))
-            {
-                return m_regionListeners[regionhandle].TriggerRegionUp(region);
-            }
-
-            return false;
-        }
-
-        public virtual bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                // Console.WriteLine("CommsManager- Informing a region to expect child agent");
-                m_regionListeners[regionHandle].TriggerChildAgentUpdate(cAgentData);
-                //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Got Listener trigginering local event: " + agentData.firstname + " " + agentData.lastname);
-
-                return true;
-            }
-            return false;
-        }
-
         // This function is only here to keep this class in line with the Grid Interface.
         // It never gets called.
         public virtual Dictionary<string, string> GetGridSettings()
@@ -303,124 +263,6 @@ namespace OpenSim.Region.Communications.Local
             m_queuedGridSettings.Add("allow_forceful_banlines", "FALSE");
         }
 
-        public bool TriggerRegionUp(RegionInfo region, ulong regionhandle)
-        {
-            if (m_regionListeners.ContainsKey(regionhandle))
-            {
-                return m_regionListeners[regionhandle].TriggerRegionUp(region);
-            }
-
-            return false;
-        }
-
-        public bool TriggerChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                return m_regionListeners[regionHandle].TriggerChildAgentUpdate(cAgentData);
-            }
-            
-            return false;
-        }
-
-        public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                return m_regionListeners[regionHandle].TriggerTellRegionToCloseChildConnection(agentID);
-            }
-            
-            return false;
-        }
-
-        /// <summary>
-        /// Tell a region to expect a new client connection.
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="agentData"></param>
-        /// <returns></returns>
-        public bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData)
-            // TODO: should change from agentCircuitData
-        {
-            //Console.WriteLine("CommsManager- Trying to Inform a region to expect child agent");
-            //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Trying to inform region of child agent: " + agentData.firstname + " " + agentData.lastname);
-
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                // Console.WriteLine("CommsManager- Informing a region to expect child agent");
-                m_regionListeners[regionHandle].TriggerExpectUser(agentData);
-                //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Got Listener trigginering local event: " + agentData.firstname + " " + agentData.lastname);
-
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Tell a region to expect the crossing in of a new prim.
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="primID"></param>
-        /// <param name="objData"></param>
-        /// <param name="XMLMethod"></param>
-        /// <returns></returns>
-        public bool InformRegionOfPrimCrossing(ulong regionHandle, UUID primID, string objData, int XMLMethod)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                m_regionListeners[regionHandle].TriggerExpectPrim(primID, objData, XMLMethod);
-                return true;
-            }
-            
-            return false;
-        }
-
-        /// <summary>
-        /// Tell a region to get prepare for an avatar to cross into it.
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="agentID"></param>
-        /// <param name="position"></param>
-        /// <returns></returns>
-        public bool ExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                // Console.WriteLine("CommsManager- Informing a region to expect avatar crossing");
-                m_regionListeners[regionHandle].TriggerExpectAvatarCrossing(agentID, position, isFlying);
-                return true;
-            }
-            return false;
-        }
-
-        public bool ExpectPrimCrossing(ulong regionHandle, UUID primID, Vector3 position, bool isPhysical)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                m_regionListeners[regionHandle].TriggerExpectPrimCrossing(primID, position, isPhysical);
-                return true;
-            }
-            
-            return false;
-        }
-
-        public bool AcknowledgeAgentCrossed(ulong regionHandle, UUID agentId)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                return true;
-            }
-            return false;
-        }
-
-        public bool AcknowledgePrimCrossed(ulong regionHandle, UUID primID)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                return true;
-            }
-            return false;
-        }
 
         /// <summary>
         /// Is a Sandbox mode method, used by the local Login server to inform a region of a connection user/session
@@ -474,14 +316,6 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        public void TriggerExpectPrim(ulong regionHandle, UUID primID, string objData, int XMLMethod)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                m_regionListeners[regionHandle].TriggerExpectPrim(primID, objData, XMLMethod);
-            }
-        }
-
         public void PingCheckReply(Hashtable respData)
         {
             foreach (ulong region in m_regions.Keys)
@@ -495,40 +329,6 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        public bool TriggerExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                return m_regionListeners[regionHandle].TriggerExpectAvatarCrossing(agentID, position, isFlying);
-            }
-
-            return false;
-        }
-
-        public bool TriggerExpectPrimCrossing(ulong regionHandle, UUID primID, Vector3 position, bool isPhysical)
-        {
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                return
-                    m_regionListeners[regionHandle].TriggerExpectPrimCrossing(primID, position, isPhysical);
-            }
-            return false;
-        }
-
-        public bool IncomingChildAgent(ulong regionHandle, AgentCircuitData agentData)
-        {
-            // m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Other local region is sending child agent our way: " + agentData.firstname + " " + agentData.lastname);
-
-            if (m_regionListeners.ContainsKey(regionHandle))
-            {
-                //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: found local region to trigger event on: " + agentData.firstname + " " + agentData.lastname);
-
-                TriggerExpectUser(regionHandle, agentData);
-                return true;
-            }
-
-            return false;
-        }
 
         public LandData RequestLandData (ulong regionHandle, uint x, uint y)
         {
@@ -560,20 +360,5 @@ namespace OpenSim.Region.Communications.Local
             return regions;
         }
 
-        public List<UUID> InformFriendsInOtherRegion(UUID agentId, ulong destRegionHandle, List<UUID> friends, bool online)
-        {
-            // if we get to here, something is wrong: We are in standalone mode, but have users that are not on our server?
-            m_log.WarnFormat("[INTERREGION STANDALONE] Did find {0} users on a region not on our server: {1} ???",
-                             friends.Count, destRegionHandle);
-            return new List<UUID>();
-        }
-
-        public bool TriggerTerminateFriend (ulong regionHandle, UUID agentID, UUID exFriendID)
-        {
-            // if we get to here, something is wrong: We are in standalone mode, but have users that are not on our server?
-            m_log.WarnFormat("[INTERREGION STANDALONE] Did find user {0} on a region not on our server: {1} ???",
-                             agentID, regionHandle);
-            return true;
-        }
     }
 }

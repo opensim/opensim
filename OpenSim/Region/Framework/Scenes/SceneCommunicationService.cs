@@ -99,7 +99,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_regionInfo = regionInfos;
             m_commsProvider.GridService.gdebugRegionName = regionInfos.RegionName;
-            m_commsProvider.InterRegion.rdebugRegionName = regionInfos.RegionName;            
             regionCommsHost = m_commsProvider.GridService.RegisterRegion(m_regionInfo);
 
             if (regionCommsHost != null)
@@ -1017,16 +1016,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return previousNeighbours.FindAll(delegate(ulong handle) { return !currentNeighbours.Contains(handle); });
         }
-        /// <summary>
-        /// Inform a neighbouring region that an avatar is about to cross into it.
-        /// </summary>
-        /// <param name="regionhandle"></param>
-        /// <param name="agentID"></param>
-        /// <param name="position"></param>
-        public bool CrossToNeighbouringRegion(ulong regionhandle, UUID agentID, Vector3 position, bool isFlying)
-        {
-            return m_commsProvider.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position, isFlying);
-        }
 
         public void CrossAgentToNewRegion(Scene scene, ScenePresence agent, bool isFlying)
         {
@@ -1204,11 +1193,6 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("[SCENE COMM]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
         }
 
-
-        public bool PrimCrossToNeighboringRegion(ulong regionhandle, UUID primID, string objData, int XMLMethod)
-        {
-            return m_commsProvider.InterRegion.InformRegionOfPrimCrossing(regionhandle, primID, objData, XMLMethod);
-        }
 
         public Dictionary<string, string> GetGridSettings()
         {

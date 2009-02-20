@@ -2112,21 +2112,6 @@ namespace OpenSim.Region.Framework.Scenes
                 appearance = new AvatarAppearance();
             }
         
-            //try
-            //{
-            //    if (m_AvatarFactory != null)
-            //    {
-            //        if (m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
-            //            return;
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    m_log.ErrorFormat("[APPEARANCE]: Problem fetching appearance for avatar {0}, {1}",
-            //        client.Name, e);
-            //}
-
-            //m_log.Warn("[APPEARANCE]: Appearance not found, returning default");
         }
 
         /// <summary>
@@ -2690,19 +2675,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_sceneGridService.RequestTeleportToLocation(sp, info.RegionHandle,
                     position, Vector3.Zero, (uint)(TPFlags.SetLastToTarget | TPFlags.ViaLandmark));
             }
-        }
-
-        /// <summary>
-        /// Agent is crossing the border into a neighbouring region.  Tell the neighbour about it!
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="agentID"></param>
-        /// <param name="position"></param>
-        /// <param name="isFlying"></param>
-        /// <returns></returns>
-        public bool InformNeighbourOfCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
-        {
-            return m_sceneGridService.CrossToNeighbouringRegion(regionHandle, agentID, position, isFlying);
         }
 
         public void CrossAgentToNewRegion(ScenePresence agent, bool isFlying)

@@ -274,7 +274,7 @@ namespace OpenSim
             m_commsManager
                 = new CommunicationsLocal(
                     m_networkServersInfo, m_httpServer, m_assetCache, userService, userService,
-                    inventoryService, backendService, backendService, userService,
+                    inventoryService, backendService, userService,
                     libraryRootFolder, m_configSettings.DumpAssetsToFile);
 
             // set up XMLRPC handler for client's initial login request message
