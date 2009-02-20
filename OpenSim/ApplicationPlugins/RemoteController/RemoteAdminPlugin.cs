@@ -113,7 +113,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         foreach (string method in availableMethods.Keys)
                         {
-                            m_httpd.AddXmlRPCHandler(method, availableMethods[method]);
+                            m_httpd.AddXmlRPCHandler(method, availableMethods[method], false);
                         }
                     }
                     else
