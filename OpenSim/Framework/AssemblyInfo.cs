@@ -32,12 +32,12 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly : AssemblyTitle("OpenSim.FrameWork")]
+[assembly : AssemblyTitle("OpenSim.Framework")]
 [assembly : AssemblyDescription("")]
 [assembly : AssemblyConfiguration("")]
-[assembly : AssemblyCompany("")]
-[assembly : AssemblyProduct("OpenSim.FrameWork")]
-[assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2008")]
+[assembly : AssemblyCompany("http://opensimulator.org")]
+[assembly : AssemblyProduct("OpenSim.Framework")]
+[assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2009")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]
 
@@ -59,5 +59,5 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 
-[assembly : AssemblyVersion("1.0.0.0")]
+[assembly : AssemblyVersion("0.6.3.*")]
 [assembly : AssemblyFileVersion("1.0.0.0")]

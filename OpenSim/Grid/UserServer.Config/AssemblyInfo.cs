@@ -36,9 +36,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("UserConfig")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("http://opensimulator.org")]
 [assembly: AssemblyProduct("UserConfig")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2009")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -53,4 +53,4 @@ using System.Runtime.InteropServices;
 // You can specify all values by your own or you can build default build and revision
 // numbers with the '*' character (the default):
 
-[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyVersion("0.6.3.*")]

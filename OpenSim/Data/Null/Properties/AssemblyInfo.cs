@@ -35,9 +35,9 @@ using System.Runtime.InteropServices;
 [assembly : AssemblyTitle("OpenSim.Data.Null")]
 [assembly : AssemblyDescription("")]
 [assembly : AssemblyConfiguration("")]
-[assembly : AssemblyCompany("")]
+[assembly : AssemblyCompany("http://opensimulator.org")]
 [assembly : AssemblyProduct("OpenSim.Data.Null")]
-[assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2008")]
+[assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2009")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]
 
@@ -61,5 +61,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Revision and Build Numbers
 // by using the '*' as shown below:
 
-[assembly : AssemblyVersion("1.0.0.0")]
+[assembly : AssemblyVersion("0.6.3.*")]
 [assembly : AssemblyFileVersion("1.0.0.0")]

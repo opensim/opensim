@@ -35,9 +35,9 @@ using System.Runtime.InteropServices;
 [assembly : AssemblyTitle("OGS-UserServer")]
 [assembly : AssemblyDescription("")]
 [assembly : AssemblyConfiguration("")]
-[assembly : AssemblyCompany("")]
+[assembly : AssemblyCompany("http://opensimulator.org")]
 [assembly : AssemblyProduct("OGS-UserServer")]
-[assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2008")]
+[assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2009")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]
 
@@ -59,5 +59,5 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 
-[assembly : AssemblyVersion("1.0.0.0")]
+[assembly : AssemblyVersion("0.6.3.*")]
 [assembly : AssemblyFileVersion("1.0.0.0")]
