@@ -25,19 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
     public delegate void MessageResultNotification(bool success);
-    public delegate bool MessageFilterDelegate(GridInstantMessage im);
-    
+   
     public interface IMessageTransferModule
     {
         void SendInstantMessage(GridInstantMessage im, MessageResultNotification result);
-
-        void RegisterMessageFilter(Byte dialog, bool always, MessageFilterDelegate fn);
-        void DeregisterMessageFilter(Byte dialog, MessageFilterDelegate fn);
     }
 }

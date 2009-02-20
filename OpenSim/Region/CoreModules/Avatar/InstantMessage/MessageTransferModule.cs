@@ -647,12 +647,5 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             return gim;
         }
 
-        public void RegisterMessageFilter(Byte dialog, bool always, MessageFilterDelegate fn)
-        {
-        }
-
-        public void DeregisterMessageFilter(Byte dialog, MessageFilterDelegate fn)
-        {
-        }
     }
 }
