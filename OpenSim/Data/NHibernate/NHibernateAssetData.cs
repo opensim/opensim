@@ -39,7 +39,14 @@ namespace OpenSim.Data.NHibernate
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public NHibernateManager manager;
+        private NHibernateManager manager;
+        public NHibernateManager Manager
+        {
+            get
+            {
+                return manager;
+            }
+        }
 
         override public void Dispose() { }
 

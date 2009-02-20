@@ -50,7 +50,7 @@ namespace OpenSim.Data.NHibernate.Tests
             {
                 db = new NHibernateRegionData();
                 db.Initialise(connect);
-                database = ((NHibernateRegionData)db).manager;
+                database = ((NHibernateRegionData)db).Manager;
             } 
             catch (Exception e)
             {

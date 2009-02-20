@@ -51,7 +51,7 @@ namespace OpenSim.Data.NHibernate.Tests
 
                 db = new NHibernateAssetData();
                 db.Initialise(connect);
-                database = ((NHibernateAssetData)db).manager;
+                database = ((NHibernateAssetData)db).Manager;
             } 
             catch (Exception e)
             {

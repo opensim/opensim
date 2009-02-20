@@ -45,7 +45,15 @@ namespace OpenSim.Data.NHibernate
     public class NHibernateGridData : GridDataBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        public NHibernateManager manager;
+        
+        private NHibernateManager manager;
+        public NHibernateManager Manager
+        {
+            get
+            {
+                return manager;
+            }
+        }
 
         public override void Initialise()
         {
