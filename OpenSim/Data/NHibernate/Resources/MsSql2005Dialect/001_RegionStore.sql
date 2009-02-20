@@ -90,6 +90,7 @@ create table PrimItems (
    Description NVARCHAR(255) null,
    CreationDate INT null,
    Flags INT null,
+   Type INT null,
    InvType INT null,
    primary key (ItemID)
 )

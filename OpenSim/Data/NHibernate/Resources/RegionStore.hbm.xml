@@ -141,6 +141,7 @@
       <property name="CreationDate" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
       <property name="Flags" type="OpenSim.Data.NHibernate.UInt32Type, OpenSim.Data.NHibernate" />
       <property name="InvType" type="System.Int32" />
+      <property name="Type" type="System.Int32" />
     </class>
  
 </hibernate-mapping>

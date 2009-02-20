@@ -649,8 +649,9 @@ namespace OpenSim.Data.Tests
             Assert.That(t.GroupID,Is.EqualTo(sog.RootPart.GroupID));
             // Where is this group permissions??
             // Assert.That(t.GroupPermissions,Is.EqualTo());
-            Assert.That(t.InvType,Is.EqualTo(invtype));
-            Assert.That(t.ItemID,Is.EqualTo(id));
+            Assert.That(t.Type,Is.EqualTo(assettype));
+            Assert.That(t.InvType, Is.EqualTo(invtype));
+            Assert.That(t.ItemID, Is.EqualTo(id));
             Assert.That(t.LastOwnerID, Is.EqualTo(sog.RootPart.LastOwnerID));
             Assert.That(t.NextPermissions, Is.EqualTo(nextperm));
             // Ownership changes when you drop an object into an object
