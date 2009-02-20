@@ -1710,12 +1710,15 @@ if (m_shape != null) {
             info.AddValue("m_inventoryFileName", Inventory.GetInventoryFileName());
             info.AddValue("m_folderID", UUID);
             info.AddValue("PhysActor", PhysActor);
-
+        
             Dictionary<Guid, TaskInventoryItem> TaskInventory_work = new Dictionary<Guid, TaskInventoryItem>();
 
-            foreach (UUID id in TaskInventory.Keys)
+            lock (TaskInventory)
             {
-                TaskInventory_work.Add(id.Guid, TaskInventory[id]);
+                foreach (UUID id in TaskInventory.Keys)
+                {
+                    TaskInventory_work.Add(id.Guid, TaskInventory[id]);
+                }
             }
 
             info.AddValue("TaskInventory", TaskInventory_work);
@@ -2166,13 +2169,16 @@ if (m_shape != null) {
             {
                 //Trys to fetch sound id from prim's inventory.
                 //Prim's inventory doesn't support non script items yet
-                SceneObjectPart op = this;
-                foreach (KeyValuePair<UUID, TaskInventoryItem> item in op.TaskInventory)
+                
+                lock (TaskInventory)
                 {
-                    if (item.Value.Name == sound)
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
                     {
-                        soundID = item.Value.ItemID;
-                        break;
+                        if (item.Value.Name == sound)
+                        {
+                            soundID = item.Value.ItemID;
+                            break;
+                        }
                     }
                 }
             }
@@ -2486,13 +2492,15 @@ if (m_shape != null) {
             if (!UUID.TryParse(sound, out soundID))
             {
                 // search sound file from inventory
-                SceneObjectPart op = this;
-                foreach (KeyValuePair<UUID, TaskInventoryItem> item in op.TaskInventory)
+                lock (TaskInventory)
                 {
-                    if (item.Value.Name == sound && item.Value.Type == (int)AssetType.Sound)
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
                     {
-                        soundID = item.Value.ItemID;
-                        break;
+                        if (item.Value.Name == sound && item.Value.Type == (int)AssetType.Sound)
+                        {
+                            soundID = item.Value.ItemID;
+                            break;
+                        }
                     }
                 }
             }

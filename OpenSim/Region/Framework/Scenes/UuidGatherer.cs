@@ -140,9 +140,11 @@ namespace OpenSim.Region.Framework.Scenes
                     // If the prim is a sculpt then preserve this information too
                     if (part.Shape.SculptTexture != UUID.Zero)
                         assetUuids[part.Shape.SculptTexture] = 1;                    
-
+                    
+                    TaskInventoryDictionary taskDictionary = (TaskInventoryDictionary)part.TaskInventory.Clone();
+                    
                     // Now analyze this prim's inventory items to preserve all the uuids that they reference
-                    foreach (TaskInventoryItem tii in part.TaskInventory.Values)
+                    foreach (TaskInventoryItem tii in taskDictionary.Values)
                     {
                         //m_log.DebugFormat("[ARCHIVER]: Analysing item asset type {0}", tii.Type);
 

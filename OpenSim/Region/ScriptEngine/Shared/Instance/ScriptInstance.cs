@@ -231,9 +231,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_stateSource = stateSource;
             m_postOnRez = postOnRez;
 
-            if (part != null && part.TaskInventory.ContainsKey(m_ItemID))
+            if (part != null)
             {
-                m_thisScriptTask = part.TaskInventory[m_ItemID];
+                lock (part.TaskInventory)
+                {
+                    if (part.TaskInventory.ContainsKey(m_ItemID))
+                    {
+                        m_thisScriptTask = part.TaskInventory[m_ItemID];
+                    }
+                }
             }
 
             ApiManager am = new ApiManager();
@@ -399,15 +405,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         private void ReleaseControls()
         {
-            SceneObjectPart part=m_Engine.World.GetSceneObjectPart(m_LocalID);
-            if (part != null && part.TaskInventory.ContainsKey(m_ItemID))
+            SceneObjectPart part = m_Engine.World.GetSceneObjectPart(m_LocalID);
+            
+            if (part != null)
             {
-                UUID permsGranter = part.TaskInventory[m_ItemID].PermsGranter;
-                int permsMask = part.TaskInventory[m_ItemID].PermsMask;
+                int permsMask;
+                UUID permsGranter;
+                lock (part.TaskInventory)
+                {
+                    if (!part.TaskInventory.ContainsKey(m_ItemID))
+                        return;
+
+                    permsGranter = part.TaskInventory[m_ItemID].PermsGranter;
+                    permsMask = part.TaskInventory[m_ItemID].PermsMask;
+                }                                        
 
                 if ((permsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                 {
-
                     ScenePresence presence = m_Engine.World.GetScenePresence(permsGranter);
                     if (presence != null)
                         presence.UnRegisterControlEventsToScript(m_LocalID, m_ItemID);

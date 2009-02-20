@@ -226,9 +226,12 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
         {
             TaskInventoryDictionary tinv = sog.RootPart.TaskInventory;
 
-            foreach (TaskInventoryItem titem in tinv.Values)
+            lock (tinv)
             {
-                uuids.Add(titem.AssetID, (InventoryType)titem.Type == InventoryType.Texture);
+                foreach (TaskInventoryItem titem in tinv.Values)
+                {
+                    uuids.Add(titem.AssetID, (InventoryType)titem.Type == InventoryType.Texture);
+                }
             }
         }
 
