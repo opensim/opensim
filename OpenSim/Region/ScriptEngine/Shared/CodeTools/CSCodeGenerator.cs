@@ -646,10 +646,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
             string retstr = String.Empty;
 
-            retstr += GenerateNode((SYMBOL) be.kids.Pop());
-            retstr += Generate(String.Format(" {0} ", be.ExpressionSymbol), be);
-            foreach (SYMBOL kid in be.kids)
-                retstr += GenerateNode(kid);
+            if (be.ExpressionSymbol.Equals("&&") || be.ExpressionSymbol.Equals("||"))
+            {
+                // special case handling for logical and/or, see Mantis 3174
+                retstr += "((bool)(";
+                retstr += GenerateNode((SYMBOL)be.kids.Pop());
+                retstr += "))";
+                retstr += Generate(String.Format(" {0} ", be.ExpressionSymbol.Substring(0,1)), be);
+                retstr += "((bool)(";
+                foreach (SYMBOL kid in be.kids)
+                    retstr += GenerateNode(kid);
+                retstr += "))";
+            }
+            else
+            {
+                retstr += GenerateNode((SYMBOL)be.kids.Pop());
+                retstr += Generate(String.Format(" {0} ", be.ExpressionSymbol), be);
+                foreach (SYMBOL kid in be.kids)
+                    retstr += GenerateNode(kid);
+            }
 
             return retstr;
         }

@@ -223,6 +223,8 @@ state another_state
         integer y;
         integer x = 14 + 6;
         y = 12 - 3;
+        y = 12 && 3;
+        y = 12 || 3;
         y = 12 * 3;
         y = 12 / 3;
         y = 12 | 3;
@@ -238,6 +240,8 @@ state another_state
                 "\n            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);" +
                 "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(14) + new LSL_Types.LSLInteger(6);" +
                 "\n            y = new LSL_Types.LSLInteger(12) - new LSL_Types.LSLInteger(3);" +
+                "\n            y = ((bool)(new LSL_Types.LSLInteger(12))) & ((bool)(new LSL_Types.LSLInteger(3)));" +
+                "\n            y = ((bool)(new LSL_Types.LSLInteger(12))) | ((bool)(new LSL_Types.LSLInteger(3)));" +
                 "\n            y = new LSL_Types.LSLInteger(12) * new LSL_Types.LSLInteger(3);" +
                 "\n            y = new LSL_Types.LSLInteger(12) / new LSL_Types.LSLInteger(3);" +
                 "\n            y = new LSL_Types.LSLInteger(12) | new LSL_Types.LSLInteger(3);" +
@@ -811,15 +815,15 @@ default
                 "\n        {" +
                 "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);" +
                 "\n            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);" +
-                "\n            if (x && y)" +
+                "\n            if (((bool)(x)) & ((bool)(y)))" +
                 "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"Hello\"));" +
-                "\n            if (x || y)" +
+                "\n            if (((bool)(x)) | ((bool)(y)))" +
                 "\n            {" +
                 "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"Hi\"));" +
                 "\n                LSL_Types.LSLInteger r = new LSL_Types.LSLInteger(3);" +
                 "\n                return ;" +
                 "\n            }" +
-                "\n            if (x && y || z)" +
+                "\n            if (((bool)(((bool)(x)) & ((bool)(y)))) | ((bool)(z)))" +
                 "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"x is true\"));" +
                 "\n            else" +
                 "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"x is false\"));" +
@@ -849,7 +853,7 @@ default
                 "\n            if (!z)" +
                 "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"z is true\"));" +
                 "\n            else" +
-                "\n            if (!(a && b))" +
+                "\n            if (!(((bool)(a)) & ((bool)(b))))" +
                 "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"a is true\"));" +
                 "\n            else" +
                 "\n            if (b)" +
@@ -894,7 +898,7 @@ default
                 "\n            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);" +
                 "\n            while (x)" +
                 "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"To infinity, and beyond!\"));" +
-                "\n            while (new LSL_Types.LSLInteger(0) || (x && new LSL_Types.LSLInteger(0)))" +
+                "\n            while (((bool)(new LSL_Types.LSLInteger(0))) | ((bool)((((bool)(x)) & ((bool)(new LSL_Types.LSLInteger(0)))))))" +
                 "\n            {" +
                 "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"Never say never.\"));" +
                 "\n                return ;" +
@@ -983,7 +987,7 @@ default
                 "\n                llOwnerSay(new LSL_Types.LSLString(\"Launch in T minus \") + x);" +
                 "\n                IncreaseRocketPower();" +
                 "\n            }" +
-                "\n            for (x = new LSL_Types.LSLInteger(0), y = new LSL_Types.LSLInteger(6); y > new LSL_Types.LSLInteger(0) && x != y; x++, y--)" +
+                "\n            for (x = new LSL_Types.LSLInteger(0), y = new LSL_Types.LSLInteger(6); ((bool)(y > new LSL_Types.LSLInteger(0))) & ((bool)(x != y)); x++, y--)" +
                 "\n                llOwnerSay(new LSL_Types.LSLString(\"Hi \") + x + new LSL_Types.LSLString(\", \") + y);" +
                 "\n            for (x = new LSL_Types.LSLInteger(0), y = new LSL_Types.LSLInteger(6); !y; x++, y--)" +
                 "\n                llOwnerSay(new LSL_Types.LSLString(\"Hi \") + x + new LSL_Types.LSLString(\", \") + y);" +
@@ -1072,7 +1076,7 @@ default
                 "\n            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(1);" +
                 "\n            LSL_Types.LSLInteger z = x ^ y;" +
                 "\n            x = ~z;" +
-                "\n            x = ~(y && z);" +
+                "\n            x = ~(((bool)(y)) & ((bool)(z)));" +
                 "\n            y = x >> z;" +
                 "\n            z = y << x;" +
                 "\n        }\n";
@@ -1118,7 +1122,7 @@ default
                 "\n            s = (LSL_Types.LSLInteger) (new LSL_Types.LSLString(\"1\"));" +
                 "\n            s = (LSL_Types.LSLString) (llSomethingThatReturnsInteger());" +
                 "\n            s = (LSL_Types.LSLString) (new LSL_Types.LSLInteger(134));" +
-                "\n            s = (LSL_Types.LSLString) (x ^ y | (z && l)) + (LSL_Types.LSLString) (x + y - new LSL_Types.LSLInteger(13));" +
+                "\n            s = (LSL_Types.LSLString) (x ^ y | (((bool)(z)) & ((bool)(l)))) + (LSL_Types.LSLString) (x + y - new LSL_Types.LSLInteger(13));" +
                 "\n            llOwnerSay(new LSL_Types.LSLString(\"s is: \") + s);" +
                 "\n        }\n";
 
