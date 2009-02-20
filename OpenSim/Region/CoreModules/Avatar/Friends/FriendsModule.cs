@@ -34,6 +34,7 @@ using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -105,6 +106,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private Dictionary<ulong, Scene> m_scenes = new Dictionary<ulong,Scene>();
         private IMessageTransferModule m_TransferModule = null;
 
+        private IGridServices m_gridServices = null;
+
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -137,6 +140,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (m_scenes.Count > 0)
             {
                 m_TransferModule = m_initialScene.RequestModuleInterface<IMessageTransferModule>();
+                m_gridServices = m_initialScene.CommsManager.GridService;
             }
             if (m_TransferModule == null)
                 m_log.Error("[FRIENDS]: Unable to find a message transfer module, friendship offers will not work");
@@ -158,6 +162,89 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         #endregion
 
+        #region IInterregionFriendsComms
+
+        public List<UUID> InformFriendsInOtherRegion(UUID agentId, ulong destRegionHandle, List<UUID> friends, bool online)
+        {
+            List<UUID> tpdAway = new List<UUID>();
+
+            // destRegionHandle is a region on another server
+            RegionInfo info = m_gridServices.RequestNeighbourInfo(destRegionHandle);
+            if (info != null)
+            {
+                string httpServer = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/presence_update_bulk";
+
+                Hashtable reqParams = new Hashtable();
+                reqParams["agentID"] = agentId.ToString();
+                reqParams["agentOnline"] = online;
+                int count = 0;
+                foreach (UUID uuid in friends)
+                {
+                    reqParams["friendID_" + count++] = uuid.ToString();
+                }
+                reqParams["friendCount"] = count;
+
+                IList parameters = new ArrayList();
+                parameters.Add(reqParams);
+                try
+                {
+                    XmlRpcRequest request = new XmlRpcRequest("presence_update_bulk", parameters);
+                    XmlRpcResponse response = request.Send(httpServer, 5000);
+                    Hashtable respData = (Hashtable)response.Value;
+
+                    count = (int)respData["friendCount"];
+                    for (int i = 0; i < count; ++i)
+                    {
+                        UUID uuid;
+                        if (UUID.TryParse((string)respData["friendID_" + i], out uuid)) tpdAway.Add(uuid);
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[OGS1 GRID SERVICES]: InformFriendsInOtherRegion XMLRPC failure: ", e);
+                }
+            }
+            else m_log.WarnFormat("[OGS1 GRID SERVICES]: Couldn't find region {0}???", destRegionHandle);
+
+            return tpdAway;
+        }
+
+        public bool TriggerTerminateFriend(ulong destRegionHandle, UUID agentID, UUID exFriendID)
+        {
+            // destRegionHandle is a region on another server
+            RegionInfo info = m_gridServices.RequestNeighbourInfo(destRegionHandle);
+            if (info == null)
+            {
+                m_log.WarnFormat("[OGS1 GRID SERVICES]: Couldn't find region {0}", destRegionHandle);
+                return false; // region not found???
+            }
+
+            string httpServer = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/presence_update_bulk";
+
+            Hashtable reqParams = new Hashtable();
+            reqParams["agentID"] = agentID.ToString();
+            reqParams["friendID"] = exFriendID.ToString();
+
+            IList parameters = new ArrayList();
+            parameters.Add(reqParams);
+            try
+            {
+                XmlRpcRequest request = new XmlRpcRequest("terminate_friend", parameters);
+                XmlRpcResponse response = request.Send(httpServer, 5000);
+                Hashtable respData = (Hashtable)response.Value;
+
+                return (bool)respData["success"];
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[OGS1 GRID SERVICES]: InformFriendsInOtherRegion XMLRPC failure: ", e);
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Incoming XMLRPC messages
         /// <summary>
         /// Receive presence information changes about clients in other regions.
         /// </summary>
@@ -264,6 +351,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return response;
         }
 
+        #endregion
+
+        #region Scene events
+
         private void OnNewClient(IClientAPI client)
         {
             // All friends establishment protocol goes over instant message
@@ -331,6 +422,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 }
             }
         }
+        #endregion
 
         private ScenePresence GetRootPresenceFromAgentID(UUID AgentID)
         {
@@ -681,7 +773,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                                       agentID, exfriendID, data.Handle);
 
                     // try to send to foreign region, retry if it fails (friend TPed away, for example)
-                    if (m_initialScene.TriggerTerminateFriend(data.Handle, exfriendID, agentID)) break;
+                    if (TriggerTerminateFriend(data.Handle, exfriendID, agentID)) break;
                 }
             }
 
@@ -942,7 +1034,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         //m_log.DebugFormat("[FRIEND]: Inform {0} friends in region {1} that user {2} is {3}line",
                         //                  pair.Value.Count, pair.Key, client.Name, iAmOnline ? "on" : "off");
 
-                        friendIDsToSendTo.AddRange(m_initialScene.InformFriendsInOtherRegion(client.AgentId, pair.Key, pair.Value, iAmOnline));
+                        friendIDsToSendTo.AddRange(InformFriendsInOtherRegion(client.AgentId, pair.Key, pair.Value, iAmOnline));
                     }
                 }
                 // now we have in friendIDsToSendTo only the agents left that TPed away while we tried to contact them.

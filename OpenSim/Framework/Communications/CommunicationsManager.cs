@@ -324,16 +324,6 @@ namespace OpenSim.Framework.Communications
             return m_messageService.GetFriendRegionInfos(uuids);
         }
 
-        public List<UUID> InformFriendsInOtherRegion(UUID agentId, ulong destRegionHandle, List<UUID> friends, bool online)
-        {
-            return m_interRegion.InformFriendsInOtherRegion(agentId, destRegionHandle, friends, online);
-        }
-
-        public bool TriggerTerminateFriend(ulong regionHandle, UUID agentID, UUID exFriendID)
-        {
-            return m_interRegion.TriggerTerminateFriend(regionHandle, agentID, exFriendID);
-        }
-
         #endregion
 
         #region Packet Handlers
