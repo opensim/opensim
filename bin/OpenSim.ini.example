@@ -292,7 +292,6 @@ InterregionComms = "RESTComms"
 
 [Network]
     http_listener_port = 9000
-    remoting_listener_port = 8895
     default_location_x = 1000
     default_location_y = 1000
 
