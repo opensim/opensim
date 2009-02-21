@@ -60,3 +60,12 @@ CREATE TABLE EstateGroups (
   PRIMARY KEY (EstateID,ArrayIndex)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
 
+CREATE TABLE EstateBans (
+  EstateID INT NOT NULL,
+  ArrayIndex INT NOT NULL,
+  BannedUserID VARCHAR(36) NOT NULL,
+  BannedHostAddress VARCHAR(16) NOT NULL,
+  BannedHostIPMask VARCHAR(16) NOT NULL,
+  BannedHostNameMask VARCHAR(16) NOT NULL,
+  PRIMARY KEY (EstateID,ArrayIndex)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';

@@ -223,10 +223,10 @@ namespace OpenSim.Data.Tests
             EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
 
             EstateBan estateBan1 = new EstateBan();
-            estateBan1.bannedUUID = DataTestUtil.UUID_MIN;
+            estateBan1.BannedUserID = DataTestUtil.UUID_MIN;
 
             EstateBan estateBan2 = new EstateBan();
-            estateBan2.bannedUUID = DataTestUtil.UUID_MAX;
+            estateBan2.BannedUserID = DataTestUtil.UUID_MAX;
 
             originalSettings.EstateBans = new EstateBan[] { estateBan1, estateBan2 };
 
@@ -237,9 +237,9 @@ namespace OpenSim.Data.Tests
             EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
 
             Assert.AreEqual(2, loadedSettings.EstateBans.Length);
-            Assert.AreEqual(DataTestUtil.UUID_MIN, loadedSettings.EstateBans[0].bannedUUID);
+            Assert.AreEqual(DataTestUtil.UUID_MIN, loadedSettings.EstateBans[0].BannedUserID);
 
-            Assert.AreEqual(DataTestUtil.UUID_MAX, loadedSettings.EstateBans[1].bannedUUID);
+            Assert.AreEqual(DataTestUtil.UUID_MAX, loadedSettings.EstateBans[1].BannedUserID);
 
         }
 

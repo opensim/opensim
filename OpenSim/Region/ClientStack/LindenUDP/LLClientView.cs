@@ -2992,9 +2992,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (bl[i] == null)
                     continue;
-                if (bl[i].bannedUUID == UUID.Zero)
+                if (bl[i].BannedUserID == UUID.Zero)
                     continue;
-                BannedUsers.Add(bl[i].bannedUUID);
+                BannedUsers.Add(bl[i].BannedUserID);
             }
 
             EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();

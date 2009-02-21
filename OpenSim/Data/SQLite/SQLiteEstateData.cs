@@ -258,9 +258,9 @@ namespace OpenSim.Data.SQLite
                 UUID uuid = new UUID();
                 UUID.TryParse(r["bannedUUID"].ToString(), out uuid);
 
-                eb.bannedUUID = uuid;
-                eb.bannedIP = "0.0.0.0";
-                eb.bannedIPHostMask = "0.0.0.0";
+                eb.BannedUserID = uuid;
+                eb.BannedHostAddress = "0.0.0.0";
+                eb.BannedHostIPMask = "0.0.0.0";
                 es.AddBan(eb);
             }
             r.Close();
@@ -282,7 +282,7 @@ namespace OpenSim.Data.SQLite
             foreach (EstateBan b in es.EstateBans)
             {
                 cmd.Parameters.Add(":EstateID", es.EstateID.ToString());
-                cmd.Parameters.Add(":bannedUUID", b.bannedUUID.ToString());
+                cmd.Parameters.Add(":bannedUUID", b.BannedUserID.ToString());
 
                 cmd.ExecuteNonQuery();
                 cmd.Parameters.Clear();

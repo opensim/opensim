@@ -333,7 +333,7 @@ namespace OpenSim.Framework
         public bool IsBanned(UUID avatarID)
         {
             foreach (EstateBan ban in l_EstateBans)
-                if (ban.bannedUUID == avatarID)
+                if (ban.BannedUserID == avatarID)
                     return true;
             return false;
         }
@@ -342,7 +342,7 @@ namespace OpenSim.Framework
         {
             if (ban == null)
                 return;
-            if (!IsBanned(ban.bannedUUID))
+            if (!IsBanned(ban.BannedUserID))
                 l_EstateBans.Add(ban);
         }
 
@@ -354,7 +354,7 @@ namespace OpenSim.Framework
         public void RemoveBan(UUID avatarID)
         {
             foreach (EstateBan ban in new List<EstateBan>(l_EstateBans))
-                if (ban.bannedUUID == avatarID)
+                if (ban.BannedUserID == avatarID)
                     l_EstateBans.Remove(ban);
         }
 

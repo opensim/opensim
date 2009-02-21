@@ -241,7 +241,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                         for (int i = 0; i < banlistcheck.Length; i++)
                         {
-                            if (user == banlistcheck[i].bannedUUID)
+                            if (user == banlistcheck[i].BannedUserID)
                             {
                                 alreadyInList = true;
                                 break;
@@ -253,10 +253,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                             EstateBan item = new EstateBan();
 
-                            item.bannedUUID = user;
-                            item.estateID = m_scene.RegionInfo.EstateSettings.EstateID;
-                            item.bannedIP = "0.0.0.0";
-                            item.bannedIPHostMask = "0.0.0.0";
+                            item.BannedUserID = user;
+                            item.EstateID = m_scene.RegionInfo.EstateSettings.EstateID;
+                            item.BannedHostAddress = "0.0.0.0";
+                            item.BannedHostIPMask = "0.0.0.0";
 
                             m_scene.RegionInfo.EstateSettings.AddBan(item);
                             m_scene.RegionInfo.EstateSettings.Save();
@@ -294,7 +294,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                         for (int i = 0; i < banlistcheck.Length; i++)
                         {
-                            if (user == banlistcheck[i].bannedUUID)
+                            if (user == banlistcheck[i].BannedUserID)
                             {
                                 alreadyInList = true;
                                 listitem = banlistcheck[i];
@@ -304,7 +304,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         }
                         if (alreadyInList && listitem != null)
                         {
-                            m_scene.RegionInfo.EstateSettings.RemoveBan(listitem.bannedUUID);
+                            m_scene.RegionInfo.EstateSettings.RemoveBan(listitem.BannedUserID);
                             m_scene.RegionInfo.EstateSettings.Save();
                         }
                         else

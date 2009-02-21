@@ -332,9 +332,9 @@ namespace OpenSim.Data.MSSQL
 //                        UUID uuid;
 //                        UUID.TryParse(reader["bannedUUID"].ToString(), out uuid);
 
-                        eb.bannedUUID = new UUID((Guid)reader["bannedUUID"]); //uuid;
-                        eb.bannedIP = "0.0.0.0";
-                        eb.bannedIPHostMask = "0.0.0.0";
+                        eb.BannedUserID = new UUID((Guid)reader["bannedUUID"]); //uuid;
+                        eb.BannedHostAddress = "0.0.0.0";
+                        eb.BannedHostIPMask = "0.0.0.0";
                         es.AddBan(eb);
                     }
                 }
@@ -386,7 +386,7 @@ namespace OpenSim.Data.MSSQL
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("@EstateID", es.EstateID));
 
-                    cmd.Parameters.Add(_Database.CreateParameter("@bannedUUID", b.bannedUUID));
+                    cmd.Parameters.Add(_Database.CreateParameter("@bannedUUID", b.BannedUserID));
 
                     cmd.ExecuteNonQuery();
 

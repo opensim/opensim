@@ -314,9 +314,9 @@ namespace OpenSim.Data.MySQL
                 UUID uuid = new UUID();
                 UUID.TryParse(r["bannedUUID"].ToString(), out uuid);
 
-                eb.bannedUUID = uuid;
-                eb.bannedIP = "0.0.0.0";
-                eb.bannedIPHostMask = "0.0.0.0";
+                eb.BannedUserID = uuid;
+                eb.BannedHostAddress = "0.0.0.0";
+                eb.BannedHostIPMask = "0.0.0.0";
                 es.AddBan(eb);
             }
             r.Close();
@@ -340,7 +340,7 @@ namespace OpenSim.Data.MySQL
             foreach (EstateBan b in es.EstateBans)
             {
                 cmd.Parameters.AddWithValue("?EstateID", es.EstateID.ToString());
-                cmd.Parameters.AddWithValue("?bannedUUID", b.bannedUUID.ToString());
+                cmd.Parameters.AddWithValue("?bannedUUID", b.BannedUserID.ToString());
 
                 cmd.ExecuteNonQuery();
                 cmd.Parameters.Clear();

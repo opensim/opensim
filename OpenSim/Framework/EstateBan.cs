@@ -31,10 +31,85 @@ namespace OpenSim.Framework
 {
     public class EstateBan
     {
-        public uint estateID = 1;
-        public UUID bannedUUID = UUID.Zero;
-        public string bannedIP = string.Empty;
-        public string bannedIPHostMask = string.Empty;
-        public string bannedNameMask = string.Empty;
+        private uint m_estateID = 1;
+        /// <summary>
+        /// ID of the estate this ban limits access to.
+        /// </summary>
+        public uint EstateID
+        {
+            get
+            {
+                return m_estateID; 
+            }
+            set
+            {
+                m_estateID = value;
+            }
+        }
+
+        private UUID m_bannedUserID = UUID.Zero;
+        /// <summary>
+        /// ID of the banned user.
+        /// </summary>
+        public UUID BannedUserID
+        {
+            get
+            {
+                return m_bannedUserID;
+            }
+            set
+            {
+                m_bannedUserID = value;
+            }
+        }
+
+        private string m_bannedHostAddress = string.Empty;
+        /// <summary>
+        /// IP address or domain name of the banned client.
+        /// </summary>
+        public string BannedHostAddress
+        {
+            get
+            {
+                return m_bannedHostAddress;
+            }
+            set
+            {
+                m_bannedHostAddress = value;
+            }
+        }
+
+        private string m_bannedHostIPMask = string.Empty;
+        /// <summary>
+        /// IP address mask for banning group of client hosts.
+        /// </summary>
+        public string BannedHostIPMask
+        {
+           get
+            {
+                return m_bannedHostIPMask;
+            }
+            set
+            {
+                m_bannedHostIPMask = value;
+            }
+        }
+
+        private string m_bannedHostNameMask = string.Empty;
+        /// <summary>
+        /// Domain name mask for banning group of client hosts.
+        /// </summary>
+        public string BannedHostNameMask
+        {
+            get
+            {
+                return m_bannedHostNameMask;
+            }
+            set
+            {
+                m_bannedHostNameMask = value;
+            }
+        }
+
     }
 }

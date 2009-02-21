@@ -59,3 +59,13 @@ CREATE TABLE EstateGroups (
   ArrayIndex INT NOT NULL,
   PRIMARY KEY (EstateID,ArrayIndex)
 );
+
+CREATE TABLE EstateBans (
+  EstateID INT NOT NULL,
+  ArrayIndex INT NOT NULL,
+  BannedUserID VARCHAR(36) NOT NULL,
+  BannedHostAddress VARCHAR(16) NOT NULL,
+  BannedHostIPMask VARCHAR(16) NOT NULL,
+  BannedHostNameMask VARCHAR(16) NOT NULL,
+  PRIMARY KEY (EstateID,ArrayIndex)
+);

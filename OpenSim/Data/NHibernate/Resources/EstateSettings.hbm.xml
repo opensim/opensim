@@ -52,6 +52,17 @@
           <index column="ArrayIndex" />
           <element column="GroupID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         </array>
+
+        <array name="EstateBans" table="EstateBans" cascade="all">
+          <key column="EstateID" />
+          <index column="ArrayIndex" />          
+          <composite-element class="OpenSim.Framework.EstateBan, OpenSim.Framework">
+            <property name="BannedUserID" column="BannedUserID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/>
+            <property name="BannedHostAddress" column="BannedHostAddress" type="String" length="16"/>
+            <property name="BannedHostIPMask" column="BannedHostIPMask" type="String" length="16"/>
+            <property name="BannedHostNameMask" column="BannedHostNameMask" type="String" length="16"/>
+          </composite-element>
+        </array>
       
     </class>
 </hibernate-mapping>
