@@ -42,7 +42,7 @@ namespace OpenSim.Grid.GridServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected GridDBService m_gridDBService;
-        protected IGridCore m_gridCore;
+        protected IUGAIMCore m_gridCore;
 
         protected GridConfig m_config;
 
@@ -65,19 +65,29 @@ namespace OpenSim.Grid.GridServer
         { 
         }
 
-        public void Initialise(string opensimVersion, GridDBService gridDBService, IGridCore gridCore, GridConfig config)
+        public void Initialise(string opensimVersion, GridDBService gridDBService, IUGAIMCore gridCore, GridConfig config)
         {
             m_opensimVersion = opensimVersion;
             m_gridDBService = gridDBService;
             m_gridCore = gridCore;
             m_config = config;
+            RegisterHandlers();
+        }
+
+        public void PostInitialise()
+        {
+
+        }
+
+        public void RegisterHandlers()
+        {
+            //have these in separate method as some servers restart the http server and reregister all the handlers.
             m_httpServer = m_gridCore.GetHttpServer();
 
             m_gridCore.RegisterInterface<IGridMessagingModule>(this);
             // Message Server ---> Grid Server
             m_httpServer.AddXmlRPCHandler("register_messageserver", XmlRPCRegisterMessageServer);
             m_httpServer.AddXmlRPCHandler("deregister_messageserver", XmlRPCDeRegisterMessageServer);
-
         }
 
         public XmlRpcResponse XmlRPCRegisterMessageServer(XmlRpcRequest request)

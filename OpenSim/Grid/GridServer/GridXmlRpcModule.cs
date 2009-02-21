@@ -46,7 +46,7 @@ namespace OpenSim.Grid.GridServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private GridDBService m_gridDBService;
-        private IGridCore m_gridCore;
+        private IUGAIMCore m_gridCore;
 
         protected GridConfig m_config;
 
@@ -67,12 +67,23 @@ namespace OpenSim.Grid.GridServer
         {
         }
 
-        public void Initialise(string opensimVersion, GridDBService gridDBService, IGridCore gridCore, GridConfig config)
+        public void Initialise(string opensimVersion, GridDBService gridDBService, IUGAIMCore gridCore, GridConfig config)
         {
             m_opensimVersion = opensimVersion;
             m_gridDBService = gridDBService;
             m_gridCore = gridCore;
             m_config = config;
+            RegisterHandlers();
+        }
+
+        public void PostInitialise()
+        {
+
+        }
+
+        public void RegisterHandlers()
+        {
+            //have these in separate method as some servers restart the http server and reregister all the handlers.
             m_httpServer = m_gridCore.GetHttpServer();
 
             m_httpServer.AddXmlRPCHandler("simulator_login", XmlRpcSimulatorLoginMethod);
@@ -81,7 +92,7 @@ namespace OpenSim.Grid.GridServer
             m_httpServer.AddXmlRPCHandler("map_block", XmlRpcMapBlockMethod);
             m_httpServer.AddXmlRPCHandler("search_for_region_by_name", XmlRpcSearchForRegionMethod);
         }
-       
+
         /// <summary>
         /// Returns a XML String containing a list of the neighbouring regions
         /// </summary>
@@ -305,7 +316,7 @@ namespace OpenSim.Grid.GridServer
                     return e.XmlRpcErrorResponse;
                 }
 
-               DataResponse insertResponse = m_gridDBService.LoginRegion(sim, existingSim);
+                DataResponse insertResponse = m_gridDBService.AddUpdateRegion(sim, existingSim);
 
                 switch (insertResponse)
                 {
@@ -557,7 +568,7 @@ namespace OpenSim.Grid.GridServer
                 //TheSim = GetRegion(new UUID((string) requestData["UUID"]));
                 uuid = requestData["UUID"].ToString();
                 m_log.InfoFormat("[LOGOUT]: Logging out region: {0}", uuid);
-//                logToDB((new LLUUID((string)requestData["UUID"])).ToString(),"XmlRpcDeleteRegionMethod","", 5,"Attempting delete with UUID.");
+                //                logToDB((new LLUUID((string)requestData["UUID"])).ToString(),"XmlRpcDeleteRegionMethod","", 5,"Attempting delete with UUID.");
             }
             else
             {
@@ -849,13 +860,15 @@ namespace OpenSim.Grid.GridServer
         }
         private XmlRpcResponse m_xmlRpcErrorResponse;
 
-        public LoginException(string message, string xmlRpcMessage) : base(message)
+        public LoginException(string message, string xmlRpcMessage)
+            : base(message)
         {
             // FIXME: Might be neater to refactor and put the method inside here
             m_xmlRpcErrorResponse = GridXmlRpcModule.ErrorResponse(xmlRpcMessage);
         }
 
-        public LoginException(string message, string xmlRpcMessage, Exception e) : base(message, e)
+        public LoginException(string message, string xmlRpcMessage, Exception e)
+            : base(message, e)
         {
             // FIXME: Might be neater to refactor and put the method inside here
             m_xmlRpcErrorResponse = GridXmlRpcModule.ErrorResponse(xmlRpcMessage);

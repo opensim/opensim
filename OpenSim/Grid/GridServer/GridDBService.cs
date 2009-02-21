@@ -197,7 +197,7 @@ namespace OpenSim.Grid.GridServer
             return regions;
         }
 
-        public DataResponse LoginRegion(RegionProfileData sim, RegionProfileData existingSim)
+        public DataResponse AddUpdateRegion(RegionProfileData sim, RegionProfileData existingSim)
         {
             DataResponse insertResponse = DataResponse.RESPONSE_ERROR;
             foreach (IGridDataPlugin plugin in _plugins)

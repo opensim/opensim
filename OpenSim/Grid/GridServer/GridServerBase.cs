@@ -39,7 +39,7 @@ namespace OpenSim.Grid.GridServer
 {
     /// <summary>
     /// </summary>
-    public class GridServerBase : BaseOpenSimServer, IGridCore
+    public class GridServerBase : BaseOpenSimServer, IUGAIMCore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -163,6 +163,10 @@ namespace OpenSim.Grid.GridServer
 
             m_gridRestModule = new GridRestModule();
             m_gridRestModule.Initialise(m_version, m_gridDBService, this, m_config);
+
+            m_gridMessageModule.PostInitialise();
+            m_gridXmlRpcModule.PostInitialise();
+            m_gridRestModule.PostInitialise();
         }
 
         public void CheckSims(object sender, ElapsedEventArgs e)
@@ -207,8 +211,8 @@ namespace OpenSim.Grid.GridServer
             foreach (IGridPlugin plugin in m_plugins) plugin.Dispose();
         }
 
-        #region IGridCore
-        private readonly Dictionary<Type, object> m_gridInterfaces = new Dictionary<Type, object>();
+        #region IUGAIMCore
+        private readonly Dictionary<Type, object> m_moduleInterfaces = new Dictionary<Type, object>();
 
         /// <summary>
         /// Register an Module interface.
@@ -217,20 +221,20 @@ namespace OpenSim.Grid.GridServer
         /// <param name="iface"></param>
         public void RegisterInterface<T>(T iface)
         {
-            lock (m_gridInterfaces)
+            lock (m_moduleInterfaces)
             {
-                if (!m_gridInterfaces.ContainsKey(typeof(T)))
+                if (!m_moduleInterfaces.ContainsKey(typeof(T)))
                 {
-                    m_gridInterfaces.Add(typeof(T), iface);
+                    m_moduleInterfaces.Add(typeof(T), iface);
                 }
             }
         }
 
         public bool TryGet<T>(out T iface)
         {
-            if (m_gridInterfaces.ContainsKey(typeof(T)))
+            if (m_moduleInterfaces.ContainsKey(typeof(T)))
             {
-                iface = (T)m_gridInterfaces[typeof(T)];
+                iface = (T)m_moduleInterfaces[typeof(T)];
                 return true;
             }
             iface = default(T);
@@ -239,7 +243,7 @@ namespace OpenSim.Grid.GridServer
 
         public T Get<T>()
         {
-            return (T)m_gridInterfaces[typeof(T)];
+            return (T)m_moduleInterfaces[typeof(T)];
         }
 
         public BaseHttpServer GetHttpServer()
