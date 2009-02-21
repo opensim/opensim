@@ -8688,8 +8688,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Dictionary<string, string> httpHeaders = new Dictionary<string, string>();
 
-			string shard = "OpenSim";
-			IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            string shard = "OpenSim";
+            IConfigSource config = new IniConfigSource(Application.iniFilePath);
             if (config.Configs["Network"] != null)
             {
                 shard = config.Configs["Network"].GetString("user_server_url", shard);

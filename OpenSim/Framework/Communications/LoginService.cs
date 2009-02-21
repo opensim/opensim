@@ -135,7 +135,7 @@ namespace OpenSim.Framework.Communications
                     }
 
                     firstname = (string)requestData["first"];
-                    lastname = (string) requestData["last"];
+                    lastname = (string)requestData["last"];
 
                     m_log.InfoFormat(
                         "[LOGIN BEGIN]: XMLRPC Received login request message from user '{0}' '{1}'",
