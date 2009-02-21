@@ -322,6 +322,10 @@ InterregionComms = "RESTComms"
     ; user_send_key and user_recv_key, too
     messaging_server_url = "http://127.0.0.1:8006"
 
+    ; What is reported as the "X-Secondlife-Shard"
+    ; Defaults to the user server url if not set
+    ; The old default is "OpenSim", set here fro compatibility
+    shard = "OpenSim"
 
 [ClientStack.LindenUDP]
     ; This is the multiplier applied to all client throttles for outgoing UDP network data

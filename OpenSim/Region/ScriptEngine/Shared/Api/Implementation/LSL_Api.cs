@@ -8688,7 +8688,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Dictionary<string, string> httpHeaders = new Dictionary<string, string>();
 
-            httpHeaders["X-SecondLife-Shard"] = "OpenSim";
+			string shard = "OpenSim";
+			IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            if (config.Configs["Network"] != null)
+            {
+                shard = config.Configs["Network"].GetString("user_server_url", shard);
+                shard = config.Configs["Network"].GetString("shard", shard);
+            }
+
+            httpHeaders["X-SecondLife-Shard"] = shard;
             httpHeaders["X-SecondLife-Object-Name"] = m_host.Name;
             httpHeaders["X-SecondLife-Object-Key"] = m_itemID.ToString();
             httpHeaders["X-SecondLife-Region"] = string.Format("{0} ({1}, {2})", regionInfo.RegionName, regionInfo.RegionLocX, regionInfo.RegionLocY);
