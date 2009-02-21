@@ -401,10 +401,13 @@ namespace OpenSim.Grid.UserServer
                 if (appearance != null)
                 {
                     loginParams["appearance"] = appearance.ToHashTable();
-                    m_log.DebugFormat("[LOGIN]: Found appearance for {0}, {1}", user.FirstName, user.SurName);
+                    m_log.DebugFormat("[LOGIN]: Found appearance for {0} {1}", user.FirstName, user.SurName);
                 }
                 else
-                    m_log.DebugFormat("[LOGIN]: Appearance not for {0}, {1}", user.FirstName, user.SurName);
+                {
+                    m_log.DebugFormat("[LOGIN]: Appearance not for {0} {1}. Creating default.", user.FirstName, user.SurName);
+                    appearance = new AvatarAppearance();
+                }
 
                 ArrayList SendParams = new ArrayList();
                 SendParams.Add(loginParams);
