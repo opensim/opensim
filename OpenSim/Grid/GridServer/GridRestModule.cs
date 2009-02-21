@@ -62,17 +62,18 @@ namespace OpenSim.Grid.GridServer
         /// <param name="opensimVersion">
         /// Used to notify old regions as to which OpenSim version to upgrade to
         /// </param>
-        public GridRestModule(string opensimVersion, GridDBService gridDBService, IGridCore gridCore, GridConfig config)
+        public GridRestModule()
         {
-           m_opensimVersion = opensimVersion;
+        }
+
+        public void Initialise(string opensimVersion, GridDBService gridDBService, IGridCore gridCore, GridConfig config)
+        {
+            m_opensimVersion = opensimVersion;
             m_gridDBService = gridDBService;
             m_gridCore = gridCore;
             m_config = config;
             m_httpServer = m_gridCore.GetHttpServer();
-        }
 
-        public void Initialise()
-        {
             m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/sims/", RestGetSimMethod));
             m_httpServer.AddStreamHandler(new RestStreamHandler("POST", "/sims/", RestSetSimMethod));
 

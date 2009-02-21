@@ -155,14 +155,14 @@ namespace OpenSim.Grid.GridServer
             m_gridDBService = new GridDBService();
             m_gridDBService.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
 
-            m_gridMessageModule = new GridMessagingModule(m_version, m_gridDBService, this, m_config);
-            m_gridMessageModule.Initialise();
+            m_gridMessageModule = new GridMessagingModule();
+            m_gridMessageModule.Initialise(m_version, m_gridDBService, this, m_config);
 
-            m_gridXmlRpcModule = new GridXmlRpcModule(m_version, m_gridDBService, this, m_config);
-            m_gridXmlRpcModule.Initialise();
+            m_gridXmlRpcModule = new GridXmlRpcModule();
+            m_gridXmlRpcModule.Initialise(m_version, m_gridDBService, this, m_config);
 
-            m_gridRestModule = new GridRestModule(m_version, m_gridDBService, this, m_config);
-            m_gridRestModule.Initialise();
+            m_gridRestModule = new GridRestModule();
+            m_gridRestModule.Initialise(m_version, m_gridDBService, this, m_config);
         }
 
         public void CheckSims(object sender, ElapsedEventArgs e)

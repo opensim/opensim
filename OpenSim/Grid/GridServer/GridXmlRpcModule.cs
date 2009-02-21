@@ -63,17 +63,18 @@ namespace OpenSim.Grid.GridServer
         /// <param name="opensimVersion">
         /// Used to notify old regions as to which OpenSim version to upgrade to
         /// </param>
-        public GridXmlRpcModule(string opensimVersion, GridDBService gridDBService, IGridCore gridCore, GridConfig config)
+        public GridXmlRpcModule()
+        {
+        }
+
+        public void Initialise(string opensimVersion, GridDBService gridDBService, IGridCore gridCore, GridConfig config)
         {
             m_opensimVersion = opensimVersion;
             m_gridDBService = gridDBService;
             m_gridCore = gridCore;
             m_config = config;
             m_httpServer = m_gridCore.GetHttpServer();
-        }
 
-        public void Initialise()
-        {
             m_httpServer.AddXmlRPCHandler("simulator_login", XmlRpcSimulatorLoginMethod);
             m_httpServer.AddXmlRPCHandler("simulator_data_request", XmlRpcSimulatorDataRequestMethod);
             m_httpServer.AddXmlRPCHandler("simulator_after_region_moved", XmlRpcDeleteRegionMethod);

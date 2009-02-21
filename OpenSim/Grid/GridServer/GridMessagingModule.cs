@@ -34,17 +34,18 @@ namespace OpenSim.Grid.GridServer
             get { return _MessageServers; }
         }
 
-        public GridMessagingModule(string opensimVersion, GridDBService gridDBService, IGridCore gridCore, GridConfig config)
+        public GridMessagingModule()
+        { 
+        }
+
+        public void Initialise(string opensimVersion, GridDBService gridDBService, IGridCore gridCore, GridConfig config)
         {
             m_opensimVersion = opensimVersion;
             m_gridDBService = gridDBService;
             m_gridCore = gridCore;
             m_config = config;
             m_httpServer = m_gridCore.GetHttpServer();
-        }
 
-        public void Initialise()
-        {
             m_gridCore.RegisterInterface<IGridMessagingModule>(this);
             // Message Server ---> Grid Server
             m_httpServer.AddXmlRPCHandler("register_messageserver", XmlRPCRegisterMessageServer);
