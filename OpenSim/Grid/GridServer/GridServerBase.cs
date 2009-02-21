@@ -219,7 +219,10 @@ namespace OpenSim.Grid.GridServer
         {
             lock (m_gridInterfaces)
             {
-                m_gridInterfaces.Add(typeof(T), iface);
+                if (!m_gridInterfaces.ContainsKey(typeof(T)))
+                {
+                    m_gridInterfaces.Add(typeof(T), iface);
+                }
             }
         }
 
