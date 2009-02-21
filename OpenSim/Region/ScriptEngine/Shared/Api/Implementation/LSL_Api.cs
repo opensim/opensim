@@ -8698,7 +8698,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             httpHeaders["X-SecondLife-Shard"] = shard;
             httpHeaders["X-SecondLife-Object-Name"] = m_host.Name;
-            httpHeaders["X-SecondLife-Object-Key"] = m_itemID.ToString();
+            httpHeaders["X-SecondLife-Object-Key"] = m_host.UUID.ToString();
             httpHeaders["X-SecondLife-Region"] = string.Format("{0} ({1}, {2})", regionInfo.RegionName, regionInfo.RegionLocX, regionInfo.RegionLocY);
             httpHeaders["X-SecondLife-Local-Position"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000})", position.X, position.Y, position.Z);
             httpHeaders["X-SecondLife-Local-Velocity"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000})", velocity.X, velocity.Y, velocity.Z);
