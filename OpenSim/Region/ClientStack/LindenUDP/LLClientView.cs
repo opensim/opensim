@@ -8466,7 +8466,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             lock (m_clientInterfaces)
             {
-                m_clientInterfaces.Add(typeof(T), iface);
+                if (!m_clientInterfaces.ContainsKey(typeof(T)))
+                {
+                    m_clientInterfaces.Add(typeof(T), iface);
+                }
             }
         }
 
