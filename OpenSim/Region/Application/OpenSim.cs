@@ -402,8 +402,13 @@ namespace OpenSim
             string regionsDir = ConfigSource.Source.Configs["Startup"].GetString("regionload_regionsdir", "Regions").Trim();
             string regionFile = String.Format("{0}/{1}", regionsDir, cmd[3]);
             // Allow absolute and relative specifiers
-            if (cmd[3].StartsWith("/") || cmd[3].StartsWith("\\") || cmd[3].StartsWith(".."))
+            if (cmd[3].StartsWith("/") || cmd[3].StartsWith("\\") || cmd[3].StartsWith("..") || cmd[3].EndsWith(".xml"))
                 regionFile = cmd[3];
+			else
+			{
+				m_console.Error("Usage: create region <region name> <region_file.xml>");
+			}
+				
 
             CreateRegion(new RegionInfo(cmd[2], regionFile, false, ConfigSource.Source), true);
         }
