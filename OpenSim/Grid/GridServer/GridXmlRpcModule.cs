@@ -305,7 +305,26 @@ namespace OpenSim.Grid.GridServer
                     return e.XmlRpcErrorResponse;
                 }
 
-                m_gridDBService.LoginRegion(sim, existingSim);
+               DataResponse insertResponse = m_gridDBService.LoginRegion(sim, existingSim);
+
+                switch (insertResponse)
+                {
+                    case DataResponse.RESPONSE_OK:
+                        m_log.Info("[LOGIN END]: " + (existingSim == null ? "New" : "Existing") + " sim login successful: " + sim.regionName);
+                        break;
+                    case DataResponse.RESPONSE_ERROR:
+                        m_log.Warn("[LOGIN END]: Sim login failed (Error): " + sim.regionName);
+                        break;
+                    case DataResponse.RESPONSE_INVALIDCREDENTIALS:
+                        m_log.Warn("[LOGIN END]: " +
+                                              "Sim login failed (Invalid Credentials): " + sim.regionName);
+                        break;
+                    case DataResponse.RESPONSE_AUTHREQUIRED:
+                        m_log.Warn("[LOGIN END]: " +
+                                              "Sim login failed (Authentication Required): " +
+                                              sim.regionName);
+                        break;
+                }
 
                 XmlRpcResponse response = CreateLoginResponse(sim);
 

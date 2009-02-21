@@ -197,14 +197,13 @@ namespace OpenSim.Grid.GridServer
             return regions;
         }
 
-        public void LoginRegion(RegionProfileData sim, RegionProfileData existingSim)
+        public DataResponse LoginRegion(RegionProfileData sim, RegionProfileData existingSim)
         {
+            DataResponse insertResponse = DataResponse.RESPONSE_ERROR;
             foreach (IGridDataPlugin plugin in _plugins)
             {
                 try
                 {
-                    DataResponse insertResponse;
-
                     if (existingSim == null)
                     {
                         insertResponse = plugin.AddProfile(sim);
@@ -212,25 +211,6 @@ namespace OpenSim.Grid.GridServer
                     else
                     {
                         insertResponse = plugin.UpdateProfile(sim);
-                    }
-
-                    switch (insertResponse)
-                    {
-                        case DataResponse.RESPONSE_OK:
-                            m_log.Info("[LOGIN END]: " + (existingSim == null ? "New" : "Existing") + " sim login successful: " + sim.regionName);
-                            break;
-                        case DataResponse.RESPONSE_ERROR:
-                            m_log.Warn("[LOGIN END]: Sim login failed (Error): " + sim.regionName);
-                            break;
-                        case DataResponse.RESPONSE_INVALIDCREDENTIALS:
-                            m_log.Warn("[LOGIN END]: " +
-                                                  "Sim login failed (Invalid Credentials): " + sim.regionName);
-                            break;
-                        case DataResponse.RESPONSE_AUTHREQUIRED:
-                            m_log.Warn("[LOGIN END]: " +
-                                                  "Sim login failed (Authentication Required): " +
-                                                  sim.regionName);
-                            break;
                     }
                 }
                 catch (Exception e)
@@ -240,6 +220,7 @@ namespace OpenSim.Grid.GridServer
                     m_log.Warn("[LOGIN END]: " + e.ToString());
                 }
             }
+            return insertResponse;
         }
 
         public DataResponse DeleteRegion(string uuid)
