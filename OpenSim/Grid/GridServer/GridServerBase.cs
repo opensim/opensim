@@ -211,7 +211,7 @@ namespace OpenSim.Grid.GridServer
         private readonly Dictionary<Type, object> m_gridInterfaces = new Dictionary<Type, object>();
 
         /// <summary>
-        /// Register an interface on this client, should only be called in the constructor.
+        /// Register an Module interface.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="iface"></param>
