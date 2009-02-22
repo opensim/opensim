@@ -107,7 +107,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         private void StopMaintenanceThread()
         {
 #if DEBUG
-            //m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: StopMaintenanceThread() called");
+            //m_log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: StopMaintenanceThread() called");
 #endif
             //PleaseShutdown = true;
             Thread.Sleep(100);
@@ -120,7 +120,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             catch (Exception)
             {
-                //m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: Exception stopping maintenence thread: " + ex.ToString());
+                //m_log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: Exception stopping maintenence thread: " + ex.ToString());
             }
         }
 
@@ -131,8 +131,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public void MaintenanceLoop()
         {
             //if (m_ScriptEngine.m_EventQueueManager.maxFunctionExecutionTimens < MaintenanceLoopms)
-            //    m_ScriptEngine.Log.Warn("[" + m_ScriptEngine.ScriptEngineName + "]: " +
-            //                               "Configuration error: MaxEventExecutionTimeMs is less than MaintenanceLoopms. The Maintenance Loop will only check scripts once per run.");
+            //    m_log.Warn("[" + m_ScriptEngine.ScriptEngineName + "]: " +
+            //               "Configuration error: MaxEventExecutionTimeMs is less than MaintenanceLoopms. The Maintenance Loop will only check scripts once per run.");
 
             long Last_maxFunctionExecutionTimens = 0; // DateTime.Now.Ticks;
             long Last_ReReadConfigFilens = DateTime.Now.Ticks;

@@ -48,7 +48,6 @@ namespace OpenSim.ScriptEngine.Shared
         public Dictionary<string, IScriptCompiler> Compilers;
         public Dictionary<string, IScriptScheduler> Schedulers;
         public Dictionary<string, IScriptCommandProvider> CommandProviders;
-        public ILog Logger;
 
         public void Executors_Execute(EventParams p)
         {

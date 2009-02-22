@@ -98,11 +98,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             get { return "ScriptEngine.DotNetEngine"; }
         }
         
-        public ILog Log
-        {
-            get { return m_log; }
-        }
-
         public ScriptEngine()
         {
             // For logging, just need any instance, doesn't matter

@@ -32,6 +32,7 @@ using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
 using Nini.Config;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim;
@@ -80,7 +81,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private bool m_automaticLinkPermission=false;
         private IMessageTransferModule m_TransferModule = null;
 
-        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {

@@ -25,22 +25,27 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Reflection;
+using log4net;
+
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     public static class Common
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public static ScriptEngine mySE;
 
         // This class just contains some static log stuff used for debugging.
 
         public static void SendToDebug(string message)
         {
-            mySE.Log.Info("[" + mySE.ScriptEngineName + "]: Debug: " + message);
+            m_log.Info("[" + mySE.ScriptEngineName + "]: Debug: " + message);
         }
 
         public static void SendToLog(string message)
         {
-            mySE.Log.Info("[" + mySE.ScriptEngineName + "]: LOG: " + message);
+            m_log.Info("[" + mySE.ScriptEngineName + "]: LOG: " + message);
         }
     }
 }

@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Avatar.Currency.SampleMoney;
@@ -35,6 +36,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Interfaces;
+using log4net;
 
 namespace OpenSim.Region.ScriptEngine.XEngine
 {
@@ -43,13 +45,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
     /// </summary>
     public class EventManager
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private XEngine myScriptEngine;
 
         public EventManager(XEngine _ScriptEngine)
         {
             myScriptEngine = _ScriptEngine;
 
-            myScriptEngine.Log.Info("[XEngine] Hooking up to server events");
+            m_log.Info("[XEngine] Hooking up to server events");
             myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
             myScriptEngine.World.EventManager.OnObjectDeGrab += touch_end;
             myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;

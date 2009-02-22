@@ -28,8 +28,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using OpenMetaverse;
 using OpenSim.Region.ScriptEngine.Shared;
+using log4net;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -57,6 +59,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         // * Current execution load balancing is optimized for 1 thread, and can cause unfair execute balancing between scripts.
         //   Not noticeable unless server is under high load.
         //
+
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public ScriptEngine m_ScriptEngine;
 
@@ -211,7 +215,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             EventQueueThreadClass eqtc = new EventQueueThreadClass();
             eventQueueThreads.Add(eqtc);
-            //m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: Started new script execution thread. Current thread count: " + eventQueueThreads.Count);
+            //m_log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: Started new script execution thread. Current thread count: " + eventQueueThreads.Count);
         }
 
         private void AbortThreadClass(EventQueueThreadClass threadClass)
@@ -225,10 +229,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             catch (Exception)
             {
-                //m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: If you see this, could you please report it to Tedd:");
-                //m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: Script thread execution timeout kill ended in exception: " + ex.ToString());
+                //m_log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: If you see this, could you please report it to Tedd:");
+                //m_log.Error("[" + m_ScriptEngine.ScriptEngineName + ":EventQueueManager]: Script thread execution timeout kill ended in exception: " + ex.ToString());
             }
-            //m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: Killed script execution thread. Remaining thread count: " + eventQueueThreads.Count);
+            //m_log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: Killed script execution thread. Remaining thread count: " + eventQueueThreads.Count);
         }
         #endregion
 
@@ -346,8 +350,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             {
                 if (eventQueue.Count >= EventExecutionMaxQueueSize)
                 {
-                    m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: ERROR: Event execution queue item count is at " + eventQueue.Count + ". Config variable \"EventExecutionMaxQueueSize\" is set to " + EventExecutionMaxQueueSize + ", so ignoring new event.");
-                    m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: Event ignored: localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
+                    m_log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: ERROR: Event execution queue item count is at " + eventQueue.Count + ". Config variable \"EventExecutionMaxQueueSize\" is set to " + EventExecutionMaxQueueSize + ", so ignoring new event.");
+                    m_log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: Event ignored: localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
                     return false;
                 }
 

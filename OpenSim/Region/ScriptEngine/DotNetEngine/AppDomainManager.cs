@@ -34,6 +34,7 @@ using System.Security.Policy;
 using System.Security.Permissions; 
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
+using log4net;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -50,6 +51,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         //    them as inactive)
         // 4. Unload AppDomain completely when all scripts in it has stopped
         //
+
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private int maxScriptsPerAppDomain = 1;
 
@@ -138,12 +141,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             AppDomain AD = AppDomain.CreateDomain("ScriptAppDomain_" +
                     AppDomainNameCount, null, ads);
 
-            m_scriptEngine.Log.Info("[" + m_scriptEngine.ScriptEngineName +
-                    "]: AppDomain Loading: " +
-                    AssemblyName.GetAssemblyName(
-                    "OpenSim.Region.ScriptEngine.Shared.dll").ToString());
+            m_log.Info("[" + m_scriptEngine.ScriptEngineName +
+                       "]: AppDomain Loading: " +
+                       AssemblyName.GetAssemblyName(
+                           "OpenSim.Region.ScriptEngine.Shared.dll").ToString());
             AD.Load(AssemblyName.GetAssemblyName(
-                    "OpenSim.Region.ScriptEngine.Shared.dll"));
+                        "OpenSim.Region.ScriptEngine.Shared.dll"));
 
             // Return the new AppDomain
             return AD;

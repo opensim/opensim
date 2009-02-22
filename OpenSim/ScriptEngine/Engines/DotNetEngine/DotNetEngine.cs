@@ -96,7 +96,6 @@ namespace OpenSim.ScriptEngine.Engines.DotNetEngine
             RegionInfo.Executors = new Dictionary<string, IScriptExecutor>();
             RegionInfo.CommandProviders = new Dictionary<string, IScriptCommandProvider>();
             RegionInfo.EventProviders = new Dictionary<string, IScriptEventProvider>();
-            RegionInfo.Logger = LogManager.GetLogger("SECS.DotNetEngine.RegionInfo");
         }
 
         public void Initialise(Scene scene, IConfigSource source)

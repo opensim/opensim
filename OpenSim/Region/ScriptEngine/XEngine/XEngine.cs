@@ -125,11 +125,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return m_Scene; }
         }
 
-        public ILog Log
-        {
-            get { return m_log; }
-        }
-
         public static List<XEngine> ScriptEngines
         {
             get { return m_ScriptEngines; }
@@ -483,7 +478,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
             if (part == null)
             {
-                Log.Error("[Script] SceneObjectPart unavailable. Script NOT started.");
+                m_log.Error("[Script] SceneObjectPart unavailable. Script NOT started.");
                 m_ScriptErrorMessage += "SceneObjectPart unavailable. Script NOT started.\n";
                 m_ScriptFailCount++;
                 return false;

@@ -29,10 +29,12 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 using System.IO;
 using Microsoft.CSharp;
 using Microsoft.JScript;
 using Microsoft.VisualBasic;
+using log4net;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
 
@@ -40,8 +42,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 {
     public class Compiler : ICompiler
     {
-        // private static readonly log4net.ILog m_log
-        //     = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // * Uses "LSL2Converter" to convert LSL to C# if necessary.
         // * Compiles C#-code into an assembly
@@ -126,7 +127,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             AllowedCompilers.Clear();
 
 #if DEBUG
-            m_scriptEngine.Log.Debug("[Compiler]: Allowed languages: " + allowComp);
+            m_log.Debug("[Compiler]: Allowed languages: " + allowComp);
 #endif
 
 
@@ -135,18 +136,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 string strlan = strl.Trim(" \t".ToCharArray()).ToLower();
                 if (!LanguageMapping.ContainsKey(strlan))
                 {
-                    m_scriptEngine.Log.Error("[Compiler]: Config error. Compiler is unable to recognize language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
+                    m_log.Error("[Compiler]: Config error. Compiler is unable to recognize language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
                 }
                 else
                 {
 #if DEBUG
-                    //m_scriptEngine.Log.Debug("[Compiler]: Config OK. Compiler recognized language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
+                    //m_log.Debug("[Compiler]: Config OK. Compiler recognized language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
 #endif
                 }
                 AllowedCompilers.Add(strlan, true);
             }
             if (AllowedCompilers.Count == 0)
-                m_scriptEngine.Log.Error("[Compiler]: Config error. Compiler could not recognize any language in \"AllowedCompilers\". Scripts will not be executed!");
+                m_log.Error("[Compiler]: Config error. Compiler could not recognize any language in \"AllowedCompilers\". Scripts will not be executed!");
 
             // Default language
             string defaultCompileLanguage = m_scriptEngine.Config.GetString("DefaultCompileLanguage", "lsl").ToLower();
@@ -154,7 +155,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             // Is this language recognized at all?
             if (!LanguageMapping.ContainsKey(defaultCompileLanguage))
             {
-                m_scriptEngine.Log.Error("[Compiler]: " +
+                m_log.Error("[Compiler]: " +
                                             "Config error. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is not recognized as a valid language. Changing default to: \"lsl\".");
                 defaultCompileLanguage = "lsl";
             }
@@ -162,13 +163,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             // Is this language in allow-list?
             if (!AllowedCompilers.ContainsKey(defaultCompileLanguage))
             {
-                m_scriptEngine.Log.Error("[Compiler]: " +
-                                            "Config error. Default language \"" + defaultCompileLanguage + "\"specified in \"DefaultCompileLanguage\" is not in list of \"AllowedCompilers\". Scripts may not be executed!");
+                m_log.Error("[Compiler]: " +
+                            "Config error. Default language \"" + defaultCompileLanguage + "\"specified in \"DefaultCompileLanguage\" is not in list of \"AllowedCompilers\". Scripts may not be executed!");
             }
             else
             {
 #if DEBUG
-//                m_scriptEngine.Log.Debug("[Compiler]: " +
+//                m_log.Debug("[Compiler]: " +
 //                                            "Config OK. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is recognized as a valid language.");
 #endif
                 // LANGUAGE IS IN ALLOW-LIST
@@ -194,7 +195,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 }
                 catch (Exception ex)
                 {
-                    m_scriptEngine.Log.Error("[Compiler]: Exception trying to create ScriptEngine directory \"" + ScriptEnginesPath + "\": " + ex.ToString());
+                    m_log.Error("[Compiler]: Exception trying to create ScriptEngine directory \"" + ScriptEnginesPath + "\": " + ex.ToString());
                 }
             }
 
@@ -208,7 +209,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 }
                 catch (Exception ex)
                 {
-                    m_scriptEngine.Log.Error("[Compiler]: Exception trying to create ScriptEngine directory \"" + Path.Combine(ScriptEnginesPath,
+                    m_log.Error("[Compiler]: Exception trying to create ScriptEngine directory \"" + Path.Combine(ScriptEnginesPath,
                                             m_scriptEngine.World.RegionInfo.RegionID.ToString())+ "\": " + ex.ToString());
                 }
             }
@@ -216,7 +217,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             foreach (string file in Directory.GetFiles(Path.Combine(ScriptEnginesPath,
                                 m_scriptEngine.World.RegionInfo.RegionID.ToString())))
             {
-                //m_scriptEngine.Log.Error("[Compiler]: FILE FOUND: " + file);
+                //m_log.Error("[Compiler]: FILE FOUND: " + file);
 
                 if (file.ToLower().StartsWith(FilePrefix + "_compiled_") ||
                     file.ToLower().StartsWith(FilePrefix + "_source_"))
@@ -227,12 +228,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     }
                     catch (Exception ex)
                     {
-                        m_scriptEngine.Log.Error("[Compiler]: Exception trying delete old script file \"" + file + "\": " + ex.ToString());
+                        m_log.Error("[Compiler]: Exception trying delete old script file \"" + file + "\": " + ex.ToString());
                     }
-
                 }
             }
-
         }
 
         ////private ICodeCompiler icc = codeProvider.CreateCompiler();
@@ -293,9 +292,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (Script == String.Empty)
             {
                 if (File.Exists(OutFile))
-
                 {
-//                    m_scriptEngine.Log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
+//                    m_log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
                     return OutFile;
                 }
 
@@ -345,7 +343,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             //
             if (File.Exists(OutFile) && File.Exists(OutFile+".text"))
             {
-//                m_scriptEngine.Log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
+//                m_log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
                 return OutFile;
             }
 
@@ -465,9 +463,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 }
                 catch (Exception ex) //NOTLEGIT - Should be just FileIOException
                 {
-                    m_scriptEngine.Log.Error("[Compiler]: Exception while "+
-                            "trying to write script source to file \"" +
-                            srcFileName + "\": " + ex.ToString());
+                    m_log.Error("[Compiler]: Exception while "+
+                                "trying to write script source to file \"" +
+                                srcFileName + "\": " + ex.ToString());
                 }
             }
 
@@ -577,7 +575,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 errtext += "No compile error. But not able to locate compiled file.";
                 throw new Exception(errtext);
             }
-//            m_scriptEngine.Log.DebugFormat("[Compiler] Compiled new assembly "+
+//            m_log.DebugFormat("[Compiler] Compiled new assembly "+
 //                    "for {0}", asset);
 
             // Because windows likes to perform exclusive locks, we simply

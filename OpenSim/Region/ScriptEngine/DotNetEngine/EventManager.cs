@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Avatar.Currency.SampleMoney;
@@ -35,6 +36,7 @@ using OpenSim.Region;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
+using log4net;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -63,6 +65,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         // verify what exact parameters are needed.
         //
 
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private ScriptEngine myScriptEngine;
 
         public EventManager(ScriptEngine _ScriptEngine, bool performHookUp)
@@ -78,8 +82,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         
         public void HookUpEvents()
         {
-            myScriptEngine.Log.Info("[" + myScriptEngine.ScriptEngineName +
-                    "]: Hooking up to server events");
+            m_log.Info("[" + myScriptEngine.ScriptEngineName +
+                       "]: Hooking up to server events");
 
             myScriptEngine.World.EventManager.OnObjectGrab +=
                     touch_start;
@@ -293,9 +297,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (engine != myScriptEngine.ScriptEngineName)
                 return;
 
-            myScriptEngine.Log.Debug("OnRezScript localID: " + localID +
-                    " LLUID: " + itemID.ToString() + " Size: " +
-                    script.Length);
+            m_log.Debug("OnRezScript localID: " + localID +
+                        " LLUID: " + itemID.ToString() + " Size: " +
+                        script.Length);
 
             myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script,
                     startParam, postOnRez);
@@ -303,7 +307,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void OnRemoveScript(uint localID, UUID itemID)
         {
-            myScriptEngine.Log.Debug("OnRemoveScript localID: " + localID + " LLUID: " + itemID.ToString());
+            m_log.Debug("OnRemoveScript localID: " + localID + " LLUID: " + itemID.ToString());
             myScriptEngine.m_ScriptManager.StopScript(
                 localID,
                 itemID

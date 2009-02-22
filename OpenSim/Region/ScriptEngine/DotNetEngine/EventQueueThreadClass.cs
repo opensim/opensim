@@ -47,6 +47,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     // within a class
     public class EventQueueThreadClass
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         // How many ms to sleep if queue is empty
         private static int nothingToDoSleepms;// = 50;
         private static ThreadPriority MyThreadPriority;
@@ -110,11 +112,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                             break;
                         default:
                             MyThreadPriority = ThreadPriority.BelowNormal;
-                            m_ScriptEngine.Log.Error(
-                                    "[ScriptEngine.DotNetEngine]: Unknown "+
-                                    "priority type \"" + pri +
-                                    "\" in config file. Defaulting to "+
-                                    "\"BelowNormal\".");
+                            m_log.Error(
+                                "[ScriptEngine.DotNetEngine]: Unknown "+
+                                "priority type \"" + pri +
+                                "\" in config file. Defaulting to "+
+                                "\"BelowNormal\".");
                             break;
                     }
                 }
@@ -186,24 +188,22 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     }
                     catch (ThreadAbortException)
                     {
-                        if (lastScriptEngine != null)
-                            lastScriptEngine.Log.Info("[" + ScriptEngineName +
-                                    "]: ThreadAbortException while executing "+
-                                    "function.");
+                        m_log.Info("[" + ScriptEngineName +
+                                   "]: ThreadAbortException while executing "+
+                                   "function.");
                     }
                     catch (SelfDeleteException) // Must delete SOG
                     {
                         SceneObjectPart part =
-                                lastScriptEngine.World.GetSceneObjectPart(
+                            lastScriptEngine.World.GetSceneObjectPart(
                                 lastLocalID);
                         if (part != null && part.ParentGroup != null)
                             lastScriptEngine.World.DeleteSceneObject(
-                                    part.ParentGroup, false);
+                                part.ParentGroup, false);
                     }
                     catch (Exception e)
                     {
-                        if (lastScriptEngine != null)
-                            lastScriptEngine.Log.ErrorFormat("[{0}]: Exception {1} thrown", ScriptEngineName, e.GetType().ToString());
+                        m_log.ErrorFormat("[{0}]: Exception {1} thrown", ScriptEngineName, e.GetType().ToString());
                         throw e;
                     }
                 }
@@ -214,10 +214,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             catch (Exception e)
             {
                 // TODO: Let users in the sim and those entering it and possibly an external watchdog know what has happened
-                if (lastScriptEngine != null)
-                    lastScriptEngine.Log.ErrorFormat(
-                        "[{0}]: Event queue thread terminating with exception.  PLEASE REBOOT YOUR SIM - SCRIPT EVENTS WILL NOT WORK UNTIL YOU DO.  Exception is {1}", 
-                        ScriptEngineName, e);                
+                m_log.ErrorFormat(
+                    "[{0}]: Event queue thread terminating with exception.  PLEASE REBOOT YOUR SIM - SCRIPT EVENTS WILL NOT WORK UNTIL YOU DO.  Exception is {1}", 
+                    ScriptEngineName, e);                
             }
         }
 
@@ -342,11 +341,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                             }
                             catch (Exception)
                             {
-                                m_ScriptEngine.m_EventQueueManager.
-                                    m_ScriptEngine.Log.Error("[" +
-                                        ScriptEngineName + "]: " +
-                                        "Unable to send text in-world:\r\n" +
-                                        text);
+                                m_log.Error("[" +
+                                            ScriptEngineName + "]: " +
+                                            "Unable to send text in-world:\r\n" +
+                                            text);
                             }
                             finally
                             {

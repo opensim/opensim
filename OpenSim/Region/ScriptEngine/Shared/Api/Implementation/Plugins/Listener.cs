@@ -26,6 +26,7 @@
  */
 
 using System;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.CoreModules.Scripting.WorldComm;
@@ -37,7 +38,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 {
     public class Listener
     {
-        // private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public AsyncCommandManager m_CmdManager;
 

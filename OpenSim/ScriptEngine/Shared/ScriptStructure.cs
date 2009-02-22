@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
@@ -38,6 +39,8 @@ namespace OpenSim.ScriptEngine.Shared
 {
     public struct ScriptStructure
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public RegionInfoStructure RegionInfo;
         public ScriptMetaData ScriptMetaData;
 
@@ -91,8 +94,7 @@ namespace OpenSim.ScriptEngine.Shared
                 if (!InternalFunctions.ContainsKey(FunctionName))
                 {
                     // TODO: Send message in-world
-                    //RegionInfo.Scene.
-                    RegionInfo.Logger.ErrorFormat("[{0}] Script function \"{1}\" was not found.", Name, FunctionName);
+                    m_log.ErrorFormat("[{0}] Script function \"{1}\" was not found.", Name, FunctionName);
                     return;
                 }
 
@@ -103,7 +105,7 @@ namespace OpenSim.ScriptEngine.Shared
                 }
                 catch (Exception e)
                 {
-                    RegionInfo.Logger.ErrorFormat("[{0}] Execute \"{1}\" failed: {2}", Name, FunctionName, e.ToString());
+                    m_log.ErrorFormat("[{0}] Execute \"{1}\" failed: {2}", Name, FunctionName, e.ToString());
                 }
             }
         }
@@ -126,8 +128,8 @@ namespace OpenSim.ScriptEngine.Shared
                     if (!InternalFunctions.ContainsKey(mi.Name))
                         InternalFunctions.Add(mi.Name, Delegate.CreateDelegate(scriptObjectType, ScriptObject, mi));
                     else
-                        RegionInfo.Logger.ErrorFormat("[{0}] Error: Script function \"{1}\" is already added. We do not support overloading.",
-                            Name, mi.Name);
+                        m_log.ErrorFormat("[{0}] Error: Script function \"{1}\" is already added. We do not support overloading.",
+                                          Name, mi.Name);
                 }
             }
         }
