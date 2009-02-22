@@ -229,10 +229,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                                   alpha = temp;
                               }
                           }
-					      // Allow a bitmap w/o the alpha component to be created
-					      else if (value.ToLower() == "false") {
-						       alpha = 256;
-					      }
+                          // Allow a bitmap w/o the alpha component to be created
+                          else if (value.ToLower() == "false") {
+                               alpha = 256;
+                          }
                           break;
                      case "bgcolour":
                          int hex = 0;
@@ -276,16 +276,16 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 }
             }
 
-			Bitmap bitmap;
-			
-            if ( alpha == 256 ) 
-			{
-				bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
-			}
-			else {
-			
-				bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-			}
+            Bitmap bitmap;
+            
+            if (alpha == 256)
+            {
+                bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
+            }
+            else
+            {
+                bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+            }
 
             Graphics graph = Graphics.FromImage(bitmap);
 
@@ -298,13 +298,13 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
             for (int w = 0; w < bitmap.Width; w++)
             {
-				if (alpha <= 255) 
-				{
-	                for (int h = 0; h < bitmap.Height; h++)
-	                {
-	                    bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
-	                }
-				}
+                if (alpha <= 255) 
+                {
+                    for (int h = 0; h < bitmap.Height; h++)
+                    {
+                        bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
+                    }
+                }
             }
 
             GDIDraw(data, graph);
