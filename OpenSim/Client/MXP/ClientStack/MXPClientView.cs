@@ -559,16 +559,16 @@ namespace OpenSim.Client.MXP.ClientStack
             pe.ObjectFragment.OwnerId = ownerID.Guid;
             pe.ObjectFragment.TypeId = Guid.Empty;
 
-            pe.ObjectFragment.Acceleration = new[] { acc.X, acc.Y, acc.Z };
+            pe.ObjectFragment.Acceleration = new float[] { acc.X, acc.Y, acc.Z };
             pe.ObjectFragment.AngularAcceleration = new float[4];
-            pe.ObjectFragment.AngularVelocity = new[] { rvel.X, rvel.Y, rvel.Z, 0.0f };
+            pe.ObjectFragment.AngularVelocity = new float[] { rvel.X, rvel.Y, rvel.Z, 0.0f };
             pe.ObjectFragment.BoundingSphereRadius = primShape.Scale.Length()/2.0f;
-            pe.ObjectFragment.Location = new[] { pos.X, pos.Y, pos.Z };
+            pe.ObjectFragment.Location = new float[] { pos.X, pos.Y, pos.Z };
             pe.ObjectFragment.Mass = 1.0f;
             pe.ObjectFragment.ObjectId = objectID.Guid;
-            pe.ObjectFragment.Orientation = new[] {rotation.X, rotation.Y, rotation.Z, rotation.W};
+            pe.ObjectFragment.Orientation = new float[] { rotation.X, rotation.Y, rotation.Z, rotation.W };
             pe.ObjectFragment.ParentObjectId = Guid.Empty;
-            pe.ObjectFragment.Velocity = new[] { vel.X, vel.Y, vel.Z };
+            pe.ObjectFragment.Velocity = new float[] { vel.X, vel.Y, vel.Z };
 
             pe.ObjectFragment.StatePayloadDialect = "";
             pe.ObjectFragment.StatePayloadLength = 0;
