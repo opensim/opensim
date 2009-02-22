@@ -320,7 +320,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected SceneObjectPart(SerializationInfo info, StreamingContext context)
         {
-            //System.Console.WriteLine("SceneObjectPart Deserialize BGN");
+            //m_log.Debug("SceneObjectPart Deserialize BGN");
             m_TextureAnimation = new byte[0];
             m_particleSystem = new byte[0];
             if (info == null)
@@ -333,7 +333,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_ids = (List<UUID>)info.GetValue("m_ids", typeof(List<UUID>));
             */
 
-            //System.Console.WriteLine("SceneObjectPart Deserialize END");
+            //m_log.Debug("SceneObjectPart Deserialize END");
             Rezzed = DateTime.Now;
             
             m_inventory = new SceneObjectPartInventory(this);
@@ -534,7 +534,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("[SCENEOBJECTPART]: GROUP POSITION. " + e.Message);
+                        m_log.Error("[SCENEOBJECTPART]: GROUP POSITION. " + e.Message);
                     }
                 }
                 
@@ -619,7 +619,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("[SCENEOBJECTPART]: ROTATIONOFFSET" + ex.Message);
+                        m_log.Error("[SCENEOBJECTPART]: ROTATIONOFFSET" + ex.Message);
                     }
                 }
 
@@ -1121,13 +1121,13 @@ if (m_shape != null) {
             // PrimFlags prevflag = Flags;
             if ((ObjectFlags & (uint) flag) == 0)
             {
-                //Console.WriteLine("Adding flag: " + ((PrimFlags) flag).ToString());
+                //m_log.Debug("Adding flag: " + ((PrimFlags) flag).ToString());
                 _flags |= flag;
 
                 if (flag == PrimFlags.TemporaryOnRez)
                     ResetExpire();
             }
-            // System.Console.WriteLine("Aprev: " + prevflag.ToString() + " curr: " + Flags.ToString());
+            // m_log.Debug("Aprev: " + prevflag.ToString() + " curr: " + Flags.ToString());
         }
 
         /// <summary>
@@ -2197,10 +2197,10 @@ if (m_shape != null) {
             // PrimFlags prevflag = Flags;
             if ((ObjectFlags & (uint) flag) != 0)
             {
-                //Console.WriteLine("Removing flag: " + ((PrimFlags)flag).ToString());
+                //m_log.Debug("Removing flag: " + ((PrimFlags)flag).ToString());
                 _flags &= ~flag;
             }
-            //System.Console.WriteLine("prev: " + prevflag.ToString() + " curr: " + Flags.ToString());
+            //m_log.Debug("prev: " + prevflag.ToString() + " curr: " + Flags.ToString());
             //ScheduleFullUpdate();
         }
 
@@ -3552,7 +3552,7 @@ if (m_shape != null) {
             {
                 RemFlag(PrimFlags.TemporaryOnRez);
             }
-            //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
+            //            m_log.Debug("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
 
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();

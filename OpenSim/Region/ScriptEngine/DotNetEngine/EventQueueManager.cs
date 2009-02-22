@@ -314,7 +314,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Do we have any scripts in this object at all? If not, return
             if (m_ScriptEngine.m_ScriptManager.Scripts.ContainsKey(localID) == false)
             {
-                //Console.WriteLine("Event \String.Empty + FunctionName + "\" for localID: " + localID + ". No scripts found on this localID.");
+                //m_log.Debug("Event \String.Empty + FunctionName + "\" for localID: " + localID + ". No scripts found on this localID.");
                 return false;
             }
 

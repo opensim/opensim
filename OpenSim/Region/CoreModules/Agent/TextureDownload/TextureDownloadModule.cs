@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         {
             if (m_scene == null)
             {
-                //Console.WriteLine("Creating Texture download module");
+                //m_log.Debug("Creating Texture download module");
                 m_scene = scene;
                 m_thread = new Thread(new ThreadStart(ProcessTextureSenders));
                 m_thread.Name = "ProcessTextureSenderThread";

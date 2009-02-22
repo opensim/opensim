@@ -627,7 +627,7 @@ namespace OpenSim.Grid.GridServer
             else if (requestData.ContainsKey("region_handle"))
             {
                 //CFK: The if/else below this makes this message redundant.
-                //CFK: Console.WriteLine("requesting data for region " + (string) requestData["region_handle"]);
+                //CFK: m_log.Info("requesting data for region " + (string) requestData["region_handle"]);
                 ulong regionHandle = Convert.ToUInt64((string)requestData["region_handle"]);
                 simData = m_gridDBService.GetRegion(regionHandle);
                 if (simData == null)

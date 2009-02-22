@@ -29,11 +29,14 @@ using System;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Region.Communications.Local
 {
     public class LocalUserServices : UserManagerBase
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly uint m_defaultHomeX;
         private readonly uint m_defaultHomeY;
 
@@ -64,7 +67,7 @@ namespace OpenSim.Region.Communications.Local
                 return profile;
             }
 
-            Console.WriteLine("Unknown Master User. Sandbox Mode: Creating Account");
+            m_log.Debug("Unknown Master User. Sandbox Mode: Creating Account");
             AddUser(firstName, lastName, password, "", m_defaultHomeX, m_defaultHomeY);
             return GetUserProfile(firstName, lastName);
         }

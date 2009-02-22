@@ -36,11 +36,14 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Data.Tests
 {
     public class BasicRegionTest
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public IRegionDataStore db;
         public UUID zero = UUID.Zero;
         public UUID region1;
@@ -139,7 +142,7 @@ namespace OpenSim.Data.Tests
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in storing object {0} {1}", sog.ToString(), e);
+                m_log.Error(e.ToString());
                 Assert.Fail();
             }
                     
@@ -149,7 +152,7 @@ namespace OpenSim.Data.Tests
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in storing object {0} {1}", sog2.ToString(), e);
+                m_log.Error(e.ToString());
                 Assert.Fail();
             }
 

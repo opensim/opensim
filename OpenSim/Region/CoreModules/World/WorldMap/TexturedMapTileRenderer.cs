@@ -40,6 +40,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 {
     // Hue, Saturation, Value; used for color-interpolation
     struct HSV {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public float h;
         public float s;
         public float v;
@@ -76,10 +78,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         // (for info about algorithm, see http://en.wikipedia.org/wiki/HSL_and_HSV)
         public Color toColor()
         {
-            if (s < 0f) Console.WriteLine("S < 0: " + s);
-            else if (s > 1f) Console.WriteLine("S > 1: " + s);
-            if (v < 0f) Console.WriteLine("V < 0: " + v);
-            else if (v > 1f) Console.WriteLine("V > 1: " + v);
+            if (s < 0f) m_log.Debug("S < 0: " + s);
+            else if (s > 1f) m_log.Debug("S > 1: " + s);
+            if (v < 0f) m_log.Debug("V < 0: " + v);
+            else if (v > 1f) m_log.Debug("V > 1: " + v);
 
             float f = h / 60f;
             int sector = (int)f % 6;

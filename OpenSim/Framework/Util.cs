@@ -700,8 +700,7 @@ namespace OpenSim.Framework
             }
             catch (Exception e)
             {
-                System.Console.WriteLine(e.Message);
-                System.Console.WriteLine(e.StackTrace);
+                m_log.Error(e.ToString());
             }
             finally
             {
@@ -728,8 +727,7 @@ namespace OpenSim.Framework
             }
             catch (Exception e)
             {
-                System.Console.WriteLine(e.Message);
-                System.Console.WriteLine(e.StackTrace);
+                m_log.Error(e.ToString());
             }
             finally
             {

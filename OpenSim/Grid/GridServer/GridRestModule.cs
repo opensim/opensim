@@ -182,7 +182,7 @@ namespace OpenSim.Grid.GridServer
         public string RestSetSimMethod(string request, string path, string param,
                                        OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            Console.WriteLine("Processing region update via REST method");
+            m_log.Info("Processing region update via REST method");
             RegionProfileData theSim;
             theSim = m_gridDBService.GetRegion(new UUID(param));
             if (theSim == null)

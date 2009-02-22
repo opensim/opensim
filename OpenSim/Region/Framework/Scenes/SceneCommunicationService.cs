@@ -372,7 +372,7 @@ namespace OpenSim.Region.Framework.Scenes
             Dictionary<ulong, string> seeds 
                 = new Dictionary<ulong, string>(avatar.Scene.CapsModule.GetChildrenSeeds(avatar.UUID));
             
-            //Console.WriteLine(" !!! No. of seeds: " + seeds.Count);
+            //m_log.Debug(" !!! No. of seeds: " + seeds.Count);
             if (!seeds.ContainsKey(avatar.Scene.RegionInfo.RegionHandle))
                 seeds.Add(avatar.Scene.RegionInfo.RegionHandle, avatar.ControllingClient.RequestClientInfo().CapsPath);
 
@@ -954,7 +954,7 @@ namespace OpenSim.Region.Framework.Scenes
             int count = 20;
             while (m_agentsInTransit.Contains(id) && count-- > 0)
             {
-                //Console.WriteLine("  >>> Waiting... " + count);
+                //m_log.Debug("  >>> Waiting... " + count);
                 Thread.Sleep(1000);
             }
 
@@ -966,7 +966,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool ReleaseAgent(UUID id)
         {
-            //Console.WriteLine(" >>> ReleaseAgent called <<< ");
+            //m_log.Debug(" >>> ReleaseAgent called <<< ");
             return ResetFromTransit(id);
         }
 
@@ -1104,7 +1104,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
                 agent.ControllingClient.RequestClientInfo();
 
-                //Console.WriteLine("BEFORE CROSS");
+                //m_log.Debug("BEFORE CROSS");
                 //Scene.DumpChildrenSeeds(UUID);
                 //DumpKnownRegions();
                 string agentcaps;
@@ -1162,7 +1162,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            //Console.WriteLine("AFTER CROSS");
+            //m_log.Debug("AFTER CROSS");
             //Scene.DumpChildrenSeeds(UUID);
             //DumpKnownRegions();
             return agent;
@@ -1252,14 +1252,14 @@ namespace OpenSim.Region.Framework.Scenes
 
 //        private void Dump(string msg, List<ulong> handles)
 //        {
-//            Console.WriteLine("-------------- HANDLE DUMP ({0}) ---------", msg);
+//            m_log.Info"-------------- HANDLE DUMP ({0}) ---------", msg);
 //            foreach (ulong handle in handles)
 //            {
 //                uint x, y;
 //                Utils.LongToUInts(handle, out x, out y);
 //                x = x / Constants.RegionSize;
 //                y = y / Constants.RegionSize;
-//                Console.WriteLine("({0}, {1})", x, y);
+//                m_log.Info("({0}, {1})", x, y);
 //            }
 //        }
     }

@@ -31,12 +31,16 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
     [TestFixture]
     public class ODETestClass
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private OdePlugin cbt;
         private PhysicsScene ps;
         private IMeshingPlugin imp;
@@ -92,18 +96,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 Assert.That(oprim.m_targetSpace != (IntPtr)0);
 
                 //Assert.That(oprim.m_targetSpace == pscene.space);
-                Console.WriteLine("TargetSpace: " + oprim.m_targetSpace + " - SceneMainSpace: " + pscene.space);
+                m_log.Info("TargetSpace: " + oprim.m_targetSpace + " - SceneMainSpace: " + pscene.space);
 
                 Assert.That(!oprim.m_taintadd);
-                Console.WriteLine("Prim Position (" + oprim.m_localID +  "): " + prim.Position.ToString());
+                m_log.Info("Prim Position (" + oprim.m_localID + "): " + prim.Position.ToString());
 
                 // Make sure we're above the ground
                 //Assert.That(prim.Position.Z > 20f);
-                //Console.WriteLine("PrimCollisionScore (" + oprim.m_localID + "): " + oprim.m_collisionscore);
+                //m_log.Info("PrimCollisionScore (" + oprim.m_localID + "): " + oprim.m_collisionscore);
 
                 // Make sure we've got a Body
                 Assert.That(oprim.Body != (IntPtr)0);
-                //Console.WriteLine(
+                //m_log.Info(
             }
 
             // Make sure we're not somewhere above the ground

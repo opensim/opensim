@@ -31,6 +31,8 @@ using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -240,6 +242,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     public class AgentData : IAgentData
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private UUID m_id;
         public UUID AgentID
         {
@@ -496,10 +499,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Dump()
         {
-            System.Console.WriteLine("------------ AgentData ------------");
-            System.Console.WriteLine("UUID: " + AgentID);
-            System.Console.WriteLine("Region: " + RegionHandle);
-            System.Console.WriteLine("Position: " + Position);
+            m_log.Info("------------ AgentData ------------");
+            m_log.Info("UUID: " + AgentID);
+            m_log.Info("Region: " + RegionHandle);
+            m_log.Info("Position: " + Position);
         }
     }
 

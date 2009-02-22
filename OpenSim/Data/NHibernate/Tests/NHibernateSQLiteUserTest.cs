@@ -29,12 +29,16 @@ using System;
 using System.IO;
 using NUnit.Framework;
 using OpenSim.Data.Tests;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Data.NHibernate.Tests
 {
+
     [TestFixture]
     public class NHibernateSQLiteUserTest : BasicUserTest
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public string file;
         public NHibernateManager database;
         
@@ -56,7 +60,7 @@ namespace OpenSim.Data.NHibernate.Tests
             } 
             catch (Exception e)
             {
-                Console.WriteLine("Exception {0}", e);
+                m_log.Error(e.ToString());
                 Assert.Ignore();
             }
         }

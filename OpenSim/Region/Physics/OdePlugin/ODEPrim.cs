@@ -2507,7 +2507,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        //System.Console.WriteLine(Math.Abs(m_lastposition.X - l_position.X).ToString());
+                        //m_log.Debug(Math.Abs(m_lastposition.X - l_position.X).ToString());
                         _zeroFlag = false;
                     }
 
@@ -2569,7 +2569,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             m_rotationalVelocity.setValues(rotvel.X, rotvel.Y, rotvel.Z);
                         }
 
-                        //System.Console.WriteLine("ODE: " + m_rotationalVelocity.ToString());
+                        //m_log.Debug("ODE: " + m_rotationalVelocity.ToString());
                         _orientation.X = ori.X;
                         _orientation.Y = ori.Y;
                         _orientation.Z = ori.Z;

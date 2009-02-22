@@ -375,7 +375,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
         public OSD RequestRezAvatarMethod(string path, OSD request)
         {
-            //System.Console.WriteLine("[REQUESTREZAVATAR]: " + request.ToString());
+            //m_log.Debug("[REQUESTREZAVATAR]: " + request.ToString());
 
             OSDMap requestMap = (OSDMap)request;
 
@@ -602,7 +602,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 }
             }
             
-            //System.Console.WriteLine("Response:" + responseMap.ToString());
+            //m_log.Debug("Response:" + responseMap.ToString());
             return responseMap;
         }
 

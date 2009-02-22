@@ -273,7 +273,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         {
             // Eventually, we want to use a caps url instead of the agentID
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + aCircuit.AgentID + "/";
-            //Console.WriteLine("   >>> DoCreateChildAgentCall <<< " + uri);
+            //m_log.Debug("   >>> DoCreateChildAgentCall <<< " + uri);
 
             WebRequest AgentCreateRequest = WebRequest.Create(uri);
             AgentCreateRequest.Method = "POST";
@@ -358,7 +358,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         {
             // Eventually, we want to use a caps url instead of the agentID
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + cAgentData.AgentID + "/";
-            //Console.WriteLine("   >>> DoChildAgentUpdateCall <<< " + uri);
+            //m_log.Debug("   >>> DoChildAgentUpdateCall <<< " + uri);
 
             WebRequest ChildUpdateRequest = WebRequest.Create(uri);
             ChildUpdateRequest.Method = "PUT";
@@ -440,7 +440,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected bool DoReleaseAgentCall(ulong regionHandle, UUID id, string uri)
         {
-            //Console.WriteLine("   >>> DoReleaseAgentCall <<< " + uri);
+            //m_log.Debug("   >>> DoReleaseAgentCall <<< " + uri);
 
             WebRequest request = WebRequest.Create(uri);
             request.Method = "DELETE";
@@ -474,7 +474,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         {
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + id + "/" + region.RegionHandle.ToString() +"/";
 
-            //Console.WriteLine("   >>> DoCloseAgentCall <<< " + uri);
+            //m_log.Debug("   >>> DoCloseAgentCall <<< " + uri);
 
             WebRequest request = WebRequest.Create(uri);
             request.Method = "DELETE";
@@ -508,7 +508,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         {
             ulong regionHandle = GetRegionHandle(region.RegionHandle);
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/object/" + sog.UUID + "/" + regionHandle.ToString() + "/";
-            //Console.WriteLine("   >>> DoCreateChildAgentCall <<< " + uri);
+            //m_log.Debug("   >>> DoCreateChildAgentCall <<< " + uri);
 
             WebRequest ObjectCreateRequest = WebRequest.Create(uri);
             ObjectCreateRequest.Method = "POST";
@@ -588,7 +588,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         protected bool DoHelloNeighbourCall(RegionInfo region, RegionInfo thisRegion)
         {
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/region/" + thisRegion.RegionID + "/";
-            //Console.WriteLine("   >>> DoHelloNeighbourCall <<< " + uri);
+            //m_log.Debug("   >>> DoHelloNeighbourCall <<< " + uri);
 
             WebRequest HelloNeighbourRequest = WebRequest.Create(uri);
             HelloNeighbourRequest.Method = "POST";
@@ -681,11 +681,11 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         {
             //m_log.Debug("[CONNECTION DEBUGGING]: AgentHandler Called");
 
-            //Console.WriteLine("---------------------------");
-            //Console.WriteLine(" >> uri=" + request["uri"]);
-            //Console.WriteLine(" >> content-type=" + request["content-type"]);
-            //Console.WriteLine(" >> http-method=" + request["http-method"]);
-            //Console.WriteLine("---------------------------\n");
+            //m_log.Debug("---------------------------");
+            //m_log.Debug(" >> uri=" + request["uri"]);
+            //m_log.Debug(" >> content-type=" + request["content-type"]);
+            //m_log.Debug(" >> http-method=" + request["http-method"]);
+            //m_log.Debug("---------------------------\n");
 
             Hashtable responsedata = new Hashtable();
             responsedata["content_type"] = "text/html";
@@ -833,7 +833,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected virtual void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, ulong regionHandle)
         {
-            //Console.WriteLine(" >>> DoDelete action:" + action + "; regionHandle:" + regionHandle);
+            //m_log.Debug(" >>> DoDelete action:" + action + "; regionHandle:" + regionHandle);
             
             if (action.Equals("release"))
                 m_localBackend.SendReleaseAgent(regionHandle, id, "");
@@ -852,11 +852,11 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         {
             //m_log.Debug("[CONNECTION DEBUGGING]: ObjectHandler Called");
 
-            //Console.WriteLine("---------------------------");
-            //Console.WriteLine(" >> uri=" + request["uri"]);
-            //Console.WriteLine(" >> content-type=" + request["content-type"]);
-            //Console.WriteLine(" >> http-method=" + request["http-method"]);
-            //Console.WriteLine("---------------------------\n");
+            //m_log.Debug("---------------------------");
+            //m_log.Debug(" >> uri=" + request["uri"]);
+            //m_log.Debug(" >> content-type=" + request["content-type"]);
+            //m_log.Debug(" >> http-method=" + request["http-method"]);
+            //m_log.Debug("---------------------------\n");
 
             Hashtable responsedata = new Hashtable();
             responsedata["content_type"] = "text/html";
@@ -964,11 +964,11 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         {
             //m_log.Debug("[CONNECTION DEBUGGING]: RegionHandler Called");
 
-            //Console.WriteLine("---------------------------");
-            //Console.WriteLine(" >> uri=" + request["uri"]);
-            //Console.WriteLine(" >> content-type=" + request["content-type"]);
-            //Console.WriteLine(" >> http-method=" + request["http-method"]);
-            //Console.WriteLine("---------------------------\n");
+            //m_log.Debug("---------------------------");
+            //m_log.Debug(" >> uri=" + request["uri"]);
+            //m_log.Debug(" >> content-type=" + request["content-type"]);
+            //m_log.Debug(" >> http-method=" + request["http-method"]);
+            //m_log.Debug("---------------------------\n");
 
             Hashtable responsedata = new Hashtable();
             responsedata["content_type"] = "text/html";

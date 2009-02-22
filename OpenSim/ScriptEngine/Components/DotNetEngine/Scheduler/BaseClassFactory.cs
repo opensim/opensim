@@ -108,7 +108,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
                 //    ilgen.Emit(OpCodes.Call, typeof(string).GetMethod
                 //("Format", new Type[] { typeof(string), typeof(object) }));
 
-                //    // Console.WriteLine("Hello, World!");
+                //    // m_log.Debug("Hello, World!");
                 //    //
                 //    ilgen.Emit(OpCodes.Call, typeof(Console).GetMethod
                 //    ("WriteLine", new Type[] { typeof(string) }));

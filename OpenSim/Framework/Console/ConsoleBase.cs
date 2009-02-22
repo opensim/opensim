@@ -126,7 +126,7 @@ namespace OpenSim.Framework.Console
                 if (!dict.ContainsKey(helpPart))
                     break;
                 
-                //System.Console.WriteLine("Found {0}", helpParts[0]);
+                //m_log.Debug("Found {0}", helpParts[0]);
                 
                 if (dict[helpPart] is Dictionary<string, Object>)
                     dict = (Dictionary<string, object>)dict[helpPart]; 

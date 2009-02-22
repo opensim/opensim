@@ -265,7 +265,7 @@ namespace OpenSim
                 if (m_configSettings.StorageDll == "OpenSim.DataStore.MonoSqlite.dll")
                 {
                     m_configSettings.StorageDll = "OpenSim.Data.SQLite.dll";
-                    Console.WriteLine("WARNING: OpenSim.DataStore.MonoSqlite.dll is deprecated. Set storage_plugin to OpenSim.Data.SQLite.dll.");
+                    m_log.Warn("WARNING: OpenSim.DataStore.MonoSqlite.dll is deprecated. Set storage_plugin to OpenSim.Data.SQLite.dll.");
                     Thread.Sleep(3000);
                 }
 

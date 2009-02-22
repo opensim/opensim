@@ -58,7 +58,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             while (httpInfo != null)
             {
-                //System.Console.WriteLine("[AsyncLSL]:" + httpInfo.response_body + httpInfo.status);
+                //m_log.Debug("[AsyncLSL]:" + httpInfo.response_body + httpInfo.status);
 
                 // Deliver data to prim's remote_data handler
                 //

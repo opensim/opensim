@@ -193,7 +193,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             {
                 if (reg.RegionLocX != x || reg.RegionLocY != y)
                 {
-                    //Console.WriteLine("CommsManager- RequestNeighbours() - found a different region in list, checking location");
+                    //m_log.Debug("CommsManager- RequestNeighbours() - found a different region in list, checking location");
                     if ((reg.RegionLocX > (x - 2)) && (reg.RegionLocX < (x + 2)))
                     {
                         if ((reg.RegionLocY > (y - 2)) && (reg.RegionLocY < (y + 2)))
@@ -239,10 +239,10 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// <returns></returns>
         public virtual RegionInfo RequestNeighbourInfo(ulong regionHandle)
         {
-            //Console.WriteLine(" >> RequestNeighbourInfo for " + regionHandle);
+            //m_log.Debug(" >> RequestNeighbourInfo for " + regionHandle);
             foreach (RegionInfo info in m_hyperlinkRegions)
             {
-                //Console.WriteLine("    .. " + info.RegionHandle);
+                //m_log.Debug("    .. " + info.RegionHandle);
                 if (info.RegionHandle == regionHandle) return info;
             }
 
@@ -250,7 +250,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             {
                 if (info.RegionHandle == regionHandle)
                 {
-                    //Console.WriteLine("XXX------ known region " + info.RegionHandle);
+                    //m_log.Debug("XXX------ known region " + info.RegionHandle);
                     return info;
                 }
             }
@@ -291,7 +291,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                     map.Y = (ushort)regInfo.RegionLocY;
                     map.WaterHeight = (byte)regInfo.RegionSettings.WaterHeight;
                     map.MapImageId = regInfo.RegionSettings.TerrainImageID;
-//                    Console.WriteLine("ImgID: " + map.MapImageId);
+                    //                    m_log.Debug("ImgID: " + map.MapImageId);
                     map.Agents = 1;
                     map.RegionFlags = 72458694;
                     map.Access = 13;
@@ -312,10 +312,10 @@ namespace OpenSim.Region.Communications.Hypergrid
 
                 WebClient c = new WebClient();
                 string uri = "http://" + info.ExternalHostName + ":" + info.HttpPort + "/index.php?method=" + regionimage;
-                //Console.WriteLine("JPEG: " + uri);
+                //m_log.Debug("JPEG: " + uri);
                 c.DownloadFile(uri, info.RegionID.ToString() + ".jpg");
                 Bitmap m = new Bitmap(info.RegionID.ToString() + ".jpg");
-                //Console.WriteLine("Size: " + m.PhysicalDimension.Height + "-" + m.PhysicalDimension.Width);
+                //m_log.Debug("Size: " + m.PhysicalDimension.Height + "-" + m.PhysicalDimension.Width);
                 byte[] imageData = OpenJPEG.EncodeFromImage(m, true);
                 AssetBase ass = new AssetBase(UUID.Random(), "region " + info.RegionID.ToString());
                 info.RegionSettings.TerrainImageID = ass.FullID;
@@ -327,7 +327,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             }
             catch // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
-                Console.WriteLine("[HGrid]: Failed getting/storing map image, because it is probably already in the cache");
+                m_log.Warn("[HGrid]: Failed getting/storing map image, because it is probably already in the cache");
             }
         }
 
@@ -435,7 +435,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             {
                 hash = (Hashtable)response.Value;
                 //foreach (Object o in hash)
-                //    Console.WriteLine(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+                //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
                 try
                 {
                     UUID.TryParse((string)hash["uuid"], out uuid);
@@ -443,7 +443,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                     if ((string)hash["handle"] != null)
                     {
                         info.regionSecret = (string)hash["handle"];
-                        //Console.WriteLine(">> HERE: " + info.regionSecret);
+                        //m_log.Debug(">> HERE: " + info.regionSecret);
                     }
                     if (hash["region_image"] != null)
                     {
@@ -454,18 +454,18 @@ namespace OpenSim.Region.Communications.Hypergrid
                     if (hash["region_name"] != null)
                     {
                         info.RegionName = (string)hash["region_name"];
-                        //Console.WriteLine(">> " + info.RegionName);
+                        //m_log.Debug(">> " + info.RegionName);
                     }
                     if (hash["internal_port"] != null)
                     {
                         int port = Convert.ToInt32((string)hash["internal_port"]);
                         info.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), port);
-                        //Console.WriteLine(">> " + info.InternalEndPoint.ToString());
+                        //m_log.Debug(">> " + info.InternalEndPoint.ToString());
                     }
                     if (hash["remoting_port"] != null)
                     {
                         info.RemotingPort = Convert.ToUInt32(hash["remoting_port"]);
-                        //Console.WriteLine(">> " + info.RemotingPort);
+                        //m_log.Debug(">> " + info.RemotingPort);
                     }
 
                 }
@@ -508,12 +508,12 @@ namespace OpenSim.Region.Communications.Hypergrid
             Hashtable hash = new Hashtable();
             hash["uuid"] = regInfo.RegionID.ToString();
             hash["handle"] = regInfo.RegionHandle.ToString();
-            //Console.WriteLine(">> Here " + regInfo.RegionHandle);
+            //m_log.Debug(">> Here " + regInfo.RegionHandle);
             hash["region_image"] = regInfo.RegionSettings.TerrainImageID.ToString();
             hash["region_name"] = regInfo.RegionName;
             hash["internal_port"] = regInfo.InternalEndPoint.Port.ToString();
             hash["remoting_port"] = NetworkServersInfo.RemotingListenerPort.ToString();
-            //Console.WriteLine(">> Here: " + regInfo.InternalEndPoint.Port);
+            //m_log.Debug(">> Here: " + regInfo.InternalEndPoint.Port);
 
 
             XmlRpcResponse response = new XmlRpcResponse();
@@ -553,9 +553,9 @@ namespace OpenSim.Region.Communications.Hypergrid
             if (u != null && u.UserProfile != null)
             {
                 loginParams["region_uuid"] = u.UserProfile.HomeRegionID.ToString(); // This seems to be always Zero
-                //Console.WriteLine("  --------- Home Region UUID -------");
-                //Console.WriteLine("  >> " + loginParams["region_uuid"] + " <<");
-                //Console.WriteLine("  --------- ---------------- -------");
+                //m_log.Debug("  --------- Home Region UUID -------");
+                //m_log.Debug("  >> " + loginParams["region_uuid"] + " <<");
+                //m_log.Debug("  --------- ---------------- -------");
 
                 string serverURI = "";
                 if (u.UserProfile is ForeignUserProfileData)
@@ -577,7 +577,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                     if (!IsLocalUser(u))
                     {
                         loginParams["regionhandle"] = rinfo.regionSecret; // user.CurrentAgent.Handle.ToString();
-                        //Console.WriteLine("XXX--- informregionofuser (foreign user) here handle: " + rinfo.regionSecret);
+                        //m_log.Debug("XXX--- informregionofuser (foreign user) here handle: " + rinfo.regionSecret);
 
                         loginParams["home_address"]  = ((ForeignUserProfileData)(u.UserProfile)).UserHomeAddress;
                         loginParams["home_port"]     = ((ForeignUserProfileData)(u.UserProfile)).UserHomePort;
@@ -585,7 +585,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                     }
                     else
                     {
-                        //Console.WriteLine("XXX--- informregionofuser (local user) here handle: " + rinfo.regionSecret);
+                        //m_log.Debug("XXX--- informregionofuser (local user) here handle: " + rinfo.regionSecret);
 
                         //// local user about to jump out, let's process the name
                         // On second thoughts, let's not do this for the *user*; let's only do it for the *agent*
@@ -596,9 +596,9 @@ namespace OpenSim.Region.Communications.Hypergrid
                         loginParams["regionhandle"] = u.UserProfile.HomeRegion.ToString(); // user.CurrentAgent.Handle.ToString();
 
                         loginParams["home_address"] = rinfo.ExternalHostName;
-                        Console.WriteLine("  --------- Home Address -------");
-                        Console.WriteLine("  >> " + loginParams["home_address"] + " <<");
-                        Console.WriteLine("  --------- ------------ -------");
+                        m_log.Debug("  --------- Home Address -------");
+                        m_log.Debug("  >> " + loginParams["home_address"] + " <<");
+                        m_log.Debug("  --------- ------------ -------");
                         loginParams["home_port"] = rinfo.HttpPort.ToString();
                         loginParams["home_remoting"] = NetworkServersInfo.RemotingListenerPort.ToString(); ;
                     }
@@ -614,7 +614,7 @@ namespace OpenSim.Region.Communications.Hypergrid
 
             // Send
             string uri = "http://" + regInfo.ExternalHostName + ":" + regInfo.HttpPort + "/";
-            //Console.WriteLine("XXX uri: " + uri);
+            //m_log.Debug("XXX uri: " + uri);
             XmlRpcRequest request = new XmlRpcRequest("expect_hg_user", SendParams);
             XmlRpcResponse reply;
             try
@@ -722,7 +722,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             else
             {
                 // Finally, everything looks ok
-                //Console.WriteLine("XXX---- EVERYTHING OK ---XXX");
+                //m_log.Debug("XXX---- EVERYTHING OK ---XXX");
 
                 // 1 - Preload the user data
                 m_userProfileCache.PreloadUserCache(userData.ID, userData);
@@ -744,7 +744,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                 rinfo.RegionLocX = 0;
                 rinfo.RegionLocY = (uint)(random.Next(0, Int32.MaxValue)); //(uint)m_knownRegions.Count;
                 rinfo.regionSecret = userRegionHandle.ToString();
-                //Console.WriteLine("XXX--- Here: handle = " + rinfo.regionSecret);
+                //m_log.Debug("XXX--- Here: handle = " + rinfo.regionSecret);
                 try
                 {
                     rinfo.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int)userhomeinternalport);
@@ -828,7 +828,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             if ((uinfo != null) && (uinfo.UserProfile != null) &&
                 (IsLocalUser(uinfo) || !(uinfo.UserProfile is ForeignUserProfileData)))
             {
-                //Console.WriteLine("---------------> Local User!");
+                //m_log.Debug("---------------> Local User!");
                 string[] parts = agentData.firstname.Split(new char[] { '.' });
                 if (parts.Length == 2)
                 {
@@ -837,7 +837,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                 }
             }
             //else
-            //    Console.WriteLine("---------------> Foreign User!");
+            //    m_log.Debug("---------------> Foreign User!");
         }
         #endregion
 
@@ -938,31 +938,31 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         private void DumpUserData(ForeignUserProfileData userData)
         {
-            Console.WriteLine(" ------------ User Data Dump ----------");
-            Console.WriteLine(" >> Name: " + userData.FirstName + " " + userData.SurName);
-            Console.WriteLine(" >> HomeID: " + userData.HomeRegionID);
-            Console.WriteLine(" >> HomeHandle: " + userData.HomeRegion);
-            Console.WriteLine(" >> HomeX: " + userData.HomeRegionX);
-            Console.WriteLine(" >> HomeY: " + userData.HomeRegionY);
-            Console.WriteLine(" >> UserServer: " + userData.UserServerURI);
-            Console.WriteLine(" >> InvServer: " + userData.UserInventoryURI);
-            Console.WriteLine(" >> AssetServer: " + userData.UserAssetURI);
-            Console.WriteLine(" ------------ -------------- ----------");
+            m_log.Info(" ------------ User Data Dump ----------");
+            m_log.Info(" >> Name: " + userData.FirstName + " " + userData.SurName);
+            m_log.Info(" >> HomeID: " + userData.HomeRegionID);
+            m_log.Info(" >> HomeHandle: " + userData.HomeRegion);
+            m_log.Info(" >> HomeX: " + userData.HomeRegionX);
+            m_log.Info(" >> HomeY: " + userData.HomeRegionY);
+            m_log.Info(" >> UserServer: " + userData.UserServerURI);
+            m_log.Info(" >> InvServer: " + userData.UserInventoryURI);
+            m_log.Info(" >> AssetServer: " + userData.UserAssetURI);
+            m_log.Info(" ------------ -------------- ----------");
         }
 
         private void DumpRegionData(RegionInfo rinfo)
         {
-            Console.WriteLine(" ------------ Region Data Dump ----------");
-            Console.WriteLine(" >> handle: " + rinfo.RegionHandle);
-            Console.WriteLine(" >> coords: " + rinfo.RegionLocX + ", " + rinfo.RegionLocY);
-            Console.WriteLine(" >> secret: " + rinfo.regionSecret);
-            Console.WriteLine(" >> remoting address: " + rinfo.RemotingAddress);
-            Console.WriteLine(" >> remoting port: " + rinfo.RemotingPort);
-            Console.WriteLine(" >> external host name: " + rinfo.ExternalHostName);
-            Console.WriteLine(" >> http port: " + rinfo.HttpPort);
-            Console.WriteLine(" >> external EP address: " + rinfo.ExternalEndPoint.Address);
-            Console.WriteLine(" >> external EP port: " + rinfo.ExternalEndPoint.Port);
-            Console.WriteLine(" ------------ -------------- ----------");
+            m_log.Info(" ------------ Region Data Dump ----------");
+            m_log.Info(" >> handle: " + rinfo.RegionHandle);
+            m_log.Info(" >> coords: " + rinfo.RegionLocX + ", " + rinfo.RegionLocY);
+            m_log.Info(" >> secret: " + rinfo.regionSecret);
+            m_log.Info(" >> remoting address: " + rinfo.RemotingAddress);
+            m_log.Info(" >> remoting port: " + rinfo.RemotingPort);
+            m_log.Info(" >> external host name: " + rinfo.ExternalHostName);
+            m_log.Info(" >> http port: " + rinfo.HttpPort);
+            m_log.Info(" >> external EP address: " + rinfo.ExternalEndPoint.Address);
+            m_log.Info(" >> external EP port: " + rinfo.ExternalEndPoint.Port);
+            m_log.Info(" ------------ -------------- ----------");
         }
 
 

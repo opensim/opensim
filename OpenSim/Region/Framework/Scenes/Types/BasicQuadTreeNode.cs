@@ -53,7 +53,7 @@ namespace OpenSim.Region.Framework.Scenes.Types
             m_leftY = leftY;
             m_width = width;
             m_height = height;
-            // Console.WriteLine("creating quadtree node " + m_quadID);
+            // m_log.Debug("creating quadtree node " + m_quadID);
         }
 
         public void AddObject(SceneObjectGroup obj)

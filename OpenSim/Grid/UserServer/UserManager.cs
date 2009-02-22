@@ -402,7 +402,7 @@ namespace OpenSim.Grid.UserServer
             Hashtable requestData = (Hashtable) request.Params[0];
             UserProfileData userProfile;
             //CFK: this clogs the UserServer log and is not necessary at this time.
-            //CFK: Console.WriteLine("METHOD BY UUID CALLED");
+            //CFK: m_log.Debug("METHOD BY UUID CALLED");
             if (requestData.Contains("avatar_uuid"))
             {
                 try
@@ -435,7 +435,7 @@ namespace OpenSim.Grid.UserServer
             Hashtable requestData = (Hashtable) request.Params[0];
             UserProfileData userProfile;
             //CFK: this clogs the UserServer log and is not necessary at this time.
-            //CFK: Console.WriteLine("METHOD BY UUID CALLED");
+            //CFK: m_log.Debug("METHOD BY UUID CALLED");
             if (requestData.Contains("avatar_uuid"))
             {
                 UUID guess;

@@ -579,7 +579,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             //if (id == d.GeomClassId.TriMeshClass)
             //{
                 //               m_log.InfoFormat("near: A collision was detected between {1} and {2}", 0, name1, name2);
-                //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
+                //m_log.Debug("near: A collision was detected between {1} and {2}", 0, name1, name2);
             //}
 
             // Figure out how many contact points we have
@@ -945,8 +945,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // so lets throttle them and send them again after it's somewhat sorted out.
                     p2.ThrottleUpdates = true;
                 }
-                //System.Console.WriteLine(count.ToString());
-                //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
+                //m_log.Debug(count.ToString());
+                //m_log.Debug("near: A collision was detected between {1} and {2}", 0, name1, name2);
             }
         }
 
@@ -2095,7 +2095,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // convenient place to do it for now...
 
         //    //if (pbs.PathCurve == (byte)Primitive.PathCurve.Circle && pbs.ProfileCurve == (byte)Primitive.ProfileCurve.Circle && pbs.PathScaleY <= 0.75f)
-        //    //Console.WriteLine("needsMeshing: " + " pathCurve: " + pbs.PathCurve.ToString() + " profileCurve: " + pbs.ProfileCurve.ToString() + " pathScaleY: " + Primitive.UnpackPathScale(pbs.PathScaleY).ToString());
+        //    //m_log.Debug("needsMeshing: " + " pathCurve: " + pbs.PathCurve.ToString() + " profileCurve: " + pbs.ProfileCurve.ToString() + " pathScaleY: " + Primitive.UnpackPathScale(pbs.PathScaleY).ToString());
             int iPropertiesNotSupportedDefault = 0;
 
             if (pbs.SculptEntry && !meshSculptedPrim)

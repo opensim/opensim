@@ -84,10 +84,10 @@ namespace OpenSim.Region.Communications.Local
         /// <returns></returns>
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
-            //Console.WriteLine("CommsManager - Region " + regionInfo.RegionHandle + " , " + regionInfo.RegionLocX + " , "+ regionInfo.RegionLocY +" is registering");
+            //m_log.Debug("CommsManager - Region " + regionInfo.RegionHandle + " , " + regionInfo.RegionLocX + " , "+ regionInfo.RegionLocY +" is registering");
             if (!m_regions.ContainsKey(regionInfo.RegionHandle))
             {
-                //Console.WriteLine("CommsManager - Adding Region " + regionInfo.RegionHandle);
+                //m_log.Debug("CommsManager - Adding Region " + regionInfo.RegionHandle);
                 m_regions.Add(regionInfo.RegionHandle, regionInfo);
 
                 RegionCommsListener regionHost = new RegionCommsListener();
@@ -145,15 +145,15 @@ namespace OpenSim.Region.Communications.Local
         /// <returns></returns>
         public List<SimpleRegionInfo> RequestNeighbours(uint x, uint y)
         {
-            // Console.WriteLine("Finding Neighbours to " + regionInfo.RegionHandle);
+            // m_log.Debug("Finding Neighbours to " + regionInfo.RegionHandle);
             List<SimpleRegionInfo> neighbours = new List<SimpleRegionInfo>();
 
             foreach (RegionInfo reg in m_regions.Values)
             {
-                // Console.WriteLine("CommsManager- RequestNeighbours() checking region " + reg.RegionLocX + " , "+ reg.RegionLocY);
+                // m_log.Debug("CommsManager- RequestNeighbours() checking region " + reg.RegionLocX + " , "+ reg.RegionLocY);
                 if (reg.RegionLocX != x || reg.RegionLocY != y)
                 {
-                    //Console.WriteLine("CommsManager- RequestNeighbours() - found a different region in list, checking location");
+                    //m_log.Debug("CommsManager- RequestNeighbours() - found a different region in list, checking location");
                     if ((reg.RegionLocX > (x - 2)) && (reg.RegionLocX < (x + 2)))
                     {
                         if ((reg.RegionLocY > (y - 2)) && (reg.RegionLocY < (y + 2)))

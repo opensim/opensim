@@ -34,11 +34,15 @@ using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 {
     public class LoadImageURLModule : IRegionModule, IDynamicTextureRender
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private string m_name = "LoadImageURL";
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
@@ -203,8 +207,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                     } 
                     catch (Exception)
                     {
-                        Console.WriteLine(
-                            "[LOADIMAGEURLMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
+                        m_log.Error("[LOADIMAGEURLMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
                     }
 
                     m_textureManager.ReturnData(state.RequestID, imageJ2000);

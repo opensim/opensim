@@ -28,11 +28,15 @@
 using System;
 using Nini.Config;
 using log4net.Config;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Grid.AssetInventoryServer
 {
     class MainEntry
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         static void Main(string[] args)
         {
             XmlConfigurator.Configure();
@@ -46,7 +50,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 Console.CancelKeyPress +=
                     delegate(object sender, ConsoleCancelEventArgs e)
                     {
-                        Console.WriteLine("AssetInventory server is shutting down...");
+                        m_log.Info("AssetInventory server is shutting down...");
                         server.Shutdown();
                         Environment.Exit(0);
                     };

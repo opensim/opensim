@@ -168,7 +168,7 @@ namespace OpenSim.Region.CoreModules.Communications.Local
             //Utils.LongToUInts(regionHandle, out x, out y);
             //x = x / Constants.RegionSize;
             //y = y / Constants.RegionSize;
-            //Console.WriteLine("\n >>> Local SendReleaseAgent " + x + "-" + y);
+            //m_log.Debug("\n >>> Local SendReleaseAgent " + x + "-" + y);
             foreach (Scene s in m_sceneList)
             {
                 if (s.RegionInfo.RegionHandle == regionHandle)
@@ -187,7 +187,7 @@ namespace OpenSim.Region.CoreModules.Communications.Local
             //Utils.LongToUInts(regionHandle, out x, out y);
             //x = x / Constants.RegionSize;
             //y = y / Constants.RegionSize;
-            //Console.WriteLine("\n >>> Local SendCloseAgent " + x + "-" + y);
+            //m_log.Debug("\n >>> Local SendCloseAgent " + x + "-" + y);
             foreach (Scene s in m_sceneList)
             {
                 if (s.RegionInfo.RegionHandle == regionHandle)

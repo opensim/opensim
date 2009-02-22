@@ -71,7 +71,7 @@ namespace OpenSim.Region.Framework.Scenes
     {
 //        ~ScenePresence()
 //        {
-//            System.Console.WriteLine("[ScenePresence] Destructor called");
+//            m_log.Debug("[ScenePresence] Destructor called");
 //        }
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -409,7 +409,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("[SCENEPRESENCE]: ABSOLUTE POSITION " + e.Message);
+                        m_log.Error("[SCENEPRESENCE]: ABSOLUTE POSITION " + e.Message);
                     }
                 }
 
@@ -449,7 +449,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("[SCENEPRESENCE]: VELOCITY " + e.Message);
+                        m_log.Error("[SCENEPRESENCE]: VELOCITY " + e.Message);
                     }
                 }
 
@@ -525,20 +525,20 @@ namespace OpenSim.Region.Framework.Scenes
             DropOldNeighbours(old);
             Scene.CapsModule.SetChildrenSeed(UUID, seeds);
             KnownRegions = seeds;
-            //Console.WriteLine(" ++++++++++AFTER+++++++++++++ ");
+            //m_log.Debug(" ++++++++++AFTER+++++++++++++ ");
             //DumpKnownRegions();
         }
 
         public void DumpKnownRegions()
         {
-            Console.WriteLine("================ KnownRegions {0} ================", Scene.RegionInfo.RegionName);
+            m_log.Info("================ KnownRegions "+Scene.RegionInfo.RegionName+" ================");
             foreach (KeyValuePair<ulong, string> kvp in KnownRegions)
             {
                 uint x, y;
                 Utils.LongToUInts(kvp.Key, out x, out y);
                 x = x / Constants.RegionSize;
                 y = y / Constants.RegionSize;
-                Console.WriteLine(" >> {0}, {1}: {2}", x, y, kvp.Value);
+                m_log.Info(" >> "+x+", "+y+": "+kvp.Value);
             }
         }
 
@@ -991,7 +991,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_knownChildRegions.ContainsKey(regionHandle))
                 {
                     m_knownChildRegions.Remove(regionHandle);
-                   //Console.WriteLine(" !!! removing known region {0} in {1}. Count = {2}", regionHandle, Scene.RegionInfo.RegionName, m_knownChildRegions.Count);
+                   //m_log.Debug(" !!! removing known region {0} in {1}. Count = {2}", regionHandle, Scene.RegionInfo.RegionName, m_knownChildRegions.Count);
                 }
             }
         }
@@ -1066,7 +1066,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //if (m_isChildAgent)
             //{
-            //    // Console.WriteLine("DEBUG: HandleAgentUpdate: child agent");
+            //    // m_log.Debug("DEBUG: HandleAgentUpdate: child agent");
             //    return;
             //}
 
@@ -1406,7 +1406,7 @@ namespace OpenSim.Region.Framework.Scenes
             catch (Exception ex)
             {
                 //Why did I get this error?
-                Console.WriteLine("[SCENEPRESENCE]: DoMoveToPosition" + ex.ToString());
+               m_log.Error("[SCENEPRESENCE]: DoMoveToPosition" + ex.ToString());
             }
         }
 
@@ -1923,7 +1923,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_isChildAgent)
             {
-                Console.WriteLine("DEBUG: AddNewMovement: child agent");
+                m_log.Debug("DEBUG: AddNewMovement: child agent");
                 return;
             }
 
@@ -2507,8 +2507,8 @@ namespace OpenSim.Region.Framework.Scenes
                         x = x / Constants.RegionSize;
                         y = y / Constants.RegionSize;
 
-                        //Console.WriteLine("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
-                        //Console.WriteLine("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
+                        //m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
+                        //m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
                         if (Util.IsOutsideView(x, newRegionX, y, newRegionY))
                         {
                             byebyeRegions.Add(handle);
@@ -2561,7 +2561,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ChildAgentDataUpdate(AgentData cAgentData)
         {
-            //Console.WriteLine("   >>> ChildAgentDataUpdate <<< " + Scene.RegionInfo.RegionName);
+            //m_log.Debug("   >>> ChildAgentDataUpdate <<< " + Scene.RegionInfo.RegionName);
             if (!IsChildAgent)
                 return;
 
@@ -2577,7 +2577,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!IsChildAgent)
                 return;
 
-            //Console.WriteLine("   >>> ChildAgentPositionUpdate <<< " + rRegionX + "-" + rRegionY);
+            //m_log.Debug("   >>> ChildAgentPositionUpdate <<< " + rRegionX + "-" + rRegionY);
             int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
             int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
 
@@ -2816,7 +2816,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             protected ScenePartUpdate(SerializationInfo info, StreamingContext context)
             {
-                //System.Console.WriteLine("ScenePartUpdate Deserialize BGN");
+                //m_log.Debug("ScenePartUpdate Deserialize BGN");
 
                 if (info == null)
                 {
@@ -2827,7 +2827,7 @@ namespace OpenSim.Region.Framework.Scenes
                 LastFullUpdateTime = (uint)info.GetValue("LastFullUpdateTime", typeof(uint));
                 LastTerseUpdateTime = (uint)info.GetValue("LastTerseUpdateTime", typeof(uint));
 
-                //System.Console.WriteLine("ScenePartUpdate Deserialize END");
+                //m_log.Debug("ScenePartUpdate Deserialize END");
             }
 
             [SecurityPermission(SecurityAction.LinkDemand,
@@ -3084,7 +3084,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected ScenePresence(SerializationInfo info, StreamingContext context)
             : base (info, context)
         {
-            //System.Console.WriteLine("ScenePresence Deserialize BGN");
+            //m_log.Debug("ScenePresence Deserialize BGN");
 
             if (info == null)
             {
@@ -3239,7 +3239,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_state = (byte)info.GetValue("m_state", typeof(byte));
 
-            //System.Console.WriteLine("ScenePresence Deserialize END");
+            //m_log.Debug("ScenePresence Deserialize END");
         }
 
         [SecurityPermission(SecurityAction.LinkDemand,

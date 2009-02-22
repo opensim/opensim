@@ -35,6 +35,8 @@ using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 {
@@ -86,7 +88,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         {
             if (RenderPlugins.ContainsKey(contentType))
             {
-                //Console.WriteLine("dynamic texture being created: " + url + " of type " + contentType);
+                //m_log.Debug("dynamic texture being created: " + url + " of type " + contentType);
 
                 DynamicTextureUpdater updater = new DynamicTextureUpdater();
                 updater.SimUUID = simID;
@@ -192,6 +194,8 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
         public class DynamicTextureUpdater
         {
+            private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
             public bool BlendWithOldTexture = false;
             public string BodyData;
             public string ContentType;
@@ -302,8 +306,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                         }
                         catch (Exception)
                         {
-                            Console.WriteLine(
-                                "[DYNAMICTEXTUREMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
+                            m_log.Error("[DYNAMICTEXTUREMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
                         }
 
                         return result;

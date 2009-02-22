@@ -36,6 +36,8 @@ using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using log4net;
+using System.Reflection;
 
 //using Cairo;
 
@@ -43,6 +45,8 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 {
     public class VectorRenderModule : IRegionModule, IDynamicTextureRender
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private string m_name = "VectorRenderModule";
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
@@ -317,7 +321,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             }
             catch (Exception)
             {
-                Console.WriteLine(
+                m_log.Error(
                     "[VECTORRENDERMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
             }
             m_textureManager.ReturnData(id, imageJ2000);
@@ -333,7 +337,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             catch (Exception)
             {
                 //Ckrinke: Add a WriteLine to remove the warning about 'e' defined but not used
-                // Console.WriteLine("Problem with Draw. Please verify parameters." + e.ToString());
+                // m_log.Debug("Problem with Draw. Please verify parameters." + e.ToString());
                 parsed = -1;
             }
             

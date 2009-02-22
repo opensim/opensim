@@ -144,7 +144,7 @@ namespace OpenSim.Region.Framework.Scenes
             SimStatsPacket.RegionBlock rb = new SimStatsPacket.RegionBlock();
             
             // Know what's not thread safe in Mono... modifying timers.
-            // System.Console.WriteLine("Firing Stats Heart Beat");
+            // m_log.Debug("Firing Stats Heart Beat");
             lock (m_report)
             {
                 uint regionFlags = 0;

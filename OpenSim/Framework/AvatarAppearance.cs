@@ -291,17 +291,17 @@ namespace OpenSim.Framework
                            + 0.07f * (float)m_visualparams[78] / 255.0f    // Shoe platform height
                            + 0.3836f * (float)m_visualparams[125] / 255.0f    // Leg length
                            - m_avatarHeight / 2) * 0.3f - 0.04f;
-            //System.Console.WriteLine(">>>>>>> [APPEARANCE]: Height {0} Hip offset {1}", m_avatarHeight, m_hipOffset);
-            //System.Console.WriteLine("------------- Set Appearance Texture ---------------");
+            //m_log.Debug(">>>>>>> [APPEARANCE]: Height {0} Hip offset {1}", m_avatarHeight, m_hipOffset);
+            //m_log.Debug("------------- Set Appearance Texture ---------------");
             //Primitive.TextureEntryFace[] faces = Texture.FaceTextures;
             //foreach (Primitive.TextureEntryFace face in faces)
             //{
             //    if (face != null)
-            //        System.Console.WriteLine("  ++ " + face.TextureID);
+            //        m_log.Debug("  ++ " + face.TextureID);
             //    else
-            //        System.Console.WriteLine("  ++ NULL ");
+            //        m_log.Debug("  ++ NULL ");
             //}
-            //System.Console.WriteLine("----------------------------");
+            //m_log.Debug("----------------------------");
 
         }
 
@@ -350,7 +350,7 @@ namespace OpenSim.Framework
 
             m_avatarHeight = (float)info.GetValue("m_avatarHeight", typeof(float));
 
-            //System.Console.WriteLine("AvatarAppearance Deserialize END");
+            //m_log.Debug("AvatarAppearance Deserialize END");
         }
 
         // this is used for OGS1

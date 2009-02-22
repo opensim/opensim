@@ -322,7 +322,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TrySetCurrentScene(UUID regionID)
         {
-            Console.WriteLine("Searching for Region: '{0}'", regionID.ToString());
+            m_log.Debug("Searching for Region: '" + regionID + "'");
 
             foreach (Scene scene in m_localScenes)
             {

@@ -666,7 +666,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             fileData = Utils.StringToBytes(invString.BuildString);
 
-            //Console.WriteLine(Utils.BytesToString(fileData));
+            //m_log.Debug(Utils.BytesToString(fileData));
             //m_log.Debug("[PRIM INVENTORY]: RequestInventoryFile fileData: " + Utils.BytesToString(fileData));
 
             if (fileData.Length > 2)

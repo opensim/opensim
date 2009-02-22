@@ -33,11 +33,14 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using System.Text;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Data.Tests
 {
     public class BasicEstateTest
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public IEstateDataStore db;
         public IRegionDataStore regionDb;
 

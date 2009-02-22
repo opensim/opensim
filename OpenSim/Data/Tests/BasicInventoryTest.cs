@@ -31,11 +31,14 @@ using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Data.Tests
 {
     public class BasicInventoryTest
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public IInventoryDataPlugin db;
         public UUID zero = UUID.Zero;
 

@@ -30,6 +30,8 @@ using System.Collections.Generic;
 using System.Text;
 using OpenMetaverse;
 using OpenSim.Region.ScriptEngine.Shared;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.ScriptEngine.Shared
 {
@@ -38,6 +40,7 @@ namespace OpenSim.ScriptEngine.Shared
     /// </summary>
     public class EventParams
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public string EventName;
         public Object[] Params;
         public Region.ScriptEngine.Shared.DetectParams[] DetectParams;
@@ -66,7 +69,12 @@ namespace OpenSim.ScriptEngine.Shared
         }
         public void test2(string functionName, params object[] args)
         {
-            System.Console.WriteLine(functionName, args);
+            String logMessage = functionName;
+            foreach (object arg in args)
+            {
+                logMessage +=", "+arg;
+            }
+            m_log.Debug(logMessage);
         }
 
 

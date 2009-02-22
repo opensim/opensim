@@ -333,7 +333,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
                 }
                 else
                 {
-                    Console.WriteLine("UNABLE TO REMOVE COMPLETED REQUEST");
+                    m_log.Error("UNABLE TO REMOVE COMPLETED REQUEST");
                 }
             }
         }

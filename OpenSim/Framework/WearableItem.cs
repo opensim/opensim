@@ -264,7 +264,7 @@ namespace OpenSim.Framework
             foreach (string line in lines)
             {
                 string trimLine = line.Trim();
-                // Console.WriteLine("line : " + trimLine);
+                // m_log.Debug("line : " + trimLine);
 
                 string[] splitLine = r.Split(trimLine);
                 if (splitLine.Length > 1)

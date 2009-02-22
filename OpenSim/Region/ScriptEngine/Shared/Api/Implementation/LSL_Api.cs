@@ -58,6 +58,7 @@ using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
 using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
+using System.Reflection;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
@@ -66,6 +67,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// </summary>
     public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
         protected uint m_localID;
@@ -1135,7 +1137,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetStatus(int status)
         {
             m_host.AddScriptLPS(1);
-            // Console.WriteLine(m_host.ToString() + " status is " + m_host.GetEffectiveObjectFlags().ToString());
+            // m_log.Debug(m_host.ToString() + " status is " + m_host.GetEffectiveObjectFlags().ToString());
             switch (status)
             {
                 case ScriptBaseClass.STATUS_PHYSICS:
@@ -2706,8 +2708,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.fromAgentID = new Guid(m_host.UUID.ToString()); // fromAgentID.Guid;
             msg.toAgentID = new Guid(user); // toAgentID.Guid;
             msg.imSessionID = new Guid(friendTransactionID.ToString()); // This is the item we're mucking with here
-//            Console.WriteLine("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);
-//            Console.WriteLine("[Scripting IM]: Filling Session: " + msg.imSessionID.ToString());
+//            m_log.Debug("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);
+//            m_log.Debug("[Scripting IM]: Filling Session: " + msg.imSessionID.ToString());
             msg.timestamp = (uint)Util.UnixTimeSinceEpoch();// timestamp;
             //if (client != null)
             //{
@@ -7882,7 +7884,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             catch(Exception e)
             {
-                Console.WriteLine("[LSL_API]: llRequestSimulatorData" + e.ToString());
+                m_log.Error("[LSL_API]: llRequestSimulatorData" + e.ToString());
                 return UUID.Zero.ToString();
             }
         }
@@ -9068,7 +9070,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         System.Text.ASCIIEncoding enc =
                             new System.Text.ASCIIEncoding();
                         string data = enc.GetString(a.Data);
-                        //Console.WriteLine(data);
+                        //m_log.Debug(data);
                         NotecardCache.Cache(id, data);
                         AsyncCommands.
                                 DataserverPlugin.DataserverReply(id.ToString(),
@@ -9114,7 +9116,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         System.Text.ASCIIEncoding enc =
                             new System.Text.ASCIIEncoding();
                         string data = enc.GetString(a.Data);
-                        //Console.WriteLine(data);
+                        //m_log.Debug(data);
                         NotecardCache.Cache(id, data);
                         AsyncCommands.
                                 DataserverPlugin.DataserverReply(id.ToString(),

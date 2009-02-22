@@ -31,11 +31,14 @@ using System.Reflection;
 using System.Runtime.Remoting.Lifetime;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
+using log4net;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
     public class Executor : MarshalByRefObject
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Contains the script to execute functions in.
         /// </summary>
@@ -92,7 +95,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         /// <returns></returns>
         public override Object InitializeLifetimeService()
         {
-            //Console.WriteLine("Executor: InitializeLifetimeService()");
+            //m_log.Debug("Executor: InitializeLifetimeService()");
             //            return null;
             ILease lease = (ILease)base.InitializeLifetimeService();
 
@@ -108,7 +111,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public scriptEvents GetStateEventFlags(string state)
         {
-            //Console.WriteLine("Get event flags for " + state);
+            //m_log.Debug("Get event flags for " + state);
 
             // Check to see if we've already computed the flags for this state
             scriptEvents eventFlags = scriptEvents.None;
@@ -124,19 +127,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             foreach (KeyValuePair<string, scriptEvents> kvp in m_eventFlagsMap)
             {
                 string evname = state + "_event_" + kvp.Key;
-                //Console.WriteLine("Trying event "+evname);
+                //m_log.Debug("Trying event "+evname);
                 try
                 {
                     MethodInfo mi = type.GetMethod(evname);
                     if (mi != null)
                     {
-                        //Console.WriteLine("Found handler for " + kvp.Key);
+                        //m_log.Debug("Found handler for " + kvp.Key);
                         eventFlags |= kvp.Value;
                     }
                 }
                 catch(Exception)
                 {
-                    //Console.WriteLine("Exeption in GetMethod:\n"+e.ToString());
+                    //m_log.Debug("Exeption in GetMethod:\n"+e.ToString());
                 }
             }
 
@@ -144,7 +147,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             if (eventFlags != 0)
                 m_stateEvents.Add(state, eventFlags);
 
-            //Console.WriteLine("Returning {0:x}", eventFlags);
+            //m_log.Debug("Returning {0:x}", eventFlags);
             return (eventFlags);
         }
 
@@ -156,7 +159,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             string EventName = state + "_event_" + FunctionName;
 
 //#if DEBUG
-            //Console.WriteLine("ScriptEngine: Script event function name: " + EventName);
+            //m_log.Debug("ScriptEngine: Script event function name: " + EventName);
 //#endif
 
             if (Events.ContainsKey(EventName) == false)
@@ -170,7 +173,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                 }
                 catch
                 {
-                    Console.WriteLine("Event {0}not found", EventName);
+                    m_log.Error("Event "+EventName+" not found.");
                     // Event name not found, cache it as not found
                     Events.Add(EventName, null);
                 }
@@ -182,13 +185,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
             if (ev == null) // No event by that name!
             {
-                //Console.WriteLine("ScriptEngine Can not find any event named: \String.Empty + EventName + "\String.Empty);
+                //m_log.Debug("ScriptEngine Can not find any event named: \String.Empty + EventName + "\String.Empty);
                 return;
             }
 
 //cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
 #if DEBUG
-            //Console.WriteLine("ScriptEngine: Executing function name: " + EventName);
+            //m_log.Debug("ScriptEngine: Executing function name: " + EventName);
 #endif
             // Found
             try

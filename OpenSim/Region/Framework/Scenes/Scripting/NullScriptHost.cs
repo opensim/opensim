@@ -27,11 +27,15 @@
 
 using System;
 using OpenMetaverse;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Region.Framework.Scenes.Scripting
 {
     public class NullScriptHost : IScriptHost
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private Vector3 m_pos = new Vector3(128, 128, 30);
 
         public string Name
@@ -80,7 +84,7 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
 
         public void SetText(string text, Vector3 color, double alpha)
         {
-            Console.WriteLine("Tried to SetText [{0}] on NullScriptHost", text);
+            m_log.Warn("Tried to SetText "+text+" on NullScriptHost");
         }
     }
 }

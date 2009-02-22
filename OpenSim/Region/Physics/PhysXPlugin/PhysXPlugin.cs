@@ -32,6 +32,8 @@ using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using PhysXWrapper;
 using Quaternion=OpenMetaverse.Quaternion;
+using System.Reflection;
+using log4net;
 
 namespace OpenSim.Region.Physics.PhysXPlugin
 {
@@ -40,6 +42,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
     /// </summary>
     public class PhysXPlugin : IPhysicsPlugin
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType); 
         private PhysXScene _mScene;
 
         public PhysXPlugin()
@@ -72,6 +75,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
     public class PhysXScene : PhysicsScene
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<PhysXCharacter> _characters = new List<PhysXCharacter>();
         private List<PhysXPrim> _prims = new List<PhysXPrim>();
         private float[] _heightMap = null;
@@ -84,7 +88,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             //sceneIdentifier = _sceneIdentifier;
 
             mySdk = NxPhysicsSDK.CreateSDK();
-            Console.WriteLine("Sdk created - now creating scene");
+            m_log.Info("Sdk created - now creating scene");
             scene = mySdk.CreateScene();
         }
 
@@ -174,7 +178,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                m_log.Error(e.Message);
             }
             return fps;
         }
@@ -193,7 +197,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             if (_heightMap != null)
             {
-                Console.WriteLine("PhysX - deleting old terrain");
+                m_log.Debug("PhysX - deleting old terrain");
                 scene.DeleteTerrain();
             }
             _heightMap = heightMap;

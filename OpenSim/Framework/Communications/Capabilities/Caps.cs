@@ -464,7 +464,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <returns></returns>
         public string RequestTexture(string request, string path, string param)
         {
-            System.Console.WriteLine("texture request " + request);
+            m_log.Debug("texture request " + request);
             // Needs implementing (added to remove compiler warning)
             return String.Empty;
         }
@@ -670,7 +670,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                 }
             }
 
-            //System.Console.WriteLine("asset upload request via CAPS" + llsdRequest.inventory_type +" , "+ llsdRequest.asset_type);
+            //m_log.Debug("asset upload request via CAPS" + llsdRequest.inventory_type +" , "+ llsdRequest.asset_type);
 
             string assetName = llsdRequest.name;
             string assetDes = llsdRequest.description;

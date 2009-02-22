@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
         public AssetTransactionModule()
         {
-            // System.Console.WriteLine("creating AgentAssetTransactionModule");
+            //m_log.Debug("creating AgentAssetTransactionModule");
         }
 
         #region IRegionModule Members
@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {
-                // System.Console.WriteLine("initialising AgentAssetTransactionModule");
+                // m_log.Debug("initialising AgentAssetTransactionModule");
                 RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
                 scene.RegisterModuleInterface<IAgentAssetTransactions>(this);
 
@@ -237,7 +237,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         public void HandleUDPUploadRequest(IClientAPI remoteClient, UUID assetID, UUID transaction, sbyte type,
                                            byte[] data, bool storeLocal, bool tempFile)
         {
-            //System.Console.WriteLine("HandleUDPUploadRequest - assetID: " + assetID.ToString() + " transaction: " + transaction.ToString() + " type: " + type.ToString() + " storelocal: " + storeLocal + " tempFile: " + tempFile);
+            //m_log.Debug("HandleUDPUploadRequest - assetID: " + assetID.ToString() + " transaction: " + transaction.ToString() + " type: " + type.ToString() + " storelocal: " + storeLocal + " tempFile: " + tempFile);
             if (((AssetType)type == AssetType.Texture ||
                 (AssetType)type == AssetType.Sound ||
                 (AssetType)type == AssetType.TextureTGA ||
@@ -257,7 +257,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 }
             }
 
-            //Console.WriteLine("asset upload of " + assetID);
+            //m_log.Debug("asset upload of " + assetID);
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
 
             AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
@@ -277,7 +277,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// <param name="data"></param>
         public void HandleXfer(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data)
         {
-            //System.Console.WriteLine("xferID: " + xferID + "  packetID: " + packetID + "  data!");
+            //m_log.Debug("xferID: " + xferID + "  packetID: " + packetID + "  data!");
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
 
             transactions.HandleXfer(xferID, packetID, data);

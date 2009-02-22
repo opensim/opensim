@@ -526,7 +526,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            Console.WriteLine("found unexpected element: " + reader.Name);
+                            m_log.Warn("found unexpected element: " + reader.Name);
                             reader.Read();
                         }
                         break;

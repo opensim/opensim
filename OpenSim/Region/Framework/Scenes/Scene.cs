@@ -1538,7 +1538,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         public bool CrossPrimGroupIntoNewRegion(ulong newRegionHandle, SceneObjectGroup grp, bool silent)
         {
-            //Console.WriteLine("  >>> CrossPrimGroupIntoNewRegion <<<");
+            //m_log.Debug("  >>> CrossPrimGroupIntoNewRegion <<<");
 
             bool successYN = false;
             grp.RootPart.UpdateFlag = 0;
@@ -1695,7 +1695,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool IncomingCreateObject(ISceneObject sog)
         {
-            //Console.WriteLine(" >>> IncomingCreateObject <<< " + ((SceneObjectGroup)sog).AbsolutePosition + " deleted? " + ((SceneObjectGroup)sog).IsDeleted);
+            //m_log.Debug(" >>> IncomingCreateObject <<< " + ((SceneObjectGroup)sog).AbsolutePosition + " deleted? " + ((SceneObjectGroup)sog).IsDeleted);
             SceneObjectGroup newObject;
             try
             {
@@ -2482,7 +2482,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual bool IncomingChildAgentDataUpdate(AgentPosition cAgentData)
         {
-            //Console.WriteLine(" XXX Scene IncomingChildAgentDataUpdate POSITION in " + RegionInfo.RegionName);
+            //m_log.Debug(" XXX Scene IncomingChildAgentDataUpdate POSITION in " + RegionInfo.RegionName);
             ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
@@ -2924,7 +2924,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="cmdparams"></param>
         public void HandleEditCommand(string[] cmdparams)
         {
-            Console.WriteLine("Searching for Primitive: '" + cmdparams[2] + "'");
+            m_log.Debug("Searching for Primitive: '" + cmdparams[2] + "'");
 
             List<EntityBase> EntityList = GetEntities();
 
@@ -2941,7 +2941,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 new Vector3(Convert.ToSingle(cmdparams[3]), Convert.ToSingle(cmdparams[4]),
                                               Convert.ToSingle(cmdparams[5])));
 
-                            Console.WriteLine("Edited scale of Primitive: " + part.Name);
+                            m_log.Debug("Edited scale of Primitive: " + part.Name);
                         }
                     }
                 }
@@ -3414,7 +3414,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TerrainUnAcked(IClientAPI client, int patchX, int patchY)
         {
-            //Console.WriteLine("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
+            //m_log.Debug("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
              client.SendLayerData(patchX, patchY, Heightmap.GetFloatsSerialised());
         }
 

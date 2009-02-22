@@ -36,6 +36,7 @@ using System.Reflection;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using log4net;
 
 namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 {
@@ -45,6 +46,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
     /// </summary>
     public class YP
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static Fail _fail = new Fail();
         private static Repeat _repeat = new Repeat();
         private static Dictionary<NameArity, List<IClause>> _predicatesStore =
@@ -2341,7 +2343,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             string results = "";
             for (Match m = Regex.Match(inData,inPattern); m.Success; m=m.NextMatch())
             {
-                //Console.WriteLine( m );
+                //m_log.Debug( m );
                 results += presep+ m + postsep;
             }
             return results;
@@ -2359,7 +2361,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             }
             catch
             {
-                Console.WriteLine("Failed to connect to server at {0}:999", "localhost");
+                m_log.Error("Failed to connect to server at localhost:999");
                 return "";
             }
 
@@ -2379,16 +2381,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                     streamWriter.Flush();
 
                     cycOutputString = streamReader.ReadLine();
-                    Console.WriteLine("Cycoutput:" + cycOutputString);
+                    m_log.Debug("Cycoutput:" + cycOutputString);
                     //streamWriter.WriteLine("Client Message");
-                    //Console.WriteLine("Client Message");
+                    //m_log.Debug("Client Message");
                     streamWriter.Flush();
                 }
 
             }
             catch
             {
-                Console.WriteLine("Exception reading from Server");
+                m_log.Error("Exception reading from Server");
                 return "";
             }
             // tidy up

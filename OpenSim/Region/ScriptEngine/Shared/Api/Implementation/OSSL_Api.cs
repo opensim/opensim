@@ -842,7 +842,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 for (i=0;i<JSON.Length; i++)
                 {
 
-                    // Console.WriteLine(""+JSON[i]);
+                    // m_log.Debug(""+JSON[i]);
                     switch (JSON[i])
                     {
                         case '{':

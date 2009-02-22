@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Scenes.Tests
             SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
             
-            //System.Console.WriteLine("retrievedPart : {0}", retrievedPart);
+            //m_log.Debug("retrievedPart : {0}", retrievedPart);
             // If the parts have the same UUID then we will consider them as one and the same
             Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));         
         }

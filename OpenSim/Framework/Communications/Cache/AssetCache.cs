@@ -510,11 +510,11 @@ namespace OpenSim.Framework.Communications.Cache
                 //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
                 source = 3;
-                //Console.WriteLine("asset request " + requestID);
+                //m_log.Debug("asset request " + requestID);
             }
 
             //check to see if asset is in local cache, if not we need to request it from asset server.
-            //Console.WriteLine("asset request " + requestID);
+            //m_log.Debug("asset request " + requestID);
             if (!m_memcache.Contains(requestID))
             {
                 //not found asset

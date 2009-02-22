@@ -112,8 +112,7 @@ namespace OpenSim.Data.MSSQL
                 catch (Exception e)
                 {
                     //Are we not in a loop here
-                    //m_log.Error(e.ToString());
-                    Console.WriteLine("[LOG DB] Error logging : " + e.Message);
+                    m_log.Error("[LOG DB] Error logging : " + e.Message);
                 }
             }
         }

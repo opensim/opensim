@@ -57,8 +57,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         protected override bool EndReceive(out int numBytes, IAsyncResult result, ref EndPoint epSender)
         {
             numBytes = 0;
-            
-            //System.Console.WriteLine("Queue size " + m_chunksToLoad.Count);
+
+            //m_log.Debug("Queue size " + m_chunksToLoad.Count);
             
             if (m_chunksToLoad.Count <= 0)
                 return false;

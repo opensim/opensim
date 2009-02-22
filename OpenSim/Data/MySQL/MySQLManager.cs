@@ -1030,7 +1030,6 @@ namespace OpenSim.Data.MySQL
             {
                 IDbCommand result = Query(sql, parameters);
 
-                //Console.WriteLine(result.CommandText);
                 // int x;
                 // if ((x = result.ExecuteNonQuery()) > 0)
                 // {
@@ -1123,7 +1122,6 @@ namespace OpenSim.Data.MySQL
             {
                 IDbCommand result = Query(sql, parameters);
 
-                //Console.WriteLine(result.CommandText);
                 // int x;
                 // if ((x = result.ExecuteNonQuery()) > 0)
                 // {

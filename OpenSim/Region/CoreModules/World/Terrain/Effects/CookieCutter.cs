@@ -28,11 +28,15 @@ using System;
 using OpenSim.Region.CoreModules.World.Terrain.PaintBrushes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Region.CoreModules.World.Terrain.Effects
 {
     internal class CookieCutter : ITerrainEffect
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         #region ITerrainEffect Members
 
         public void RunEffect(ITerrainChannel map)
@@ -44,7 +48,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Effects
             bool[,] smoothMask = new bool[map.Width,map.Height];
             bool[,] allowMask = new bool[map.Width,map.Height];
 
-            Console.WriteLine("S1");
+            m_log.Info("S1");
 
             // Step one, generate rough mask
             int x, y;
@@ -52,7 +56,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Effects
             {
                 for (y = 0; y < map.Height; y++)
                 {
-                    Console.Write(".");
+                    m_log.Info(".");
                     smoothMask[x, y] = true;
                     allowMask[x,y] = true;
 
@@ -71,10 +75,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Effects
                 }
             }
 
-            Console.WriteLine("S2");
+            m_log.Info("S2");
             //smooth.FloodEffect(map, smoothMask, 4.0);
 
-            Console.WriteLine("S3");
+            m_log.Info("S3");
             for (x = 0; x < map.Width; x++)
             {
                 for (y = 0; y < map.Height; y++)

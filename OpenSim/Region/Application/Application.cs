@@ -55,15 +55,15 @@ namespace OpenSim
 
             XmlConfigurator.Configure();
 
-            Console.Write("Performing compatibility checks... ");
+            m_log.Info("Performing compatibility checks... ");
             string supported = String.Empty;
             if (Util.IsEnvironmentSupported(ref supported))
             {
-                Console.WriteLine(" Environment is compatible.\n");
+                m_log.Info("Environment is compatible.\n");
             }
             else
             {
-                Console.WriteLine(" Environment is unsupported (" + supported + ")\n");
+                m_log.Warn("Environment is unsupported (" + supported + ")\n");
             }
 
             Culture.SetCurrentCulture();
@@ -115,7 +115,7 @@ namespace OpenSim
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Caught exception from command: {0}", e);
+                        m_log.Error("Caught exception from command: {0}", e);
                     }
                 }
             }

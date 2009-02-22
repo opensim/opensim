@@ -122,7 +122,7 @@ namespace OpenSim.Framework
                 AgentCircuits[(uint) agentData.circuitcode].SecureSessionID = agentData.SecureSessionID;
                 AgentCircuits[(uint) agentData.circuitcode].SessionID = agentData.SessionID;
 
-                // Console.WriteLine("update user start pos is " + agentData.startpos.X + " , " + agentData.startpos.Y + " , " + agentData.startpos.Z);
+                // m_log.Debug("update user start pos is " + agentData.startpos.X + " , " + agentData.startpos.Y + " , " + agentData.startpos.Z);
             }
         }
 

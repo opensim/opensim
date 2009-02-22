@@ -192,7 +192,7 @@ namespace OpenSim
                             for (int i = 3; i < cmdparams.Count; i++)
                                 mapName += " " + cmdparams[i];
 
-                        Console.WriteLine(">> MapName: " + mapName);
+                        m_log.Info(">> MapName: " + mapName);
                         //internalPort = Convert.ToUInt32(cmdparams[4]);
                         //remotingPort = Convert.ToUInt32(cmdparams[5]);
                     }
@@ -285,7 +285,7 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                m_log.Error(e.ToString());
             }
         }
         
@@ -323,9 +323,9 @@ namespace OpenSim
 
         private void LinkRegionCmdUsage()
         {
-            Console.WriteLine("Usage: link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>]");
-            Console.WriteLine("Usage: link-region <Xloc> <Yloc> <HostName> <HttpPort> [<LocalName>]");
-            Console.WriteLine("Usage: link-region <URI_of_xml> [<exclude>]");
+            m_log.Info("Usage: link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>]");
+            m_log.Info("Usage: link-region <Xloc> <Yloc> <HostName> <HttpPort> [<LocalName>]");
+            m_log.Info("Usage: link-region <URI_of_xml> [<exclude>]");
         }
     }
 }

@@ -87,10 +87,10 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
             //}
 
 
-            //Console.WriteLine("Loading: " + FileName);
+            //m_log.Debug("Loading: " + FileName);
             //foreach (Type _t in a.GetTypes())
             //{
-            //    Console.WriteLine("Type: " + _t.ToString());
+            //    m_log.Debug("Type: " + _t.ToString());
             //}
 
             Type t;

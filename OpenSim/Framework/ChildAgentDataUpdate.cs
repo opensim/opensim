@@ -576,10 +576,10 @@ namespace OpenSim.Framework
 
         public void Dump()
         {
-            System.Console.WriteLine("------------ AgentData ------------");
-            System.Console.WriteLine("UUID: " + AgentID);
-            System.Console.WriteLine("Region: " + RegionHandle);
-            System.Console.WriteLine("Position: " + Position);
+            m_log.Info("------------ AgentData ------------");
+            m_log.Info("UUID: " + AgentID);
+            m_log.Info("Region: " + RegionHandle);
+            m_log.Info("Position: " + Position);
         }
     }
   */

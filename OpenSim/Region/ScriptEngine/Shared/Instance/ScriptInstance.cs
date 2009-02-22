@@ -451,11 +451,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void VarDump(Dictionary<string, object> vars)
         {
-            Console.WriteLine("Variable dump for script {0}", m_ItemID.ToString());
+            m_log.Info("Variable dump for script "+ m_ItemID.ToString());
             foreach (KeyValuePair<string, object> v in vars)
             {
-                Console.WriteLine("Variable: {0} = '{1}'", v. Key,
-                                  v.Value.ToString());
+                m_log.Info("Variable: "+v.Key+" = "+v.Value.ToString());
             }
         }
 
@@ -881,7 +880,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
             catch(Exception e)
             {
-                Console.WriteLine("Unable to save xml\n"+e.ToString());
+                m_log.Error("Unable to save xml\n"+e.ToString());
             }
             if (!File.Exists(Path.Combine(Path.GetDirectoryName(assembly), m_ItemID.ToString() + ".state")))
             {

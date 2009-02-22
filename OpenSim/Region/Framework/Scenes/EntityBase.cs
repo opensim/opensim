@@ -150,7 +150,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected EntityBase(SerializationInfo info, StreamingContext context)
         {
-            //System.Console.WriteLine("EntityBase Deserialize BGN");
+            //m_log.Debug("EntityBase Deserialize BGN");
 
             if (info == null)
             {
@@ -187,7 +187,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_localId = (uint)info.GetValue("m_localId", typeof(uint));
 
-            //System.Console.WriteLine("EntityBase Deserialize END");
+            //m_log.Debug("EntityBase Deserialize END");
         }
 
         [SecurityPermission(SecurityAction.LinkDemand,

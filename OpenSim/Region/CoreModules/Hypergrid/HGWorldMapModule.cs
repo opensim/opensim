@@ -94,7 +94,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             //m_scene.ForEachScenePresence(delegate (ScenePresence sp) {
             //    if (!sp.IsChildAgent && sp.UUID == remoteClient.AgentId)
             //    {
-            //        Console.WriteLine("XXX Root agent");
+            //        m_log.Debug("XXX Root agent");
             //        DoRequestMapBlocks(remoteClient, minX, minY, maxX, maxY, flag);
             //    }
             //};

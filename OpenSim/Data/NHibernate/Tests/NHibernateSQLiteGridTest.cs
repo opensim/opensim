@@ -29,12 +29,15 @@ using System;
 using System.IO;
 using NUnit.Framework;
 using OpenSim.Data.Tests;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Data.NHibernate.Tests
 {
     [TestFixture]
     public class NHibernateSQLiteGridTest : BasicGridTest
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public string file;
         public NHibernateManager database;
         public string connect = "SQLiteDialect;SQLite20Driver;Data Source=" + Path.GetTempFileName() + ".db;Version=3";
@@ -55,7 +58,7 @@ namespace OpenSim.Data.NHibernate.Tests
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception {0}", e);
+                m_log.Error(e.ToString());
                 Assert.Ignore();
             }
         }

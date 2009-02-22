@@ -58,7 +58,7 @@ namespace OpenSim.Framework
         {
             string userServerURI = ServerURI(userserver);
             bool ret = (((userServerURI == null) || (userServerURI == "") || (userServerURI == LocalUserServerURI)));
-            //Console.WriteLine("-------------> HGNetworkServersInfo.IsLocalUser? " + ret + "(userServer=" + userServerURI + "; localuserserver=" + LocalUserServerURI + ")");
+            //m_log.Debug("-------------> HGNetworkServersInfo.IsLocalUser? " + ret + "(userServer=" + userServerURI + "; localuserserver=" + LocalUserServerURI + ")");
             return ret;
         }
 

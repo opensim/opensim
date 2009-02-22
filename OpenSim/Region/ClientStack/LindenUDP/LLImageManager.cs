@@ -32,6 +32,8 @@ using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -41,6 +43,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     public class LLImageManager
     {
+
         /// <summary>
         /// Priority Queue for images.  Contains lots of data
         /// </summary>
@@ -114,7 +117,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_shuttingdown)
                 return;
 
-            //Console.WriteLine("AssetCallback for assetId" + assetID);
+            //m_log.Debug("AssetCallback for assetId" + assetID);
 
             if (asset == null || asset.Data == null)
             {
@@ -249,7 +252,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
 
                         // uncomment the following line to see the upper most asset and the priority
-                        //Console.WriteLine(process.ToString());
+                        //m_log.Debug(process.ToString());
 
                         // Lower priority to give the next image a chance to bubble up
                         pq[h] -= 50000;
@@ -359,6 +362,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     public class J2KImage
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private AssetBase m_asset_ref = null;
         public volatile int LastPacketNum = 0;
         public volatile int DiscardLimit = 0;
@@ -550,7 +554,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     try { Buffer.BlockCopy(m_asset_ref.Data, 0, firstImageData, 0, FIRST_IMAGE_PACKET_SIZE); }
                     catch (Exception)
                     {
-                        Console.WriteLine(String.Format("Err: srcLen:{0}, BytePos:{1}, desLen:{2}, pktsize{3}", m_asset_ref.Data.Length, CurrentBytePosition(), firstImageData.Length, FIRST_IMAGE_PACKET_SIZE));
+                        m_log.Error(String.Format("Err: srcLen:{0}, BytePos:{1}, desLen:{2}, pktsize{3}", m_asset_ref.Data.Length, CurrentBytePosition(), firstImageData.Length, FIRST_IMAGE_PACKET_SIZE));
 
                         //m_log.Error("Texture data copy failed on first packet for " + m_asset_ref.FullID.ToString());
                         //m_cancel = true;
@@ -569,8 +573,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //if (imagePacketSize > 0)
             //    imagePacketSize = IMAGE_PACKET_SIZE;
             //if (imagePacketSize != 1000)
-            //    Console.WriteLine("ENdPacket");
-            //Console.WriteLine(String.Format("srcLen:{0}, BytePos:{1}, desLen:{2}, pktsize{3}", m_asset_ref.Data.Length, CurrentBytePosition(),0, imagePacketSize));
+            //    m_log.Debug("ENdPacket");
+            //m_log.Debug(String.Format("srcLen:{0}, BytePos:{1}, desLen:{2}, pktsize{3}", m_asset_ref.Data.Length, CurrentBytePosition(),0, imagePacketSize));
 
             bool atEnd = false;
 
@@ -591,9 +595,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             try { Buffer.BlockCopy(m_asset_ref.Data, CurrentBytePosition(), imageData, 0, imagePacketSize); }
             catch (Exception e)
             {
-                Console.WriteLine(String.Format("Err: srcLen:{0}, BytePos:{1}, desLen:{2}, pktsize:{3}, currpak:{4}, stoppak:{5}, totalpak:{6}", m_asset_ref.Data.Length, CurrentBytePosition(),
+                m_log.Error(String.Format("Err: srcLen:{0}, BytePos:{1}, desLen:{2}, pktsize:{3}, currpak:{4}, stoppak:{5}, totalpak:{6}", m_asset_ref.Data.Length, CurrentBytePosition(),
                     imageData.Length, imagePacketSize, CurrentPacket, StopPacket, TexturePacketCount()));
-                Console.WriteLine(e.ToString());
+                m_log.Error(e.ToString());
                 //m_log.Error("Texture data copy failed for " + m_asset_ref.FullID.ToString());
                 //m_cancel = true;
                 //m_sending = false;

@@ -45,9 +45,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     [Serializable]
     public class ScriptEngine : IRegionModule, IScriptEngine, IScriptModule
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static List<ScriptEngine> ScriptEngines =
                 new List<ScriptEngine>();
@@ -265,7 +263,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 }
                 catch (AppDomainUnloadedException)
                 {
-                    Console.WriteLine("[SCRIPT]: state change called when "+
+                    m_log.Error("[SCRIPT]: state change called when "+
                             "script was unloaded.  Nothing to worry about, "+
                             "but noting the occurance");
                 }
@@ -285,7 +283,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 }
                 catch (AppDomainUnloadedException)
                 {
-                    Console.WriteLine("[SCRIPT]: state change called when "+
+                    m_log.Error("[SCRIPT]: state change called when "+
                     "script was unloaded.  Nothing to worry about, but "+
                     "noting the occurance");
                 }

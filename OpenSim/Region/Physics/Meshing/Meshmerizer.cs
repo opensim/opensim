@@ -35,6 +35,8 @@ using OpenMetaverse.Imaging;
 using System.Drawing;
 using System.Drawing.Imaging;
 using PrimMesher;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Region.Physics.Meshing
 {
@@ -57,6 +59,7 @@ namespace OpenSim.Region.Physics.Meshing
 
     public class Meshmerizer : IMesher
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // Setting baseDir to a path will enable the dumping of raw files
@@ -155,9 +158,9 @@ namespace OpenSim.Region.Physics.Meshing
 
         private void ReportPrimError(string message, string primName, PrimMesh primMesh)
         {
-            Console.WriteLine(message);
-            Console.WriteLine("\nPrim Name: " + primName);
-            Console.WriteLine("****** PrimMesh Parameters ******\n" + primMesh.ParamsToDisplayString());
+            m_log.Error(message);
+            m_log.Error("\nPrim Name: " + primName);
+            m_log.Error("****** PrimMesh Parameters ******\n" + primMesh.ParamsToDisplayString());
 
         }
 
@@ -185,17 +188,17 @@ namespace OpenSim.Region.Physics.Meshing
                 }
                 catch (DllNotFoundException)
                 {
-                    System.Console.WriteLine("[PHYSICS]: OpenJpeg is not installed correctly on this system. Physics Proxy generation failed.  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
+                    m_log.Error("[PHYSICS]: OpenJpeg is not installed correctly on this system. Physics Proxy generation failed.  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
                     return null;
                 }
                 catch (IndexOutOfRangeException)
                 {
-                    System.Console.WriteLine("[PHYSICS]: OpenJpeg was unable to decode this.   Physics Proxy generation failed");
+                    m_log.Error("[PHYSICS]: OpenJpeg was unable to decode this.   Physics Proxy generation failed");
                     return null;
                 }
                 catch (Exception)
                 {
-                    System.Console.WriteLine("[PHYSICS]: Unable to generate a Sculpty physics proxy.  Sculpty texture decode failed!");
+                    m_log.Error("[PHYSICS]: Unable to generate a Sculpty physics proxy.  Sculpty texture decode failed!");
                     return null;
                 }
 
@@ -285,7 +288,7 @@ namespace OpenSim.Region.Physics.Meshing
                         if (profileEnd > 1.0f) profileEnd = 1.0f;
                     }
 #if SPAM
-                Console.WriteLine("****** PrimMesh Parameters (Linear) ******\n" + primMesh.ParamsToDisplayString());
+                m_log.Debug("****** PrimMesh Parameters (Linear) ******\n" + primMesh.ParamsToDisplayString());
 #endif
                     try
                     {
@@ -316,7 +319,7 @@ namespace OpenSim.Region.Physics.Meshing
                         if (profileEnd > 1.0f) profileEnd = 1.0f;
                     }
 #if SPAM
-                Console.WriteLine("****** PrimMesh Parameters (Circular) ******\n" + primMesh.ParamsToDisplayString());
+                m_log.Debug("****** PrimMesh Parameters (Circular) ******\n" + primMesh.ParamsToDisplayString());
 #endif
                     try
                     {
@@ -378,7 +381,7 @@ namespace OpenSim.Region.Physics.Meshing
                 if ((!isPhysical) && size.X < minSizeForComplexMesh && size.Y < minSizeForComplexMesh && size.Z < minSizeForComplexMesh)
                 {
 #if SPAM
-                Console.WriteLine("Meshmerizer: prim " + primName + " has a size of " + size.ToString() + " which is below threshold of " + 
+                m_log.Debug("Meshmerizer: prim " + primName + " has a size of " + size.ToString() + " which is below threshold of " + 
 
 minSizeForComplexMesh.ToString() + " - creating simple bounding box" );
 #endif

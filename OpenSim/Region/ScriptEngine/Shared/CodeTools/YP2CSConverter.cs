@@ -68,7 +68,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             YP.see(myCode_SR);
             YP.tell(myCS_SW);
 
-            //Console.WriteLine("Mycode\n ===================================\n" + myCode+"\n");
+            //m_log.Debug("Mycode\n ===================================\n" + myCode+"\n");
 
 // disable warning: don't see how we can code this differently short
 // of rewriting the whole thing
@@ -78,9 +78,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 foreach (bool l2 in YPCompiler.makeFunctionPseudoCode(TermList, FunctionCode))
                 {
                     // ListPair VFC = new ListPair(FunctionCode, new Variable());
-                    //Console.WriteLine("-------------------------")
-                    //Console.WriteLine(FunctionCode.ToString())
-                    //Console.WriteLine("-------------------------")
+                    //m_log.Debug("-------------------------")
+                    //m_log.Debug(FunctionCode.ToString())
+                    //m_log.Debug("-------------------------")
                     YPCompiler.convertFunctionCSharp(FunctionCode);
                     //YPCompiler.convertStringCodesCSharp(VFC);
                 }

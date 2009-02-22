@@ -126,7 +126,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                     {
                         isHomeUser = HGNetworkServersInfo.Singleton.IsLocalUser(uinfo.UserProfile);
                         realHandle = m_hg.FindRegionHandle(regionHandle);
-                        Console.WriteLine("XXX ---- home user? " + isHomeUser + " --- hyperlink? " + isHyperLink + " --- real handle: " + realHandle.ToString());
+                        m_log.Debug("XXX ---- home user? " + isHomeUser + " --- hyperlink? " + isHyperLink + " --- real handle: " + realHandle.ToString());
                     }
                     ///
                     /// Hypergrid mod stop

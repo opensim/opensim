@@ -181,7 +181,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                         if (DateTime.Now.Ticks - Last_ReReadConfigFilens >
                                             m_ScriptEngine.RefreshConfigFilens)
                                         {
-                                            //Console.WriteLine("Time passed: " + (DateTime.Now.Ticks - Last_ReReadConfigFilens) + ">" + m_ScriptEngine.RefreshConfigFilens);
+                                            //m_log.Debug("Time passed: " + (DateTime.Now.Ticks - Last_ReReadConfigFilens) + ">" + m_ScriptEngine.RefreshConfigFilens);
                                             // Its time to re-read config file
                                             m_ScriptEngine.ReadConfig();
                                             Last_ReReadConfigFilens = DateTime.Now.Ticks; // Reset time

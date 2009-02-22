@@ -36,6 +36,8 @@ using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Region.CoreModules.Scenes.Tests
 {
@@ -45,6 +47,8 @@ namespace OpenSim.Region.CoreModules.Scenes.Tests
     [TestFixture]    
     public class SceneObjectLinkingTests
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         [Test]
         public void TestLinkDelink2SceneObjects()
         {
@@ -80,10 +84,10 @@ namespace OpenSim.Region.CoreModules.Scenes.Tests
 
             if (debugtest)
             {
-                System.Console.WriteLine("parts: {0}", grp1.Children.Count);
-                System.Console.WriteLine("Group1: Pos:{0}, Rot:{1}", grp1.AbsolutePosition, grp1.Rotation);
-                System.Console.WriteLine("Group1: Prim1: OffsetPosition:{0}, OffsetRotation:{1}", part1.OffsetPosition, part1.RotationOffset);
-                System.Console.WriteLine("Group1: Prim2: OffsetPosition:{0}, OffsetRotation:{1}", part2.OffsetPosition, part2.RotationOffset);
+                m_log.Debug("parts: " + grp1.Children.Count);
+                m_log.Debug("Group1: Pos:"+grp1.AbsolutePosition+", Rot:"+grp1.Rotation);
+                m_log.Debug("Group1: Prim1: OffsetPosition:"+ part1.OffsetPosition+", OffsetRotation:"+part1.RotationOffset);
+                m_log.Debug("Group1: Prim2: OffsetPosition:"+part2.OffsetPosition+", OffsetRotation:"+part2.RotationOffset);
             }
 
             // root part should have no offset position or rotation
@@ -101,13 +105,13 @@ namespace OpenSim.Region.CoreModules.Scenes.Tests
             Vector3 rotEuler1 = new Vector3(roll * Utils.RAD_TO_DEG, pitch * Utils.RAD_TO_DEG, yaw * Utils.RAD_TO_DEG);
             
             if (debugtest)
-                System.Console.WriteLine(rotEuler1);
+                m_log.Debug(rotEuler1);
 
             part2.RotationOffset.GetEulerAngles(out roll, out pitch, out yaw);
             Vector3 rotEuler2 = new Vector3(roll * Utils.RAD_TO_DEG, pitch * Utils.RAD_TO_DEG, yaw * Utils.RAD_TO_DEG);
              
             if (debugtest)
-                System.Console.WriteLine(rotEuler2);
+                m_log.Debug(rotEuler2);
 
             Assert.That(rotEuler2.ApproxEquals(new Vector3(-180, 0, 0), 0.001f) || rotEuler2.ApproxEquals(new Vector3(180, 0, 0), 0.001f));
 
@@ -115,7 +119,7 @@ namespace OpenSim.Region.CoreModules.Scenes.Tests
             grp1.DelinkFromGroup(part2.LocalId);
 
             if (debugtest)
-                System.Console.WriteLine("Group2: Prim2: OffsetPosition:{0}, OffsetRotation:{1}", part2.AbsolutePosition, part2.RotationOffset);
+                m_log.Debug("Group2: Prim2: OffsetPosition:" + part2.AbsolutePosition + ", OffsetRotation:" + part2.RotationOffset);
 
             Assert.That(grp1.Children.Count, Is.EqualTo(1), "Group 1 still contained part2 after delink.");
             Assert.That(part2.AbsolutePosition == Vector3.Zero);            
@@ -175,16 +179,16 @@ namespace OpenSim.Region.CoreModules.Scenes.Tests
             
             if (debugtest)
             {
-                System.Console.WriteLine("--------After Link-------");
-                System.Console.WriteLine("Group1: parts: {0}", grp1.Children.Count);
-                System.Console.WriteLine("Group1: Pos:{0}, Rot:{1}", grp1.AbsolutePosition, grp1.Rotation);
-                System.Console.WriteLine("Group1: Prim1: OffsetPosition:{0}, OffsetRotation:{1}", part1.OffsetPosition, part1.RotationOffset);
-                System.Console.WriteLine("Group1: Prim2: OffsetPosition:{0}, OffsetRotation:{1}", part2.OffsetPosition, part2.RotationOffset);
+                m_log.Debug("--------After Link-------");
+                m_log.Debug("Group1: parts:" + grp1.Children.Count);
+                m_log.Debug("Group1: Pos:"+grp1.AbsolutePosition+", Rot:"+grp1.Rotation);
+                m_log.Debug("Group1: Prim1: OffsetPosition:" + part1.OffsetPosition + ", OffsetRotation:" + part1.RotationOffset);
+                m_log.Debug("Group1: Prim2: OffsetPosition:"+part2.OffsetPosition+", OffsetRotation:"+ part2.RotationOffset);
                 
-                System.Console.WriteLine("Group3: parts: {0}", grp3.Children.Count);
-                System.Console.WriteLine("Group3: Pos:{0}, Rot:{1}", grp3.AbsolutePosition, grp3.Rotation);
-                System.Console.WriteLine("Group3: Prim1: OffsetPosition:{0}, OffsetRotation:{1}", part3.OffsetPosition, part3.RotationOffset);
-                System.Console.WriteLine("Group3: Prim2: OffsetPosition:{0}, OffsetRotation:{1}", part4.OffsetPosition, part4.RotationOffset);
+                m_log.Debug("Group3: parts:"+grp3.Children.Count);
+                m_log.Debug("Group3: Pos:"+grp3.AbsolutePosition+", Rot:"+grp3.Rotation);
+                m_log.Debug("Group3: Prim1: OffsetPosition:"+part3.OffsetPosition+", OffsetRotation:"+part3.RotationOffset);
+                m_log.Debug("Group3: Prim2: OffsetPosition:"+part4.OffsetPosition+", OffsetRotation:"+part4.RotationOffset);
             }            
 
             // Required for linking
@@ -206,13 +210,13 @@ namespace OpenSim.Region.CoreModules.Scenes.Tests
             Vector3 rotEuler1 = new Vector3(roll * Utils.RAD_TO_DEG, pitch * Utils.RAD_TO_DEG, yaw * Utils.RAD_TO_DEG);
 
             if (debugtest)
-                System.Console.WriteLine(rotEuler1);
+                m_log.Debug(rotEuler1);
 
             part2.RotationOffset.GetEulerAngles(out roll, out pitch, out yaw);
             Vector3 rotEuler2 = new Vector3(roll * Utils.RAD_TO_DEG, pitch * Utils.RAD_TO_DEG, yaw * Utils.RAD_TO_DEG);
 
             if (debugtest)
-                System.Console.WriteLine(rotEuler2);
+                m_log.Debug(rotEuler2);
 
             Assert.That(rotEuler2.ApproxEquals(new Vector3(-180, 0, 0), 0.001f) || rotEuler2.ApproxEquals(new Vector3(180, 0, 0), 0.001f));
 
@@ -225,16 +229,16 @@ namespace OpenSim.Region.CoreModules.Scenes.Tests
 
             if (debugtest)
             {
-                System.Console.WriteLine("--------After De-Link-------");
-                System.Console.WriteLine("Group1: parts: {0}", grp1.Children.Count);
-                System.Console.WriteLine("Group1: Pos:{0}, Rot:{1}", grp1.AbsolutePosition, grp1.Rotation);
-                System.Console.WriteLine("Group1: Prim1: OffsetPosition:{0}, OffsetRotation:{1}", part1.OffsetPosition, part1.RotationOffset);
-                System.Console.WriteLine("NoGroup: Prim2: AbsolutePosition:{0}, OffsetRotation:{1}", part2.AbsolutePosition, part2.RotationOffset);
+                m_log.Debug("--------After De-Link-------");
+                m_log.Debug("Group1: parts:" + grp1.Children.Count);
+                m_log.Debug("Group1: Pos:" + grp1.AbsolutePosition + ", Rot:" + grp1.Rotation);
+                m_log.Debug("Group1: Prim1: OffsetPosition:" + part1.OffsetPosition + ", OffsetRotation:" + part1.RotationOffset);
+                m_log.Debug("Group1: Prim2: OffsetPosition:" + part2.OffsetPosition + ", OffsetRotation:" + part2.RotationOffset);
 
-                System.Console.WriteLine("Group3: parts: {0}", grp3.Children.Count);
-                System.Console.WriteLine("Group3: Pos:{0}, Rot:{1}", grp3.AbsolutePosition, grp3.Rotation);
-                System.Console.WriteLine("Group3: Prim1: OffsetPosition:{0}, OffsetRotation:{1}", part3.OffsetPosition, part3.RotationOffset);
-                System.Console.WriteLine("Group3: Prim2: OffsetPosition:{0}, OffsetRotation:{1}", part4.OffsetPosition, part4.RotationOffset);
+                m_log.Debug("Group3: parts:" + grp3.Children.Count);
+                m_log.Debug("Group3: Pos:" + grp3.AbsolutePosition + ", Rot:" + grp3.Rotation);
+                m_log.Debug("Group3: Prim1: OffsetPosition:" + part3.OffsetPosition + ", OffsetRotation:" + part3.RotationOffset);
+                m_log.Debug("Group3: Prim2: OffsetPosition:" + part4.OffsetPosition + ", OffsetRotation:" + part4.RotationOffset);
             }
 
             Assert.That(part2.AbsolutePosition == Vector3.Zero);

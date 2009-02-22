@@ -669,7 +669,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_pidControllerActive = false;
                 force *= 100f;
                 doForce(force);
-                //System.Console.WriteLine("Push!");
+                //m_log.Debug("Push!");
                 //_target_velocity.X += force.X;
                // _target_velocity.Y += force.Y;
                 //_target_velocity.Z += force.Z;

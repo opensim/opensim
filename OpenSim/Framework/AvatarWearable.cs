@@ -50,7 +50,7 @@ namespace OpenSim.Framework
 
         protected AvatarWearable(SerializationInfo info, StreamingContext context)
         {
-            //System.Console.WriteLine("AvatarWearable Deserialize BGN");
+            //m_log.Debug("AvatarWearable Deserialize BGN");
             if (info == null)
             {
                 throw new ArgumentNullException("info");
@@ -59,7 +59,7 @@ namespace OpenSim.Framework
             AssetID = new UUID((Guid) info.GetValue("AssetID", typeof (Guid)));
             ItemID = new UUID((Guid) info.GetValue("ItemID", typeof (Guid)));
 
-            //System.Console.WriteLine("AvatarWearable Deserialize END");
+            //m_log.Debug("AvatarWearable Deserialize END");
         }
 
         public static AvatarWearable[] DefaultWearables

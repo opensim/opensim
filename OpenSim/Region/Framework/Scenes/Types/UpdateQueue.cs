@@ -92,7 +92,7 @@ namespace OpenSim.Region.Framework.Scenes.Types
 
         protected UpdateQueue(SerializationInfo info, StreamingContext context)
         {
-            //System.Console.WriteLine("UpdateQueue Deserialize BGN");
+            //m_log.Debug("UpdateQueue Deserialize BGN");
 
             if (info == null)
             {
@@ -107,7 +107,7 @@ namespace OpenSim.Region.Framework.Scenes.Types
                 m_ids.Add(new UUID(guid));
             }
 
-            //System.Console.WriteLine("UpdateQueue Deserialize END");
+            //m_log.Debug("UpdateQueue Deserialize END");
         }
 
         [SecurityPermission(SecurityAction.LinkDemand,

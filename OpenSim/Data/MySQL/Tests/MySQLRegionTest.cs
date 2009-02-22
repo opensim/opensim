@@ -28,12 +28,15 @@
 using System;
 using NUnit.Framework;
 using OpenSim.Data.Tests;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Data.MySQL.Tests
 {
     [TestFixture]
     public class MySQLRegionTest : BasicRegionTest
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public string file;
         public MySQLManager database;
         public string connect = "Server=localhost;Port=3306;Database=opensim-nunit;User ID=opensim-nunit;Password=opensim-nunit;Pooling=false;";
@@ -54,7 +57,7 @@ namespace OpenSim.Data.MySQL.Tests
             } 
             catch (Exception e)
             {
-                Console.WriteLine("Exception {0}", e);
+                m_log.Error("Exception {0}", e);
                 Assert.Ignore();
             }
         }

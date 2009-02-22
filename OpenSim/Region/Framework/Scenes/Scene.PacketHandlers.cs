@@ -358,7 +358,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (ownerID == CommsManager.UserProfileCacheService.LibraryRoot.Owner)
             {
-                //Console.WriteLine("request info for library item");
+                //m_log.Debug("request info for library item");
                 return;
             }
             

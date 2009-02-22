@@ -188,20 +188,20 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
 
         public void SetChildrenSeed(UUID agentID, Dictionary<ulong, string> seeds)
         {
-            //Console.WriteLine(" !!! Setting child seeds in {0} to {1}", RegionInfo.RegionName, value.Count);
+            //m_log.Debug(" !!! Setting child seeds in {0} to {1}", RegionInfo.RegionName, value.Count);
             childrenSeeds[agentID] = seeds;
         }
 
         public void DumpChildrenSeeds(UUID agentID)
         {
-            Console.WriteLine("================ ChildrenSeed {0} ================", m_scene.RegionInfo.RegionName);
+            m_log.Info("================ ChildrenSeed "+m_scene.RegionInfo.RegionName+" ================");
             foreach (KeyValuePair<ulong, string> kvp in childrenSeeds[agentID])
             {
                 uint x, y;
                 Utils.LongToUInts(kvp.Key, out x, out y);
                 x = x / Constants.RegionSize;
                 y = y / Constants.RegionSize;
-                Console.WriteLine(" >> {0}, {1}: {2}", x, y, kvp.Value);
+                m_log.Info(" >> "+x+", "+y+": "+kvp.Value);
             }
         }        
     }

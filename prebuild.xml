@@ -417,6 +417,7 @@
       <Reference name="PhysX_Wrapper_Dotnet.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="log4net.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -2958,5 +2959,6 @@
 
   </Solution>
 </Prebuild>
+
 
 

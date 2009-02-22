@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
             catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
-                Console.WriteLine("Failed generating terrain map: " + e);
+                m_log.Error("Failed generating terrain map: " + e);
             }
 
             return imageData;
