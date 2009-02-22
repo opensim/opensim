@@ -25,6 +25,7 @@ namespace OpenSim.Client.MXP.PacketHandler
         private readonly Transmitter transmitter;
 
         private readonly IList<Session> sessions = new List<Session>();
+        private readonly IList<Session> sessionsToClient = new List<Session>();
         private readonly IList<MXPClientView> sessionsToRemove = new List<MXPClientView>();
 
         private readonly String cloudUrl;
@@ -217,24 +218,24 @@ namespace OpenSim.Client.MXP.PacketHandler
         {
             if (transmitter.PendingSessionCount > 0)
             {
-                sessions.Add(transmitter.AcceptPendingSession());
+                Session tmp = transmitter.AcceptPendingSession();
+                sessions.Add(tmp);
+                sessionsToClient.Add(tmp);
+
             }
 
-            foreach (MXPClientView clientView in Clients)
-            {
-                
-                int messagesProcessedCount = 0;
-                Session session = clientView.Session;
+            List<Session> tmpRemove = new List<Session>();
 
+            foreach (Session session in sessionsToClient)
+            {
                 while (session.AvailableMessages > 0)
                 {
-
                     Message message = session.Receive();
 
-                    if (message.GetType() == typeof(JoinRequestMessage))
+                    if (message.GetType() == typeof (JoinRequestMessage))
                     {
 
-                        JoinRequestMessage joinRequestMessage = (JoinRequestMessage)message;
+                        JoinRequestMessage joinRequestMessage = (JoinRequestMessage) message;
 
                         bool authorized = AuthoriseUser(joinRequestMessage.ParticipantName,
                                                         joinRequestMessage.ParticipantPassphrase,
@@ -246,7 +247,9 @@ namespace OpenSim.Client.MXP.PacketHandler
 
                             UUID mxpSessionID = UUID.Random();
 
-                            m_log.Info("[MXP ClientStack] Session join request success: " + session.SessionId + " (" + (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" + session.RemoteEndPoint.Port + ")");
+                            m_log.Info("[MXP ClientStack] Session join request success: " + session.SessionId + " (" +
+                                       (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
+                                       session.RemoteEndPoint.Port + ")");
 
                             AcceptConnection(session, joinRequestMessage, mxpSessionID);
 
@@ -258,12 +261,33 @@ namespace OpenSim.Client.MXP.PacketHandler
                         }
                         else
                         {
-                            m_log.Info("[MXP ClientStack] Session join request failure: " + session.SessionId + " (" + (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" + session.RemoteEndPoint.Port + ")");
+                            m_log.Info("[MXP ClientStack] Session join request failure: " + session.SessionId + " (" +
+                                       (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
+                                       session.RemoteEndPoint.Port + ")");
 
                             DeclineConnection(session, joinRequestMessage);
                         }
 
+                        tmpRemove.Add(session);
                     }
+                }
+            }
+
+            foreach (Session session in tmpRemove)
+            {
+                sessionsToClient.Remove(session);
+            }
+
+            foreach (MXPClientView clientView in Clients)
+            {
+                
+                int messagesProcessedCount = 0;
+                Session session = clientView.Session;
+
+                while (session.AvailableMessages > 0)
+                {
+                    Message message = session.Receive();
+
                     if (message.GetType() == typeof(LeaveRequestMessage))
                     {
 
