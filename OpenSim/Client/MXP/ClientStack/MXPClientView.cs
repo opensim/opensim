@@ -586,8 +586,8 @@ namespace OpenSim.Client.MXP.ClientStack
         {
             MovementEventMessage me = new MovementEventMessage();
             me.ObjectIndex = localID;
-            me.Location = new[] {position.X, position.Y, position.Z};
-            me.Orientation = new[] {rotation.X, rotation.Y, rotation.Z, rotation.W};
+            me.Location = new float[] {position.X, position.Y, position.Z};
+            me.Orientation = new float[] {rotation.X, rotation.Y, rotation.Z, rotation.W};
 
             Session.Send(me);
         }
