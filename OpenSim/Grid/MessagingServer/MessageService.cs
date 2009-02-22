@@ -46,30 +46,53 @@ namespace OpenSim.Grid.MessagingServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private MessageServerConfig m_cfg;
-        private UserManager m_userManager;
+        private UserDataBaseService m_userDataBaseService;
+
+        private IUGAIMCore m_messageCore;
+
+        private IMessageUserServerService m_userServerModule;
+        private IMessageRegionService m_regionModule;
 
         // a dictionary of all current presences this server knows about
         private Dictionary<UUID, UserPresenceData> m_presences = new Dictionary<UUID,UserPresenceData>();
 
-        // a dictionary of all current regions this server knows about
-        private Dictionary<ulong, RegionProfileData> m_regionInfoCache = new Dictionary<ulong,RegionProfileData>();
-
-        private Timer reconnectTimer = new Timer(300000); // 5 mins
-
-        public MessageService(MessageServerConfig cfg)
+        public MessageService(MessageServerConfig cfg, IUGAIMCore messageCore, UserDataBaseService userDataBaseService)
         {
             m_cfg = cfg;
-            m_userManager = new UserManager();
+            m_messageCore = messageCore;
+
+            m_userDataBaseService = userDataBaseService;
+
+            //??? 
             UserConfig uc = new UserConfig();
             uc.DatabaseConnect = cfg.DatabaseConnect;
             uc.DatabaseProvider = cfg.DatabaseProvider;
-
-            m_userManager.AddPlugin(cfg.DatabaseProvider, cfg.DatabaseConnect);
-
-            reconnectTimer.Elapsed += registerWithUserServer;
-            reconnectTimer.Start();
         }
 
+        public void Initialise()
+        {
+        }
+  
+        public void PostInitialise()
+        {
+            IMessageUserServerService messageUserServer;
+            if (m_messageCore.TryGet<IMessageUserServerService>(out messageUserServer))
+            {
+                m_userServerModule = messageUserServer;
+            }
+
+            IMessageRegionService messageRegion;
+            if (m_messageCore.TryGet<IMessageRegionService>(out messageRegion))
+            {
+                m_regionModule = messageRegion;
+            }
+        }
+
+        public void RegisterHandlers()
+        {
+            //have these in separate method as some servers restart the http server and reregister all the handlers.
+
+        }
 
         #region FriendList Methods
 
@@ -107,7 +130,7 @@ namespace OpenSim.Grid.MessagingServer
         /// <param name="receiver">We are sending the presence update to this user</param>
         private void enqueuePresenceUpdate(UserPresenceData talkingAbout, UserPresenceData receiver)
         {
-            UserAgentData p2Handle = m_userManager.GetUserAgentData(receiver.agentData.AgentID);
+            UserAgentData p2Handle = m_userDataBaseService.GetUserAgentData(receiver.agentData.AgentID);
             if (p2Handle != null)
             {
                 if (receiver.lookupUserRegionYN)
@@ -122,7 +145,7 @@ namespace OpenSim.Grid.MessagingServer
                 PresenceInformer friendlistupdater = new PresenceInformer();
                 friendlistupdater.presence1 = talkingAbout;
                 friendlistupdater.presence2 = receiver;
-                friendlistupdater.OnGetRegionData += GetRegionInfo;
+                friendlistupdater.OnGetRegionData += m_regionModule.GetRegionInfo;
                 friendlistupdater.OnDone += PresenceUpdateDone;
                 WaitCallback cb = new WaitCallback(friendlistupdater.go);
                 ThreadPool.QueueUserWorkItem(cb);
@@ -225,7 +248,7 @@ namespace OpenSim.Grid.MessagingServer
 
         private void PresenceUpdateDone(PresenceInformer obj)
         {
-            obj.OnGetRegionData -= GetRegionInfo;
+            obj.OnGetRegionData -= m_regionModule.GetRegionInfo;
             obj.OnDone -= PresenceUpdateDone;
         }
 
@@ -332,7 +355,7 @@ namespace OpenSim.Grid.MessagingServer
             UserPresenceData up = new UserPresenceData();
             up.agentData = agentData;
             up.friendData = GetUserFriendList(agentData.AgentID);
-            up.regionData = GetRegionInfo(regionHandle);
+            up.regionData = m_regionModule.GetRegionInfo(regionHandle);
             up.OnlineYN = true;
             up.lookupUserRegionYN = false;
             ProcessFriendListSubscriptions(up);
@@ -380,7 +403,7 @@ namespace OpenSim.Grid.MessagingServer
             }
 
             try {
-                Dictionary<UUID, FriendRegionInfo> infos = m_userManager.GetFriendRegionInfos(uuids);
+                Dictionary<UUID, FriendRegionInfo> infos = m_userDataBaseService.GetFriendRegionInfos(uuids);
                 m_log.DebugFormat("[FRIEND]: Got {0} region entries back.", infos.Count);
                 int count = 0;
                 foreach (KeyValuePair<UUID, FriendRegionInfo> pair in infos)
@@ -402,251 +425,13 @@ namespace OpenSim.Grid.MessagingServer
             }
         }
 
-        #region regioninfo gathering
-
-        /// <summary>
-        /// Gets and caches a RegionInfo object from the gridserver based on regionhandle
-        /// if the regionhandle is already cached, use the cached values
-        /// Gets called by lots of threads!!!!!
-        /// </summary>
-        /// <param name="regionhandle">handle to the XY of the region we're looking for</param>
-        /// <returns>A RegionInfo object to stick in the presence info</returns>
-        public RegionProfileData GetRegionInfo(ulong regionhandle)
-        {
-            RegionProfileData regionInfo = null;
-
-            lock (m_regionInfoCache)
-            {
-                m_regionInfoCache.TryGetValue(regionhandle, out regionInfo);
-            }
-
-            if (regionInfo == null) // not found in cache
-            {
-                regionInfo = RequestRegionInfo(regionhandle);
-
-                if (regionInfo != null) // lookup was successful
-                {
-                    lock (m_regionInfoCache)
-                    {
-                        m_regionInfoCache[regionhandle] = regionInfo;
-                    }
-                }
-            }
-
-            return regionInfo;
-        }
-
-        public int ClearRegionCache()
-        {
-            int cachecount = 0;
-
-            lock (m_regionInfoCache)
-            {
-                cachecount = m_regionInfoCache.Count;
-                m_regionInfoCache.Clear();
-            }
-
-            return cachecount;
-        }
-
-        /// <summary>
-        /// Get RegionProfileData from the GridServer.
-        /// We'll cache this information in GetRegionInfo and use it for presence updates
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <returns></returns>
-        public RegionProfileData RequestRegionInfo(ulong regionHandle)
-        {
-            RegionProfileData regionProfile = null;
-            try
-            {
-                Hashtable requestData = new Hashtable();
-                requestData["region_handle"] = regionHandle.ToString();
-                requestData["authkey"] = m_cfg.GridSendKey;
-
-                ArrayList SendParams = new ArrayList();
-                SendParams.Add(requestData);
-
-                XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
-
-                XmlRpcResponse GridResp = GridReq.Send(m_cfg.GridServerURL, 3000);
-
-                Hashtable responseData = (Hashtable)GridResp.Value;
-
-                if (responseData.ContainsKey("error"))
-                {
-                    m_log.Error("[GRID]: error received from grid server" + responseData["error"]);
-                    return null;
-                }
-
-                uint regX = Convert.ToUInt32((string)responseData["region_locx"]);
-                uint regY = Convert.ToUInt32((string)responseData["region_locy"]);
-                string internalIpStr = (string)responseData["sim_ip"];
-
-                regionProfile = new RegionProfileData();
-                regionProfile.httpPort = (uint)Convert.ToInt32((string)responseData["http_port"]);
-                regionProfile.httpServerURI = "http://" + internalIpStr + ":" + regionProfile.httpPort + "/";
-                regionProfile.regionHandle = Utils.UIntsToLong((regX * Constants.RegionSize), (regY * Constants.RegionSize));
-                regionProfile.regionLocX = regX;
-                regionProfile.regionLocY = regY;
-
-                regionProfile.remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
-                regionProfile.UUID = new UUID((string)responseData["region_UUID"]);
-                regionProfile.regionName = (string)responseData["region_name"];
-            }
-            catch (WebException)
-            {
-                m_log.Error("[GRID]: " +
-                            "Region lookup failed for: " + regionHandle.ToString() +
-                            " - Is the GridServer down?");
-            }
-
-            return regionProfile;
-        }
-
-        public void registerWithUserServer(object sender, ElapsedEventArgs e)
-        {
-            registerWithUserServer();
-        }
-
-        public bool registerWithUserServer ()
-        {
-            Hashtable UserParams = new Hashtable();
-            // Login / Authentication
-
-            if (m_cfg.HttpSSL)
-            {
-                UserParams["uri"] = "https://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
-            }
-            else
-            {
-                UserParams["uri"] = "http://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
-            }
-
-            UserParams["recvkey"] = m_cfg.UserRecvKey;
-            UserParams["sendkey"] = m_cfg.UserRecvKey;
-
-            // Package into an XMLRPC Request
-            ArrayList SendParams = new ArrayList();
-            SendParams.Add(UserParams);
-
-            bool success = true;
-            string[] servers = m_cfg.UserServerURL.Split(' ');
-
-            foreach (string srv in servers)
-            {
-                // Send Request
-                try
-                {
-                    XmlRpcRequest UserReq = new XmlRpcRequest("register_messageserver", SendParams);
-                    XmlRpcResponse UserResp = UserReq.Send(srv, 16000);
-
-                    // Process Response
-                    Hashtable GridRespData = (Hashtable)UserResp.Value;
-                    // if we got a response, we were successful
-                    if (!GridRespData.ContainsKey("responsestring"))
-                        success = false;
-                    else
-                        m_log.InfoFormat("[SERVER] Registered with {0}", srv);
-                }
-                catch
-                {
-                    m_log.ErrorFormat("Unable to connect to server {0}. Server not running?", srv);
-                    success = false;
-                }
-            }
-            return success;
-        }
-
-        public bool deregisterWithUserServer()
-        {
-            Hashtable request = new Hashtable();
-
-            return SendToUserServer(request, "deregister_messageserver");
-        }
-
-        public bool SendToUserServer(Hashtable request, string method)
-        {
-            // Login / Authentication
-
-            if (m_cfg.HttpSSL)
-            {
-                request["uri"] = "https://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
-            }
-            else
-            {
-                request["uri"] = "http://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
-            }
-
-            request["recvkey"] = m_cfg.UserRecvKey;
-            request["sendkey"] = m_cfg.UserRecvKey;
-
-            // Package into an XMLRPC Request
-            ArrayList SendParams = new ArrayList();
-            SendParams.Add(request);
-
-            bool success = true;
-            string[] servers = m_cfg.UserServerURL.Split(' ');
-
-            // Send Request
-            foreach (string srv in servers)
-            {
-                try
-                {
-                    XmlRpcRequest UserReq = new XmlRpcRequest(method, SendParams);
-                    XmlRpcResponse UserResp = UserReq.Send(m_cfg.UserServerURL, 16000);
-                    // Process Response
-                    Hashtable UserRespData = (Hashtable)UserResp.Value;
-                    // if we got a response, we were successful
-                    if (!UserRespData.ContainsKey("responsestring"))
-                        success = false;
-                }
-                catch
-                {
-                    m_log.ErrorFormat("Unable to connect to server {0}. Server not running?", srv);
-                    success = false;
-                }
-            }
-            return success;
-        }
-
-        #endregion
-
-        public XmlRpcResponse RegionStartup(XmlRpcRequest request)
-        {
-            Hashtable requestData = (Hashtable)request.Params[0];
-            Hashtable result = new Hashtable();
-            result["success"] = "FALSE";
-
-            if (SendToUserServer(requestData, "region_startup"))
-                result["success"] = "TRUE";
-
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = result;
-            return response;
-        }
-
-        public XmlRpcResponse RegionShutdown(XmlRpcRequest request)
-        {
-            Hashtable requestData = (Hashtable)request.Params[0];
-            Hashtable result = new Hashtable();
-            result["success"] = "FALSE";
-
-            if (SendToUserServer(requestData, "region_shutdown"))
-                result["success"] = "TRUE";
-
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = result;
-            return response;
-        }
-
         public XmlRpcResponse AgentLocation(XmlRpcRequest request)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable result = new Hashtable();
             result["success"] = "FALSE";
 
-            if (SendToUserServer(requestData, "agent_location"))
+            if (m_userServerModule.SendToUserServer(requestData, "agent_location"))
                 result["success"] = "TRUE";
 
 
@@ -661,7 +446,7 @@ namespace OpenSim.Grid.MessagingServer
             Hashtable result = new Hashtable();
             result["success"] = "FALSE";
 
-            if (SendToUserServer(requestData, "agent_leaving"))
+            if (m_userServerModule.SendToUserServer(requestData, "agent_leaving"))
                 result["success"] = "TRUE";
 
             XmlRpcResponse response = new XmlRpcResponse();
