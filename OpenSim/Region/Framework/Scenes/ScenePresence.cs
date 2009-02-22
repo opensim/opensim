@@ -854,7 +854,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.ErrorFormat("[SCENE PRESENCE]: null appearance in MakeRoot in {0}", Scene.RegionInfo.RegionName);
                 // emergency; this really shouldn't happen
-                m_appearance = new AvatarAppearance();
+                m_appearance = new AvatarAppearance(UUID);
             }
             
             // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
@@ -2708,15 +2708,19 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 AvatarWearable[] wearables = new AvatarWearable[cAgent.AgentTextures.Length / 2];
-                Primitive.TextureEntry te = new Primitive.TextureEntry(UUID.Random());
                 for (uint n = 0; n < cAgent.AgentTextures.Length; n += 2)
                 {
                     UUID itemId = cAgent.AgentTextures[n];
                     UUID assetId = cAgent.AgentTextures[n + 1];
-                    wearables[i] = new AvatarWearable(itemId, assetId);
-                    te.CreateFace(i++).TextureID = assetId;
+                    wearables[i++] = new AvatarWearable(itemId, assetId);
+                    //te.CreateFace(i++).TextureID = assetId;
                 }
                 m_appearance.Wearables = wearables;
+
+                // We're setting it here to default, but the viewer will soon send a SetAppearance that will
+                // set things straight. We should probably pass these textures too...
+                Primitive.TextureEntry te = AvatarAppearance.GetDefaultTexture(); //new Primitive.TextureEntry(UUID.Random());
+
                 m_appearance.SetAppearance(te.ToBytes(), new List<byte>(cAgent.VisualParams));
             }
             catch (Exception e)

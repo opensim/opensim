@@ -406,7 +406,7 @@ namespace OpenSim.Grid.UserServer
                 else
                 {
                     m_log.DebugFormat("[LOGIN]: Appearance not for {0} {1}. Creating default.", user.FirstName, user.SurName);
-                    appearance = new AvatarAppearance();
+                    appearance = new AvatarAppearance(user.ID);
                 }
 
                 ArrayList SendParams = new ArrayList();
