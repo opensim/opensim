@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using MXP;
 using MXP.Messages;
 using OpenMetaverse;
 using OpenSim.Client.MXP.ClientStack;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Client.MXP.PacketHandler
@@ -23,6 +25,8 @@ namespace OpenSim.Client.MXP.PacketHandler
         #region Fields
 
         private readonly Transmitter transmitter;
+
+        private readonly Thread m_clientThread;
 
         private readonly IList<Session> sessions = new List<Session>();
         private readonly IList<Session> sessionsToClient = new List<Session>();
@@ -48,6 +52,16 @@ namespace OpenSim.Client.MXP.PacketHandler
             programName = "OpenSimulator";
 
             transmitter = new Transmitter(port);
+
+            m_clientThread = new Thread(StartListener);
+            m_clientThread.Name = "MXPThread";
+            m_clientThread.IsBackground = true;
+            m_clientThread.Start();
+            ThreadTracker.Add(m_clientThread);
+        }
+
+        public void StartListener()
+        {
             transmitter.Startup();
         }
 
@@ -255,9 +269,23 @@ namespace OpenSim.Client.MXP.PacketHandler
 
                             MXPClientView client = new MXPClientView(session, mxpSessionID, target,
                                                                      joinRequestMessage.ParticipantName);
+                            m_log.Info("[MXP ClientStack] Created Client");
                             Clients.Add(client);
 
-                            target.AddNewClient(client);
+                            m_log.Info("[MXP ClientStack] Adding to Scene");
+                            target.ClientManager.Add(client.CircuitCode, client);
+
+                            m_log.Info("[MXP ClientStack] Initialising...");
+                            try
+                            {
+                                client.Start();
+                            } catch( Exception e)
+                            {
+                                m_log.Info(e);
+                            }
+
+                            m_log.Info("[MXP ClientStack] Connected");
+                            //target.EventManager.TriggerOnNewClient(client);
                         }
                         else
                         {

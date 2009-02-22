@@ -365,7 +365,7 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public void Start()
         {
-            // We dont do this
+            Scene.AddNewClient(this);
         }
 
         public void Stop()
@@ -403,6 +403,18 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
         {
+            m_log.Info("[MXP] Completing Handshake to Region");
+
+            if (OnRegionHandShakeReply != null)
+            {
+                OnRegionHandShakeReply(this);
+            }
+
+            if (OnCompleteMovementToRegion != null)
+            {
+                OnCompleteMovementToRegion();
+            }
+
             // Need to translate to MXP somehow
         }
 
@@ -552,6 +564,8 @@ namespace OpenSim.Client.MXP.ClientStack
 
         private void MXPSendPrimitive(uint localID, UUID ownerID, Vector3 acc, Vector3 rvel, PrimitiveBaseShape primShape, Vector3 pos, UUID objectID, Vector3 vel, Quaternion rotation)
         {
+            m_log.Info("[MXP] Transmitting Primitive");   
+
             PerceptionEventMessage pe = new PerceptionEventMessage();
 
             pe.ObjectFragment.ObjectIndex = localID;
