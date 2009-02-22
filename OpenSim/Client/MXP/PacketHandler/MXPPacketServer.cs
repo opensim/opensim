@@ -47,6 +47,7 @@ namespace OpenSim.Client.MXP.PacketHandler
             programName = "OpenSimulator";
 
             transmitter = new Transmitter(port);
+            transmitter.Startup();
         }
 
         #endregion
