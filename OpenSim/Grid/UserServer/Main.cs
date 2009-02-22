@@ -52,6 +52,8 @@ namespace OpenSim.Grid.UserServer
 
         protected UserConfig Cfg;
 
+        protected UserDataBaseService m_userDataBaseService;
+
         public UserManager m_userManager;
         public UserLoginService m_loginService;
         public GridInfoService m_gridInfoService;
@@ -97,8 +99,10 @@ namespace OpenSim.Grid.UserServer
             
             IInterServiceInventoryServices inventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
 
+            m_userDataBaseService = new UserDataBaseService(inventoryService);
+            m_userDataBaseService.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
+
             StartupUserManager(inventoryService);
-            m_userManager.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
 
             m_gridInfoService = new GridInfoService();
 
@@ -158,7 +162,7 @@ namespace OpenSim.Grid.UserServer
         /// <param name="inventoryService"></param>
         protected virtual void StartupUserManager(IInterServiceInventoryServices inventoryService)
         {
-            m_userManager = new UserManager(new OGS1InterServiceInventoryService(Cfg.InventoryUrl));
+            m_userManager = new UserManager(inventoryService, m_userDataBaseService);
         }
 
         /// <summary>
@@ -168,7 +172,7 @@ namespace OpenSim.Grid.UserServer
         protected virtual void StartupLoginService(IInterServiceInventoryServices inventoryService)
         {
             m_loginService = new UserLoginService(
-                m_userManager, inventoryService, new LibraryRootFolder(Cfg.LibraryXmlfile), Cfg, Cfg.DefaultStartupMsg, new RegionProfileServiceProxy());
+                m_userDataBaseService, inventoryService, new LibraryRootFolder(Cfg.LibraryXmlfile), Cfg, Cfg.DefaultStartupMsg, new RegionProfileServiceProxy());
         }
 
         protected virtual void AddHttpHandlers()
@@ -297,9 +301,9 @@ namespace OpenSim.Grid.UserServer
                 email = MainConsole.Instance.CmdPrompt("Email", "");
             else email = cmdparams[6];
 
-            if (null == m_userManager.GetUserProfile(firstName, lastName))
+            if (null == m_userDataBaseService.GetUserProfile(firstName, lastName))
             {
-                m_lastCreatedUser = m_userManager.AddUser(firstName, lastName, password, email, regX, regY);
+                m_lastCreatedUser = m_userDataBaseService.AddUser(firstName, lastName, password, email, regX, regY);
             }
             else
             {
@@ -329,7 +333,7 @@ namespace OpenSim.Grid.UserServer
                 newPassword = MainConsole.Instance.PasswdPrompt("New password");
             else newPassword = cmdparams[4];
             
-            m_userManager.ResetUserPassword(firstName, lastName, newPassword);
+            m_userDataBaseService.ResetUserPassword(firstName, lastName, newPassword);
         }         
 
         private void HandleLoginCommand(string module, string[] cmd)

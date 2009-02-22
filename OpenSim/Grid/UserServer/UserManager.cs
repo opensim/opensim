@@ -40,20 +40,23 @@ namespace OpenSim.Grid.UserServer
 {
     public delegate void logOffUser(UUID AgentID);
 
-    public class UserManager : UserManagerBase
+    public class UserManager 
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event logOffUser OnLogOffUser;
         private logOffUser handlerLogOffUser;
+
+        private UserDataBaseService m_userDataBaseService;
         
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="interServiceInventoryService"></param>
-        public UserManager(IInterServiceInventoryServices interServiceInventoryService)
-            : base(interServiceInventoryService)
-        {}
+        public UserManager(IInterServiceInventoryServices interServiceInventoryService, UserDataBaseService userDataBaseService)
+        {
+            m_userDataBaseService = userDataBaseService;
+        }
 
         /// <summary>
         /// Deletes an active agent session
@@ -185,7 +188,7 @@ namespace OpenSim.Grid.UserServer
             if (requestData.Contains("avquery") && requestData.Contains("queryid"))
             {
                 queryID = new UUID((string) requestData["queryid"]);
-                returnAvatar = GenerateAgentPickerRequestResponse(queryID, (string) requestData["avquery"]);
+                returnAvatar = m_userDataBaseService.GenerateAgentPickerRequestResponse(queryID, (string) requestData["avquery"]);
             }
 
             m_log.InfoFormat("[AVATARINFO]: Servicing Avatar Query: " + (string) requestData["avquery"]);
@@ -211,11 +214,11 @@ namespace OpenSim.Grid.UserServer
 
                 if (avatarUUID != UUID.Zero)
                 {
-                    UserProfileData userProfile = GetUserProfile(avatarUUID);
+                    UserProfileData userProfile = m_userDataBaseService.GetUserProfile(avatarUUID);
                     userProfile.CurrentAgent.Region = regionUUID;
                     userProfile.CurrentAgent.Handle = (ulong) Convert.ToInt64((string) requestData["region_handle"]);
                     //userProfile.CurrentAgent.
-                    CommitAgent(ref userProfile);
+                    m_userDataBaseService.CommitAgent(ref userProfile);
                     //setUserProfile(userProfile);
 
 
@@ -239,7 +242,7 @@ namespace OpenSim.Grid.UserServer
                 requestData.Contains("friendPerms"))
             {
                 // UserManagerBase.AddNewuserFriend
-                AddNewUserFriend(new UUID((string) requestData["ownerID"]),
+                m_userDataBaseService.AddNewUserFriend(new UUID((string)requestData["ownerID"]),
                                  new UUID((string) requestData["friendID"]),
                                  (uint) Convert.ToInt32((string) requestData["friendPerms"]));
                 returnString = "TRUE";
@@ -260,7 +263,7 @@ namespace OpenSim.Grid.UserServer
             if (requestData.Contains("ownerID") && requestData.Contains("friendID"))
             {
                 // UserManagerBase.AddNewuserFriend
-                RemoveUserFriend(new UUID((string) requestData["ownerID"]),
+                m_userDataBaseService.RemoveUserFriend(new UUID((string)requestData["ownerID"]),
                                  new UUID((string) requestData["friendID"]));
                 returnString = "TRUE";
             }
@@ -279,7 +282,7 @@ namespace OpenSim.Grid.UserServer
             if (requestData.Contains("ownerID") && requestData.Contains("friendID") &&
                 requestData.Contains("friendPerms"))
             {
-                UpdateUserFriendPerms(new UUID((string) requestData["ownerID"]),
+                m_userDataBaseService.UpdateUserFriendPerms(new UUID((string)requestData["ownerID"]),
                                       new UUID((string) requestData["friendID"]),
                                       (uint) Convert.ToInt32((string) requestData["friendPerms"]));
                 // UserManagerBase.
@@ -300,7 +303,7 @@ namespace OpenSim.Grid.UserServer
 
             if (requestData.Contains("ownerID"))
             {
-                returndata = GetUserFriendList(new UUID((string) requestData["ownerID"]));
+                returndata = m_userDataBaseService.GetUserFriendList(new UUID((string)requestData["ownerID"]));
             }
 
             return FriendListItemListtoXmlRPCResponse(returndata);
@@ -314,7 +317,7 @@ namespace OpenSim.Grid.UserServer
             Hashtable responseData;
             if (requestData.Contains("owner"))
             {
-                appearance = GetUserAppearance(new UUID((string) requestData["owner"]));
+                appearance = m_userDataBaseService.GetUserAppearance(new UUID((string)requestData["owner"]));
                 if (appearance == null)
                 {
                     responseData = new Hashtable();
@@ -345,7 +348,7 @@ namespace OpenSim.Grid.UserServer
             if (requestData.Contains("owner"))
             {
                 AvatarAppearance appearance = new AvatarAppearance(requestData);
-                UpdateUserAppearance(new UUID((string) requestData["owner"]), appearance);
+                m_userDataBaseService.UpdateUserAppearance(new UUID((string)requestData["owner"]), appearance);
                 responseData = new Hashtable();
                 responseData["returnString"] = "TRUE";
             }
@@ -374,7 +377,7 @@ namespace OpenSim.Grid.UserServer
 
                 if (querysplit.Length == 2)
                 {
-                    userProfile = GetUserProfile(querysplit[0], querysplit[1]);
+                    userProfile = m_userDataBaseService.GetUserProfile(querysplit[0], querysplit[1]);
                     if (userProfile == null)
                     {
                         return CreateUnknownUserErrorResponse();
@@ -406,7 +409,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     UUID guess = new UUID((string) requestData["avatar_uuid"]);
 
-                    userProfile = GetUserProfile(guess);
+                    userProfile = m_userDataBaseService.GetUserProfile(guess);
                 }
                 catch (FormatException)
                 {
@@ -444,7 +447,7 @@ namespace OpenSim.Grid.UserServer
                     return CreateUnknownUserErrorResponse();
                 }
 
-                userProfile = GetUserProfile(guess);
+                userProfile = m_userDataBaseService.GetUserProfile(guess);
 
                 if (userProfile == null)
                 {
@@ -497,7 +500,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     return CreateUnknownUserErrorResponse();
                 }
-                userProfile = GetUserProfile(guess_aid);
+                userProfile = m_userDataBaseService.GetUserProfile(guess_aid);
                 if (userProfile != null && userProfile.CurrentAgent != null &&
                     userProfile.CurrentAgent.SessionID == guess_sid)
                 {
@@ -529,7 +532,7 @@ namespace OpenSim.Grid.UserServer
             }
 
             UUID UserUUID = new UUID((string) requestData["avatar_uuid"]);
-            UserProfileData userProfile = GetUserProfile(UserUUID);
+            UserProfileData userProfile = m_userDataBaseService.GetUserProfile(UserUUID);
             if (null == userProfile)
             {
                 return CreateUnknownUserErrorResponse();
@@ -703,7 +706,7 @@ namespace OpenSim.Grid.UserServer
             }
 
             // call plugin!
-            bool ret = UpdateUserProfile(userProfile);
+            bool ret = m_userDataBaseService.UpdateUserProfile(userProfile);
             responseData["returnString"] = ret.ToString();
             response.Value = responseData;
             return response;
@@ -734,7 +737,7 @@ namespace OpenSim.Grid.UserServer
                     if (handlerLogOffUser != null)
                         handlerLogOffUser(userUUID);
 
-                    LogOffUser(userUUID, RegionID, regionhandle, position, lookat);
+                    m_userDataBaseService.LogOffUser(userUUID, RegionID, regionhandle, position, lookat);
                 }
                 catch (FormatException)
                 {
@@ -752,35 +755,21 @@ namespace OpenSim.Grid.UserServer
 
         #endregion
 
-        public override UserProfileData SetupMasterUser(string firstName, string lastName)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public override UserProfileData SetupMasterUser(string firstName, string lastName, string password)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        public override UserProfileData SetupMasterUser(UUID uuid)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
 
         public void HandleAgentLocation(UUID agentID, UUID regionID, ulong regionHandle)
         {
-            UserProfileData userProfile = GetUserProfile(agentID);
+            UserProfileData userProfile = m_userDataBaseService.GetUserProfile(agentID);
             if (userProfile != null)
             {
                 userProfile.CurrentAgent.Region = regionID;
                 userProfile.CurrentAgent.Handle = regionHandle;
-                CommitAgent(ref userProfile);
+                m_userDataBaseService.CommitAgent(ref userProfile);
             }
         }
 
         public void HandleAgentLeaving(UUID agentID, UUID regionID, ulong regionHandle)
         {
-            UserProfileData userProfile = GetUserProfile(agentID);
+            UserProfileData userProfile = m_userDataBaseService.GetUserProfile(agentID);
             if (userProfile != null)
             {
                 if (userProfile.CurrentAgent.Region == regionID)
@@ -797,7 +786,7 @@ namespace OpenSim.Grid.UserServer
                         userAgent.Handle = regionHandle;
                         userProfile.LastLogin = userAgent.LogoutTime;
 
-                        CommitAgent(ref userProfile);
+                        m_userDataBaseService.CommitAgent(ref userProfile);
 
                         handlerLogOffUser = OnLogOffUser;
                         if (handlerLogOffUser != null)
@@ -809,12 +798,12 @@ namespace OpenSim.Grid.UserServer
 
         public void HandleRegionStartup(UUID regionID)
         {
-            LogoutUsers(regionID);
+            m_userDataBaseService.LogoutUsers(regionID);
         }
 
         public void HandleRegionShutdown(UUID regionID)
         {
-            LogoutUsers(regionID);
+            m_userDataBaseService.LogoutUsers(regionID);
         }   
     }
 }
