@@ -2114,6 +2114,14 @@ namespace OpenSim.Region.Framework.Scenes
         public void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
         {
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
+
+            if(aCircuit == null)
+            {
+                m_log.DebugFormat("[APPEARANCE] Client did not supply a circuit. Non-Linden? Creating default appearance.");
+                appearance = new AvatarAppearance(client.AgentId);
+                return;
+            }
+
             appearance = aCircuit.Appearance;
             if (appearance == null)
             {
