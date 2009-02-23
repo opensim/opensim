@@ -768,6 +768,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.AssetLoader.Filesystem"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net"/>
 

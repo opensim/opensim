@@ -71,6 +71,7 @@ namespace OpenSim.Grid.AssetInventoryServer
             {
                 IConfig config = result.AddConfig("Config");
                 config.Set("listen_port", 8003);
+                config.Set("assetset_location", String.Format(".{0}assets{0}AssetSets.xml", Path.DirectorySeparatorChar));
             }
 
             {

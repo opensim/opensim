@@ -3,6 +3,10 @@
 ; The port number for the asset server to listen on.
 listen_port = 8003
 
+; Points to an XML file which describes assets to load on startup.
+; This is "./assets/AssetSets.xml" by default and can be changed below.
+;assetset_location = ./assets/AssetSets.xml
+
 [Plugins]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

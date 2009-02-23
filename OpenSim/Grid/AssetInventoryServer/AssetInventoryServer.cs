@@ -31,6 +31,7 @@ using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.AssetLoader.Filesystem;
 using Nini.Config;
 using log4net;
 
@@ -95,6 +96,8 @@ namespace OpenSim.Grid.AssetInventoryServer
                 Shutdown();
                 return false;
             }
+
+            LoadDefaultAssets(); 
 
             AuthenticationProvider = LoadAssetInventoryServerPlugin("/OpenSim/AssetInventoryServer/AuthenticationProvider",
                                                                     "authentication_provider", false) as IAuthenticationProvider;
@@ -196,6 +199,17 @@ namespace OpenSim.Grid.AssetInventoryServer
             }
 
             return loader.Plugins;
+        }
+
+        private void LoadDefaultAssets()
+        {
+            AssetLoaderFileSystem assetLoader = new AssetLoaderFileSystem();
+            assetLoader.ForEachDefaultXmlAsset(ConfigFile.Configs["Config"].GetString("assetset_location"), StoreAsset);
+        }
+
+        private void StoreAsset(AssetBase asset)
+        {
+            StorageProvider.TryCreateAsset(asset);
         }
     }
 }
