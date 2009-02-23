@@ -637,6 +637,19 @@ namespace OpenSim.Region.Framework.Scenes
             Dir_Vectors[5] = new Vector3(0, 0, -0.5f); //DOWN_Nudge
         }
 
+        private Vector3[] GetWalkDirectionVectors()
+        {
+            Vector3[] vector = new Vector3[6];
+            vector[0] = new Vector3(m_CameraUpAxis.Z, 0, -m_CameraAtAxis.Z); //FORWARD
+            vector[1] = new Vector3(-m_CameraUpAxis.Z, 0, m_CameraAtAxis.Z); //BACK
+            vector[2] = new Vector3(0, 1, 0); //LEFT
+            vector[3] = new Vector3(0, -1, 0); //RIGHT
+            vector[4] = new Vector3(m_CameraAtAxis.Z, 0, m_CameraUpAxis.Z); //UP
+            vector[5] = new Vector3(-m_CameraAtAxis.Z, 0, -m_CameraUpAxis.Z); //DOWN
+            vector[5] = new Vector3(-m_CameraAtAxis.Z, 0, -m_CameraUpAxis.Z); //DOWN_Nudge
+            return vector;
+        }
+
         #endregion
 
         /// <summary>
@@ -1192,6 +1205,11 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     bool bAllowUpdateMoveToPosition = false;
                     bool bResetMoveToPosition = false;
+
+                    Vector3[] dirVectors;
+                    if (m_physicsActor.Flying) dirVectors = Dir_Vectors;
+                    else dirVectors = GetWalkDirectionVectors();
+
                     foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof (Dir_ControlFlags)))
                     {
                         if ((flags & (uint) DCF) != 0)
@@ -1200,7 +1218,7 @@ namespace OpenSim.Region.Framework.Scenes
                             DCFlagKeyPressed = true;
                             try
                             {
-                                agent_control_v3 += Dir_Vectors[i];
+                                agent_control_v3 += dirVectors[i];
                             }
                             catch (IndexOutOfRangeException)
                             {
