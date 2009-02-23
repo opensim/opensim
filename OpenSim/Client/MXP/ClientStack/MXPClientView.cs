@@ -577,7 +577,9 @@ namespace OpenSim.Client.MXP.ClientStack
             pe.ObjectFragment.AngularAcceleration = new float[4];
             pe.ObjectFragment.AngularVelocity = new float[] { rvel.X, rvel.Y, rvel.Z, 0.0f };
             pe.ObjectFragment.BoundingSphereRadius = primShape.Scale.Length()/2.0f;
-            pe.ObjectFragment.Location = new float[] { pos.X, pos.Y, pos.Z };
+
+            pe.ObjectFragment.Location = new float[] { pos.X - 120.0f, pos.Z, pos.Y - 128.0f };
+
             pe.ObjectFragment.Mass = 1.0f;
             pe.ObjectFragment.ObjectId = objectID.Guid;
             pe.ObjectFragment.Orientation = new float[] { rotation.X, rotation.Y, rotation.Z, rotation.W };

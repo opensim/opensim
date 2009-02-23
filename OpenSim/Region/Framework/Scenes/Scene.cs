@@ -64,6 +64,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected Timer m_restartWaitTimer = new Timer();
 
+        protected Thread m_updateEntitiesThread;
+
         public SimStatsReporter StatsReporter;
 
         protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
@@ -852,7 +854,19 @@ namespace OpenSim.Region.Framework.Scenes
                     otherMS = Environment.TickCount;
                     // run through all entities looking for updates (slow)
                     if (m_frame % m_update_entities == 0)
-                        m_sceneGraph.UpdateEntities();
+                    {
+                        if (m_updateEntitiesThread == null)
+                        {
+                            m_updateEntitiesThread = new Thread(m_sceneGraph.UpdateEntities);
+                            ThreadTracker.Add(m_updateEntitiesThread);
+                        }
+
+                        if(!m_updateEntitiesThread.IsAlive)
+                            m_updateEntitiesThread.Start();
+
+                        //m_sceneGraph.UpdateEntities();
+                    }
+                        
 
                     // run through entities that have scheduled themselves for
                     // updates looking for updates(faster)

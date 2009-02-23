@@ -89,6 +89,21 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
+        /// Returns true if the distance beween A and B is less than amount. Significantly faster than GetDistanceTo since it eliminates the Sqrt.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public static bool DistanceLessThan(Vector3 a, Vector3 b, double amount)
+        {
+            float dx = a.X - b.X;
+            float dy = a.Y - b.Y;
+            float dz = a.Z - b.Z;
+            return (dx*dx + dy*dy + dz*dz) < (amount*amount);           
+        }
+
+        /// <summary>
         /// Get the magnitude of a 3d vector
         /// </summary>
         /// <param name="a">A 3d vector</param>
