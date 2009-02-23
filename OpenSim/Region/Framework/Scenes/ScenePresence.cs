@@ -2646,20 +2646,43 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
+                // We might not pass the Wearables in all cases...
+                // They're only needed so that persistent changes to the appearance
+                // are preserved in the new region where the user is moving to.
+                // But in Hypergrid we might not let this happen.
                 int i = 0;
-                UUID[] textures = new UUID[m_appearance.Wearables.Length * 2];
+                UUID[] wears = new UUID[m_appearance.Wearables.Length * 2];
                 foreach (AvatarWearable aw in m_appearance.Wearables)
                 {
                     if (aw != null)
                     {
-                        textures[i++] = aw.ItemID;
-                        textures[i++] = aw.AssetID;
+                        wears[i++] = aw.ItemID;
+                        wears[i++] = aw.AssetID;
                     }
                     else
-                        m_log.DebugFormat("[SCENE PRESENCE]: Null wearable in CopyTo");
+                    {
+                        wears[i++] = UUID.Zero;
+                        wears[i++] = UUID.Zero;                        
+                    }
+                }
+                cAgent.Wearables = wears;
+
+                cAgent.VisualParams = m_appearance.VisualParams;
+
+                // Textures is not really needed in the base case, I think. But it's handy for
+                // the Hypergrid and other decentralized models, so that we know which
+                // textures to fecth from the user's asset server.
+                i = 0;
+                UUID[] textures = new UUID[m_appearance.Texture.FaceTextures.Length];
+                foreach (Primitive.TextureEntryFace face in m_appearance.Texture.FaceTextures)
+                {
+                    if (face != null)
+                        textures[i] = face.TextureID;
+                    else
+                        textures[i] = UUID.Zero;
+                    ++i;
                 }
                 cAgent.AgentTextures = textures;
-                cAgent.VisualParams = m_appearance.VisualParams;
             }
             catch (Exception e)
             {
@@ -2707,18 +2730,19 @@ namespace OpenSim.Region.Framework.Scenes
             uint i = 0;
             try
             {
-                AvatarWearable[] wearables = new AvatarWearable[cAgent.AgentTextures.Length / 2];
-                for (uint n = 0; n < cAgent.AgentTextures.Length; n += 2)
+                AvatarWearable[] wears = new AvatarWearable[cAgent.Wearables.Length / 2];
+                for (uint n = 0; n < cAgent.Wearables.Length; n += 2)
                 {
-                    UUID itemId = cAgent.AgentTextures[n];
-                    UUID assetId = cAgent.AgentTextures[n + 1];
-                    wearables[i++] = new AvatarWearable(itemId, assetId);
-                    //te.CreateFace(i++).TextureID = assetId;
+                    UUID itemId = cAgent.Wearables[n];
+                    UUID assetId = cAgent.Wearables[n + 1];
+                    wears[i++] = new AvatarWearable(itemId, assetId);
                 }
-                m_appearance.Wearables = wearables;
+                m_appearance.Wearables = wears;
 
                 // We're setting it here to default, but the viewer will soon send a SetAppearance that will
-                // set things straight. We should probably pass these textures too...
+                // set things straight. We should probably parse these textures too, we have them...
+                // In any case, the least we need to do is to check if this is HG and fetch the textures
+                // so that they can then be distributed to the other clients that ask for them later.
                 Primitive.TextureEntry te = AvatarAppearance.GetDefaultTexture(); //new Primitive.TextureEntry(UUID.Random());
 
                 m_appearance.SetAppearance(te.ToBytes(), new List<byte>(cAgent.VisualParams));
