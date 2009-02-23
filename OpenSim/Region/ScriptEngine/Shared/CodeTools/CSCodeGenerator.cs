@@ -40,6 +40,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private int m_braceCount;       // for indentation
         private int m_CSharpLine;       // the current line of generated C# code
         private int m_CSharpCol;        // the current column of generated C# code
+        private List<string> m_warnings = new List<string>();
 
         /// <summary>
         /// Creates an 'empty' CSCodeGenerator instance.
@@ -150,6 +151,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             retstr=retstr.Replace("\r", "");
 
             return retstr;
+        }
+
+        /// <summary>
+        /// Get the set of warnings generated during compilation.
+        /// </summary>
+        /// <returns></returns>
+        public string[] GetWarnings()
+        {
+            return m_warnings.ToArray();
+        }
+
+        private void AddWarning(string warning)
+        {
+            if (!m_warnings.Contains(warning))
+            {
+                m_warnings.Add(warning);
+            }
         }
 
         /// <summary>
@@ -446,12 +464,71 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
             string retstr = String.Empty;
 
+            List<string> identifiers = new List<string>();
+            checkForMultipleAssignments(identifiers, a);
+
             retstr += GenerateNode((SYMBOL) a.kids.Pop());
             retstr += Generate(String.Format(" {0} ", a.AssignmentType), a);
             foreach (SYMBOL kid in a.kids)
                 retstr += GenerateNode(kid);
 
             return retstr;
+        }
+
+        // This code checks for LSL of the following forms, and generates a
+        // warning if it finds them.
+        //
+        // list l = [ "foo" ]; 
+        // l = (l=[]) + l + ["bar"];
+        // (produces l=["foo","bar"] in SL but l=["bar"] in OS)
+        //
+        // integer i;
+        // integer j;
+        // i = (j = 3) + (j = 4) + (j = 5);
+        // (produces j=3 in SL but j=5 in OS)
+        //
+        // Without this check, that code passes compilation, but does not do what
+        // the end user expects, because LSL in SL evaluates right to left instead
+        // of left to right.
+        //
+        // The theory here is that producing an error and alerting the end user that
+        // something needs to change is better than silently generating incorrect code.
+        private void checkForMultipleAssignments(List<string> identifiers, SYMBOL s)
+        {
+            if (s is Assignment)
+            {
+                Assignment a = (Assignment)s;
+                string newident = null;
+
+                if (a.kids[0] is Declaration)
+                {
+                    newident = ((Declaration)a.kids[0]).Id;
+                }
+                else if (a.kids[0] is IDENT)
+                {
+                    newident = ((IDENT)a.kids[0]).yytext;
+                }
+                else if (a.kids[0] is IdentDotExpression)
+                {
+                    newident = ((IdentDotExpression)a.kids[0]).Name; // +"." + ((IdentDotExpression)a.kids[0]).Member;
+                }
+                else
+                {
+                    AddWarning(String.Format("Multiple assignments checker internal error '{0}' at line {1} column {2}.", a.kids[0].GetType(), ((SYMBOL)a.kids[0]).Line - 1, ((SYMBOL)a.kids[0]).Position));
+                }
+
+                if (identifiers.Contains(newident))
+                {
+                    AddWarning(String.Format("Multiple assignments to '{0}' at line {1} column {2}; results may differ between LSL and OSSL.", newident, ((SYMBOL)a.kids[0]).Line - 1, ((SYMBOL)a.kids[0]).Position));
+                }
+                identifiers.Add(newident);
+            }
+
+            int index;
+            for (index = 0; index < s.kids.Count; index++)
+            {
+                checkForMultipleAssignments(identifiers, (SYMBOL) s.kids[index]);
+            }
         }
 
         /// <summary>

@@ -516,6 +516,38 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         m_AddingAssemblies[assembly]++;
                     }
                 }
+
+                string[] warnings = m_Compiler.GetWarnings();
+
+                if (warnings != null && warnings.Length != 0)
+                {
+                    if (presence != null && (!postOnRez))
+                        presence.ControllingClient.SendAgentAlertMessage("Script saved with warnings, check debug window!", false);
+
+                    foreach (string warning in warnings)
+                    {
+                        try
+                        {
+                            // DISPLAY WARNING INWORLD
+                            string text = "Warning:\n" + warning;
+                            if (text.Length > 1000)
+                                text = text.Substring(0, 1000);
+                            World.SimChat(Utils.StringToBytes(text),
+                                          ChatTypeEnum.DebugChannel, 2147483647,
+                                          part.AbsolutePosition,
+                                          part.Name, part.UUID, false);
+                        }
+                        catch (Exception e2) // LEGIT: User Scripting
+                        {
+                            m_log.Error("[XEngine]: " +
+                                    "Error displaying warning in-world: " +
+                                    e2.ToString());
+                            m_log.Error("[XEngine]: " +
+                                    "Warning:\r\n" +
+                                    warning);
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {

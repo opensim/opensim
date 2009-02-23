@@ -218,6 +218,43 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         localID, itemID, "on_rez", new DetectParams[0],
                         new object[] { new LSL_Types.LSLInteger(startParam) });
                 }
+
+                string[] warnings = LSLCompiler.GetWarnings();
+
+                if (warnings != null && warnings.Length != 0)
+                {
+                    if (presence != null && (!postOnRez))
+                        presence.ControllingClient.SendAgentAlertMessage(
+                                "Script saved with warnings, check debug window!",
+                                false);
+
+                    foreach (string warning in warnings)
+                    {
+                        try
+                        {
+                            // DISPLAY WARNING INWORLD
+                            string text = "Warning:\n" + warning;
+                            if (text.Length > 1100)
+                                text = text.Substring(0, 1099);
+
+                            World.SimChat(Utils.StringToBytes(text),
+                                    ChatTypeEnum.DebugChannel, 2147483647,
+                                    m_host.AbsolutePosition, m_host.Name, m_host.UUID,
+                                    false);
+                        }
+                        catch (Exception e2) // LEGIT: User Scripting
+                        {
+                            m_log.Error("[" +
+                                    m_scriptEngine.ScriptEngineName +
+                                    "]: Error displaying warning in-world: " +
+                                    e2.ToString());
+                            m_log.Error("[" +
+                                    m_scriptEngine.ScriptEngineName + "]: " +
+                                    "Warning:\r\n" +
+                                    warning);
+                        }
+                    }
+                }
             }
             catch (Exception e) // LEGIT: User Scripting
             {

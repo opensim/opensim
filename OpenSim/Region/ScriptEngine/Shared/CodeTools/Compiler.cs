@@ -76,6 +76,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap; 
         private ICodeConverter LSL_Converter;
 
+        private List<string> m_warnings = new List<string>();
+
         // private object m_syncy = new object();
 
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
@@ -336,6 +338,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 LSL_Converter = (ICodeConverter)new CSCodeGenerator();
                 compileScript = LSL_Converter.Convert(Script);
 
+                // copy converter warnings into our warnings.
+                foreach(string warning in LSL_Converter.GetWarnings())
+                {
+                    AddWarning(warning);
+                }
+
                 m_positionMap = ((CSCodeGenerator) LSL_Converter).PositionMap;
             }
 
@@ -371,6 +379,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             }
 
             return CompileFromDotNetText(compileScript, l, asset);
+        }
+
+        public string[] GetWarnings()
+        {
+            return m_warnings.ToArray();
+        }
+
+        private void AddWarning(string warning)
+        {
+            if (!m_warnings.Contains(warning))
+            {
+                m_warnings.Add(warning);
+            }
         }
 
         private static string CreateJSCompilerScript(string compileScript)
