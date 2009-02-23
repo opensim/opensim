@@ -50,7 +50,7 @@ namespace OpenSim.Grid.GridServer
 
         protected GridConfig m_config;
 
-        protected IGridMessagingModule m_messagingServerMapper;
+        protected IGridMessagingMapper m_messagingServerMapper;
         /// <value>
         /// Used to notify old regions as to which OpenSim version to upgrade to
         /// </value>
@@ -79,8 +79,8 @@ namespace OpenSim.Grid.GridServer
 
         public void PostInitialise()
         {
-            IGridMessagingModule messagingModule;
-            if (m_gridCore.TryGet<IGridMessagingModule>(out messagingModule))
+            IGridMessagingMapper messagingModule;
+            if (m_gridCore.TryGet<IGridMessagingMapper>(out messagingModule))
             {
                 m_messagingServerMapper = messagingModule;
             }
@@ -401,7 +401,7 @@ namespace OpenSim.Grid.GridServer
             //{
             if(m_messagingServerMapper != null)
             {
-                List<MessageServerInfo> messageServers = m_messagingServerMapper.MessageServers;
+                List<MessageServerInfo> messageServers = m_messagingServerMapper.GetMessageServersList();
                 responseData["messageserver_count"] = messageServers.Count;
 
                 for (int i = 0; i < messageServers.Count; i++)

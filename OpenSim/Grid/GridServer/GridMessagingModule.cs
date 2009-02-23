@@ -37,7 +37,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Grid.GridServer
 {
-    public class GridMessagingModule : IGridMessagingModule
+    public class GridMessagingModule : IGridMessagingMapper
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -54,12 +54,7 @@ namespace OpenSim.Grid.GridServer
         protected BaseHttpServer m_httpServer;
 
         // This is here so that the grid server can hand out MessageServer settings to regions on registration
-        private List<MessageServerInfo> _MessageServers = new List<MessageServerInfo>();
-
-        public List<MessageServerInfo> MessageServers
-        {
-            get { return _MessageServers; }
-        }
+        private List<MessageServerInfo> m_messageServers = new List<MessageServerInfo>();
 
         public GridMessagingModule()
         { 
@@ -72,7 +67,7 @@ namespace OpenSim.Grid.GridServer
             m_gridCore = gridCore;
             m_config = config;
 
-            m_gridCore.RegisterInterface<IGridMessagingModule>(this);
+            m_gridCore.RegisterInterface<IGridMessagingMapper>(this);
 
             RegisterHandlers();
         }
@@ -92,6 +87,14 @@ namespace OpenSim.Grid.GridServer
             m_httpServer.AddXmlRPCHandler("deregister_messageserver", XmlRPCDeRegisterMessageServer);
         }
 
+        public List<MessageServerInfo> GetMessageServersList()
+        {
+            lock (m_messageServers)
+            {
+                return new List<MessageServerInfo>(m_messageServers);
+            }
+        }
+
         public XmlRpcResponse XmlRPCRegisterMessageServer(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
@@ -107,8 +110,7 @@ namespace OpenSim.Grid.GridServer
                 m.URI = URI;
                 m.sendkey = sendkey;
                 m.recvkey = recvkey;
-                if (!_MessageServers.Contains(m))
-                    _MessageServers.Add(m);
+                RegisterMessageServer(m);
                 responseData["responsestring"] = "TRUE";
                 response.Value = responseData;
             }
@@ -130,12 +132,29 @@ namespace OpenSim.Grid.GridServer
                 m.URI = URI;
                 m.sendkey = sendkey;
                 m.recvkey = recvkey;
-                if (_MessageServers.Contains(m))
-                    _MessageServers.Remove(m);
+                DeRegisterMessageServer(m);
                 responseData["responsestring"] = "TRUE";
                 response.Value = responseData;
             }
             return response;
+        }
+
+        public void RegisterMessageServer(MessageServerInfo m)
+        {
+            lock (m_messageServers)
+            {
+                if (!m_messageServers.Contains(m))
+                    m_messageServers.Add(m);
+            }
+        }
+
+        public void DeRegisterMessageServer(MessageServerInfo m)
+        {
+            lock (m_messageServers)
+            {
+                if (m_messageServers.Contains(m))
+                    m_messageServers.Remove(m);
+            }
         }
     }
 }
