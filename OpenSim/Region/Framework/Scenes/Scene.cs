@@ -855,6 +855,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // run through all entities looking for updates (slow)
                     if (m_frame % m_update_entities == 0)
                     {
+                        /* // Adam Experimental
                         if (m_updateEntitiesThread == null)
                         {
                             m_updateEntitiesThread = new Thread(m_sceneGraph.UpdateEntities);
@@ -864,8 +865,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if(m_updateEntitiesThread.ThreadState == ThreadState.Stopped)
                             m_updateEntitiesThread.Start();
-
-                        //m_sceneGraph.UpdateEntities();
+                        */
+                        m_sceneGraph.UpdateEntities();
                     }
                         
 
