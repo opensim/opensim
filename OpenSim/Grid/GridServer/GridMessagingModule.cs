@@ -71,6 +71,9 @@ namespace OpenSim.Grid.GridServer
             m_gridDBService = gridDBService;
             m_gridCore = gridCore;
             m_config = config;
+
+            m_gridCore.RegisterInterface<IGridMessagingModule>(this);
+
             RegisterHandlers();
         }
 
@@ -84,7 +87,6 @@ namespace OpenSim.Grid.GridServer
             //have these in separate method as some servers restart the http server and reregister all the handlers.
             m_httpServer = m_gridCore.GetHttpServer();
 
-            m_gridCore.RegisterInterface<IGridMessagingModule>(this);
             // Message Server ---> Grid Server
             m_httpServer.AddXmlRPCHandler("register_messageserver", XmlRPCRegisterMessageServer);
             m_httpServer.AddXmlRPCHandler("deregister_messageserver", XmlRPCDeRegisterMessageServer);
