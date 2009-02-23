@@ -858,10 +858,11 @@ namespace OpenSim.Region.Framework.Scenes
                         if (m_updateEntitiesThread == null)
                         {
                             m_updateEntitiesThread = new Thread(m_sceneGraph.UpdateEntities);
+                            
                             ThreadTracker.Add(m_updateEntitiesThread);
                         }
 
-                        if(!m_updateEntitiesThread.IsAlive)
+                        if(m_updateEntitiesThread.ThreadState == ThreadState.Stopped)
                             m_updateEntitiesThread.Start();
 
                         //m_sceneGraph.UpdateEntities();
