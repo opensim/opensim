@@ -1499,6 +1499,7 @@ namespace OpenSim.Region.Framework.Scenes
                         part.SetAvatarOnSitTarget(UUID.Zero);
 
                     m_parentPosition = part.GetWorldPosition();
+                    ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
                 }
 
                 if (m_physicsActor == null)
