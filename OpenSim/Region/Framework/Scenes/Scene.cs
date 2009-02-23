@@ -863,7 +863,7 @@ namespace OpenSim.Region.Framework.Scenes
                             ThreadTracker.Add(m_updateEntitiesThread);
                         }
 
-                        if(m_updateEntitiesThread.ThreadState == ThreadState.Stopped)
+                        if (m_updateEntitiesThread.ThreadState == ThreadState.Stopped)
                             m_updateEntitiesThread.Start();
                         */
                         m_sceneGraph.UpdateEntities();
@@ -2131,7 +2131,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
 
-            if(aCircuit == null)
+            if (aCircuit == null)
             {
                 m_log.DebugFormat("[APPEARANCE] Client did not supply a circuit. Non-Linden? Creating default appearance.");
                 appearance = new AvatarAppearance(client.AgentId);

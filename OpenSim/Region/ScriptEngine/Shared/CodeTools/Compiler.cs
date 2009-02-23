@@ -339,7 +339,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 compileScript = LSL_Converter.Convert(Script);
 
                 // copy converter warnings into our warnings.
-                foreach(string warning in LSL_Converter.GetWarnings())
+                foreach (string warning in LSL_Converter.GetWarnings())
                 {
                     AddWarning(warning);
                 }
