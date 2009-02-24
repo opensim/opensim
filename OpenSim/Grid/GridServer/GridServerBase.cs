@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Grid.Framework;
+using OpenSim.Grid.GridServer.Modules;
 
 namespace OpenSim.Grid.GridServer
 {
