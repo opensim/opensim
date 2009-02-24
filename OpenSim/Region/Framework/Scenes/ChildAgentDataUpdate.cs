@@ -251,7 +251,7 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID GranterID;
 
         // Appearance
-        public UUID[] AgentTextures;
+        public byte[] AgentTextures;
         public byte[] VisualParams;
         public UUID[] Wearables;
 
@@ -311,13 +311,16 @@ namespace OpenSim.Region.Framework.Scenes
                 args["animations"] = anims;
             }
 
+            //if ((AgentTextures != null) && (AgentTextures.Length > 0))
+            //{
+            //    OSDArray textures = new OSDArray(AgentTextures.Length);
+            //    foreach (UUID uuid in AgentTextures)
+            //        textures.Add(OSD.FromUUID(uuid));
+            //    args["agent_textures"] = textures;
+            //}
+
             if ((AgentTextures != null) && (AgentTextures.Length > 0))
-            {
-                OSDArray textures = new OSDArray(AgentTextures.Length);
-                foreach (UUID uuid in AgentTextures)
-                    textures.Add(OSD.FromUUID(uuid));
-                args["agent_textures"] = textures;
-            }
+                args["texture_entry"] = OSD.FromBinary(AgentTextures);
 
             if ((VisualParams != null) && (VisualParams.Length > 0))
                 args["visual_params"] = OSD.FromBinary(VisualParams);
@@ -448,14 +451,17 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if ((args["agent_textures"] != null) && (args["agent_textures"]).Type == OSDType.Array)
-            {
-                OSDArray textures = (OSDArray)(args["agent_textures"]);
-                AgentTextures = new UUID[textures.Count];
-                int i = 0;
-                foreach (OSD o in textures)
-                    AgentTextures[i++] = o.AsUUID();
-            }
+            //if ((args["agent_textures"] != null) && (args["agent_textures"]).Type == OSDType.Array)
+            //{
+            //    OSDArray textures = (OSDArray)(args["agent_textures"]);
+            //    AgentTextures = new UUID[textures.Count];
+            //    int i = 0;
+            //    foreach (OSD o in textures)
+            //        AgentTextures[i++] = o.AsUUID();
+            //}
+
+            if (args["texture_entry"] != null)
+                AgentTextures = args["texture_entry"].AsBinary();
 
             if (args["visual_params"] != null)
                 VisualParams = args["visual_params"].AsBinary();

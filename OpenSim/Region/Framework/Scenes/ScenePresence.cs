@@ -2688,20 +2688,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 cAgent.VisualParams = m_appearance.VisualParams;
 
-                // Textures is not really needed in the base case, I think. But it's handy for
-                // the Hypergrid and other decentralized models, so that we know which
-                // textures to fecth from the user's asset server.
-                i = 0;
-                UUID[] textures = new UUID[m_appearance.Texture.FaceTextures.Length];
-                foreach (Primitive.TextureEntryFace face in m_appearance.Texture.FaceTextures)
-                {
-                    if (face != null)
-                        textures[i] = face.TextureID;
-                    else
-                        textures[i] = UUID.Zero;
-                    ++i;
-                }
-                cAgent.AgentTextures = textures;
+                if (m_appearance.Texture != null)
+                    cAgent.AgentTextures = m_appearance.Texture.ToBytes();
             }
             catch (Exception e)
             {
@@ -2758,13 +2746,12 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 m_appearance.Wearables = wears;
 
-                // We're setting it here to default, but the viewer will soon send a SetAppearance that will
-                // set things straight. We should probably parse these textures too, we have them...
-                // In any case, the least we need to do is to check if this is HG and fetch the textures
-                // so that they can then be distributed to the other clients that ask for them later.
-                Primitive.TextureEntry te = AvatarAppearance.GetDefaultTexture(); //new Primitive.TextureEntry(UUID.Random());
-
-                m_appearance.SetAppearance(te.ToBytes(), new List<byte>(cAgent.VisualParams));
+                byte[] te = null; 
+                if (cAgent.AgentTextures != null)
+                    te = cAgent.AgentTextures;
+                else
+                    te = AvatarAppearance.GetDefaultTexture().ToBytes(); 
+                m_appearance.SetAppearance(te, new List<byte>(cAgent.VisualParams));
             }
             catch (Exception e)
             {
