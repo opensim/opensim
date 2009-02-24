@@ -26,16 +26,13 @@
  */
 
 using System;
-using System.Collections.Generic;
-using OpenSim.Framework.Servers;
+using OpenSim.Data;
 
-namespace OpenSim.Grid.GridServer
+namespace OpenSim.Grid.Framework
 {
-    /*
-    public interface IGridMessagingMapper
+    public interface IMessageRegionService
     {
-        List<MessageServerInfo> GetMessageServersList();
-        void RegisterMessageServer(MessageServerInfo m);
-        void DeRegisterMessageServer(MessageServerInfo m);
-    }*/
+        int ClearRegionCache();
+        RegionProfileData GetRegionInfo(ulong regionhandle);
+    }
 }

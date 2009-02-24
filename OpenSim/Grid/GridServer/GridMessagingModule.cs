@@ -34,6 +34,7 @@ using Nwc.XmlRpc;
 using log4net;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework;
+using OpenSim.Grid.Framework;
 
 namespace OpenSim.Grid.GridServer
 {

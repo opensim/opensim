@@ -26,16 +26,10 @@
  */
 
 using System;
-using System.Collections.Generic;
-using OpenSim.Framework.Servers;
-
-namespace OpenSim.Grid.GridServer
+namespace OpenSim.Grid.Framework
 {
-    /*
-    public interface IGridMessagingMapper
+    public interface IMessageUserServerService
     {
-        List<MessageServerInfo> GetMessageServersList();
-        void RegisterMessageServer(MessageServerInfo m);
-        void DeRegisterMessageServer(MessageServerInfo m);
-    }*/
+        bool SendToUserServer(System.Collections.Hashtable request, string method);
+    }
 }

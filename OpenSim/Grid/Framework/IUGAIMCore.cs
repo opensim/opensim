@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,16 +26,15 @@
  */
 
 using System;
-using System.Collections.Generic;
 using OpenSim.Framework.Servers;
 
-namespace OpenSim.Grid.GridServer
+namespace OpenSim.Grid.Framework
 {
-    /*
-    public interface IGridMessagingMapper
+    public interface IUGAIMCore
     {
-        List<MessageServerInfo> GetMessageServersList();
-        void RegisterMessageServer(MessageServerInfo m);
-        void DeRegisterMessageServer(MessageServerInfo m);
-    }*/
+        T Get<T>();
+        void RegisterInterface<T>(T iface);
+        bool TryGet<T>(out T iface);
+        BaseHttpServer GetHttpServer();
+    }
 }

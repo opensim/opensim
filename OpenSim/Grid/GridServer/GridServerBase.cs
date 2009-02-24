@@ -34,6 +34,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
+using OpenSim.Grid.Framework;
 
 namespace OpenSim.Grid.GridServer
 {
@@ -154,6 +155,9 @@ namespace OpenSim.Grid.GridServer
             m_log.Info("[DATA]: Connecting to Storage Server");
             m_gridDBService = new GridDBService();
             m_gridDBService.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
+
+            //Register the database access service so modules can fetch it
+            // RegisterInterface<GridDBService>(m_gridDBService);
 
             m_gridMessageModule = new GridMessagingModule();
             m_gridMessageModule.Initialise(m_version, m_gridDBService, this, m_config);

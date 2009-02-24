@@ -684,6 +684,37 @@
       </Files>
     </Project>
 
+<Project name="OpenSim.Grid.Framework" path="OpenSim/Grid/Framework" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Xml"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+
     <Project name="OpenSim.Grid.GridServer" path="OpenSim/Grid/GridServer" type="Exe">
       <Configuration name="Debug">
         <Options>
@@ -707,6 +738,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Data.MySQL"/>
+      <Reference name="OpenSim.Grid.Framework"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>

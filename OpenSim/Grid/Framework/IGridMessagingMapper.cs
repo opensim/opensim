@@ -29,13 +29,12 @@ using System;
 using System.Collections.Generic;
 using OpenSim.Framework.Servers;
 
-namespace OpenSim.Grid.GridServer
+namespace OpenSim.Grid.Framework
 {
-    /*
     public interface IGridMessagingMapper
     {
         List<MessageServerInfo> GetMessageServersList();
         void RegisterMessageServer(MessageServerInfo m);
         void DeRegisterMessageServer(MessageServerInfo m);
-    }*/
+    }
 }
