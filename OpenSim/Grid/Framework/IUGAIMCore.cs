@@ -30,11 +30,14 @@ using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.Framework
 {
+    public delegate void ShowHelpDelegate(string[] helpArgs);
+
     public interface IUGAIMCore
     {
         T Get<T>();
         void RegisterInterface<T>(T iface);
         bool TryGet<T>(out T iface);
         BaseHttpServer GetHttpServer();
+        void RegisterConsoleHelpDelegate(ShowHelpDelegate showHelp);
     }
 }

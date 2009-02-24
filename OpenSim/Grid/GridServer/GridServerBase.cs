@@ -217,7 +217,7 @@ namespace OpenSim.Grid.GridServer
         }
 
         #region IUGAIMCore
-        private readonly Dictionary<Type, object> m_moduleInterfaces = new Dictionary<Type, object>();
+        protected Dictionary<Type, object> m_moduleInterfaces = new Dictionary<Type, object>();
 
         /// <summary>
         /// Register an Module interface.
@@ -254,6 +254,11 @@ namespace OpenSim.Grid.GridServer
         public BaseHttpServer GetHttpServer()
         {
             return m_httpServer;
+        }
+
+        public void RegisterConsoleHelpDelegate(ShowHelpDelegate showHelp)
+        {
+
         }
         #endregion
     }

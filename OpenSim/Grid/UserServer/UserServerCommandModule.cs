@@ -55,18 +55,35 @@ namespace OpenSim.Grid.UserServer
         protected UserDataBaseService m_userDataBaseService;
         protected UserLoginService m_loginService;
 
-        private UUID m_lastCreatedUser = UUID.Random();
+        protected UUID m_lastCreatedUser = UUID.Random();
 
-        public UserServerCommandModule(ConsoleBase console, UserConfig cfg, UserDataBaseService userDBservice, UserLoginService loginService)
+        protected IUGAIMCore m_core;
+
+        public UserServerCommandModule(UserConfig cfg, UserDataBaseService userDBservice, UserLoginService loginService)
         {
-            m_console = console;
             Cfg = cfg;
             m_userDataBaseService = userDBservice;
             m_loginService = loginService;
         }
 
-        public virtual void RegisterConsoleCommands()
+        public void Initialise(IUGAIMCore core)
         {
+            m_core = core;
+        }
+
+        public void PostInitialise()
+        {
+            m_core.RegisterConsoleHelpDelegate(ShowHelp);
+        }
+
+        public void RegisterHandlers(BaseHttpServer httpServer)
+        {
+
+        }
+
+        public void RegisterConsoleCommands(ConsoleBase console)
+        {
+            m_console = console;
             m_console.Commands.AddCommand("userserver", false, "create user",
                     "create user [<first> [<last> [<x> <y> [email]]]]",
                     "Create a new user account", RunCommand);
@@ -95,10 +112,6 @@ namespace OpenSim.Grid.UserServer
             m_console.Commands.AddCommand("userserver", false, "logoff-user",
                     "logoff-user <first> <last> <message>",
                     "Log off a named user", RunCommand);
-
-            m_console.Commands.AddCommand("userserver", false, "test-command",
-                    "test-command",
-                    "test command", HandleTestCommand);
         }
 
         #region Console Command Handlers
@@ -335,7 +348,7 @@ namespace OpenSim.Grid.UserServer
             }
         }
 
-        public virtual void ShowHelp(string[] helpArgs)
+        public void ShowHelp(string[] helpArgs)
         {
             m_console.Notice("create user - create a new user");
             m_console.Notice("logoff-user <firstname> <lastname> <message> - logs off the specified user from the grid");

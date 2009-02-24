@@ -67,8 +67,6 @@ namespace OpenSim.Grid.UserServer
 
         protected UserServerCommandModule m_consoleCommandModule;
 
-        private UUID m_lastCreatedUser = UUID.Random();
-
         public static void Main(string[] args)
         {
             XmlConfigurator.Configure();
@@ -127,7 +125,11 @@ namespace OpenSim.Grid.UserServer
 
             m_messagesService = new MessageServersConnector();
 
-            m_consoleCommandModule = new UserServerCommandModule(m_console, Cfg, m_userDataBaseService, m_loginService);
+            m_consoleCommandModule = new UserServerCommandModule(Cfg, m_userDataBaseService, m_loginService);
+            m_consoleCommandModule.Initialise(this);
+
+            //PostInitialise the modules
+            m_consoleCommandModule.PostInitialise();
 
             //register event handlers
             RegisterEventHandlers();
@@ -178,7 +180,7 @@ namespace OpenSim.Grid.UserServer
 
         protected virtual void RegisterConsoleCommands()
         {
-            m_consoleCommandModule.RegisterConsoleCommands();
+            m_consoleCommandModule.RegisterConsoleCommands(m_console);
         }
 
         protected virtual void RegisterHttpHandlers()
@@ -201,7 +203,9 @@ namespace OpenSim.Grid.UserServer
         }
 
         #region IUGAIMCore
-        private readonly Dictionary<Type, object> m_moduleInterfaces = new Dictionary<Type, object>();
+        protected Dictionary<Type, object> m_moduleInterfaces = new Dictionary<Type, object>();
+        protected List<ShowHelpDelegate> m_showHelpDelegates = new List<ShowHelpDelegate>();
+
 
         /// <summary>
         /// Register an Module interface.
@@ -239,6 +243,14 @@ namespace OpenSim.Grid.UserServer
         {
             return m_httpServer;
         }
+
+        public void RegisterConsoleHelpDelegate(ShowHelpDelegate showHelp)
+        {
+            lock (m_showHelpDelegates)
+            {
+                m_showHelpDelegates.Add(showHelp);
+            }
+        }
         #endregion
         
         #region Console Command Handlers
@@ -247,7 +259,13 @@ namespace OpenSim.Grid.UserServer
         {
             base.ShowHelp(helpArgs);
 
-            m_consoleCommandModule.ShowHelp(helpArgs);
+            lock (m_showHelpDelegates)
+            {
+                foreach (ShowHelpDelegate d in m_showHelpDelegates)
+                {
+                    d(helpArgs);
+                }
+            }
         }
         #endregion
 
