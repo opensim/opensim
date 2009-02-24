@@ -71,6 +71,8 @@ namespace OpenSim.Grid.UserServer
 
         public Dictionary<string, MessageServerInfo> MessageServers;
 
+        private BaseHttpServer m_httpServer;
+
         private BlockingQueue<PresenceNotification> m_NotifyQueue =
                 new BlockingQueue<PresenceNotification>();
 
@@ -86,6 +88,30 @@ namespace OpenSim.Grid.UserServer
             MessageServers = new Dictionary<string, MessageServerInfo>();
             m_NotifyThread = new Thread(new ThreadStart(NotifyQueueRunner));
             m_NotifyThread.Start();
+        }
+
+        public void Initialise()
+        {
+
+        }
+
+        public void PostInitialise()
+        {
+
+        }
+
+        public void RegisterHandlers(BaseHttpServer httpServer)
+        {
+            m_httpServer = httpServer;
+
+            m_httpServer.AddXmlRPCHandler("region_startup", RegionStartup);
+            m_httpServer.AddXmlRPCHandler("region_shutdown", RegionShutdown);
+            m_httpServer.AddXmlRPCHandler("agent_location", AgentLocation);
+            m_httpServer.AddXmlRPCHandler("agent_leaving", AgentLeaving);
+            // Message Server ---> User Server
+            m_httpServer.AddXmlRPCHandler("register_messageserver", XmlRPCRegisterMessageServer);
+            m_httpServer.AddXmlRPCHandler("agent_change_region", XmlRPCUserMovedtoRegion);
+            m_httpServer.AddXmlRPCHandler("deregister_messageserver", XmlRPCDeRegisterMessageServer);
         }
 
         public void RegisterMessageServer(string URI, MessageServerInfo serverData)

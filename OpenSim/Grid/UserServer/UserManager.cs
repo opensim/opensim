@@ -48,14 +48,43 @@ namespace OpenSim.Grid.UserServer
         private logOffUser handlerLogOffUser;
 
         private UserDataBaseService m_userDataBaseService;
+        private BaseHttpServer m_httpServer;
         
         /// <summary>
-        /// Constructor
+        /// 
         /// </summary>
-        /// <param name="interServiceInventoryService"></param>
-        public UserManager(IInterServiceInventoryServices interServiceInventoryService, UserDataBaseService userDataBaseService)
+        /// <param name="userDataBaseService"></param>
+        public UserManager( UserDataBaseService userDataBaseService)
         {
             m_userDataBaseService = userDataBaseService;
+        }
+
+        public void Initialise()
+        {
+
+        }
+
+        public void PostInitialise()
+        {
+
+        }
+
+        public void RegisterHandlers(BaseHttpServer httpServer)
+        {
+            m_httpServer = httpServer;
+
+            m_httpServer.AddXmlRPCHandler("get_user_by_name", XmlRPCGetUserMethodName);
+            m_httpServer.AddXmlRPCHandler("get_user_by_uuid", XmlRPCGetUserMethodUUID);
+            m_httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", XmlRPCGetAvatarPickerAvatar);
+
+            m_httpServer.AddXmlRPCHandler("update_user_current_region", XmlRPCAtRegion);
+            m_httpServer.AddXmlRPCHandler("logout_of_simulator", XmlRPCLogOffUserMethodUUID);
+            m_httpServer.AddXmlRPCHandler("get_agent_by_uuid", XmlRPCGetAgentMethodUUID);
+            m_httpServer.AddXmlRPCHandler("check_auth_session", XmlRPCCheckAuthSession);
+
+            m_httpServer.AddXmlRPCHandler("update_user_profile", XmlRpcResponseXmlRPCUpdateUserProfile);
+
+            m_httpServer.AddStreamHandler(new RestStreamHandler("DELETE", "/usersessions/", RestDeleteUserSessionMethod));
         }
 
         /// <summary>
@@ -103,26 +132,6 @@ namespace OpenSim.Grid.UserServer
                 responseData["avatarid" + i] = returnUsers[i].AvatarID.ToString();
                 responseData["firstname" + i] = returnUsers[i].firstName;
                 responseData["lastname" + i] = returnUsers[i].lastName;
-            }
-            response.Value = responseData;
-
-            return response;
-        }
-
-        public XmlRpcResponse FriendListItemListtoXmlRPCResponse(List<FriendListItem> returnUsers)
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable responseData = new Hashtable();
-            // Query Result Information
-
-            responseData["avcount"] = returnUsers.Count.ToString();
-
-            for (int i = 0; i < returnUsers.Count; i++)
-            {
-                responseData["ownerID" + i] = returnUsers[i].FriendListOwner.ToString();
-                responseData["friendID" + i] = returnUsers[i].Friend.ToString();
-                responseData["ownerPerms" + i] = returnUsers[i].FriendListOwnerPerms.ToString();
-                responseData["friendPerms" + i] = returnUsers[i].FriendPerms.ToString();
             }
             response.Value = responseData;
 
@@ -226,138 +235,6 @@ namespace OpenSim.Grid.UserServer
                 }
             }
             responseData.Add("returnString", returnstring);
-            response.Value = responseData;
-            return response;
-        }
-
-        public XmlRpcResponse XmlRpcResponseXmlRPCAddUserFriend(XmlRpcRequest request)
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
-            Hashtable responseData = new Hashtable();
-            string returnString = "FALSE";
-            // Query Result Information
-
-            if (requestData.Contains("ownerID") && requestData.Contains("friendID") &&
-                requestData.Contains("friendPerms"))
-            {
-                // UserManagerBase.AddNewuserFriend
-                m_userDataBaseService.AddNewUserFriend(new UUID((string)requestData["ownerID"]),
-                                 new UUID((string) requestData["friendID"]),
-                                 (uint) Convert.ToInt32((string) requestData["friendPerms"]));
-                returnString = "TRUE";
-            }
-            responseData["returnString"] = returnString;
-            response.Value = responseData;
-            return response;
-        }
-
-        public XmlRpcResponse XmlRpcResponseXmlRPCRemoveUserFriend(XmlRpcRequest request)
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
-            Hashtable responseData = new Hashtable();
-            string returnString = "FALSE";
-            // Query Result Information
-
-            if (requestData.Contains("ownerID") && requestData.Contains("friendID"))
-            {
-                // UserManagerBase.AddNewuserFriend
-                m_userDataBaseService.RemoveUserFriend(new UUID((string)requestData["ownerID"]),
-                                 new UUID((string) requestData["friendID"]));
-                returnString = "TRUE";
-            }
-            responseData["returnString"] = returnString;
-            response.Value = responseData;
-            return response;
-        }
-
-        public XmlRpcResponse XmlRpcResponseXmlRPCUpdateUserFriendPerms(XmlRpcRequest request)
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
-            Hashtable responseData = new Hashtable();
-            string returnString = "FALSE";
-
-            if (requestData.Contains("ownerID") && requestData.Contains("friendID") &&
-                requestData.Contains("friendPerms"))
-            {
-                m_userDataBaseService.UpdateUserFriendPerms(new UUID((string)requestData["ownerID"]),
-                                      new UUID((string) requestData["friendID"]),
-                                      (uint) Convert.ToInt32((string) requestData["friendPerms"]));
-                // UserManagerBase.
-                returnString = "TRUE";
-            }
-            responseData["returnString"] = returnString;
-            response.Value = responseData;
-            return response;
-        }
-
-        public XmlRpcResponse XmlRpcResponseXmlRPCGetUserFriendList(XmlRpcRequest request)
-        {
-            // XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
-            // Hashtable responseData = new Hashtable();
-
-            List<FriendListItem> returndata = new List<FriendListItem>();
-
-            if (requestData.Contains("ownerID"))
-            {
-                returndata = m_userDataBaseService.GetUserFriendList(new UUID((string)requestData["ownerID"]));
-            }
-
-            return FriendListItemListtoXmlRPCResponse(returndata);
-        }
-
-        public XmlRpcResponse XmlRPCGetAvatarAppearance(XmlRpcRequest request)
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
-            AvatarAppearance appearance;
-            Hashtable responseData;
-            if (requestData.Contains("owner"))
-            {
-                appearance = m_userDataBaseService.GetUserAppearance(new UUID((string)requestData["owner"]));
-                if (appearance == null)
-                {
-                    responseData = new Hashtable();
-                    responseData["error_type"] = "no appearance";
-                    responseData["error_desc"] = "There was no appearance found for this avatar";
-                }
-                else
-                {
-                    responseData = appearance.ToHashTable();
-                }
-            }
-            else
-            {
-                responseData = new Hashtable();
-                responseData["error_type"] = "unknown_avatar";
-                responseData["error_desc"] = "The avatar appearance requested is not in the database";
-            }
-
-            response.Value = responseData;
-            return response;
-        }
-
-        public XmlRpcResponse XmlRPCUpdateAvatarAppearance(XmlRpcRequest request)
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
-            Hashtable responseData;
-            if (requestData.Contains("owner"))
-            {
-                AvatarAppearance appearance = new AvatarAppearance(requestData);
-                m_userDataBaseService.UpdateUserAppearance(new UUID((string)requestData["owner"]), appearance);
-                responseData = new Hashtable();
-                responseData["returnString"] = "TRUE";
-            }
-            else
-            {
-                responseData = new Hashtable();
-                responseData["error_type"] = "unknown_avatar";
-                responseData["error_desc"] = "The avatar appearance requested is not in the database";
-            }
             response.Value = responseData;
             return response;
         }

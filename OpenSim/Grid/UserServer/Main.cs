@@ -46,7 +46,7 @@ namespace OpenSim.Grid.UserServer
     /// <summary>
     /// Grid user server main class
     /// </summary>
-    public class OpenUser_Main : BaseOpenSimServer
+    public class OpenUser_Main : BaseOpenSimServer, IUGAIMCore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -55,6 +55,10 @@ namespace OpenSim.Grid.UserServer
         protected UserDataBaseService m_userDataBaseService;
 
         public UserManager m_userManager;
+
+        protected UserServerAvatarAppearanceModule m_avatarAppearanceModule;
+        protected UserServerFriendsModule m_friendsModule;
+
         public UserLoginService m_loginService;
         public GridInfoService m_gridInfoService;
         public MessageServersConnector m_messagesService;
@@ -99,17 +103,64 @@ namespace OpenSim.Grid.UserServer
             
             IInterServiceInventoryServices inventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
 
+            //setup database access service
             m_userDataBaseService = new UserDataBaseService(inventoryService);
             m_userDataBaseService.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
 
-            StartupUserManager(inventoryService);
+            //Register the database access service so modules can fetch it
+            // RegisterInterface<UserDataBaseService>(m_userDataBaseService);
+
+            //setup services/modules
+            StartupUserServerModules();
 
             m_gridInfoService = new GridInfoService();
 
             StartupLoginService(inventoryService);
+            //
+            // Get the minimum defaultLevel to access to the grid
+            //
+            m_loginService.setloginlevel((int)Cfg.DefaultUserLevel);
 
             m_messagesService = new MessageServersConnector();
 
+            //register event handlers
+            RegisterEventHandlers();
+
+            //register http handlers and start http server
+            m_log.Info("[STARTUP]: Starting HTTP process");
+            m_httpServer = new BaseHttpServer(Cfg.HttpPort);
+            RegisterHttpHandlers();
+            m_httpServer.Start();
+            
+            base.StartupSpecific();
+
+            //register Console command handlers
+            RegisterConsoleCommands();
+        }
+
+        /// <summary>
+        /// Start up the user manager
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        protected virtual void StartupUserServerModules()
+        {
+            m_userManager = new UserManager(m_userDataBaseService);
+            m_avatarAppearanceModule = new UserServerAvatarAppearanceModule(m_userDataBaseService);
+            m_friendsModule = new UserServerFriendsModule(m_userDataBaseService);
+        }
+
+        /// <summary>
+        /// Start up the login service
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        protected virtual void StartupLoginService(IInterServiceInventoryServices inventoryService)
+        {
+            m_loginService = new UserLoginService(
+                m_userDataBaseService, inventoryService, new LibraryRootFolder(Cfg.LibraryXmlfile), Cfg, Cfg.DefaultStartupMsg, new RegionProfileServiceProxy());
+        }
+
+        protected virtual void RegisterEventHandlers()
+        {
             m_loginService.OnUserLoggedInAtLocation += NotifyMessageServersUserLoggedInToLocation;
             m_userManager.OnLogOffUser += NotifyMessageServersUserLoggOff;
 
@@ -117,15 +168,10 @@ namespace OpenSim.Grid.UserServer
             m_messagesService.OnAgentLeaving += HandleAgentLeaving;
             m_messagesService.OnRegionStartup += HandleRegionStartup;
             m_messagesService.OnRegionShutdown += HandleRegionShutdown;
+        }
 
-            m_log.Info("[STARTUP]: Starting HTTP process");
-
-            m_httpServer = new BaseHttpServer(Cfg.HttpPort);
-            AddHttpHandlers();
-            m_httpServer.Start();
-            
-            base.StartupSpecific();
-
+        protected virtual void RegisterConsoleCommands()
+        {
             m_console.Commands.AddCommand("userserver", false, "create user",
                     "create user [<first> [<last> [<x> <y> [email]]]]",
                     "Create a new user account", RunCommand);
@@ -156,80 +202,67 @@ namespace OpenSim.Grid.UserServer
                     "Log off a named user", RunCommand);
         }
 
-        /// <summary>
-        /// Start up the user manager
-        /// </summary>
-        /// <param name="inventoryService"></param>
-        protected virtual void StartupUserManager(IInterServiceInventoryServices inventoryService)
+        protected virtual void RegisterHttpHandlers()
         {
-            m_userManager = new UserManager(inventoryService, m_userDataBaseService);
-        }
-
-        /// <summary>
-        /// Start up the login service
-        /// </summary>
-        /// <param name="inventoryService"></param>
-        protected virtual void StartupLoginService(IInterServiceInventoryServices inventoryService)
-        {
-            m_loginService = new UserLoginService(
-                m_userDataBaseService, inventoryService, new LibraryRootFolder(Cfg.LibraryXmlfile), Cfg, Cfg.DefaultStartupMsg, new RegionProfileServiceProxy());
-        }
-
-        protected virtual void AddHttpHandlers()
-        {
-            m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
-
-            m_httpServer.AddHTTPHandler("login", m_loginService.ProcessHTMLLogin);
-            //
-            // Get the minimum defaultLevel to access to the grid
-            //
-            m_loginService.setloginlevel((int)Cfg.DefaultUserLevel);
-
-            if (Cfg.EnableLLSDLogin)
-            {
-                m_httpServer.SetDefaultLLSDHandler(m_loginService.LLSDLoginMethod);
-            }
-
-            m_httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
-            m_httpServer.AddXmlRPCHandler("get_user_by_uuid", m_userManager.XmlRPCGetUserMethodUUID);
-            m_httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", m_userManager.XmlRPCGetAvatarPickerAvatar);
-            m_httpServer.AddXmlRPCHandler("add_new_user_friend", m_userManager.XmlRpcResponseXmlRPCAddUserFriend);
-            m_httpServer.AddXmlRPCHandler("remove_user_friend", m_userManager.XmlRpcResponseXmlRPCRemoveUserFriend);
-            m_httpServer.AddXmlRPCHandler("update_user_friend_perms",
-                                          m_userManager.XmlRpcResponseXmlRPCUpdateUserFriendPerms);
-            m_httpServer.AddXmlRPCHandler("get_user_friend_list", m_userManager.XmlRpcResponseXmlRPCGetUserFriendList);
-            m_httpServer.AddXmlRPCHandler("get_avatar_appearance", m_userManager.XmlRPCGetAvatarAppearance);
-            m_httpServer.AddXmlRPCHandler("update_avatar_appearance", m_userManager.XmlRPCUpdateAvatarAppearance);
-            m_httpServer.AddXmlRPCHandler("update_user_current_region", m_userManager.XmlRPCAtRegion);
-            m_httpServer.AddXmlRPCHandler("logout_of_simulator", m_userManager.XmlRPCLogOffUserMethodUUID);
-            m_httpServer.AddXmlRPCHandler("get_agent_by_uuid", m_userManager.XmlRPCGetAgentMethodUUID);
-            m_httpServer.AddXmlRPCHandler("check_auth_session", m_userManager.XmlRPCCheckAuthSession);
-            m_httpServer.AddXmlRPCHandler("set_login_params", m_loginService.XmlRPCSetLoginParams);
-            m_httpServer.AddXmlRPCHandler("region_startup", m_messagesService.RegionStartup);
-            m_httpServer.AddXmlRPCHandler("region_shutdown", m_messagesService.RegionShutdown);
-            m_httpServer.AddXmlRPCHandler("agent_location", m_messagesService.AgentLocation);
-            m_httpServer.AddXmlRPCHandler("agent_leaving", m_messagesService.AgentLeaving);
-            // Message Server ---> User Server
-            m_httpServer.AddXmlRPCHandler("register_messageserver", m_messagesService.XmlRPCRegisterMessageServer);
-            m_httpServer.AddXmlRPCHandler("agent_change_region", m_messagesService.XmlRPCUserMovedtoRegion);
-            m_httpServer.AddXmlRPCHandler("deregister_messageserver", m_messagesService.XmlRPCDeRegisterMessageServer);
+            m_loginService.RegisterHandlers(m_httpServer, Cfg.EnableLLSDLogin, true);
+           
+            m_userManager.RegisterHandlers(m_httpServer);
+            m_friendsModule.RegisterHandlers(m_httpServer);
+            m_avatarAppearanceModule.RegisterHandlers(m_httpServer);
+            m_messagesService.RegisterHandlers(m_httpServer);
 
             m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info",
                                                                 m_gridInfoService.RestGetGridInfoMethod));
             m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
-
-            m_httpServer.AddStreamHandler(
-                new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
-
-            m_httpServer.AddXmlRPCHandler("update_user_profile", m_userManager.XmlRpcResponseXmlRPCUpdateUserProfile);
-
-            // Handler for OpenID avatar identity pages
-            m_httpServer.AddStreamHandler(new OpenIdStreamHandler("GET", "/users/", m_loginService));
-            // Handlers for the OpenID endpoint server
-            m_httpServer.AddStreamHandler(new OpenIdStreamHandler("POST", "/openid/server/", m_loginService));
-            m_httpServer.AddStreamHandler(new OpenIdStreamHandler("GET", "/openid/server/", m_loginService));
         }
 
+        public override void ShutdownSpecific()
+        {
+            m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
+        }
+
+        #region IUGAIMCore
+        private readonly Dictionary<Type, object> m_moduleInterfaces = new Dictionary<Type, object>();
+
+        /// <summary>
+        /// Register an Module interface.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="iface"></param>
+        public void RegisterInterface<T>(T iface)
+        {
+            lock (m_moduleInterfaces)
+            {
+                if (!m_moduleInterfaces.ContainsKey(typeof(T)))
+                {
+                    m_moduleInterfaces.Add(typeof(T), iface);
+                }
+            }
+        }
+
+        public bool TryGet<T>(out T iface)
+        {
+            if (m_moduleInterfaces.ContainsKey(typeof(T)))
+            {
+                iface = (T)m_moduleInterfaces[typeof(T)];
+                return true;
+            }
+            iface = default(T);
+            return false;
+        }
+
+        public T Get<T>()
+        {
+            return (T)m_moduleInterfaces[typeof(T)];
+        }
+
+        public BaseHttpServer GetHttpServer()
+        {
+            return m_httpServer;
+        }
+        #endregion
+
+        #region Console Command Handlers
         public void do_create(string[] args)
         {
             switch (args[0])
@@ -468,19 +501,16 @@ namespace OpenSim.Grid.UserServer
             m_console.Notice("login-level <value> - Set the miminim userlevel allowed To login.");
             m_console.Notice("login-reset - reset the login level to its default value.");
             m_console.Notice("login-text <text to print during the login>");
-            
-        }
 
-        public override void ShutdownSpecific()
-        {
-            m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
         }
+        #endregion
 
         public void TestResponse(List<InventoryFolderBase> resp)
         {
             m_console.Notice("response got");
         }
 
+        #region Event Handlers
         public void NotifyMessageServersUserLoggOff(UUID agentID)
         {
             m_messagesService.TellMessageServersAboutUserLogoff(agentID);
@@ -531,5 +561,6 @@ namespace OpenSim.Grid.UserServer
             m_userManager.HandleRegionShutdown(regionID);
             m_messagesService.TellMessageServersAboutRegionShutdown(regionID);
         }
+        #endregion
     }
 }
