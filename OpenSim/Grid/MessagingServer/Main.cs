@@ -127,6 +127,9 @@ namespace OpenSim.Grid.MessagingServer
             m_userDataBaseService = new UserDataBaseService();
             m_userDataBaseService.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
 
+            //Register the database access service so modules can fetch it
+           // RegisterInterface<UserDataBaseService>(m_userDataBaseService);
+
             m_userServerModule = new MessageUserServerModule(Cfg, this);
             m_userServerModule.Initialise();
 
