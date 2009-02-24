@@ -403,7 +403,9 @@ namespace OpenSim
             string regionFile = String.Format("{0}/{1}", regionsDir, cmd[3]);
             // Allow absolute and relative specifiers
             if (cmd[3].StartsWith("/") || cmd[3].StartsWith("\\") || cmd[3].StartsWith("..") || cmd[3].EndsWith(".xml"))
+            {
                 regionFile = cmd[3];
+            }
             else
             {
                 m_console.Error("Usage: create region <region name> <region_file.xml>");

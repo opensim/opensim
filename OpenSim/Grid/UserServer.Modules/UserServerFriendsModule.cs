@@ -36,7 +36,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 
-namespace OpenSim.Grid.UserServer
+namespace OpenSim.Grid.UserServer.Modules
 {
     public class UserServerFriendsModule
     {

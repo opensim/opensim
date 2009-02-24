@@ -40,6 +40,8 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
 using OpenSim.Grid.Communications.OGS1;
+using OpenSim.Grid.Framework;
+using OpenSim.Grid.UserServer.Modules;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -62,6 +64,8 @@ namespace OpenSim.Grid.UserServer
         public UserLoginService m_loginService;
         public GridInfoService m_gridInfoService;
         public MessageServersConnector m_messagesService;
+
+        protected UserServerCommandModule m_consoleCommandModule;
 
         private UUID m_lastCreatedUser = UUID.Random();
 
@@ -123,6 +127,8 @@ namespace OpenSim.Grid.UserServer
 
             m_messagesService = new MessageServersConnector();
 
+            m_consoleCommandModule = new UserServerCommandModule(m_console, Cfg, m_userDataBaseService, m_loginService);
+
             //register event handlers
             RegisterEventHandlers();
 
@@ -172,34 +178,7 @@ namespace OpenSim.Grid.UserServer
 
         protected virtual void RegisterConsoleCommands()
         {
-            m_console.Commands.AddCommand("userserver", false, "create user",
-                    "create user [<first> [<last> [<x> <y> [email]]]]",
-                    "Create a new user account", RunCommand);
-
-            m_console.Commands.AddCommand("userserver", false, "reset user password",
-                    "reset user password [<first> [<last> [<new password>]]]",
-                    "Reset a user's password", RunCommand);
-
-            m_console.Commands.AddCommand("userserver", false, "login level",
-                    "login level <level>",
-                    "Set the minimum user level to log in", HandleLoginCommand);
-
-            m_console.Commands.AddCommand("userserver", false, "login reset",
-                    "login reset",
-                    "Reset the login level to allow all users",
-                    HandleLoginCommand);
-
-            m_console.Commands.AddCommand("userserver", false, "login text",
-                    "login text <text>",
-                    "Set the text users will see on login", HandleLoginCommand);
-
-            m_console.Commands.AddCommand("userserver", false, "test-inventory",
-                    "test-inventory",
-                    "Perform a test inventory transaction", RunCommand);
-
-            m_console.Commands.AddCommand("userserver", false, "logoff-user",
-                    "logoff-user <first> <last> <message>",
-                    "Log off a named user", RunCommand);
+            m_consoleCommandModule.RegisterConsoleCommands();
         }
 
         protected virtual void RegisterHttpHandlers()
@@ -261,247 +240,14 @@ namespace OpenSim.Grid.UserServer
             return m_httpServer;
         }
         #endregion
-
+        
         #region Console Command Handlers
-        public void do_create(string[] args)
-        {
-            switch (args[0])
-            {
-                case "user":
-                    CreateUser(args);
-                    break;
-            }
-        }
-        
-        /// <summary>
-        /// Execute switch for some of the reset commands
-        /// </summary>
-        /// <param name="args"></param>
-        protected void Reset(string[] args)
-        {
-            if (args.Length == 0)
-                return;
-
-            switch (args[0])
-            {
-                case "user":
-                
-                    switch (args[1])
-                    {
-                        case "password":
-                            ResetUserPassword(args);
-                            break;
-                    }
-                
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Create a new user
-        /// </summary>
-        /// <param name="cmdparams">string array with parameters: firstname, lastname, password, locationX, locationY, email</param>
-        protected void CreateUser(string[] cmdparams)
-        {
-            string firstName;
-            string lastName;
-            string password;
-            string email;
-            uint regX = 1000;
-            uint regY = 1000;
-
-            if (cmdparams.Length < 2)
-                firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
-            else firstName = cmdparams[1];
-
-            if (cmdparams.Length < 3)
-                lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
-            else lastName = cmdparams[2];
-
-            if (cmdparams.Length < 4)
-                password = MainConsole.Instance.PasswdPrompt("Password");
-            else password = cmdparams[3];
-
-            if (cmdparams.Length < 5)
-                regX = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region X", regX.ToString()));
-            else regX = Convert.ToUInt32(cmdparams[4]);
-
-            if (cmdparams.Length < 6)
-                regY = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region Y", regY.ToString()));
-            else regY = Convert.ToUInt32(cmdparams[5]);
-
-            if (cmdparams.Length < 7)
-                email = MainConsole.Instance.CmdPrompt("Email", "");
-            else email = cmdparams[6];
-
-            if (null == m_userDataBaseService.GetUserProfile(firstName, lastName))
-            {
-                m_lastCreatedUser = m_userDataBaseService.AddUser(firstName, lastName, password, email, regX, regY);
-            }
-            else
-            {
-                m_log.ErrorFormat("[USERS]: A user with the name {0} {1} already exists!", firstName, lastName);
-            }
-        }
-
-        /// <summary>
-        /// Reset a user password.
-        /// </summary>
-        /// <param name="cmdparams"></param>
-        private void ResetUserPassword(string[] cmdparams)
-        {
-            string firstName;
-            string lastName;
-            string newPassword;
-            
-            if (cmdparams.Length < 3)
-                firstName = MainConsole.Instance.CmdPrompt("First name");
-            else firstName = cmdparams[2];
-
-            if ( cmdparams.Length < 4 )
-                lastName = MainConsole.Instance.CmdPrompt("Last name");
-            else lastName = cmdparams[3];
-
-            if ( cmdparams.Length < 5 )
-                newPassword = MainConsole.Instance.PasswdPrompt("New password");
-            else newPassword = cmdparams[4];
-            
-            m_userDataBaseService.ResetUserPassword(firstName, lastName, newPassword);
-        }         
-
-        private void HandleLoginCommand(string module, string[] cmd)
-        {
-            string subcommand = cmd[1];
-            
-            switch (subcommand)
-            {
-                case "level":
-                    // Set the minimal level to allow login 
-                    // Useful to allow grid update without worrying about users.
-                    // or fixing critical issues
-                    //
-                    if (cmd.Length > 2)
-                    {
-                        int level = Convert.ToInt32(cmd[2]);
-                        m_loginService.setloginlevel(level);
-                    }
-                    break;
-                case "reset":
-                     m_loginService.setloginlevel(0);
-                    break;
-                case "text":
-                    if (cmd.Length > 2)
-                    {
-                        m_loginService.setwelcometext(cmd[2]);
-                    }
-                    break;
-            }
-        }
-
-        public void RunCommand(string module, string[] cmd)
-        {
-            List<string> args = new List<string>(cmd);
-            string command = cmd[0];
-
-            args.RemoveAt(0);
-
-            string[] cmdparams = args.ToArray();
-
-            switch (command)
-            {
-                case "create":
-                    do_create(cmdparams);
-                    break;
-                
-                case "reset":
-                    Reset(cmdparams);
-                    break;
-
-
-                case "test-inventory":
-                    //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();
-                    // requester.ReturnResponseVal = TestResponse;
-                    // requester.BeginPostObject<UUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
-                    SynchronousRestObjectPoster.BeginPostObject<UUID, List<InventoryFolderBase>>(
-                        "POST", Cfg.InventoryUrl + "RootFolders/", m_lastCreatedUser);
-                    break;
-
-                case "logoff-user":
-                    if (cmdparams.Length >= 3)
-                    {
-                        string firstname = cmdparams[0];
-                        string lastname = cmdparams[1];
-                        string message = "";
-
-                        for (int i = 2; i < cmdparams.Length; i++)
-                            message += " " + cmdparams[i];
-
-                        UserProfileData theUser = null;
-                        try
-                        {
-                            theUser = m_loginService.GetTheUser(firstname, lastname);
-                        }
-                        catch (Exception)
-                        {
-                            m_log.Error("[LOGOFF]: Error getting user data from the database.");
-                        }
-
-                        if (theUser != null)
-                        {
-                            if (theUser.CurrentAgent != null)
-                             {
-                                if (theUser.CurrentAgent.AgentOnline)
-                                {
-                                    m_log.Info("[LOGOFF]: Logging off requested user!");
-                                    m_loginService.LogOffUser(theUser, message);
-
-                                    theUser.CurrentAgent.AgentOnline = false;
-
-                                    m_loginService.CommitAgent(ref theUser);
-                                }
-                                else
-                                {
-                                    m_log.Info(
-                                        "[LOGOFF]: User Doesn't appear to be online, sending the logoff message anyway.");
-                                    m_loginService.LogOffUser(theUser, message);
-
-                                    theUser.CurrentAgent.AgentOnline = false;
-
-                                    m_loginService.CommitAgent(ref theUser);
-                                }
-                            }
-                            else
-                            {
-                                m_log.Error(
-                                    "[LOGOFF]: Unable to logoff-user.  User doesn't have an agent record so I can't find the simulator to notify");
-                            }
-                        }
-                        else
-                        {
-                            m_log.Info("[LOGOFF]: User doesn't exist in the database");
-                        }
-                    }
-                    else
-                    {
-                        m_log.Error(
-                            "[LOGOFF]: Invalid amount of parameters.  logoff-user takes at least three.  Firstname, Lastname, and message");
-                    }
-
-                    break;
-            }
-        }
-        
+      
         protected override void ShowHelp(string[] helpArgs)
         {
-            base.ShowHelp(helpArgs);  
+            base.ShowHelp(helpArgs);
 
-            m_console.Notice("create user - create a new user");
-            m_console.Notice("logoff-user <firstname> <lastname> <message> - logs off the specified user from the grid");
-            m_console.Notice("reset user password - reset a user's password.");
-            m_console.Notice("login-level <value> - Set the miminim userlevel allowed To login.");
-            m_console.Notice("login-reset - reset the login level to its default value.");
-            m_console.Notice("login-text <text to print during the login>");
-
+            m_consoleCommandModule.ShowHelp(helpArgs);
         }
         #endregion
 

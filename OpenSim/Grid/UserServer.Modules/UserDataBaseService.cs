@@ -9,7 +9,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
+ *     * Neither the name of the OpenSim Project nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
@@ -26,18 +26,43 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
+using System.Reflection;
+using log4net;
+using Nwc.XmlRpc;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 
-namespace OpenSim.Grid.UserServer
+namespace OpenSim.Grid.UserServer.Modules
 {
-    public interface IUGAIMCore
+    public class UserDataBaseService : UserManagerBase
     {
-        T Get<T>();
-        void RegisterInterface<T>(T iface);
-        bool TryGet<T>(out T iface);
-        BaseHttpServer GetHttpServer();
+        public UserDataBaseService()
+            : base(null)
+        {
+        }
 
+        public UserDataBaseService(IInterServiceInventoryServices interServiceInventoryService)
+            : base(interServiceInventoryService)
+        {
+        }
+
+        public override UserProfileData SetupMasterUser(string firstName, string lastName)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        public override UserProfileData SetupMasterUser(string firstName, string lastName, string password)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        public override UserProfileData SetupMasterUser(UUID uuid)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
     }
 }
