@@ -35,11 +35,14 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
+using OpenSim.Grid.Framework;
 
 namespace OpenSim.Grid.UserServer.Modules
 {
     public class UserDataBaseService : UserManagerBase
     {
+        protected IUGAIMCore m_core;
+
         public UserDataBaseService()
             : base(null)
         {
@@ -48,6 +51,46 @@ namespace OpenSim.Grid.UserServer.Modules
         public UserDataBaseService(IInterServiceInventoryServices interServiceInventoryService)
             : base(interServiceInventoryService)
         {
+        }
+
+        public void Initialise(IUGAIMCore core)
+        {
+            m_core = core;
+
+            //we only need core components so we can request them from here
+            IInterServiceInventoryServices inventoryService;
+            if (m_core.TryGet<IInterServiceInventoryServices>(out inventoryService))
+            {
+                m_interServiceInventoryService = inventoryService;
+            }
+
+            UserConfig cfg;
+            if (m_core.TryGet<UserConfig>(out cfg))
+            {
+                AddPlugin(cfg.DatabaseProvider, cfg.DatabaseConnect);
+            }
+
+            m_core.RegisterInterface<UserDataBaseService>(this);
+        }
+
+        public void PostInitialise()
+        {
+        }
+
+        public void RegisterHandlers(BaseHttpServer httpServer)
+        {
+        }
+
+        public UserAgentData GetUserAgentData(UUID AgentID)
+        {
+            UserProfileData userProfile = GetUserProfile(AgentID);
+
+            if (userProfile != null)
+            {
+                return userProfile.CurrentAgent;
+            }
+
+            return null;
         }
 
         public override UserProfileData SetupMasterUser(string firstName, string lastName)

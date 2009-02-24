@@ -97,24 +97,40 @@ namespace OpenSim.Grid.UserServer
 
         protected override void StartupSpecific()
         {
-            Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
+            IInterServiceInventoryServices inventoryService = SetupRegisterCoreComponents();
 
             m_stats = StatsManager.StartCollectingUserStats();
 
             m_log.Info("[STARTUP]: Establishing data connection");
-            
-            IInterServiceInventoryServices inventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
-
             //setup database access service
-            m_userDataBaseService = new UserDataBaseService(inventoryService);
-            m_userDataBaseService.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
-
-            //Register the database access service so modules can fetch it
-            // RegisterInterface<UserDataBaseService>(m_userDataBaseService);
+            m_userDataBaseService = new UserDataBaseService();
+            m_userDataBaseService.Initialise(this);
 
             //setup services/modules
             StartupUserServerModules();
 
+            StartOtherComponents(inventoryService);
+
+            m_consoleCommandModule = new UserServerCommandModule(m_loginService);
+            m_consoleCommandModule.Initialise(this);
+
+            //register event handlers
+            RegisterEventHandlers();
+
+            //PostInitialise the modules
+            m_consoleCommandModule.PostInitialise(); //it will register its Console command handlers in here
+            m_userDataBaseService.PostInitialise();
+
+            //register http handlers and start http server
+            m_log.Info("[STARTUP]: Starting HTTP process");
+            RegisterHttpHandlers();
+            m_httpServer.Start();
+            
+            base.StartupSpecific();
+        }
+
+        private void StartOtherComponents(IInterServiceInventoryServices inventoryService)
+        {
             m_gridInfoService = new GridInfoService();
 
             StartupLoginService(inventoryService);
@@ -124,26 +140,21 @@ namespace OpenSim.Grid.UserServer
             m_loginService.setloginlevel((int)Cfg.DefaultUserLevel);
 
             m_messagesService = new MessageServersConnector();
+        }
 
-            m_consoleCommandModule = new UserServerCommandModule(Cfg, m_userDataBaseService, m_loginService);
-            m_consoleCommandModule.Initialise(this);
+        private IInterServiceInventoryServices SetupRegisterCoreComponents()
+        {
+            Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
 
-            //PostInitialise the modules
-            m_consoleCommandModule.PostInitialise();
+            IInterServiceInventoryServices inventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
 
-            //register event handlers
-            RegisterEventHandlers();
-
-            //register http handlers and start http server
-            m_log.Info("[STARTUP]: Starting HTTP process");
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
-            RegisterHttpHandlers();
-            m_httpServer.Start();
-            
-            base.StartupSpecific();
 
-            //register Console command handlers
-            RegisterConsoleCommands();
+            RegisterInterface<ConsoleBase>(m_console);
+            RegisterInterface<UserConfig>(Cfg);
+            RegisterInterface<IInterServiceInventoryServices>(inventoryService);
+
+            return inventoryService;
         }
 
         /// <summary>
@@ -176,11 +187,6 @@ namespace OpenSim.Grid.UserServer
             m_messagesService.OnAgentLeaving += HandleAgentLeaving;
             m_messagesService.OnRegionStartup += HandleRegionStartup;
             m_messagesService.OnRegionShutdown += HandleRegionShutdown;
-        }
-
-        protected virtual void RegisterConsoleCommands()
-        {
-            m_consoleCommandModule.RegisterConsoleCommands(m_console);
         }
 
         protected virtual void RegisterHttpHandlers()

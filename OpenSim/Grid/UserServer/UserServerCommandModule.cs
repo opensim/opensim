@@ -50,7 +50,7 @@ namespace OpenSim.Grid.UserServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected ConsoleBase m_console;
-        protected UserConfig Cfg;
+        protected UserConfig m_cfg;
 
         protected UserDataBaseService m_userDataBaseService;
         protected UserLoginService m_loginService;
@@ -59,10 +59,8 @@ namespace OpenSim.Grid.UserServer
 
         protected IUGAIMCore m_core;
 
-        public UserServerCommandModule(UserConfig cfg, UserDataBaseService userDBservice, UserLoginService loginService)
+        public UserServerCommandModule( UserLoginService loginService)
         {
-            Cfg = cfg;
-            m_userDataBaseService = userDBservice;
             m_loginService = loginService;
         }
 
@@ -73,6 +71,23 @@ namespace OpenSim.Grid.UserServer
 
         public void PostInitialise()
         {
+            UserConfig cfg;
+            if (m_core.TryGet<UserConfig>(out cfg))
+            {
+                m_cfg = cfg;
+            }
+
+            UserDataBaseService userDBservice;
+            if (m_core.TryGet<UserDataBaseService>(out userDBservice))
+            {
+                m_userDataBaseService = userDBservice;
+            }
+
+            ConsoleBase console;
+            if ((m_core.TryGet<ConsoleBase>(out console)) && (m_cfg != null) && (m_userDataBaseService != null))
+            {
+                RegisterConsoleCommands(console);
+            }
         }
 
         public void RegisterHandlers(BaseHttpServer httpServer)
@@ -80,7 +95,7 @@ namespace OpenSim.Grid.UserServer
 
         }
 
-        public void RegisterConsoleCommands(ConsoleBase console)
+        private void RegisterConsoleCommands(ConsoleBase console)
         {
             m_console = console;
             m_console.Commands.AddCommand("userserver", false, "create user",
@@ -279,7 +294,7 @@ namespace OpenSim.Grid.UserServer
                     // requester.ReturnResponseVal = TestResponse;
                     // requester.BeginPostObject<UUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
                     SynchronousRestObjectPoster.BeginPostObject<UUID, List<InventoryFolderBase>>(
-                        "POST", Cfg.InventoryUrl + "RootFolders/", m_lastCreatedUser);
+                        "POST", m_cfg.InventoryUrl + "RootFolders/", m_lastCreatedUser);
                     break;
 
                 case "logoff-user":
