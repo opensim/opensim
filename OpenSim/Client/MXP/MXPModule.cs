@@ -57,7 +57,8 @@ namespace OpenSim.Client.MXP
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-            m_scenes.Add(scene.RegionInfo.RegionID, scene);
+            if (!m_scenes.ContainsKey(scene.RegionInfo.RegionID))
+                m_scenes.Add(scene.RegionInfo.RegionID, scene);
             config = source;
         }
 
