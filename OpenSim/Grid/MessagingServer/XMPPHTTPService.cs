@@ -33,7 +33,7 @@ using OpenMetaverse;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.MessagingServer
-{
+{/*
     public class XMPPHTTPStreamHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -106,5 +106,5 @@ namespace OpenSim.Grid.MessagingServer
 
         }
 
-    }
+    }*/
 }

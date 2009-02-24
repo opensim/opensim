@@ -981,6 +981,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Grid.Framework"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>

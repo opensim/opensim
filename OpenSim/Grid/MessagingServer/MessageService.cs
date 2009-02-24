@@ -37,6 +37,7 @@ using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
+using OpenSim.Grid.Framework;
 using Timer=System.Timers.Timer;
 
 namespace OpenSim.Grid.MessagingServer

@@ -34,6 +34,7 @@ using log4net.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
+using OpenSim.Grid.Framework;
 
 namespace OpenSim.Grid.MessagingServer
 {
