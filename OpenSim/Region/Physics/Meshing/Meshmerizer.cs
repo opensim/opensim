@@ -269,6 +269,10 @@ namespace OpenSim.Region.Physics.Meshing
 
                 primMesh = new PrimMesh(sides, profileBegin, profileEnd, profileHollow, hollowSides);
 
+                if (primMesh.errorMessage != null)
+                    if (primMesh.errorMessage.Length > 0)
+                        m_log.Error("[ERROR] " + primMesh.errorMessage);
+
                 primMesh.topShearX = pathShearX;
                 primMesh.topShearY = pathShearY;
                 primMesh.pathCutBegin = pathBegin;
