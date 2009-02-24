@@ -73,7 +73,6 @@ namespace OpenSim.Grid.UserServer
 
         public void PostInitialise()
         {
-            m_core.RegisterConsoleHelpDelegate(ShowHelp);
         }
 
         public void RegisterHandlers(BaseHttpServer httpServer)
@@ -346,16 +345,6 @@ namespace OpenSim.Grid.UserServer
 
                     break;
             }
-        }
-
-        public void ShowHelp(string[] helpArgs)
-        {
-            m_console.Notice("create user - create a new user");
-            m_console.Notice("logoff-user <firstname> <lastname> <message> - logs off the specified user from the grid");
-            m_console.Notice("reset user password - reset a user's password.");
-            m_console.Notice("login-level <value> - Set the miminim userlevel allowed To login.");
-            m_console.Notice("login-reset - reset the login level to its default value.");
-            m_console.Notice("login-text <text to print during the login>");
         }
     }
         #endregion

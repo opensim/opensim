@@ -204,8 +204,6 @@ namespace OpenSim.Grid.UserServer
 
         #region IUGAIMCore
         protected Dictionary<Type, object> m_moduleInterfaces = new Dictionary<Type, object>();
-        protected List<ShowHelpDelegate> m_showHelpDelegates = new List<ShowHelpDelegate>();
-
 
         /// <summary>
         /// Register an Module interface.
@@ -244,13 +242,7 @@ namespace OpenSim.Grid.UserServer
             return m_httpServer;
         }
 
-        public void RegisterConsoleHelpDelegate(ShowHelpDelegate showHelp)
-        {
-            lock (m_showHelpDelegates)
-            {
-                m_showHelpDelegates.Add(showHelp);
-            }
-        }
+     
         #endregion
         
         #region Console Command Handlers
@@ -258,14 +250,6 @@ namespace OpenSim.Grid.UserServer
         protected override void ShowHelp(string[] helpArgs)
         {
             base.ShowHelp(helpArgs);
-
-            lock (m_showHelpDelegates)
-            {
-                foreach (ShowHelpDelegate d in m_showHelpDelegates)
-                {
-                    d(helpArgs);
-                }
-            }
         }
         #endregion
 

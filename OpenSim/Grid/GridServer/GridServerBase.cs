@@ -255,11 +255,6 @@ namespace OpenSim.Grid.GridServer
         {
             return m_httpServer;
         }
-
-        public void RegisterConsoleHelpDelegate(ShowHelpDelegate showHelp)
-        {
-
-        }
         #endregion
     }
 }
