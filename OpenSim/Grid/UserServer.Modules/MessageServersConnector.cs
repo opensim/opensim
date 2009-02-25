@@ -35,6 +35,7 @@ using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using OpenSim.Grid.Framework;
 
 namespace OpenSim.Grid.UserServer.Modules
 {
@@ -78,6 +79,8 @@ namespace OpenSim.Grid.UserServer.Modules
 
         Thread m_NotifyThread;
 
+        private IUGAIMCore m_core;
+
         public event AgentLocationDelegate OnAgentLocation;
         public event AgentLeavingDelegate OnAgentLeaving;
         public event RegionStartupDelegate OnRegionStartup;
@@ -86,18 +89,18 @@ namespace OpenSim.Grid.UserServer.Modules
         public MessageServersConnector()
         {
             MessageServers = new Dictionary<string, MessageServerInfo>();
+        }
+
+        public void Initialise(IUGAIMCore core)
+        {
+            m_core = core;
+            m_core.RegisterInterface<MessageServersConnector>(this);
             m_NotifyThread = new Thread(new ThreadStart(NotifyQueueRunner));
             m_NotifyThread.Start();
         }
 
-        public void Initialise()
-        {
-
-        }
-
         public void PostInitialise()
         {
-
         }
 
         public void RegisterHandlers(BaseHttpServer httpServer)

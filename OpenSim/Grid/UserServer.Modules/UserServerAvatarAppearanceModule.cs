@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -35,6 +35,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
+using OpenSim.Grid.Framework;
 
 namespace OpenSim.Grid.UserServer.Modules
 {
@@ -50,7 +51,7 @@ namespace OpenSim.Grid.UserServer.Modules
             m_userDataBaseService = userDataBaseService;
         }
 
-        public void Initialise()
+        public void Initialise(IUGAIMCore core)
         {
 
         }

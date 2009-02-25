@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -42,7 +42,7 @@ using Timer = System.Timers.Timer;
 
 namespace OpenSim.Grid.MessagingServer.Modules
 {
-    public class MessageRegionModule : IMessageRegionService
+    public class MessageRegionModule : IMessageRegionLookup
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -63,7 +63,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
 
         public void Initialise()
         {
-            m_messageCore.RegisterInterface<IMessageRegionService>(this);
+            m_messageCore.RegisterInterface<IMessageRegionLookup>(this);
         }
 
         public void PostInitialise()

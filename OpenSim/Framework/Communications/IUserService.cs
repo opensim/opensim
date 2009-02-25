@@ -114,17 +114,5 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
         List<FriendListItem> GetUserFriendList(UUID friendlistowner);
-
-        /// <summary>
-        /// Get's the User Appearance
-       // AvatarAppearance GetUserAppearance(UUID user);
-
-       // void UpdateUserAppearance(UUID user, AvatarAppearance appearance);
-
-       // void AddAttachment(UUID user, UUID attach);
-
-       // void RemoveAttachment(UUID user, UUID attach);
-
-       // List<UUID> GetAttachments(UUID user);
     }
 }

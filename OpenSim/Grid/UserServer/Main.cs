@@ -62,10 +62,12 @@ namespace OpenSim.Grid.UserServer
         protected UserServerFriendsModule m_friendsModule;
 
         public UserLoginService m_loginService;
-        public GridInfoService m_gridInfoService;
         public MessageServersConnector m_messagesService;
 
+        protected GridInfoServiceModule m_gridInfoService;
+
         protected UserServerCommandModule m_consoleCommandModule;
+        protected UserServerEventDispatchModule m_eventDispatcher;
 
         public static void Main(string[] args)
         {
@@ -97,62 +99,40 @@ namespace OpenSim.Grid.UserServer
 
         protected override void StartupSpecific()
         {
-            IInterServiceInventoryServices inventoryService = SetupRegisterCoreComponents();
+            IInterServiceInventoryServices inventoryService = StartupCoreComponents();
 
             m_stats = StatsManager.StartCollectingUserStats();
-
-            m_log.Info("[STARTUP]: Establishing data connection");
-            //setup database access service
-            m_userDataBaseService = new UserDataBaseService();
-            m_userDataBaseService.Initialise(this);
 
             //setup services/modules
             StartupUserServerModules();
 
             StartOtherComponents(inventoryService);
 
-            m_consoleCommandModule = new UserServerCommandModule(m_loginService);
-            m_consoleCommandModule.Initialise(this);
-
-            //register event handlers
-            RegisterEventHandlers();
-
             //PostInitialise the modules
-            m_consoleCommandModule.PostInitialise(); //it will register its Console command handlers in here
-            m_userDataBaseService.PostInitialise();
+            PostInitialiseModules();
 
             //register http handlers and start http server
             m_log.Info("[STARTUP]: Starting HTTP process");
             RegisterHttpHandlers();
             m_httpServer.Start();
-            
+
             base.StartupSpecific();
         }
 
-        private void StartOtherComponents(IInterServiceInventoryServices inventoryService)
-        {
-            m_gridInfoService = new GridInfoService();
-
-            StartupLoginService(inventoryService);
-            //
-            // Get the minimum defaultLevel to access to the grid
-            //
-            m_loginService.setloginlevel((int)Cfg.DefaultUserLevel);
-
-            m_messagesService = new MessageServersConnector();
-        }
-
-        private IInterServiceInventoryServices SetupRegisterCoreComponents()
+        protected virtual IInterServiceInventoryServices StartupCoreComponents()
         {
             Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
-
-            IInterServiceInventoryServices inventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
 
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
 
             RegisterInterface<ConsoleBase>(m_console);
             RegisterInterface<UserConfig>(Cfg);
+
+            IInterServiceInventoryServices inventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
+            // IRegionProfileService regionProfileService = new RegionProfileServiceProxy();
+
             RegisterInterface<IInterServiceInventoryServices>(inventoryService);
+            // RegisterInterface<IRegionProfileService>(regionProfileService);
 
             return inventoryService;
         }
@@ -163,9 +143,43 @@ namespace OpenSim.Grid.UserServer
         /// <param name="inventoryService"></param>
         protected virtual void StartupUserServerModules()
         {
+            m_log.Info("[STARTUP]: Establishing data connection");
+            //setup database access service, for now this has to be created before the other modules.
+            m_userDataBaseService = new UserDataBaseService();
+            m_userDataBaseService.Initialise(this);
+
+            //TODO: change these modules so they fetch the databaseService class in the PostInitialise method
             m_userManager = new UserManager(m_userDataBaseService);
+            m_userManager.Initialise(this);
+
             m_avatarAppearanceModule = new UserServerAvatarAppearanceModule(m_userDataBaseService);
+            m_avatarAppearanceModule.Initialise(this);
+
             m_friendsModule = new UserServerFriendsModule(m_userDataBaseService);
+            m_friendsModule.Initialise(this);
+
+            m_consoleCommandModule = new UserServerCommandModule();
+            m_consoleCommandModule.Initialise(this);
+
+            m_messagesService = new MessageServersConnector();
+            m_messagesService.Initialise(this);
+
+            m_gridInfoService = new GridInfoServiceModule();
+            m_gridInfoService.Initialise(this);
+        }
+
+        protected virtual void StartOtherComponents(IInterServiceInventoryServices inventoryService)
+        {
+            StartupLoginService(inventoryService);
+            //
+            // Get the minimum defaultLevel to access to the grid
+            //
+            m_loginService.setloginlevel((int)Cfg.DefaultUserLevel);
+
+            RegisterInterface<UserLoginService>(m_loginService); //TODO: should be done in the login service
+
+            m_eventDispatcher = new UserServerEventDispatchModule(m_userManager, m_messagesService, m_loginService);
+            m_eventDispatcher.Initialise(this);
         }
 
         /// <summary>
@@ -178,34 +192,32 @@ namespace OpenSim.Grid.UserServer
                 m_userDataBaseService, inventoryService, new LibraryRootFolder(Cfg.LibraryXmlfile), Cfg, Cfg.DefaultStartupMsg, new RegionProfileServiceProxy());
         }
 
-        protected virtual void RegisterEventHandlers()
+        protected virtual void PostInitialiseModules()
         {
-            m_loginService.OnUserLoggedInAtLocation += NotifyMessageServersUserLoggedInToLocation;
-            m_userManager.OnLogOffUser += NotifyMessageServersUserLoggOff;
-
-            m_messagesService.OnAgentLocation += HandleAgentLocation;
-            m_messagesService.OnAgentLeaving += HandleAgentLeaving;
-            m_messagesService.OnRegionStartup += HandleRegionStartup;
-            m_messagesService.OnRegionShutdown += HandleRegionShutdown;
+            m_consoleCommandModule.PostInitialise(); //it will register its Console command handlers in here
+            m_userDataBaseService.PostInitialise();
+            m_messagesService.PostInitialise();
+            m_eventDispatcher.PostInitialise(); //it will register event handlers in here
+            m_gridInfoService.PostInitialise();
+            m_userManager.PostInitialise();
+            m_avatarAppearanceModule.PostInitialise();
+            m_friendsModule.PostInitialise();
         }
 
         protected virtual void RegisterHttpHandlers()
         {
             m_loginService.RegisterHandlers(m_httpServer, Cfg.EnableLLSDLogin, true);
-           
+
             m_userManager.RegisterHandlers(m_httpServer);
             m_friendsModule.RegisterHandlers(m_httpServer);
             m_avatarAppearanceModule.RegisterHandlers(m_httpServer);
             m_messagesService.RegisterHandlers(m_httpServer);
-
-            m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info",
-                                                                m_gridInfoService.RestGetGridInfoMethod));
-            m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
+            m_gridInfoService.RegisterHandlers(m_httpServer);
         }
 
         public override void ShutdownSpecific()
         {
-            m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
+            m_eventDispatcher.Close();
         }
 
         #region IUGAIMCore
@@ -247,74 +259,11 @@ namespace OpenSim.Grid.UserServer
         {
             return m_httpServer;
         }
-
-     
-        #endregion
-        
-        #region Console Command Handlers
-      
-        protected override void ShowHelp(string[] helpArgs)
-        {
-            base.ShowHelp(helpArgs);
-        }
         #endregion
 
         public void TestResponse(List<InventoryFolderBase> resp)
         {
             m_console.Notice("response got");
         }
-
-        #region Event Handlers
-        public void NotifyMessageServersUserLoggOff(UUID agentID)
-        {
-            m_messagesService.TellMessageServersAboutUserLogoff(agentID);
-        }
-
-        public void NotifyMessageServersUserLoggedInToLocation(UUID agentID, UUID sessionID, UUID RegionID,
-                                                               ulong regionhandle, float positionX, float positionY,
-                                                               float positionZ, string firstname, string lastname)
-        {
-            m_messagesService.TellMessageServersAboutUser(agentID, sessionID, RegionID, regionhandle, positionX,
-                                                          positionY, positionZ, firstname, lastname);
-        }
-
-        public void HandleAgentLocation(UUID agentID, UUID regionID, ulong regionHandle)
-        {
-            m_userManager.HandleAgentLocation(agentID, regionID, regionHandle);
-        }
-
-        public void HandleAgentLeaving(UUID agentID, UUID regionID, ulong regionHandle)
-        {
-            m_userManager.HandleAgentLeaving(agentID, regionID, regionHandle);
-        }
-
-        public void HandleRegionStartup(UUID regionID)
-        {
-            // This might seem strange, that we send this back to the
-            // server it came from. But there is method to the madness.
-            // There can be multiple user servers on the same database,
-            // and each can have multiple messaging servers. So, we send
-            // it to all known user servers, who send it to all known
-            // message servers. That way, we should be able to finally
-            // update presence to all regions and thereby all friends
-            //
-            m_userManager.HandleRegionStartup(regionID);
-            m_messagesService.TellMessageServersAboutRegionShutdown(regionID);
-        }
-
-        public void HandleRegionShutdown(UUID regionID)
-        {
-            // This might seem strange, that we send this back to the
-            // server it came from. But there is method to the madness.
-            // There can be multiple user servers on the same database,
-            // and each can have multiple messaging servers. So, we send
-            // it to all known user servers, who send it to all known
-            // message servers. That way, we should be able to finally
-            // update presence to all regions and thereby all friends
-            //
-            m_userManager.HandleRegionShutdown(regionID);
-            m_messagesService.TellMessageServersAboutRegionShutdown(regionID);
-        }
-        #endregion
     }
 }

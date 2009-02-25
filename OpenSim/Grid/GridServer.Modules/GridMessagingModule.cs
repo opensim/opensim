@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -38,7 +38,7 @@ using OpenSim.Grid.Framework;
 
 namespace OpenSim.Grid.GridServer.Modules
 {
-    public class GridMessagingModule : IGridMessagingMapper
+    public class GridMessagingModule : IMessagingServerDiscovery
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -68,7 +68,7 @@ namespace OpenSim.Grid.GridServer.Modules
             m_gridCore = gridCore;
             m_config = config;
 
-            m_gridCore.RegisterInterface<IGridMessagingMapper>(this);
+            m_gridCore.RegisterInterface<IMessagingServerDiscovery>(this);
 
             RegisterHandlers();
         }

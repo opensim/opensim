@@ -51,7 +51,7 @@ namespace OpenSim.Grid.GridServer.Modules
 
         protected GridConfig m_config;
 
-        protected IGridMessagingMapper m_messagingServerMapper;
+        protected IMessagingServerDiscovery m_messagingServerMapper;
         /// <value>
         /// Used to notify old regions as to which OpenSim version to upgrade to
         /// </value>
@@ -80,8 +80,8 @@ namespace OpenSim.Grid.GridServer.Modules
 
         public void PostInitialise()
         {
-            IGridMessagingMapper messagingModule;
-            if (m_gridCore.TryGet<IGridMessagingMapper>(out messagingModule))
+            IMessagingServerDiscovery messagingModule;
+            if (m_gridCore.TryGet<IMessagingServerDiscovery>(out messagingModule))
             {
                 m_messagingServerMapper = messagingModule;
             }
