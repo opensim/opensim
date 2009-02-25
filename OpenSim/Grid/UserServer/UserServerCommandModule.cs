@@ -241,10 +241,12 @@ namespace OpenSim.Grid.UserServer
             m_userDataBaseService.ResetUserPassword(firstName, lastName, newPassword);
         }
 
+        /*
         private void HandleTestCommand(string module, string[] cmd)
         {
             m_log.Info("test command received");
         }
+        */
 
         private void HandleLoginCommand(string module, string[] cmd)
         {

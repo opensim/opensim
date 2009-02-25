@@ -42,7 +42,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
     /// </summary>
     public class PhysXPlugin : IPhysicsPlugin
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType); 
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType); 
         private PhysXScene _mScene;
 
         public PhysXPlugin()

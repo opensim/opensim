@@ -41,7 +41,7 @@ namespace OpenSim.Grid.UserServer.Modules
 {
     public class UserServerAvatarAppearanceModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private UserDataBaseService m_userDataBaseService;
         private BaseHttpServer m_httpServer;

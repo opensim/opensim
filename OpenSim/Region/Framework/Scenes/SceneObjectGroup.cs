@@ -426,7 +426,7 @@ namespace OpenSim.Region.Framework.Scenes
                 throw new Exception("This constructor must specify the xml is in OpenSim's original format");
 
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
-            int time = System.Environment.TickCount;
+            //int time = System.Environment.TickCount;
 
             // libomv.types changes UUID to Guid
             xmlData = xmlData.Replace("<UUID>", "<Guid>");
@@ -769,7 +769,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ToXml2(XmlTextWriter writer)
         {
             //m_log.DebugFormat("[SOG]: Starting serialization of SOG {0} to XML2", Name);
-            int time = System.Environment.TickCount;
+            //int time = System.Environment.TickCount;
 
             writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
             m_rootPart.ToXml(writer);

@@ -56,7 +56,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         protected LocalBackEndServices m_localBackend = new LocalBackEndServices();
 
-        private Dictionary<ulong, int> m_deadRegionCache = new Dictionary<ulong, int>();
+        //private Dictionary<ulong, int> m_deadRegionCache = new Dictionary<ulong, int>();
 
         public LocalBackEndServices LocalBackend
         {

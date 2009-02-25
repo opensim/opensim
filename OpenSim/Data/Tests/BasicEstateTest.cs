@@ -40,7 +40,7 @@ namespace OpenSim.Data.Tests
 {
     public class BasicEstateTest
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public IEstateDataStore db;
         public IRegionDataStore regionDb;
 

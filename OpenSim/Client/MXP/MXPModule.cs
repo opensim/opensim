@@ -41,7 +41,7 @@ namespace OpenSim.Client.MXP
     public class MXPModule : IRegionModule
     {
         private int mxp_Port = 1253;
-        private double mxp_BubbleRadius = 181.01933598375616624661615669884; // Radius of a sphere big enough to encapsulate a 256x256 square
+        //private double mxp_BubbleRadius = 181.01933598375616624661615669884; // Radius of a sphere big enough to encapsulate a 256x256 square
 
         private readonly Timer ticker = new Timer(100);
 

@@ -41,7 +41,7 @@ namespace OpenSim.Region.Communications.Hypergrid
 {
     public class HGGridServicesGridMode : HGGridServices
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Encapsulate remote backend services for manipulation of grid regions

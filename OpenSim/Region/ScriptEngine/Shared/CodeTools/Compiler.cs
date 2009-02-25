@@ -622,7 +622,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 fs.Read(data, 0, data.Length);
                 fs.Close();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 string errtext = String.Empty;
                 errtext += "No compile error. But not able to open file.";

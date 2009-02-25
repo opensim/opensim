@@ -122,11 +122,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event PacketStats OnPacketStats;
         public event PacketDrop OnPacketDrop;
 
-        private SynchronizeClientHandler m_SynchronizeClient = null;
+        
+        //private SynchronizeClientHandler m_SynchronizeClient = null;
 
         public SynchronizeClientHandler SynchronizeClient
         {
-            set { m_SynchronizeClient = value; }
+            set { /* m_SynchronizeClient = value; */ }
         }
 
         // Packet sequencing

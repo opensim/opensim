@@ -39,7 +39,7 @@ namespace OpenSim.Data.Tests
 {
     public class BasicGridTest
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public GridDataBase db;
         public UUID region1, region2, region3;
         public UUID zero = UUID.Zero;

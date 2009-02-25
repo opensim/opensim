@@ -42,7 +42,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
     public class BrowseFrontendPlugin : IAssetInventoryServerPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private AssetInventoryServer m_server;
+        //private AssetInventoryServer m_server;
 
         public BrowseFrontendPlugin()
         {
@@ -52,7 +52,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         public void Initialise(AssetInventoryServer server)
         {
-            m_server = server;
+            //m_server = server;
 
             // Request for / or /?...
             //m_server.HttpServer.AddStreamHandler(new BrowseRequestHandler(server));

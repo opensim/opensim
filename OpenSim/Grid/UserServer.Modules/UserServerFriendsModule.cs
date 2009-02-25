@@ -41,7 +41,7 @@ namespace OpenSim.Grid.UserServer.Modules
 {
     public class UserServerFriendsModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private UserDataBaseService m_userDataBaseService;
 

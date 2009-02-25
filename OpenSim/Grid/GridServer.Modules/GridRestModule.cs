@@ -53,7 +53,7 @@ namespace OpenSim.Grid.GridServer.Modules
         /// <value>
         /// Used to notify old regions as to which OpenSim version to upgrade to
         /// </value>
-        private string m_opensimVersion;
+        //private string m_opensimVersion;
 
         protected BaseHttpServer m_httpServer;
 
@@ -69,7 +69,7 @@ namespace OpenSim.Grid.GridServer.Modules
 
         public void Initialise(string opensimVersion, GridDBService gridDBService, IGridServiceCore gridCore, GridConfig config)
         {
-            m_opensimVersion = opensimVersion;
+            //m_opensimVersion = opensimVersion;
             m_gridDBService = gridDBService;
             m_gridCore = gridCore;
             m_config = config;

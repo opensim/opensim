@@ -42,7 +42,7 @@ namespace OpenSim.Data.Tests
 {
     public class BasicUserTest
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public IUserDataPlugin db;
         public UUID user1;
         public UUID user2;

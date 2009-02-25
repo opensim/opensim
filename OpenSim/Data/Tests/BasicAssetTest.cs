@@ -38,7 +38,7 @@ namespace OpenSim.Data.Tests
 {
     public class BasicAssetTest
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public AssetDataBase db;
         public UUID uuid1;
         public UUID uuid2;
