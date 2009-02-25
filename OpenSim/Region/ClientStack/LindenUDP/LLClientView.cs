@@ -1380,7 +1380,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Tell the client that the given neighbour region is ready to receive a child agent.
         /// </summary>
-        public void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourEndPoint)
+        public virtual void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourEndPoint)
         {
             IPAddress neighbourIP = neighbourEndPoint.Address;
             ushort neighbourPort = (ushort)neighbourEndPoint.Port;
@@ -1417,7 +1417,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return agentData;
         }
 
-        public void CrossRegion(ulong newRegionHandle, Vector3 pos, Vector3 lookAt, IPEndPoint externalIPEndPoint,
+        public virtual void CrossRegion(ulong newRegionHandle, Vector3 pos, Vector3 lookAt, IPEndPoint externalIPEndPoint,
                                 string capsURL)
         {
             Vector3 look = new Vector3(lookAt.X * 10, lookAt.Y * 10, lookAt.Z * 10);
@@ -1507,7 +1507,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(tpLocal, ThrottleOutPacketType.Unknown);
         }
 
-        public void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID,
+        public virtual void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint newRegionEndPoint, uint locationID,
                                        uint flags, string capsURL)
         {
             //TeleportFinishPacket teleport = (TeleportFinishPacket)PacketPool.Instance.GetPacket(PacketType.TeleportFinish);
