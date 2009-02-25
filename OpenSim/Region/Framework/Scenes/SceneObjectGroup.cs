@@ -1991,14 +1991,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="objectGroup">The group of prims which should be linked to this group</param>
         public void LinkToGroup(SceneObjectGroup objectGroup)
         {
+            // Make sure we have sent any pending unlinks or stuff.
             if (objectGroup.RootPart.UpdateFlag > 0)
             {
-                // I've never actually seen this happen, though I think it's theoretically possible
                 m_log.WarnFormat(
-                    "[SCENE OBJECT GROUP]: Aborted linking {0}, {1} to {2}, {3} as it has yet to finish delinking",
+                    "[SCENE OBJECT GROUP]: Forcing send of linkset {0}, {1} to {2}, {3} as its still waiting.",
                     objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
 
-                return;
+                objectGroup.RootPart.SendScheduledUpdates();
             }
 
 //            m_log.DebugFormat(
