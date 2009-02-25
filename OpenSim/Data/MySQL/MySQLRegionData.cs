@@ -441,10 +441,6 @@ namespace OpenSim.Data.MySQL
                         else
                             prim.Shape = BuildShape(reader);
 
-                        prim.FolderID = prim.UUID; // A relic from when we
-                                                   // we thought prims contained
-                                                   // folder objects. In
-                                                   // reality, prim == folder
                         prims.Add(prim);
 
                         UUID groupID = new UUID(reader["SceneGroupID"].ToString());

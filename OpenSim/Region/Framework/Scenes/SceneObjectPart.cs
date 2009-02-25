@@ -375,13 +375,15 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// A relic from when we we thought that prims contained folder objects. In 
+        /// reality, prim == folder  
         /// Exposing this is not particularly good, but it's one of the least evils at the moment to see
         /// folder id from prim inventory item data, since it's not (yet) actually stored with the prim.
         /// </summary>
         public UUID FolderID
         {
             get { return UUID; }
-            set { } // Don't allow assignment, or legacy prims wil b0rk
+            set { } // Don't allow assignment, or legacy prims wil b0rk - but we need the setter for legacy serialization.
         }
 
         /// <value>

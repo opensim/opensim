@@ -122,10 +122,7 @@ namespace OpenSim.Data.MSSQL
                             sceneObjectPart.Shape = PrimitiveBaseShape.Default;
                         else
                             sceneObjectPart.Shape = BuildShape(reader);
-
-                        // A relic from when we we thought that prims contained folder objects. In 
-                        // reality, prim == folder                        
-                        sceneObjectPart.FolderID = sceneObjectPart.UUID; 
+                        
                         sceneObjectParts.Add(sceneObjectPart);
 
                         UUID groupID = new UUID((Guid)reader["SceneGroupID"]);
