@@ -38,6 +38,7 @@ using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using Packet=OpenMetaverse.Packets.Packet;
+using MXP.Extentions.OpenMetaverseFragments.Proto;
 
 namespace OpenSim.Client.MXP.ClientStack
 {
@@ -586,43 +587,128 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, Vector3 pos, Vector3 vel, Vector3 acc, Quaternion rotation, Vector3 rvel, uint flags, UUID objectID, UUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem, byte clickAction, byte material, byte[] textureanim, bool attachment, uint AttachPoint, UUID AssetId, UUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius)
         {
-            MXPSendPrimitive(localID, ownerID, acc, rvel, primShape, pos, objectID, vel, rotation);
+            MXPSendPrimitive(localID, ownerID, acc, rvel, primShape, pos, objectID, vel, rotation, flags,text,color,parentID,particleSystem,clickAction,material,textureanim);
         }
 
-        private void MXPSendPrimitive(uint localID, UUID ownerID, Vector3 acc, Vector3 rvel, PrimitiveBaseShape primShape, Vector3 pos, UUID objectID, Vector3 vel, Quaternion rotation)
+        private void MXPSendPrimitive(uint localID, UUID ownerID, Vector3 acc, Vector3 rvel, PrimitiveBaseShape primShape, Vector3 pos, UUID objectID, Vector3 vel, Quaternion rotation, uint flags, string text, byte[] textColor, uint parentID, byte[] particleSystem, byte clickAction, byte material, byte[] textureanim)
         {
-            m_log.Info("[MXP] Transmitting Primitive");   
+            String typeName = PCodeToString(primShape.PCode);
+            m_log.Info("[MXP] Transmitting Primitive" + typeName);   
 
             PerceptionEventMessage pe = new PerceptionEventMessage();
 
+            pe.ObjectFragment.ObjectId = objectID.Guid;
+            // TODO Resolve ParentID
+            pe.ObjectFragment.ParentObjectId = Guid.Empty;
             pe.ObjectFragment.ObjectIndex = localID;
-            pe.ObjectFragment.ObjectName = "Object";
+            pe.ObjectFragment.ObjectName = typeName + " Object";
             pe.ObjectFragment.OwnerId = ownerID.Guid;
             pe.ObjectFragment.TypeId = Guid.Empty;
-
+            pe.ObjectFragment.TypeName = typeName;
             pe.ObjectFragment.Acceleration = new float[] { acc.X, acc.Y, acc.Z };
             pe.ObjectFragment.AngularAcceleration = new float[4];
             pe.ObjectFragment.AngularVelocity = new float[] { rvel.X, rvel.Y, rvel.Z, 0.0f };
-            pe.ObjectFragment.BoundingSphereRadius = primShape.Scale.Length()/2.0f;
+            pe.ObjectFragment.BoundingSphereRadius = primShape.Scale.Length();
 
             pe.ObjectFragment.Location = new float[] { pos.X - 120.0f, pos.Z, pos.Y - 128.0f };
 
             pe.ObjectFragment.Mass = 1.0f;
-            pe.ObjectFragment.ObjectId = objectID.Guid;
             pe.ObjectFragment.Orientation = new float[] { rotation.X, rotation.Y, rotation.Z, rotation.W };
-            pe.ObjectFragment.ParentObjectId = Guid.Empty;
             pe.ObjectFragment.Velocity = new float[] { vel.X, vel.Y, vel.Z };
 
-            pe.ObjectFragment.StatePayloadDialect = "";
-            pe.ObjectFragment.StatePayloadLength = 0;
-            pe.ObjectFragment.SetStatePayloadData(new byte[0]);
+            if (!((primShape.PCode == (byte)PCode.NewTree) || (primShape.PCode == (byte)PCode.Tree) || (primShape.PCode == (byte)PCode.Grass)))
+            {
+                ObjectExtFragment ext = new ObjectExtFragment();
+                ext.UpdateFlags = flags;
+
+                ext.TextureEntry = primShape.TextureEntry;
+                ext.TextureAnim = textureanim;
+                ext.State = primShape.State;
+                ext.PathBegin = primShape.PathBegin;
+                ext.PathEnd = primShape.PathEnd;
+                ext.PathScaleX = primShape.PathScaleX;
+                ext.PathScaleY = primShape.PathScaleY;
+                ext.PathShearX = primShape.PathShearX;
+                ext.PathShearY = primShape.PathShearY;
+                ext.PathSkew = primShape.PathSkew;
+                ext.ProfileBegin = primShape.ProfileBegin;
+                ext.ProfileEnd = primShape.ProfileEnd;
+                ext.Scale = EncodeVector(primShape.Scale);
+                ext.PathCurve = primShape.PathCurve;
+                ext.ProfileCurve = primShape.ProfileCurve;
+                ext.ProfileHollow = primShape.ProfileHollow;
+                ext.PathRadiusOffset = primShape.PathRadiusOffset;
+                ext.PathRevolutions = primShape.PathRevolutions;
+                ext.PathTaperX = primShape.PathTaperX;
+                ext.PathTaperY = primShape.PathTaperY;
+                ext.PathTwist = primShape.PathTwist;
+                ext.PathTwistBegin = primShape.PathTwistBegin;
+                ext.ExtraParams = primShape.ExtraParams;
+
+                ext.Text = text;
+                ext.TextColor = EncodeColor(textColor);
+                ext.PSBlock = particleSystem;
+                ext.ClickAction = clickAction;
+                ext.Material = material;
+
+                pe.SetExtension<ObjectExtFragment>(ext);
+
+            }
 
             Session.Send(pe);
         }
 
+        private vectorf EncodeVector(Vector3 value)
+        {
+            vectorf encodedValue=new vectorf();
+            encodedValue.X=value.X;
+            encodedValue.Y=value.Y;
+            encodedValue.Z=value.Z;
+            return encodedValue;
+        }
+
+        private color EncodeColor(byte[] value)
+        {
+            color encodedValue = new color();
+            encodedValue.R = value[0];
+            encodedValue.G = value[1];
+            encodedValue.B = value[2];
+            encodedValue.A = value[3];
+            return encodedValue;
+        }
+
+        private string PCodeToString(byte value)
+        {
+            if(value==(byte)PCodeEnum.Avatar)
+            {
+                return "Avatar";
+            }
+            if (value == (byte)PCodeEnum.Grass)
+            {
+                return "Grass";
+            }
+            if (value == (byte)PCodeEnum.NewTree)
+            {
+                return "NewTree";
+            }
+            if (value == (byte)PCodeEnum.ParticleSystem)
+            {
+                return "ParticleSystem";
+            }
+            if (value == (byte)PCodeEnum.Primitive)
+            {
+                return "Primitive";
+            }
+            if (value == (byte)PCodeEnum.Tree)
+            {
+                return "Tree";
+            }
+            throw new Exception("Unsupported PCode value: "+value);
+        }
+
         public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, Vector3 pos, Vector3 vel, Vector3 acc, Quaternion rotation, Vector3 rvel, uint flags, UUID objectID, UUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem, byte clickAction, byte material)
         {
-            MXPSendPrimitive(localID, ownerID, acc, rvel, primShape, pos, objectID, vel, rotation);
+            MXPSendPrimitive(localID, ownerID, acc, rvel, primShape, pos, objectID, vel, rotation, flags, text, color, parentID, particleSystem, clickAction, material, new byte[0]);
         }
 
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 rotationalvelocity, byte state, UUID AssetId, UUID owner, int attachPoint)

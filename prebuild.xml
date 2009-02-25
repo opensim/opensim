@@ -1662,7 +1662,8 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
-	  <Reference name="MXP.dll"/>
+      <Reference name="protobuf-net"/>
+      <Reference name="MXP.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
