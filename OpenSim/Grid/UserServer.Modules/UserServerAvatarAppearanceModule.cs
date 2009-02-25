@@ -51,7 +51,7 @@ namespace OpenSim.Grid.UserServer.Modules
             m_userDataBaseService = userDataBaseService;
         }
 
-        public void Initialise(IUGAIMCore core)
+        public void Initialise(IGridServiceCore core)
         {
 
         }

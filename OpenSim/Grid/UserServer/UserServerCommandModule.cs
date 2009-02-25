@@ -57,13 +57,13 @@ namespace OpenSim.Grid.UserServer
 
         protected UUID m_lastCreatedUser = UUID.Random();
 
-        protected IUGAIMCore m_core;
+        protected IGridServiceCore m_core;
 
         public UserServerCommandModule()
         {
         }
 
-        public void Initialise(IUGAIMCore core)
+        public void Initialise(IGridServiceCore core)
         {
             m_core = core;
         }

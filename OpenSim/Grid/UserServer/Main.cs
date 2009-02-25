@@ -48,7 +48,7 @@ namespace OpenSim.Grid.UserServer
     /// <summary>
     /// Grid user server main class
     /// </summary>
-    public class OpenUser_Main : BaseOpenSimServer, IUGAIMCore
+    public class OpenUser_Main : BaseOpenSimServer, IGridServiceCore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -128,6 +128,7 @@ namespace OpenSim.Grid.UserServer
             RegisterInterface<ConsoleBase>(m_console);
             RegisterInterface<UserConfig>(Cfg);
 
+            //Should be in modules?
             IInterServiceInventoryServices inventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
             // IRegionProfileService regionProfileService = new RegionProfileServiceProxy();
 

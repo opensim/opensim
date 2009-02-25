@@ -60,7 +60,7 @@ namespace OpenSim.Grid.UserServer
             m_loginService = loginService;
         }
 
-        public void Initialise(IUGAIMCore core)
+        public void Initialise(IGridServiceCore core)
         {
         }
 

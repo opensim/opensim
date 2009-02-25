@@ -43,7 +43,7 @@ namespace OpenSim.Grid.GridServer.Modules
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected GridDBService m_gridDBService;
-        protected IUGAIMCore m_gridCore;
+        protected IGridServiceCore m_gridCore;
 
         protected GridConfig m_config;
 
@@ -61,7 +61,7 @@ namespace OpenSim.Grid.GridServer.Modules
         { 
         }
 
-        public void Initialise(string opensimVersion, GridDBService gridDBService, IUGAIMCore gridCore, GridConfig config)
+        public void Initialise(string opensimVersion, GridDBService gridDBService, IGridServiceCore gridCore, GridConfig config)
         {
             m_opensimVersion = opensimVersion;
             m_gridDBService = gridDBService;

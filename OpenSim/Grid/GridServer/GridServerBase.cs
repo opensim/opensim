@@ -41,7 +41,7 @@ namespace OpenSim.Grid.GridServer
 {
     /// <summary>
     /// </summary>
-    public class GridServerBase : BaseOpenSimServer, IUGAIMCore
+    public class GridServerBase : BaseOpenSimServer, IGridServiceCore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

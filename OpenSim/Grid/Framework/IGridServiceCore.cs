@@ -9,7 +9,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSim Project nor the
+ *     * Neither the name of the OpenSimulator Project nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
@@ -26,52 +26,15 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using log4net;
-using log4net.Config;
-using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
-using OpenSim.Grid.Communications.OGS1;
-using OpenSim.Grid.Framework;
 
-namespace OpenSim.Grid.UserServer.Modules
+namespace OpenSim.Grid.Framework
 {
-    public class GridInfoServiceModule
+    public interface IGridServiceCore
     {
-        protected IGridServiceCore m_core;
-        protected GridInfoService m_gridInfoService;
-        protected BaseHttpServer m_httpServer;
-
-        public GridInfoServiceModule()
-        {
-        }
-
-        public void Initialise(IGridServiceCore core)
-        {
-            m_core = core;
-            m_gridInfoService = new GridInfoService();
-        }
-
-        public void PostInitialise()
-        {
-
-        }
-
-        public void RegisterHandlers(BaseHttpServer httpServer)
-        {
-            m_httpServer = httpServer;
-            m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info",
-                                                               m_gridInfoService.RestGetGridInfoMethod));
-            m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
-        }
-
-        public void Close()
-        {
-        }
+        T Get<T>();
+        void RegisterInterface<T>(T iface);
+        bool TryGet<T>(out T iface);
+        BaseHttpServer GetHttpServer();
     }
 }

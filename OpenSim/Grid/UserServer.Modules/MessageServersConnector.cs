@@ -79,7 +79,7 @@ namespace OpenSim.Grid.UserServer.Modules
 
         Thread m_NotifyThread;
 
-        private IUGAIMCore m_core;
+        private IGridServiceCore m_core;
 
         public event AgentLocationDelegate OnAgentLocation;
         public event AgentLeavingDelegate OnAgentLeaving;
@@ -91,7 +91,7 @@ namespace OpenSim.Grid.UserServer.Modules
             MessageServers = new Dictionary<string, MessageServerInfo>();
         }
 
-        public void Initialise(IUGAIMCore core)
+        public void Initialise(IGridServiceCore core)
         {
             m_core = core;
             m_core.RegisterInterface<MessageServersConnector>(this);

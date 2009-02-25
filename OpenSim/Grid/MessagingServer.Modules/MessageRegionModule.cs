@@ -50,12 +50,12 @@ namespace OpenSim.Grid.MessagingServer.Modules
 
         private IMessageUserServerService m_userServerModule;
 
-        private IUGAIMCore m_messageCore;
+        private IGridServiceCore m_messageCore;
 
         // a dictionary of all current regions this server knows about
         private Dictionary<ulong, RegionProfileData> m_regionInfoCache = new Dictionary<ulong, RegionProfileData>();
 
-        public MessageRegionModule(MessageServerConfig config, IUGAIMCore messageCore)
+        public MessageRegionModule(MessageServerConfig config, IGridServiceCore messageCore)
         {
             m_cfg = config;
             m_messageCore = messageCore;

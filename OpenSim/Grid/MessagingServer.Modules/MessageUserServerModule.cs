@@ -48,11 +48,11 @@ namespace OpenSim.Grid.MessagingServer.Modules
 
         private MessageServerConfig m_cfg;
 
-        private IUGAIMCore m_messageCore;
+        private IGridServiceCore m_messageCore;
 
         private Timer reconnectTimer = new Timer(300000); // 5 mins
 
-        public MessageUserServerModule(MessageServerConfig config, IUGAIMCore messageCore)
+        public MessageUserServerModule(MessageServerConfig config, IGridServiceCore messageCore)
         {
             m_cfg = config;
             m_messageCore = messageCore;

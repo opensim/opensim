@@ -41,7 +41,7 @@ namespace OpenSim.Grid.MessagingServer
 {
     /// <summary>
     /// </summary>
-    public class OpenMessage_Main : BaseOpenSimServer , IUGAIMCore
+    public class OpenMessage_Main : BaseOpenSimServer , IGridServiceCore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

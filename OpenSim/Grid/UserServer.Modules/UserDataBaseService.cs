@@ -41,7 +41,7 @@ namespace OpenSim.Grid.UserServer.Modules
 {
     public class UserDataBaseService : UserManagerBase
     {
-        protected IUGAIMCore m_core;
+        protected IGridServiceCore m_core;
 
         public UserDataBaseService()
             : base(null)
@@ -53,7 +53,7 @@ namespace OpenSim.Grid.UserServer.Modules
         {
         }
 
-        public void Initialise(IUGAIMCore core)
+        public void Initialise(IGridServiceCore core)
         {
             m_core = core;
 
