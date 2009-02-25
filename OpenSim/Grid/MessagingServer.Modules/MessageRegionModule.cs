@@ -48,7 +48,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
 
         private MessageServerConfig m_cfg;
 
-        private IMessageUserServerService m_userServerModule;
+        private IInterServiceUserService m_userServerModule;
 
         private IGridServiceCore m_messageCore;
 
@@ -68,8 +68,8 @@ namespace OpenSim.Grid.MessagingServer.Modules
 
         public void PostInitialise()
         {
-            IMessageUserServerService messageUserServer;
-            if (m_messageCore.TryGet<IMessageUserServerService>(out messageUserServer))
+            IInterServiceUserService messageUserServer;
+            if (m_messageCore.TryGet<IInterServiceUserService>(out messageUserServer))
             {
                 m_userServerModule = messageUserServer;
             }
