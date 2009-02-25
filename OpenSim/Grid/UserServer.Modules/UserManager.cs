@@ -248,6 +248,9 @@ namespace OpenSim.Grid.UserServer.Modules
             {
                 string query = (string) requestData["avatar_name"];
 
+                if (null == query)
+                    return CreateUnknownUserErrorResponse();
+
                 // Regex objAlphaNumericPattern = new Regex("[^a-zA-Z0-9]");
 
                 string[] querysplit = query.Split(' ');

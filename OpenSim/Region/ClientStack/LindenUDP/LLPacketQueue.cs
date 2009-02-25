@@ -69,18 +69,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // This value also determines how many times per throttletimems the timer will run
         // If throttleimems is 1000 ms, then the timer will fire every 1000/7 milliseconds
 
+        private float throttleMultiplier = 2.0f; // Default value really doesn't matter.
         private int throttleTimeDivisor = 7;
 
         private int throttletimems = 1000;
 
-        private LLPacketThrottle ResendThrottle;
-        private LLPacketThrottle LandThrottle;
-        private LLPacketThrottle WindThrottle;
-        private LLPacketThrottle CloudThrottle;
-        private LLPacketThrottle TaskThrottle;
-        private LLPacketThrottle AssetThrottle;
-        private LLPacketThrottle TextureThrottle;
-        private LLPacketThrottle TotalThrottle;
+        internal LLPacketThrottle ResendThrottle;
+        internal LLPacketThrottle LandThrottle;
+        internal LLPacketThrottle WindThrottle;
+        internal LLPacketThrottle CloudThrottle;
+        internal LLPacketThrottle TaskThrottle;
+        internal LLPacketThrottle AssetThrottle;
+        internal LLPacketThrottle TextureThrottle;
+        internal LLPacketThrottle TotalThrottle;
 
         // private long LastThrottle;
         // private long ThrottleInterval;
@@ -107,6 +108,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TaskLowpriorityPacketQueue = new Queue<LLQueItem>();
             TextureOutgoingPacketQueue = new Queue<LLQueItem>();
             AssetOutgoingPacketQueue = new Queue<LLQueItem>();
+
+            // Store the throttle multiplier for posterity.
+            throttleMultiplier = userSettings.ClientThrottleMultipler;
 
             // Set up the throttle classes (min, max, current) in bits per second
             ResendThrottle =    new LLPacketThrottle(5000, 100000, 16000, userSettings.ClientThrottleMultipler);
@@ -623,6 +627,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public LLQueItem[] GetQueueArray()
         {
             return SendQueue.GetQueueArray();
+        }
+
+        public float ThrottleMultiplier
+        {
+            get { return throttleMultiplier; }
         }
     }
 }

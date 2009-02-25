@@ -25,11 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    [Serializable]
     public class AnimationSet
     {
         public static AvatarAnimations Animations = new AvatarAnimations();

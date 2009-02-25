@@ -2048,17 +2048,22 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
-            m_perfMonMS = System.Environment.TickCount;
+            // If the client is inactive, it's getting its updates from another
+            // server.
+            if (remoteClient.IsActive)
+            {
+                m_perfMonMS = System.Environment.TickCount;
 
-            Vector3 pos = m_pos;
-            Vector3 vel = Velocity;
-            Quaternion rot = m_bodyRot;
-            pos.Z -= m_appearance.HipOffset;
-            remoteClient.SendAvatarTerseUpdate(m_regionHandle, (ushort)(m_scene.TimeDilation * (float)ushort.MaxValue), LocalId, new Vector3(pos.X, pos.Y, pos.Z),
-                                               new Vector3(vel.X, vel.Y, vel.Z), rot);
+                Vector3 pos = m_pos;
+                Vector3 vel = Velocity;
+                Quaternion rot = m_bodyRot;
+                pos.Z -= m_appearance.HipOffset;
+                remoteClient.SendAvatarTerseUpdate(m_regionHandle, (ushort)(m_scene.TimeDilation * (float)ushort.MaxValue), LocalId, new Vector3(pos.X, pos.Y, pos.Z),
+                                                   new Vector3(vel.X, vel.Y, vel.Z), rot);
 
-            m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
-            m_scene.AddAgentUpdates(1);
+                m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
+                m_scene.AddAgentUpdates(1);
+            }
         }
 
         /// <summary>

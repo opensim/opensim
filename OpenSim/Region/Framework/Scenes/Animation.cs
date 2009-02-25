@@ -25,11 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    [Serializable]
     public class Animation
     {
         private UUID animID;

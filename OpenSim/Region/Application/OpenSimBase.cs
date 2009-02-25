@@ -561,8 +561,12 @@ namespace OpenSim
         {
             int port = regionInfo.InternalEndPoint.Port;
 
-            // set initial originRegionID to RegionID in RegionInfo. (it needs for loding prims)
-            regionInfo.originRegionID = regionInfo.RegionID;
+            // set initial RegionID to originRegionID in RegionInfo. (it needs for loding prims)
+            // Commented this out because otherwise regions can't register with
+            // the grid as there is already another region with the same UUID
+            // at those coordinates. This is required for the load balancer to work.
+            // --Mike, 2009.02.25
+            //regionInfo.originRegionID = regionInfo.RegionID;
 
             // set initial ServerURI
             regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.InternalEndPoint.Port;

@@ -2584,6 +2584,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendCoarseLocationUpdate(List<Vector3> CoarseLocations)
         {
+            if (!IsActive) return; // We don't need to update inactive clients.
+
             CoarseLocationUpdatePacket loc = (CoarseLocationUpdatePacket)PacketPool.Instance.GetPacket(PacketType.CoarseLocationUpdate);
             // TODO: don't create new blocks if recycling an old packet
             int total = CoarseLocations.Count;

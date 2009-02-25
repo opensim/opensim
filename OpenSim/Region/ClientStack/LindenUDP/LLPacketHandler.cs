@@ -196,13 +196,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // configuration!
             //
 
-            if ((m_SynchronizeClient != null) && (!m_Client.IsActive))
-            {
-                if (m_SynchronizeClient(m_Client.Scene, packet,
-                                        m_Client.AgentId, throttlePacketType))
-                    return;
-            }
-
             packet.Header.Sequence = 0;
 
             lock (m_NeedAck)
@@ -480,26 +473,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet == null)
                 return;
 
-            // If this client is on another partial instance, no need
-            // to handle packets
-            //
-            if (!m_Client.IsActive && packet.Type != PacketType.LogoutRequest)
-            {
-                PacketPool.Instance.ReturnPacket(packet);
-                return;
-            }
-
-            // Any packet can have some packet acks in the header.
-            // Process them here
-            //
-            if (packet.Header.AppendedAcks)
-            {
-                foreach (uint id in packet.Header.AckList)
-                {
-                    ProcessAck(id);
-                }
-            }
-
             // When too many acks are needed to be sent, the client sends
             // a packet consisting of acks only
             //
@@ -516,10 +489,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 PacketPool.Instance.ReturnPacket(packet);
                 return;
             }
-            else if (packet.Type == PacketType.StartPingCheck)
+
+            // Any packet can have some packet acks in the header.
+            // Process them here
+            //
+            if (packet.Header.AppendedAcks)
+            {
+                foreach (uint id in packet.Header.AckList)
+                {
+                    ProcessAck(id);
+                }
+            }
+
+            // If this client is on another partial instance, no need
+            // to handle packets
+            //
+            if (!m_Client.IsActive && packet.Type != PacketType.LogoutRequest)
+            {
+                PacketPool.Instance.ReturnPacket(packet);
+                return;
+            }
+
+            if (packet.Type == PacketType.StartPingCheck)
             {
                 StartPingCheckPacket startPing = (StartPingCheckPacket)packet;
-                CompletePingCheckPacket endPing 
+                CompletePingCheckPacket endPing
                     = (CompletePingCheckPacket)PacketPool.Instance.GetPacket(PacketType.CompletePingCheck);
 
                 endPing.PingID.PingID = startPing.PingID.PingID;
@@ -639,6 +633,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             info.sequence = m_Sequence;
 
+            float multiplier = m_PacketQueue.ThrottleMultiplier;
+            info.resendThrottle = (int) (m_PacketQueue.ResendThrottle.Throttle / multiplier);
+            info.landThrottle = (int) (m_PacketQueue.LandThrottle.Throttle / multiplier);
+            info.windThrottle = (int) (m_PacketQueue.WindThrottle.Throttle / multiplier);
+            info.cloudThrottle = (int) (m_PacketQueue.CloudThrottle.Throttle / multiplier);
+            info.taskThrottle = (int) (m_PacketQueue.TaskThrottle.Throttle / multiplier);
+            info.assetThrottle = (int) (m_PacketQueue.AssetThrottle.Throttle / multiplier);
+            info.textureThrottle = (int) (m_PacketQueue.TextureThrottle.Throttle / multiplier);
+            info.totalThrottle = (int) (m_PacketQueue.TotalThrottle.Throttle / multiplier);
+
             return info;
         }
 
@@ -676,6 +680,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             m_Sequence = info.sequence;
+
+            m_PacketQueue.ResendThrottle.Throttle = info.resendThrottle;
+            m_PacketQueue.LandThrottle.Throttle = info.landThrottle;
+            m_PacketQueue.WindThrottle.Throttle = info.windThrottle;
+            m_PacketQueue.CloudThrottle.Throttle = info.cloudThrottle;
+            m_PacketQueue.TaskThrottle.Throttle = info.taskThrottle;
+            m_PacketQueue.AssetThrottle.Throttle = info.assetThrottle;
+            m_PacketQueue.TextureThrottle.Throttle = info.textureThrottle;
+            m_PacketQueue.TotalThrottle.Throttle = info.totalThrottle;
         }
 
         public void AddImportantPacket(PacketType type)

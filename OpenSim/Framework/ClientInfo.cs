@@ -45,5 +45,14 @@ namespace OpenSim.Framework
         public uint sequence;
         public byte[] usecircuit;
         public EndPoint userEP;
+
+        public int resendThrottle;
+        public int landThrottle;
+        public int windThrottle;
+        public int cloudThrottle;
+        public int taskThrottle;
+        public int assetThrottle;
+        public int textureThrottle;
+        public int totalThrottle;
     }
 }
