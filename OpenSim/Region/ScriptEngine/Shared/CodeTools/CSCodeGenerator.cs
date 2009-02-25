@@ -87,6 +87,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// <returns>String containing the generated C# code.</returns>
         public string Convert(string script)
         {
+            m_warnings.Clear();
             ResetCounters();
             Parser p = new LSLSyntax(new yyLSLSyntax(), new ErrorHandler(true));
             // Obviously this needs to be in a try/except block.

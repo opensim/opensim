@@ -261,6 +261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         public string PerformScriptCompile(string Script, string asset)
         {
             m_positionMap = null;
+            m_warnings.Clear();
                 
             string OutFile = Path.Combine(ScriptEnginesPath, Path.Combine(
                     m_scriptEngine.World.RegionInfo.RegionID.ToString(),
