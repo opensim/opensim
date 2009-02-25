@@ -495,7 +495,7 @@ namespace OpenSim
 
                     PluginInitialiserBase init = new AssetCachePluginInitialiser(m_configSettings, assetServer);
                     PluginLoader<IAssetCache> loader = new PluginLoader<IAssetCache>(init);
-                    loader.AddFilter(PLUGIN_ASSET_SERVER_CLIENT, new PluginProviderFilter(m_configSettings.AssetCache));
+                    loader.AddFilter(PLUGIN_ASSET_CACHE, new PluginProviderFilter(m_configSettings.AssetCache));
 
                     loader.Load(PLUGIN_ASSET_CACHE);
                    if (loader.Plugins.Count > 0)
