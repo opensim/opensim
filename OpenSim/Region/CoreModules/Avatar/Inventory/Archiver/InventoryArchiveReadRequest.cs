@@ -77,7 +77,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             this.commsManager = commsManager;
         }        
 
-        protected InventoryItemBase loadInvItem(string path, string contents)
+        protected InventoryItemBase LoadInvItem(string path, string contents)
         {
             InventoryItemBase item = new InventoryItemBase();
             StringReader sr = new StringReader(contents);
@@ -202,16 +202,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (entryType == TarArchiveReader.TarEntryType.TYPE_DIRECTORY) {
                     m_log.WarnFormat("[INVENTORY ARCHIVER]: Ignoring directory entry {0}", filePath);
                 } 
-                else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                else if (filePath.StartsWith(InventoryArchiveConstants.ASSETS_PATH))
                 {
                     if (LoadAsset(filePath, data))
                         successfulAssetRestores++;
                     else
                         failedAssetRestores++;
                 }
-                else
+                else if (filePath.StartsWith(InventoryArchiveConstants.INVENTORY_PATH))
                 {
-                    InventoryItemBase item = loadInvItem(filePath, m_asciiEncoding.GetString(data));
+                    InventoryItemBase item = LoadInvItem(filePath, m_asciiEncoding.GetString(data));
 
                     if (item != null)
                     {
@@ -251,14 +251,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             //IRegionSerialiser serialiser = scene.RequestModuleInterface<IRegionSerialiser>();
             // Right now we're nastily obtaining the UUID from the filename
-            string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
-            int i = filename.LastIndexOf(ArchiveConstants.ASSET_EXTENSION_SEPARATOR);
+            string filename = assetPath.Remove(0, InventoryArchiveConstants.ASSETS_PATH.Length);
+            int i = filename.LastIndexOf(InventoryArchiveConstants.ASSET_EXTENSION_SEPARATOR);
 
             if (i == -1)
             {
                 m_log.ErrorFormat(
                    "[INVENTORY ARCHIVER]: Could not find extension information in asset path {0} since it's missing the separator {1}.  Skipping",
-                    assetPath, ArchiveConstants.ASSET_EXTENSION_SEPARATOR);
+                    assetPath, InventoryArchiveConstants.ASSET_EXTENSION_SEPARATOR);
 
                 return false;
             }
@@ -266,9 +266,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string extension = filename.Substring(i);
             string uuid = filename.Remove(filename.Length - extension.Length);
 
-            if (ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
+            if (InventoryArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
             {
-                sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
+                sbyte assetType = InventoryArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
 
                 m_log.DebugFormat("[INVENTORY ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 

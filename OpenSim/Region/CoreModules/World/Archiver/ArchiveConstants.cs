@@ -46,11 +46,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public static readonly string ASSETS_PATH = "assets/";
 
         /// <summary>
-        /// Path for the assets metadata file
-        /// </summary>
-        //public static readonly string ASSETS_METADATA_PATH = "assets.xml";
-
-        /// <summary>
         /// Path for the prims file
         /// </summary>
         public static readonly string OBJECTS_PATH = "objects/";

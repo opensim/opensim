@@ -280,7 +280,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     inventoryFolder.Name, inventoryFolder.ID, m_invPath);
                 
                 //recurse through all dirs getting dirs and files
-                saveInvDir(inventoryFolder, "");
+                saveInvDir(inventoryFolder, InventoryArchiveConstants.INVENTORY_PATH);
             }
 
             new AssetsRequest(assetUuids.Keys, m_module.CommsManager.AssetCache, ReceivedAllAssets).Execute();
