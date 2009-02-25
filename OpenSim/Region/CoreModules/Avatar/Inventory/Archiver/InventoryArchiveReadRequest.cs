@@ -77,7 +77,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             this.commsManager = commsManager;
         }        
 
-        protected InventoryItemBase LoadInvItem(string path, string contents)
+        protected InventoryItemBase LoadInvItem(string contents)
         {
             InventoryItemBase item = new InventoryItemBase();
             StringReader sr = new StringReader(contents);
@@ -183,9 +183,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 }
             }
 
-            InventoryFolderImpl inventoryFolder = m_userInfo.RootFolder.FindFolderByPath(m_invPath);
+            InventoryFolderImpl rootDestinationFolder = m_userInfo.RootFolder.FindFolderByPath(m_invPath);
 
-            if (null == inventoryFolder)
+            if (null == rootDestinationFolder)
             {
                 // TODO: Later on, automatically create this folder if it does not exist
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: Inventory path {0} does not exist", m_invPath);
@@ -199,7 +199,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             TarArchiveReader.TarEntryType entryType;
             while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
             {
-                if (entryType == TarArchiveReader.TarEntryType.TYPE_DIRECTORY) {
+                if (entryType == TarArchiveReader.TarEntryType.TYPE_DIRECTORY) 
+                {
                     m_log.WarnFormat("[INVENTORY ARCHIVER]: Ignoring directory entry {0}", filePath);
                 } 
                 else if (filePath.StartsWith(InventoryArchiveConstants.ASSETS_PATH))
@@ -211,7 +212,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 }
                 else if (filePath.StartsWith(InventoryArchiveConstants.INVENTORY_PATH))
                 {
-                    InventoryItemBase item = LoadInvItem(filePath, m_asciiEncoding.GetString(data));
+                    InventoryItemBase item = LoadInvItem(m_asciiEncoding.GetString(data));
 
                     if (item != null)
                     {
@@ -220,11 +221,33 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         
                         item.Creator = m_userInfo.UserProfile.ID;
                         item.Owner = m_userInfo.UserProfile.ID;
+                        
+                        filePath = filePath.Substring(InventoryArchiveConstants.INVENTORY_PATH.Length);
+                        string[] rawFolders = filePath.Split(new char[] { '/' });
+                        
+                        // Find the folders that do exist along the path given
+                        int i = 0;
+                        bool noFolder = false;
+                        InventoryFolderImpl foundFolder = rootDestinationFolder;
+                        while (!noFolder && i < rawFolders.Length)
+                        {
+                            foundFolder = foundFolder.FindFolderByPath(rawFolders[i]);
+                            if (null == foundFolder)
+                                noFolder = true;
+                            else
+                                i++;
+                        }
+                        
+                        // Create any folders that did not previously exist
+                        while (i < rawFolders.Length)
+                        {
+                            foundFolder.CreateChildFolder(UUID.Random(), rawFolders[i++], (ushort)AssetType.Folder);   
+                        }                        
 
                         // Reset folder ID to the one in which we want to load it
                         // TODO: Properly restore entire folder structure.  At the moment all items are dumped in this
                         // single folder no matter where in the saved folder structure they are.
-                        item.Folder = inventoryFolder.ID;
+                        item.Folder = foundFolder.ID;
 
                         m_userInfo.AddItem(item);
                         successfulItemRestores++;
