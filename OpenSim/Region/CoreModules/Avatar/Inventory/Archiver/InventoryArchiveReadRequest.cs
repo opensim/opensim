@@ -222,8 +222,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         item.Creator = m_userInfo.UserProfile.ID;
                         item.Owner = m_userInfo.UserProfile.ID;
                         
-                        /*
                         filePath = filePath.Substring(InventoryArchiveConstants.INVENTORY_PATH.Length);
+                        filePath = filePath.Remove(filePath.LastIndexOf("/"));
+                        
+                        m_log.DebugFormat("[INVENTORY ARCHIVER]: Loading to file path {0}", filePath);
+                        
                         string[] rawFolders = filePath.Split(new char[] { '/' });
                         
                         // Find the folders that do exist along the path given
@@ -248,17 +251,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         // Create any folders that did not previously exist
                         while (i < rawFolders.Length)
                         {
-                            m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0}", rawFolders[i]); 
-                            foundFolder.CreateChildFolder(UUID.Random(), rawFolders[i++], (ushort)AssetType.Folder);                            
+                            m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0}", rawFolders[i]);
+                            
+                            UUID newFolderId = UUID.Random();
+                            m_userInfo.CreateFolder(
+                                rawFolders[i++], newFolderId, (ushort)AssetType.Folder, foundFolder.ID);
+                            foundFolder = foundFolder.GetChildFolder(newFolderId);
                         }                        
 
                         // Reset folder ID to the one in which we want to load it
-                        // TODO: Properly restore entire folder structure.  At the moment all items are dumped in this
-                        // single folder no matter where in the saved folder structure they are.
                         item.Folder = foundFolder.ID;
-                        */
                         
-                        item.Folder = rootDestinationFolder.ID;
+                        //item.Folder = rootDestinationFolder.ID;
 
                         m_userInfo.AddItem(item);
                         successfulItemRestores++;
@@ -304,7 +308,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 sbyte assetType = InventoryArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
 
-                m_log.DebugFormat("[INVENTORY ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
+                //m_log.DebugFormat("[INVENTORY ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
                 AssetBase asset = new AssetBase(new UUID(uuid), "RandomName");
 
