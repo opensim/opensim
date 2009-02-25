@@ -369,6 +369,35 @@ default
         }
 
         [Test]
+        public void TestCStyleComments()
+        {
+            string input = @"/* this test tests comments
+   of the C variety
+*/
+default
+{
+    touch_start(integer num_detected) /* this should be stripped */
+    {
+        /*
+         * fill
+         * in
+         * code
+         * here...
+         */
+    }
+}
+";
+            string expected =
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n        }\n";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
         public void TestGlobalDefinedFunctions()
         {
             string input = @"// this test tests custom defined functions
