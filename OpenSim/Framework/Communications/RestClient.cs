@@ -293,8 +293,16 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (WebException e)
                 {
-                    m_log.ErrorFormat("[ASSET] Error fetching asset from asset server");
-                    m_log.Debug(e.ToString());
+                    HttpWebResponse errorResponse = e.Response as HttpWebResponse;
+                    if (null != errorResponse && HttpStatusCode.NotFound == errorResponse.StatusCode)
+                    {
+                        m_log.Warn("[ASSET] Asset not found (404)");
+                    }
+                    else
+                    {
+                        m_log.Error("[ASSET] Error fetching asset from asset server");
+                        m_log.Debug(e.ToString());
+                    }
 
                     return null;
                 }
