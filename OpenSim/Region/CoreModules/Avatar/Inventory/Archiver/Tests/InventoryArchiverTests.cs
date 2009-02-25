@@ -128,7 +128,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             bool gotObject1File = false;
             //bool gotObject2File = false;
             string expectedObject1FilePath = string.Format(
-                "{0}{1}_{2}.xml",
+                "{0}{1}{2}_{3}.xml",
+                InventoryArchiveConstants.INVENTORY_PATH,                                                           
                 "Objects/",
                 item1.Name,
                 item1Id);
@@ -151,7 +152,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                     gotControlFile = true;
                 }
                 */
-                if (filePath.StartsWith("Objects/") && filePath.EndsWith(".xml"))
+                if (filePath.StartsWith(InventoryArchiveConstants.INVENTORY_PATH) && filePath.EndsWith(".xml"))
                 {
                     //string fileName = filePath.Remove(0, "Objects/".Length);
                     

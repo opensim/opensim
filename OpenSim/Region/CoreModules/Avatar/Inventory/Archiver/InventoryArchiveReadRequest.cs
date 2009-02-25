@@ -222,6 +222,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         item.Creator = m_userInfo.UserProfile.ID;
                         item.Owner = m_userInfo.UserProfile.ID;
                         
+                        /*
                         filePath = filePath.Substring(InventoryArchiveConstants.INVENTORY_PATH.Length);
                         string[] rawFolders = filePath.Split(new char[] { '/' });
                         
@@ -231,23 +232,33 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         InventoryFolderImpl foundFolder = rootDestinationFolder;
                         while (!noFolder && i < rawFolders.Length)
                         {
-                            foundFolder = foundFolder.FindFolderByPath(rawFolders[i]);
-                            if (null == foundFolder)
-                                noFolder = true;
-                            else
+                            InventoryFolderImpl folder = foundFolder.FindFolderByPath(rawFolders[i]);
+                            if (null != folder)
+                            {
+                                m_log.DebugFormat("[INVENTORY ARCHIVER]: Found folder {0}", folder.Name);
+                                foundFolder = folder;
                                 i++;
+                            }
+                            else
+                            {
+                                noFolder = true;
+                            }                                   
                         }
                         
                         // Create any folders that did not previously exist
                         while (i < rawFolders.Length)
                         {
-                            foundFolder.CreateChildFolder(UUID.Random(), rawFolders[i++], (ushort)AssetType.Folder);   
+                            m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0}", rawFolders[i]); 
+                            foundFolder.CreateChildFolder(UUID.Random(), rawFolders[i++], (ushort)AssetType.Folder);                            
                         }                        
 
                         // Reset folder ID to the one in which we want to load it
                         // TODO: Properly restore entire folder structure.  At the moment all items are dumped in this
                         // single folder no matter where in the saved folder structure they are.
                         item.Folder = foundFolder.ID;
+                        */
+                        
+                        item.Folder = rootDestinationFolder.ID;
 
                         m_userInfo.AddItem(item);
                         successfulItemRestores++;
