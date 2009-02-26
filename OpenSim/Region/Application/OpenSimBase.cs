@@ -122,9 +122,9 @@ namespace OpenSim
         }
         protected ModuleLoader m_moduleLoader;
 
-        protected RegistryCore m_applicationRegistry = new RegistryCore();
+        protected IRegistryCore m_applicationRegistry = new RegistryCore();
 
-        public RegistryCore ApplicationRegistry
+        public IRegistryCore ApplicationRegistry
         {
             get { return m_applicationRegistry; }
         }
