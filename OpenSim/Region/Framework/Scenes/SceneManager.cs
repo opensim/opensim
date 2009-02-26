@@ -66,7 +66,14 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_currentScene == null)
                 {
-                    return m_localScenes[0];
+                    if (m_localScenes.Count > 0)
+                    {
+                        return m_localScenes[0];
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
                 else
                 {
