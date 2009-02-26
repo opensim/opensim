@@ -114,8 +114,9 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         private void InitialiseCommsManager(OpenSimBase openSim)
         {
             LibraryRootFolder libraryRootFolder = new LibraryRootFolder(m_openSim.ConfigurationSettings.LibrariesXMLFile);
+            bool hgrid = m_openSim.ConfigSource.Source.Configs["Startup"].GetBoolean("hypergrid", false);
 
-            if (openSim is HGOpenSimNode)
+            if (hgrid)
             {
                 HGOpenSimNode hgNode = (HGOpenSimNode)openSim;
 
