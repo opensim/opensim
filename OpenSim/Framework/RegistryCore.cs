@@ -40,5 +40,15 @@ namespace OpenSim.Framework
             return (T)m_moduleInterfaces[typeof(T)];
         }
 
+        public void StackModuleInterface<M>(M mod)
+        {
+
+        }
+
+        public T[] RequestModuleInterfaces<T>()
+        {
+            return new T[] { default(T) };
+        }
+
     }
 }

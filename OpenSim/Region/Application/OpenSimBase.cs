@@ -212,6 +212,12 @@ namespace OpenSim
                 m_commsManager.GridService.RegionLoginsEnabled = true;
             }
 
+            AddPluginCommands();
+
+        }
+
+        protected virtual void AddPluginCommands()
+        {
             // If console exists add plugin commands.
             if (m_console != null)
             {
@@ -251,7 +257,6 @@ namespace OpenSim
                     }
                 }
             }
-
         }
 
         private void HandleCommanderCommand(string module, string[] cmd)

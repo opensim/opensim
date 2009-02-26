@@ -42,9 +42,7 @@ using OpenSim.Framework.Servers;
 
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {
-    public delegate void NewRegionCreated(IScene scene);
-
-    public class LoadRegionsPlugin : IApplicationPlugin
+    public class LoadRegionsPlugin : IApplicationPlugin, IRegionCreator
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
