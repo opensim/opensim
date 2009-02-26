@@ -47,7 +47,7 @@ namespace OpenSim
     public class HGOpenSimNode : OpenSim
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private IHyperlink HGServices = null;
+        public IHyperlink HGServices = null;
 
         private uint m_autoMappingX = 0;
         private uint m_autoMappingY = 0;

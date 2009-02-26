@@ -45,9 +45,13 @@ namespace OpenSim.Region.ClientStack
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected IAssetCache m_assetCache;
         protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();
         protected NetworkServersInfo m_networkServersInfo;
+
+        public NetworkServersInfo NetServersInfo
+        {
+            get { return m_networkServersInfo; }
+        }
 
         protected BaseHttpServer m_httpServer;
         protected uint m_httpServerPort;
@@ -55,6 +59,7 @@ namespace OpenSim.Region.ClientStack
         public CommunicationsManager CommunicationsManager 
         {
             get { return m_commsManager; }
+            set { m_commsManager = value; }
         }
         protected CommunicationsManager m_commsManager;        
 
@@ -67,6 +72,14 @@ namespace OpenSim.Region.ClientStack
             get { return m_sceneManager; }
         }
         protected SceneManager m_sceneManager = new SceneManager();
+
+        protected IAssetCache m_assetCache;
+
+        public IAssetCache AssetCache
+        {
+            get { return m_assetCache; }
+            set { m_assetCache = value; }
+        }
         
         protected abstract void Initialize();
         

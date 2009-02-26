@@ -120,7 +120,14 @@ namespace OpenSim
             get { return m_moduleLoader; }
             set { m_moduleLoader = value; }
         }
-        protected ModuleLoader m_moduleLoader;        
+        protected ModuleLoader m_moduleLoader;
+
+        protected RegistryCore m_applicationRegistry = new RegistryCore();
+
+        public RegistryCore ApplicationRegistry
+        {
+            get { return m_applicationRegistry; }
+        }
 
         /// <summary>
         /// Constructor.
@@ -176,7 +183,7 @@ namespace OpenSim
             base.StartupSpecific();
             
             m_stats = StatsManager.StartCollectingSimExtraStats();
-            
+
             LibraryRootFolder libraryRootFolder = new LibraryRootFolder(m_configSettings.LibrariesXMLFile);
 
             // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
@@ -194,6 +201,7 @@ namespace OpenSim
             m_moduleLoader = new ModuleLoader(m_config.Source);
 
             LoadPlugins();
+
             
             foreach (IApplicationPlugin plugin in m_plugins)
             {
@@ -202,7 +210,10 @@ namespace OpenSim
             
                                     
             // Only enable logins to the regions once we have completely finished starting up (apart from scripts)
-            m_commsManager.GridService.RegionLoginsEnabled = true;
+            if ((m_commsManager != null) && (m_commsManager.GridService != null))
+            {
+                m_commsManager.GridService.RegionLoginsEnabled = true;
+            }
 
             // If console exists add plugin commands.
             if (m_console != null)
@@ -541,9 +552,9 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="portadd_flag"></param>
         /// <returns></returns>
-        public IClientNetworkServer CreateRegion(RegionInfo regionInfo, bool portadd_flag)
+        public IClientNetworkServer CreateRegion(RegionInfo regionInfo, bool portadd_flag, out IScene scene)
         {
-            return CreateRegion(regionInfo, portadd_flag, false);
+            return CreateRegion(regionInfo, portadd_flag, false, out scene);
         }
 
         /// <summary>
@@ -551,9 +562,9 @@ namespace OpenSim
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public IClientNetworkServer CreateRegion(RegionInfo regionInfo)
+        public IClientNetworkServer CreateRegion(RegionInfo regionInfo, out IScene scene)
         {
-            return CreateRegion(regionInfo, false, true);
+            return CreateRegion(regionInfo, false, true, out scene);
         }
 
         /// <summary>
@@ -563,7 +574,7 @@ namespace OpenSim
         /// <param name="portadd_flag"></param>
         /// <param name="do_post_init"></param>
         /// <returns></returns>
-        public IClientNetworkServer CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init)
+        public IClientNetworkServer CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init, out IScene mscene)
         {
             int port = regionInfo.InternalEndPoint.Port;
 
@@ -640,6 +651,7 @@ namespace OpenSim
                 }
             }
 
+            mscene = scene;
             return clientServer;
         }
 
@@ -722,8 +734,8 @@ namespace OpenSim
                 m_clientServers[clientServerElement].Server.Close();
                 m_clientServers.RemoveAt(clientServerElement);
             }
-
-            CreateRegion(whichRegion, true);
+            IScene scene;
+            CreateRegion(whichRegion, true, out scene);
         }
 
         # region Setup methods
@@ -738,7 +750,7 @@ namespace OpenSim
         /// Handler to supply the current status of this sim
         /// </summary>
         /// Currently this is always OK if the simulator is still listening for connections on its HTTP service
-        protected class SimStatusHandler : IStreamedRequestHandler
+        public class SimStatusHandler : IStreamedRequestHandler
         {
             public byte[] Handle(string path, Stream request,
                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
