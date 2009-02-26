@@ -54,6 +54,11 @@ namespace OpenSim.Data
         /// <param name="regionName">A partial regionName of the region to return</param>
         /// <returns>A SimProfileData for the region</returns>
         RegionProfileData GetRegion(string regionName);
+
+        List<RegionProfileData> GetRegions(uint xmin, uint ymin, uint xmax, uint ymax);
+        List<RegionProfileData> GetRegions(string name, int maxNum);
+        DataResponse AddUpdateRegion(RegionProfileData sim, RegionProfileData existingSim);
+        DataResponse DeleteRegion(string uuid);
     }
 
     public interface IRegionProfileRouter
