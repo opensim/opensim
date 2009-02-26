@@ -64,6 +64,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         protected OpenSimBase m_openSim;
 
         protected BaseHttpServer m_httpServer;
+
         protected CommunicationsManager m_commsManager;
         protected GridInfoService m_gridInfoService;
         protected IHyperlink HGServices = null;
@@ -114,20 +115,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         {
             LibraryRootFolder libraryRootFolder = new LibraryRootFolder(m_openSim.ConfigurationSettings.LibrariesXMLFile);
 
-            if ((openSim is OpenSim) || (openSim is OpenSimBackground))
-            {
-                // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
-                if (m_openSim.ConfigurationSettings.Standalone)
-                {
-                    InitialiseStandaloneServices(libraryRootFolder);
-                }
-                else
-                {
-                    // We are in grid mode
-                    InitialiseGridServices(libraryRootFolder);
-                }
-            }
-            else if (openSim is HGOpenSimNode)
+            if (openSim is HGOpenSimNode)
             {
                 HGOpenSimNode hgNode = (HGOpenSimNode)openSim;
 
@@ -142,6 +130,19 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
                     InitialiseHGGridServices(libraryRootFolder);
                 }
                 hgNode.HGServices = HGServices;
+            }
+            else
+            {
+                // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
+                if (m_openSim.ConfigurationSettings.Standalone)
+                {
+                    InitialiseStandaloneServices(libraryRootFolder);
+                }
+                else
+                {
+                    // We are in grid mode
+                    InitialiseGridServices(libraryRootFolder);
+                }
             }
 
             openSim.CommunicationsManager = m_commsManager;
