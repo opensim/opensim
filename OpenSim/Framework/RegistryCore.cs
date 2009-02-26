@@ -4,7 +4,7 @@ using System.Text;
 
 namespace OpenSim.Framework
 {
-    public class RegistryCore
+    public class RegistryCore : IRegistryCore
     {
         protected Dictionary<Type, object> m_moduleInterfaces = new Dictionary<Type, object>();
 
