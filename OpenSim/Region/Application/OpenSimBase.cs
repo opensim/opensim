@@ -194,6 +194,12 @@ namespace OpenSim
             m_moduleLoader = new ModuleLoader(m_config.Source);
 
             LoadPlugins();
+            
+            foreach (IApplicationPlugin plugin in m_plugins)
+            {
+                plugin.PostInitialise();
+            }
+            
                                     
             // Only enable logins to the regions once we have completely finished starting up (apart from scripts)
             m_commsManager.GridService.RegionLoginsEnabled = true;
