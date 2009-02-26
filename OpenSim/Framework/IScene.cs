@@ -89,6 +89,9 @@ namespace OpenSim.Framework
         T RequestModuleInterface<T>();
         T[] RequestModuleInterfaces<T>();
 
+        void RegisterModuleInterface<M>(M mod);
+        void StackModuleInterface<M>(M mod);
+
         void AddCommand(object module, string command, string shorthelp, string longhelp, CommandDelegate callback);
     }
 }

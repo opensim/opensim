@@ -1,0 +1,11 @@
+<Addin id="OpenSim.ApplicationPlugins.CreateCommsManager" version="0.1">
+    <Runtime>
+        <Import assembly="OpenSim.ApplicationPlugins.CreateCommsManager.dll"/>
+    </Runtime>
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+    </Dependencies>
+    <Extension path = "/OpenSim/Startup">
+        <Plugin id="CreateCommsManager" type="OpenSim.ApplicationPlugins.CreateCommsManager.CreateCommsManagerPlugin" />
+    </Extension>
+</Addin>
