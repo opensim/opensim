@@ -60,14 +60,14 @@ namespace OpenSim.Grid.UserServer.Modules
         private UserLoggedInAtLocation handlerUserLoggedInAtLocation;
 
         public UserConfig m_config;
-        private readonly IRegionProfileService m_regionProfileService;
+        private readonly IRegionProfileRouter m_regionProfileService;
 
         protected BaseHttpServer m_httpServer;
 
         public UserLoginService(
             UserManagerBase userManager, IInterServiceInventoryServices inventoryService,
             LibraryRootFolder libraryRootFolder,
-            UserConfig config, string welcomeMess, IRegionProfileService regionProfileService)
+            UserConfig config, string welcomeMess, IRegionProfileRouter regionProfileService)
             : base(userManager, libraryRootFolder, welcomeMess)
         {
             m_config = config;

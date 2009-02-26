@@ -42,7 +42,7 @@ using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.GridServer.Modules
 {
-    public class GridDBService
+    public class GridDBService : IRegionProfileService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

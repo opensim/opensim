@@ -35,6 +35,30 @@ namespace OpenSim.Data
     public interface IRegionProfileService
     {
         /// <summary>
+        /// Returns a region by argument
+        /// </summary>
+        /// <param name="uuid">A UUID key of the region to return</param>
+        /// <returns>A SimProfileData for the region</returns>
+        RegionProfileData GetRegion(UUID uuid);
+
+        /// <summary>
+        /// Returns a region by argument
+        /// </summary>
+        /// <param name="uuid">A regionHandle of the region to return</param>
+        /// <returns>A SimProfileData for the region</returns>
+        RegionProfileData GetRegion(ulong handle);
+
+        /// <summary>
+        /// Returns a region by argument
+        /// </summary>
+        /// <param name="regionName">A partial regionName of the region to return</param>
+        /// <returns>A SimProfileData for the region</returns>
+        RegionProfileData GetRegion(string regionName);
+    }
+
+    public interface IRegionProfileRouter
+    {
+        /// <summary>
         /// Request sim profile information from a grid server, by Region UUID
         /// </summary>
         /// <param name="regionId">The region UUID to look for</param>
