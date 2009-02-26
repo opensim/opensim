@@ -426,6 +426,7 @@ namespace OpenSim.Framework
 
     public delegate void UserInfoRequest(IClientAPI client);
     public delegate void UpdateUserInfo(bool imViaEmail, bool visible, IClientAPI client);
+    public delegate void RetrieveInstantMessages(IClientAPI client);
 
     #endregion
 
@@ -752,6 +753,8 @@ namespace OpenSim.Framework
 
         event UserInfoRequest OnUserInfoRequest;
         event UpdateUserInfo OnUpdateUserInfo;
+
+        event RetrieveInstantMessages OnRetrieveInstantMessages;
         
         /// <summary>
         /// Set the debug level at which packet output should be printed to console.

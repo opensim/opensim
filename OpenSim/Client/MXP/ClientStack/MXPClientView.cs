@@ -1082,6 +1082,8 @@ namespace OpenSim.Client.MXP.ClientStack
         public event Action<IClientAPI> OnLogout;
         public event Action<IClientAPI> OnConnectionClosed;
 
+        public event RetrieveInstantMessages OnRetrieveInstantMessages;
+
 
         public void SendBlueBoxMessage(UUID FromAvatarID, string FromAvatarName, string Message)
         {

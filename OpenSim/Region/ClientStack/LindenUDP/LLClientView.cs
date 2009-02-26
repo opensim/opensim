@@ -292,6 +292,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private UserInfoRequest handlerUserInfoRequest;
         private UpdateUserInfo handlerUpdateUserInfo;
 
+        private RetrieveInstantMessages handlerRetrieveInstantMessages;
+
         private readonly IGroupsModule m_GroupsModule;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
@@ -1074,6 +1076,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public event UserInfoRequest OnUserInfoRequest;
         public event UpdateUserInfo OnUpdateUserInfo;
+
+        public event RetrieveInstantMessages OnRetrieveInstantMessages;
 
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
@@ -7431,6 +7435,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (handlerEventNotificationRemoveRequest != null)
                         handlerEventNotificationRemoveRequest(
                                 eventNotificationRemove.EventData.EventID, this);
+                    break;
+
+                case PacketType.RetrieveInstantMessages:
+                    handlerRetrieveInstantMessages = OnRetrieveInstantMessages;
+                    if (handlerRetrieveInstantMessages != null)
+                        handlerRetrieveInstantMessages(this);
                     break;
 
                 default:

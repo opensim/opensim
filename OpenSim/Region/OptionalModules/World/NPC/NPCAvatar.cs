@@ -359,6 +359,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event UserInfoRequest OnUserInfoRequest;
         public event UpdateUserInfo OnUpdateUserInfo;
 
+        public event RetrieveInstantMessages OnRetrieveInstantMessages;
+
 #pragma warning restore 67
 
         #endregion
