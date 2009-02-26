@@ -1007,7 +1007,14 @@ namespace OpenSim
         {
             if (cmdparams.Length > 2)
             {
-                m_sceneManager.SaveCurrentSceneToXml2(cmdparams[2]);
+                try
+                {
+                    m_sceneManager.SaveCurrentSceneToXml2(cmdparams[2]);
+                }
+                catch
+                {
+                    m_console.Error("Unable to save xml. Usage: save xml2 <filename>");
+                }
             }
             else
             {
@@ -1019,7 +1026,14 @@ namespace OpenSim
         {
             if (cmdparams.Length > 2)
             {
-                m_sceneManager.LoadCurrentSceneFromXml2(cmdparams[2]);
+                try
+                {
+                    m_sceneManager.LoadCurrentSceneFromXml2(cmdparams[2]);
+                }
+                catch
+                {
+                    m_console.Error("Specified xml not found. Usage: load xml2 <filename>");
+                }
             }
             else
             {
@@ -1042,7 +1056,14 @@ namespace OpenSim
         {
             if (cmdparams.Length > 2)
             {
-                m_sceneManager.LoadArchiveToCurrentScene(cmdparams[2]);
+                try
+                {
+                    m_sceneManager.LoadArchiveToCurrentScene(cmdparams[2]);
+                }
+                catch
+                {
+                    m_console.Error("Specified oar not found. Usage: load oar <filename>");
+                }
             }
             else
             {
@@ -1052,7 +1073,7 @@ namespace OpenSim
                 }
                 catch
                 {
-                    m_console.Error("Default oar not found. Usage: load-oar <filename>");
+                    m_console.Error("Default oar not found. Usage: load oar <filename>");
                 }
             }
         }
@@ -1065,7 +1086,14 @@ namespace OpenSim
         {
             if (cmdparams.Length > 2)
             {
-                m_sceneManager.SaveCurrentSceneToArchive(cmdparams[2]);
+                try
+                {
+                    m_sceneManager.SaveCurrentSceneToArchive(cmdparams[2]);
+                }
+                catch
+                {
+                    m_console.Error("Unable to save oar. Usage: save oar <filename>");
+                }
             }
             else
             {
