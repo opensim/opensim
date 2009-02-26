@@ -53,7 +53,7 @@ namespace pCampBot
 
         protected Timer m_action; // Action Timer
         protected List<uint> objectIDs = new List<uint>();
-        
+
 
         protected Random somthing = new Random(Environment.TickCount);// We do stuff randomly here
 
@@ -77,35 +77,46 @@ namespace pCampBot
 
         void m_action_Elapsed(object sender, ElapsedEventArgs e)
         {
-            //client.Throttle.Task = 500000f;
-            //client.Throttle.Set();
-            int walkorrun = somthing.Next(4); // Randomize between walking and running. The greater this number,
-                                              // the greater the bot's chances to walk instead of run.
-            if (walkorrun == 0)
+            while(true)
             {
-                client.Self.Movement.AlwaysRun = true;
-            }
-            else
-            {
-                client.Self.Movement.AlwaysRun = false;
-            }
+                //client.Appearance.ForceRebakeAvatarTextures();
+                //client.Appearance.SetPreviousAppearance();
 
-            // TODO: unused: Vector3 pos = client.Self.SimPosition;
-            Vector3 newpos = new Vector3(somthing.Next(255), somthing.Next(255), somthing.Next(255));
-            client.Self.Movement.TurnToward(newpos);
+                int walkorrun = somthing.Next(4); // Randomize between walking and running. The greater this number,
+                                                  // the greater the bot's chances to walk instead of run.
+                client.Self.Jump(false);
+                if (walkorrun == 0)
+                {
+                    client.Self.Movement.AlwaysRun = true;
+                }
+                else
+                {
+                    client.Self.Movement.AlwaysRun = false;
+                }
 
-            for (int i = 0; i < 2000; i++)
-            {
+                // TODO: unused: Vector3 pos = client.Self.SimPosition;
+                Vector3 newpos = new Vector3(somthing.Next(255), somthing.Next(255), somthing.Next(255));
+                client.Self.Movement.TurnToward(newpos);
+
+                /*
+                // Why does it need to keep setting it true? Changing to just let it walk =)
+                for (int i = 0; i < 2000; i++)
+                {
+                    client.Self.Movement.AtPos = true;
+                    Thread.Sleep(somthing.Next(25, 75)); // Makes sure the bots keep walking for this time.
+                }
+                */
                 client.Self.Movement.AtPos = true;
-                Thread.Sleep(somthing.Next(25, 75)); // Makes sure the bots keep walking for this time.
+                Thread.Sleep(somthing.Next(3000,13000));
+                client.Self.Movement.AtPos = false;
+                client.Self.Jump(true);
+
+                string randomf = talkarray[somthing.Next(talkarray.Length)];
+                if (talkarray.Length > 1 && randomf.Length > 1)
+                    client.Self.Chat(randomf, 0, ChatType.Normal);
+
+                Thread.Sleep(somthing.Next(1000, 10000));
             }
-            client.Self.Jump(true);
-
-            string randomf = talkarray[somthing.Next(talkarray.Length)];
-            if (talkarray.Length > 1 && randomf.Length > 1)
-                client.Self.Chat(randomf, 0, ChatType.Normal);
-
-            //Thread.Sleep(somthing.Next(1, 10)); // Apparently its better without it right now.
         }
 
         /// <summary>
@@ -157,6 +168,8 @@ namespace pCampBot
                 if (OnConnected != null)
                 {
                     m_action = new Timer(somthing.Next(1000, 10000));
+                    m_action.Enabled = true;
+                    m_action.AutoReset = false;
                     m_action.Elapsed += new ElapsedEventHandler(m_action_Elapsed);
                     m_action.Start();
                     OnConnected(this, EventType.CONNECTED);
