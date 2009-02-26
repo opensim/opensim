@@ -29,6 +29,7 @@ using Nini.Config;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
@@ -91,7 +92,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
         /// <summary>
         /// Test adding a root agent to a scene.  Doesn't yet actually complete crossing the agent into the scene.
-        /// </summary>        
+        /// </summary>
         [Test]
         public void T010_TestAddRootAgent()
         {
@@ -136,9 +137,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T012_TestAddNeighbourRegion()
         {
-            SceneSetupHelpers.AddRootAgent(scene,agent1);
+            scene.NewUserConnection(acd1);
+            scene.AddNewClient(testclient);
 
             ScenePresence presence = scene.GetScenePresence(agent1);
+            presence.MakeRootAgent(new Vector3(90,90,90),false);
 
             string cap = presence.ControllingClient.RequestClientInfo().CapsPath;
 
@@ -195,30 +198,43 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             string cap = presence.ControllingClient.RequestClientInfo().CapsPath;
             presence2.AddNeighbourRegion(region1, cap);
 
+            scene.RegisterRegionWithGrid();
+            scene2.RegisterRegionWithGrid();
+
             Assert.That(presence.IsChildAgent, Is.False, "Did not start root in origin region.");
             Assert.That(presence2.IsChildAgent, Is.True, "Is not a child on destination region.");
 
             // Cross to x+1
             presence.AbsolutePosition = new Vector3(Constants.RegionSize+1,3,100);
-            scene.RegisterRegionWithGrid();
-            scene2.RegisterRegionWithGrid();
             presence.Update();
-            /* With RESTComms this test needs more thinking, because of the callback
-            // Crossings are asynchronous 
-            while (presence.IsInTransit) { };
+
+            EventWaitHandle wh = new EventWaitHandle (false, EventResetMode.AutoReset, "Crossing");
+
+            // Mimicking communication between client and server, by waiting OK from client
+            // sent by TestClient.CrossRegion call. Originally, this is network comm.
+            wh.WaitOne();
+
+            // This is a TestClient specific method that fires OnCompleteMovementToRegion event, which
+            // would normally be fired after receiving the reply packet from comm. done on the last line.
+            testclient.CompleteMovement();
+
+            // Crossings are asynchronous
+            while (presence.IsInTransit) {  };
 
             Assert.That(presence.IsChildAgent, Is.True, "Did not complete region cross as expected.");
             Assert.That(presence2.IsChildAgent, Is.False, "Did not receive root status after receiving agent.");
 
             // Cross Back
-            presence2.AbsolutePosition = new Vector3(-1, 3, 100);
+            presence2.AbsolutePosition = new Vector3(-10, 3, 100);
             presence2.Update();
-            // Crossings are asynchronous
-            while (presence2.IsInTransit) { };
+
+            wh.WaitOne();
+            testclient.CompleteMovement();
+
+            while (presence2.IsInTransit) {  };
 
             Assert.That(presence2.IsChildAgent, Is.True, "Did not return from region as expected.");
             Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");
-            */
         }
 
         [Test]

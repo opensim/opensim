@@ -210,7 +210,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[ASSET CACHE]: " + e);
+                    m_log.Error("[ASSET CACHE]: " + e.ToString());
                 }
             }
         }
