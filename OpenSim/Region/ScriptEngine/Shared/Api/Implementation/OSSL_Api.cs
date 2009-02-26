@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
+using System.Net;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim;
@@ -546,6 +547,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osTeleportAgent(string agent, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             osTeleportAgent(agent, World.RegionInfo.RegionName, position, lookat);
+        }
+
+        // Functions that get information from the agent itself.
+        //
+        // osGetAgentIP - this is used to determine the IP address of
+        //the client.  This is needed to help configure other in world
+        //resources based on the IP address of the clients connected.
+        //I think High is a good risk level for this, as it is an
+        //information leak.
+        public string osGetAgentIP(string agent)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osGetAgentIP");
+
+            UUID avatarID = (UUID)agent;
+
+            m_host.AddScriptLPS(1);
+            if (World.Entities.ContainsKey((UUID)agent) && World.Entities[avatarID] is ScenePresence)
+            {
+                ScenePresence target = (ScenePresence)World.Entities[avatarID];
+                EndPoint ep = target.ControllingClient.GetClientInfo().userEP;
+                if (ep is IPEndPoint) 
+                {
+                    IPEndPoint ip = (IPEndPoint)ep;
+                    return ip.Address.ToString();
+                }
+            }
+            // fall through case, just return nothing
+            return "";
         }
 
         // Adam's super super custom animation functions

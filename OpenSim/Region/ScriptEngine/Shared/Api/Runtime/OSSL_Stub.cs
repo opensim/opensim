@@ -143,6 +143,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osTeleportAgent(agent, position, lookat);
         }
 
+        // Avatar info functions 
+        public string osGetAgentIP(string agent)
+        {
+            return m_OSSL_Functions.osGetAgentIP(agent);
+        }
+
         // Animation Functions
 
         public void osAvatarPlayAnimation(string avatar, string animation)
