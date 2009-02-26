@@ -246,6 +246,10 @@ namespace OpenSim.ApplicationPlugins.Rest
             }
         }
 
+        public virtual void PostInitialise()
+        {
+        }
+
         private List<RestStreamHandler> _handlers               = new List<RestStreamHandler>();
         private Dictionary<string, IHttpAgentHandler> _agents   = new Dictionary<string, IHttpAgentHandler>();
 

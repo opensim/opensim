@@ -176,39 +176,6 @@ namespace OpenSim.Grid.GridServer
 
         public void CheckSims(object sender, ElapsedEventArgs e)
         {
-            /*
-            foreach (SimProfileBase sim in m_simProfileManager.SimProfiles.Values)
-            {
-                string SimResponse = String.Empty;
-                try
-                {
-                    WebRequest CheckSim = WebRequest.Create("http://" + sim.sim_ip + ":" + sim.sim_port.ToString() + "/checkstatus/");
-                    CheckSim.Method = "GET";
-                    CheckSim.ContentType = "text/plaintext";
-                    CheckSim.ContentLength = 0;
-
-                    StreamWriter stOut = new StreamWriter(CheckSim.GetRequestStream(), System.Text.Encoding.ASCII);
-                    stOut.Write(String.Empty);
-                    stOut.Close();
-
-                    StreamReader stIn = new StreamReader(CheckSim.GetResponse().GetResponseStream());
-                    SimResponse = stIn.ReadToEnd();
-                    stIn.Close();
-                }
-                catch
-                {
-                }
-
-                if (SimResponse == "OK")
-                {
-                    m_simProfileManager.SimProfiles[sim.UUID].online = true;
-                }
-                else
-                {
-                    m_simProfileManager.SimProfiles[sim.UUID].online = false;
-                }
-            }
-            */
         }
 
         public override void ShutdownSpecific()

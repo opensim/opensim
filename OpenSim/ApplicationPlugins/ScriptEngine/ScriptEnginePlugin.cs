@@ -63,6 +63,10 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
             //m_OpenSim.Shutdown();
         }
 
+        public void PostInitialise()
+        {
+        }
+
 
         #region IApplicationPlugin stuff
         /// <summary>

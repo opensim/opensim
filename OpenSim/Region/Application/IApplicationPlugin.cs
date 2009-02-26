@@ -32,6 +32,7 @@ namespace OpenSim
     public interface IApplicationPlugin : IPlugin
     {
         void Initialise(OpenSimBase openSim);
+        void PostInitialise();
     }
 
     public class ApplicationPluginInitialiser : PluginInitialiserBase

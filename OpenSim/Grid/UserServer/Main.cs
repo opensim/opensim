@@ -130,10 +130,10 @@ namespace OpenSim.Grid.UserServer
 
             //Should be in modules?
             IInterServiceInventoryServices inventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
-            // IRegionProfileService regionProfileService = new RegionProfileServiceProxy();
+            // IRegionProfileRouter regionProfileService = new RegionProfileServiceProxy();
 
             RegisterInterface<IInterServiceInventoryServices>(inventoryService);
-            // RegisterInterface<IRegionProfileService>(regionProfileService);
+            // RegisterInterface<IRegionProfileRouter>(regionProfileService);
 
             return inventoryService;
         }

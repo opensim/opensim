@@ -131,6 +131,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
         }
 
+        public void PostInitialise()
+        {
+        }
+
         public XmlRpcResponse XmlRpcRestartMethod(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
