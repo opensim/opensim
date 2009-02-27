@@ -1702,6 +1702,7 @@
       <Reference name="System"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="protobuf-net"/>

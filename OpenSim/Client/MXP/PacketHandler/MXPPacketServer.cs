@@ -216,8 +216,8 @@ namespace OpenSim.Client.MXP.PacketHandler
             m_log.Info("Pending Sessions: " + PendingSessionCount);
             m_log.Info("Sessions: " + SessionCount + " (Clients: " + Clients.Count + " )");
             m_log.Info("Transmitter Alive?: " + IsTransmitterAlive);
-            m_log.Info("Packets Sent/Recieved: " + PacketsSent + " / " + PacketsReceived);
-            m_log.Info("Bytes Sent/Recieved: " + BytesSent + " / " + BytesReceived);
+            m_log.Info("Packets Sent/Received: " + PacketsSent + " / " + PacketsReceived);
+            m_log.Info("Bytes Sent/Received: " + BytesSent + " / " + BytesReceived);
             m_log.Info("Send/Recieve Rate (bps): " + SendRate + " / " + ReceiveRate);
         }
 
@@ -247,12 +247,43 @@ namespace OpenSim.Client.MXP.PacketHandler
             sessionsToRemove.Clear();
         }
 
-        public bool AuthoriseUser(string participantName, string pass, UUID scene)
+        public bool AuthoriseUser(string participantName, string password, UUID sceneId, out UUID userId, out string firstName, out string lastName)
         {
-            if (Scenes.ContainsKey(scene))
-                return true;
+            userId = UUID.Zero;
+            firstName = "";
+            lastName = "";
 
-            return false;
+            if (!Scenes.ContainsKey(sceneId))
+            {
+                m_log.Info("Login failed as region was not found: " + sceneId);
+                return false;
+            }
+            
+            string[] nameParts=participantName.Split(' ');
+            if(nameParts.Length!=2)
+            {
+                m_log.Info("Login failed as user name is not formed of first and last name separated by space: " + participantName);
+                return false;
+            }
+            firstName = nameParts[0];
+            lastName = nameParts[1];
+            
+            UserProfileData userProfile = Scenes[sceneId].CommsManager.UserService.GetUserProfile(firstName, lastName);
+            if (userProfile == null)
+            {
+                m_log.Info("Login failed as user was not found: " + participantName);
+                return false;
+            }
+            userId = userProfile.ID;
+
+            if (!password.StartsWith("$1$"))
+            {
+                password = "$1$" + Util.Md5Hash(password);
+            }
+            password = password.Remove(0, 3); //remove $1$
+            string s = Util.Md5Hash(password + ":" + userProfile.PasswordSalt);
+            return (userProfile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                               || userProfile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public void ProcessMessages()
@@ -278,9 +309,13 @@ namespace OpenSim.Client.MXP.PacketHandler
 
                         JoinRequestMessage joinRequestMessage = (JoinRequestMessage) message;
 
+                        UUID userId;
+                        string firstName;
+                        string lastName;
+
                         bool authorized = AuthoriseUser(joinRequestMessage.ParticipantName,
                                                         joinRequestMessage.ParticipantPassphrase,
-                                                        new UUID(joinRequestMessage.BubbleId));
+                                                        new UUID(joinRequestMessage.BubbleId), out userId, out firstName, out lastName);
 
                         if (authorized)
                         {
@@ -292,10 +327,10 @@ namespace OpenSim.Client.MXP.PacketHandler
                                        (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
                                        session.RemoteEndPoint.Port + ")");
 
-                            AcceptConnection(session, joinRequestMessage, mxpSessionID);
+                            AcceptConnection(session, joinRequestMessage, mxpSessionID,userId);
 
-                            MXPClientView client = new MXPClientView(session, mxpSessionID, target,
-                                                                     joinRequestMessage.ParticipantName);
+                            MXPClientView client = new MXPClientView(session, mxpSessionID,userId, target,
+                                                                     firstName, lastName);
                             m_log.Info("[MXP ClientStack] Created Client");
                             Clients.Add(client);
 
@@ -393,7 +428,7 @@ namespace OpenSim.Client.MXP.PacketHandler
             }
         }
 
-        private void AcceptConnection(Session session, JoinRequestMessage joinRequestMessage, UUID mxpSessionID)
+        private void AcceptConnection(Session session, JoinRequestMessage joinRequestMessage, UUID mxpSessionID, UUID userId)
         {
             JoinResponseMessage joinResponseMessage = (JoinResponseMessage)MessageFactory.Current.ReserveMessage(
                                                                                typeof(JoinResponseMessage));
@@ -401,7 +436,7 @@ namespace OpenSim.Client.MXP.PacketHandler
             joinResponseMessage.RequestMessageId = joinRequestMessage.MessageId;
             joinResponseMessage.FailureCode = 0;
 
-            joinResponseMessage.ParticipantId = mxpSessionID.Guid;
+            joinResponseMessage.ParticipantId = userId.Guid;
             joinResponseMessage.CloudUrl = cloudUrl;
 
             joinResponseMessage.BubbleName = Scenes[new UUID(joinRequestMessage.BubbleId)].RegionInfo.RegionName;

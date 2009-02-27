@@ -46,30 +46,38 @@ namespace OpenSim.Client.MXP.ClientStack
     {
         internal static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly Session mxpSession;
-        private readonly UUID mxpSessionID;
-        private readonly IScene mxpHostBubble;
-        private readonly string mxpUsername;
+        private readonly Session m_session;
+        private readonly UUID m_sessionID;
+        private readonly UUID m_userID;
+        private readonly IScene m_hostBubble;
+        private readonly string m_firstName;
+        private readonly string m_lastName;
 
-        private int debugLevel;
+        private Vector3 m_startPosition=new Vector3(128f, 128f, 128f);
+        private int m_debugLevel;
+        
 
-        public MXPClientView(Session mxpSession, UUID mxpSessionID, IScene mxpHostBubble, string mxpUsername)
+        public MXPClientView(Session mxpSession, UUID mxpSessionID, UUID userID, IScene mxpHostBubble, string mxpFirstName, string mxpLastName)
         {
-            this.mxpSession = mxpSession;
-            this.mxpUsername = mxpUsername;
-            this.mxpHostBubble = mxpHostBubble;
-            this.mxpSessionID = mxpSessionID;
+            this.m_session = mxpSession;
+            this.m_userID = userID;
+            this.m_firstName = mxpFirstName;
+            this.m_lastName = mxpLastName;
+            this.m_hostBubble = mxpHostBubble;
+            this.m_sessionID = mxpSessionID;
         }
 
         public Session Session
         {
-            get { return mxpSession; }
+            get { return m_session; }
         }
 
         public bool ProcessMXPPacket(Message msg)
         {
-            if (debugLevel > 0)
-                m_log.Warn("[MXP] Got Action/Command Packet: " + msg);
+            if (m_debugLevel > 0)
+            {
+                m_log.Warn("[MXP] Received messaged unhandled: " + msg);
+            }
 
             return false;
         }
@@ -78,23 +86,23 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public Vector3 StartPos
         {
-            get { return new Vector3(128f, 128f, 128f); }
-            set {  } // TODO: Implement Me
+            get { return m_startPosition; }
+            set { m_startPosition = value; }
         }
 
         public UUID AgentId
         {
-            get { return mxpSessionID; }
+            get { return m_userID; }
         }
 
         public UUID SessionId
         {
-            get { return mxpSessionID; }
+            get { return m_sessionID; }
         }
 
         public UUID SecureSessionId
         {
-            get { return mxpSessionID; }
+            get { return m_sessionID; }
         }
 
         public UUID ActiveGroupId
@@ -124,17 +132,17 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public string FirstName
         {
-            get { return mxpUsername; }
+            get { return m_firstName; }
         }
 
         public string LastName
         {
-            get { return "@mxp://" + Session.RemoteEndPoint.Address; }
+            get { return m_lastName; }
         }
 
         public IScene Scene
         {
-            get { return mxpHostBubble; }
+            get { return m_hostBubble; }
         }
 
         public int NextAnimationSequenceNumber
@@ -165,7 +173,7 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public uint CircuitCode
         {
-            get { return mxpSessionID.CRC(); }
+            get { return m_sessionID.CRC(); }
         }
 
         public event GenericMessage OnGenericMessage;
@@ -348,7 +356,7 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public void SetDebugPacketLevel(int newDebug)
         {
-            debugLevel = newDebug;
+            m_debugLevel = newDebug;
         }
 
         public void InPacket(object NewPack)
@@ -560,14 +568,42 @@ namespace OpenSim.Client.MXP.ClientStack
             // Need to translate to MXP somehow
         }
 
-        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, string grouptitle, UUID avatarID, uint avatarLocalID, Vector3 Pos, byte[] textureEntry, uint parentID, Quaternion rotation)
+        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, string grouptitle, UUID avatarID, uint avatarLocalID, Vector3 pos, byte[] textureEntry, uint parentID, Quaternion rotation)
         {
-            // TODO: This needs handling - to display other avatars
+            m_log.Info("[MXP] Transmitting Avatar Data " + firstName + " " + lastName);
+
+            PerceptionEventMessage pe = new PerceptionEventMessage();
+
+            pe.ObjectFragment.ObjectId = avatarID.Guid;
+            // TODO Resolve ParentID
+            pe.ObjectFragment.ParentObjectId = Guid.Empty;
+            pe.ObjectFragment.ObjectIndex = avatarLocalID;
+            pe.ObjectFragment.ObjectName = firstName+" "+lastName;
+            pe.ObjectFragment.OwnerId = Guid.Empty;
+            pe.ObjectFragment.TypeId = Guid.Empty;
+            pe.ObjectFragment.TypeName = "Avatar";
+            pe.ObjectFragment.Acceleration = new float[3];
+            pe.ObjectFragment.AngularAcceleration = new float[4];
+            pe.ObjectFragment.AngularVelocity = new float[4];
+            pe.ObjectFragment.BoundingSphereRadius = 1; // TODO Fill in appropriate value
+
+            pe.ObjectFragment.Location = new float[] { pos.X, pos.Y, pos.Z };
+
+            pe.ObjectFragment.Mass = 1.0f; // TODO Fill in appropriate value
+            pe.ObjectFragment.Orientation = new float[] { rotation.X, rotation.Y, rotation.Z, rotation.W };
+            pe.ObjectFragment.Velocity = new float[3];
+
+            Session.Send(pe);
         }
 
         public void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position, Vector3 velocity, Quaternion rotation)
         {
-            // TODO: This probably needs handling - update other avatar positions
+            MovementEventMessage me = new MovementEventMessage();
+            me.ObjectIndex = localID;
+            me.Location = new float[] { position.X, position.Y, position.Z };
+            me.Orientation = new float[] { rotation.X, rotation.Y, rotation.Z, rotation.W };
+
+            Session.Send(me);
         }
 
         public void SendCoarseLocationUpdate(List<Vector3> CoarseLocations)
@@ -610,20 +646,17 @@ namespace OpenSim.Client.MXP.ClientStack
             pe.ObjectFragment.AngularVelocity = new float[] { rvel.X, rvel.Y, rvel.Z, 0.0f };
             pe.ObjectFragment.BoundingSphereRadius = primShape.Scale.Length();
 
-            pe.ObjectFragment.Location = new float[] { pos.X - 120.0f, pos.Z, pos.Y - 128.0f };
+            pe.ObjectFragment.Location = new float[] { pos.X , pos.Y, pos.Z };
 
             pe.ObjectFragment.Mass = 1.0f;
             pe.ObjectFragment.Orientation = new float[] { rotation.X, rotation.Y, rotation.Z, rotation.W };
             pe.ObjectFragment.Velocity = new float[] { vel.X, vel.Y, vel.Z };
 
+            ObjectExtFragment ext = new ObjectExtFragment();
+
             if (!((primShape.PCode == (byte)PCode.NewTree) || (primShape.PCode == (byte)PCode.Tree) || (primShape.PCode == (byte)PCode.Grass)))
             {
-                ObjectExtFragment ext = new ObjectExtFragment();
-                ext.UpdateFlags = flags;
 
-                ext.TextureEntry = primShape.TextureEntry;
-                ext.TextureAnim = textureanim;
-                ext.State = primShape.State;
                 ext.PathBegin = primShape.PathBegin;
                 ext.PathEnd = primShape.PathEnd;
                 ext.PathScaleX = primShape.PathScaleX;
@@ -633,7 +666,6 @@ namespace OpenSim.Client.MXP.ClientStack
                 ext.PathSkew = primShape.PathSkew;
                 ext.ProfileBegin = primShape.ProfileBegin;
                 ext.ProfileEnd = primShape.ProfileEnd;
-                ext.Scale = EncodeVector(primShape.Scale);
                 ext.PathCurve = primShape.PathCurve;
                 ext.ProfileCurve = primShape.ProfileCurve;
                 ext.ProfileHollow = primShape.ProfileHollow;
@@ -643,17 +675,23 @@ namespace OpenSim.Client.MXP.ClientStack
                 ext.PathTaperY = primShape.PathTaperY;
                 ext.PathTwist = primShape.PathTwist;
                 ext.PathTwistBegin = primShape.PathTwistBegin;
-                ext.ExtraParams = primShape.ExtraParams;
 
-                ext.Text = text;
-                ext.TextColor = EncodeColor(textColor);
-                ext.PSBlock = particleSystem;
-                ext.ClickAction = clickAction;
-                ext.Material = material;
-
-                pe.SetExtension<ObjectExtFragment>(ext);
 
             }
+
+            ext.UpdateFlags = flags;
+            ext.ExtraParams = primShape.ExtraParams;
+            ext.State = primShape.State;
+            ext.TextureEntry = primShape.TextureEntry;
+            ext.TextureAnim = textureanim;
+            ext.Scale = EncodeVector(primShape.Scale);
+            ext.Text = text;
+            ext.TextColor = EncodeColor(textColor);
+            ext.PSBlock = particleSystem;
+            ext.ClickAction = clickAction;
+            ext.Material = material;
+
+            pe.SetExtension<ObjectExtFragment>(ext);
 
             Session.Send(pe);
         }
