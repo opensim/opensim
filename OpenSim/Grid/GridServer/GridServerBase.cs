@@ -35,7 +35,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Grid.Framework;
-using OpenSim.Grid.GridServer.Modules;
 
 namespace OpenSim.Grid.GridServer
 {
@@ -47,11 +46,15 @@ namespace OpenSim.Grid.GridServer
 
         protected GridConfig m_config;
 
-        protected GridXmlRpcModule m_gridXmlRpcModule;
-        protected GridMessagingModule m_gridMessageModule;
-        protected GridRestModule m_gridRestModule;
+        public GridConfig Config
+        {
+            get { return m_config; }
+        }
 
-        protected GridDBService m_gridDBService;
+        public string Version
+        {
+            get { return m_version; }
+        }
 
         protected List<IGridPlugin> m_plugins = new List<IGridPlugin>();
 
@@ -71,34 +74,6 @@ namespace OpenSim.Grid.GridServer
             MainConsole.Instance = m_console;
         }
 
-        private void HandleRegistration(string module, string[] cmd)
-        {
-            switch (cmd[0])
-            {
-                case "enable":
-                    m_config.AllowRegionRegistration = true;
-                    m_log.Info("Region registration enabled");
-                    break;
-                case "disable":
-                    m_config.AllowRegionRegistration = false;
-                    m_log.Info("Region registration disabled");
-                    break;
-            }
-        }
-
-        private void HandleShowStatus(string module, string[] cmd)
-        {
-            if (m_config.AllowRegionRegistration)
-            {
-                m_log.Info("Region registration enabled.");
-            }
-            else
-            {
-                m_log.Info("Region registration disabled.");
-            }
-        }
-
-
         protected override void StartupSpecific()
         {
             m_config = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), "GridServer_Config.xml")));
@@ -106,43 +81,14 @@ namespace OpenSim.Grid.GridServer
             m_log.Info("[GRID]: Starting HTTP process");
             m_httpServer = new BaseHttpServer(m_config.HttpPort);
 
-            SetupGridServices();
-
-            AddHttpHandlers();
-
             LoadPlugins();
 
             m_httpServer.Start();
 
-            //            m_log.Info("[GRID]: Starting sim status checker");
-            //
-            //            Timer simCheckTimer = new Timer(3600000 * 3); // 3 Hours between updates.
-            //            simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
-            //            simCheckTimer.Enabled = true;
-
             base.StartupSpecific();
-
-            m_console.Commands.AddCommand("gridserver", false,
-                    "enable registration",
-                    "enable registration",
-                    "Enable new regions to register", HandleRegistration);
-
-            m_console.Commands.AddCommand("gridserver", false,
-                    "disable registration",
-                    "disable registration",
-                    "Disable registering new regions", HandleRegistration);
-
-            m_console.Commands.AddCommand("gridserver", false, "show status",
-                    "show status",
-                    "Show registration status", HandleShowStatus);
         }
 
-        protected void AddHttpHandlers()
-        {
-            // Registering Handlers is now done in the components/modules
-        }
-
-        protected void LoadPlugins()
+        protected virtual void LoadPlugins()
         {
             PluginLoader<IGridPlugin> loader =
                 new PluginLoader<IGridPlugin>(new GridPluginInitialiser(this));
@@ -151,39 +97,12 @@ namespace OpenSim.Grid.GridServer
             m_plugins = loader.Plugins;
         }
 
-        protected virtual void SetupGridServices()
-        {
-            m_log.Info("[DATA]: Connecting to Storage Server");
-            m_gridDBService = new GridDBService();
-            m_gridDBService.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
-
-            //Register the database access service so modules can fetch it
-            // RegisterInterface<GridDBService>(m_gridDBService);
-
-            m_gridMessageModule = new GridMessagingModule();
-            m_gridMessageModule.Initialise(m_version, m_gridDBService, this, m_config);
-
-            m_gridXmlRpcModule = new GridXmlRpcModule();
-            m_gridXmlRpcModule.Initialise(m_version, m_gridDBService, this, m_config);
-
-            m_gridRestModule = new GridRestModule();
-            m_gridRestModule.Initialise(m_version, m_gridDBService, this, m_config);
-
-            m_gridMessageModule.PostInitialise();
-            m_gridXmlRpcModule.PostInitialise();
-            m_gridRestModule.PostInitialise();
-        }
-
-        public void CheckSims(object sender, ElapsedEventArgs e)
-        {
-        }
-
         public override void ShutdownSpecific()
         {
             foreach (IGridPlugin plugin in m_plugins) plugin.Dispose();
         }
 
-        #region IUGAIMCore
+        #region IServiceCore
         protected Dictionary<Type, object> m_moduleInterfaces = new Dictionary<Type, object>();
 
         /// <summary>

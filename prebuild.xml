@@ -738,12 +738,14 @@
       <Reference name="OpenSim.Data.MySQL"/>
       <Reference name="OpenSim.Grid.Framework"/>
       <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenSim.Grid.GridServer"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
@@ -772,7 +774,6 @@
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Data.MySQL"/>
       <Reference name="OpenSim.Grid.Framework"/>
-      <Reference name="OpenSim.Grid.GridServer.Modules"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
