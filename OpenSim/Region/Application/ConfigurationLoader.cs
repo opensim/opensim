@@ -62,6 +62,9 @@ namespace OpenSim
             string masterFileName = startupConfig.GetString("inimaster", "");
             string masterfilePath = Path.Combine(Util.configDir(), masterFileName);
 
+            string iniDirName = startupConfig.GetString("inidirectory", "config");
+            string iniDirPath = Path.Combine(Util.configDir(), iniDirName);
+
             m_config = new OpenSimConfigSource();
             m_config.Source = new IniConfigSource();
             m_config.Source.Merge(DefaultConfig());
@@ -84,6 +87,17 @@ namespace OpenSim
                 }
             }
 
+            if (Directory.Exists(iniDirName))
+            {
+                m_log.InfoFormat("Searching folder: {0} , for config ini files", iniDirName);
+                string[] fileEntries = Directory.GetFiles(iniDirName);
+                foreach (string filePath in fileEntries)
+                {
+                   // m_log.InfoFormat("reading ini file < {0} > from config dir", filePath);
+                    ReadConfig(Path.GetFileName(filePath), filePath, m_config, false);
+                }
+            }
+            
             // Check for .INI file (either default or name passed on command
             // line) or XML config source over http
             bool isIniUri = Uri.TryCreate(iniFileName, UriKind.Absolute, out configUri) && configUri.Scheme == Uri.UriSchemeHttp;
@@ -251,7 +265,6 @@ namespace OpenSim
         protected virtual void ReadConfigSettings()
         {
             IConfig startupConfig = m_config.Source.Configs["Startup"];
-
             if (startupConfig != null)
             {
                 m_configSettings.Standalone = !startupConfig.GetBoolean("gridmode", false);
