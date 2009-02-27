@@ -1464,7 +1464,6 @@
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Communications.Hypergrid"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.ApplicationPlugins.LoadRegions"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

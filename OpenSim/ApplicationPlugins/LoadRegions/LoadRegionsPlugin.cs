@@ -70,7 +70,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         public void Initialise(OpenSimBase openSim)
         {
             m_openSim = openSim;
-            m_openSim.ApplicationRegistry.RegisterInterface<LoadRegionsPlugin>(this);
+            m_openSim.ApplicationRegistry.RegisterInterface<IRegionCreator>(this);
         }
 
         public void PostInitialise()

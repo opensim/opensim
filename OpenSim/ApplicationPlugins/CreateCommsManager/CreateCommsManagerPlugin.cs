@@ -44,7 +44,6 @@ using OpenSim.Region.Communications.Hypergrid;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
 using OpenSim.Framework.Servers;
-using OpenSim.ApplicationPlugins.LoadRegions;
 
 namespace OpenSim.ApplicationPlugins.CreateCommsManager
 {
@@ -69,7 +68,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         protected GridInfoService m_gridInfoService;
         protected IHyperlink HGServices = null;
 
-        protected LoadRegionsPlugin m_loadRegionsPlugin;
+        protected IRegionCreator m_regionCreator;
 
         public void Initialise()
         {
@@ -91,9 +90,9 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
         public void PostInitialise()
         {
-            if (m_openSim.ApplicationRegistry.TryGet<LoadRegionsPlugin>(out m_loadRegionsPlugin))
+            if (m_openSim.ApplicationRegistry.TryGet<IRegionCreator>(out m_regionCreator))
             {
-                m_loadRegionsPlugin.OnNewRegionCreated += RegionCreated;
+                m_regionCreator.OnNewRegionCreated += RegionCreated;
             }
         }
 
