@@ -39,6 +39,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using Packet=OpenMetaverse.Packets.Packet;
 using MXP.Extentions.OpenMetaverseFragments.Proto;
+using MXP.Util;
 
 namespace OpenSim.Client.MXP.ClientStack
 {
@@ -46,43 +47,24 @@ namespace OpenSim.Client.MXP.ClientStack
     {
         internal static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        #region Fields
         private readonly Session m_session;
         private readonly UUID m_sessionID;
         private readonly UUID m_userID;
-        private readonly IScene m_hostBubble;
+        private readonly IScene m_scene;
         private readonly string m_firstName;
         private readonly string m_lastName;
 
         private Vector3 m_startPosition=new Vector3(128f, 128f, 128f);
         private int m_debugLevel;
-        
+        #endregion
 
-        public MXPClientView(Session mxpSession, UUID mxpSessionID, UUID userID, IScene mxpHostBubble, string mxpFirstName, string mxpLastName)
-        {
-            this.m_session = mxpSession;
-            this.m_userID = userID;
-            this.m_firstName = mxpFirstName;
-            this.m_lastName = mxpLastName;
-            this.m_hostBubble = mxpHostBubble;
-            this.m_sessionID = mxpSessionID;
-        }
+        #region Properties
 
         public Session Session
         {
             get { return m_session; }
         }
-
-        public bool ProcessMXPPacket(Message msg)
-        {
-            if (m_debugLevel > 0)
-            {
-                m_log.Warn("[MXP] Received messaged unhandled: " + msg);
-            }
-
-            return false;
-        }
-
-        #region IClientAPI
 
         public Vector3 StartPos
         {
@@ -142,7 +124,7 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public IScene Scene
         {
-            get { return m_hostBubble; }
+            get { return m_scene; }
         }
 
         public int NextAnimationSequenceNumber
@@ -165,16 +147,227 @@ namespace OpenSim.Client.MXP.ClientStack
             }
         }
 
-        // Do we need this?
-        public bool SendLogoutPacketWhenClosing
+        #endregion
+
+        #region Constructors
+        public MXPClientView(Session mxpSession, UUID mxpSessionID, UUID userID, IScene mxpHostBubble, string mxpFirstName, string mxpLastName)
         {
-            set { }
+            this.m_session = mxpSession;
+            this.m_userID = userID;
+            this.m_firstName = mxpFirstName;
+            this.m_lastName = mxpLastName;
+            this.m_scene = mxpHostBubble;
+            this.m_sessionID = mxpSessionID;
+        }
+        #endregion
+
+        #region MXP Incoming Message Processing
+
+        public bool ProcessMXPPacket(Message msg)
+        {
+            if (m_debugLevel > 0)
+            {
+                m_log.Warn("[MXP] Received messaged unhandled: " + msg);
+            }
+
+            return false;
         }
 
-        public uint CircuitCode
+        #endregion
+
+        #region MXP Outgoing Message Processing
+
+        private void MXPSendPrimitive(uint localID, UUID ownerID, Vector3 acc, Vector3 rvel, PrimitiveBaseShape primShape, Vector3 pos, UUID objectID, Vector3 vel, Quaternion rotation, uint flags, string text, byte[] textColor, uint parentID, byte[] particleSystem, byte clickAction, byte material, byte[] textureanim)
         {
-            get { return m_sessionID.CRC(); }
+            String typeName = ToOmType(primShape.PCode);
+            m_log.Info("[MXP] Transmitting Primitive" + typeName);
+
+            PerceptionEventMessage pe = new PerceptionEventMessage();
+
+            pe.ObjectFragment.ObjectId = objectID.Guid;
+            // TODO Resolve ParentID
+            pe.ObjectFragment.ParentObjectId = Guid.Empty;
+            pe.ObjectFragment.ObjectIndex = localID;
+            pe.ObjectFragment.ObjectName = typeName + " Object";
+            pe.ObjectFragment.OwnerId = ownerID.Guid;
+            pe.ObjectFragment.TypeId = Guid.Empty;
+            pe.ObjectFragment.TypeName = typeName;
+            pe.ObjectFragment.Acceleration = new float[] { acc.X, acc.Y, acc.Z };
+            pe.ObjectFragment.AngularAcceleration = new float[4];
+            pe.ObjectFragment.AngularVelocity = new float[] { rvel.X, rvel.Y, rvel.Z, 0.0f };
+            pe.ObjectFragment.BoundingSphereRadius = primShape.Scale.Length();
+
+            pe.ObjectFragment.Location = new float[] { pos.X, pos.Y, pos.Z };
+
+            pe.ObjectFragment.Mass = 1.0f;
+            pe.ObjectFragment.Orientation = new float[] { rotation.X, rotation.Y, rotation.Z, rotation.W };
+            pe.ObjectFragment.Velocity = new float[] { vel.X, vel.Y, vel.Z };
+
+            OmSlPrimitiveExt ext = new OmSlPrimitiveExt();
+
+            if (!((primShape.PCode == (byte)PCode.NewTree) || (primShape.PCode == (byte)PCode.Tree) || (primShape.PCode == (byte)PCode.Grass)))
+            {
+
+                ext.PathBegin = primShape.PathBegin;
+                ext.PathEnd = primShape.PathEnd;
+                ext.PathScaleX = primShape.PathScaleX;
+                ext.PathScaleY = primShape.PathScaleY;
+                ext.PathShearX = primShape.PathShearX;
+                ext.PathShearY = primShape.PathShearY;
+                ext.PathSkew = primShape.PathSkew;
+                ext.ProfileBegin = primShape.ProfileBegin;
+                ext.ProfileEnd = primShape.ProfileEnd;
+                ext.PathCurve = primShape.PathCurve;
+                ext.ProfileCurve = primShape.ProfileCurve;
+                ext.ProfileHollow = primShape.ProfileHollow;
+                ext.PathRadiusOffset = primShape.PathRadiusOffset;
+                ext.PathRevolutions = primShape.PathRevolutions;
+                ext.PathTaperX = primShape.PathTaperX;
+                ext.PathTaperY = primShape.PathTaperY;
+                ext.PathTwist = primShape.PathTwist;
+                ext.PathTwistBegin = primShape.PathTwistBegin;
+
+
+            }
+
+            ext.UpdateFlags = flags;
+            ext.ExtraParams = primShape.ExtraParams;
+            ext.State = primShape.State;
+            ext.TextureEntry = primShape.TextureEntry;
+            ext.TextureAnim = textureanim;
+            ext.Scale = ToOmVector(primShape.Scale);
+            ext.Text = text;
+            ext.TextColor = ToOmColor(textColor);
+            ext.PSBlock = particleSystem;
+            ext.ClickAction = clickAction;
+            ext.Material = material;
+
+            pe.SetExtension<OmSlPrimitiveExt>(ext);
+
+            Session.Send(pe);
         }
+
+        public void MXPSendAvatarData(string participantName, UUID ownerID, UUID parentId, UUID avatarID, uint avatarLocalID, Vector3 position, Quaternion rotation)
+        {
+            m_log.Info("[MXP] Transmitting Avatar Data " + participantName);
+
+            PerceptionEventMessage pe = new PerceptionEventMessage();
+
+            pe.ObjectFragment.ObjectId = avatarID.Guid;
+            // TODO Resolve ParentID
+            pe.ObjectFragment.ParentObjectId = parentId.Guid;
+            pe.ObjectFragment.ObjectIndex = avatarLocalID;
+            pe.ObjectFragment.ObjectName = participantName;
+            pe.ObjectFragment.OwnerId = ownerID.Guid;
+            pe.ObjectFragment.TypeId = Guid.Empty;
+            pe.ObjectFragment.TypeName = "Avatar";
+            pe.ObjectFragment.Acceleration = new float[3];
+            pe.ObjectFragment.AngularAcceleration = new float[4];
+            pe.ObjectFragment.AngularVelocity = new float[4];
+            pe.ObjectFragment.BoundingSphereRadius = 1; // TODO Fill in appropriate value
+
+            pe.ObjectFragment.Location = new float[] { position.X, position.Y, position.Z };
+
+            pe.ObjectFragment.Mass = 1.0f; // TODO Fill in appropriate value
+            pe.ObjectFragment.Orientation = new float[] { rotation.X, rotation.Y, rotation.Z, rotation.W };
+            pe.ObjectFragment.Velocity = new float[3];
+
+            Session.Send(pe);
+        }
+
+        public void MXPSendTerrain(float[] map)
+        {
+            m_log.Info("[MXP] Transmitting terrain for " + m_scene.RegionInfo.RegionName);
+
+            PerceptionEventMessage pe = new PerceptionEventMessage();
+
+            // Hacking terrain object uuid to zero and index to hashcode of regionuuid
+            pe.ObjectFragment.ObjectId = m_scene.RegionInfo.RegionSettings.RegionUUID.Guid;
+            pe.ObjectFragment.ObjectIndex = (uint)(m_scene.RegionInfo.RegionSettings.RegionUUID.GetHashCode() + ((long)int.MaxValue) / 2);
+            pe.ObjectFragment.ParentObjectId = UUID.Zero.Guid;
+            pe.ObjectFragment.ObjectName = "Terrain of " + m_scene.RegionInfo.RegionName;
+            pe.ObjectFragment.OwnerId = m_scene.RegionInfo.MasterAvatarAssignedUUID.Guid;
+            pe.ObjectFragment.TypeId = Guid.Empty;
+            pe.ObjectFragment.TypeName = "Terrain";
+            pe.ObjectFragment.Acceleration = new float[3];
+            pe.ObjectFragment.AngularAcceleration = new float[4];
+            pe.ObjectFragment.AngularVelocity = new float[4];
+            pe.ObjectFragment.BoundingSphereRadius = 1; // TODO Fill in appropriate value
+
+            pe.ObjectFragment.Location = new float[] { 0, 0, 0 };
+
+            pe.ObjectFragment.Mass = 1.0f; // TODO Fill in appropriate value
+            pe.ObjectFragment.Orientation = new float[] { 0, 0, 0, 0 };
+            pe.ObjectFragment.Velocity = new float[3];
+
+            OmBitmapTerrainExt terrainExt = new OmBitmapTerrainExt();
+            terrainExt.Width = 256;
+            terrainExt.Height = 256;
+            terrainExt.WaterLevel = (float) m_scene.RegionInfo.RegionSettings.WaterHeight;
+            terrainExt.Offset = 0;
+            terrainExt.Scale = 10;
+            terrainExt.HeightMap = CompressionUtil.CompressHeightMap(map, 0, 10);
+
+            pe.SetExtension<OmBitmapTerrainExt>(terrainExt);
+
+            Session.Send(pe);
+        }
+
+        #endregion
+
+        #region MXP Conversions
+
+        private OmVector3f ToOmVector(Vector3 value)
+        {
+            OmVector3f encodedValue = new OmVector3f();
+            encodedValue.X = value.X;
+            encodedValue.Y = value.Y;
+            encodedValue.Z = value.Z;
+            return encodedValue;
+        }
+
+        private OmColor4f ToOmColor(byte[] value)
+        {
+            OmColor4f encodedValue = new OmColor4f();
+            encodedValue.R = value[0];
+            encodedValue.G = value[1];
+            encodedValue.B = value[2];
+            encodedValue.A = value[3];
+            return encodedValue;
+        }
+
+        private string ToOmType(byte value)
+        {
+            if (value == (byte)PCodeEnum.Avatar)
+            {
+                return "Avatar";
+            }
+            if (value == (byte)PCodeEnum.Grass)
+            {
+                return "Grass";
+            }
+            if (value == (byte)PCodeEnum.NewTree)
+            {
+                return "NewTree";
+            }
+            if (value == (byte)PCodeEnum.ParticleSystem)
+            {
+                return "ParticleSystem";
+            }
+            if (value == (byte)PCodeEnum.Primitive)
+            {
+                return "Primitive";
+            }
+            if (value == (byte)PCodeEnum.Tree)
+            {
+                return "Tree";
+            }
+            throw new Exception("Unsupported PCode value: " + value);
+        }
+
+        #endregion
+
+        #region OpenSim Event Handlers
 
         public event GenericMessage OnGenericMessage;
         public event ImprovedInstantMessage OnInstantMessage;
@@ -354,6 +547,20 @@ namespace OpenSim.Client.MXP.ClientStack
         public event UserInfoRequest OnUserInfoRequest;
         public event UpdateUserInfo OnUpdateUserInfo;
 
+        #endregion
+
+        #region OpenSim ClientView Public Methods
+        // Do we need this?
+        public bool SendLogoutPacketWhenClosing
+        {
+            set { }
+        }
+
+        public uint CircuitCode
+        {
+            get { return m_sessionID.CRC(); }
+        }
+
         public void SetDebugPacketLevel(int newDebug)
         {
             m_debugLevel = newDebug;
@@ -402,6 +609,18 @@ namespace OpenSim.Client.MXP.ClientStack
         public void Start()
         {
             Scene.AddNewClient(this);
+            /*foreach (ScenePresence presence in ((Scene)Scene).GetScenePresences())
+            {
+                if (presence.Appearance!=null)
+                {
+                    AvatarAppearance avatar = presence.Appearance;
+                    if (presence.Appearance.Owner == m_userID)
+                    {
+                        MXPSendAvatarData(m_firstName + " " + m_lastName, presence.Appearance.Owner, UUID.Zero, presence.UUID, presence.LocalId, presence.AbsolutePosition, presence.Rotation);
+                    }
+                }
+            }*/
+
         }
 
         public void Stop()
@@ -484,12 +703,11 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public void SendLayerData(float[] map)
         {
-            // Need to translate to MXP somehow
+            MXPSendTerrain(map);
         }
 
         public void SendLayerData(int px, int py, float[] map)
         {
-            // Need to translate to MXP somehow
         }
 
         public void SendWindData(Vector2[] windSpeeds)
@@ -568,32 +786,11 @@ namespace OpenSim.Client.MXP.ClientStack
             // Need to translate to MXP somehow
         }
 
-        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, string grouptitle, UUID avatarID, uint avatarLocalID, Vector3 pos, byte[] textureEntry, uint parentID, Quaternion rotation)
+        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, string grouptitle, UUID avatarID, uint avatarLocalID, Vector3 position, byte[] textureEntry, uint parentID, Quaternion rotation)
         {
-            m_log.Info("[MXP] Transmitting Avatar Data " + firstName + " " + lastName);
-
-            PerceptionEventMessage pe = new PerceptionEventMessage();
-
-            pe.ObjectFragment.ObjectId = avatarID.Guid;
-            // TODO Resolve ParentID
-            pe.ObjectFragment.ParentObjectId = Guid.Empty;
-            pe.ObjectFragment.ObjectIndex = avatarLocalID;
-            pe.ObjectFragment.ObjectName = firstName+" "+lastName;
-            pe.ObjectFragment.OwnerId = Guid.Empty;
-            pe.ObjectFragment.TypeId = Guid.Empty;
-            pe.ObjectFragment.TypeName = "Avatar";
-            pe.ObjectFragment.Acceleration = new float[3];
-            pe.ObjectFragment.AngularAcceleration = new float[4];
-            pe.ObjectFragment.AngularVelocity = new float[4];
-            pe.ObjectFragment.BoundingSphereRadius = 1; // TODO Fill in appropriate value
-
-            pe.ObjectFragment.Location = new float[] { pos.X, pos.Y, pos.Z };
-
-            pe.ObjectFragment.Mass = 1.0f; // TODO Fill in appropriate value
-            pe.ObjectFragment.Orientation = new float[] { rotation.X, rotation.Y, rotation.Z, rotation.W };
-            pe.ObjectFragment.Velocity = new float[3];
-
-            Session.Send(pe);
+            //ScenePresence presence=((Scene)this.Scene).GetScenePresence(avatarID);
+            UUID ownerID = avatarID;
+            MXPSendAvatarData(firstName + " " + lastName, ownerID, UUID.Zero, avatarID, avatarLocalID, position, rotation);
         }
 
         public void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position, Vector3 velocity, Quaternion rotation)
@@ -624,124 +821,6 @@ namespace OpenSim.Client.MXP.ClientStack
         public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, Vector3 pos, Vector3 vel, Vector3 acc, Quaternion rotation, Vector3 rvel, uint flags, UUID objectID, UUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem, byte clickAction, byte material, byte[] textureanim, bool attachment, uint AttachPoint, UUID AssetId, UUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius)
         {
             MXPSendPrimitive(localID, ownerID, acc, rvel, primShape, pos, objectID, vel, rotation, flags,text,color,parentID,particleSystem,clickAction,material,textureanim);
-        }
-
-        private void MXPSendPrimitive(uint localID, UUID ownerID, Vector3 acc, Vector3 rvel, PrimitiveBaseShape primShape, Vector3 pos, UUID objectID, Vector3 vel, Quaternion rotation, uint flags, string text, byte[] textColor, uint parentID, byte[] particleSystem, byte clickAction, byte material, byte[] textureanim)
-        {
-            String typeName = PCodeToString(primShape.PCode);
-            m_log.Info("[MXP] Transmitting Primitive" + typeName);   
-
-            PerceptionEventMessage pe = new PerceptionEventMessage();
-
-            pe.ObjectFragment.ObjectId = objectID.Guid;
-            // TODO Resolve ParentID
-            pe.ObjectFragment.ParentObjectId = Guid.Empty;
-            pe.ObjectFragment.ObjectIndex = localID;
-            pe.ObjectFragment.ObjectName = typeName + " Object";
-            pe.ObjectFragment.OwnerId = ownerID.Guid;
-            pe.ObjectFragment.TypeId = Guid.Empty;
-            pe.ObjectFragment.TypeName = typeName;
-            pe.ObjectFragment.Acceleration = new float[] { acc.X, acc.Y, acc.Z };
-            pe.ObjectFragment.AngularAcceleration = new float[4];
-            pe.ObjectFragment.AngularVelocity = new float[] { rvel.X, rvel.Y, rvel.Z, 0.0f };
-            pe.ObjectFragment.BoundingSphereRadius = primShape.Scale.Length();
-
-            pe.ObjectFragment.Location = new float[] { pos.X , pos.Y, pos.Z };
-
-            pe.ObjectFragment.Mass = 1.0f;
-            pe.ObjectFragment.Orientation = new float[] { rotation.X, rotation.Y, rotation.Z, rotation.W };
-            pe.ObjectFragment.Velocity = new float[] { vel.X, vel.Y, vel.Z };
-
-            ObjectExtFragment ext = new ObjectExtFragment();
-
-            if (!((primShape.PCode == (byte)PCode.NewTree) || (primShape.PCode == (byte)PCode.Tree) || (primShape.PCode == (byte)PCode.Grass)))
-            {
-
-                ext.PathBegin = primShape.PathBegin;
-                ext.PathEnd = primShape.PathEnd;
-                ext.PathScaleX = primShape.PathScaleX;
-                ext.PathScaleY = primShape.PathScaleY;
-                ext.PathShearX = primShape.PathShearX;
-                ext.PathShearY = primShape.PathShearY;
-                ext.PathSkew = primShape.PathSkew;
-                ext.ProfileBegin = primShape.ProfileBegin;
-                ext.ProfileEnd = primShape.ProfileEnd;
-                ext.PathCurve = primShape.PathCurve;
-                ext.ProfileCurve = primShape.ProfileCurve;
-                ext.ProfileHollow = primShape.ProfileHollow;
-                ext.PathRadiusOffset = primShape.PathRadiusOffset;
-                ext.PathRevolutions = primShape.PathRevolutions;
-                ext.PathTaperX = primShape.PathTaperX;
-                ext.PathTaperY = primShape.PathTaperY;
-                ext.PathTwist = primShape.PathTwist;
-                ext.PathTwistBegin = primShape.PathTwistBegin;
-
-
-            }
-
-            ext.UpdateFlags = flags;
-            ext.ExtraParams = primShape.ExtraParams;
-            ext.State = primShape.State;
-            ext.TextureEntry = primShape.TextureEntry;
-            ext.TextureAnim = textureanim;
-            ext.Scale = EncodeVector(primShape.Scale);
-            ext.Text = text;
-            ext.TextColor = EncodeColor(textColor);
-            ext.PSBlock = particleSystem;
-            ext.ClickAction = clickAction;
-            ext.Material = material;
-
-            pe.SetExtension<ObjectExtFragment>(ext);
-
-            Session.Send(pe);
-        }
-
-        private vectorf EncodeVector(Vector3 value)
-        {
-            vectorf encodedValue=new vectorf();
-            encodedValue.X=value.X;
-            encodedValue.Y=value.Y;
-            encodedValue.Z=value.Z;
-            return encodedValue;
-        }
-
-        private color EncodeColor(byte[] value)
-        {
-            color encodedValue = new color();
-            encodedValue.R = value[0];
-            encodedValue.G = value[1];
-            encodedValue.B = value[2];
-            encodedValue.A = value[3];
-            return encodedValue;
-        }
-
-        private string PCodeToString(byte value)
-        {
-            if(value==(byte)PCodeEnum.Avatar)
-            {
-                return "Avatar";
-            }
-            if (value == (byte)PCodeEnum.Grass)
-            {
-                return "Grass";
-            }
-            if (value == (byte)PCodeEnum.NewTree)
-            {
-                return "NewTree";
-            }
-            if (value == (byte)PCodeEnum.ParticleSystem)
-            {
-                return "ParticleSystem";
-            }
-            if (value == (byte)PCodeEnum.Primitive)
-            {
-                return "Primitive";
-            }
-            if (value == (byte)PCodeEnum.Tree)
-            {
-                return "Tree";
-            }
-            throw new Exception("Unsupported PCode value: "+value);
         }
 
         public void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, Vector3 pos, Vector3 vel, Vector3 acc, Quaternion rotation, Vector3 rvel, uint flags, UUID objectID, UUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem, byte clickAction, byte material)
@@ -1323,5 +1402,6 @@ namespace OpenSim.Client.MXP.ClientStack
         }
 
         #endregion
+    
     }
 }
