@@ -940,25 +940,28 @@ namespace OpenSim.Framework
             FieldInfo[] fieldInfos = settingsType.GetFields();
             foreach (FieldInfo fieldInfo in fieldInfos)
             {
-                if (fieldInfo.FieldType == typeof(System.String))
+                if (!fieldInfo.IsStatic)
                 {
-                    fieldInfo.SetValue(settingsClass, config.Get(fieldInfo.Name, (string)fieldInfo.GetValue(settingsClass)));
-                }
-                else if (fieldInfo.FieldType == typeof(System.Boolean))
-                {
-                    fieldInfo.SetValue(settingsClass, config.GetBoolean(fieldInfo.Name, (bool)fieldInfo.GetValue(settingsClass)));
-                }
-                else if (fieldInfo.FieldType == typeof(System.Int32))
-                {
-                    fieldInfo.SetValue(settingsClass, config.GetInt(fieldInfo.Name, (int)fieldInfo.GetValue(settingsClass)));
-                }
-                else if (fieldInfo.FieldType == typeof(System.Single))
-                {
-                    fieldInfo.SetValue(settingsClass, config.GetFloat(fieldInfo.Name, (float)fieldInfo.GetValue(settingsClass)));
-                }
-                else if (fieldInfo.FieldType == typeof(System.UInt32))
-                {
-                    fieldInfo.SetValue(settingsClass, System.Convert.ToUInt32(config.Get(fieldInfo.Name, ((uint)fieldInfo.GetValue(settingsClass)).ToString())));
+                    if (fieldInfo.FieldType == typeof(System.String))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.Get(fieldInfo.Name, (string)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.Boolean))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.GetBoolean(fieldInfo.Name, (bool)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.Int32))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.GetInt(fieldInfo.Name, (int)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.Single))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.GetFloat(fieldInfo.Name, (float)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.UInt32))
+                    {
+                        fieldInfo.SetValue(settingsClass, System.Convert.ToUInt32(config.Get(fieldInfo.Name, ((uint)fieldInfo.GetValue(settingsClass)).ToString())));
+                    }
                 }
             }
 
