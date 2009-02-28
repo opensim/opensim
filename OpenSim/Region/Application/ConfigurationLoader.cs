@@ -93,8 +93,11 @@ namespace OpenSim
                 string[] fileEntries = Directory.GetFiles(iniDirName);
                 foreach (string filePath in fileEntries)
                 {
-                   // m_log.InfoFormat("reading ini file < {0} > from config dir", filePath);
-                    ReadConfig(Path.GetFileName(filePath), filePath, m_config, false);
+                    if (Path.GetExtension(filePath).ToLower() == ".ini")
+                    {
+                        // m_log.InfoFormat("reading ini file < {0} > from config dir", filePath);
+                        ReadConfig(Path.GetFileName(filePath), filePath, m_config, false);
+                    }
                 }
             }
             
