@@ -504,6 +504,7 @@ namespace OpenSim.Client.MXP.ClientStack
 
         #region OpenSim Event Handlers
 
+        #pragma warning disable 67
         public event GenericMessage OnGenericMessage;
         public event ImprovedInstantMessage OnInstantMessage;
         public event ChatMessage OnChatFromClient;
@@ -681,6 +682,11 @@ namespace OpenSim.Client.MXP.ClientStack
         public event ParcelDwellRequest OnParcelDwellRequest;
         public event UserInfoRequest OnUserInfoRequest;
         public event UpdateUserInfo OnUpdateUserInfo;
+        public event ViewerEffectEventHandler OnViewerEffect;
+        public event Action<IClientAPI> OnLogout;
+        public event Action<IClientAPI> OnConnectionClosed;
+        public event RetrieveInstantMessages OnRetrieveInstantMessages;
+        #pragma warning restore 67
 
         #endregion
 
@@ -1329,13 +1335,6 @@ namespace OpenSim.Client.MXP.ClientStack
 
             return throttles;
         }
-
-        public event ViewerEffectEventHandler OnViewerEffect;
-        public event Action<IClientAPI> OnLogout;
-        public event Action<IClientAPI> OnConnectionClosed;
-
-        public event RetrieveInstantMessages OnRetrieveInstantMessages;
-
 
         public void SendBlueBoxMessage(UUID FromAvatarID, string FromAvatarName, string Message)
         {
