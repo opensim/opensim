@@ -412,7 +412,7 @@ namespace OpenSim.Client.MXP.PacketHandler
                     }
                     else
                     {
-                        clientView.ProcessMXPPacket(message);
+                        clientView.MXPPRocessMessage(message);
                     }
 
                     MessageFactory.Current.ReleaseMessage(message);

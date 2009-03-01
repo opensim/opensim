@@ -40,12 +40,22 @@ using OpenSim.Framework.Client;
 using Packet=OpenMetaverse.Packets.Packet;
 using MXP.Extentions.OpenMetaverseFragments.Proto;
 using MXP.Util;
+using MXP.Fragments;
 
 namespace OpenSim.Client.MXP.ClientStack
 {
     class MXPClientView : IClientAPI, IClientCore
     {
         internal static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        #region Constants
+        private Vector3 FORWARD = new Vector3(1, 0, 0);
+        private Vector3 BACKWARD = new Vector3(-1, 0, 0);
+        private Vector3 LEFT = new Vector3(0, 1, 0);
+        private Vector3 RIGHT = new Vector3(0, -1, 0);
+        private Vector3 UP = new Vector3(0, 0, 1);
+        private Vector3 DOWN = new Vector3(0, 0, -1);
+        #endregion
 
         #region Fields
         private readonly Session m_session;
@@ -163,14 +173,119 @@ namespace OpenSim.Client.MXP.ClientStack
 
         #region MXP Incoming Message Processing
 
-        public bool ProcessMXPPacket(Message msg)
+        public void MXPPRocessMessage(Message message)
         {
-            if (m_debugLevel > 0)
+            if (message.GetType() == typeof(ModifyRequestMessage))
             {
-                m_log.Warn("[MXP] Received messaged unhandled: " + msg);
+                MXPProcessModifyRequest((ModifyRequestMessage)message);
             }
+            else
+            {
+                m_log.Warn("[MXP] Received messaged unhandled: " + message);
+            }
+        }
 
-            return false;
+        private void MXPProcessModifyRequest(ModifyRequestMessage modifyRequest)
+        {
+            m_log.Debug("Received modify request for: " + modifyRequest.ObjectFragment.ObjectName);
+
+            ObjectFragment objectFragment=modifyRequest.ObjectFragment;
+            if (objectFragment.ObjectId == m_userID.Guid)
+            {
+                OmAvatarExt avatarExt = modifyRequest.GetExtension<OmAvatarExt>();
+
+                AgentUpdateArgs agentUpdate = new AgentUpdateArgs();
+                agentUpdate.AgentID = new UUID(objectFragment.ObjectId);
+                agentUpdate.SessionID = m_sessionID;
+                agentUpdate.State = (byte)avatarExt.State;
+
+                Quaternion avatarOrientation = FromOmQuaternion(objectFragment.Orientation);
+                if (avatarOrientation.X == 0 && avatarOrientation.Y == 0 && avatarOrientation.Z == 0 && avatarOrientation.W == 0)
+                {
+                    avatarOrientation = Quaternion.Identity;
+                }
+                Vector3 avatarLocation=FromOmVector(objectFragment.Location);
+
+                if (avatarExt.MovementDirection != null)
+                {
+                    Vector3 direction = FromOmVector(avatarExt.MovementDirection);
+
+                    direction = direction * Quaternion.Inverse(avatarOrientation);
+
+                    if ((direction - FORWARD).Length() < 0.5)
+                    {
+                        agentUpdate.ControlFlags += (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS;
+                    }
+                    if ((direction - BACKWARD).Length() < 0.5)
+                    {
+                        agentUpdate.ControlFlags += (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG;
+                    }
+                    if ((direction - LEFT).Length() < 0.5)
+                    {
+                        agentUpdate.ControlFlags += (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS;
+                    }
+                    if ((direction - RIGHT).Length() < 0.5)
+                    {
+                        agentUpdate.ControlFlags += (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG;
+                    }
+                    if ((direction - UP).Length() < 0.5)
+                    {
+                        agentUpdate.ControlFlags += (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS;
+                    }
+                    if ((direction - DOWN).Length() < 0.5)
+                    {
+                        agentUpdate.ControlFlags += (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG;
+                    }
+
+                }
+                if (avatarExt.TargetOrientation != null)
+                {
+                    agentUpdate.BodyRotation = FromOmQuaternion(avatarExt.TargetOrientation);
+                }
+                else
+                {
+                    agentUpdate.BodyRotation = FromOmQuaternion(objectFragment.Orientation);
+                }
+
+                if (avatarExt.Body != null)
+                {
+                    agentUpdate.HeadRotation = FromOmQuaternion(avatarExt.Body.HeadOrientation);
+                }
+                else
+                {
+                    agentUpdate.HeadRotation = Quaternion.Identity;
+                }
+
+                if (avatarExt.Camera != null)
+                {
+                    Quaternion cameraOrientation = FromOmQuaternion(avatarExt.Camera.Orientation);
+                    agentUpdate.CameraCenter = FromOmVector(avatarExt.Camera.Location);
+                    agentUpdate.CameraAtAxis = FORWARD * cameraOrientation;
+                    agentUpdate.CameraLeftAxis = LEFT * cameraOrientation;
+                    agentUpdate.CameraUpAxis = UP * cameraOrientation;
+                }
+                else
+                {
+                    agentUpdate.CameraCenter = avatarLocation;
+                    agentUpdate.CameraAtAxis = FORWARD * avatarOrientation;
+                    agentUpdate.CameraLeftAxis = LEFT * avatarOrientation;
+                    agentUpdate.CameraUpAxis = UP * avatarOrientation;
+                }
+
+                OnAgentUpdate(this, agentUpdate);
+
+                ModifyResponseMessage modifyResponse = new ModifyResponseMessage();
+                modifyResponse.FailureCode = MxpResponseCodes.SUCCESS;
+                modifyResponse.RequestMessageId = modifyRequest.MessageId;
+                m_session.Send(modifyResponse);
+            }
+            else
+            {
+                ModifyResponseMessage modifyResponse = new ModifyResponseMessage();
+                modifyResponse.FailureCode = MxpResponseCodes.UNAUTHORIZED_OPERATION;
+                modifyResponse.RequestMessageId = modifyRequest.MessageId;
+                m_session.Send(modifyResponse);
+            }
         }
 
         #endregion
@@ -324,6 +439,26 @@ namespace OpenSim.Client.MXP.ClientStack
             encodedValue.Y = value.Y;
             encodedValue.Z = value.Z;
             return encodedValue;
+        }
+
+        private Vector3 FromOmVector(OmVector3f vector)
+        {
+            return new Vector3(vector.X, vector.Y, vector.Z);
+        }
+
+        private Vector3 FromOmVector(float[] vector)
+        {
+            return new Vector3(vector[0], vector[1], vector[2]);
+        }
+
+        private Quaternion FromOmQuaternion(OmQuaternion4f quaternion)
+        {
+            return new Quaternion(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
+        }
+
+        private Quaternion FromOmQuaternion(float[] quaternion)
+        {
+            return new Quaternion(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
         }
 
         private OmColor4f ToOmColor(byte[] value)
