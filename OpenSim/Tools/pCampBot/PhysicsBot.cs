@@ -77,7 +77,7 @@ namespace pCampBot
 
         void m_action_Elapsed(object sender, ElapsedEventArgs e)
         {
-            while(true)
+            while (true)
             {
                 //client.Appearance.ForceRebakeAvatarTextures();
                 //client.Appearance.SetPreviousAppearance();

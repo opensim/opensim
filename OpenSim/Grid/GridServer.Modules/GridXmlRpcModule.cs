@@ -400,7 +400,7 @@ namespace OpenSim.Grid.GridServer.Modules
            // IGridMessagingModule messagingModule;
            // if (m_gridCore.TryGet<IGridMessagingModule>(out messagingModule))
             //{
-            if(m_messagingServerMapper != null)
+            if (m_messagingServerMapper != null)
             {
                 List<MessageServerInfo> messageServers = m_messagingServerMapper.GetMessageServersList();
                 responseData["messageserver_count"] = messageServers.Count;

@@ -260,7 +260,7 @@ namespace OpenSim.Client.MXP.PacketHandler
             }
             
             string[] nameParts=participantName.Split(' ');
-            if(nameParts.Length!=2)
+            if (nameParts.Length != 2)
             {
                 m_log.Info("Login failed as user name is not formed of first and last name separated by space: " + participantName);
                 return false;
@@ -370,7 +370,6 @@ namespace OpenSim.Client.MXP.PacketHandler
 
             foreach (MXPClientView clientView in Clients)
             {
-                
                 int messagesProcessedCount = 0;
                 Session session = clientView.Session;
 
@@ -380,7 +379,6 @@ namespace OpenSim.Client.MXP.PacketHandler
 
                     if (message.GetType() == typeof(LeaveRequestMessage))
                     {
-
                         LeaveResponseMessage leaveResponseMessage = (LeaveResponseMessage)MessageFactory.Current.ReserveMessage(
                             typeof(LeaveResponseMessage));
 
@@ -400,7 +398,6 @@ namespace OpenSim.Client.MXP.PacketHandler
                     }
                     if (message.GetType() == typeof(LeaveResponseMessage))
                     {
-
                         LeaveResponseMessage leaveResponseMessage = (LeaveResponseMessage)message;
 
                         m_log.Info("[MXP ClientStack] Session leave response: " + session.SessionId + " (" + (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" + session.RemoteEndPoint.Port + ")");
