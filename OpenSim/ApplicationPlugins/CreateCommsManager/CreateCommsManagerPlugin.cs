@@ -127,6 +127,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
                 {
                     m_log.Error("[CreateComms] " + e.Message);
                     m_log.Error("[CreateComms] The OpenSim application class was : " + openSim.ToString());
+                    m_log.Error("[CreateComms] To use hypergrid mode, please make sure you are starting opensim with the command line: opensim.exe -hypergrid=true");
                     Environment.Exit(1);
                 }
 
