@@ -66,7 +66,7 @@ namespace OpenSim
         protected string proxyUrl;
         protected int proxyOffset = 0;
 
-        protected bool m_autoCreateLindenStack = true;
+        protected bool m_autoCreateClientStack = true;
 
         /// <summary>
         /// The file used to load and save prim backup xml if no filename has been specified
@@ -585,7 +585,7 @@ namespace OpenSim
 
             m_sceneManager.Add(scene);
 
-            if (m_autoCreateLindenStack)
+            if (m_autoCreateClientStack)
             {
                 m_clientServers.Add(clientServer);
                 clientServer.Start();
@@ -662,7 +662,7 @@ namespace OpenSim
 
             uint port = (uint)regionInfo.InternalEndPoint.Port;
 
-            if (m_autoCreateLindenStack)
+            if (m_autoCreateClientStack)
             {
                 clientServer
                     = m_clientStackManager.CreateServer(
@@ -678,7 +678,7 @@ namespace OpenSim
 
             Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);
 
-            if (m_autoCreateLindenStack)
+            if (m_autoCreateClientStack)
             {
                 clientServer.AddScene(scene);
             }
