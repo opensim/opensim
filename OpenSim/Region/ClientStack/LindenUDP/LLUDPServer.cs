@@ -109,7 +109,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return x == m_location;
         }
 
-        public void AddScene(Scene x)
+        public void AddScene(IScene x)
         {
             LocalScene = x;
         }

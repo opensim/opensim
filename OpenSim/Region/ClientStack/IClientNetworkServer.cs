@@ -29,7 +29,6 @@ using System.Net;
 using System.Net.Sockets;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -41,7 +40,7 @@ namespace OpenSim.Region.ClientStack
 
         Socket Server { get; }
         bool HandlesRegion(Location x);
-        void AddScene(Scene x);
+        void AddScene(IScene x);
 
         void Start();
         void Stop();
