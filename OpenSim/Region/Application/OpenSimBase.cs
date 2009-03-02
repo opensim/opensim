@@ -274,57 +274,6 @@ namespace OpenSim
                 m_console.Notice(moduleCommander.Help);
         }
 
-        ///// <summary>
-        ///// Initialises the backend services for standalone mode, and registers some http handlers
-        ///// </summary>
-        ///// <param name="libraryRootFolder"></param>
-        //protected virtual void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
-        //{
-        //    LocalInventoryService inventoryService = new LocalInventoryService();
-        //    inventoryService.AddPlugin(m_configSettings.StandaloneInventoryPlugin, m_configSettings.StandaloneInventorySource);
-
-        //    LocalUserServices userService =
-        //        new LocalUserServices(
-        //            m_networkServersInfo.DefaultHomeLocX, m_networkServersInfo.DefaultHomeLocY, inventoryService);
-        //    userService.AddPlugin(m_configSettings.StandaloneUserPlugin, m_configSettings.StandaloneUserSource);
-
-        //    LocalBackEndServices backendService = new LocalBackEndServices();
-
-        //    LocalLoginService loginService =
-        //        new LocalLoginService(
-        //            userService, m_configSettings.StandaloneWelcomeMessage, inventoryService, backendService, m_networkServersInfo,
-        //            m_configSettings.StandaloneAuthenticate, libraryRootFolder);
-
-        //    m_commsManager
-        //        = new CommunicationsLocal(
-        //            m_networkServersInfo, m_httpServer, m_assetCache, userService, userService,
-        //            inventoryService, backendService, userService,
-        //            libraryRootFolder, m_configSettings.DumpAssetsToFile);
-
-        //    // set up XMLRPC handler for client's initial login request message
-        //    m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
-
-        //    // provides the web form login
-        //    m_httpServer.AddHTTPHandler("login", loginService.ProcessHTMLLogin);
-
-        //    // Provides the LLSD login
-        //    m_httpServer.SetDefaultLLSDHandler(loginService.LLSDLoginMethod);
-
-        //    // provide grid info
-        //    // m_gridInfoService = new GridInfoService(m_config.Source.Configs["Startup"].GetString("inifile", Path.Combine(Util.configDir(), "OpenSim.ini")));
-        //    m_gridInfoService = new GridInfoService(m_config.Source);
-        //    m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
-        //    m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
-        //}
-
-        //protected virtual void InitialiseGridServices(LibraryRootFolder libraryRootFolder)
-        //{
-        //    m_commsManager
-        //        = new CommunicationsOGS1(m_networkServersInfo, m_httpServer, m_assetCache, libraryRootFolder);
-
-        //    m_httpServer.AddStreamHandler(new SimStatusHandler());
-        //}
-
         protected override void Initialize()
         {
             //
