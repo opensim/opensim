@@ -99,7 +99,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         string osGetScriptEngineName();
         string osGetSimulatorVersion();
-        void osSetParcelMediaTime(double time);
         Hashtable osParseJSON(string JSON);
         
         void osMessageObject(key objectUUID,string message);

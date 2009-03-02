@@ -837,20 +837,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_ScriptEngine.World.GetSimulatorVersion();
         }
 
-        //for testing purposes only
-        public void osSetParcelMediaTime(double time)
-        {
-            // This gets very high because I have no idea what it does.
-            // If someone knows, please adjust. If it;s no longer needed,
-            // please remove.
-            //This sets the current time on a video. IE, it can be used to skip to a set time in the video. [MW]
-            CheckThreatLevel(ThreatLevel.VeryHigh, "osSetParcelMediaTime");
-
-            m_host.AddScriptLPS(1);
-
-            World.ParcelMediaSetTime((float)time);
-        }
-
         public Hashtable osParseJSON(string JSON)
         {
             CheckThreatLevel(ThreatLevel.None, "osParseJSON");

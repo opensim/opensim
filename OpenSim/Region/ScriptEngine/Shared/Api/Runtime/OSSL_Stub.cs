@@ -238,13 +238,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
            return m_OSSL_Functions.osGetSimulatorVersion();    
         }
-
-
-        //for testing purposes only
-        public void osSetParcelMediaTime(double time)
-        {
-            m_OSSL_Functions.osSetParcelMediaTime(time);
-        }
         
         public Hashtable osParseJSON(string JSON)
         {
