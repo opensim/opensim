@@ -118,7 +118,17 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
             if (hgrid)
             {
-                HGOpenSimNode hgNode = (HGOpenSimNode)openSim;
+                HGOpenSimNode hgNode = null;
+                try
+                {
+                    hgNode = (HGOpenSimNode)openSim;
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[CreateComms] " + e.Message);
+                    m_log.Error("[CreateComms] The OpenSim application class was : " + openSim.ToString());
+                    Environment.Exit(1);
+                }
 
                 // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
                 if (m_openSim.ConfigurationSettings.Standalone)
