@@ -28,10 +28,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
@@ -62,7 +64,9 @@ namespace OpenSim
         private const string PLUGIN_ASSET_SERVER_CLIENT = "/OpenSim/AssetClient";
 
         protected string proxyUrl;
-        protected int proxyOffset = 0;                
+        protected int proxyOffset = 0;
+
+        protected bool m_autoCreateLindenStack = true;
 
         /// <summary>
         /// The file used to load and save prim backup xml if no filename has been specified
@@ -185,17 +189,6 @@ namespace OpenSim
             m_stats = StatsManager.StartCollectingSimExtraStats();
 
             LibraryRootFolder libraryRootFolder = new LibraryRootFolder(m_configSettings.LibrariesXMLFile);
-
-            //// Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
-            //if (m_configSettings.Standalone)
-            //{
-            //    InitialiseStandaloneServices(libraryRootFolder);
-            //}
-            //else
-            //{
-            //    // We are in grid mode
-            //    InitialiseGridServices(libraryRootFolder);
-            //}
 
             // Create a ModuleLoader instance
             m_moduleLoader = new ModuleLoader(m_config.Source);
@@ -544,6 +537,7 @@ namespace OpenSim
             {
                 // set proxy url to RegionInfo
                 regionInfo.proxyUrl = proxyUrl;
+                regionInfo.ProxyOffset = proxyOffset;
                 Util.XmlRpcCommand(proxyUrl, "AddPort", port, port + proxyOffset, regionInfo.ExternalHostName);
             }
 
@@ -591,8 +585,11 @@ namespace OpenSim
 
             m_sceneManager.Add(scene);
 
-            m_clientServers.Add(clientServer);
-            clientServer.Start();
+            if (m_autoCreateLindenStack)
+            {
+                m_clientServers.Add(clientServer);
+                clientServer.Start();
+            }
 
             if (do_post_init)
             {
@@ -634,6 +631,94 @@ namespace OpenSim
             Scene target;
             if (m_sceneManager.TryGetScene(name, out target))
                 RemoveRegion(target, cleanUp);
+        }
+
+        /// <summary>
+        /// Create a scene and its initial base structures.
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <param name="clientServer"> </param>
+        /// <returns></returns>        
+        protected Scene SetupScene(RegionInfo regionInfo, out IClientNetworkServer clientServer)
+        {
+            return SetupScene(regionInfo, 0, null, out clientServer);
+        }
+
+        /// <summary>
+        /// Create a scene and its initial base structures.
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <param name="proxyOffset"></param>
+        /// <param name="configSource"></param>
+        /// <param name="clientServer"> </param>
+        /// <returns></returns>
+        protected Scene SetupScene(
+            RegionInfo regionInfo, int proxyOffset, IConfigSource configSource, out IClientNetworkServer clientServer)
+        {
+            AgentCircuitManager circuitManager = new AgentCircuitManager();
+            IPAddress listenIP = regionInfo.InternalEndPoint.Address;
+            //if (!IPAddress.TryParse(regionInfo.InternalEndPoint, out listenIP))
+            //    listenIP = IPAddress.Parse("0.0.0.0");
+
+            uint port = (uint)regionInfo.InternalEndPoint.Port;
+
+            if (m_autoCreateLindenStack)
+            {
+                clientServer
+                    = m_clientStackManager.CreateServer(
+                        listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, configSource,
+                        m_assetCache, circuitManager);
+            }
+            else
+            {
+                clientServer = null;
+            }
+
+            regionInfo.InternalEndPoint.Port = (int)port;
+
+            Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);
+
+            if (m_autoCreateLindenStack)
+            {
+                clientServer.AddScene(scene);
+            }
+
+            scene.LoadWorldMap();
+
+            scene.PhysicsScene = GetPhysicsScene(scene.RegionInfo.RegionName);
+            scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
+            scene.PhysicsScene.SetWaterLevel((float)regionInfo.RegionSettings.WaterHeight);
+
+            // TODO: Remove this cruft once MasterAvatar is fully deprecated
+            //Master Avatar Setup
+            UserProfileData masterAvatar;
+            if (scene.RegionInfo.MasterAvatarAssignedUUID == UUID.Zero)
+            {
+                masterAvatar =
+                    m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName,
+                                                               scene.RegionInfo.MasterAvatarLastName,
+                                                               scene.RegionInfo.MasterAvatarSandboxPassword);
+            }
+            else
+            {
+                masterAvatar = m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarAssignedUUID);
+                scene.RegionInfo.MasterAvatarFirstName = masterAvatar.FirstName;
+                scene.RegionInfo.MasterAvatarLastName = masterAvatar.SurName;
+            }
+
+            if (masterAvatar == null)
+            {
+                m_log.Info("[PARCEL]: No master avatar found, using null.");
+                scene.RegionInfo.MasterAvatarAssignedUUID = UUID.Zero;
+            }
+            else
+            {
+                m_log.InfoFormat("[PARCEL]: Found master avatar {0} {1} [" + masterAvatar.ID.ToString() + "]",
+                                 scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName);
+                scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.ID;
+            }
+
+            return scene;
         }
 
         protected override StorageManager CreateStorageManager()

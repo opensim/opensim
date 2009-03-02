@@ -208,6 +208,7 @@ namespace OpenSim.Framework
         public string MasterAvatarSandboxPassword = String.Empty;
         public UUID originRegionID = UUID.Zero;
         public string proxyUrl = "";
+        public int ProxyOffset = 0;
         public string RegionName = String.Empty;
         public string regionSecret = UUID.Random().ToString();
 
