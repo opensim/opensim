@@ -91,8 +91,8 @@ namespace OpenSim.Region.Communications.OGS1
             httpServer = httpServe;
 
             //Respond to Grid Services requests
-            httpServer.AddXmlRPCHandler("expect_user", ExpectUser);
-            httpServer.AddXmlRPCHandler("logoff_user", LogOffUser);
+          //  httpServer.AddXmlRPCHandler("expect_user", ExpectUser);
+          //  httpServer.AddXmlRPCHandler("logoff_user", LogOffUser);
             httpServer.AddXmlRPCHandler("check", PingCheckReply);
             httpServer.AddXmlRPCHandler("land_data", LandData);
 
