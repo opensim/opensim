@@ -290,7 +290,7 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(responseData["message"], Is.EqualTo("Hello folks"));
         }
 
-        public class TestLoginToRegionConnector : ILoginRegionsConnector
+        public class TestLoginToRegionConnector : ILoginServiceToRegionsConnector
         {
 
             private List<RegionInfo> m_regionsList = new List<RegionInfo>();

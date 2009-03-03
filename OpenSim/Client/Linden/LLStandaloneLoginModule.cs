@@ -44,7 +44,7 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Client.Linden
 {
-    public class LLStandaloneLoginModule : IRegionModule, ILoginRegionsConnector
+    public class LLStandaloneLoginModule : IRegionModule, ILoginServiceToRegionsConnector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

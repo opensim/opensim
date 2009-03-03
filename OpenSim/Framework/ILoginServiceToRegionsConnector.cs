@@ -27,11 +27,10 @@
 
 using System;
 using OpenMetaverse;
-using OpenSim.Framework;
 
-namespace OpenSim.Client.Linden
+namespace OpenSim.Framework
 {
-    public interface ILoginRegionsConnector
+    public interface ILoginServiceToRegionsConnector
     {
         bool RegionLoginsEnabled { get; }
         void LogOffUserFromGrid(ulong regionHandle, UUID AvatarID, UUID RegionSecret, string message);

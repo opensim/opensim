@@ -61,14 +61,14 @@ namespace OpenSim.Client.Linden
         /// <summary>
         /// Used to make requests to the local regions.
         /// </summary>
-        protected ILoginRegionsConnector m_regionsConnector;
+        protected ILoginServiceToRegionsConnector m_regionsConnector;
 
 
         public LLStandaloneLoginService(
             UserManagerBase userManager, string welcomeMess,
             IInterServiceInventoryServices interServiceInventoryService,
             NetworkServersInfo serversInfo,
-            bool authenticate, LibraryRootFolder libraryRootFolder, ILoginRegionsConnector regionsConnector)
+            bool authenticate, LibraryRootFolder libraryRootFolder, ILoginServiceToRegionsConnector regionsConnector)
             : base(userManager, libraryRootFolder, welcomeMess)
         {
             this.serversInfo = serversInfo;
