@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using log4net;
@@ -47,11 +48,13 @@ namespace OpenSim.Client.Linden
             if ((m_scene != null) && (m_createClientStack))
             {
                 m_log.Info("[LLClientStackModule] Starting up LLClientStack.");
-                uint port = (uint)m_scene.RegionInfo.InternalEndPoint.Port;
+                IPEndPoint endPoint = m_scene.RegionInfo.InternalEndPoint;
+
+                uint port = (uint)endPoint.Port;
                 m_clientStackManager = new ClientStackManager(m_clientStackDll);
 
                 m_clientServer
-                   = m_clientStackManager.CreateServer(m_scene.RegionInfo.InternalEndPoint.Address,
+                   = m_clientStackManager.CreateServer(endPoint.Address,
                      ref port, m_scene.RegionInfo.ProxyOffset, m_scene.RegionInfo.m_allow_alternate_ports, m_source,
                        m_scene.CommsManager.AssetCache, m_scene.AuthenticateHandler);
 
