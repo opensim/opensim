@@ -3,15 +3,15 @@ for your effort!)
 
 Add your name in here if you have committed to OpenSim
 
-OpenSim Developers 
+OpenSim Developers (in very rough order of appearance)
 
 * MW (Tribal Media AB)
+* Gareth
 * Adam Frisby 	(DeepThink Pty Ltd)
 * MingChen 	(DeepThink Pty Ltd)
 * lbsa71 (Tribal Media AB)
 * sdague (IBM)
 * Andy-	
-* Gareth
 * MorphW
 * CW
 * Babblefrog
@@ -33,7 +33,8 @@ OpenSim Developers
 * Homer_Horwitz
 * idb (Ian Brown)
 * Diva (Crista Lopes, University of California, Irvine)
-
+* nlin (3Di)
+* dalien
 
 Patches
 
@@ -71,7 +72,6 @@ Patches
 * mikkopa/_someone - RealXtend
 * Mircea Kitsune
 * mpallari
-* nlin
 * nornalbion
 * openlifegrid.com
 * ralphos
