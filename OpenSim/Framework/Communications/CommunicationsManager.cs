@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework.Communications.Cache;
@@ -111,6 +112,7 @@ namespace OpenSim.Framework.Communications
         }
         protected BaseHttpServer m_httpServer;
 
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -125,7 +127,6 @@ namespace OpenSim.Framework.Communications
             m_assetCache = assetCache;
             m_userProfileCacheService = new UserProfileCacheService(this, libraryRootFolder);
             m_httpServer = httpServer;
-         //   m_transactionsManager = new AgentAssetTransactionsManager(this, dumpAssetsToFile);
         }
 
         #region Inventory

@@ -1734,10 +1734,12 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
-      <Reference name="protobuf-net"/>
-      <Reference name="MXP.dll"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="OpenSim.Region.Framework"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -2911,6 +2913,7 @@
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenSim.Client.Linden"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data"/>

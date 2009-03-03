@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
@@ -35,6 +36,7 @@ using Nwc.XmlRpc;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Tests.Common.Mock;
+using OpenSim.Client.Linden;
 
 namespace OpenSim.Framework.Communications.Tests
 {
@@ -60,16 +62,22 @@ namespace OpenSim.Framework.Communications.Tests
 
             CommunicationsManager commsManager
                 = new TestCommunicationsManager(new NetworkServersInfo(42, 43));
+           
+            //commsManager.GridService.RegisterRegion(
+            //    new RegionInfo(42, 43, capsEndPoint, regionExternalName));
+            //commsManager.GridService.RegionLoginsEnabled = true;
 
-            commsManager.GridService.RegisterRegion(
-                new RegionInfo(42, 43, capsEndPoint, regionExternalName));
-            commsManager.GridService.RegionLoginsEnabled = true;
+            //LoginService loginService
+            //    = new LocalLoginService(
+            //        (UserManagerBase)commsManager.UserService, "Hello folks", commsManager.InterServiceInventoryService,
+            //        (LocalBackEndServices)commsManager.GridService,
+            //        commsManager.NetworkServersInfo, false, new LibraryRootFolder(String.Empty));
 
-            LoginService loginService
-                = new LocalLoginService(
-                    (UserManagerBase)commsManager.UserService, "Hello folks", commsManager.InterServiceInventoryService,
-                    (LocalBackEndServices)commsManager.GridService,
-                    commsManager.NetworkServersInfo, false, new LibraryRootFolder(String.Empty));
+            TestLoginToRegionConnector regionConnector = new TestLoginToRegionConnector();
+            regionConnector.AddRegion(new RegionInfo(42, 43, capsEndPoint, regionExternalName));
+
+            LoginService loginService = new LLStandaloneLoginService((UserManagerBase)commsManager.UserService, "Hello folks", commsManager.InterServiceInventoryService,
+                 commsManager.NetworkServersInfo, false, new LibraryRootFolder(String.Empty), regionConnector);
 
             Hashtable loginParams = new Hashtable();
             loginParams["first"] = firstName;
@@ -108,21 +116,25 @@ namespace OpenSim.Framework.Communications.Tests
             CommunicationsManager commsManager
                 = new TestCommunicationsManager(new NetworkServersInfo(42, 43));
 
-            commsManager.GridService.RegisterRegion(
-                new RegionInfo(42, 43, capsEndPoint, regionExternalName));
-            commsManager.GridService.RegionLoginsEnabled = true;
-
             LocalUserServices lus = (LocalUserServices)commsManager.UserService;
 
             lus.AddUser(firstName,lastName,"boingboing","abc@ftw.com",42,43);
 
+            //commsManager.GridService.RegisterRegion(
+            //   new RegionInfo(42, 43, capsEndPoint, regionExternalName));
+            //commsManager.GridService.RegionLoginsEnabled = true;
 
-            LoginService loginService
-                = new LocalLoginService(
-                    (UserManagerBase)lus, "Hello folks", commsManager.InterServiceInventoryService,
-                    (LocalBackEndServices)commsManager.GridService,
-                    commsManager.NetworkServersInfo, true, new LibraryRootFolder(String.Empty));
+            //LoginService loginService
+            //    = new LocalLoginService(
+            //        (UserManagerBase)lus, "Hello folks", commsManager.InterServiceInventoryService,
+            //        (LocalBackEndServices)commsManager.GridService,
+            //        commsManager.NetworkServersInfo, true, new LibraryRootFolder(String.Empty));
 
+            TestLoginToRegionConnector regionConnector = new TestLoginToRegionConnector();
+            regionConnector.AddRegion(new RegionInfo(42, 43, capsEndPoint, regionExternalName));
+
+            LoginService loginService = new LLStandaloneLoginService((UserManagerBase) lus, "Hello folks", commsManager.InterServiceInventoryService,
+                  commsManager.NetworkServersInfo, true, new LibraryRootFolder(String.Empty), regionConnector);
 
             // TODO: Not check inventory part of response yet.
             // TODO: Not checking all of login response thoroughly yet.
@@ -276,6 +288,90 @@ namespace OpenSim.Framework.Communications.Tests
             response = loginService.XmlRpcLoginMethod(request);
             responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo("Hello folks"));
+        }
+
+        public class TestLoginToRegionConnector : ILoginRegionsConnector
+        {
+
+            private List<RegionInfo> m_regionsList = new List<RegionInfo>();
+
+            public void AddRegion(RegionInfo regionInfo)
+            {
+                lock (m_regionsList)
+                {
+                    if (!m_regionsList.Contains(regionInfo))
+                    {
+                        m_regionsList.Add(regionInfo);
+                    }
+                }
+            }
+
+            #region ILoginRegionsConnector Members
+            public bool RegionLoginsEnabled
+            {
+                get { return true; }
+            }
+
+            public void LogOffUserFromGrid(ulong regionHandle, OpenMetaverse.UUID AvatarID, OpenMetaverse.UUID RegionSecret, string message)
+            {
+            }
+
+            public bool NewUserConnection(ulong regionHandle, AgentCircuitData agent)
+            {
+                lock (m_regionsList)
+                {
+                    foreach (RegionInfo regInfo in m_regionsList)
+                    {
+                        if (regInfo.RegionHandle == regionHandle)
+                            return true;
+                    }
+                }
+                return false;
+            }
+
+            public RegionInfo RequestClosestRegion(string region)
+            {
+                lock (m_regionsList)
+                {
+                    foreach (RegionInfo regInfo in m_regionsList)
+                    {
+                        if (regInfo.RegionName == region)
+                            return regInfo;
+                    }
+                }
+
+                return null;
+            }
+
+            public RegionInfo RequestNeighbourInfo(OpenMetaverse.UUID regionID)
+            {
+                lock (m_regionsList)
+                {
+                    foreach (RegionInfo regInfo in m_regionsList)
+                    {
+                        if (regInfo.RegionID == regionID)
+                            return regInfo;
+                    }
+                }
+
+                return null;
+            }
+
+            public RegionInfo RequestNeighbourInfo(ulong regionHandle)
+            {
+                lock (m_regionsList)
+                {
+                    foreach (RegionInfo regInfo in m_regionsList)
+                    {
+                        if (regInfo.RegionHandle == regionHandle)
+                            return regInfo;
+                    }
+                }
+
+                return null;
+            }
+
+            #endregion
         }
     }
 }

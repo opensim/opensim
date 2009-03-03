@@ -2296,7 +2296,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void RegisterCommsEvents()
         {
-            m_sceneGridService.OnExpectUser += NewUserConnection;
+            m_sceneGridService.OnExpectUser += HandleNewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection += IncomingCloseAgent;
             m_sceneGridService.OnRegionUp += OtherRegionUp;
@@ -2328,7 +2328,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGridService.OnExpectPrim -= IncomingInterRegionPrimGroup;
             //m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
             m_sceneGridService.OnRegionUp -= OtherRegionUp;
-            m_sceneGridService.OnExpectUser -= NewUserConnection;
+            m_sceneGridService.OnExpectUser -= HandleNewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion -= AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection -= IncomingCloseAgent;
             m_sceneGridService.OnGetLandData -= GetLandData;
@@ -2340,12 +2340,26 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// A handler for the SceneCommunicationService event, to match that events return type of void.
+        /// Use NewUserConnection() directly if possible so the return type can refuse connections.
+        /// At the moment nothing actually seems to use this event,
+        /// as everything is switching to calling the NewUserConnection method directly.
+        /// </summary>
+        /// <param name="agent"></param>
+        public void HandleNewUserConnection(AgentCircuitData agent)
+        {
+            NewUserConnection(agent);
+        }
+
+        /// <summary>
         /// Do the work necessary to initiate a new user connection for a particular scene.
         /// At the moment, this consists of setting up the caps infrastructure
+        /// The return bool should allow for connections to be refused, but as not all calling paths
+        /// take proper notice of it let, we allowed banned users in still.
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agent"></param>
-        public void NewUserConnection(AgentCircuitData agent)
+        public bool NewUserConnection(AgentCircuitData agent)
         {
             CapsModule.NewUserConnection(agent);
 
@@ -2358,7 +2372,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 sp.AdjustKnownSeeds();
 
-                return;
+                return true;
             }
 
             // Don't disable this log message - it's too helpful
@@ -2371,6 +2385,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat(
                "[CONNECTION BEGIN]: Incoming user {0} at {1} is on the region banlist",
                agent.AgentID, RegionInfo.RegionName);
+                //return false;
             }
 
             CapsModule.AddCapsHandler(agent.AgentID);
@@ -2402,6 +2417,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat(
                     "[CONNECTION BEGIN]: We couldn't find a User Info record for {0}.  This is usually an indication that the UUID we're looking up is invalid", agent.AgentID);
             }
+
+            return true;
         }
 
         public void UpdateCircuitData(AgentCircuitData data)
@@ -2414,7 +2431,7 @@ namespace OpenSim.Region.Framework.Scenes
             return m_authenticateHandler.TryChangeCiruitCode(oldcc, newcc);
         }
 
-        protected void HandleLogOffUserFromGrid(UUID AvatarID, UUID RegionSecret, string message)
+        public void HandleLogOffUserFromGrid(UUID AvatarID, UUID RegionSecret, string message)
         {
             ScenePresence loggingOffUser = null;
             loggingOffUser = GetScenePresence(AvatarID);

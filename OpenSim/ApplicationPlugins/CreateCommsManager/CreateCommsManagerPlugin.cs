@@ -176,7 +176,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
             LocalBackEndServices backendService = new LocalBackEndServices();
 
-            LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, backendService);
+            //LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, backendService);
 
             m_commsManager
                 = new CommunicationsLocal(
@@ -207,10 +207,9 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
                      m_openSim.NetServersInfo.DefaultHomeLocX, m_openSim.NetServersInfo.DefaultHomeLocY, inventoryService);
             userService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneUserPlugin, m_openSim.ConfigurationSettings.StandaloneUserSource);
 
-            //LocalBackEndServices backendService = new LocalBackEndServices();
             HGGridServicesStandalone gridService = new HGGridServicesStandalone(m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, m_openSim.SceneManager);
 
-            LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, gridService.LocalBackend);
+          //  LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, gridService.LocalBackend);
 
             m_commsManager = new HGCommunicationsStandalone(m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache,
                 userService, userService, inventoryService, gridService, userService, libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);
@@ -231,24 +230,24 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
             m_httpServer.AddStreamHandler(new OpenSim.SimStatusHandler());
         }
 
-        private LocalLoginService CreateLoginService(LibraryRootFolder libraryRootFolder, IInterServiceInventoryServices inventoryService, LocalUserServices userService, LocalBackEndServices backendService)
-        {
-            LocalLoginService loginService =
-                new LocalLoginService(
-                    userService, m_openSim.ConfigurationSettings.StandaloneWelcomeMessage, inventoryService, backendService, m_openSim.NetServersInfo,
-                    m_openSim.ConfigurationSettings.StandaloneAuthenticate, libraryRootFolder);
+        //private LocalLoginService CreateLoginService(LibraryRootFolder libraryRootFolder, IInterServiceInventoryServices inventoryService, LocalUserServices userService, LocalBackEndServices backendService)
+        //{
+        //    LocalLoginService loginService =
+        //        new LocalLoginService(
+        //            userService, m_openSim.ConfigurationSettings.StandaloneWelcomeMessage, inventoryService, backendService, m_openSim.NetServersInfo,
+        //            m_openSim.ConfigurationSettings.StandaloneAuthenticate, libraryRootFolder);
 
-            // set up XMLRPC handler for client's initial login request message
-            m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
+        //    // set up XMLRPC handler for client's initial login request message
+        //    m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
 
-            // provides the web form login
-            m_httpServer.AddHTTPHandler("login", loginService.ProcessHTMLLogin);
+        //    // provides the web form login
+        //    m_httpServer.AddHTTPHandler("login", loginService.ProcessHTMLLogin);
 
-            // Provides the LLSD login
-            m_httpServer.SetDefaultLLSDHandler(loginService.LLSDLoginMethod);
+        //    // Provides the LLSD login
+        //    m_httpServer.SetDefaultLLSDHandler(loginService.LLSDLoginMethod);
 
-            return loginService;
-        }
+        //    return loginService;
+        //}
 
         private void CreateGridInfoService()
         {

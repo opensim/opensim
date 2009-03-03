@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -9,7 +9,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSim Project nor the
+ *     * Neither the name of the OpenSimulator Project nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
@@ -28,21 +28,23 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using log4net;
+using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
+using OpenSim.Framework.Servers;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 
-namespace OpenSim.Region.Communications.Local
+namespace OpenSim.Client.Linden
 {
-    /*
-    public delegate void LoginToRegionEvent(ulong regionHandle, Login login);
-
-    public class LocalLoginService : LoginService
+    public class LLStandaloneLoginService : LoginService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -50,37 +52,32 @@ namespace OpenSim.Region.Communications.Local
         protected uint defaultHomeX;
         protected uint defaultHomeY;
         protected bool authUsers = false;
-        
+
         /// <summary>
         /// Used by the login service to make requests to the inventory service.
         /// </summary>
         protected IInterServiceInventoryServices m_interServiceInventoryService;
-        
+
         /// <summary>
         /// Used to make requests to the local regions.
         /// </summary>
-        protected LocalBackEndServices m_gridService;
+        protected ILoginRegionsConnector m_regionsConnector;
 
-        public event LoginToRegionEvent OnLoginToRegion;
 
-        protected LoginToRegionEvent handlerLoginToRegion = null; // OnLoginToRegion;
-
-        public LocalLoginService(
+        public LLStandaloneLoginService(
             UserManagerBase userManager, string welcomeMess,
-            IInterServiceInventoryServices interServiceInventoryService, LocalBackEndServices gridService,
+            IInterServiceInventoryServices interServiceInventoryService,
             NetworkServersInfo serversInfo,
-            bool authenticate, LibraryRootFolder libraryRootFolder)
+            bool authenticate, LibraryRootFolder libraryRootFolder, ILoginRegionsConnector regionsConnector)
             : base(userManager, libraryRootFolder, welcomeMess)
         {
             this.serversInfo = serversInfo;
             defaultHomeX = this.serversInfo.DefaultHomeLocX;
             defaultHomeY = this.serversInfo.DefaultHomeLocY;
             authUsers = authenticate;
-            
+
             m_interServiceInventoryService = interServiceInventoryService;
-            m_gridService = gridService;
-            
-            OnLoginToRegion += gridService.AddNewSession;            
+            m_regionsConnector = regionsConnector;
         }
 
         public override UserProfileData GetTheUser(string firstname, string lastname)
@@ -100,7 +97,7 @@ namespace OpenSim.Region.Communications.Local
 
                 return m_userManager.GetUserProfile(firstname, lastname);
             }
-            
+
             return null;
         }
 
@@ -144,7 +141,7 @@ namespace OpenSim.Region.Communications.Local
 
             // HomeLocation
             RegionInfo homeInfo = null;
-            
+
             // use the homeRegionID if it is stored already. If not, use the regionHandle as before
             UUID homeRegionId = theUser.HomeRegionID;
             ulong homeRegionHandle = theUser.HomeRegion;
@@ -162,8 +159,8 @@ namespace OpenSim.Region.Communications.Local
                 response.Home =
                     string.Format(
                         "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
-                        (homeInfo.RegionLocX*Constants.RegionSize),
-                        (homeInfo.RegionLocY*Constants.RegionSize),
+                        (homeInfo.RegionLocX * Constants.RegionSize),
+                        (homeInfo.RegionLocY * Constants.RegionSize),
                         theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
                         theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
             }
@@ -181,7 +178,7 @@ namespace OpenSim.Region.Communications.Local
                         regionX, regionY,
                         theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
                         theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
-                
+
                 m_log.InfoFormat("[LOGIN] Home region of user {0} {1} is not available; using computed region position {2} {3}",
                                  theUser.FirstName, theUser.SurName,
                                  regionX, regionY);
@@ -258,25 +255,25 @@ namespace OpenSim.Region.Communications.Local
             //        (SimInfo.regionLocY*Constants.RegionSize),
             //        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
             //        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
-            theUser.CurrentAgent.Position = new Vector3(128,128,0);
+            theUser.CurrentAgent.Position = new Vector3(128, 128, 0);
             response.StartLocation = "safe";
-                
+
             return PrepareLoginToRegion(regionInfo, theUser, response);
         }
 
         protected RegionInfo RequestClosestRegion(string region)
         {
-            return m_gridService.RequestClosestRegion(region);
+            return m_regionsConnector.RequestClosestRegion(region);
         }
 
         protected RegionInfo GetRegionInfo(ulong homeRegionHandle)
         {
-            return m_gridService.RequestNeighbourInfo(homeRegionHandle);
+            return m_regionsConnector.RequestNeighbourInfo(homeRegionHandle);
         }
 
         protected RegionInfo GetRegionInfo(UUID homeRegionId)
         {
-            return m_gridService.RequestNeighbourInfo(homeRegionId);
+            return m_regionsConnector.RequestNeighbourInfo(homeRegionId);
         }
 
         /// <summary>
@@ -316,8 +313,9 @@ namespace OpenSim.Region.Communications.Local
         /// <returns>true if the region was successfully contacted, false otherwise</returns>
         protected bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response)
         {
-            response.SimAddress = regionInfo.ExternalEndPoint.Address.ToString();
-            response.SimPort = (uint)regionInfo.ExternalEndPoint.Port;
+            IPEndPoint endPoint = regionInfo.ExternalEndPoint;
+            response.SimAddress = endPoint.Address.ToString();
+            response.SimPort = (uint)endPoint.Port;
             response.RegionX = regionInfo.RegionLocX;
             response.RegionY = regionInfo.RegionLocY;
 
@@ -327,9 +325,9 @@ namespace OpenSim.Region.Communications.Local
             // Don't use the following!  It Fails for logging into any region not on the same port as the http server!
             // Kept here so it doesn't happen again!
             // response.SeedCapability = regionInfo.ServerURI + capsSeedPath;
-            
+
             string seedcap = "http://";
-            
+
             if (serversInfo.HttpUsesSSL)
             {
                 seedcap = "https://" + serversInfo.HttpSSLCN + ":" + serversInfo.httpSSLPort + capsSeedPath;
@@ -345,32 +343,35 @@ namespace OpenSim.Region.Communications.Local
             m_log.InfoFormat(
                 "[LOGIN]: Telling {0} @ {1},{2} ({3}) to prepare for client connection",
                 regionInfo.RegionName, response.RegionX, response.RegionY, regionInfo.ServerURI);
-            
+
             // Update agent with target sim
             user.CurrentAgent.Region = regionInfo.RegionID;
             user.CurrentAgent.Handle = regionInfo.RegionHandle;
-            
-            // Prepare notification
-            Login loginParams = new Login();
-            loginParams.Session = user.CurrentAgent.SessionID;
-            loginParams.SecureSession = user.CurrentAgent.SecureSessionID;
-            loginParams.First = user.FirstName;
-            loginParams.Last = user.SurName;
-            loginParams.Agent = user.ID;
-            loginParams.CircuitCode = Convert.ToUInt32(response.CircuitCode);
-            loginParams.StartPos = user.CurrentAgent.Position;
-            loginParams.CapsPath = capsPath;
 
-            // Appearance
-            loginParams.Appearance = m_userManager.GetUserAppearance(user.ID);
-
-            if (m_gridService.RegionLoginsEnabled)
+            AgentCircuitData agent = new AgentCircuitData();
+            agent.AgentID = user.ID;
+            agent.firstname = user.FirstName;
+            agent.lastname = user.SurName;
+            agent.SessionID = user.CurrentAgent.SessionID;
+            agent.SecureSessionID = user.CurrentAgent.SecureSessionID;
+            agent.circuitcode = Convert.ToUInt32(response.CircuitCode);
+            agent.BaseFolder = UUID.Zero;
+            agent.InventoryFolder = UUID.Zero;
+            agent.startpos = user.CurrentAgent.Position;
+            agent.CapsPath = capsPath;
+            agent.Appearance = m_userManager.GetUserAppearance(user.ID);
+            if (agent.Appearance == null)
             {
-                handlerLoginToRegion = OnLoginToRegion;
-                handlerLoginToRegion(user.CurrentAgent.Handle, loginParams);
-                return true;
+                m_log.WarnFormat("[INTER]: Appearance not found for {0} {1}. Creating default.", agent.firstname, agent.lastname);
+                agent.Appearance = new AvatarAppearance();
             }
-            
+
+            if (m_regionsConnector.RegionLoginsEnabled)
+            {
+                // m_log.Info("[LLStandaloneLoginModule] Informing region about user");
+                return m_regionsConnector.NewUserConnection(regionInfo.RegionHandle, agent);
+            }
+
             return false;
         }
 
@@ -398,8 +399,8 @@ namespace OpenSim.Region.Communications.Local
                 TempHash = new Hashtable();
                 TempHash["name"] = InvFolder.Name;
                 TempHash["parent_id"] = InvFolder.ParentID.ToString();
-                TempHash["version"] = (Int32) InvFolder.Version;
-                TempHash["type_default"] = (Int32) InvFolder.Type;
+                TempHash["version"] = (Int32)InvFolder.Version;
+                TempHash["type_default"] = (Int32)InvFolder.Type;
                 TempHash["folder_id"] = InvFolder.ID.ToString();
                 AgentInventoryArray.Add(TempHash);
             }
@@ -412,7 +413,7 @@ namespace OpenSim.Region.Communications.Local
             RegionInfo SimInfo;
             try
             {
-                SimInfo = this.m_gridService.RequestNeighbourInfo(theUser.CurrentAgent.Handle);
+                SimInfo = this.m_regionsConnector.RequestNeighbourInfo(theUser.CurrentAgent.Handle);
 
                 if (SimInfo == null)
                 {
@@ -426,8 +427,7 @@ namespace OpenSim.Region.Communications.Local
                 return;
             }
 
-            m_gridService.TriggerLogOffUser(SimInfo.RegionHandle, theUser.ID, theUser.CurrentAgent.SecureSessionID, "Logging you off");
+            m_regionsConnector.LogOffUserFromGrid(SimInfo.RegionHandle, theUser.ID, theUser.CurrentAgent.SecureSessionID, "Logging you off");
         }
-
-    }*/
+    }
 }
