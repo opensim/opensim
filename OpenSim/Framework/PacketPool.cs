@@ -27,13 +27,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
+using log4net;
 
 namespace OpenSim.Framework
 {
     public sealed class PacketPool
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private static readonly PacketPool instance = new PacketPool();
 
         private bool packetPoolEnabled = false;
@@ -119,7 +123,10 @@ namespace OpenSim.Framework
 
             int i = 0;
             Packet packet = GetPacket(type);
-            packet.FromBytes(bytes, ref i, ref packetEnd, zeroBuffer);
+            if (packet == null)
+                m_log.WarnFormat("[PACKETPOOL]: Failed to get packet of type {0}", type);
+            else
+                packet.FromBytes(bytes, ref i, ref packetEnd, zeroBuffer);
             return packet;
         }
 
