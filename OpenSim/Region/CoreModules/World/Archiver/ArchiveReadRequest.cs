@@ -111,8 +111,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     
                     if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType)
                     {
-                        m_log.WarnFormat("[ARCHIVER]: Ignoring directory entry {0}",
-                                         filePath);
+                        m_log.WarnFormat(
+                            "[ARCHIVER]: Ignoring directory entry {0}", filePath);
                     }
                     else if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
                     {

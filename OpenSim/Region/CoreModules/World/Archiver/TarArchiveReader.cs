@@ -27,7 +27,9 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
+using log4net;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -36,7 +38,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     /// </summary>
     public class TarArchiveReader
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         public enum TarEntryType 
         {
@@ -116,12 +118,24 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // If we've reached the end of the archive we'll be in null block territory, which means
             // the next byte will be 0
             if (header[0] == 0)
-                return null;
+                return null;           
 
             TarHeader tarHeader = new TarHeader();
 
-            tarHeader.FilePath = m_asciiEncoding.GetString(header, 0, 100);
-            tarHeader.FilePath = tarHeader.FilePath.Trim(m_nullCharArray);
+            // If we're looking at a GNU tar long link then extract the long name and pull up the next header
+            if (header[156] == (byte)'L')
+            {
+                int longNameLength = ConvertOctalBytesToDecimal(header, 124, 11);
+                tarHeader.FilePath = m_asciiEncoding.GetString(m_br.ReadBytes(longNameLength));
+                m_log.DebugFormat("[TAR ARCHIVE READER]: Got long file name {0}", tarHeader.FilePath);
+                header = m_br.ReadBytes(512);
+            }
+            else
+            {               
+                tarHeader.FilePath = m_asciiEncoding.GetString(header, 0, 100);
+                tarHeader.FilePath = tarHeader.FilePath.Trim(m_nullCharArray);
+            }
+                        
             tarHeader.FileSize = ConvertOctalBytesToDecimal(header, 124, 11);
 
             switch (header[156]) 

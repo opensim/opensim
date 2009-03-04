@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             m_files[filePath] = data;
         }
-
+        
         /// <summary>
         /// Write the raw tar archive data to a stream.  The stream will be closed on completion.
         /// </summary>
@@ -87,84 +87,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             foreach (string filePath in m_files.Keys)
             {
-                byte[] header = new byte[512];
-                byte[] data = m_files[filePath];
-
-                // file path field (100)
-                byte[] nameBytes = m_asciiEncoding.GetBytes(filePath);
-                int nameSize = (nameBytes.Length >= 100) ? 100 : nameBytes.Length;
-                Array.Copy(nameBytes, header, nameSize);
-
-                // file mode (8)
-                byte[] modeBytes = m_asciiEncoding.GetBytes("0000777");
-                Array.Copy(modeBytes, 0, header, 100, 7);
-
-                // owner user id (8)
-                byte[] ownerIdBytes = m_asciiEncoding.GetBytes("0000764");
-                Array.Copy(ownerIdBytes, 0, header, 108, 7);
-
-                // group user id (8)
-                byte[] groupIdBytes = m_asciiEncoding.GetBytes("0000764");
-                Array.Copy(groupIdBytes, 0, header, 116, 7);
-
-                // file size in bytes (12)
-                int fileSize = data.Length;
-                //m_log.DebugFormat("[TAR ARCHIVE WRITER]: File size of {0} is {1}", filePath, fileSize);
-
-                byte[] fileSizeBytes = ConvertDecimalToPaddedOctalBytes(fileSize, 11);
-
-                Array.Copy(fileSizeBytes, 0, header, 124, 11);
-
-                // last modification time (12)
-                byte[] lastModTimeBytes = m_asciiEncoding.GetBytes("11017037332");
-                Array.Copy(lastModTimeBytes, 0, header, 136, 11);
-
-                // link indicator (1)
-                //header[156] = m_asciiEncoding.GetBytes("0")[0];
-                if (filePath.EndsWith("/"))
-                {
-                    header[156] = m_asciiEncoding.GetBytes("5")[0];
-                }
-                else
-                {
-                    header[156] = 0;
-                }
-
-                Array.Copy(m_asciiEncoding.GetBytes("0000000"), 0, header, 329, 7);
-                Array.Copy(m_asciiEncoding.GetBytes("0000000"), 0, header, 337, 7);
-
-                // check sum for header block (8) [calculated last]
-                Array.Copy(m_asciiEncoding.GetBytes("        "), 0, header, 148, 8);
-
-                int checksum = 0;
-                foreach (byte b in header)
-                {
-                    checksum += b;
-                }
-
-                //m_log.DebugFormat("[TAR ARCHIVE WRITER]: Decimal header checksum is {0}", checksum);
-
-                byte[] checkSumBytes = ConvertDecimalToPaddedOctalBytes(checksum, 6);
-
-                Array.Copy(checkSumBytes, 0, header, 148, 6);
-
-                header[154] = 0;
-
-                // Write out header
-                bw.Write(header);
-
-                // Write out data
-                bw.Write(data);
-
-                if (data.Length % 512 != 0)
-                {
-                    int paddingRequired = 512 - (data.Length % 512);
-
-                    //m_log.DebugFormat("[TAR ARCHIVE WRITER]: Padding data with {0} bytes", paddingRequired);
-
-                    byte[] padding = new byte[paddingRequired];
-                    bw.Write(padding);
-                }
+                WriteFile(bw, filePath, m_files[filePath]);
             }
 
             //m_log.Debug("[TAR ARCHIVE WRITER]: Writing final consecutive 0 blocks");
@@ -195,6 +118,110 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             byte[] oBytes = m_asciiEncoding.GetBytes(oString);
 
             return oBytes;
+        }    
+        
+        /// <summary>
+        /// Write a particular file of data
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="data"></param>
+        protected void WriteFile(BinaryWriter bw, string filePath, byte[] data)
+        {
+            if (filePath.Length > 100)
+                WriteEntry(bw, "././@LongLink", m_asciiEncoding.GetBytes(filePath), 'L');
+            
+            char fileType;
+            
+            if (filePath.EndsWith("/"))
+            {
+                fileType = '5';
+            }
+            else
+            {
+                fileType = '0';
+            }     
+         
+            WriteEntry(bw, filePath, data, fileType);
         }
+
+        /// <summary>
+        /// Write a particular file of data
+        /// </summary>
+        /// <param name="bw"></param>
+        /// <param name="filePath"></param>
+        /// <param name="data"></param>
+        /// <param name="fileType"></param>
+        protected void WriteEntry(BinaryWriter bw, string filePath, byte[] data, char fileType)
+        {
+            byte[] header = new byte[512];
+
+            // file path field (100)
+            byte[] nameBytes = m_asciiEncoding.GetBytes(filePath);
+            int nameSize = (nameBytes.Length >= 100) ? 100 : nameBytes.Length;
+            Array.Copy(nameBytes, header, nameSize);
+
+            // file mode (8)
+            byte[] modeBytes = m_asciiEncoding.GetBytes("0000777");
+            Array.Copy(modeBytes, 0, header, 100, 7);
+
+            // owner user id (8)
+            byte[] ownerIdBytes = m_asciiEncoding.GetBytes("0000764");
+            Array.Copy(ownerIdBytes, 0, header, 108, 7);
+
+            // group user id (8)
+            byte[] groupIdBytes = m_asciiEncoding.GetBytes("0000764");
+            Array.Copy(groupIdBytes, 0, header, 116, 7);
+
+            // file size in bytes (12)
+            int fileSize = data.Length;
+            //m_log.DebugFormat("[TAR ARCHIVE WRITER]: File size of {0} is {1}", filePath, fileSize);
+
+            byte[] fileSizeBytes = ConvertDecimalToPaddedOctalBytes(fileSize, 11);
+
+            Array.Copy(fileSizeBytes, 0, header, 124, 11);
+
+            // last modification time (12)
+            byte[] lastModTimeBytes = m_asciiEncoding.GetBytes("11017037332");
+            Array.Copy(lastModTimeBytes, 0, header, 136, 11);
+
+            // entry type indicator (1)
+            header[156] = m_asciiEncoding.GetBytes(new char[] { fileType })[0];
+
+            Array.Copy(m_asciiEncoding.GetBytes("0000000"), 0, header, 329, 7);
+            Array.Copy(m_asciiEncoding.GetBytes("0000000"), 0, header, 337, 7);
+
+            // check sum for header block (8) [calculated last]
+            Array.Copy(m_asciiEncoding.GetBytes("        "), 0, header, 148, 8);
+
+            int checksum = 0;
+            foreach (byte b in header)
+            {
+                checksum += b;
+            }
+
+            //m_log.DebugFormat("[TAR ARCHIVE WRITER]: Decimal header checksum is {0}", checksum);
+
+            byte[] checkSumBytes = ConvertDecimalToPaddedOctalBytes(checksum, 6);
+
+            Array.Copy(checkSumBytes, 0, header, 148, 6);
+
+            header[154] = 0;
+
+            // Write out header
+            bw.Write(header);
+
+            // Write out data
+            bw.Write(data);
+
+            if (data.Length % 512 != 0)
+            {
+                int paddingRequired = 512 - (data.Length % 512);
+
+                //m_log.DebugFormat("[TAR ARCHIVE WRITER]: Padding data with {0} bytes", paddingRequired);
+
+                byte[] padding = new byte[paddingRequired];
+                bw.Write(padding);
+            }            
+        }   
     }
 }
