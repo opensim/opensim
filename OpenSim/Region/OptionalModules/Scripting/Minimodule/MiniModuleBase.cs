@@ -1,6 +1,6 @@
 ﻿namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    abstract class MiniModuleBase
+    public abstract class MiniModuleBase
     {
         private IWorld m_world;
         private IHost m_host;
@@ -21,7 +21,7 @@
             get { return m_host; }
         }
 
-        protected abstract void Start();
-        protected abstract void Stop();
+        public abstract void Start();
+        public abstract void Stop();
     }
 }

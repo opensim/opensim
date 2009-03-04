@@ -1058,3 +1058,6 @@ InterregionComms = "RESTComms"
     ; - the second number indicates how many scrips failed to compile
     ; - "oar error" if supplied, provides the error message from the OAR load
     channel_notify = -800
+
+[MRM]
+	Enabled = false ; Enables the Mini Region Modules Script Engine. WARNING: SECURITY RISK.
