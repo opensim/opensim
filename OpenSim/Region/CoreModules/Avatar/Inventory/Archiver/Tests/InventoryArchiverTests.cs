@@ -124,15 +124,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             MemoryStream archiveReadStream = new MemoryStream(archive);
             TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
             
+            InventoryFolderImpl objectsFolder = userInfo.RootFolder.FindFolderByPath("Objects");
+            
             //bool gotControlFile = false;
             bool gotObject1File = false;
             //bool gotObject2File = false;
             string expectedObject1FilePath = string.Format(
-                "{0}{1}{2}_{3}.xml",
+                "{0}{1}/{2}_{3}.xml",
                 InventoryArchiveConstants.INVENTORY_PATH,                                                           
-                "Objects/",
+                string.Format(
+                    "Objects{0}{1}", InventoryArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, objectsFolder.ID), 
                 item1.Name,
                 item1Id);
+            
 /*
             string expectedObject2FileName = string.Format(
                 "{0}_{1:000}-{2:000}-{3:000}__{4}.xml",
@@ -146,6 +150,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             while (tar.ReadEntry(out filePath, out tarEntryType) != null)
             {
+                Console.WriteLine("Got {0}", filePath);
+                
                 /*
                 if (ArchiveConstants.CONTROL_FILE_PATH == filePath)
                 {
@@ -153,7 +159,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 }
                 */
                 if (filePath.StartsWith(InventoryArchiveConstants.INVENTORY_PATH) && filePath.EndsWith(".xml"))
-                {
+                {                    
                     //string fileName = filePath.Remove(0, "Objects/".Length);
                     
                     //if (fileName.StartsWith(part1.Name))

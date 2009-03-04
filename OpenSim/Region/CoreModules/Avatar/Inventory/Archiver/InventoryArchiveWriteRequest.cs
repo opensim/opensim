@@ -106,14 +106,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_module.TriggerInventoryArchiveSaved(succeeded, m_userInfo, m_invPath, m_saveStream, reportedException);          
         }
 
-        protected void saveInvItem(InventoryItemBase inventoryItem, string path)
+        protected void SaveInvItem(InventoryItemBase inventoryItem, string path)
         {
             string filename = string.Format("{0}{1}_{2}.xml", path, inventoryItem.Name, inventoryItem.ID);
             StringWriter sw = new StringWriter();
             XmlTextWriter writer = new XmlTextWriter(sw);
             writer.Formatting = Formatting.Indented;
             
-            writer.WriteStartElement("InventoryObject");
+            writer.WriteStartElement("InventoryItem");
+            
             writer.WriteStartElement("Name");
             writer.WriteString(inventoryItem.Name);
             writer.WriteEndElement();
@@ -168,9 +169,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             writer.WriteStartElement("GroupOwned");
             writer.WriteString(inventoryItem.GroupOwned.ToString());
             writer.WriteEndElement();
-            writer.WriteStartElement("ParentFolderID");
-            writer.WriteString(inventoryItem.Folder.ToString());
-            writer.WriteEndElement();
+            
             writer.WriteEndElement();
 
             archive.AddFile(filename, sw.ToString());
@@ -178,20 +177,48 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, assetUuids);
         }
 
-        protected void saveInvDir(InventoryFolderImpl inventoryFolder, string path)
+        protected void SaveInvDir(InventoryFolderImpl inventoryFolder, string path)
         {
-            List<InventoryFolderImpl> inventories = inventoryFolder.RequestListOfFolderImpls();
-            List<InventoryItemBase> items = inventoryFolder.RequestListOfItems();
-            string newPath = path + inventoryFolder.Name + InventoryFolderImpl.PATH_DELIMITER;
-            archive.AddDir(newPath);
+            path += 
+                string.Format(
+                    "{0}{1}{2}/", 
+                    inventoryFolder.Name,
+                    InventoryArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, 
+                    inventoryFolder.ID);
+            archive.AddDir(path);
+            
+            List<InventoryFolderImpl> childFolders = inventoryFolder.RequestListOfFolderImpls();
+            List<InventoryItemBase> items = inventoryFolder.RequestListOfItems();           
+            
+            /*
+            Dictionary identicalFolderNames = new Dictionary<string, int>();
             
             foreach (InventoryFolderImpl folder in inventories)
             {
-                saveInvDir(folder, newPath);
+                
+                if (!identicalFolderNames.ContainsKey(folder.Name))
+                    identicalFolderNames[folder.Name] = 0;
+                else
+                    identicalFolderNames[folder.Name] = identicalFolderNames[folder.Name]++;
+                
+                int folderNameNumber = identicalFolderName[folder.Name];
+                
+                SaveInvDir(
+                    folder, 
+                    string.Format(
+                        "{0}{1}{2}/", 
+                        path, InventoryArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, folderNameNumber));
             }
+            */
+            
+            foreach (InventoryFolderImpl childFolder in childFolders)
+            {
+                SaveInvDir(childFolder, path);
+            }
+            
             foreach (InventoryItemBase item in items)
             {
-                saveInvItem(item, newPath);
+                SaveInvItem(item, path);
             }
         }
 
@@ -270,7 +297,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         inventoryItem.Name, inventoryItem.ID, m_invPath);
                     
                     //get and export item info
-                    saveInvItem(inventoryItem, m_invPath);
+                    SaveInvItem(inventoryItem, m_invPath);
                 }
             }
             else
@@ -280,7 +307,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     inventoryFolder.Name, inventoryFolder.ID, m_invPath);
                 
                 //recurse through all dirs getting dirs and files
-                saveInvDir(inventoryFolder, InventoryArchiveConstants.INVENTORY_PATH);
+                SaveInvDir(inventoryFolder, InventoryArchiveConstants.INVENTORY_PATH);
             }
 
             new AssetsRequest(assetUuids.Keys, m_module.CommsManager.AssetCache, ReceivedAllAssets).Execute();

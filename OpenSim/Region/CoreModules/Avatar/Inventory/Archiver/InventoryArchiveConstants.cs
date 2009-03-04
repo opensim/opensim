@@ -51,6 +51,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         public static readonly string ASSET_EXTENSION_SEPARATOR = "_";
         
         /// <summary>
+        /// Used to separate components in an inventory node name
+        /// </summary>
+        public static readonly string INVENTORY_NODE_NAME_COMPONENT_SEPARATOR = "__";
+        
+        /// <summary>
         /// Extensions used for asset types in the archive
         /// </summary>
         public static readonly IDictionary<sbyte, string> ASSET_TYPE_TO_EXTENSION = new Dictionary<sbyte, string>();

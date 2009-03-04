@@ -76,7 +76,7 @@ namespace OpenSim
         /// <summary>
         /// The file used to load and save an opensim archive if no filename has been specified
         /// </summary>
-        protected const string DEFAULT_OAR_BACKUP_FILENAME = "scene_oar.tar.gz";
+        protected const string DEFAULT_OAR_BACKUP_FILENAME = "scene.oar";
         
         public ConfigSettings ConfigurationSettings
         {

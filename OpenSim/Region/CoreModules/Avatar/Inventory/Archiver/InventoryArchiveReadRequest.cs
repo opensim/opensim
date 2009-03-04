@@ -85,7 +85,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             if (contents.Equals("")) return null;
 
-            reader.ReadStartElement("InventoryObject");
+            reader.ReadStartElement("InventoryItem");
             reader.ReadStartElement("Name");
             item.Name = reader.ReadString();
             reader.ReadEndElement();
@@ -138,10 +138,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             reader.ReadStartElement("GroupOwned");
             item.GroupOwned = Convert.ToBoolean(reader.ReadString());
             reader.ReadEndElement();
-            //reader.ReadStartElement("ParentFolderID");
-            //item.Folder = UUID.Parse(reader.ReadString());
-            //reader.ReadEndElement();
-            //reader.ReadEndElement();
 
             return item;
         }
@@ -187,13 +183,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             if (null == rootDestinationFolder)
             {
-                // TODO: Later on, automatically create this folder if it does not exist
+                // Possibly provide an option later on to automatically create this folder if it does not exist
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: Inventory path {0} does not exist", m_invPath);
 
                 return nodesLoaded;
             }
 
             archive = new TarArchiveReader(m_loadStream);
+            
+            // In order to load identically named folders, we need to keep track of the folders that we have already
+            // created
+            Dictionary <string, InventoryFolderImpl> foldersCreated = new Dictionary<string, InventoryFolderImpl>();
 
             byte[] data;
             TarArchiveReader.TarEntryType entryType;
@@ -222,12 +222,72 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         item.Creator = m_userInfo.UserProfile.ID;
                         item.Owner = m_userInfo.UserProfile.ID;
                         
-                        filePath = filePath.Substring(InventoryArchiveConstants.INVENTORY_PATH.Length);
-                        filePath = filePath.Remove(filePath.LastIndexOf("/"));
+                        string fsPath = filePath.Substring(InventoryArchiveConstants.INVENTORY_PATH.Length);
+                        fsPath = fsPath.Remove(fsPath.LastIndexOf("/") + 1);
+                        string originalFsPath = fsPath;
                         
-                        m_log.DebugFormat("[INVENTORY ARCHIVER]: Loading to file path {0}", filePath);
+                        m_log.DebugFormat("[INVENTORY ARCHIVER]: Loading to folder {0}", fsPath);
                         
-                        string[] rawFolders = filePath.Split(new char[] { '/' });
+                        InventoryFolderImpl foundFolder = null;
+                        while (null == foundFolder && fsPath.Length > 0)
+                        {
+                            if (foldersCreated.ContainsKey(fsPath))
+                            {
+                                m_log.DebugFormat("[INVENTORY ARCHIVER]: Found previously created fs path {0}", fsPath);
+                                foundFolder = foldersCreated[fsPath];
+                            }
+                            else
+                            {
+                                // Don't include the last slash
+                                int penultimateSlashIndex = fsPath.LastIndexOf("/", fsPath.Length - 2);
+                                
+                                if (penultimateSlashIndex >= 0)
+                                {
+                                    fsPath = fsPath.Remove(penultimateSlashIndex + 1);
+                                }
+                                else
+                                {
+                                    m_log.DebugFormat(
+                                        "[INVENTORY ARCHIVER]: Found no previously created fs path for {0}",
+                                        originalFsPath);
+                                    fsPath = string.Empty;
+                                    foundFolder = rootDestinationFolder;
+                                }
+                            }                           
+                        }
+                        
+                        string fsPathSectionToCreate = originalFsPath.Substring(fsPath.Length);
+                        string[] rawDirsToCreate 
+                            = fsPathSectionToCreate.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                        int i = 0;
+                        
+                        while (i < rawDirsToCreate.Length)
+                        {
+                            m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0}", rawDirsToCreate[i]);
+                            
+                            int identicalNameIdentifierIndex 
+                                = rawDirsToCreate[i].LastIndexOf(
+                                    InventoryArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR); 
+                            string folderName = rawDirsToCreate[i].Remove(identicalNameIdentifierIndex);
+                            
+                            UUID newFolderId = UUID.Random();
+                            m_userInfo.CreateFolder(
+                                folderName, newFolderId, (ushort)AssetType.Folder, foundFolder.ID);
+                            foundFolder = foundFolder.GetChildFolder(newFolderId);
+                            
+                            // Record that we have now created this folder
+                            fsPath += rawDirsToCreate[i] + "/";
+                            m_log.DebugFormat("[INVENTORY ARCHIVER]: Recording creation of fs path {0}", fsPath);
+                            foldersCreated[fsPath] = foundFolder;
+                            
+                            if (0 == i)
+                                nodesLoaded.Add(foundFolder);
+                            
+                            i++;
+                        }
+                        
+                        /*
+                        string[] rawFolders = filePath.Split(new char[] { '/' });                        
                         
                         // Find the folders that do exist along the path given
                         int i = 0;
@@ -257,16 +317,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                             m_userInfo.CreateFolder(
                                 rawFolders[i++], newFolderId, (ushort)AssetType.Folder, foundFolder.ID);
                             foundFolder = foundFolder.GetChildFolder(newFolderId);
-                        }                        
+                        } 
+                        */                       
 
                         // Reset folder ID to the one in which we want to load it
                         item.Folder = foundFolder.ID;
-                        
-                        //item.Folder = rootDestinationFolder.ID;
 
                         m_userInfo.AddItem(item);
                         successfulItemRestores++;
-                        nodesLoaded.Add(item);
+                        
+                        // If we're loading an item directly into the given destination folder then we need to record
+                        // it separately from any loaded root folders
+                        if (rootDestinationFolder == foundFolder)
+                            nodesLoaded.Add(item);
                     }
                 }
             }

@@ -89,22 +89,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 return null;
 
             entryType = header.EntryType;
-            filePath = header.FilePath;
-            byte[] data = m_br.ReadBytes(header.FileSize);
-
-            //m_log.DebugFormat("[TAR ARCHIVE READER]: filePath {0}, fileSize {1}", filePath, header.FileSize);
-
-            // Read the rest of the empty padding in the 512 byte block
-            if (header.FileSize % 512 != 0)
-            {
-                int paddingLeft = 512 - (header.FileSize % 512);
-
-                //m_log.DebugFormat("[TAR ARCHIVE READER]: Reading {0} padding bytes", paddingLeft);
-
-                m_br.ReadBytes(paddingLeft);
-            }
-
-            return data;
+            filePath = header.FilePath;            
+            return ReadData(header.FileSize);
         }
 
         /// <summary>
@@ -126,7 +112,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (header[156] == (byte)'L')
             {
                 int longNameLength = ConvertOctalBytesToDecimal(header, 124, 11);
-                tarHeader.FilePath = m_asciiEncoding.GetString(m_br.ReadBytes(longNameLength));
+                tarHeader.FilePath = m_asciiEncoding.GetString(ReadData(longNameLength));
                 m_log.DebugFormat("[TAR ARCHIVE READER]: Got long file name {0}", tarHeader.FilePath);
                 header = m_br.ReadBytes(512);
             }
@@ -134,6 +120,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {               
                 tarHeader.FilePath = m_asciiEncoding.GetString(header, 0, 100);
                 tarHeader.FilePath = tarHeader.FilePath.Trim(m_nullCharArray);
+                m_log.DebugFormat("[TAR ARCHIVE READER]: Got short file name {0}", tarHeader.FilePath);
             }
                         
             tarHeader.FileSize = ConvertOctalBytesToDecimal(header, 124, 11);
@@ -170,6 +157,30 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }       
             
             return tarHeader;
+        }
+        
+        /// <summary>
+        /// Read data following a header
+        /// </summary>
+        /// <param name="fileSize"></param>
+        /// <returns></returns>
+        protected byte[] ReadData(int fileSize)
+        {
+            byte[] data = m_br.ReadBytes(fileSize);
+
+            m_log.DebugFormat("[TAR ARCHIVE READER]: fileSize {0}", fileSize);
+
+            // Read the rest of the empty padding in the 512 byte block
+            if (fileSize % 512 != 0)
+            {
+                int paddingLeft = 512 - (fileSize % 512);
+
+                m_log.DebugFormat("[TAR ARCHIVE READER]: Reading {0} padding bytes", paddingLeft);
+
+                m_br.ReadBytes(paddingLeft);
+            }
+            
+            return data;
         }
 
         public void Close()
