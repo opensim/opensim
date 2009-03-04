@@ -83,7 +83,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         Planar
     }
 
-    interface IObjectFace
+    public interface IObjectFace
     {
         Color Color { get; set; }
         UUID Texture { get; set; }
