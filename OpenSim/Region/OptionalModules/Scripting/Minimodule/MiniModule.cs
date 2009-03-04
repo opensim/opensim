@@ -27,6 +27,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         void EventManager_OnRezScript(uint localID, OpenMetaverse.UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
         {
+            if(true)
+                return;
+
             if(engine == "MiniMod")
             {
                 if(script.StartsWith("//MiniMod:C#"))
