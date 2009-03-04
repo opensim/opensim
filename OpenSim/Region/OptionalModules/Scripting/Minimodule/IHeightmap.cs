@@ -4,7 +4,7 @@ using System.Text;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    interface IHeightmap
+    public interface IHeightmap
     {
         int Height { get; }
         int Width { get; }

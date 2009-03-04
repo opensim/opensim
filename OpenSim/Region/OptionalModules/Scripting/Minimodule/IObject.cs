@@ -4,7 +4,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    interface IObject
+    public interface IObject
     {
         bool Exists { get; }
         uint LocalID { get; }

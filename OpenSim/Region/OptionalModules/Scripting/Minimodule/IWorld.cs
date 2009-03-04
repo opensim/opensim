@@ -6,6 +6,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
     interface IWorld
     {
-
+        IObject[] Objects { get; }
+        IHeightmap Terrain { get; }
     }
 }
