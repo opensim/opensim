@@ -90,10 +90,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // Write out control file
             archive.AddFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p2ControlFile());
             
+            m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
+            
             // Write out region settings
             string settingsPath 
                 = String.Format("{0}{1}.xml", ArchiveConstants.SETTINGS_PATH, m_scene.RegionInfo.RegionName);
             archive.AddFile(settingsPath, RegionSettingsSerializer.Serialize(m_scene.RegionInfo.RegionSettings));
+            
+            m_log.InfoFormat("[ARCHIVER]: Added region settings to archive.");
 
             // Write out terrain
             string terrainPath 
@@ -103,6 +107,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_terrainModule.SaveToStream(terrainPath, ms);
             archive.AddFile(terrainPath, ms.ToArray());
             ms.Close();
+            
+            m_log.InfoFormat("[ARCHIVER]: Added terrain information to archive.");
 
             // Write out scene object metadata
             foreach (SceneObjectGroup sceneObject in m_sceneObjects)
@@ -121,6 +127,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 archive.AddFile(filename, serializedObject);
             }
+            
+            m_log.InfoFormat("[ARCHIVER]: Added scene objects to archive.");
 
             // Write out assets
             AssetsArchiver assetsArchiver = new AssetsArchiver(assetsFound);
