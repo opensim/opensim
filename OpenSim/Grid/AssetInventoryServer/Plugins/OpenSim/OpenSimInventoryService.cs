@@ -36,11 +36,30 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
     {
         public override void RequestInventoryForUser(UUID userID, InventoryReceiptCallback callback) {}
 
-        public InventoryFolderBase GetInventoryFolder(UUID folderID)
+        public InventoryFolderWithChildren GetInventoryFolder(UUID folderID)
+        {
+            InventoryFolderBase baseFolder = null;
+            InventoryFolderWithChildren folder = null;
+
+            foreach (IInventoryDataPlugin plugin in m_plugins)
+            {
+                baseFolder = plugin.getInventoryFolder(folderID);
+            }
+
+            if (null != baseFolder)
+            {
+                folder = (InventoryFolderWithChildren) baseFolder;
+                folder.Children = null; // This call only returns data for the folder itself, no children data
+            }
+
+            return folder;
+        }
+
+        public InventoryItemBase GetInventoryItem(UUID itemID)
         {
             foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                return plugin.getInventoryFolder(folderID);
+                return plugin.getInventoryItem(itemID);
             }
 
             return null;
