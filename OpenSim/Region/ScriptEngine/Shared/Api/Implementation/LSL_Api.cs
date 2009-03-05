@@ -1007,17 +1007,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int y = (int)(pos.Y + offset.y);
 
             // Clamp to valid position
-            if (x<0) 
+            if (x < 0) 
                 x = 0;
-            else if (x>=World.Heightmap.Width)
-                x = World.Heightmap.Width-1;
-            if (y<0) 
+            else if (x >= World.Heightmap.Width)
+                x = World.Heightmap.Width - 1;
+            if (y < 0) 
                 y = 0;
-            else if (y>=World.Heightmap.Height)
-                y = World.Heightmap.Height-1;
-        
-
-            return World.GetLandHeight(x, y);
+            else if (y >= World.Heightmap.Height)
+                y = World.Heightmap.Height - 1;
+           
+            return World.Heightmap[x, y];
         }
 
         public LSL_Float llCloud(LSL_Vector offset)
@@ -2794,15 +2793,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-
-
         public void llSetHoverHeight(double height, int water, double tau)
         {
             m_host.AddScriptLPS(1);
             Vector3 pos = m_host.GetWorldPosition();
             int x = (int)(pos.X);
             int y = (int)(pos.Y);
-            float landHeight = (float)World.GetLandHeight(x, y);
+            float landHeight = (float)World.Heightmap[x, y];
             float targetHeight = landHeight + (float)height;
             if (water == 1)
             {

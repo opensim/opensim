@@ -848,7 +848,7 @@ namespace OpenSim.Region.Framework.Scenes
                 localAVHeight = m_avHeight;
             }
 
-            float posZLimit = (float)m_scene.GetLandHeight((int)pos.X, (int)pos.Y);
+            float posZLimit = (float)m_scene.Heightmap[(int)pos.X, (int)pos.Y];
             float newPosZ = posZLimit + localAVHeight / 2;
             if (posZLimit >= (pos.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
             {

@@ -88,7 +88,8 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                 }
                 // TODO: Get proper AVG Height
                 float localAVHeight = 1.56f;
-                float posZLimit = (float)avatar.Scene.GetLandHeight((int)position.X, (int)position.Y);
+                
+                float posZLimit = (float)avatar.Scene.Heightmap[(int)position.X, (int)position.Y];
                 float newPosZ = posZLimit + localAVHeight;
                 if (posZLimit >= (position.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
                 {

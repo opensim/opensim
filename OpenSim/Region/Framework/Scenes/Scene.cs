@@ -3019,11 +3019,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_eventManager.TriggerOnPluginConsole(args);
         }
 
-        public double GetLandHeight(int x, int y)
-        {
-            return Heightmap[x, y];
-        }
-
         public UUID GetLandOwner(float x, float y)
         {
             ILandObject land = LandChannel.GetLandObject(x, y);
