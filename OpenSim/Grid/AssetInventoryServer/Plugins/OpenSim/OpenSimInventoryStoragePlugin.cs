@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -42,17 +42,19 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         const string EXTENSION_NAME = "OpenSimInventoryStorage"; // Used in metrics reporting
 
-        //private AssetInventoryServer m_server;
+        private AssetInventoryServer m_server;
         private IInventoryDataPlugin m_inventoryProvider;
         private IConfig m_openSimConfig;
+        private OpenSimInventoryService m_inventoryService;
 
         public OpenSimInventoryStoragePlugin()
         {
+            m_inventoryService = new OpenSimInventoryService();
         }
 
         #region IInventoryStorageProvider implementation
 
-        public BackendResponse TryFetchItem(Uri owner, UUID itemID, out InventoryItem item)
+        public BackendResponse TryFetchItem(Uri owner, UUID itemID, out InventoryItemBase item)
         {
             item = null;
             //BackendResponse ret;
@@ -74,7 +76,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             //        if (reader.Read())
             //        {
-            //            item = new InventoryItem();
+            //            item = new InventoryItemBase();
             //            item.ID = itemID;
             //            item.AssetID = UUID.Parse(reader.GetString(0));
             //            item.AssetType = reader.GetInt32(1);
@@ -116,7 +118,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             return BackendResponse.Success;
         }
 
-        public BackendResponse TryFetchFolder(Uri owner, UUID folderID, out InventoryFolder folder)
+        public BackendResponse TryFetchFolder(Uri owner, UUID folderID, out InventoryFolderWithChildren folder)
         {
             folder = null;
             //BackendResponse ret;
@@ -136,7 +138,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             //        if (reader.Read())
             //        {
-            //            folder = new InventoryFolder();
+            //            folder = new InventoryFolderWithChildren();
             //            folder.Children = null; // This call only returns data for the folder itself, no children data
             //            folder.ID = folderID;
             //            folder.Name = reader.GetString(0);
@@ -186,11 +188,11 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //            folderID.ToString());
             //        reader = command.ExecuteReader();
 
-            //        contents.Folders = new Dictionary<UUID, InventoryFolder>();
+            //        contents.Folders = new Dictionary<UUID, InventoryFolderWithChildren>();
 
             //        while (reader.Read())
             //        {
-            //            InventoryFolder folder = new InventoryFolder();
+            //            InventoryFolderWithChildren folder = new InventoryFolderWithChildren();
             //            folder.ParentID = folderID;
             //            folder.Children = null; // This call doesn't do recursion
             //            folder.Name = reader.GetString(0);
@@ -216,11 +218,11 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //            folderID.ToString());
             //        reader = command.ExecuteReader();
 
-            //        contents.Items = new Dictionary<UUID, InventoryItem>();
+            //        contents.Items = new Dictionary<UUID, InventoryItemBase>();
 
             //        while (reader.Read())
             //        {
-            //            InventoryItem item = new InventoryItem();
+            //            InventoryItemBase item = new InventoryItemBase();
             //            item.Folder = folderID;
             //            item.AssetID = UUID.Parse(reader.GetString(0));
             //            item.AssetType = reader.GetInt32(1);
@@ -263,7 +265,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             return BackendResponse.Success;
         }
 
-        public BackendResponse TryFetchFolderList(Uri owner, out List<InventoryFolder> folders)
+        public BackendResponse TryFetchFolderList(Uri owner, out List<InventoryFolderWithChildren> folders)
         {
             folders = null;
             //BackendResponse ret;
@@ -278,7 +280,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //        try
             //        {
             //            dbConnection.Open();
-            //            folders = new List<InventoryFolder>();
+            //            folders = new List<InventoryFolderWithChildren>();
 
             //            IDbCommand command = dbConnection.CreateCommand();
             //            command.CommandText = String.Format("SELECT folderName,type,version,folderID,parentFolderID FROM inventoryfolders WHERE agentID='{0}'",
@@ -287,7 +289,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             //            while (reader.Read())
             //            {
-            //                InventoryFolder folder = new InventoryFolder();
+            //                InventoryFolderWithChildren folder = new InventoryFolderWithChildren();
             //                folder.Owner = ownerID;
             //                folder.Children = null; // This call does not create a folder hierarchy
             //                folder.Name = reader.GetString(0);
@@ -322,7 +324,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             inventory = null;
             //BackendResponse ret;
-            //List<InventoryFolder> folders;
+            //List<InventoryFolderWithChildren> folders;
             //UUID ownerID;
 
             //ret = TryFetchFolderList(owner, out folders);
@@ -331,8 +333,8 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //{
             //    // Add the retrieved folders to the inventory collection
             //    inventory = new InventoryCollection();
-            //    inventory.Folders = new Dictionary<UUID, InventoryFolder>(folders.Count);
-            //    foreach (InventoryFolder folder in folders)
+            //    inventory.Folders = new Dictionary<UUID, InventoryFolderWithChildren>(folders.Count);
+            //    foreach (InventoryFolderWithChildren folder in folders)
             //        inventory.Folders[folder.ID] = folder;
 
             //    // Fetch inventory items
@@ -354,11 +356,11 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             //                reader = command.ExecuteReader();
 
             //                inventory.UserID = ownerID;
-            //                inventory.Items = new Dictionary<UUID, InventoryItem>();
+            //                inventory.Items = new Dictionary<UUID, InventoryItemBase>();
 
             //                while (reader.Read())
             //                {
-            //                    InventoryItem item = new InventoryItem();
+            //                    InventoryItemBase item = new InventoryItemBase();
             //                    item.Owner = ownerID;
             //                    item.AssetID = UUID.Parse(reader.GetString(0));
             //                    item.AssetType = reader.GetInt32(1);
@@ -403,7 +405,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             return BackendResponse.Success;
         }
 
-        public BackendResponse TryFetchActiveGestures(Uri owner, out List<InventoryItem> gestures)
+        public BackendResponse TryFetchActiveGestures(Uri owner, out List<InventoryItemBase> gestures)
         {
             gestures = null;
             //BackendResponse ret;
@@ -429,7 +431,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             //            while (reader.Read())
             //            {
-            //                InventoryItem item = new InventoryItem();
+            //                InventoryItemBase item = new InventoryItemBase();
             //                item.Owner = ownerID;
             //                item.AssetType = (int)AssetType.Gesture;
             //                item.Flags = (uint)1;
@@ -473,75 +475,24 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             return BackendResponse.Success;
         }
 
-        public BackendResponse TryCreateItem(Uri owner, InventoryItem item)
+        public BackendResponse TryCreateItem(Uri owner, InventoryItemBase item)
         {
-            //BackendResponse ret;
+            BackendResponse ret;
 
-            //using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("inventory_database_connect")))
-            //{
-            //    try
-            //    {
-            //        dbConnection.Open();
+            if (m_inventoryService.AddItem(item))
+            {
+                ret = BackendResponse.Success;
+            }
+            else
+            {
+                ret = BackendResponse.Failure;
+            }
 
-            //        MySqlCommand command = new MySqlCommand(
-            //            "REPLACE INTO inventoryitems (assetID,assetType,inventoryName,inventoryDescription,inventoryNextPermissions," +
-            //            "inventoryCurrentPermissions,invType,creatorID,inventoryBasePermissions,inventoryEveryOnePermissions,salePrice,saleType," +
-            //            "creationDate,groupID,groupOwned,flags,inventoryID,avatarID,parentFolderID,inventoryGroupPermissions) VALUES " +
-
-            //            "(?assetID,?assetType,?inventoryName,?inventoryDescription,?inventoryNextPermissions,?inventoryCurrentPermissions,?invType," +
-            //            "?creatorID,?inventoryBasePermissions,?inventoryEveryOnePermissions,?salePrice,?saleType,?creationDate,?groupID,?groupOwned," +
-            //            "?flags,?inventoryID,?avatarID,?parentFolderID,?inventoryGroupPermissions)", dbConnection);
-
-            //        command.Parameters.AddWithValue("?assetID", item.AssetID.ToString());
-            //        command.Parameters.AddWithValue("?assetType", item.AssetType);
-            //        command.Parameters.AddWithValue("?inventoryName", item.Name);
-            //        command.Parameters.AddWithValue("?inventoryDescription", item.Description);
-            //        command.Parameters.AddWithValue("?inventoryNextPermissions", item.NextPermissions);
-            //        command.Parameters.AddWithValue("?inventoryCurrentPermissions", item.CurrentPermissions);
-            //        command.Parameters.AddWithValue("?invType", item.InvType);
-            //        command.Parameters.AddWithValue("?creatorID", item.Creator.ToString());
-            //        command.Parameters.AddWithValue("?inventoryBasePermissions", item.BasePermissions);
-            //        command.Parameters.AddWithValue("?inventoryEveryOnePermissions", item.EveryOnePermissions);
-            //        command.Parameters.AddWithValue("?salePrice", item.SalePrice);
-            //        command.Parameters.AddWithValue("?saleType", item.SaleType);
-            //        command.Parameters.AddWithValue("?creationDate", item.CreationDate);
-            //        command.Parameters.AddWithValue("?groupID", item.GroupID.ToString());
-            //        command.Parameters.AddWithValue("?groupOwned", item.GroupOwned);
-            //        command.Parameters.AddWithValue("?flags", item.Flags);
-            //        command.Parameters.AddWithValue("?inventoryID", item.ID);
-            //        command.Parameters.AddWithValue("?avatarID", item.Owner);
-            //        command.Parameters.AddWithValue("?parentFolderID", item.Folder);
-            //        command.Parameters.AddWithValue("?inventoryGroupPermissions", item.GroupPermissions);
-
-            //        int rowsAffected = command.ExecuteNonQuery();
-            //        if (rowsAffected == 1)
-            //        {
-            //            ret = BackendResponse.Success;
-            //        }
-            //        else if (rowsAffected == 2)
-            //        {
-            //            m_log.Info("[OPENSIMINVENTORYSTORAGE]: Replaced inventory item " + item.ID.ToString());
-            //            ret = BackendResponse.Success;
-            //        }
-            //        else
-            //        {
-            //            m_log.ErrorFormat("[OPENSIMINVENTORYSTORAGE]: MySQL REPLACE query affected {0} rows", rowsAffected);
-            //            ret = BackendResponse.Failure;
-            //        }
-            //    }
-            //    catch (MySqlException ex)
-            //    {
-            //        m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
-            //        ret = BackendResponse.Failure;
-            //    }
-            //}
-
-            //m_server.MetricsProvider.LogInventoryCreate(EXTENSION_NAME, ret, owner, false, DateTime.Now);
-            //return ret;
-            return BackendResponse.Success;
+            m_server.MetricsProvider.LogInventoryCreate(EXTENSION_NAME, ret, owner, false, DateTime.Now);
+            return ret;
         }
 
-        public BackendResponse TryCreateFolder(Uri owner, InventoryFolder folder)
+        public BackendResponse TryCreateFolder(Uri owner, InventoryFolderWithChildren folder)
         {
             //BackendResponse ret;
 
@@ -590,7 +541,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             return BackendResponse.Success;
         }
 
-        public BackendResponse TryCreateInventory(Uri owner, InventoryFolder rootFolder)
+        public BackendResponse TryCreateInventory(Uri owner, InventoryFolderWithChildren rootFolder)
         {
             return TryCreateFolder(owner, rootFolder);
         }
@@ -692,60 +643,19 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         public BackendResponse TryPurgeFolder(Uri owner, UUID folderID)
         {
-            //BackendResponse ret;
-            //UUID ownerID;
+            BackendResponse ret;
 
-            //if (Utils.TryGetOpenSimUUID(owner, out ownerID))
-            //{
-            //    using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("inventory_database_connect")))
-            //    {
-            //        try
-            //        {
-            //            dbConnection.Open();
+            if (m_inventoryService.PurgeFolder(m_inventoryService.GetInventoryFolder(folderID)))
+            {
+                ret = BackendResponse.Success;
+            }
+            else
+            {
+                ret = BackendResponse.Failure;
+            }
 
-            //            #region Delete items
-
-            //            MySqlCommand command = new MySqlCommand(
-            //                "DELETE FROM inventoryitems WHERE parentFolderID=?parentFolderID AND avatarID=?avatarID", dbConnection);
-
-            //            command.Parameters.AddWithValue("?parentFolderID", folderID.ToString());
-            //            command.Parameters.AddWithValue("?avatarID", ownerID.ToString());
-
-            //            int rowsAffected = command.ExecuteNonQuery();
-
-            //            #endregion Delete items
-
-            //            #region Delete folders
-
-            //            command = new MySqlCommand(
-            //                "DELETE FROM inventoryfolders WHERE parentFolderID=?parentFolderID AND agentID=?agentID", dbConnection);
-
-            //            command.Parameters.AddWithValue("?parentFolderID", folderID.ToString());
-            //            command.Parameters.AddWithValue("?agentID", ownerID.ToString());
-
-            //            rowsAffected += command.ExecuteNonQuery();
-
-            //            #endregion Delete folders
-
-            //            m_log.DebugFormat("[OPENSIMINVENTORYSTORAGE]: Deleted {0} inventory objects from MySQL in a folder purge", rowsAffected);
-
-            //            ret = BackendResponse.Success;
-            //        }
-            //        catch (MySqlException ex)
-            //        {
-            //            m_log.Error("[OPENSIMINVENTORYSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
-            //            ret = BackendResponse.Failure;
-            //        }
-            //    }
-            //}
-            //else
-            //{
-            //    ret = BackendResponse.NotFound;
-            //}
-
-            //m_server.MetricsProvider.LogInventoryPurgeFolder(EXTENSION_NAME, ret, owner, folderID, DateTime.Now);
-            //return ret;
-            return BackendResponse.Success;
+            m_server.MetricsProvider.LogInventoryPurgeFolder(EXTENSION_NAME, ret, owner, folderID, DateTime.Now);
+            return ret;
         }
 
         public int ForEach(Action<AssetMetadata> action, int start, int count)
@@ -798,7 +708,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         public void Initialise(AssetInventoryServer server)
         {
-            //m_server = server;
+            m_server = server;
             m_openSimConfig = server.ConfigFile.Configs["OpenSim"];
 
             try

@@ -28,78 +28,85 @@
 using System;
 using System.Collections.Generic;
 using OpenMetaverse;
+using OpenSim.Framework;
 
 namespace OpenSim.Grid.AssetInventoryServer
 {
-    public class InventoryBase
-    {
-    }
+    //public class InventoryBase
+    //{
+    //}
 
-    public class InventoryFolder : InventoryBase
-    {
-        public string Name;
-        public UUID Owner;
-        public UUID ParentID;
-        public UUID ID;
-        public short Type;
-        public ushort Version;
+    //public class InventoryFolder : InventoryBase
+    //{
+    //    public string Name;
+    //    public UUID Owner;
+    //    public UUID ParentID;
+    //    public UUID ID;
+    //    public short Type;
+    //    public ushort Version;
 
+    //    [NonSerialized]
+    //    public Dictionary<UUID, InventoryBase> Children = new Dictionary<UUID, InventoryBase>();
+
+    //    public InventoryFolder()
+    //    {
+    //    }
+
+    //    public InventoryFolder(string name, UUID ownerID, UUID parentID, short assetType)
+    //    {
+    //        ID = UUID.Random();
+    //        Name = name;
+    //        Owner = ownerID;
+    //        ParentID = parentID;
+    //        Type = assetType;
+    //        Version = 1;
+    //    }
+
+    //    public override string ToString()
+    //    {
+    //        return String.Format("{0} ({1})", Name, ID);
+    //    }
+    //}
+
+    //public class InventoryItem : InventoryBase
+    //{
+    //    public UUID ID;
+    //    public int InvType;
+    //    public UUID Folder;
+    //    public UUID Owner;
+    //    public UUID Creator;
+    //    public string Name;
+    //    public string Description;
+    //    public uint NextPermissions;
+    //    public uint CurrentPermissions;
+    //    public uint BasePermissions;
+    //    public uint EveryOnePermissions;
+    //    public uint GroupPermissions;
+    //    public int AssetType;
+    //    public UUID AssetID;
+    //    public UUID GroupID;
+    //    public bool GroupOwned;
+    //    public int SalePrice;
+    //    public byte SaleType;
+    //    public uint Flags;
+    //    public int CreationDate;
+
+    //    public override string ToString()
+    //    {
+    //        return String.Format("{0} ({1})", Name, ID);
+    //    }
+    //}
+
+    public class InventoryFolderWithChildren : InventoryFolderBase
+    {
         [NonSerialized]
-        public Dictionary<UUID, InventoryBase> Children = new Dictionary<UUID, InventoryBase>();
-
-        public InventoryFolder()
-        {
-        }
-
-        public InventoryFolder(string name, UUID ownerID, UUID parentID, short assetType)
-        {
-            ID = UUID.Random();
-            Name = name;
-            Owner = ownerID;
-            ParentID = parentID;
-            Type = assetType;
-            Version = 1;
-        }
-
-        public override string ToString()
-        {
-            return String.Format("{0} ({1})", Name, ID);
-        }
-    }
-
-    public class InventoryItem : InventoryBase
-    {
-        public UUID ID;
-        public int InvType;
-        public UUID Folder;
-        public UUID Owner;
-        public UUID Creator;
-        public string Name;
-        public string Description;
-        public uint NextPermissions;
-        public uint CurrentPermissions;
-        public uint BasePermissions;
-        public uint EveryOnePermissions;
-        public uint GroupPermissions;
-        public int AssetType;
-        public UUID AssetID;
-        public UUID GroupID;
-        public bool GroupOwned;
-        public int SalePrice;
-        public byte SaleType;
-        public uint Flags;
-        public int CreationDate;
-
-        public override string ToString()
-        {
-            return String.Format("{0} ({1})", Name, ID);
-        }
+        public Dictionary<UUID, InventoryNodeBase> Children = new Dictionary<UUID, InventoryNodeBase>();
     }
 
     public class InventoryCollection
     {
-        public Dictionary<UUID, InventoryFolder> Folders;
-        public Dictionary<UUID, InventoryItem> Items;
+        public Dictionary<UUID, InventoryFolderWithChildren> Folders;
+        public Dictionary<UUID, InventoryItemBase> Items;
         public UUID UserID;
     }
 }

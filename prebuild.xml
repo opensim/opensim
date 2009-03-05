@@ -919,6 +919,7 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Framework" />
+      <Reference name="OpenSim.Framework.Communications" />
       <Reference name="OpenSim.Grid.AssetInventoryServer" />
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="log4net"/>

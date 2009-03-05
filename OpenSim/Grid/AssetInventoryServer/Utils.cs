@@ -30,6 +30,7 @@ using System.Globalization;
 using System.Xml;
 using System.Xml.Serialization;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.AssetInventoryServer
@@ -278,9 +279,9 @@ namespace OpenSim.Grid.AssetInventoryServer
                 return ReadObject_InventoryCollection(true, true);
             }
 
-            public InventoryFolder ReadObject_InventoryFolder(bool isNullable, bool checkType)
+            public InventoryFolderWithChildren ReadObject_InventoryFolder(bool isNullable, bool checkType)
             {
-                InventoryFolder ob = null;
+                InventoryFolderWithChildren ob = null;
                 if (isNullable && ReadNull()) return null;
 
                 if (checkType)
@@ -292,7 +293,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                         throw CreateUnknownTypeException(t);
                 }
 
-                ob = (InventoryFolder)Activator.CreateInstance(typeof(InventoryFolder), true);
+                ob = (InventoryFolderWithChildren)Activator.CreateInstance(typeof(InventoryFolderWithChildren), true);
 
                 Reader.MoveToElement();
 
@@ -373,9 +374,9 @@ namespace OpenSim.Grid.AssetInventoryServer
                 return ob;
             }
 
-            public InventoryItem ReadObject_InventoryItem(bool isNullable, bool checkType)
+            public InventoryItemBase ReadObject_InventoryItem(bool isNullable, bool checkType)
             {
-                InventoryItem ob = null;
+                InventoryItemBase ob = null;
                 if (isNullable && ReadNull()) return null;
 
                 if (checkType)
@@ -387,7 +388,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                         throw CreateUnknownTypeException(t);
                 }
 
-                ob = (InventoryItem)Activator.CreateInstance(typeof(InventoryItem), true);
+                ob = (InventoryItemBase)Activator.CreateInstance(typeof(InventoryItemBase), true);
 
                 Reader.MoveToElement();
 
@@ -585,11 +586,11 @@ namespace OpenSim.Grid.AssetInventoryServer
                     Reader.Skip();
                     if (ob.@Folders == null)
                     {
-                        ob.@Folders = new System.Collections.Generic.Dictionary<UUID, InventoryFolder>();
+                        ob.@Folders = new System.Collections.Generic.Dictionary<UUID, InventoryFolderWithChildren>();
                     }
                     if (ob.@Items == null)
                     {
-                        ob.@Items = new System.Collections.Generic.Dictionary<UUID, InventoryItem>();
+                        ob.@Items = new System.Collections.Generic.Dictionary<UUID, InventoryItemBase>();
                     }
                     return ob;
                 }
@@ -610,10 +611,10 @@ namespace OpenSim.Grid.AssetInventoryServer
                         }
                         else if (Reader.LocalName == "Items" && Reader.NamespaceURI == "" && !b44)
                         {
-                            System.Collections.Generic.Dictionary<UUID, InventoryItem> o46 = ob.@Items;
+                            System.Collections.Generic.Dictionary<UUID, InventoryItemBase> o46 = ob.@Items;
                             if (((object)o46) == null)
                             {
-                                o46 = new System.Collections.Generic.Dictionary<UUID, InventoryItem>();
+                                o46 = new System.Collections.Generic.Dictionary<UUID, InventoryItemBase>();
                                 ob.@Items = o46;
                             }
                             if (Reader.IsEmptyElement)
@@ -634,7 +635,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                                         {
                                             if (((object)o46) == null)
                                                 throw CreateReadOnlyCollectionException("System.Collections.Generic.List<InventoryItemBase>");
-                                            InventoryItem item = ReadObject_InventoryItem(true, true);
+                                            InventoryItemBase item = ReadObject_InventoryItem(true, true);
                                             o46.Add(item.ID, item);
                                             n47++;
                                         }
@@ -650,10 +651,10 @@ namespace OpenSim.Grid.AssetInventoryServer
                         }
                         else if (Reader.LocalName == "Folders" && Reader.NamespaceURI == "" && !b43)
                         {
-                            System.Collections.Generic.Dictionary<UUID, InventoryFolder> o48 = ob.@Folders;
+                            System.Collections.Generic.Dictionary<UUID, InventoryFolderWithChildren> o48 = ob.@Folders;
                             if (((object)o48) == null)
                             {
-                                o48 = new System.Collections.Generic.Dictionary<UUID, InventoryFolder>();
+                                o48 = new System.Collections.Generic.Dictionary<UUID, InventoryFolderWithChildren>();
                                 ob.@Folders = o48;
                             }
                             if (Reader.IsEmptyElement)
@@ -674,7 +675,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                                         {
                                             if (((object)o48) == null)
                                                 throw CreateReadOnlyCollectionException("System.Collections.Generic.List<InventoryFolderBase>");
-                                            InventoryFolder folder = ReadObject_InventoryFolder(true, true);
+                                            InventoryFolderWithChildren folder = ReadObject_InventoryFolder(true, true);
                                             o48.Add(folder.ID, folder);
                                             n49++;
                                         }
@@ -700,11 +701,11 @@ namespace OpenSim.Grid.AssetInventoryServer
                 }
                 if (ob.@Folders == null)
                 {
-                    ob.@Folders = new System.Collections.Generic.Dictionary<UUID, InventoryFolder>();
+                    ob.@Folders = new System.Collections.Generic.Dictionary<UUID, InventoryFolderWithChildren>();
                 }
                 if (ob.@Items == null)
                 {
-                    ob.@Items = new System.Collections.Generic.Dictionary<UUID, InventoryItem>();
+                    ob.@Items = new System.Collections.Generic.Dictionary<UUID, InventoryItemBase>();
                 }
 
                 ReadEndElement();
@@ -793,7 +794,7 @@ namespace OpenSim.Grid.AssetInventoryServer
             public void WriteRoot_InventoryFolder(object o)
             {
                 WriteStartDocument();
-                InventoryFolder ob = (InventoryFolder)o;
+                InventoryFolderWithChildren ob = (InventoryFolderWithChildren)o;
                 TopLevelElement();
                 WriteObject_InventoryFolder(ob, "InventoryFolderBase", "", true, false, true);
             }
@@ -801,7 +802,7 @@ namespace OpenSim.Grid.AssetInventoryServer
             public void WriteRoot_InventoryItem(object o)
             {
                 WriteStartDocument();
-                InventoryItem ob = (InventoryItem)o;
+                InventoryItemBase ob = (InventoryItemBase)o;
                 TopLevelElement();
                 WriteObject_InventoryItem(ob, "InventoryItemBase", "", true, false, true);
             }
@@ -814,7 +815,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 WriteObject_InventoryCollection(ob, "InventoryCollection", "", true, false, true);
             }
 
-            void WriteObject_InventoryFolder(InventoryFolder ob, string element, string namesp, bool isNullable, bool needType, bool writeWrappingElem)
+            void WriteObject_InventoryFolder(InventoryFolderWithChildren ob, string element, string namesp, bool isNullable, bool needType, bool writeWrappingElem)
             {
                 if (((object)ob) == null)
                 {
@@ -824,7 +825,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 }
 
                 System.Type type = ob.GetType();
-                if (type == typeof(InventoryFolder))
+                if (type == typeof(InventoryFolderWithChildren))
                 { }
                 else
                 {
@@ -847,7 +848,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 if (writeWrappingElem) WriteEndElement(ob);
             }
 
-            void WriteObject_InventoryItem(InventoryItem ob, string element, string namesp, bool isNullable, bool needType, bool writeWrappingElem)
+            void WriteObject_InventoryItem(InventoryItemBase ob, string element, string namesp, bool isNullable, bool needType, bool writeWrappingElem)
             {
                 if (((object)ob) == null)
                 {
@@ -857,7 +858,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 }
 
                 System.Type type = ob.GetType();
-                if (type == typeof(InventoryItem))
+                if (type == typeof(InventoryItemBase))
                 { }
                 else
                 {
@@ -921,7 +922,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 if (ob.@Folders != null)
                 {
                     WriteStartElement("Folders", "", ob.@Folders);
-                    foreach (InventoryFolder folder in ob.Folders.Values)
+                    foreach (InventoryFolderWithChildren folder in ob.Folders.Values)
                     {
                         WriteObject_InventoryFolder(folder, "InventoryFolderBase", "", true, false, true);
                     }
@@ -930,7 +931,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 if (ob.@Items != null)
                 {
                     WriteStartElement("Items", "", ob.@Items);
-                    foreach (InventoryItem item in ob.Items.Values)
+                    foreach (InventoryItemBase item in ob.Items.Values)
                     {
                         WriteObject_InventoryItem(item, "InventoryItemBase", "", true, false, true);
                     }

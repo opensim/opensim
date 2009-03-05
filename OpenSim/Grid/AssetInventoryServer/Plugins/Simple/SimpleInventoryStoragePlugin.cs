@@ -44,7 +44,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         AssetInventoryServer server;
         Dictionary<Uri, InventoryCollection> inventories = new Dictionary<Uri, InventoryCollection>();
-        Dictionary<Uri, List<InventoryItem>> activeGestures = new Dictionary<Uri, List<InventoryItem>>();
+        Dictionary<Uri, List<InventoryItemBase>> activeGestures = new Dictionary<Uri, List<InventoryItemBase>>();
         Utils.InventoryItemSerializer itemSerializer = new Utils.InventoryItemSerializer();
         Utils.InventoryFolderSerializer folderSerializer = new Utils.InventoryFolderSerializer();
 
@@ -54,7 +54,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 
         #region Required Interfaces
 
-        public BackendResponse TryFetchItem(Uri owner, UUID itemID, out InventoryItem item)
+        public BackendResponse TryFetchItem(Uri owner, UUID itemID, out InventoryItemBase item)
         {
             item = null;
             BackendResponse ret;
@@ -69,7 +69,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             return ret;
         }
 
-        public BackendResponse TryFetchFolder(Uri owner, UUID folderID, out InventoryFolder folder)
+        public BackendResponse TryFetchFolder(Uri owner, UUID folderID, out InventoryFolderWithChildren folder)
         {
             folder = null;
             BackendResponse ret;
@@ -90,25 +90,25 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             BackendResponse ret;
 
             InventoryCollection collection;
-            InventoryFolder folder;
+            InventoryFolderWithChildren folder;
 
             if (inventories.TryGetValue(owner, out collection) && collection.Folders.TryGetValue(folderID, out folder))
             {
                 contents = new InventoryCollection();
                 contents.UserID = collection.UserID;
-                contents.Folders = new Dictionary<UUID, InventoryFolder>();
-                contents.Items = new Dictionary<UUID, InventoryItem>();
+                contents.Folders = new Dictionary<UUID, InventoryFolderWithChildren>();
+                contents.Items = new Dictionary<UUID, InventoryItemBase>();
 
-                foreach (InventoryBase invBase in folder.Children.Values)
+                foreach (InventoryNodeBase invBase in folder.Children.Values)
                 {
-                    if (invBase is InventoryItem)
+                    if (invBase is InventoryItemBase)
                     {
-                        InventoryItem invItem = invBase as InventoryItem;
+                        InventoryItemBase invItem = invBase as InventoryItemBase;
                         contents.Items.Add(invItem.ID, invItem);
                     }
                     else
                     {
-                        InventoryFolder invFolder = invBase as InventoryFolder;
+                        InventoryFolderWithChildren invFolder = invBase as InventoryFolderWithChildren;
                         contents.Folders.Add(invFolder.ID, invFolder);
                     }
                 }
@@ -124,7 +124,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             return ret;
         }
 
-        public BackendResponse TryFetchFolderList(Uri owner, out List<InventoryFolder> folders)
+        public BackendResponse TryFetchFolderList(Uri owner, out List<InventoryFolderWithChildren> folders)
         {
             folders = null;
             BackendResponse ret;
@@ -132,7 +132,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             InventoryCollection collection;
             if (inventories.TryGetValue(owner, out collection))
             {
-                folders = new List<InventoryFolder>(collection.Folders.Values);
+                folders = new List<InventoryFolderWithChildren>(collection.Folders.Values);
                 return BackendResponse.Success;
             }
             else
@@ -158,7 +158,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             return ret;
         }
 
-        public BackendResponse TryFetchActiveGestures(Uri owner, out List<InventoryItem> gestures)
+        public BackendResponse TryFetchActiveGestures(Uri owner, out List<InventoryItemBase> gestures)
         {
             gestures = null;
             BackendResponse ret;
@@ -172,7 +172,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             return ret;
         }
 
-        public BackendResponse TryCreateItem(Uri owner, InventoryItem item)
+        public BackendResponse TryCreateItem(Uri owner, InventoryItemBase item)
         {
             BackendResponse ret;
 
@@ -180,7 +180,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             if (inventories.TryGetValue(owner, out collection))
             {
                 // Delete this item first if it already exists
-                InventoryItem oldItem;
+                InventoryItemBase oldItem;
                 if (collection.Items.TryGetValue(item.ID, out oldItem))
                     TryDeleteItem(owner, item.ID);
 
@@ -193,7 +193,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                     lock (collection) collection.Items[item.ID] = item;
 
                     // Add the item to its parent folder
-                    InventoryFolder parent;
+                    InventoryFolderWithChildren parent;
                     if (collection.Folders.TryGetValue(item.Folder, out parent))
                         lock (parent.Children) parent.Children.Add(item.ID, item);
 
@@ -221,7 +221,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             return ret;
         }
 
-        public BackendResponse TryCreateFolder(Uri owner, InventoryFolder folder)
+        public BackendResponse TryCreateFolder(Uri owner, InventoryFolderWithChildren folder)
         {
             BackendResponse ret;
 
@@ -229,7 +229,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             if (inventories.TryGetValue(owner, out collection))
             {
                 // Delete this folder first if it already exists
-                InventoryFolder oldFolder;
+                InventoryFolderWithChildren oldFolder;
                 if (collection.Folders.TryGetValue(folder.ID, out oldFolder))
                     TryDeleteFolder(owner, folder.ID);
 
@@ -242,7 +242,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                     lock (collection) collection.Folders[folder.ID] = folder;
 
                     // Add the folder to its parent folder
-                    InventoryFolder parent;
+                    InventoryFolderWithChildren parent;
                     if (collection.Folders.TryGetValue(folder.ParentID, out parent))
                         lock (parent.Children) parent.Children.Add(folder.ID, folder);
 
@@ -263,7 +263,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             return ret;
         }
 
-        public BackendResponse TryCreateInventory(Uri owner, InventoryFolder rootFolder)
+        public BackendResponse TryCreateInventory(Uri owner, InventoryFolderWithChildren rootFolder)
         {
             BackendResponse ret;
 
@@ -273,9 +273,9 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                 {
                     InventoryCollection collection = new InventoryCollection();
                     collection.UserID = rootFolder.Owner;
-                    collection.Folders = new Dictionary<UUID, InventoryFolder>();
+                    collection.Folders = new Dictionary<UUID, InventoryFolderWithChildren>();
                     collection.Folders.Add(rootFolder.ID, rootFolder);
-                    collection.Items = new Dictionary<UUID, InventoryItem>();
+                    collection.Items = new Dictionary<UUID, InventoryItemBase>();
 
                     inventories.Add(owner, collection);
 
@@ -318,11 +318,11 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             BackendResponse ret;
 
             InventoryCollection collection;
-            InventoryItem item;
+            InventoryItemBase item;
             if (inventories.TryGetValue(owner, out collection) && collection.Items.TryGetValue(itemID, out item))
             {
                 // Remove the item from its parent folder
-                InventoryFolder parent;
+                InventoryFolderWithChildren parent;
                 if (collection.Folders.TryGetValue(item.Folder, out parent))
                     lock (parent.Children) parent.Children.Remove(itemID);
 
@@ -371,11 +371,11 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             BackendResponse ret;
 
             InventoryCollection collection;
-            InventoryFolder folder;
+            InventoryFolderWithChildren folder;
             if (inventories.TryGetValue(owner, out collection) && collection.Folders.TryGetValue(folderID, out folder))
             {
                 // Remove the folder from its parent folder
-                InventoryFolder parent;
+                InventoryFolderWithChildren parent;
                 if (collection.Folders.TryGetValue(folder.ParentID, out parent))
                     lock (parent.Children) parent.Children.Remove(folderID);
 
@@ -408,19 +408,19 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             BackendResponse ret;
 
             InventoryCollection collection;
-            InventoryFolder folder;
+            InventoryFolderWithChildren folder;
             if (inventories.TryGetValue(owner, out collection) && collection.Folders.TryGetValue(folderID, out folder))
             {
                 // Delete all of the folder children
-                foreach (InventoryBase obj in new List<InventoryBase>(folder.Children.Values))
+                foreach (InventoryNodeBase obj in new List<InventoryNodeBase>(folder.Children.Values))
                 {
-                    if (obj is InventoryItem)
+                    if (obj is InventoryItemBase)
                     {
-                        TryDeleteItem(owner, (obj as InventoryItem).ID);
+                        TryDeleteItem(owner, (obj as InventoryItemBase).ID);
                     }
                     else
                     {
-                        InventoryFolder childFolder = obj as InventoryFolder;
+                        InventoryFolderWithChildren childFolder = obj as InventoryFolderWithChildren;
                         TryPurgeFolder(owner, childFolder.ID);
                         TryDeleteFolder(owner, childFolder.ID);
                     }
@@ -439,7 +439,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
 
         #endregion Required Interfaces
 
-        void SaveItem(InventoryItem item)
+        void SaveItem(InventoryItemBase item)
         {
             string filename = String.Format("{0}-{1}.item", SanitizeFilename(item.Name), item.ID);
 
@@ -453,7 +453,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
             }
         }
 
-        void SaveFolder(InventoryFolder folder)
+        void SaveFolder(InventoryFolderWithChildren folder)
         {
             string filename = String.Format("{0}-{1}.folder", SanitizeFilename(folder.Name), folder.ID);
 
@@ -530,42 +530,42 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
                     if (ownerID != UUID.Zero && owner != null)
                     {
                         // Initialize the active gestures list for this agent
-                        activeGestures.Add(owner, new List<InventoryItem>());
+                        activeGestures.Add(owner, new List<InventoryItemBase>());
 
                         InventoryCollection collection = new InventoryCollection();
                         collection.UserID = ownerID;
 
                         // Load all of the folders for this agent
                         string[] folders = Directory.GetFiles(foldername, "*.folder", SearchOption.TopDirectoryOnly);
-                        collection.Folders = new Dictionary<UUID,InventoryFolder>(folders.Length);
+                        collection.Folders = new Dictionary<UUID,InventoryFolderWithChildren>(folders.Length);
 
                         for (int j = 0; j < folders.Length; j++)
                         {
-                            InventoryFolder invFolder = (InventoryFolder)folderSerializer.Deserialize(
+                            InventoryFolderWithChildren invFolder = (InventoryFolderWithChildren)folderSerializer.Deserialize(
                                 new FileStream(folders[j], FileMode.Open, FileAccess.Read));
                             collection.Folders[invFolder.ID] = invFolder;
                         }
 
                         // Iterate over the folders collection, adding children to their parents
-                        foreach (InventoryFolder invFolder in collection.Folders.Values)
+                        foreach (InventoryFolderWithChildren invFolder in collection.Folders.Values)
                         {
-                            InventoryFolder parent;
+                            InventoryFolderWithChildren parent;
                             if (collection.Folders.TryGetValue(invFolder.ParentID, out parent))
                                 parent.Children[invFolder.ID] = invFolder;
                         }
 
                         // Load all of the items for this agent
                         string[] files = Directory.GetFiles(foldername, "*.item", SearchOption.TopDirectoryOnly);
-                        collection.Items = new Dictionary<UUID, InventoryItem>(files.Length);
+                        collection.Items = new Dictionary<UUID, InventoryItemBase>(files.Length);
 
                         for (int j = 0; j < files.Length; j++)
                         {
-                            InventoryItem invItem = (InventoryItem)itemSerializer.Deserialize(
+                            InventoryItemBase invItem = (InventoryItemBase)itemSerializer.Deserialize(
                                 new FileStream(files[j], FileMode.Open, FileAccess.Read));
                             collection.Items[invItem.ID] = invItem;
 
                             // Add items to their parent folders
-                            InventoryFolder parent;
+                            InventoryFolderWithChildren parent;
                             if (collection.Folders.TryGetValue(invItem.Folder, out parent))
                                 parent.Children[invItem.ID] = invItem;
 

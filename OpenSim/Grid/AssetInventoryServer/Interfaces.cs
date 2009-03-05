@@ -81,17 +81,17 @@ namespace OpenSim.Grid.AssetInventoryServer
 
     public interface IInventoryStorageProvider : IAssetInventoryServerPlugin
     {
-        BackendResponse TryFetchItem(Uri owner, UUID itemID, out InventoryItem item);
-        BackendResponse TryFetchFolder(Uri owner, UUID folderID, out InventoryFolder folder);
+        BackendResponse TryFetchItem(Uri owner, UUID itemID, out InventoryItemBase item);
+        BackendResponse TryFetchFolder(Uri owner, UUID folderID, out InventoryFolderWithChildren folder);
         BackendResponse TryFetchFolderContents(Uri owner, UUID folderID, out InventoryCollection contents);
-        BackendResponse TryFetchFolderList(Uri owner, out List<InventoryFolder> folders);
+        BackendResponse TryFetchFolderList(Uri owner, out List<InventoryFolderWithChildren> folders);
         BackendResponse TryFetchInventory(Uri owner, out InventoryCollection inventory);
 
-        BackendResponse TryFetchActiveGestures(Uri owner, out List<InventoryItem> gestures);
+        BackendResponse TryFetchActiveGestures(Uri owner, out List<InventoryItemBase> gestures);
 
-        BackendResponse TryCreateItem(Uri owner, InventoryItem item);
-        BackendResponse TryCreateFolder(Uri owner, InventoryFolder folder);
-        BackendResponse TryCreateInventory(Uri owner, InventoryFolder rootFolder);
+        BackendResponse TryCreateItem(Uri owner, InventoryItemBase item);
+        BackendResponse TryCreateFolder(Uri owner, InventoryFolderWithChildren folder);
+        BackendResponse TryCreateInventory(Uri owner, InventoryFolderWithChildren rootFolder);
 
         BackendResponse TryDeleteItem(Uri owner, UUID itemID);
         BackendResponse TryDeleteFolder(Uri owner, UUID folderID);
