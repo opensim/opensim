@@ -43,13 +43,11 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         const string EXTENSION_NAME = "OpenSimInventoryStorage"; // Used in metrics reporting
 
         private AssetInventoryServer m_server;
-        private IInventoryDataPlugin m_inventoryProvider;
         private IConfig m_openSimConfig;
         private OpenSimInventoryService m_inventoryService;
 
         public OpenSimInventoryStoragePlugin()
         {
-            m_inventoryService = new OpenSimInventoryService();
         }
 
         #region IInventoryStorageProvider implementation
@@ -231,16 +229,17 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         public BackendResponse TryFetchFolderList(Uri owner, out List<InventoryFolderWithChildren> folders)
         {
-            folders = null;
+            folders = new List<InventoryFolderWithChildren>();
             BackendResponse ret;
             UUID ownerID;
 
             if (Utils.TryGetOpenSimUUID(owner, out ownerID))
             {
-                foreach (InventoryFolderWithChildren baseFolder in m_inventoryService.GetInventorySkeleton(ownerID))
+                List<InventoryFolderBase> baseFolders = m_inventoryService.GetInventorySkeleton(ownerID);
+                foreach (InventoryFolderBase baseFolder in baseFolders)
                 {
-                    InventoryFolderWithChildren folder = (InventoryFolderWithChildren) baseFolder;
-                    folder.Children = null; // This call does not create a folder hierarchy
+                    InventoryFolderWithChildren folder = new InventoryFolderWithChildren(baseFolder);
+                    //folder.Children = null; // This call does not create a folder hierarchy
                     folders.Add(folder);
                 }
 
@@ -248,6 +247,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             }
             else
             {
+                folders = null;
                 ret = BackendResponse.NotFound;
             }
 
@@ -512,23 +512,9 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             m_server = server;
             m_openSimConfig = server.ConfigFile.Configs["OpenSim"];
 
-            try
-            {
-                m_inventoryProvider = DataPluginFactory.LoadDataPlugin<IInventoryDataPlugin>(m_openSimConfig.GetString("inventory_database_provider"),
-                                                                                             m_openSimConfig.GetString("inventory_database_connect"));
-                if (m_inventoryProvider == null)
-                {
-                    m_log.Error("[OPENSIMINVENTORYSTORAGE]: Failed to load a database plugin, server halting.");
-                    Environment.Exit(-1);
-                }
-                else
-                    m_log.InfoFormat("[OPENSIMINVENTORYSTORAGE]: Loaded storage backend: {0}", Version);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[OPENSIMINVENTORYSTORAGE]: Failure loading data plugin: {0}", e.ToString());
-                throw new PluginNotInitialisedException(Name);
-            }
+            m_inventoryService = new OpenSimInventoryService();
+            m_inventoryService.AddPlugin(m_openSimConfig.GetString("inventory_database_provider"),
+                                         m_openSimConfig.GetString("inventory_database_connect"));
         }
 
         public void Stop()
@@ -547,7 +533,8 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         public string Version
         {
-            get { return m_inventoryProvider.Version; }
+            // TODO: this should be something meaningful and not hardcoded?
+            get { return "0.1"; }
         }
 
         public string Name

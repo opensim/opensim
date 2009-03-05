@@ -99,6 +99,33 @@ namespace OpenSim.Grid.AssetInventoryServer
 
     public class InventoryFolderWithChildren : InventoryFolderBase
     {
+        public InventoryFolderWithChildren()
+        {
+        }
+
+        public InventoryFolderWithChildren(InventoryFolderBase folder)
+        {
+            // from InventoryNodeBase
+            Name = folder.Name;
+            ID = folder.ID;
+            Owner = folder.Owner;
+
+            // from InventoryFolderBase
+            ParentID = folder.ParentID;
+            Type = folder.Type;
+            Version = folder.Version;
+        }
+
+        public InventoryFolderWithChildren(string name, UUID ownerID, UUID parentID, short assetType)
+        {
+            ID = UUID.Random();
+            Name = name;
+            Owner = ownerID;
+            ParentID = parentID;
+            Type = assetType;
+            Version = 1;
+        }
+
         [NonSerialized]
         public Dictionary<UUID, InventoryNodeBase> Children = new Dictionary<UUID, InventoryNodeBase>();
     }
