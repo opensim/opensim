@@ -63,7 +63,6 @@ namespace OpenSim.Region.Framework.Interfaces
         void forceUpdateLandInfo();
         void setLandBitmap(bool[,] bitmap);
 
-
         bool[,] basicFullRegionLandBitmap();
         bool[,] getSquareLandBitmap(int start_x, int start_y, int end_x, int end_y);
         bool[,] modifyLandBitmapSquare(bool[,] land_bitmap, int start_x, int start_y, int end_x, int end_y, bool set_value);
@@ -79,5 +78,17 @@ namespace OpenSim.Region.Framework.Interfaces
 
         void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
         void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);
+
+        /// <summary>
+        /// Set the media url for this land parcel
+        /// </summary>
+        /// <param name="url"></param>
+        void SetMediaUrl(string url);
+        
+        /// <summary>
+        /// Set the music url for this land parcel
+        /// </summary>
+        /// <param name="url"></param>
+        void SetMusicUrl(string url);
     }
 }

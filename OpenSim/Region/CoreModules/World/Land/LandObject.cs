@@ -116,7 +116,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             return newLand;
         }
 
-
         static overrideParcelMaxPrimCountDelegate overrideParcelMaxPrimCount;
         static overrideSimulatorMaxPrimCountDelegate overrideSimulatorMaxPrimCount;
 
@@ -926,5 +925,25 @@ namespace OpenSim.Region.CoreModules.World.Land
         #endregion
 
         #endregion
+        
+        /// <summary>
+        /// Set the media url for this land parcel
+        /// </summary>
+        /// <param name="url"></param>
+        public void SetMediaUrl(string url)
+        {
+            landData.MediaURL = url;
+            sendLandUpdateToAvatarsOverMe();            
+        }
+        
+        /// <summary>
+        /// Set the music url for this land parcel
+        /// </summary>
+        /// <param name="url"></param>
+        public void SetMusicUrl(string url)
+        {
+            landData.MusicURL = url;
+            sendLandUpdateToAvatarsOverMe();            
+        }
     }
 }

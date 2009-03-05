@@ -6824,7 +6824,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return;
             }
-            World.SetLandMusicURL(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, url);
+            
+            World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).SetMusicUrl(url);
+            
             // ScriptSleep(2000);
         }
 
@@ -8204,11 +8206,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence == null)
                 {
                     // we send to all
-
                     landData.MediaID = new UUID(texture);
                     landData.MediaAutoScale = autoAlign ? (byte)1 : (byte)0;
+                    
                     // do that one last, it will cause a ParcelPropertiesUpdate
-                    World.SetLandMediaURL(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, url);
+                    landObject.SetMediaUrl(url);
 
                     // now send to all (non-child) agents
                     List<ScenePresence> agents = World.GetAvatars();

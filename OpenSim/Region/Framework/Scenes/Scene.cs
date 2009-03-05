@@ -3048,20 +3048,6 @@ namespace OpenSim.Region.Framework.Scenes
             return LandChannel.GetLandObject((int)x, (int)y).landData;
         }
 
-        public void SetLandMusicURL(float x, float y, string url)
-        {
-            ILandObject land = LandChannel.GetLandObject(x, y);
-            land.landData.MusicURL = url;
-            land.sendLandUpdateToAvatarsOverMe();
-        }
-
-        public void SetLandMediaURL(float x, float y, string url)
-        {
-            ILandObject land = LandChannel.GetLandObject(x, y);
-            land.landData.MediaURL = url;
-            land.sendLandUpdateToAvatarsOverMe();
-        }
-
         public RegionInfo RequestClosestRegion(string name)
         {
             return m_sceneGridService.RequestClosestRegion(name);
