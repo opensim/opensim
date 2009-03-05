@@ -6433,7 +6433,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
 
                         LSL_Rotation q = rules.GetQuaternionItem(idx++);
-                        llSetRot(q);
+                        // try to let this work as in SL...
+                        if (part.ParentID == 0)
+                        {
+                            // special case: If we are root, rotate complete SOG to new rotation
+                            SetRot(part, Rot2Quaternion(q));
+     					}
+			            else
+			            {
+			                // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
+			                SceneObjectGroup group = part.ParentGroup;
+			                if (group != null) // a bit paranoid, maybe
+			                {
+			                    SceneObjectPart rootPart = group.RootPart;
+			                    if (rootPart != null) // again, better safe than sorry
+			                    {
+			                        SetRot(part, rootPart.RotationOffset * Rot2Quaternion(q));
+			                    }
+			                }
+			            }
 
                         break;
 
