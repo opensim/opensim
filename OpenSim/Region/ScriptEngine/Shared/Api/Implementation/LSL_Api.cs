@@ -1031,17 +1031,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             LSL_Vector wind = new LSL_Vector(0, 0, 0);
             IWindModule module = World.RequestModuleInterface<IWindModule>();
-            if (module != null && module.WindSpeeds != null)
+            if (module != null)
             {
                 Vector3 pos = m_host.GetWorldPosition();
-                int x = (int)((pos.X + offset.x)/ 16);
-                int y = (int)((pos.Y + offset.y)/ 16);
-                if (x < 0) x = 0;
-                if (x > 15) x = 15;
-                if (y < 0) y = 0;
-                if (y > 15) y = 15;
-                wind.x = module.WindSpeeds[y * 16 + x].X;
-                wind.y = module.WindSpeeds[y * 16 + x].Y;
+                int x = (int)(pos.X + offset.x);
+                int y = (int)(pos.Y + offset.y);
+
+                Vector3 windSpeed = module.WindSpeed(x, y, 0);
+
+                wind.x = windSpeed.X;
+                wind.y = windSpeed.Y;
             }
             return wind;
         }

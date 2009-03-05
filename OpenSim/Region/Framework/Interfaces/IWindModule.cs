@@ -31,9 +31,10 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IWindModule : IRegionModule
     {
-        Vector2[] WindSpeeds
-        {
-            get;
-        }
+        
+        /// <summary>
+        /// Retrieves the current wind speed at the given Region Coordinates
+        /// </summary>
+        Vector3 WindSpeed(int x, int y, int z);
     }
 }

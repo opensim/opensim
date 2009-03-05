@@ -45,7 +45,10 @@ namespace OpenSim.Region.CoreModules
         private Random rndnums = new Random(Environment.TickCount);
         private Scene m_scene = null;
         private bool ready = false;
+
+        // Simplified windSpeeds based on the fact that the client protocal tracks at a resolution of 16m
         private Vector2[] windSpeeds = new Vector2[16 * 16];
+
         private Dictionary<UUID, ulong> m_rootAgents = new Dictionary<UUID, ulong>();
      
         public void Initialise(Scene scene, IConfigSource config)
@@ -89,9 +92,32 @@ namespace OpenSim.Region.CoreModules
             get { return false; }
         }
 
-        public Vector2[] WindSpeeds
+        /// <summary>
+        /// Retrieve the wind speed at the given region coordinate.  This 
+        /// implimentation ignores Z.
+        /// </summary>
+        /// <param name="x">0...255</param>
+        /// <param name="y">0...255</param>
+        /// <returns></returns>
+        public Vector3 WindSpeed(int x, int y, int z)
         {
-            get { return windSpeeds; }
+            Vector3 windVector = new Vector3(0.0f, 0.0f, 0.0f);
+            
+            x /= 16;
+            y /= 16;
+            if (x < 0) x = 0;
+            if (x > 15) x = 15;
+            if (y < 0) y = 0;
+            if (y > 15) y = 15;
+
+            if (windSpeeds != null)
+            {
+                windVector.X = windSpeeds[y * 16 + x].X;
+                windVector.Y = windSpeeds[y * 16 + x].Y;
+            }
+
+
+            return windVector;
         }
 
         public void WindToClient(IClientAPI client)
