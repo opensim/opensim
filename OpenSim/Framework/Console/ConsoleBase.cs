@@ -358,7 +358,12 @@ namespace OpenSim.Framework.Console
                 if (ci.fn.Count == 0)
                     return new string[0];
                 foreach (CommandDelegate fn in ci.fn)
-                    fn(ci.module, result);
+                {
+                    if (fn != null)
+                        fn(ci.module, result);
+                    else
+                        return new string[0];
+                }
                 return result;
             }
             
