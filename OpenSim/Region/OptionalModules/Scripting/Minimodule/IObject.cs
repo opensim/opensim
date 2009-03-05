@@ -66,15 +66,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
     public enum PrimType
     {
-        NotPrimitive,
-        Box,
-        Cylinder,
-        Prism,
-        Sphere,
-        Torus,
-        Tube,
-        Ring,
-        Sculpt
+        NotPrimitive = 255,
+        Box = 0,
+        Cylinder = 1,
+        Prism = 2,
+        Sphere = 3,
+        Torus = 4,
+        Tube = 5,
+        Ring = 6,
+        Sculpt = 7
     }
 
     public enum TextureMapping
