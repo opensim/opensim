@@ -480,12 +480,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 case ProfileShape.HalfCircle:
                     if (_pbs.PathCurve == (byte)Extrusion.Curve1)
                     {
-                        if (_size.X == _size.Z && _size.Z == _size.X)
+                        if (_size.X == _size.Y && _size.Y == _size.Z)
                         {
                             // regular sphere
                             // v = 4/3 * pi * r^3
                             float sradius3 = (float)Math.Pow((_size.X / 2), 3);
-                            volume = (float)((4 / 3) * Math.PI * sradius3);
+                            volume = (float)((4f / 3f) * Math.PI * sradius3);
                         }
                         else
                         {
