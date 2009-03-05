@@ -227,14 +227,19 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                 {
                     Uri owner = Utils.GetOpenSimUri(folder.Owner);
 
-                    // Some calls that are moving or updating a folder instead of creating a new one
-                    // will pass in an InventoryFolder without the name set. If this is the case we
-                    // need to look up the name first
+                    // Some calls that are moving or updating a folder instead
+                    // of creating a new one will pass in an InventoryFolder
+                    // without the name set and type set to 0. If this is the
+                    // case we need to look up the name first and preserver
+                    // it's type.
                     if (String.IsNullOrEmpty(folder.Name))
                     {
                         InventoryFolderWithChildren oldFolder;
                         if (m_server.InventoryProvider.TryFetchFolder(owner, folder.ID, out oldFolder) == BackendResponse.Success)
+                        {
                             folder.Name = oldFolder.Name;
+                            folder.Type = oldFolder.Type;
+                        }
                     }
 
                     BackendResponse storageResponse = m_server.InventoryProvider.TryCreateFolder(owner, folder);

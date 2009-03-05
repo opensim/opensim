@@ -48,7 +48,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             if (null != baseFolder)
             {
-                folder = (InventoryFolderWithChildren) baseFolder;
+                folder = new InventoryFolderWithChildren(baseFolder);
                 folder.Children = null; // This call only returns data for the folder itself, no children data
             }
 
