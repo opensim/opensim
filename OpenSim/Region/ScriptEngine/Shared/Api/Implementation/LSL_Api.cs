@@ -8658,7 +8658,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int c = 0;
             for (int i = 0; i < src1.Length; i++)
             {
-                ret += src1[i] ^ src2[c];
+                ret += (char) (src1[i] ^ src2[c]);
 
                 c++;
                 if (c >= src2.Length)
