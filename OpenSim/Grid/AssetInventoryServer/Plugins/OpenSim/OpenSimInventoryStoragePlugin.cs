@@ -276,7 +276,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                 if (Utils.TryGetOpenSimUUID(owner, out ownerID))
                 {
                     inventory.UserID = ownerID;
-                    inventory.Folders = new Dictionary<UUID, InventoryFolderWithChildren>();
+                    inventory.Items = new Dictionary<UUID, InventoryItemBase>();
 
                     foreach (InventoryFolderWithChildren folder in folders)
                     {

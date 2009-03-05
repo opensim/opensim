@@ -553,12 +553,12 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                         folder.Name = String.Empty;
 
                     UUID dummyUUID;
+                    ReadUUID(reader, "ID", out dummyUUID);
+                    folder.ID = dummyUUID;
                     ReadUUID(reader, "Owner", out dummyUUID);
                     folder.Owner = dummyUUID;
                     ReadUUID(reader, "ParentID", out dummyUUID);
                     folder.ParentID = dummyUUID;
-                    ReadUUID(reader, "ID", out dummyUUID);
-                    folder.ID = dummyUUID;
 
                     short dummyType;
                     Int16.TryParse(reader.ReadElementContentAsString("Type", String.Empty), out dummyType);
@@ -587,6 +587,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             InventoryItemBase item = new InventoryItemBase();
 
+
             try
             {
                 using (XmlReader reader = XmlReader.Create(stream))
@@ -597,9 +598,14 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                     UUID.TryParse(reader.ReadElementContentAsString("AvatarID", String.Empty), out agentID);
                     reader.ReadStartElement("Body");
 
+                    item.Name = reader.ReadElementContentAsString("Name", String.Empty);
+
                     UUID dummyUUID;
                     ReadUUID(reader, "ID", out dummyUUID);
                     item.ID = dummyUUID;
+
+                    ReadUUID(reader, "Owner", out dummyUUID);
+                    item.Owner = dummyUUID;
 
                     int dummyInt;
                     Int32.TryParse(reader.ReadElementContentAsString("InvType", String.Empty), out dummyInt);
@@ -607,12 +613,9 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
                     ReadUUID(reader, "Folder", out dummyUUID);
                     item.Folder = dummyUUID;
-                    ReadUUID(reader, "Owner", out dummyUUID);
-                    item.Owner = dummyUUID;
                     ReadUUID(reader, "Creator", out dummyUUID);
                     item.Creator = dummyUUID;
 
-                    item.Name = reader.ReadElementContentAsString("Name", String.Empty);
                     item.Description = reader.ReadElementContentAsString("Description", String.Empty);
 
                     uint dummyUInt;
