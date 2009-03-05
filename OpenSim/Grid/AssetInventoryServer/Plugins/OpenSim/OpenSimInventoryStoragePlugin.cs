@@ -50,7 +50,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
         }
 
-        #region Required Interfaces
+        #region IInventoryStorageProvider implementation
 
         public BackendResponse TryFetchItem(Uri owner, UUID itemID, out InventoryItem item)
         {
@@ -112,6 +112,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             //m_server.MetricsProvider.LogInventoryFetch(EXTENSION_NAME, ret, owner, itemID, false, DateTime.Now);
             //return ret;
+            m_log.Warn("[OPENSIMINVENTORYSTORAGE]: Called TryFetchItem which is not implemented.");
             return BackendResponse.Success;
         }
 
@@ -258,6 +259,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             //m_server.MetricsProvider.LogInventoryFetchFolderContents(EXTENSION_NAME, ret, owner, folderID, DateTime.Now);
             //return ret;
+            m_log.Warn("[OPENSIMINVENTORYSTORAGE]: Called TryFetchFolderContents which is not implemented.");
             return BackendResponse.Success;
         }
 
@@ -684,6 +686,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             //m_server.MetricsProvider.LogInventoryDelete(EXTENSION_NAME, ret, owner, folderID, true, DateTime.Now);
             //return ret;
+            m_log.Warn("[OPENSIMINVENTORYSTORAGE]: Called TryDeleteFolder which is not implemented.");
             return BackendResponse.Success;
         }
 
@@ -789,7 +792,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             return rowCount;
         }
 
-        #endregion Required Interfaces
+        #endregion IInventoryStorageProvider implementation
 
         #region IPlugin implementation
 
