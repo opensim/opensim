@@ -1182,12 +1182,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         //
         // Don't remove transaction ID! Groups and item gives need to set it!
-        //
         public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent,
                                        string fromName, byte dialog, uint timeStamp,
                                        UUID transactionID, bool fromGroup, byte[] binaryBucket)
         {
-
             if (((Scene)(m_scene)).Permissions.CanInstantMessage(fromAgent, toAgent))
             {
                 ImprovedInstantMessagePacket msg
@@ -1242,7 +1240,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendGenericMessage(string method, List<string> message)
         {
-
             GenericMessagePacket gmp = new GenericMessagePacket();
             gmp.MethodData.Method = Utils.StringToBytes(method);
             gmp.ParamList = new GenericMessagePacket.ParamListBlock[message.Count];
@@ -1681,12 +1678,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     descend.ItemData[i].AssetID = item.AssetID;
                     descend.ItemData[i].CreatorID = item.Creator;
                     descend.ItemData[i].BaseMask = item.BasePermissions;
-                    descend.ItemData[i].Description = Utils.StringToBytes(item.Description);
+                    descend.ItemData[i].Description = LLUtil.StringToPacketBytes(item.Description);
                     descend.ItemData[i].EveryoneMask = item.EveryOnePermissions;
                     descend.ItemData[i].OwnerMask = item.CurrentPermissions;
                     descend.ItemData[i].FolderID = item.Folder;
                     descend.ItemData[i].InvType = (sbyte)item.InvType;
-                    descend.ItemData[i].Name = Utils.StringToBytes(item.Name);
+                    descend.ItemData[i].Name = LLUtil.StringToPacketBytes(item.Name);
                     descend.ItemData[i].NextOwnerMask = item.NextPermissions;
                     descend.ItemData[i].OwnerID = item.Owner;
                     descend.ItemData[i].Type = (sbyte)item.AssetType;
@@ -1764,7 +1761,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     descend.FolderData[i] = new InventoryDescendentsPacket.FolderDataBlock();
                     descend.FolderData[i].FolderID = folder.ID;
-                    descend.FolderData[i].Name = Utils.StringToBytes(folder.Name);
+                    descend.FolderData[i].Name = LLUtil.StringToPacketBytes(folder.Name);
                     descend.FolderData[i].ParentID = folder.ParentID;
                     descend.FolderData[i].Type = (sbyte)folder.Type;
 
@@ -1827,11 +1824,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             inventoryReply.InventoryData[0].BaseMask = item.BasePermissions;
             inventoryReply.InventoryData[0].CreationDate = item.CreationDate;
 
-            inventoryReply.InventoryData[0].Description = Utils.StringToBytes(item.Description);
+            inventoryReply.InventoryData[0].Description = LLUtil.StringToPacketBytes(item.Description);
             inventoryReply.InventoryData[0].EveryoneMask = item.EveryOnePermissions;
             inventoryReply.InventoryData[0].FolderID = item.Folder;
             inventoryReply.InventoryData[0].InvType = (sbyte)item.InvType;
-            inventoryReply.InventoryData[0].Name = Utils.StringToBytes(item.Name);
+            inventoryReply.InventoryData[0].Name = LLUtil.StringToPacketBytes(item.Name);
             inventoryReply.InventoryData[0].NextOwnerMask = item.NextPermissions;
             inventoryReply.InventoryData[0].OwnerID = item.Owner;
             inventoryReply.InventoryData[0].OwnerMask = item.CurrentPermissions;
@@ -1954,7 +1951,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             folderBlock.FolderID = folder.ID;
             folderBlock.ParentID = folder.ParentID;
             folderBlock.Type = -1;
-            folderBlock.Name = Utils.StringToBytes(folder.Name);
+            folderBlock.Name = LLUtil.StringToPacketBytes(folder.Name);
 
             return folderBlock;
         }
@@ -1972,11 +1969,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             itemBlock.AssetID = item.AssetID;
             itemBlock.CreatorID = item.Creator;
             itemBlock.BaseMask = item.BasePermissions;
-            itemBlock.Description = Utils.StringToBytes(item.Description);
+            itemBlock.Description = LLUtil.StringToPacketBytes(item.Description);
             itemBlock.EveryoneMask = item.EveryOnePermissions;
             itemBlock.FolderID = item.Folder;
             itemBlock.InvType = (sbyte)item.InvType;
-            itemBlock.Name = Utils.StringToBytes(item.Name);
+            itemBlock.Name = LLUtil.StringToPacketBytes(item.Name);
             itemBlock.NextOwnerMask = item.NextPermissions;
             itemBlock.OwnerID = item.Owner;
             itemBlock.OwnerMask = item.CurrentPermissions;
@@ -2036,11 +2033,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bulkUpdate.ItemData[0].CreatorID = item.Creator;
             bulkUpdate.ItemData[0].BaseMask = item.BasePermissions;
             bulkUpdate.ItemData[0].CreationDate = 1000;
-            bulkUpdate.ItemData[0].Description = Utils.StringToBytes(item.Description);
+            bulkUpdate.ItemData[0].Description = LLUtil.StringToPacketBytes(item.Description);
             bulkUpdate.ItemData[0].EveryoneMask = item.EveryOnePermissions;
             bulkUpdate.ItemData[0].FolderID = item.Folder;
             bulkUpdate.ItemData[0].InvType = (sbyte)item.InvType;
-            bulkUpdate.ItemData[0].Name = Utils.StringToBytes(item.Name);
+            bulkUpdate.ItemData[0].Name = LLUtil.StringToPacketBytes(item.Name);
             bulkUpdate.ItemData[0].NextOwnerMask = item.NextPermissions;
             bulkUpdate.ItemData[0].OwnerID = item.Owner;
             bulkUpdate.ItemData[0].OwnerMask = item.CurrentPermissions;
@@ -2083,11 +2080,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             InventoryReply.InventoryData[0].AssetID = Item.AssetID;
             InventoryReply.InventoryData[0].CreatorID = Item.Creator;
             InventoryReply.InventoryData[0].BaseMask = Item.BasePermissions;
-            InventoryReply.InventoryData[0].Description = Utils.StringToBytes(Item.Description);
+            InventoryReply.InventoryData[0].Description = LLUtil.StringToPacketBytes(Item.Description);
             InventoryReply.InventoryData[0].EveryoneMask = Item.EveryOnePermissions;
             InventoryReply.InventoryData[0].FolderID = Item.Folder;
             InventoryReply.InventoryData[0].InvType = (sbyte)Item.InvType;
-            InventoryReply.InventoryData[0].Name = Utils.StringToBytes(Item.Name);
+            InventoryReply.InventoryData[0].Name = LLUtil.StringToPacketBytes(Item.Name);
             InventoryReply.InventoryData[0].NextOwnerMask = Item.NextPermissions;
             InventoryReply.InventoryData[0].OwnerID = Item.Owner;
             InventoryReply.InventoryData[0].OwnerMask = Item.CurrentPermissions;
@@ -2801,6 +2798,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             newPack.Header.Zerocoded = true;
             OutPacket(newPack, ThrottleOutPacketType.Asset);
         }
+        
         public void SendInitiateDownload(string simFileName, string clientFileName)
         {
             InitiateDownloadPacket newPack = new InitiateDownloadPacket();
@@ -2809,6 +2807,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             newPack.FileData.ViewerFilename = Utils.StringToBytes(clientFileName);
             OutPacket(newPack, ThrottleOutPacketType.Asset);
         }
+        
         public void SendImageFirstPart(
             ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
         {
@@ -2893,8 +2892,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objPropDB.SalePrice = SalePrice;
             objPropDB.Category = Category;
             objPropDB.LastOwnerID = LastOwnerID;
-            objPropDB.Name = Utils.StringToBytes(ObjectName);
-            objPropDB.Description = Utils.StringToBytes(Description);
+            objPropDB.Name = LLUtil.StringToPacketBytes(ObjectName);
+            objPropDB.Description = LLUtil.StringToPacketBytes(Description);
             objPropFamilyPack.ObjectData = objPropDB;
             objPropFamilyPack.Header.Zerocoded = true;
             OutPacket(objPropFamilyPack, ThrottleOutPacketType.Task);
@@ -2925,11 +2924,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             proper.ObjectData[0].ObjectID = ObjectUUID;
             proper.ObjectData[0].OwnerID = OwnerUUID;
-            proper.ObjectData[0].TouchName = Utils.StringToBytes(TouchTitle);
+            proper.ObjectData[0].TouchName = LLUtil.StringToPacketBytes(TouchTitle);
             proper.ObjectData[0].TextureID = TextureID;
-            proper.ObjectData[0].SitName = Utils.StringToBytes(SitTitle);
-            proper.ObjectData[0].Name = Utils.StringToBytes(ItemName);
-            proper.ObjectData[0].Description = Utils.StringToBytes(ItemDescription);
+            proper.ObjectData[0].SitName = LLUtil.StringToPacketBytes(SitTitle);
+            proper.ObjectData[0].Name = LLUtil.StringToPacketBytes(ItemName);
+            proper.ObjectData[0].Description = LLUtil.StringToPacketBytes(ItemDescription);
             proper.ObjectData[0].OwnerMask = OwnerMask;
             proper.ObjectData[0].NextOwnerMask = NextOwnerMask;
             proper.ObjectData[0].GroupMask = GroupMask;
@@ -4533,6 +4532,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+                
                 case PacketType.AgentIsNowWearing:
                     if (OnAvatarNowWearing != null)
                     {
@@ -4760,6 +4760,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+                
                 case PacketType.UserInfoRequest:
                     handlerUserInfoRequest = OnUserInfoRequest;
                     if (handlerUserInfoRequest != null)
@@ -4771,6 +4772,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SendUserInfoReply(false, true, "");
                     }
                     break;
+                
                 case PacketType.UpdateUserInfo:
                     UpdateUserInfoPacket updateUserInfo = (UpdateUserInfoPacket)Pack;
                     handlerUpdateUserInfo = OnUpdateUserInfo;
@@ -4787,6 +4789,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 visible, this);
                     }
                     break;
+                
                 case PacketType.SetStartLocationRequest:
                     SetStartLocationRequestPacket avSetStartLocationRequestPacket = (SetStartLocationRequestPacket)Pack;
 
@@ -4850,6 +4853,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerLinkObjects(this, parentprimid, childrenprims);
                     }
                     break;
+                
                 case PacketType.ObjectDelink:
                     ObjectDelinkPacket delink = (ObjectDelinkPacket)Pack;
 
@@ -4869,6 +4873,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+                
                 case PacketType.ObjectAdd:
                     if (OnAddPrim != null)
                     {
@@ -4888,6 +4893,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerAddPrim(AgentId, ActiveGroupId, addPacket.ObjectData.RayEnd, addPacket.ObjectData.Rotation, shape, addPacket.ObjectData.BypassRaycast, addPacket.ObjectData.RayStart, addPacket.ObjectData.RayTargetID, addPacket.ObjectData.RayEndIsIntersection);
                     }
                     break;
+                
                 case PacketType.ObjectShape:
                     ObjectShapePacket shapePacket = (ObjectShapePacket)Pack;
                     handlerUpdatePrimShape = null;
@@ -4922,6 +4928,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+                
                 case PacketType.ObjectExtraParams:
                     ObjectExtraParamsPacket extraPar = (ObjectExtraParamsPacket)Pack;
 

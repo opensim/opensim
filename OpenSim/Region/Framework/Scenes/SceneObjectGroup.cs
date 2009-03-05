@@ -2190,7 +2190,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void LinkNonRootPart(SceneObjectPart part, Vector3 oldGroupPosition, Quaternion oldGroupRotation, int linkNum)
         {
-
             Quaternion parentRot = oldGroupRotation;
             Quaternion oldRot = part.RotationOffset;
             Quaternion worldRot = parentRot * oldRot;

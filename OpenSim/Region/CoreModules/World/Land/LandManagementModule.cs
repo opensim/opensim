@@ -101,7 +101,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             lock (m_scene)
             {
-                m_scene.LandChannel = (ILandChannel) landChannel;
+                m_scene.LandChannel = (ILandChannel)landChannel;
             }
         }
 

@@ -81,9 +81,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 }
             }
 
-            m_log.InfoFormat("[CHAT] initialized for {0} w:{1} s:{2} S:{3}", scene.RegionInfo.RegionName,
+            m_log.InfoFormat("[CHAT]: Initialized for {0} w:{1} s:{2} S:{3}", scene.RegionInfo.RegionName,
                              m_whisperdistance, m_saydistance, m_shoutdistance);
         }
+        
         public virtual void PostInitialise()
         {
         }
@@ -199,8 +200,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             }
         }
 
-
         static private Vector3 CenterOfRegion = new Vector3(128, 128, 30);
+        
         public virtual void OnChatBroadcast(Object sender, OSChatMessage c)
         {
             // unless the chat to be broadcast is of type Region, we

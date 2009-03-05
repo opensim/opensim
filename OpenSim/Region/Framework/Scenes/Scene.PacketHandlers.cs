@@ -68,8 +68,8 @@ namespace OpenSim.Region.Framework.Scenes
                 EventManager.TriggerOnChatBroadcast(this, args);
             else
                 EventManager.TriggerOnChatFromWorld(this, args);
-
         }
+        
         /// <summary>
         ///
         /// </summary>
