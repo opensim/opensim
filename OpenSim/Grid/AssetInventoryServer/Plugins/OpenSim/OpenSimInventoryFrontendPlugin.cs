@@ -492,7 +492,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         //    return m_server.InventoryProvider.TryCreateFolder(owner, folder);
         //}
 
-        UUID DeserializeUUID(Stream stream)
+        static UUID DeserializeUUID(Stream stream)
         {
             UUID id = UUID.Zero;
 
