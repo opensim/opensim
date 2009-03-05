@@ -86,8 +86,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         public Vector3 Scale
         {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
+            get { return GetSOP().Scale; }
+            set { GetSOP().Scale = value; }
         }
 
         public Quaternion Rotation

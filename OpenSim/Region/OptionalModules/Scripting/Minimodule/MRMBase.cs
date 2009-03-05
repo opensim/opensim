@@ -1,6 +1,6 @@
 ﻿namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public abstract class MiniModuleBase
+    public abstract class MRMBase
     {
         private IWorld m_world;
         private IHost m_host;

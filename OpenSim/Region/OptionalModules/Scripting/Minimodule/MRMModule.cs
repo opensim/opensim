@@ -13,12 +13,12 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public class MiniModule : IRegionModule
+    public class MRMModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
         
-        private readonly Dictionary<UUID,MiniModuleBase> m_scripts = new Dictionary<UUID, MiniModuleBase>();
+        private readonly Dictionary<UUID,MRMBase> m_scripts = new Dictionary<UUID, MRMBase>();
 
         private static readonly CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
 
@@ -51,7 +51,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 IWorld m_world = new World(m_scene);
                 IHost m_host = new Host(new SOPObject(m_scene, localID));
 
-                MiniModuleBase mmb = (MiniModuleBase) AppDomain.CurrentDomain.CreateInstanceFromAndUnwrap(
+                MRMBase mmb = (MRMBase) AppDomain.CurrentDomain.CreateInstanceFromAndUnwrap(
                                                           CompileFromDotNetText(script, itemID.ToString()),
                                                           "OpenSim.MiniModule");
                 m_log.Info("[MRM] Created MRM Instance");
@@ -70,7 +70,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         public void Close()
         {
-            foreach (KeyValuePair<UUID, MiniModuleBase> pair in m_scripts)
+            foreach (KeyValuePair<UUID, MRMBase> pair in m_scripts)
             {
                 pair.Value.Stop();
             }
@@ -78,7 +78,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         public string Name
         {
-            get { return "MiniScriptModule"; }
+            get { return "MiniRegionModule"; }
         }
 
         public bool IsSharedModule
