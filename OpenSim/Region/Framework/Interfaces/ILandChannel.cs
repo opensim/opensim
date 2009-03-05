@@ -35,8 +35,23 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         List<ILandObject> ParcelsNearPoint(Vector3 position);
         List<ILandObject> AllParcels();
+             
+        /// <summary>
+        /// Get the land object at the specified point
+        /// </summary>
+        /// <param name="x">Value between 0 - 256 on the x axis of the point</param>
+        /// <param name="y">Value between 0 - 256 on the y axis of the point</param>
+        /// <returns>Land object at the point supplied</returns>           
         ILandObject GetLandObject(int x, int y);
+        
+        /// <summary>
+        /// Get the land object at the specified point
+        /// </summary>
+        /// <param name="x">Value between 0 - 256 on the x axis of the point</param>
+        /// <param name="y">Value between 0 - 256 on the y axis of the point</param>
+        /// <returns>Land object at the point supplied</returns>           
         ILandObject GetLandObject(float x, float y);
+        
         bool IsLandPrimCountTainted();
         bool IsForcefulBansAllowed();
         void UpdateLandObject(int localID, LandData data);

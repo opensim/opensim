@@ -1114,7 +1114,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     Heightmap = new TerrainChannel(map);
                 }
-
             }
             catch (Exception e)
             {
@@ -3045,40 +3044,22 @@ namespace OpenSim.Region.Framework.Scenes
 
         public LandData GetLandData(uint x, uint y)
         {
-            m_log.DebugFormat("[SCENE] returning land for {0},{1}", x, y);
+            m_log.DebugFormat("[SCENE]: returning land for {0},{1}", x, y);
             return LandChannel.GetLandObject((int)x, (int)y).landData;
         }
 
         public void SetLandMusicURL(float x, float y, string url)
         {
             ILandObject land = LandChannel.GetLandObject(x, y);
-            if (land == null)
-            {
-                return;
-            }
-            else
-            {
-                land.landData.MusicURL = url;
-                land.sendLandUpdateToAvatarsOverMe();
-                return;
-            }
+            land.landData.MusicURL = url;
+            land.sendLandUpdateToAvatarsOverMe();
         }
 
         public void SetLandMediaURL(float x, float y, string url)
         {
             ILandObject land = LandChannel.GetLandObject(x, y);
-
-            if (land == null)
-            {
-                return;
-            }
-
-            else
-            {
-                land.landData.MediaURL = url;
-                land.sendLandUpdateToAvatarsOverMe();
-                return;
-            }
+            land.landData.MediaURL = url;
+            land.sendLandUpdateToAvatarsOverMe();
         }
 
         public RegionInfo RequestClosestRegion(string name)

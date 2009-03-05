@@ -74,19 +74,13 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region ILandChannel Members
 
-
-        /// <summary>
-        /// Get the land object at the specified point
-        /// </summary>
-        /// <param name="x_float">Value between 0 - 256 on the x axis of the point</param>
-        /// <param name="y_float">Value between 0 - 256 on the y axis of the point</param>
-        /// <returns>Land object at the point supplied</returns>
         public ILandObject GetLandObject(float x_float, float y_float)
         {
             if (m_landManagementModule != null)
             {
                 return m_landManagementModule.GetLandObject(x_float, y_float);
             }
+            
             ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
             obj.landData.Name = "NO LAND";
             return obj;
@@ -98,6 +92,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 return m_landManagementModule.GetLandObject(x, y);
             }
+            
             ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
             obj.landData.Name = "NO LAND";
             return obj;
