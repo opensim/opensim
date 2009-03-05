@@ -34,8 +34,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Scenes.Types
 {
-    [Serializable]
-    public class UpdateQueue : ISerializable
+    public class UpdateQueue
     {
         private Queue<SceneObjectPart> m_queue;
 
@@ -88,47 +87,6 @@ namespace OpenSim.Region.Framework.Scenes.Types
             }
 
             return part;
-        }
-
-        protected UpdateQueue(SerializationInfo info, StreamingContext context)
-        {
-            //m_log.Debug("UpdateQueue Deserialize BGN");
-
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            m_queue = (Queue<SceneObjectPart>)info.GetValue("m_queue", typeof(Queue<SceneObjectPart>));
-            List<Guid> ids_work = (List<Guid>)info.GetValue("m_ids", typeof(List<Guid>));
-
-            foreach (Guid guid in ids_work)
-            {
-                m_ids.Add(new UUID(guid));
-            }
-
-            //m_log.Debug("UpdateQueue Deserialize END");
-        }
-
-        [SecurityPermission(SecurityAction.LinkDemand,
-            Flags = SecurityPermissionFlag.SerializationFormatter)]
-        public virtual void GetObjectData(
-                        SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            List<Guid> ids_work = new List<Guid>();
-
-            foreach (UUID uuid in m_ids)
-            {
-                ids_work.Add(uuid.Guid);
-            }
-
-            info.AddValue("m_queue", m_queue);
-            info.AddValue("m_ids", ids_work);
         }
     }
 }

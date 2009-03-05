@@ -34,8 +34,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
-    [Serializable]
-    public class AvatarAppearance : ISerializable
+    public class AvatarAppearance
     {
 //        private static readonly ILog m_log
 //            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -105,102 +104,127 @@ namespace OpenSim.Framework
             get { return m_wearables[BODY].ItemID; }
             set { m_wearables[BODY].ItemID = value; }
         }
+        
         public virtual UUID BodyAsset {
             get { return m_wearables[BODY].AssetID; }
             set { m_wearables[BODY].AssetID = value; }
         }
+        
         public virtual UUID SkinItem {
             get { return m_wearables[SKIN].ItemID; }
             set { m_wearables[SKIN].ItemID = value; }
         }
+        
         public virtual UUID SkinAsset {
             get { return m_wearables[SKIN].AssetID; }
             set { m_wearables[SKIN].AssetID = value; }
         }
+        
         public virtual UUID HairItem {
             get { return m_wearables[HAIR].ItemID; }
             set { m_wearables[HAIR].ItemID = value; }
         }
+        
         public virtual UUID HairAsset {
             get { return m_wearables[HAIR].AssetID; }
             set { m_wearables[HAIR].AssetID = value; }
         }
+        
         public virtual UUID EyesItem {
             get { return m_wearables[EYES].ItemID; }
             set { m_wearables[EYES].ItemID = value; }
         }
+        
         public virtual UUID EyesAsset {
             get { return m_wearables[EYES].AssetID; }
             set { m_wearables[EYES].AssetID = value; }
         }
+        
         public virtual UUID ShirtItem {
             get { return m_wearables[SHIRT].ItemID; }
             set { m_wearables[SHIRT].ItemID = value; }
         }
+        
         public virtual UUID ShirtAsset {
             get { return m_wearables[SHIRT].AssetID; }
             set { m_wearables[SHIRT].AssetID = value; }
         }
+        
         public virtual UUID PantsItem {
             get { return m_wearables[PANTS].ItemID; }
             set { m_wearables[PANTS].ItemID = value; }
         }
+        
         public virtual UUID PantsAsset {
             get { return m_wearables[PANTS].AssetID; }
             set { m_wearables[PANTS].AssetID = value; }
         }
+        
         public virtual UUID ShoesItem {
             get { return m_wearables[SHOES].ItemID; }
             set { m_wearables[SHOES].ItemID = value; }
         }
+        
         public virtual UUID ShoesAsset {
             get { return m_wearables[SHOES].AssetID; }
             set { m_wearables[SHOES].AssetID = value; }
         }
+        
         public virtual UUID SocksItem {
             get { return m_wearables[SOCKS].ItemID; }
             set { m_wearables[SOCKS].ItemID = value; }
         }
+        
         public virtual UUID SocksAsset {
             get { return m_wearables[SOCKS].AssetID; }
             set { m_wearables[SOCKS].AssetID = value; }
         }
+        
         public virtual UUID JacketItem {
             get { return m_wearables[JACKET].ItemID; }
             set { m_wearables[JACKET].ItemID = value; }
         }
+        
         public virtual UUID JacketAsset {
             get { return m_wearables[JACKET].AssetID; }
             set { m_wearables[JACKET].AssetID = value; }
         }
+        
         public virtual UUID GlovesItem {
             get { return m_wearables[GLOVES].ItemID; }
             set { m_wearables[GLOVES].ItemID = value; }
         }
+        
         public virtual UUID GlovesAsset {
             get { return m_wearables[GLOVES].AssetID; }
             set { m_wearables[GLOVES].AssetID = value; }
         }
+        
         public virtual UUID UnderShirtItem {
             get { return m_wearables[UNDERSHIRT].ItemID; }
             set { m_wearables[UNDERSHIRT].ItemID = value; }
         }
+        
         public virtual UUID UnderShirtAsset {
             get { return m_wearables[UNDERSHIRT].AssetID; }
             set { m_wearables[UNDERSHIRT].AssetID = value; }
         }
+        
         public virtual UUID UnderPantsItem {
             get { return m_wearables[UNDERPANTS].ItemID; }
             set { m_wearables[UNDERPANTS].ItemID = value; }
         }
+        
         public virtual UUID UnderPantsAsset {
             get { return m_wearables[UNDERPANTS].AssetID; }
             set { m_wearables[UNDERPANTS].AssetID = value; }
         }
+        
         public virtual UUID SkirtItem {
             get { return m_wearables[SKIRT].ItemID; }
             set { m_wearables[SKIRT].ItemID = value; }
         }
+        
         public virtual UUID SkirtAsset {
             get { return m_wearables[SKIRT].AssetID; }
             set { m_wearables[SKIRT].AssetID = value; }
@@ -333,26 +357,6 @@ namespace OpenSim.Framework
             return s;
         }
 
-        protected AvatarAppearance(SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            m_owner = new UUID((Guid)info.GetValue("m_scenePresenceID", typeof(Guid)));
-            m_serial = (int)info.GetValue("m_wearablesSerial", typeof(int));
-            m_visualparams = (byte[])info.GetValue("m_visualParams", typeof(byte[]));
-            m_wearables = (AvatarWearable[])info.GetValue("m_wearables", typeof(AvatarWearable[]));
-
-            byte[] m_textureEntry_work = (byte[])info.GetValue("m_textureEntry", typeof(byte[]));
-            m_texture = new Primitive.TextureEntry(m_textureEntry_work, 0, m_textureEntry_work.Length);
-
-            m_avatarHeight = (float)info.GetValue("m_avatarHeight", typeof(float));
-
-            //m_log.Debug("AvatarAppearance Deserialize END");
-        }
-
         // this is used for OGS1
         public virtual Hashtable ToHashTable()
         {
@@ -442,24 +446,6 @@ namespace OpenSim.Framework
             {
                 SetAttachmentsString(h["attachments"].ToString());
             }
-        }
-
-        [SecurityPermission(SecurityAction.LinkDemand,
-            Flags = SecurityPermissionFlag.SerializationFormatter)]
-        public virtual void GetObjectData(
-                        SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            info.AddValue("m_scenePresenceID", m_owner.Guid);
-            info.AddValue("m_wearablesSerial", m_serial);
-            info.AddValue("m_visualParams", m_visualparams);
-            info.AddValue("m_wearables", m_wearables);
-            info.AddValue("m_textureEntry", m_texture.ToBytes());
-            info.AddValue("m_avatarHeight", m_avatarHeight);
         }
 
         private Dictionary<int, UUID[]> m_attachments = new Dictionary<int, UUID[]>();

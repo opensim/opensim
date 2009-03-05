@@ -32,8 +32,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    [Serializable]
-    public abstract class EntityBase : ISerializable
+    public abstract class EntityBase
     {
         /// <summary>
         /// The scene to which this entity belongs
@@ -145,87 +144,7 @@ namespace OpenSim.Region.Framework.Scenes
             return (EntityBase) MemberwiseClone();
         }
 
-
         public abstract void SetText(string text, Vector3 color, double alpha);
-
-        protected EntityBase(SerializationInfo info, StreamingContext context)
-        {
-            //m_log.Debug("EntityBase Deserialize BGN");
-
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            m_uuid = new UUID((Guid)info.GetValue("m_uuid", typeof(Guid)));
-            m_name = (string)info.GetValue("m_name", typeof(string));
-
-            m_pos
-                = new Vector3(
-                        (float)info.GetValue("m_pos.X", typeof(float)),
-                        (float)info.GetValue("m_pos.Y", typeof(float)),
-                        (float)info.GetValue("m_pos.Z", typeof(float)));
-
-            m_velocity
-                = new Vector3(
-                        (float)info.GetValue("m_velocity.X", typeof(float)),
-                        (float)info.GetValue("m_velocity.Y", typeof(float)),
-                        (float)info.GetValue("m_velocity.Z", typeof(float)));
-
-            m_rotationalvelocity
-                = new Vector3(
-                        (float)info.GetValue("m_rotationalvelocity.X", typeof(float)),
-                        (float)info.GetValue("m_rotationalvelocity.Y", typeof(float)),
-                        (float)info.GetValue("m_rotationalvelocity.Z", typeof(float)));
-
-            m_rotation
-                = new Quaternion(
-                        (float)info.GetValue("m_rotation.X", typeof(float)),
-                        (float)info.GetValue("m_rotation.Y", typeof(float)),
-                        (float)info.GetValue("m_rotation.Z", typeof(float)),
-                        (float)info.GetValue("m_rotation.W", typeof(float)));
-
-            m_localId = (uint)info.GetValue("m_localId", typeof(uint));
-
-            //m_log.Debug("EntityBase Deserialize END");
-        }
-
-        [SecurityPermission(SecurityAction.LinkDemand,
-            Flags = SecurityPermissionFlag.SerializationFormatter)]
-        public virtual void GetObjectData(
-                        SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            info.AddValue("m_uuid", m_uuid.Guid);
-            info.AddValue("m_name", m_name);
-
-            // Vector3
-            info.AddValue("m_pos.X", m_pos.X);
-            info.AddValue("m_pos.Y", m_pos.Y);
-            info.AddValue("m_pos.Z", m_pos.Z);
-
-            // Vector3
-            info.AddValue("m_velocity.X", m_velocity.X);
-            info.AddValue("m_velocity.Y", m_velocity.Y);
-            info.AddValue("m_velocity.Z", m_velocity.Z);
-
-            // Vector3
-            info.AddValue("m_rotationalvelocity.X", m_rotationalvelocity.X);
-            info.AddValue("m_rotationalvelocity.Y", m_rotationalvelocity.Y);
-            info.AddValue("m_rotationalvelocity.Z", m_rotationalvelocity.Z);
-
-            // Quaternion
-            info.AddValue("m_rotation.X", m_rotation.X);
-            info.AddValue("m_rotation.Y", m_rotation.Y);
-            info.AddValue("m_rotation.Z", m_rotation.Z);
-            info.AddValue("m_rotation.W", m_rotation.W);
-
-            info.AddValue("m_localId", m_localId);
-        }
     }
 
     //Nested Classes

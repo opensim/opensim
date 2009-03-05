@@ -32,8 +32,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
-    [Serializable]
-    public class AvatarWearable : ISerializable
+    public class AvatarWearable
     {
         public UUID AssetID = new UUID("00000000-0000-0000-0000-000000000000");
         public UUID ItemID = new UUID("00000000-0000-0000-0000-000000000000");
@@ -46,20 +45,6 @@ namespace OpenSim.Framework
         {
             AssetID = assetId;
             ItemID = itemId;
-        }
-
-        protected AvatarWearable(SerializationInfo info, StreamingContext context)
-        {
-            //m_log.Debug("AvatarWearable Deserialize BGN");
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            AssetID = new UUID((Guid) info.GetValue("AssetID", typeof (Guid)));
-            ItemID = new UUID((Guid) info.GetValue("ItemID", typeof (Guid)));
-
-            //m_log.Debug("AvatarWearable Deserialize END");
         }
 
         public static AvatarWearable[] DefaultWearables
@@ -91,23 +76,5 @@ namespace OpenSim.Framework
                 return defaultWearables;
             }
         }
-
-        #region ISerializable Members
-
-        [SecurityPermission(SecurityAction.LinkDemand,
-            Flags = SecurityPermissionFlag.SerializationFormatter)]
-        public virtual void GetObjectData(
-            SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            info.AddValue("AssetID", AssetID.Guid);
-            info.AddValue("ItemID", ItemID.Guid);
-        }
-
-        #endregion
     }
 }

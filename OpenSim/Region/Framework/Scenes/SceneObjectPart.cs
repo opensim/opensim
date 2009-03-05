@@ -92,8 +92,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     #endregion Enumerations
 
-    [Serializable]
-    public class SceneObjectPart : IScriptHost, ISerializable
+    public class SceneObjectPart : IScriptHost
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -314,27 +313,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             TrimPermissions();
             //m_undo = new UndoStack<UndoState>(ParentGroup.GetSceneMaxUndo());
-            
-            m_inventory = new SceneObjectPartInventory(this);
-        }
-
-        protected SceneObjectPart(SerializationInfo info, StreamingContext context)
-        {
-            //m_log.Debug("SceneObjectPart Deserialize BGN");
-            m_TextureAnimation = new byte[0];
-            m_particleSystem = new byte[0];
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            /*
-            m_queue = (Queue<SceneObjectPart>)info.GetValue("m_queue", typeof(Queue<SceneObjectPart>));
-            m_ids = (List<UUID>)info.GetValue("m_ids", typeof(List<UUID>));
-            */
-
-            //m_log.Debug("SceneObjectPart Deserialize END");
-            Rezzed = DateTime.Now;
             
             m_inventory = new SceneObjectPartInventory(this);
         }
@@ -1697,107 +1675,6 @@ if (m_shape != null) {
                 return PhysActor.Force;
             else
                 return new PhysicsVector();
-        }
-
-        [SecurityPermission(SecurityAction.LinkDemand,
-            Flags = SecurityPermissionFlag.SerializationFormatter)]
-        public virtual void GetObjectData(
-            SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            info.AddValue("m_inventoryFileName", Inventory.GetInventoryFileName());
-            info.AddValue("m_folderID", UUID);
-            info.AddValue("PhysActor", PhysActor);
-        
-            Dictionary<Guid, TaskInventoryItem> TaskInventory_work = new Dictionary<Guid, TaskInventoryItem>();
-
-            lock (TaskInventory)
-            {
-                foreach (UUID id in TaskInventory.Keys)
-                {
-                    TaskInventory_work.Add(id.Guid, TaskInventory[id]);
-                }
-            }
-
-            info.AddValue("TaskInventory", TaskInventory_work);
-
-            info.AddValue("LastOwnerID", _lastOwnerID.Guid);
-            info.AddValue("OwnerID", _ownerID.Guid);
-            info.AddValue("GroupID", _groupID.Guid);
-
-            info.AddValue("OwnershipCost", _ownershipCost);
-            info.AddValue("ObjectSaleType", _objectSaleType);
-            info.AddValue("SalePrice", _salePrice);
-            info.AddValue("Category", _category);
-
-            info.AddValue("CreationDate", _creationDate);
-            info.AddValue("ParentID", _parentID);
-
-            info.AddValue("OwnerMask", _ownerMask);
-            info.AddValue("NextOwnerMask", _nextOwnerMask);
-            info.AddValue("GroupMask", _groupMask);
-            info.AddValue("EveryoneMask", _everyoneMask);
-            info.AddValue("BaseMask", _baseMask);
-
-            info.AddValue("m_particleSystem", m_particleSystem);
-
-            info.AddValue("TimeStampFull", TimeStampFull);
-            info.AddValue("TimeStampTerse", TimeStampTerse);
-            info.AddValue("TimeStampLastActivity", TimeStampLastActivity);
-
-            info.AddValue("m_updateFlag", m_updateFlag);
-            info.AddValue("CreatorID", _creatorID.Guid);
-
-            info.AddValue("m_inventorySerial", m_inventory.Serial);
-            info.AddValue("m_uuid", m_uuid.Guid);
-            info.AddValue("m_localID", m_localId);
-            info.AddValue("m_name", m_name);
-            info.AddValue("m_flags", _flags);
-            info.AddValue("m_material", m_material);
-            info.AddValue("m_regionHandle", m_regionHandle);
-
-            info.AddValue("m_groupPosition.X", m_groupPosition.X);
-            info.AddValue("m_groupPosition.Y", m_groupPosition.Y);
-            info.AddValue("m_groupPosition.Z", m_groupPosition.Z);
-
-            info.AddValue("m_offsetPosition.X", m_offsetPosition.X);
-            info.AddValue("m_offsetPosition.Y", m_offsetPosition.Y);
-            info.AddValue("m_offsetPosition.Z", m_offsetPosition.Z);
-
-            info.AddValue("m_rotationOffset.W", m_rotationOffset.W);
-            info.AddValue("m_rotationOffset.X", m_rotationOffset.X);
-            info.AddValue("m_rotationOffset.Y", m_rotationOffset.Y);
-            info.AddValue("m_rotationOffset.Z", m_rotationOffset.Z);
-
-            info.AddValue("m_velocity.X", m_velocity.X);
-            info.AddValue("m_velocity.Y", m_velocity.Y);
-            info.AddValue("m_velocity.Z", m_velocity.Z);
-
-            info.AddValue("m_rotationalvelocity.X", RotationalVelocity.X);
-            info.AddValue("m_rotationalvelocity.Y", RotationalVelocity.Y);
-            info.AddValue("m_rotationalvelocity.Z", RotationalVelocity.Z);
-
-            info.AddValue("m_angularVelocity.X", m_angularVelocity.X);
-            info.AddValue("m_angularVelocity.Y", m_angularVelocity.Y);
-            info.AddValue("m_angularVelocity.Z", m_angularVelocity.Z);
-
-            info.AddValue("m_acceleration.X", m_acceleration.X);
-            info.AddValue("m_acceleration.Y", m_acceleration.Y);
-            info.AddValue("m_acceleration.Z", m_acceleration.Z);
-
-            info.AddValue("m_description", m_description);
-            info.AddValue("m_color", m_color);
-            info.AddValue("m_text", m_text);
-            info.AddValue("m_sitName", m_sitName);
-            info.AddValue("m_touchName", m_touchName);
-            info.AddValue("m_clickAction", m_clickAction);
-            info.AddValue("m_shape", m_shape);
-            info.AddValue("m_parentGroup", m_parentGroup);
-            info.AddValue("PayPrice", PayPrice);
         }
 
         public void GetProperties(IClientAPI client)
