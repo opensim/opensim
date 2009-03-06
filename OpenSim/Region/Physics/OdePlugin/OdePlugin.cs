@@ -3031,6 +3031,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
         }
 
+        public float GetWaterLevel()
+        {
+            return waterlevel;
+        }
+
         public override void SetWaterLevel(float baseheight)
         {
             waterlevel = baseheight;

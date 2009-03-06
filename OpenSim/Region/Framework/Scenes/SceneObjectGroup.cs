@@ -1617,6 +1617,37 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Uses a PID to attempt to clamp the object on the Z axis at the given height over tau seconds.
+        /// </summary>
+        /// <param name="height">Height to hover.  Height of zero disables hover.</param>
+        /// <param name="hoverType">Determines what the height is relative to </param>
+        /// <param name="tau">Number of seconds over which to reach target</param>
+        public void SetHoverHeight(float height, PIDHoverType hoverType, float tau)
+        {
+            SceneObjectPart rootpart = m_rootPart;
+            if (rootpart != null)
+            {
+                if (rootpart.PhysActor != null)
+                {
+                    if (height != 0f)
+                    {
+                        rootpart.PhysActor.PIDHoverHeight = height;
+                        rootpart.PhysActor.PIDHoverType = hoverType;
+                        rootpart.PhysActor.PIDTau = tau;
+                        rootpart.PhysActor.PIDHoverActive = true;
+                    }
+                    else
+                    {
+                        rootpart.PhysActor.PIDHoverActive = false;
+                    }
+                }
+            }            
+        }
+
+
+
+
+        /// <summary>
         /// Set the owner of the root part.
         /// </summary>
         /// <param name="part"></param>

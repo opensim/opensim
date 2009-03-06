@@ -1748,6 +1748,23 @@ if (m_shape != null) {
             }
         }
 
+        /// <summary>
+        /// Uses a PID to attempt to clamp the object on the Z axis at the given height over tau seconds.
+        /// </summary>
+        /// <param name="height">Height to hover.  Height of zero disables hover.</param>
+        /// <param name="hoverType">Determines what the height is relative to </param>
+        /// <param name="tau">Number of seconds over which to reach target</param>
+        public void SetHoverHeight(float height, PIDHoverType hoverType, float tau)
+        {
+            m_parentGroup.SetHoverHeight(height, hoverType, tau);
+        }
+
+        public void StopHover()
+        {
+            m_parentGroup.SetHoverHeight(0f, PIDHoverType.Ground, 0f);
+        }
+
+
         public virtual void OnGrab(Vector3 offsetPos, IClientAPI remoteClient)
         {
         }

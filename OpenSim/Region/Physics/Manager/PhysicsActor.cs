@@ -44,6 +44,14 @@ namespace OpenSim.Region.Physics.Manager
         Ground = 3
     }
 
+    public enum PIDHoverType
+    {
+        Ground
+        , GroundAndWater
+        , Water
+        , Absolute
+    }
+
     public class CollisionEventUpdate : EventArgs
     {
         // Raising the event on the object, so don't need to provide location..  further up the tree knows that info.
@@ -204,9 +212,20 @@ namespace OpenSim.Region.Physics.Manager
         public abstract PhysicsVector RotationalVelocity { get; set; }
         public abstract bool Kinematic { get; set; }
         public abstract float Buoyancy { get; set; }
+
+        // Used for MoveTo
         public abstract PhysicsVector PIDTarget { set;}
-        public abstract bool PIDActive { set;}
+        public abstract bool  PIDActive { set;}
         public abstract float PIDTau { set; }
+
+        // Used for llSetHoverHeight and maybe vehicle height
+        // Hover Height will override MoveTo target's Z
+        public abstract bool PIDHoverActive { set;}
+        public abstract float PIDHoverHeight { set;}
+        public abstract PIDHoverType PIDHoverType { set;}
+        public abstract float PIDHoverTau { set;}
+
+
         public abstract void AddForce(PhysicsVector force, bool pushforce);
         public abstract void AddAngularForce(PhysicsVector force, bool pushforce);
         public abstract void SetMomentum(PhysicsVector momentum);
@@ -429,6 +448,11 @@ namespace OpenSim.Region.Physics.Manager
         public override PhysicsVector PIDTarget { set { return; } }
         public override bool PIDActive { set { return; } }
         public override float PIDTau { set { return; } }
+
+        public override float PIDHoverHeight { set { return; } }
+        public override bool PIDHoverActive { set { return; } }
+        public override PIDHoverType PIDHoverType { set { return; } }
+        public override float PIDHoverTau { set { return; } }
 
         public override void SetMomentum(PhysicsVector momentum)
         {

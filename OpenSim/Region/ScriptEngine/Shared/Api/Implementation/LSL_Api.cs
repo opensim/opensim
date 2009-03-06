@@ -2793,26 +2793,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        /// <summary>
+        /// Attempt to clamp the object on the Z axis at the given height over tau seconds.
+        /// </summary>
+        /// <param name="height">Height to hover.  Height of zero disables hover.</param>
+        /// <param name="water">False if height is calculated just from ground, otherwise uses ground or water depending on whichever is higher</param>
+        /// <param name="tau">Number of seconds over which to reach target</param>
         public void llSetHoverHeight(double height, int water, double tau)
         {
             m_host.AddScriptLPS(1);
-            Vector3 pos = m_host.GetWorldPosition();
-            int x = (int)(pos.X);
-            int y = (int)(pos.Y);
-            float landHeight = (float)World.Heightmap[x, y];
-            float targetHeight = landHeight + (float)height;
-            if (water == 1)
-            {
-                float waterHeight = (float)World.RegionInfo.RegionSettings.WaterHeight;
-                if (waterHeight > targetHeight)
-                {
-                    targetHeight = waterHeight + (float)height;
-                }
-            }
             if (m_host.PhysActor != null)
             {
-                m_host.MoveToTarget(new Vector3(pos.X, pos.Y, targetHeight), (float)tau);
-                m_host.PhysActor.Flying = true;
+                PIDHoverType hoverType = PIDHoverType.Ground;
+                if (water == 1)
+                {
+                    hoverType = PIDHoverType.GroundAndWater;
+                }
+
+                m_host.SetHoverHeight((float)height, hoverType, (float)tau);
             }
         }
 
@@ -2821,8 +2819,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (m_host.PhysActor != null)
             {
-                m_host.PhysActor.Flying = false;
-                m_host.PhysActor.PIDActive = false;
+                m_host.SetHoverHeight(0f, PIDHoverType.Ground, 0f);
             }
         }
 

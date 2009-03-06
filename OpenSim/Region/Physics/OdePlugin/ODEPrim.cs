@@ -69,11 +69,20 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_PIDTau = 0f;
         private float PID_D = 35f;
         private float PID_G = 25f;
+        private bool m_usePID = false;
+
+        private float m_PIDHoverHeight = 0f;
+        private float m_PIDHoverTau = 0f;
+        private bool m_useHoverPID = false;
+        private PIDHoverType m_PIDHoverType = PIDHoverType.Ground;
+        private float m_targetHoverHeight = 0f;
+        private float m_groundHeight = 0f;
+        private float m_waterHeight = 0f;
+
         private float m_tensor = 5f;
         private int body_autodisable_frames = 20;
         private IMesh primMesh = null;
 
-        private bool m_usePID = false;
 
         private const CollisionCategories m_default_collisionFlags = (CollisionCategories.Geom
                                                         | CollisionCategories.Space
@@ -1554,6 +1563,91 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
+                // Hover PID Controller needs to be mutually exlusive to MoveTo PID controller
+                if (m_useHoverPID && !m_usePID)
+                {
+                    // If we're using the PID controller, then we have no gravity
+                    fz = (-1 * _parent_scene.gravityz) * m_mass;
+
+                    //  no lock; for now it's only called from within Simulate()
+
+                    // If the PID Controller isn't active then we set our force
+                    // calculating base velocity to the current position
+
+                    if ((m_PIDTau < 1))
+                    {
+                        PID_G = PID_G / m_PIDTau;
+                    }
+
+                    if ((PID_G - m_PIDTau) <= 0)
+                    {
+                        PID_G = m_PIDTau + 1;
+                    }
+                    
+
+                    // Where are we, and where are we headed?
+                    d.Vector3 pos = d.BodyGetPosition(Body);
+                    d.Vector3 vel = d.BodyGetLinearVel(Body);
+
+                    // determine what our target height really is based on HoverType
+                    switch (m_PIDHoverType)
+                    {
+                        case PIDHoverType.Absolute:
+                            m_targetHoverHeight = m_PIDHoverHeight;
+                            break;
+                        case PIDHoverType.Ground:
+                            m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
+                            m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
+                            break;
+                        case PIDHoverType.GroundAndWater:
+                            m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
+                            m_waterHeight  = _parent_scene.GetWaterLevel();
+                            if (m_groundHeight > m_waterHeight)
+                            {
+                                m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
+                            }
+                            else
+                            {
+                                m_targetHoverHeight = m_waterHeight + m_PIDHoverHeight;
+                            }
+                            break;
+                        case PIDHoverType.Water:
+                            m_waterHeight = _parent_scene.GetWaterLevel();
+                            m_targetHoverHeight = m_waterHeight + m_PIDHoverHeight;
+                            break;
+                    }
+
+
+                    _target_velocity =
+                        new PhysicsVector(0.0f, 0.0f,
+                            (m_targetHoverHeight - pos.Z) * ((PID_G - m_PIDHoverTau) * timestep)
+                            );
+
+                    //  if velocity is zero, use position control; otherwise, velocity control
+
+                    if (_target_velocity.IsIdentical(PhysicsVector.Zero, 0.1f))
+                    {
+                        //  keep track of where we stopped.  No more slippin' & slidin'
+
+                        // We only want to deactivate the PID Controller if we think we want to have our surrogate
+                        // react to the physics scene by moving it's position.
+                        // Avatar to Avatar collisions
+                        // Prim to avatar collisions
+
+                        d.BodySetPosition(Body, pos.X, pos.Y, m_targetHoverHeight);
+                        d.BodySetLinearVel(Body, vel.X, vel.Y, 0);
+                        d.BodyAddForce(Body, 0, 0, fz);
+                        return;
+                    }
+                    else
+                    {
+                        _zeroFlag = false;
+
+                        // We're flying and colliding with something
+                        fz = fz + ((_target_velocity.Z - vel.Z) * (PID_D) * m_mass);
+                    }
+                }
+
                 fx *= m_mass;
                 fy *= m_mass;
                 //fz *= m_mass;
@@ -2621,6 +2715,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsVector PIDTarget { set { m_PIDTarget = value; ; } }
         public override bool PIDActive { set { m_usePID = value; } }
         public override float PIDTau { set { m_PIDTau = value; } }
+
+        public override float PIDHoverHeight { set { m_PIDHoverHeight = value; ; } }
+        public override bool PIDHoverActive { set { m_useHoverPID = value; } }
+        public override PIDHoverType PIDHoverType { set { m_PIDHoverType = value; } }
+        public override float PIDHoverTau { set { m_PIDHoverTau = value; } }
 
         private void createAMotor(PhysicsVector axis)
         {

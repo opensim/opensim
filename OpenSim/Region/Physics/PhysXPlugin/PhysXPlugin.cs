@@ -490,9 +490,16 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
 
         }
+
         public override PhysicsVector PIDTarget { set { return; } }
         public override bool PIDActive { set { return; } }
         public override float PIDTau { set { return; } }
+
+        public override float PIDHoverHeight { set { return; } }
+        public override bool PIDHoverActive { set { return; } }
+        public override PIDHoverType PIDHoverType { set { return; } }
+        public override float PIDHoverTau { set { return; } }
+
         public override void SubscribeEvents(int ms)
         {
 
@@ -765,9 +772,15 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         public override void CrossingFailure()
         {
         }
+
         public override PhysicsVector PIDTarget { set { return; } }
         public override bool PIDActive { set { return; } }
         public override float PIDTau { set { return; } }
+
+        public override float PIDHoverHeight { set { return; } }
+        public override bool PIDHoverActive { set { return; } }
+        public override PIDHoverType PIDHoverType { set { return; } }
+        public override float PIDHoverTau { set { return; } }
 
         public override void SubscribeEvents(int ms)
         {
