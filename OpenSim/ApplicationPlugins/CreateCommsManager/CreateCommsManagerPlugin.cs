@@ -110,7 +110,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
             }
         }
 
-        private void InitialiseCommsManager(OpenSimBase openSim)
+        protected void InitialiseCommsManager(OpenSimBase openSim)
         {
             LibraryRootFolder libraryRootFolder = new LibraryRootFolder(m_openSim.ConfigurationSettings.LibrariesXMLFile);
 
@@ -118,46 +118,57 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
             if (hgrid)
             {
-                HGOpenSimNode hgNode = null;
-                try
-                {
-                    hgNode = (HGOpenSimNode)openSim;
-                }
-                catch (Exception e)
-                {
-                    m_log.Error("[CreateComms] " + e.Message);
-                    m_log.Error("[CreateComms] The OpenSim application class was : " + openSim.ToString());
-                    m_log.Error("[CreateComms] To use hypergrid mode, please make sure you are starting opensim with the command line: opensim.exe -hypergrid=true");
-                    Environment.Exit(1);
-                }
-
-                // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
-                if (m_openSim.ConfigurationSettings.Standalone)
-                {
-                    InitialiseHGStandaloneServices(libraryRootFolder);
-                }
-                else
-                {
-                    // We are in grid mode
-                    InitialiseHGGridServices(libraryRootFolder);
-                }
-                hgNode.HGServices = HGServices;
+                InitialiseHGServices(openSim, libraryRootFolder);
             }
             else
             {
-                // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
-                if (m_openSim.ConfigurationSettings.Standalone)
-                {
-                    InitialiseStandaloneServices(libraryRootFolder);
-                }
-                else
-                {
-                    // We are in grid mode
-                    InitialiseGridServices(libraryRootFolder);
-                }
+                InitialiseStandardServices(libraryRootFolder);
             }
 
             openSim.CommunicationsManager = m_commsManager;
+        }
+
+        protected void InitialiseHGServices(OpenSimBase openSim, LibraryRootFolder libraryRootFolder)
+        {
+            HGOpenSimNode hgNode = null;
+            try
+            {
+                hgNode = (HGOpenSimNode)openSim;
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[CreateComms] " + e.Message);
+                m_log.Error("[CreateComms] The OpenSim application class was : " + openSim.ToString());
+                m_log.Error("[CreateComms] To use hypergrid mode, please make sure you are starting opensim with the command line: opensim.exe -hypergrid=true");
+                m_log.Error("[CreateComms] Also hypergrid mode can not be ran while using the -background=true command line argument.");
+                Environment.Exit(1);
+            }
+
+            // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
+            if (m_openSim.ConfigurationSettings.Standalone)
+            {
+                InitialiseHGStandaloneServices(libraryRootFolder);
+            }
+            else
+            {
+                // We are in grid mode
+                InitialiseHGGridServices(libraryRootFolder);
+            }
+            hgNode.HGServices = HGServices;
+        }
+
+        protected void InitialiseStandardServices(LibraryRootFolder libraryRootFolder)
+        {
+            // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
+            if (m_openSim.ConfigurationSettings.Standalone)
+            {
+                InitialiseStandaloneServices(libraryRootFolder);
+            }
+            else
+            {
+                // We are in grid mode
+                InitialiseGridServices(libraryRootFolder);
+            }
         }
 
         /// <summary>
@@ -252,7 +263,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         private void CreateGridInfoService()
         {
             // provide grid info
-            // m_gridInfoService = new GridInfoService(m_config.Source.Configs["Startup"].GetString("inifile", Path.Combine(Util.configDir(), "OpenSim.ini")));
             m_gridInfoService = new GridInfoService(m_openSim.ConfigSource.Source);
             m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
             m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
