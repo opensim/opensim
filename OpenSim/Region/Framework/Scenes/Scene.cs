@@ -3019,19 +3019,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_eventManager.TriggerOnPluginConsole(args);
         }
 
-        public UUID GetLandOwner(float x, float y)
-        {
-            ILandObject land = LandChannel.GetLandObject(x, y);
-            if (land == null)
-            {
-                return UUID.Zero;
-            }
-            else
-            {
-                return land.landData.OwnerID;
-            }
-        }
-
         public LandData GetLandData(float x, float y)
         {
             return LandChannel.GetLandObject(x, y).landData;

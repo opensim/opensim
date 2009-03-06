@@ -3706,8 +3706,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(agentId);
                 if (presence != null)
                 {
-                    // agent must be over the owners land
-                    if (m_host.OwnerID == World.GetLandOwner(presence.AbsolutePosition.X, presence.AbsolutePosition.Y))
+                    // agent must be over the owners land                    
+                    if (m_host.OwnerID 
+                        == World.LandChannel.GetLandObject(
+                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).landData.OwnerID)
                     {
                         presence.ControllingClient.SendTeleportLocationStart();
                         World.TeleportClientHome(agentId, presence.ControllingClient);
@@ -5182,7 +5184,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence != null)
                 {
                     // agent must be over the owners land
-                    if (m_host.OwnerID == World.GetLandOwner(presence.AbsolutePosition.X, presence.AbsolutePosition.Y))
+                    if (m_host.OwnerID 
+                        == World.LandChannel.GetLandObject(
+                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).landData.OwnerID)
                         World.TeleportClientHome(agentId, presence.ControllingClient);
                 }
             }
@@ -5265,29 +5269,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key = new UUID();
-            if (UUID.TryParse(id,out key))
+            if (UUID.TryParse(id, out key))
             {
-                ScenePresence presence = World.GetScenePresence(key);
+                ScenePresence presence = World.GetScenePresence(key);                
                 if (presence != null) // object is an avatar
                 {
-                    if (m_host.OwnerID == World.GetLandOwner(presence.AbsolutePosition.X, presence.AbsolutePosition.Y))
+                    if (m_host.OwnerID 
+                        == World.LandChannel.GetLandObject(
+                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).landData.OwnerID)                    
                         return 1;
                 }
                 else // object is not an avatar
                 {
                     SceneObjectPart obj = World.GetSceneObjectPart(key);
                     if (obj != null)
-                        if (m_host.OwnerID == World.GetLandOwner(obj.AbsolutePosition.X, obj.AbsolutePosition.Y))
+                        if (m_host.OwnerID
+                            == World.LandChannel.GetLandObject(
+                                obj.AbsolutePosition.X, obj.AbsolutePosition.Y).landData.OwnerID)                             
                             return 1;
                 }
             }
+            
             return 0;
         }
 
         public LSL_String llGetLandOwnerAt(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
-            return World.GetLandOwner((float)pos.x, (float)pos.y).ToString();
+            return World.LandChannel.GetLandObject((float)pos.x, (float)pos.y).landData.OwnerID.ToString();            
         }
 
         /// <summary>
@@ -6812,17 +6821,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetParcelMusicURL(string url)
         {
             m_host.AddScriptLPS(1);
-            UUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
-            if (landowner == UUID.Zero)
-            {
-                return;
-            }
-            if (landowner != m_host.ObjectOwner)
-            {
-                return;
-            }
             
-            World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).SetMusicUrl(url);
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+
+            if (land.landData.OwnerID != m_host.ObjectOwner)
+                return;
+            
+            land.SetMusicUrl(url);
             
             // ScriptSleep(2000);
         }
