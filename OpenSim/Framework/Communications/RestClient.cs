@@ -165,7 +165,18 @@ namespace OpenSim.Framework.Communications
         /// <param name="value">Value of the parameter, e.g. 42</param>
         public void AddQueryParameter(string name, string value)
         {
-            _parameterElements.Add(HttpUtility.UrlEncode(name), HttpUtility.UrlEncode(value));
+            try
+            {
+                _parameterElements.Add(HttpUtility.UrlEncode(name), HttpUtility.UrlEncode(value));
+            }
+            catch (ArgumentException)
+            {
+                m_log.Error("[REST]: Query parameter " + name + " is already added.");
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[REST]: An exception was raised adding query parameter to dictionary. Exception: {0}",e);
+            }
         }
 
         /// <summary>
@@ -174,7 +185,18 @@ namespace OpenSim.Framework.Communications
         /// <param name="name">Name of the parameter, e.g. min</param>
         public void AddQueryParameter(string name)
         {
-            _parameterElements.Add(HttpUtility.UrlEncode(name), null);
+            try
+            {
+                _parameterElements.Add(HttpUtility.UrlEncode(name), null);
+            }
+            catch (ArgumentException)
+            {
+                m_log.Error("[REST]: Query parameter " + name + " is already added.");
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[REST]: An exception was raised adding query parameter to dictionary. Exception: {0}",e);
+            }
         }
 
         /// <summary>
