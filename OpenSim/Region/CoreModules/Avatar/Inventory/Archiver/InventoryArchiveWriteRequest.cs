@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);      
         
-        protected TarArchiveWriter archive = new TarArchiveWriter();
+        protected TarArchiveWriter m_archive;
         protected UuidGatherer m_assetGatherer;
         protected Dictionary<UUID, int> assetUuids = new Dictionary<UUID, int>();
         
@@ -87,14 +87,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected void ReceivedAllAssets(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids)
         {
             AssetsArchiver assetsArchiver = new AssetsArchiver(assetsFound);
-            assetsArchiver.Archive(archive);
+            assetsArchiver.Archive(m_archive);
             
             Exception reportedException = null;
             bool succeeded = true;
             
             try
             {
-                archive.WriteTar(m_saveStream);
+                m_archive.Close();
             } 
             catch (IOException e)
             {
@@ -172,7 +172,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             
             writer.WriteEndElement();
 
-            archive.AddFile(filename, sw.ToString());
+            m_archive.WriteFile(filename, sw.ToString());
 
             m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, assetUuids);
         }
@@ -185,7 +185,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     inventoryFolder.Name,
                     InventoryArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, 
                     inventoryFolder.ID);
-            archive.AddDir(path);
+            m_archive.WriteDir(path);
             
             List<InventoryFolderImpl> childFolders = inventoryFolder.RequestListOfFolderImpls();
             List<InventoryItemBase> items = inventoryFolder.RequestListOfItems();           
@@ -279,6 +279,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 inventoryItem = m_userInfo.RootFolder.FindItemByPath(m_invPath);
             }
+            
+            m_archive = new TarArchiveWriter(m_saveStream);            
 
             if (null == inventoryFolder)
             {

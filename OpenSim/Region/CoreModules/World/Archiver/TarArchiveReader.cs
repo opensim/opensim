@@ -38,7 +38,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     /// </summary>
     public class TarArchiveReader
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         public enum TarEntryType 
         {
@@ -113,14 +113,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 int longNameLength = ConvertOctalBytesToDecimal(header, 124, 11);
                 tarHeader.FilePath = m_asciiEncoding.GetString(ReadData(longNameLength));
-                m_log.DebugFormat("[TAR ARCHIVE READER]: Got long file name {0}", tarHeader.FilePath);
+                //m_log.DebugFormat("[TAR ARCHIVE READER]: Got long file name {0}", tarHeader.FilePath);
                 header = m_br.ReadBytes(512);
             }
             else
             {               
                 tarHeader.FilePath = m_asciiEncoding.GetString(header, 0, 100);
                 tarHeader.FilePath = tarHeader.FilePath.Trim(m_nullCharArray);
-                m_log.DebugFormat("[TAR ARCHIVE READER]: Got short file name {0}", tarHeader.FilePath);
+                //m_log.DebugFormat("[TAR ARCHIVE READER]: Got short file name {0}", tarHeader.FilePath);
             }
                         
             tarHeader.FileSize = ConvertOctalBytesToDecimal(header, 124, 11);
@@ -168,14 +168,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             byte[] data = m_br.ReadBytes(fileSize);
 
-            m_log.DebugFormat("[TAR ARCHIVE READER]: fileSize {0}", fileSize);
+            //m_log.DebugFormat("[TAR ARCHIVE READER]: fileSize {0}", fileSize);
 
             // Read the rest of the empty padding in the 512 byte block
             if (fileSize % 512 != 0)
             {
                 int paddingLeft = 512 - (fileSize % 512);
 
-                m_log.DebugFormat("[TAR ARCHIVE READER]: Reading {0} padding bytes", paddingLeft);
+                //m_log.DebugFormat("[TAR ARCHIVE READER]: Reading {0} padding bytes", paddingLeft);
 
                 m_br.ReadBytes(paddingLeft);
             }

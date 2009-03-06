@@ -173,9 +173,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             //log4net.Config.XmlConfigurator.Configure();
             
             MemoryStream archiveWriteStream = new MemoryStream();
-            TarArchiveWriter tar = new TarArchiveWriter();
+            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
             
-            tar.AddFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestExecution.Create0p2ControlFile());
+            tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestExecution.Create0p2ControlFile());
             
             string part1Name = "object1";
             PrimitiveBaseShape shape = PrimitiveBaseShape.CreateCylinder();
@@ -194,9 +194,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 part1Name,
                 Math.Round(groupPosition.X), Math.Round(groupPosition.Y), Math.Round(groupPosition.Z),
                 part1.UUID);            
-            tar.AddFile(ArchiveConstants.OBJECTS_PATH + object1FileName, object1.ToXmlString2());
+            tar.WriteFile(ArchiveConstants.OBJECTS_PATH + object1FileName, object1.ToXmlString2());
             
-            tar.WriteTar(archiveWriteStream);
+            tar.Close();
             
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
             

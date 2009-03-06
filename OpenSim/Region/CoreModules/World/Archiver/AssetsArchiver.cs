@@ -110,7 +110,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             xtw.WriteEndDocument();
 
-            archive.AddFile("assets.xml", sw.ToString());
+            archive.WriteFile("assets.xml", sw.ToString());
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         asset.Type, asset.ID);
                 }
 
-                archive.AddFile(
+                archive.WriteFile(
                     ArchiveConstants.ASSETS_PATH + uuid.ToString() + extension,
                     asset.Data);
                 

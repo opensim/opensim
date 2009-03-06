@@ -39,65 +39,80 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected Dictionary<string, byte[]> m_files = new Dictionary<string, byte[]>();
-
         protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
 
         /// <summary>
-        /// Add a directory to the tar archive.  We can only handle one path level right now!
+        /// Binary writer for the underlying stream
+        /// </summary>
+        protected BinaryWriter m_bw;
+        
+        public TarArchiveWriter(Stream s)
+        {
+            m_bw = new BinaryWriter(s);
+        }
+        
+        /// <summary>
+        /// Write a directory entry to the tar archive.  We can only handle one path level right now!
         /// </summary>
         /// <param name="dirName"></param>
-        public void AddDir(string dirName)
+        public void WriteDir(string dirName)
         {
             // Directories are signalled by a final /
             if (!dirName.EndsWith("/"))
                 dirName += "/";
 
-            AddFile(dirName, new byte[0]);
-        }
-
-        /// <summary>
-        /// Add a file to the tar archive
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="data"></param>
-        public void AddFile(string filePath, string data)
-        {
-            AddFile(filePath, m_asciiEncoding.GetBytes(data));
-        }
-
-        /// <summary>
-        /// Add a file to the tar archive
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="data"></param>
-        public void AddFile(string filePath, byte[] data)
-        {
-            m_files[filePath] = data;
+            WriteFile(dirName, new byte[0]);
         }
         
         /// <summary>
-        /// Write the raw tar archive data to a stream.  The stream will be closed on completion.
+        /// Write a file to the tar archive
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="data"></param>
+        public void WriteFile(string filePath, string data)
+        {
+            WriteFile(filePath, m_asciiEncoding.GetBytes(data));
+        }
+
+        /// <summary>
+        /// Write a file to the tar archive
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="data"></param>
+        public void WriteFile(string filePath, byte[] data)
+        {
+            if (filePath.Length > 100)
+                WriteEntry("././@LongLink", m_asciiEncoding.GetBytes(filePath), 'L');
+            
+            char fileType;
+            
+            if (filePath.EndsWith("/"))
+            {
+                fileType = '5';
+            }
+            else
+            {
+                fileType = '0';
+            }     
+         
+            WriteEntry(filePath, data, fileType);
+        }
+        
+        /// <summary>
+        /// Finish writing the raw tar archive data to a stream.  The stream will be closed on completion.
         /// </summary>
         /// <param name="s">Stream to which to write the data</param>
         /// <returns></returns>
-        public void WriteTar(Stream s)
+        public void Close()
         {
-            BinaryWriter bw = new BinaryWriter(s);
-
-            foreach (string filePath in m_files.Keys)
-            {
-                WriteFile(bw, filePath, m_files[filePath]);
-            }
-
             //m_log.Debug("[TAR ARCHIVE WRITER]: Writing final consecutive 0 blocks");
             
             // Write two consecutive 0 blocks to end the archive
             byte[] finalZeroPadding = new byte[1024];
-            bw.Write(finalZeroPadding);
+            m_bw.Write(finalZeroPadding);
 
-            bw.Flush();
-            bw.Close();
+            m_bw.Flush();
+            m_bw.Close();
         }
 
         public static byte[] ConvertDecimalToPaddedOctalBytes(int d, int padding)
@@ -119,39 +134,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             return oBytes;
         }    
-        
-        /// <summary>
-        /// Write a particular file of data
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="data"></param>
-        protected void WriteFile(BinaryWriter bw, string filePath, byte[] data)
-        {
-            if (filePath.Length > 100)
-                WriteEntry(bw, "././@LongLink", m_asciiEncoding.GetBytes(filePath), 'L');
-            
-            char fileType;
-            
-            if (filePath.EndsWith("/"))
-            {
-                fileType = '5';
-            }
-            else
-            {
-                fileType = '0';
-            }     
-         
-            WriteEntry(bw, filePath, data, fileType);
-        }
 
         /// <summary>
-        /// Write a particular file of data
+        /// Write a particular entry
         /// </summary>
-        /// <param name="bw"></param>
         /// <param name="filePath"></param>
         /// <param name="data"></param>
         /// <param name="fileType"></param>
-        protected void WriteEntry(BinaryWriter bw, string filePath, byte[] data, char fileType)
+        protected void WriteEntry(string filePath, byte[] data, char fileType)
         {
             byte[] header = new byte[512];
 
@@ -208,10 +198,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             header[154] = 0;
 
             // Write out header
-            bw.Write(header);
+            m_bw.Write(header);
 
             // Write out data
-            bw.Write(data);
+            m_bw.Write(data);
 
             if (data.Length % 512 != 0)
             {
@@ -220,7 +210,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 //m_log.DebugFormat("[TAR ARCHIVE WRITER]: Padding data with {0} bytes", paddingRequired);
 
                 byte[] padding = new byte[paddingRequired];
-                bw.Write(padding);
+                m_bw.Write(padding);
             }            
         }   
     }
