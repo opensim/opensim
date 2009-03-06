@@ -111,7 +111,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         public void LogInventoryPurgeFolder(string extension, BackendResponse response, Uri owner, UUID folderID, DateTime time)
         {
             m_log.DebugFormat("[{0}]: InventoryPurgeFolder(): OwnerID: {1}, FolderID: {2}, Response: {3}", extension,
-                owner, response);
+                owner, folderID, response);
         }
 
         #endregion IMetricsProvider implementation
