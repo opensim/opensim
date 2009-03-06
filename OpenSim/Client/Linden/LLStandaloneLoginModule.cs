@@ -46,7 +46,7 @@ namespace OpenSim.Client.Linden
 {
     public class LLStandaloneLoginModule : IRegionModule, ILoginServiceToRegionsConnector
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected List<Scene> m_scenes = new List<Scene>();
         protected Scene m_firstScene;

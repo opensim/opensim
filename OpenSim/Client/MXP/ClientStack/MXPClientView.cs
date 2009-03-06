@@ -66,7 +66,7 @@ namespace OpenSim.Client.MXP.ClientStack
         private readonly string m_lastName;
 
         private Vector3 m_startPosition=new Vector3(128f, 128f, 128f);
-        private int m_debugLevel;
+        //private int m_debugLevel;
         #endregion
 
         #region Properties
@@ -704,7 +704,7 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public void SetDebugPacketLevel(int newDebug)
         {
-            m_debugLevel = newDebug;
+            //m_debugLevel = newDebug;
         }
 
         public void InPacket(object NewPack)

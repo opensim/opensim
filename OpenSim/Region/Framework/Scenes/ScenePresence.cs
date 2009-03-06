@@ -98,7 +98,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_startAnimationSet = false;
 
-        private Vector3 m_requestedSitOffset = new Vector3();
+        //private Vector3 m_requestedSitOffset = new Vector3();
 
         private Vector3 m_LastFinitePos = new Vector3();
 
@@ -1663,7 +1663,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_nextSitAnimation = part.SitAnimation;
                 }
                 m_requestedSitTargetID = part.LocalId;
-                m_requestedSitOffset = offset;
+                //m_requestedSitOffset = offset;
             }
             else
             {
@@ -1693,12 +1693,13 @@ namespace OpenSim.Region.Framework.Scenes
             if (part != null)
             {
                 m_requestedSitTargetID = part.LocalId; 
-                m_requestedSitOffset = offset;
+                //m_requestedSitOffset = offset;
             }
             else
             {
                 m_log.Warn("Sit requested on unknown object: " + targetID.ToString());
             }
+            
             SendSitResponse(remoteClient, targetID, offset);
         }
 

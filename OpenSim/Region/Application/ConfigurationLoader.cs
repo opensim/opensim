@@ -63,7 +63,7 @@ namespace OpenSim
             string masterfilePath = Path.Combine(Util.configDir(), masterFileName);
 
             string iniDirName = startupConfig.GetString("inidirectory", "config");
-            string iniDirPath = Path.Combine(Util.configDir(), iniDirName);
+            //string iniDirPath = Path.Combine(Util.configDir(), iniDirName);
 
             m_config = new OpenSimConfigSource();
             m_config.Source = new IniConfigSource();

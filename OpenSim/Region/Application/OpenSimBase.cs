@@ -188,8 +188,6 @@ namespace OpenSim
             
             m_stats = StatsManager.StartCollectingSimExtraStats();
 
-            LibraryRootFolder libraryRootFolder = new LibraryRootFolder(m_configSettings.LibrariesXMLFile);
-
             // Create a ModuleLoader instance
             m_moduleLoader = new ModuleLoader(m_config.Source);
 
