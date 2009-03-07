@@ -1469,6 +1469,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 value = i;
             }
 
+            public LSLInteger(uint i)
+            {
+                value = (int)i;
+            }
+
             public LSLInteger(double d)
             {
                 value = (int)d;
