@@ -487,7 +487,7 @@ InterregionComms = "RESTComms"
     body_pid_gain = 25
 
     ; amount of time a geom/body will try to cross a region border before it gets disabled
-    geom_crossing_faiures_before_outofbounds = 5
+    geom_crossing_failures_before_outofbounds = 5
 
     ; start throttling the object updates if object comes in contact with 3 or more other objects
     geom_contactpoints_start_throttling = 3

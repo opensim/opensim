@@ -400,7 +400,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 3);
                     geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);
-                    geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_faiures_before_outofbounds", 5);
+                    geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_failures_before_outofbounds", 5);
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", 10.000006836f);
                     bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", 20);
