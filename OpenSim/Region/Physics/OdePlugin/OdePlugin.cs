@@ -482,6 +482,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.WorldSetGravity(world, gravityx, gravityy, gravityz);
             d.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
 
+            d.WorldSetLinearDamping(world, 256f);
+            d.WorldSetAngularDamping(world, 256f);
+            d.WorldSetAngularDampingThreshold(world, 256f);
+            d.WorldSetLinearDampingThreshold(world, 256f);
+            d.WorldSetMaxAngularSpeed(world, 256f);
+
             // Set how many steps we go without running collision testing
             // This is in addition to the step size.
             // Essentially Steps * m_physicsiterations
@@ -2296,8 +2302,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 // Figure out the Frames Per Second we're going at.
                 //(step_time == 0.004f, there's 250 of those per second.   Times the step time/step size
-                step_time = 0.09375f;
+                
                 fps = (step_time/ODE_STEPSIZE) * 1000;
+
+                step_time = 0.09375f;
 
                 while (step_time > 0.0f)
                 {

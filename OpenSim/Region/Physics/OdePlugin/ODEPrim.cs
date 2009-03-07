@@ -1500,6 +1500,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (m_usePID)
                 {
+                    //if (!d.BodyIsEnabled(Body))
+                    //d.BodySetForce(Body, 0f, 0f, 0f);
                     // If we're using the PID controller, then we have no gravity
                     fz = (-1 * _parent_scene.gravityz) * m_mass;
 
@@ -1510,7 +1512,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if ((m_PIDTau < 1))
                     {
-                        PID_G = PID_G / m_PIDTau;
+                        //PID_G = PID_G / m_PIDTau;
+                        m_PIDTau = 1;
                     }
 
                     if ((PID_G - m_PIDTau) <= 0)
@@ -1668,6 +1671,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.BodySetForce(Body, 0, 0, 0);
                         enableBodySoft();
                     }
+
+                    // 35x10 = 350n times the mass per second applied maximum.
+                    float nmax = 35f * m_mass;
+                    float nmin = -35f * m_mass;
+
+                    
+                    if (fx > nmax)
+                        fx = nmax;
+                    if (fx < nmin)
+                        fx = nmin;
+                    if (fy > nmax)
+                        fy = nmax;
+                    if (fy < nmin)
+                        fy = nmin;
                     d.BodyAddForce(Body, fx, fy, fz);
                 }
             }
