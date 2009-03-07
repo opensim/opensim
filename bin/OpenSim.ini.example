@@ -463,6 +463,9 @@ InterregionComms = "RESTComms"
     ; speed of movement with Always Run on
     av_movement_divisor_run = 0.8
 
+    ; When the avatar flies, it will be moved up by this amount off the ground (in meters)
+    minimum_ground_flight_offset = 3.0
+
     ; ##
     ; ## Object options
     ; ##

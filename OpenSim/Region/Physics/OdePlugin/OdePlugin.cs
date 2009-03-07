@@ -181,6 +181,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float avHeightFudgeFactor = 0.52f;
         private float avMovementDivisorWalk = 1.3f;
         private float avMovementDivisorRun = 0.8f;
+        private float minimumGroundFlightOffset = 3f;
 
         public bool meshSculptedPrim = true;
 
@@ -432,6 +433,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     physics_logging_append_existing_logfile = physicsconfig.GetBoolean("physics_logging_append_existing_logfile", false);
 
                     m_NINJA_physics_joints_enabled = physicsconfig.GetBoolean("use_NINJA_physics_joints", false);
+                    minimumGroundFlightOffset = physicsconfig.GetFloat("minimum_ground_flight_offset", 3f);
 
                 }
             }
@@ -1336,6 +1338,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             pos.Z = position.Z;
             OdeCharacter newAv = new OdeCharacter(avName, this, pos, ode, size, avPIDD, avPIDP, avCapRadius, avStandupTensor, avDensity, avHeightFudgeFactor, avMovementDivisorWalk, avMovementDivisorRun);
             newAv.Flying = isFlying;
+            newAv.MinimumGroundFlightOffset = minimumGroundFlightOffset;
             _characters.Add(newAv);
             return newAv;
         }

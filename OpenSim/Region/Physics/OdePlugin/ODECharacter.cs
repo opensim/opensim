@@ -95,7 +95,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         // taints and their non-tainted counterparts
         public bool m_isPhysical = false; // the current physical status
         public bool m_tainted_isPhysical = false; // set when the physical status is tainted (false=not existing in physics engine, true=existing)
+        public float MinimumGroundFlightOffset = 3f;
+
         private float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes. 
+
 
         private float m_buoyancy = 0f;
 
@@ -834,12 +837,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 vec.Z += ((-1 * _parent_scene.gravityz)*m_mass);
 
                 //Added for auto fly height. Kitto Flora
-                d.Vector3 pos = d.BodyGetPosition(Body);
-                float ground_height = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
-                float target_altitude = ground_height + 3.0f;    // This is  the min fly height
-                if (pos.Z < target_altitude)
+                //d.Vector3 pos = d.BodyGetPosition(Body);
+                float target_altitude = _parent_scene.GetTerrainHeightAtXY(_position.X, _position.Y) + MinimumGroundFlightOffset;
+                
+                if (_position.Z < target_altitude)
                 {
-                    vec.Z += (target_altitude - pos.Z) * PID_P * 5.0f;
+                    vec.Z += (target_altitude - _position.Z) * PID_P * 5.0f;
                 }
                 // end add Kitto Flora
 
