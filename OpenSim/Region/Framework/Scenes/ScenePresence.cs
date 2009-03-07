@@ -547,6 +547,9 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private bool m_inTransit;
+        private bool m_mouseLook;
+        private bool m_leftButtonDown;
+
         public bool IsInTransit
         {
             get { return m_inTransit; }
@@ -1141,6 +1144,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 StandUp();
             }
+            m_mouseLook = (flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
+            m_leftButtonDown = (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
             lock (scriptedcontrols)
             {
                 if (scriptedcontrols.Count > 0)
@@ -1206,8 +1211,14 @@ namespace OpenSim.Region.Framework.Scenes
                     bool bResetMoveToPosition = false;
 
                     Vector3[] dirVectors;
-                    if (m_physicsActor.Flying) dirVectors = Dir_Vectors;
-                    else dirVectors = GetWalkDirectionVectors();
+
+                    // use camera up angle when in mouselook and not flying or when holding the left mouse button down and not flying
+                    // this prevents 'jumping' in inappropriate situations.
+                    if ((m_mouseLook && !m_physicsActor.Flying) || (m_leftButtonDown && !m_physicsActor.Flying)) 
+                        dirVectors = GetWalkDirectionVectors();
+                    else
+                        dirVectors = Dir_Vectors;
+
 
                     foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof (Dir_ControlFlags)))
                     {
