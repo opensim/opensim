@@ -327,6 +327,12 @@ InterregionComms = "RESTComms"
     ; The old default is "OpenSim", set here fro compatibility
     shard = "OpenSim"
 
+    ; What is reported as the "User-Agent" when using llHTTPRequest
+    ; Defaults to not sent if not set here. See the notes section in the wiki at
+    ; http://wiki.secondlife.com/wiki/LlHTTPRequest for comments on adding
+    ; " (Mozilla Compatible)" to the text where there are problems with a web server
+    ;user_agent = "OpenSim LSL (Mozilla Compatible)"
+
 [ClientStack.LindenUDP]
     ; This is the multiplier applied to all client throttles for outgoing UDP network data
     ; If it is set to 1, then we obey the throttle settings as given to us by the client.  If it is set to 3, for example, then we 

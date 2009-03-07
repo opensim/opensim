@@ -358,7 +358,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 }
 
                 foreach (KeyValuePair<string, string> entry in ResponseHeaders)
-                    Request.Headers[entry.Key] = entry.Value;
+                    if (entry.Key.ToLower().Equals("user-agent"))
+                        Request.UserAgent = entry.Value;
+                    else
+                        Request.Headers[entry.Key] = entry.Value;
 
                 // Encode outbound data
                 if (OutboundBody.Length > 0) 

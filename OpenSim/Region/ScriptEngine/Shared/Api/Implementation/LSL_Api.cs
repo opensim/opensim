@@ -8726,6 +8726,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             httpHeaders["X-SecondLife-Local-Rotation"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000})", rotation.X, rotation.Y, rotation.Z, rotation.W);
             httpHeaders["X-SecondLife-Owner-Name"] = scenePresence == null ? string.Empty : scenePresence.ControllingClient.Name;
             httpHeaders["X-SecondLife-Owner-Key"] = m_host.ObjectOwner.ToString();
+            string userAgent = config.Configs["Network"].GetString("user_agent", null);
+            if (userAgent != null)
+                httpHeaders["User-Agent"] = userAgent;
 
             UUID reqID = httpScriptMod.
                 StartHttpRequest(m_localID, m_itemID, url, param, httpHeaders, body);
