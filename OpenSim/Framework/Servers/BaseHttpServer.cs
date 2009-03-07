@@ -1267,12 +1267,16 @@ namespace OpenSim.Framework.Servers
 
             byte[] buffer;
 
-            if (!(contentType.Contains("image") || contentType.Contains("x-shockwave-flash")))
+            if (!(contentType.Contains("image") 
+                || contentType.Contains("x-shockwave-flash") 
+                || contentType.Contains("application/x-oar")))
             {
+                // Text
                 buffer = Encoding.UTF8.GetBytes(responseString);
             }
             else
             {
+                // Binary!
                 buffer = Convert.FromBase64String(responseString);
             }
 
