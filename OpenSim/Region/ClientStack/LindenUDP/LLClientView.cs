@@ -1206,7 +1206,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 msg.MessageBlock.RegionID = UUID.Zero;
                 msg.MessageBlock.Timestamp = timeStamp;
                 msg.MessageBlock.ToAgentID = toAgent;
-                msg.MessageBlock.Message = Utils.StringToBytes(message);
+                // Cap the message length at 1099. There is a limit in ImprovedInstantMessagePacket
+                // the limit is 1100 but a 0 byte gets added to mark the end of the string
+                if (message != null && message.Length > 1099)
+                    msg.MessageBlock.Message = Utils.StringToBytes(message.Substring(0, 1099));
+                else
+                    msg.MessageBlock.Message = Utils.StringToBytes(message);
                 msg.MessageBlock.BinaryBucket = binaryBucket;
 
                 if (message.StartsWith("[grouptest]"))

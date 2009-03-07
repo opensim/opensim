@@ -2717,7 +2717,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //{
             //    msg.fromAgentName = "(hippos)";// Added for posterity.  This means that we can't figure out who sent it
             //}
-            msg.message = message;
+            // Cap the message length at 1024.
+            if (message != null && message.Length > 1024)
+                msg.message = message.Substring(0, 1024);
+            else
+                msg.message = message;
             msg.dialog = (byte)19; // messgage from script ??? // dialog;
             msg.fromGroup = false;// fromGroup;
             msg.offline = (byte)0; //offline;
