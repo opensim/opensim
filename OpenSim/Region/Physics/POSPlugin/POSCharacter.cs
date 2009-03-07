@@ -288,11 +288,25 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { return; }
         }
 
-        public override float PIDHoverHeight { set { return; } }
-        public override bool PIDHoverActive { set { return; } }
-        public override PIDHoverType PIDHoverType { set { return; } }
-        public override float PIDHoverTau { set { return; } }
+        public override float PIDHoverHeight
+        {
+            set { return; }
+        }
 
+        public override bool PIDHoverActive
+        {
+            set { return; }
+        }
+
+        public override PIDHoverType PIDHoverType
+        {
+            set { return; }
+        }
+
+        public override float PIDHoverTau
+        {
+            set { return; }
+        }
 
         public override void SubscribeEvents(int ms)
         {
