@@ -116,6 +116,8 @@ namespace OpenSim.Framework.Communications
                 XmlRpcResponse response = new XmlRpcResponse();
                 Hashtable requestData = (Hashtable) request.Params[0];
 
+                SniffLoginKey((Uri)request.Params[2], requestData);
+
                 bool GoodXML = (requestData.Contains("first") && requestData.Contains("last") &&
                                 (requestData.Contains("passwd") || requestData.Contains("web_login_key")));
 
@@ -303,7 +305,7 @@ namespace OpenSim.Framework.Communications
                     string passwd = (string) requestData["passwd"];
                     GoodLogin = AuthenticateUser(userProfile, passwd);
                 }
-                else if (requestData.Contains("web_login_key"))
+                if (!GoodLogin && (requestData.Contains("web_login_key")))
                 {
                     try
                     {
@@ -576,7 +578,7 @@ namespace OpenSim.Framework.Communications
                 {
                     UUID webloginkey = UUID.Random();
                     m_userManager.StoreWebLoginKey(user.ID, webloginkey);
-                    statuscode = 301;
+                    //statuscode = 301;
 
                     string redirectURL = "about:blank?redirect-http-hack=" +
                                          HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
@@ -584,8 +586,9 @@ namespace OpenSim.Framework.Communications
                                                                "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
                     //m_log.Info("[WEB]: R:" + redirectURL);
                     returnactions["int_response_code"] = statuscode;
-                    returnactions["str_redirect_location"] = redirectURL;
-                    returnactions["str_response_string"] = "<HTML><BODY>GoodLogin</BODY></HTML>";
+                    //returnactions["str_redirect_location"] = redirectURL;
+                    //returnactions["str_response_string"] = "<HTML><BODY>GoodLogin</BODY></HTML>";
+                    returnactions["str_response_string"] = webloginkey.ToString();
                 }
                 else
                 {
@@ -852,6 +855,18 @@ namespace OpenSim.Framework.Communications
             {
                 InventoryArray = invList;
                 RootFolderID = rootID;
+            }
+        }
+
+        protected void SniffLoginKey(Uri uri, Hashtable requestData)
+        {
+            string uri_str = uri.ToString();
+            string[] parts = uri_str.Split(new char[] { '=' });
+            if (parts.Length > 1)
+            {
+                string web_login_key = parts[1];
+                requestData.Add("web_login_key", web_login_key);
+                m_log.InfoFormat("[LOGIN]: Login with web_login_key {0}", web_login_key);
             }
         }
     }
