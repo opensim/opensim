@@ -32,7 +32,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Client.MXP
 {
-    static class MXPUtil
+    public static class MXPUtil
     {
         public static string GenerateMXPURL(string server, int port, UUID bubbleID, Vector3 location)
         {

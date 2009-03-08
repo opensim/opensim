@@ -40,65 +40,64 @@ namespace OpenSim.Client.MXP
 {
     public class MXPModule : IRegionModule
     {
-        private int mxp_Port = 1253;
-        //private double mxp_BubbleRadius = 181.01933598375616624661615669884; // Radius of a sphere big enough to encapsulate a 256x256 square
 
-        private readonly Timer ticker = new Timer(100);
+        private int m_port = 1253;
+        //private int m_ticks = 0;
+        private bool m_shutdown = false;
 
-        private int ticks;
-        private bool shutdown = false;
+        private IConfigSource m_config;
+        private readonly Timer m_ticker = new Timer(100);
+        private readonly Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
 
-        private IConfigSource config;
-
-        private readonly Dictionary<UUID,Scene> m_scenes = new Dictionary<UUID, Scene>();
-
-        private MXPPacketServer server;
-
+        private MXPPacketServer m_server;
 
         public void Initialise(Scene scene, IConfigSource source)
         {
             if (!m_scenes.ContainsKey(scene.RegionInfo.RegionID))
                 m_scenes.Add(scene.RegionInfo.RegionID, scene);
-            config = source;
+
+            m_config = source;
         }
 
         public void PostInitialise()
         {
-            if (config.Configs["MXP"] != null)
+            if (m_config.Configs["MXP"] != null)
             {
-                IConfig con = config.Configs["MXP"];
+                IConfig con = m_config.Configs["MXP"];
 
                 if (!con.GetBoolean("Enabled", false))
                     return;
 
-                mxp_Port = con.GetInt("Port", mxp_Port);
+                m_port = con.GetInt("Port", m_port);
 
-                server = new MXPPacketServer("http://null", mxp_Port, m_scenes);
+                m_server = new MXPPacketServer(m_port, m_scenes);
 
-                ticker.AutoReset = false;
-                ticker.Elapsed += ticker_Elapsed;
+                m_ticker.AutoReset = false;
+                m_ticker.Elapsed += ticker_Elapsed;
 
-                ticker.Start();
+                m_ticker.Start();
             }
         }
 
         void ticker_Elapsed(object sender, ElapsedEventArgs e)
         {
-            server.Process();
+            m_server.Process();
 
-            if (!shutdown)
-                ticker.Start();
+            if (!m_shutdown)
+                m_ticker.Start();
 
-            if (++ticks % 100 == 0)
+            // Commenting this at because of the excess flood to log.
+            // TODO: Add ini file option.
+            /*if (++ticks % 100 == 0)
             {
                 server.PrintDebugInformation();
-            }
+            }*/
         }
 
         public void Close()
         {
-            shutdown = true;
-            ticker.Stop();
+            m_shutdown = true;
+            m_ticker.Stop();
         }
 
         public string Name
@@ -110,5 +109,6 @@ namespace OpenSim.Client.MXP
         {
             get { return true; }
         }
+
     }
 }
