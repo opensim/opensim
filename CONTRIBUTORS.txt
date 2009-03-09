@@ -79,6 +79,7 @@ Patches
 * SachaMagne
 * Salahzar Stenvaag
 * sempuki
+* Strawberry Fride
 * tglion
 * tlaukkan/Tommil (Tommi S. E. Laukkanen, Bubble Cloud)
 * tyre

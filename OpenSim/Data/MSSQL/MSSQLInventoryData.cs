@@ -224,9 +224,8 @@ namespace OpenSim.Data.MSSQL
         /// <param name="folder">Folder to create</param>
         public void addInventoryFolder(InventoryFolderBase folder)
         {
-            string sql =
-                "INSERT INTO inventoryfolders ([folderID], [agentID], [parentFolderID], [folderName], [type], [version]) VALUES ";
-            sql += "(@folderID, @agentID, @parentFolderID, @folderName, @type, @version);";
+            string sql = @"INSERT INTO inventoryfolders ([folderID], [agentID], [parentFolderID], [folderName], [type], [version]) 
+                            VALUES (@folderID, @agentID, @parentFolderID, @folderName, @type, @version);";
 
 
             using (AutoClosingSqlCommand command = database.Query(sql))
@@ -256,13 +255,14 @@ namespace OpenSim.Data.MSSQL
         /// <param name="folder">Folder to update</param>
         public void updateInventoryFolder(InventoryFolderBase folder)
         {
-            using (AutoClosingSqlCommand command = database.Query("UPDATE inventoryfolders set folderID = @folderID, " +
-                                                       "agentID = @agentID, " +
-                                                       "parentFolderID = @parentFolderID," +
-                                                       "folderName = @folderName," +
-                                                       "type = @type," +
-                                                       "version = @version where " +
-                                                       "folderID = @keyFolderID;"))
+            string sql = @"UPDATE inventoryfolders SET folderID = @folderID, 
+                                                       agentID = @agentID, 
+                                                       parentFolderID = @parentFolderID,
+                                                       folderName = @folderName,
+                                                       type = @type,
+                                                       version = @version 
+                           WHERE folderID = @keyFolderID";
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("folderID", folder.ID));
                 command.Parameters.Add(database.CreateParameter("agentID", folder.Owner));
@@ -288,9 +288,8 @@ namespace OpenSim.Data.MSSQL
         /// <param name="folder">Folder to update</param>
         public void moveInventoryFolder(InventoryFolderBase folder)
         {
-            using (IDbCommand command = database.Query("UPDATE inventoryfolders set " +
-                                                       "parentFolderID = @parentFolderID where " +
-                                                       "folderID = @folderID;"))
+            string sql = @"UPDATE inventoryfolders SET parentFolderID = @parentFolderID WHERE folderID = @folderID";
+            using (IDbCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("parentFolderID", folder.ParentID));
                 command.Parameters.Add(database.CreateParameter("@folderID", folder.ID));
@@ -402,15 +401,16 @@ namespace OpenSim.Data.MSSQL
                 return;
             }
 
-            string sql = "INSERT INTO inventoryitems";
-            sql += "([inventoryID], [assetID], [assetType], [parentFolderID], [avatarID], [inventoryName]"
-                    + ", [inventoryDescription], [inventoryNextPermissions], [inventoryCurrentPermissions]"
-                    + ", [invType], [creatorID], [inventoryBasePermissions], [inventoryEveryOnePermissions], [inventoryGroupPermissions]"
-                    + ", [salePrice], [saleType], [creationDate], [groupID], [groupOwned], [flags]) VALUES ";
-            sql += "(@inventoryID, @assetID, @assetType, @parentFolderID, @avatarID, @inventoryName, @inventoryDescription"
-                    + ", @inventoryNextPermissions, @inventoryCurrentPermissions, @invType, @creatorID"
-                    + ", @inventoryBasePermissions, @inventoryEveryOnePermissions, @inventoryGroupPermissions, @salePrice, @saleType"
-                    + ", @creationDate, @groupID, @groupOwned, @flags);";
+            string sql = @"INSERT INTO inventoryitems 
+                            ([inventoryID], [assetID], [assetType], [parentFolderID], [avatarID], [inventoryName], 
+                             [inventoryDescription], [inventoryNextPermissions], [inventoryCurrentPermissions],
+                             [invType], [creatorID], [inventoryBasePermissions], [inventoryEveryOnePermissions], [inventoryGroupPermissions],
+                             [salePrice], [saleType], [creationDate], [groupID], [groupOwned], [flags]) 
+                        VALUES
+                            (@inventoryID, @assetID, @assetType, @parentFolderID, @avatarID, @inventoryName, @inventoryDescription,
+                             @inventoryNextPermissions, @inventoryCurrentPermissions, @invType, @creatorID,
+                             @inventoryBasePermissions, @inventoryEveryOnePermissions, @inventoryGroupPermissions, @salePrice, @saleType,
+                             @creationDate, @groupID, @groupOwned, @flags)";
 
             using (AutoClosingSqlCommand command = database.Query(sql))
             {
@@ -453,26 +453,27 @@ namespace OpenSim.Data.MSSQL
         /// <param name="item">Inventory item to update</param>
         public void updateInventoryItem(InventoryItemBase item)
         {
-            using (AutoClosingSqlCommand command = database.Query("UPDATE inventoryitems set inventoryID = @inventoryID, " +
-                                                "assetID = @assetID, " +
-                                                "assetType = @assetType," +
-                                                "parentFolderID = @parentFolderID," +
-                                                "avatarID = @avatarID," +
-                                                "inventoryName = @inventoryName," +
-                                                "inventoryDescription = @inventoryDescription," +
-                                                "inventoryNextPermissions = @inventoryNextPermissions," +
-                                                "inventoryCurrentPermissions = @inventoryCurrentPermissions," +
-                                                "invType = @invType," +
-                                                "creatorID = @creatorID," +
-                                                "inventoryBasePermissions = @inventoryBasePermissions," +
-                                                "inventoryEveryOnePermissions = @inventoryEveryOnePermissions," +
-                                                "salePrice = @salePrice," +
-                                                "saleType = @saleType," +
-                                                "creationDate = @creationDate," +
-                                                "groupID = @groupID," +
-                                                "groupOwned = @groupOwned," +
-                                                "flags = @flags where " +
-                                                "inventoryID = @keyInventoryID;"))
+            string sql = @"UPDATE inventoryitems SET inventoryID = @inventoryID, 
+                                                assetID = @assetID, 
+                                                assetType = @assetType,
+                                                parentFolderID = @parentFolderID,
+                                                avatarID = @avatarID,
+                                                inventoryName = @inventoryName, 
+                                                inventoryDescription = @inventoryDescription, 
+                                                inventoryNextPermissions = @inventoryNextPermissions, 
+                                                inventoryCurrentPermissions = @inventoryCurrentPermissions, 
+                                                invType = @invType, 
+                                                creatorID = @creatorID, 
+                                                inventoryBasePermissions = @inventoryBasePermissions, 
+                                                inventoryEveryOnePermissions = @inventoryEveryOnePermissions, 
+                                                salePrice = @salePrice, 
+                                                saleType = @saleType, 
+                                                creationDate = @creationDate, 
+                                                groupID = @groupID, 
+                                                groupOwned = @groupOwned, 
+                                                flags = @flags 
+                                        WHERE inventoryID = @keyInventoryID";
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("inventoryID", item.ID));
                 command.Parameters.Add(database.CreateParameter("assetID", item.AssetID));

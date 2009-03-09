@@ -258,7 +258,7 @@ namespace OpenSim.Data.MSSQL
         {
             List<AssetMetadata> retList = new List<AssetMetadata>(count);
 
-            using (AutoClosingSqlCommand command = database.Query("SELECT name,description,assetType,temporary,id FROM assets LIMIT @start, @count"))
+            using (AutoClosingSqlCommand command = database.Query("SELECT (name,description,assetType,temporary,id), Row = ROW_NUMBER() OVER (ORDER BY (some column to order by)) WHERE Row >= @Start AND Row < @Start + @Count"))
             {
                 command.Parameters.Add(database.CreateParameter("start", start));
                 command.Parameters.Add(database.CreateParameter("count", count));
