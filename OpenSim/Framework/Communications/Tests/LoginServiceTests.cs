@@ -80,7 +80,7 @@ namespace OpenSim.Framework.Communications.Tests
         /// Test the normal response to a login.  Does not test authentication.
         /// </summary>
         [Test]
-        public void TestUnauthenticatedLogin()
+        public void T010_TestUnauthenticatedLogin()
         {
             // We want to use our own LoginService for this test, one that
             // doesn't require authentication.
@@ -116,7 +116,7 @@ namespace OpenSim.Framework.Communications.Tests
         }
 
         [Test]
-        public void TestAuthenticatedLoginSuccess()
+        public void T011_TestAuthenticatedLoginSuccess()
         {
             // TODO: Not check inventory part of response yet.
             // TODO: Not checking all of login response thoroughly yet.
@@ -165,7 +165,7 @@ namespace OpenSim.Framework.Communications.Tests
         }
 
         [Test]
-        public void TestAuthenticatedLoginForBuddies()
+        public void T012_TestAuthenticatedLoginForBuddies()
         {
             // 1.1) Test for budddies!
             m_localUserServices.AddUser("Friend","Number1","boingboing","abc@ftw.com",42,43);
@@ -204,7 +204,7 @@ namespace OpenSim.Framework.Communications.Tests
         }
 
         [Test]
-        public void TestAuthenticatedLoginBadUsername()
+        public void T020_TestAuthenticatedLoginBadUsername()
         {
 
             // 2) Test for negative authentication
@@ -231,7 +231,7 @@ namespace OpenSim.Framework.Communications.Tests
         }
 
         [Test]
-        public void TestAuthenticatedLoginBadPassword()
+        public void T021_TestAuthenticatedLoginBadPassword()
         {
             string error_auth_message = "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.";
             // 2.2) Test for wrong password
@@ -254,7 +254,7 @@ namespace OpenSim.Framework.Communications.Tests
         }
 
         [Test]
-        public void TestAuthenticatedLoginBadXml()
+        public void T022_TestAuthenticatedLoginBadXml()
         {
             string error_xml_message = "Error connecting to grid. Could not percieve credentials from login XML.";
             // 2.3) Bad XML
@@ -277,7 +277,7 @@ namespace OpenSim.Framework.Communications.Tests
         }
 
         [Test]
-        public void TestAuthenticatedLoginAlreadyLoggedIn()
+        public void T023_TestAuthenticatedLoginAlreadyLoggedIn()
         {
             string error_already_logged = "You appear to be already logged in. " +
                                          "If this is not the case please wait for your session to timeout. " +
