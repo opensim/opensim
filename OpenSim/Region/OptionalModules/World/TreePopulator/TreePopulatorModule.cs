@@ -39,7 +39,7 @@ using OpenSim.Region.Framework.Scenes;
 namespace OpenSim.Region.OptionalModules.World.TreePopulator
 {
     /// <summary>
-    /// Version 2.0 - Very hacky compared to the original. Will fix original and release as 0.3 later.
+    /// Version 2.01 - Very hacky compared to the original. Will fix original and release as 0.3 later.
     /// </summary>
     public class TreePopulatorModule : IRegionModule
     {
@@ -56,6 +56,15 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            m_scene = scene;
+            m_scene.RegisterModuleInterface<IRegionModule>(this);
+
+            m_scene.AddCommand(
+                this, "tree plant", "tree plant", "Start populating trees", HandleTreeConsoleCommand);
+
+            m_scene.AddCommand(
+                this, "tree active", "tree active <boolean>", "Change activity state for trees module", HandleTreeConsoleCommand);
+
             try
             {
                 m_tree_density = config.Configs["Trees"].GetDouble("tree_density", m_tree_density);
@@ -66,9 +75,6 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             }
 
             m_trees = new List<UUID>();
-            m_scene = scene;
-
-            m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
 
             if (m_active_trees)
                 activeizeTreeze(true);
@@ -96,47 +102,54 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
         #endregion
 
-        private void EventManager_OnPluginConsole(string[] args)
+        /// <summary>
+        /// Handle a tree command from the console.
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmdparams"></param>
+        public void HandleTreeConsoleCommand(string module, string[] cmdparams)
         {
-            if (args.Length == 1)
-            {
-                if (args[0] == "tree")
-                {
-                    UUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
-                    if (uuid == UUID.Zero)
-                        uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-                    m_log.Debug("[TREES]: New tree planting");
-                    CreateTree(uuid, new Vector3(128.0f, 128.0f, 0.0f));
-                    
-                }
-            }
+            if (m_scene.ConsoleScene() != null && m_scene.ConsoleScene() != m_scene)
+                return;
 
-            if (args.Length == 2 || args.Length == 3)
+            if (cmdparams[1] == "active")
             {
-                if (args[1] == "active")
+                if (cmdparams.Length <= 2)
                 {
-                    if (args.Length >= 3)
-                    {
-                        if (args[2] == "true" && !m_active_trees)
-                        {
-                            m_active_trees = true;
-                            activeizeTreeze(m_active_trees);
-                            m_log.Info("[TREES]: Activizing Trees");
-                        }
-                        if (args[2] == "false" && m_active_trees)
-                        {
-                            m_active_trees = false;
-                            activeizeTreeze(m_active_trees);
-                            m_log.Info("[TREES]: Trees no longer Active, for now...");
-                        }
-                    }
+                    if (m_active_trees)
+                        m_log.InfoFormat("[TREES]: Trees are currently active");
                     else
-                    {
-                        m_log.Info("[TREES]: When setting the tree module active via the console, you must specify true or false");
-                    }
+                        m_log.InfoFormat("[TREES]: Trees are currently not active");
+                }
+                else if (cmdparams[2] == "true" && !m_active_trees)
+                {
+                    m_log.InfoFormat("[TREES]: Activating Trees");
+                    m_active_trees = true;
+                    activeizeTreeze(m_active_trees);
+                }
+                else if (cmdparams[2] == "false" && m_active_trees)
+                {
+                    m_log.InfoFormat("[TREES]: Trees no longer active, for now...");
+                    m_active_trees = false;
+                    activeizeTreeze(m_active_trees);
+                }
+                else
+                {
+                    m_log.InfoFormat("[TREES]: When setting the tree module active via the console, you must specify true or false");
                 }
             }
-
+            else if (cmdparams[1] == "plant")
+            {
+                m_log.InfoFormat("[TREES]: New tree planting");
+                UUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                if (uuid == UUID.Zero)
+                    uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                CreateTree(uuid, new Vector3(128.0f, 128.0f, 0.0f));
+            }
+            else
+            {
+                m_log.InfoFormat("[TREES]: Unknown command");
+            }
         }
 
         private void activeizeTreeze(bool activeYN)
