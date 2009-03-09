@@ -28,6 +28,7 @@
 using System;
 using System.Reflection;
 using System.Data;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
@@ -117,42 +118,17 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             int rowCount = 0;
 
-            //using (MySqlConnection dbConnection = new MySqlConnection(m_openSimConfig.GetString("asset_database_connect")))
-            //{
-            //    MySqlDataReader reader;
+            foreach (AssetMetadata metadata in m_assetProvider.FetchAssetMetadataSet(start, count))
+            {
+                // We set the ContentType here because Utils is only in
+                // AssetInventoryServer. This should be moved to the DB
+                // backends when the equivalent of SLAssetTypeToContentType is
+                // in OpenSim.Framework or similar.
+                metadata.ContentType = Utils.SLAssetTypeToContentType(metadata.Type);
 
-            //    try
-            //    {
-            //        dbConnection.Open();
-
-            //        MySqlCommand command = dbConnection.CreateCommand();
-            //        command.CommandText = String.Format("SELECT name,description,assetType,temporary,data,id FROM assets LIMIT {0}, {1}",
-            //            start, count);
-            //        reader = command.ExecuteReader();
-            //    }
-            //    catch (MySqlException ex)
-            //    {
-            //        m_log.Error("[OPENSIMASSETSTORAGE]: Connection to MySQL backend failed: " + ex.Message);
-            //        return 0;
-            //    }
-
-            //    while (reader.Read())
-            //    {
-            //        Metadata metadata = new Metadata();
-            //        metadata.CreationDate = OpenMetaverse.Utils.Epoch;
-            //        metadata.Description = reader.GetString(1);
-            //        metadata.ID = UUID.Parse(reader.GetString(5));
-            //        metadata.Name = reader.GetString(0);
-            //        metadata.SHA1 = OpenMetaverse.Utils.SHA1((byte[])reader.GetValue(4));
-            //        metadata.Temporary = reader.GetBoolean(3);
-            //        metadata.ContentType = Utils.SLAssetTypeToContentType(reader.GetInt32(2));
-
-            //        action(metadata);
-            //        ++rowCount;
-            //    }
-
-            //    reader.Close();
-            //}
+                action(metadata);
+                ++rowCount;
+            }
 
             return rowCount;
         }

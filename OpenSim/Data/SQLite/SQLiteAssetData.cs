@@ -28,6 +28,7 @@
 using System;
 using System.Data;
 using System.Reflection;
+using System.Collections.Generic;
 using log4net;
 using Mono.Data.SqliteClient;
 using OpenMetaverse;
@@ -49,6 +50,7 @@ namespace OpenSim.Data.SQLite
         /// Artificial constructor called upon plugin load
         /// </summary>
         private const string SelectAssetSQL = "select * from assets where UUID=:UUID";
+        private const string SelectAssetMetadataSQL = "select Name, Description, Type, Temporary, UUID from assets limit :start, :count";
         private const string DeleteAssetSQL = "delete from assets where UUID=:UUID";
         private const string InsertAssetSQL = "insert into assets(UUID, Name, Description, Type, Local, Temporary, Data) values(:UUID, :Name, :Description, :Type, :Local, :Temporary, :Data)";
         private const string UpdateAssetSQL = "update assets set Name=:Name, Description=:Description, Type=:Type, Local=:Local, Temporary=:Temporary, Data=:Data where UUID=:UUID";
@@ -256,6 +258,54 @@ namespace OpenSim.Data.SQLite
             return asset;
         }
 
+        private static AssetMetadata buildAssetMetadata(IDataReader row)
+        {
+            AssetMetadata metadata = new AssetMetadata();
+
+            metadata.FullID = new UUID((string) row["UUID"]);
+            metadata.Name = (string) row["Name"];
+            metadata.Description = (string) row["Description"];
+            metadata.Type = Convert.ToSByte(row["Type"]);
+            metadata.Temporary = Convert.ToBoolean(row["Temporary"]); // Not sure if this is correct.
+
+            // Current SHA1s are not stored/computed.
+            metadata.SHA1 = new byte[] {};
+
+            return metadata;
+        }
+
+        /// <summary>
+        /// Returns a list of AssetMetadata objects. The list is a subset of
+        /// the entire data set offset by <paramref name="start" /> containing
+        /// <paramref name="count" /> elements.
+        /// </summary>
+        /// <param name="start">The number of results to discard from the total data set.</param>
+        /// <param name="count">The number of rows the returned list should contain.</param>
+        /// <returns>A list of AssetMetadata objects.</returns>
+        public override List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
+        {
+            List<AssetMetadata> retList = new List<AssetMetadata>(count);
+
+            lock (this)
+            {
+                using (SqliteCommand cmd = new SqliteCommand(SelectAssetMetadataSQL, m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":start", start));
+                    cmd.Parameters.Add(new SqliteParameter(":count", count));
+
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            AssetMetadata metadata = buildAssetMetadata(reader);
+                            retList.Add(metadata);
+                        }
+                    }
+                }
+            }
+
+            return retList;
+        }
 
         /***********************************************************************
          *

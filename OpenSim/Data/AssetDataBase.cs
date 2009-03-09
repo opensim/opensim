@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 
@@ -36,6 +37,8 @@ namespace OpenSim.Data
         public abstract void CreateAsset(AssetBase asset);
         public abstract void UpdateAsset(AssetBase asset);
         public abstract bool ExistsAsset(UUID uuid);
+
+        public abstract List<AssetMetadata> FetchAssetMetadataSet(int start, int count);
 
         public abstract string Version { get; }
         public abstract string Name { get; }

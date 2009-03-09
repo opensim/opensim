@@ -28,6 +28,7 @@
 using System;
 using System.Data;
 using System.Reflection;
+using System.Collections.Generic;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
@@ -243,6 +244,41 @@ namespace OpenSim.Data.MSSQL
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Returns a list of AssetMetadata objects. The list is a subset of
+        /// the entire data set offset by <paramref name="start" /> containing
+        /// <paramref name="count" /> elements.
+        /// </summary>
+        /// <param name="start">The number of results to discard from the total data set.</param>
+        /// <param name="count">The number of rows the returned list should contain.</param>
+        /// <returns>A list of AssetMetadata objects.</returns>
+        public override List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
+        {
+            List<AssetMetadata> retList = new List<AssetMetadata>(count);
+
+            using (AutoClosingSqlCommand command = database.Query("SELECT name,description,assetType,temporary,id FROM assets LIMIT @start, @count"))
+            {
+                command.Parameters.Add(database.CreateParameter("start", start));
+                command.Parameters.Add(database.CreateParameter("count", count));
+
+                using (IDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        AssetMetadata metadata = new AssetMetadata();
+                        // Region Main
+                        metadata.FullID = new UUID((Guid)reader["id"]);
+                        metadata.Name = (string)reader["name"];
+                        metadata.Description = (string)reader["description"];
+                        metadata.Type = Convert.ToSByte(reader["assetType"]);
+                        metadata.Temporary = Convert.ToBoolean(reader["temporary"]);
+                    }
+                }
+            }
+
+            return retList;
         }
 
         #endregion

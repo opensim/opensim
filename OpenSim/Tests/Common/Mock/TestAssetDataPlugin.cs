@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
@@ -48,6 +49,7 @@ namespace OpenSim.Tests.Common.Mock
         public void CreateAsset(AssetBase asset) {}
         public void UpdateAsset(AssetBase asset) {}
         public bool ExistsAsset(UUID uuid) { return false; }
+        public List<AssetMetadata> FetchAssetMetadataSet(int start, int count) { return new List<AssetMetadata>(count); }
         public void Initialise(string connect) {}
     }
 }

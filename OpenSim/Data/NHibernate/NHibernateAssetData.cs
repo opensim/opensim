@@ -26,6 +26,7 @@
  */
 
 using System.Reflection;
+using System.Collections.Generic;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -107,6 +108,20 @@ namespace OpenSim.Data.NHibernate
         {
             m_log.InfoFormat("[NHIBERNATE] ExistsAsset: {0}", uuid);
             return (FetchAsset(uuid) != null);
+        }
+
+        /// <summary>
+        /// Returns a list of AssetMetadata objects. The list is a subset of
+        /// the entire data set offset by <paramref name="start" /> containing
+        /// <paramref name="count" /> elements.
+        /// </summary>
+        /// <param name="start">The number of results to discard from the total data set.</param>
+        /// <param name="count">The number of rows the returned list should contain.</param>
+        /// <returns>A list of AssetMetadata objects.</returns>
+        public override List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
+        {
+            List<AssetMetadata> retList = new List<AssetMetadata>(count);
+            return retList;
         }
 
         public void DeleteAsset(UUID uuid)

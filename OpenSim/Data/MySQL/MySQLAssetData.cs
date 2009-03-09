@@ -28,6 +28,7 @@
 using System;
 using System.Data;
 using System.Reflection;
+using System.Collections.Generic;
 using log4net;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
@@ -309,6 +310,56 @@ namespace OpenSim.Data.MySQL
             }
 
             return assetExists;
+        }
+
+        /// <summary>
+        /// Returns a list of AssetMetadata objects. The list is a subset of
+        /// the entire data set offset by <paramref name="start" /> containing
+        /// <paramref name="count" /> elements.
+        /// </summary>
+        /// <param name="start">The number of results to discard from the total data set.</param>
+        /// <param name="count">The number of rows the returned list should contain.</param>
+        /// <returns>A list of AssetMetadata objects.</returns>
+        public override List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
+        {
+            List<AssetMetadata> retList = new List<AssetMetadata>(count);
+
+            lock (_dbConnection)
+            {
+                _dbConnection.CheckConnection();
+
+                MySqlCommand cmd = new MySqlCommand("SELECT name,description,assetType,temporary,id FROM assets LIMIT ?start, ?count", _dbConnection.Connection);
+                cmd.Parameters.AddWithValue("?start", start);
+                cmd.Parameters.AddWithValue("?count", count);
+
+                try
+                {
+                    using (MySqlDataReader dbReader = cmd.ExecuteReader())
+                    {
+                        while (dbReader.Read())
+                        {
+                            AssetMetadata metadata = new AssetMetadata();
+                            metadata.Name = (string) dbReader["name"];
+                            metadata.Description = (string) dbReader["description"];
+                            metadata.Type = (sbyte) dbReader["assetType"];
+                            metadata.Temporary = (bool) dbReader["temporary"]; // Not sure if this is correct.
+                            metadata.FullID = new UUID((string) dbReader["id"]);
+
+                            // Current SHA1s are not stored/computed.
+                            metadata.SHA1 = new byte[] {};
+
+                            retList.Add(metadata);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[ASSETS DB]: MySql failure fetching asset set" + Environment.NewLine + e.ToString() + Environment.NewLine + "Attempting reconnection");
+                    _dbConnection.Reconnect();
+                }
+            }
+
+            return retList;
         }
 
         #endregion
