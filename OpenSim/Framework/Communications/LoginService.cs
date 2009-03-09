@@ -579,11 +579,11 @@ namespace OpenSim.Framework.Communications
                     UUID webloginkey = UUID.Random();
                     m_userManager.StoreWebLoginKey(user.ID, webloginkey);
                     //statuscode = 301;
-
-                    string redirectURL = "about:blank?redirect-http-hack=" +
-                                         HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
-                                                               lastname +
-                                                               "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
+                    
+//                    string redirectURL = "about:blank?redirect-http-hack=" +
+//                                         HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
+//                                                               lastname +
+//                                                               "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
                     //m_log.Info("[WEB]: R:" + redirectURL);
                     returnactions["int_response_code"] = statuscode;
                     //returnactions["str_redirect_location"] = redirectURL;

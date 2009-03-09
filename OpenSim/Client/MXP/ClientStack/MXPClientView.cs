@@ -496,21 +496,20 @@ namespace OpenSim.Client.MXP.ClientStack
             return new Vector3(vector.X, vector.Y, vector.Z);
         }
 
-
-        private Vector3 FromOmVector(float[] vector)
-        {
-            return new Vector3(vector[0], vector[1], vector[2]);
-        }
+//        private Vector3 FromOmVector(float[] vector)
+//        {
+//            return new Vector3(vector[0], vector[1], vector[2]);
+//        }
 
         private Quaternion FromOmQuaternion(MsdQuaternion4f quaternion)
         {
             return new Quaternion(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
         }
 
-        private Quaternion FromOmQuaternion(float[] quaternion)
-        {
-            return new Quaternion(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
-        }
+//        private Quaternion FromOmQuaternion(float[] quaternion)
+//        {
+//            return new Quaternion(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
+//        }
 
         private MsdColor4f ToOmColor(byte[] value)
         {

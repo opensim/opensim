@@ -43,11 +43,11 @@ namespace OpenSim.Framework.Communications.Tests
     {
         protected UUID m_assetIdReceived;
         protected AssetBase m_assetReceived;
-        
-        [Test]
+                
         /// <summary>
         /// Test the 'asynchronous' get asset mechanism (though this won't be done asynchronously within this test)
         /// </summary>
+        [Test]        
         public void TestGetAsset()
         {
             UUID assetId = UUID.Parse("00000000-0000-0000-0000-000000000001");

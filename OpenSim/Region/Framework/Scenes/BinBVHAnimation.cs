@@ -519,7 +519,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue
             //0-1
 
-            float difference = upper - lower;
+//            float difference = upper - lower;
             // we're trying to get a zero lower and modify all values equally so we get a percentage position
             if (lower > 0)
             {
