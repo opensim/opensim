@@ -86,6 +86,8 @@ namespace OpenSim.Framework.Communications.Tests
 
             ArrayList sendParams = new ArrayList();
             sendParams.Add(loginParams);
+            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
             XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
@@ -148,6 +150,8 @@ namespace OpenSim.Framework.Communications.Tests
 
             ArrayList sendParams = new ArrayList();
             sendParams.Add(loginParams);
+            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
             XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
@@ -197,6 +201,8 @@ namespace OpenSim.Framework.Communications.Tests
 
             sendParams = new ArrayList();
             sendParams.Add(loginParams);
+            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
             request = new XmlRpcRequest("login_to_simulator", sendParams);
 
@@ -231,6 +237,8 @@ namespace OpenSim.Framework.Communications.Tests
 
             sendParams = new ArrayList();
             sendParams.Add(loginParams);
+            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
             request = new XmlRpcRequest("login_to_simulator", sendParams);
 
@@ -246,6 +254,8 @@ namespace OpenSim.Framework.Communications.Tests
 
             sendParams = new ArrayList();
             sendParams.Add(loginParams);
+            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
             request = new XmlRpcRequest("login_to_simulator", sendParams);
 
@@ -261,6 +271,8 @@ namespace OpenSim.Framework.Communications.Tests
  
             sendParams = new ArrayList();
             sendParams.Add(loginParams);
+            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
             request = new XmlRpcRequest("login_to_simulator", sendParams);
 
@@ -276,6 +288,8 @@ namespace OpenSim.Framework.Communications.Tests
 
             sendParams = new ArrayList();
             sendParams.Add(loginParams);
+            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
             request = new XmlRpcRequest("login_to_simulator", sendParams);
 
