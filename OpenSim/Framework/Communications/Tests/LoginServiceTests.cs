@@ -47,46 +47,54 @@ namespace OpenSim.Framework.Communications.Tests
     [TestFixture]
     public class LoginServiceTests
     {
+        private string m_firstName = "Adam";
+        private string m_lastName = "West";
+        private string m_regionExternalName = "localhost";
+
+        private IPEndPoint m_capsEndPoint;
+        private CommunicationsManager m_commsManager;
+        private TestLoginToRegionConnector m_regionConnector;
+        private LocalUserServices m_localUserServices;
+        private LoginService m_loginService;
+        private UserProfileData m_userProfileData;
+
+        [SetUp]
+        public void SetUpLoginEnviroment()
+        {
+            m_capsEndPoint = new IPEndPoint(IPAddress.Loopback, 9123);
+            m_commsManager = new TestCommunicationsManager(new NetworkServersInfo(42, 43));
+            m_regionConnector = new TestLoginToRegionConnector();
+
+            m_regionConnector.AddRegion(new RegionInfo(42, 43, m_capsEndPoint, m_regionExternalName));
+
+            m_localUserServices = (LocalUserServices) m_commsManager.UserService;
+            m_localUserServices.AddUser(m_firstName,m_lastName,"boingboing","abc@ftw.com",42,43);
+
+            m_loginService = new LLStandaloneLoginService((UserManagerBase) m_localUserServices, "Hello folks", m_commsManager.InterServiceInventoryService,
+                  m_commsManager.NetworkServersInfo, true, new LibraryRootFolder(String.Empty), m_regionConnector);
+
+            m_userProfileData = m_localUserServices.GetUserProfile(m_firstName, m_lastName);
+        }
+
         /// <summary>
         /// Test the normal response to a login.  Does not test authentication.
         /// </summary>
         [Test]
-        public void T010_NormalLoginResponse()
+        public void TestUnauthenticatedLogin()
         {
-            //log4net.Config.XmlConfigurator.Configure();
-
-            string firstName = "Timmy";
-            string lastName = "Mallet";
-            string regionExternalName = "localhost";
-            IPEndPoint capsEndPoint = new IPEndPoint(IPAddress.Loopback, 9123);
-
-            CommunicationsManager commsManager
-                = new TestCommunicationsManager(new NetworkServersInfo(42, 43));
-           
-            //commsManager.GridService.RegisterRegion(
-            //    new RegionInfo(42, 43, capsEndPoint, regionExternalName));
-            //commsManager.GridService.RegionLoginsEnabled = true;
-
-            //LoginService loginService
-            //    = new LocalLoginService(
-            //        (UserManagerBase)commsManager.UserService, "Hello folks", commsManager.InterServiceInventoryService,
-            //        (LocalBackEndServices)commsManager.GridService,
-            //        commsManager.NetworkServersInfo, false, new LibraryRootFolder(String.Empty));
-
-            TestLoginToRegionConnector regionConnector = new TestLoginToRegionConnector();
-            regionConnector.AddRegion(new RegionInfo(42, 43, capsEndPoint, regionExternalName));
-
-            LoginService loginService = new LLStandaloneLoginService((UserManagerBase)commsManager.UserService, "Hello folks", commsManager.InterServiceInventoryService,
-                 commsManager.NetworkServersInfo, false, new LibraryRootFolder(String.Empty), regionConnector);
+            // We want to use our own LoginService for this test, one that
+            // doesn't require authentication.
+            LoginService loginService = new LLStandaloneLoginService((UserManagerBase)m_commsManager.UserService, "Hello folks", m_commsManager.InterServiceInventoryService,
+                 m_commsManager.NetworkServersInfo, false, new LibraryRootFolder(String.Empty), m_regionConnector);
 
             Hashtable loginParams = new Hashtable();
-            loginParams["first"] = firstName;
-            loginParams["last"] = lastName;
+            loginParams["first"] = m_firstName;
+            loginParams["last"] = m_lastName;
             loginParams["passwd"] = "boingboing";
 
             ArrayList sendParams = new ArrayList();
             sendParams.Add(loginParams);
-            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(m_capsEndPoint); // is this parameter correct?
             sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
             XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
@@ -94,78 +102,48 @@ namespace OpenSim.Framework.Communications.Tests
             XmlRpcResponse response = loginService.XmlRpcLoginMethod(request);
             Hashtable responseData = (Hashtable)response.Value;
 
-            Assert.That(responseData["first_name"], Is.EqualTo(firstName));
-            Assert.That(responseData["last_name"], Is.EqualTo(lastName));
+            Assert.That(responseData["first_name"], Is.EqualTo(m_firstName));
+            Assert.That(responseData["last_name"], Is.EqualTo(m_lastName));
             Assert.That(
                 responseData["circuit_code"], Is.GreaterThanOrEqualTo(0) & Is.LessThanOrEqualTo(Int32.MaxValue));
 
             Regex capsSeedPattern
                 = new Regex("^http://"
-                    + regionExternalName
+                    + m_regionExternalName
                     + ":9000/CAPS/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{8}0000/$");
 
             Assert.That(capsSeedPattern.IsMatch((string)responseData["seed_capability"]), Is.True);
         }
 
         [Test]
-        public void T011_Auth_Login()
+        public void TestAuthenticatedLoginSuccess()
         {
-            string firstName = "Adam";
-            string lastName = "West";
-            string regionExternalName = "localhost";
-            IPEndPoint capsEndPoint = new IPEndPoint(IPAddress.Loopback, 9123);
-
-            CommunicationsManager commsManager
-                = new TestCommunicationsManager(new NetworkServersInfo(42, 43));
-
-            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
-
-            lus.AddUser(firstName,lastName,"boingboing","abc@ftw.com",42,43);
-
-            //commsManager.GridService.RegisterRegion(
-            //   new RegionInfo(42, 43, capsEndPoint, regionExternalName));
-            //commsManager.GridService.RegionLoginsEnabled = true;
-
-            //LoginService loginService
-            //    = new LocalLoginService(
-            //        (UserManagerBase)lus, "Hello folks", commsManager.InterServiceInventoryService,
-            //        (LocalBackEndServices)commsManager.GridService,
-            //        commsManager.NetworkServersInfo, true, new LibraryRootFolder(String.Empty));
-
-            TestLoginToRegionConnector regionConnector = new TestLoginToRegionConnector();
-            regionConnector.AddRegion(new RegionInfo(42, 43, capsEndPoint, regionExternalName));
-
-            LoginService loginService = new LLStandaloneLoginService((UserManagerBase) lus, "Hello folks", commsManager.InterServiceInventoryService,
-                  commsManager.NetworkServersInfo, true, new LibraryRootFolder(String.Empty), regionConnector);
-
             // TODO: Not check inventory part of response yet.
             // TODO: Not checking all of login response thoroughly yet.
 
             // 1) Test for positive authentication
 
             Hashtable loginParams = new Hashtable();
-            loginParams["first"] = firstName;
-            loginParams["last"] = lastName;
+            loginParams["first"] = m_firstName;
+            loginParams["last"] = m_lastName;
             loginParams["passwd"] = "boingboing";
 
             ArrayList sendParams = new ArrayList();
             sendParams.Add(loginParams);
-            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(m_capsEndPoint); // is this parameter correct?
             sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
             XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            XmlRpcResponse response = loginService.XmlRpcLoginMethod(request);
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
             Hashtable responseData = (Hashtable)response.Value;
 
-            UserProfileData uprof = lus.GetUserProfile(firstName,lastName);
-
-            UserAgentData uagent = uprof.CurrentAgent;
+            UserAgentData uagent = m_userProfileData.CurrentAgent;
             Assert.That(uagent,Is.Not.Null);
 
             Assert.That(responseData["first_name"], Is.Not.Null);
-            Assert.That(responseData["first_name"], Is.EqualTo(firstName));
-            Assert.That(responseData["last_name"], Is.EqualTo(lastName));
+            Assert.That(responseData["first_name"], Is.EqualTo(m_firstName));
+            Assert.That(responseData["last_name"], Is.EqualTo(m_lastName));
             Assert.That(responseData["agent_id"], Is.EqualTo(uagent.ProfileID.ToString()));
             Assert.That(responseData["session_id"], Is.EqualTo(uagent.SessionID.ToString()));
             Assert.That(responseData["secure_session_id"], Is.EqualTo(uagent.SecureSessionID.ToString()));
@@ -180,34 +158,38 @@ namespace OpenSim.Framework.Communications.Tests
 
             Regex capsSeedPattern
                 = new Regex("^http://"
-                    + regionExternalName
+                    + m_regionExternalName
                     + ":9000/CAPS/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{8}0000/$");
 
             Assert.That(capsSeedPattern.IsMatch((string)responseData["seed_capability"]), Is.True);
+        }
 
+        [Test]
+        public void TestAuthenticatedLoginForBuddies()
+        {
             // 1.1) Test for budddies!
-            lus.AddUser("Friend","Number1","boingboing","abc@ftw.com",42,43);
-            lus.AddUser("Friend","Number2","boingboing","abc@ftw.com",42,43);
+            m_localUserServices.AddUser("Friend","Number1","boingboing","abc@ftw.com",42,43);
+            m_localUserServices.AddUser("Friend","Number2","boingboing","abc@ftw.com",42,43);
 
-            UserProfileData friend1 = lus.GetUserProfile("Friend","Number1");
-            UserProfileData friend2 = lus.GetUserProfile("Friend","Number2");
-            lus.AddNewUserFriend(friend1.ID,uprof.ID,1);
-            lus.AddNewUserFriend(friend1.ID,friend2.ID,2);
+            UserProfileData friend1 = m_localUserServices.GetUserProfile("Friend","Number1");
+            UserProfileData friend2 = m_localUserServices.GetUserProfile("Friend","Number2");
+            m_localUserServices.AddNewUserFriend(friend1.ID,m_userProfileData.ID,1);
+            m_localUserServices.AddNewUserFriend(friend1.ID,friend2.ID,2);
 
-            loginParams = new Hashtable();
+            Hashtable loginParams = new Hashtable();
             loginParams["first"] = "Friend";
             loginParams["last"] = "Number1";
             loginParams["passwd"] = "boingboing";
 
-            sendParams = new ArrayList();
+            ArrayList sendParams = new ArrayList();
             sendParams.Add(loginParams);
-            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(m_capsEndPoint); // is this parameter correct?
             sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
-            request = new XmlRpcRequest("login_to_simulator", sendParams);
+            XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            response = loginService.XmlRpcLoginMethod(request);
-            responseData = (Hashtable)response.Value;
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
+            Hashtable responseData = (Hashtable)response.Value;
 
             ArrayList friendslist = (ArrayList) responseData["buddy-list"];
 
@@ -217,89 +199,118 @@ namespace OpenSim.Framework.Communications.Tests
             Hashtable buddy1 = (Hashtable) friendslist[0];
             Hashtable buddy2 = (Hashtable) friendslist[1];
             Assert.That(friendslist.Count, Is.EqualTo(2));
-            Assert.That(uprof.ID.ToString(), Is.EqualTo(buddy1["buddy_id"]) | Is.EqualTo(buddy2["buddy_id"]));
+            Assert.That(m_userProfileData.ID.ToString(), Is.EqualTo(buddy1["buddy_id"]) | Is.EqualTo(buddy2["buddy_id"]));
             Assert.That(friend2.ID.ToString(), Is.EqualTo(buddy1["buddy_id"]) | Is.EqualTo(buddy2["buddy_id"]));
+        }
+
+        [Test]
+        public void TestAuthenticatedLoginBadUsername()
+        {
 
             // 2) Test for negative authentication
             //
             string error_auth_message = "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.";
-            string error_xml_message = "Error connecting to grid. Could not percieve credentials from login XML.";
-            string error_already_logged = "You appear to be already logged in. " +
-                                         "If this is not the case please wait for your session to timeout. " +
-                                         "If this takes longer than a few minutes please contact the grid owner. " +
-                                         "Please wait 5 minutes if you are going to connect to a region nearby to the region you were at previously.";
             //string error_region_unavailable = "The region you are attempting to log into is not responding. Please select another region and try again.";
             // 2.1) Test for wrong user name
-            loginParams = new Hashtable();
-            loginParams["first"] = lastName;
-            loginParams["last"] = firstName;
+            Hashtable loginParams = new Hashtable();
+            loginParams["first"] = m_lastName;
+            loginParams["last"] = m_firstName;
             loginParams["passwd"] = "boingboing";
 
-            sendParams = new ArrayList();
+            ArrayList sendParams = new ArrayList();
             sendParams.Add(loginParams);
-            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(m_capsEndPoint); // is this parameter correct?
             sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
-            request = new XmlRpcRequest("login_to_simulator", sendParams);
+            XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            response = loginService.XmlRpcLoginMethod(request);
-            responseData = (Hashtable)response.Value;
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
+            Hashtable responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo(error_auth_message));
 
+        }
+
+        [Test]
+        public void TestAuthenticatedLoginBadPassword()
+        {
+            string error_auth_message = "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.";
             // 2.2) Test for wrong password
-            loginParams = new Hashtable();
+            Hashtable loginParams = new Hashtable();
             loginParams["first"] = "Friend";
             loginParams["last"] = "Number2";
             loginParams["passwd"] = "boing";
 
-            sendParams = new ArrayList();
+            ArrayList sendParams = new ArrayList();
             sendParams.Add(loginParams);
-            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(m_capsEndPoint); // is this parameter correct?
             sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
-            request = new XmlRpcRequest("login_to_simulator", sendParams);
+            XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            response = loginService.XmlRpcLoginMethod(request);
-            responseData = (Hashtable)response.Value;
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
+            Hashtable responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo(error_auth_message));
 
+        }
+
+        [Test]
+        public void TestAuthenticatedLoginBadXml()
+        {
+            string error_xml_message = "Error connecting to grid. Could not percieve credentials from login XML.";
             // 2.3) Bad XML
-            loginParams = new Hashtable();
+            Hashtable loginParams = new Hashtable();
             loginParams["first"] = "Friend";
             loginParams["banana"] = "Banana";
             loginParams["passwd"] = "boingboing";
- 
-            sendParams = new ArrayList();
+
+            ArrayList sendParams = new ArrayList();
             sendParams.Add(loginParams);
-            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(m_capsEndPoint); // is this parameter correct?
             sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
-            request = new XmlRpcRequest("login_to_simulator", sendParams);
+            XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            response = loginService.XmlRpcLoginMethod(request);
-            responseData = (Hashtable)response.Value;
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
+            Hashtable responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo(error_xml_message));
-            
+
+        }
+
+        [Test]
+        public void TestAuthenticatedLoginAlreadyLoggedIn()
+        {
+            string error_already_logged = "You appear to be already logged in. " +
+                                         "If this is not the case please wait for your session to timeout. " +
+                                         "If this takes longer than a few minutes please contact the grid owner. " +
+                                         "Please wait 5 minutes if you are going to connect to a region nearby to the region you were at previously.";
             // 2.4) Already logged in and sucessfull post login
-            loginParams = new Hashtable();
+            Hashtable loginParams = new Hashtable();
             loginParams["first"] = "Adam";
             loginParams["last"] = "West";
             loginParams["passwd"] = "boingboing";
 
-            sendParams = new ArrayList();
+            ArrayList sendParams = new ArrayList();
             sendParams.Add(loginParams);
-            sendParams.Add(capsEndPoint); // is this parameter correct?
+            sendParams.Add(m_capsEndPoint); // is this parameter correct?
             sendParams.Add(new Uri("http://localhost:8002/")); // is this parameter correct?
 
+            // First we log in.
+            XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
+            Hashtable responseData = (Hashtable)response.Value;
+            Assert.That(responseData["message"], Is.EqualTo("Hello folks"));
+
+            // Then we try again, this time expecting failure.
             request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            response = loginService.XmlRpcLoginMethod(request);
+            response = m_loginService.XmlRpcLoginMethod(request);
             responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo(error_already_logged));
 
+            // Finally the third time we should be able to get right back in.
             request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            response = loginService.XmlRpcLoginMethod(request);
+            response = m_loginService.XmlRpcLoginMethod(request);
             responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo("Hello folks"));
         }
