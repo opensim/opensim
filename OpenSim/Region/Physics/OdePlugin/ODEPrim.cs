@@ -1510,7 +1510,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // If the PID Controller isn't active then we set our force
                     // calculating base velocity to the current position
 
-                    if ((m_PIDTau < 1))
+                    if ((m_PIDTau < 1) && (m_PIDTau != 0))
                     {
                         //PID_G = PID_G / m_PIDTau;
                         m_PIDTau = 1;

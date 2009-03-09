@@ -119,6 +119,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private int m_perfMonMS = 0;
 
+        private bool m_sitStatus = false;
+
         private bool m_setAlwaysRun = false;
 
         private Quaternion m_bodyRot= Quaternion.Identity;
@@ -567,7 +569,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_firstname = m_controllingClient.FirstName;
             m_lastname = m_controllingClient.LastName;
             m_name = String.Format("{0} {1}", m_firstname, m_lastname);
-
+            if (DateTime.Now.Month==4&&DateTime.Now.Day==1)
+                m_sitStatus = true;
             m_scene = world;
             m_uuid = client.AgentId;
             m_regionInfo = reginfo;
@@ -600,11 +603,15 @@ namespace OpenSim.Region.Framework.Scenes
             : this(client, world, reginfo)
         {
             m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);
+            if (DateTime.Now.Month==4&&DateTime.Now.Day==1)
+                m_sitStatus = true;
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
             : this(client, world, reginfo)
         {
+            if (DateTime.Now.Month==4&&DateTime.Now.Day==1)
+                m_sitStatus = true;
             m_appearance = appearance;
         }
 
@@ -1144,8 +1151,17 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 StandUp();
             }
+
+            
+
             m_mouseLook = (flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
+
+            
+
             m_leftButtonDown = (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
+
+           
+
             lock (scriptedcontrols)
             {
                 if (scriptedcontrols.Count > 0)
@@ -1788,7 +1804,70 @@ namespace OpenSim.Region.Framework.Scenes
                 PhysicsActor.SetAlwaysRun = SetAlwaysRun;
             }
         }
+        public BinBVHAnimation GenerateRandomAnimation()
+        {
+            int rnditerations = 3;
+            BinBVHAnimation anim = new BinBVHAnimation();
+            List<string> parts = new List<string>();
+            parts.Add("mPelvis");parts.Add("mHead");parts.Add("mTorso");
+            parts.Add("mHipLeft");parts.Add("mHipRight");parts.Add("mHipLeft");parts.Add("mKneeLeft");
+            parts.Add("mKneeRight");parts.Add("mCollarLeft");parts.Add("mCollarRight");parts.Add("mNeck");
+            parts.Add("mElbowLeft");parts.Add("mElbowRight");parts.Add("mWristLeft");parts.Add("mWristRight");
+            parts.Add("mShoulderLeft");parts.Add("mShoulderRight");parts.Add("mAnkleLeft");parts.Add("mAnkleRight");
+            parts.Add("mEyeRight");parts.Add("mChest");parts.Add("mToeLeft");parts.Add("mToeRight");
+            parts.Add("mFootLeft");parts.Add("mFootRight");parts.Add("mEyeLeft");
+            anim.HandPose = 1;
+            anim.InPoint = 0;
+            anim.OutPoint = (rnditerations * .10f);
+            anim.Priority = 7;
+            anim.Loop = false;
+            anim.Length = (rnditerations * .10f);
+            anim.ExpressionName = "afraid";
+            anim.EaseInTime = 0;
+            anim.EaseOutTime = 0;
 
+            string[] strjoints = parts.ToArray();
+            anim.Joints = new binBVHJoint[strjoints.Length];
+            for (int j = 0; j < strjoints.Length; j++)
+            {
+                anim.Joints[j] = new binBVHJoint();
+                anim.Joints[j].Name = strjoints[j];
+                anim.Joints[j].Priority = 7;
+                anim.Joints[j].positionkeys = new binBVHJointKey[rnditerations];
+                anim.Joints[j].rotationkeys = new binBVHJointKey[rnditerations];
+                Random rnd = new Random();
+                for (int i = 0; i < rnditerations; i++)
+                {
+                    anim.Joints[j].rotationkeys[i] = new binBVHJointKey();
+                    anim.Joints[j].rotationkeys[i].time = (i*.10f);
+                    anim.Joints[j].rotationkeys[i].key_element.X = ((float) rnd.NextDouble()*2 - 1);
+                    anim.Joints[j].rotationkeys[i].key_element.Y = ((float) rnd.NextDouble()*2 - 1);
+                    anim.Joints[j].rotationkeys[i].key_element.Z = ((float) rnd.NextDouble()*2 - 1);
+                    anim.Joints[j].positionkeys[i] = new binBVHJointKey();
+                    anim.Joints[j].positionkeys[i].time = (i*.10f);
+                    anim.Joints[j].positionkeys[i].key_element.X = 0;
+                    anim.Joints[j].positionkeys[i].key_element.Y = 0;
+                    anim.Joints[j].positionkeys[i].key_element.Z = 0;
+                }
+            }
+
+
+            AssetBase Animasset = new AssetBase();
+            Animasset.Data = anim.ToBytes();
+            Animasset.Temporary = true;
+            Animasset.Local = true;
+            Animasset.FullID = UUID.Random();
+            Animasset.ID = Animasset.FullID.ToString();
+            Animasset.Name = "Random Animation";
+            Animasset.Type = (sbyte)AssetType.Animation;
+            Animasset.Description = "dance";
+            //BinBVHAnimation bbvhanim = new BinBVHAnimation(Animasset.Data);
+
+
+            m_scene.CommsManager.AssetCache.AddAsset(Animasset);
+            AddAnimation(Animasset.FullID, UUID);
+            return anim;
+        }
         public void AddAnimation(UUID animID, UUID objectID)
         {
             if (m_isChildAgent)
@@ -2159,6 +2238,8 @@ namespace OpenSim.Region.Framework.Scenes
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
                                                             LocalId, m_pos, m_appearance.Texture.ToBytes(),
                                                             m_parentID, rot);
+            if (m_sitStatus)
+                GenerateRandomAnimation();
             m_scene.AddAgentUpdates(1);
         }
 
@@ -2175,6 +2256,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // only send if this is the root (children are only "listening posts" in a foreign region)
                 if (!IsChildAgent)
                 {
+                    if (m_sitStatus)
+                        GenerateRandomAnimation();
                     SendFullUpdateToOtherClient(avatar);
                 }
 
@@ -2182,8 +2265,11 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (!avatar.IsChildAgent)
                     {
+                        m_log.Debug(DateTime.Now.ToString());
                         avatar.SendFullUpdateToOtherClient(this);
                         avatar.SendAppearanceToOtherAgent(this);
+                        if (m_sitStatus)
+                            GenerateRandomAnimation();
                         avatar.SendAnimPackToClient(this.ControllingClient);
                     }
                 }
@@ -2198,6 +2284,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_perfMonMS = System.Environment.TickCount;
 
+            if (m_sitStatus)
+                GenerateRandomAnimation();
             // only send update from root agents to other clients; children are only "listening posts"
             List<ScenePresence> avatars = m_scene.GetAvatars();
             foreach (ScenePresence avatar in avatars)
@@ -2421,6 +2509,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_LastChildAgentUpdatePosition.X = AbsolutePosition.X;
                 m_LastChildAgentUpdatePosition.Y = AbsolutePosition.Y;
                 m_LastChildAgentUpdatePosition.Z = AbsolutePosition.Z;
+
+                if (m_sitStatus)
+                    GenerateRandomAnimation();
             }
         }
 
@@ -2832,6 +2923,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
             DefaultTexture = textu.ToBytes();
+            
         }
 
         public class NewForce
@@ -2970,7 +3062,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
                 DefaultTexture = textu.ToBytes();
-            }
+            } 
+            if (DateTime.Now.Month==4&&DateTime.Now.Day==1)
+                m_sitStatus = true;
         }
 
         public void AddAttachment(SceneObjectGroup gobj)

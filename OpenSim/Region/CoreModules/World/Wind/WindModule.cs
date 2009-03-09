@@ -182,8 +182,8 @@ namespace OpenSim.Region.CoreModules
             {
                 for (int x = 0; x < 16; x++)
                 {
-                    windSpeeds[y * 16 + x].X = (float)(rndnums.NextDouble() * 2d - 1d);
-                    windSpeeds[y * 16 + x].Y = (float)(rndnums.NextDouble() * 2d - 1d);
+                    windSpeeds[y * 16 + x].X = (float)(rndnums.NextDouble() * 2d - 1d); // -1 to 1
+                    windSpeeds[y * 16 + x].Y = (float)(rndnums.NextDouble() * 2d - 1d); // -1 to 1
                 }
             }
         }
