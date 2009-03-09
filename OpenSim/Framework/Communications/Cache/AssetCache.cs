@@ -46,8 +46,7 @@ namespace OpenSim.Framework.Communications.Cache
     /// This class actually encapsulates two largely separate mechanisms.  One mechanism fetches assets either
     /// synchronously or async and passes the data back to the requester.  The second mechanism fetches assets and
     /// sends packetised data directly back to the client.  The only point where they meet is AssetReceived() and
-    /// AssetNotFound(), which means they do share the same asset and texture caches.I agr
-
+    /// AssetNotFound(), which means they do share the same asset and texture caches.
     public class AssetCache : IAssetCache
     {
 
@@ -401,9 +400,7 @@ namespace OpenSim.Framework.Communications.Cache
                 m_memcache.AddOrUpdate(assetInf.FullID, assetInf, TimeSpan.FromHours(24));
 
                 if (StatsManager.SimExtraStats != null)
-                {
                     StatsManager.SimExtraStats.AddAsset(assetInf);
-                }
 
                 if (RequestedAssets.ContainsKey(assetInf.FullID))
                 {

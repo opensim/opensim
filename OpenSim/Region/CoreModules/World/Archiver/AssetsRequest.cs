@@ -72,7 +72,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         protected IAssetCache m_assetCache;
 
-        protected internal AssetsRequest(ICollection<UUID> uuids, IAssetCache assetCache, AssetsRequestCallback assetsRequestCallback)
+        protected internal AssetsRequest(
+            ICollection<UUID> uuids, IAssetCache assetCache, AssetsRequestCallback assetsRequestCallback)
         {
             m_uuids = uuids;
             m_assetsRequestCallback = assetsRequestCallback;
@@ -100,9 +101,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public void AssetRequestCallback(UUID assetID, AssetBase asset)
         {
             if (asset != null)
-                m_assets[assetID] = asset;
+            {
+                m_assetCache.ExpireAsset(assetID);
+                m_assets[assetID] = asset;                
+            }
             else
+            {
                 m_notFoundAssetUuids.Add(assetID);
+            }
 
             //m_log.DebugFormat(
             //    "[ARCHIVER]: Received {0} assets and notification of {1} missing assets", m_assets.Count, m_notFoundAssetUuids.Count);
