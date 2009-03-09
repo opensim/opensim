@@ -36,7 +36,6 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public class GridAssetClient : AssetServerBase
     {
-
         #region IPlugin
 
         public override string Name
@@ -51,7 +50,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public override void Initialise(ConfigSettings p_set, string p_url)
         {
-            m_log.Debug("[GRIDASSET] Plugin configured initialisation");
+            m_log.Debug("[GRID ASSET CLIENT]: Plugin configured initialisation");
             Initialise(p_url);
         }
 
@@ -65,7 +64,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public GridAssetClient(string p_url)
         {
-            m_log.Debug("[GRIDASSET] Direct constructor");
+            m_log.Debug("[GRID ASSET CLIENT]: Direct constructor");
             Initialise(p_url);
         }
 

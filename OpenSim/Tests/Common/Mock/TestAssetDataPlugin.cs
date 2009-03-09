@@ -38,18 +38,39 @@ namespace OpenSim.Tests.Common.Mock
     /// tests are single threaded.
     /// </summary>
     public class TestAssetDataPlugin : IAssetDataPlugin
-    {
+    {        
         public string Version { get { return "0"; } }
         public string Name { get { return "TestAssetDataPlugin"; } }
+                
+        protected Dictionary<UUID, AssetBase> Assets = new Dictionary<UUID, AssetBase>();        
 
         public void Initialise() {}
+        public void Initialise(string connect) {}
         public void Dispose() {}
 
-        public AssetBase FetchAsset(UUID uuid) { return null; }
-        public void CreateAsset(AssetBase asset) {}
-        public void UpdateAsset(AssetBase asset) {}
-        public bool ExistsAsset(UUID uuid) { return false; }
-        public List<AssetMetadata> FetchAssetMetadataSet(int start, int count) { return new List<AssetMetadata>(count); }
-        public void Initialise(string connect) {}
+        public AssetBase FetchAsset(UUID uuid) 
+        {
+            if (ExistsAsset(uuid))
+                return Assets[uuid];
+            else
+                return null;
+        }
+        
+        public void CreateAsset(AssetBase asset) 
+        {
+            Assets[asset.FullID] = asset;
+        }
+        
+        public void UpdateAsset(AssetBase asset) 
+        {
+            CreateAsset(asset);
+        }
+        
+        public bool ExistsAsset(UUID uuid) 
+        { 
+            return Assets.ContainsKey(uuid); 
+        }
+        
+        public List<AssetMetadata> FetchAssetMetadataSet(int start, int count) { return new List<AssetMetadata>(count); }        
     }
 }
