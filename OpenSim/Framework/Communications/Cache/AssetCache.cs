@@ -37,8 +37,6 @@ using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.Communications.Cache
 {
-    // public delegate void AssetRequestCallback(UUID assetID, AssetBase asset);
-
     /// <summary>
     /// Manages local cache of assets and their sending to viewers.
     /// </summary>
@@ -49,7 +47,6 @@ namespace OpenSim.Framework.Communications.Cache
     /// AssetNotFound(), which means they do share the same asset and texture caches.
     public class AssetCache : IAssetCache
     {
-
         #region IPlugin
 
         /// <summary>
@@ -88,7 +85,6 @@ namespace OpenSim.Framework.Communications.Cache
             assetCacheThread.IsBackground = true;
             assetCacheThread.Start();
             ThreadTracker.Add(assetCacheThread);
-
         }
 
         public virtual void Initialise(ConfigSettings settings, IAssetServer assetServer)
@@ -113,44 +109,27 @@ namespace OpenSim.Framework.Communications.Cache
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// The cache of assets.  This does not include textures.
-        /// </summary>
-        //private Dictionary<UUID, AssetInfo> Assets;
-
-        /// <summary>
-        /// The cache of textures.
-        /// </summary>
-        //private Dictionary<UUID, TextureImage> Textures;
-
-        /// <summary>
+        /// <value>
         /// Assets requests which are waiting for asset server data.  This includes texture requests
-        /// </summary>
+        /// </value>
         private Dictionary<UUID, AssetRequest> RequestedAssets;
 
-        /// <summary>
+        /// <value>
         /// Asset requests with data which are ready to be sent back to requesters.  This includes textures.
-        /// </summary>
+        /// </value>
         private List<AssetRequest> AssetRequests;
 
-        /// <summary>
+        /// <value>
         /// Until the asset request is fulfilled, each asset request is associated with a list of requesters
-        /// </summary>
-        private Dictionary<UUID, AssetRequestsList> RequestLists;
-
-        /// <summary>
-        /// The 'server' from which assets can be requested and to which assets are persisted.
-        /// </summary>
-        private IAssetServer m_assetServer;
+        /// </value>
+        private Dictionary<UUID, AssetRequestsList> RequestLists;        
 
         public IAssetServer AssetServer
         {
             get { return m_assetServer; }
         }
+        private IAssetServer m_assetServer;        
 
-        /// <summary>
-        /// Report statistical data.
-        /// </summary>
         public void ShowState()
         {
             m_log.InfoFormat("Memcache:{0}   RequestLists:{1}",
@@ -160,9 +139,6 @@ namespace OpenSim.Framework.Communications.Cache
                 RequestLists.Count);
         }
 
-        /// <summary>
-        /// Clear the asset cache.
-        /// </summary>
         public void Clear()
         {
             m_log.Info("[ASSET CACHE]: Clearing Asset cache");
@@ -214,12 +190,6 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        /// <summary>
-        /// Only get an asset if we already have it in the cache.
-        /// </summary>
-        /// <param name="assetId"></param>
-        /// <param name="asset"></param>
-        /// <returns>true if the asset was in the cache, false if it was not</returns>
         public bool TryGetCachedAsset(UUID assetId, out AssetBase asset)
         {
             Object tmp;
@@ -234,15 +204,6 @@ namespace OpenSim.Framework.Communications.Cache
             return false;
         }
 
-        /// <summary>
-        /// Asynchronously retrieve an asset.
-        /// </summary>
-        /// <param name="assetId"></param>
-        /// <param name="callback">
-        /// <param name="isTexture"></param>
-        /// A callback invoked when the asset has either been found or not found.
-        /// If the asset was found this is called with the asset UUID and the asset data
-        /// If the asset was not found this is still called with the asset UUID but with a null asset data reference</param>
         public void GetAsset(UUID assetId, AssetRequestCallback callback, bool isTexture)
         {
             //m_log.DebugFormat("[ASSET CACHE]: Requesting {0} {1}", isTexture ? "texture" : "asset", assetId);
@@ -288,19 +249,6 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        /// <summary>
-        /// Synchronously retreive an asset.  If the asset isn't in the cache, a request will be made to the persistent store to
-        /// load it into the cache.
-        /// </summary>
-        ///
-        /// XXX We'll keep polling the cache until we get the asset or we exceed
-        /// the allowed number of polls.  This isn't a very good way of doing things since a single thread
-        /// is processing inbound packets, so if the asset server is slow, we could block this for up to
-        /// the timeout period.  Whereever possible we want to use the asynchronous callback GetAsset()
-        ///
-        /// <param name="assetID"></param>
-        /// <param name="isTexture"></param>
-        /// <returns>null if the asset could not be retrieved</returns>
         public AssetBase GetAsset(UUID assetID, bool isTexture)
         {
             // I'm not going over 3 seconds since this will be blocking processing of all the other inbound
@@ -334,10 +282,6 @@ namespace OpenSim.Framework.Communications.Cache
             return null;
         }
 
-        /// <summary>
-        /// Add an asset to both the persistent store and the cache.
-        /// </summary>
-        /// <param name="asset"></param>
         public void AddAsset(AssetBase asset)
         {
             if (!m_memcache.Contains(asset.FullID))
@@ -371,13 +315,6 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        /// <summary>
-        /// Allows you to clear a specific asset by uuid out
-        /// of the asset cache.  This is needed because the osdynamic
-        /// texture code grows the asset cache without bounds.  The
-        /// real solution here is a much better cache archicture, but
-        /// this is a stop gap measure until we have such a thing.
-        /// </summary>
         public void ExpireAsset(UUID uuid)
         {
             // uuid is unique, so no need to worry about it showing up
@@ -393,7 +330,6 @@ namespace OpenSim.Framework.Communications.Cache
         // See IAssetReceiver
         public virtual void AssetReceived(AssetBase asset, bool IsTexture)
         {
-
             AssetInfo assetInf = new AssetInfo(asset);
             if (!m_memcache.Contains(assetInf.FullID))
             {
@@ -488,11 +424,6 @@ namespace OpenSim.Framework.Communications.Cache
             return numPackets;
         }
 
-        /// <summary>
-        /// Handle an asset request from the client.  The result will be sent back asynchronously.
-        /// </summary>
-        /// <param name="userInfo"></param>
-        /// <param name="transferRequest"></param>
         public void AddAssetRequest(IClientAPI userInfo, TransferRequestPacket transferRequest)
         {
             UUID requestID = UUID.Zero;
@@ -581,8 +512,8 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     req2 = new AssetRequestToClient();
                 }
-                // Trying to limit memory usage by only creating AssetRequestToClient if needed
-                //req2 = new AssetRequestToClient();
+                
+                // Trying to limit memory usage by only creating AssetRequestToClient if needed               
                 req2.AssetInf = req.AssetInf;
                 req2.AssetRequestSource = req.AssetRequestSource;
                 req2.DataPointer = req.DataPointer;
@@ -595,7 +526,6 @@ namespace OpenSim.Framework.Communications.Cache
                 req2.RequestAssetID = req.RequestAssetID;
                 req2.TransferRequestID = req.TransferRequestID;
                 req.RequestUser.SendAsset(req2);
-
             }
 
             //remove requests that have been completed
