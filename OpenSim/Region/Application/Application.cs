@@ -39,7 +39,7 @@ namespace OpenSim
     public class Application
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public static string iniFilePath = "";
 
         public static bool m_saveCrashDumps = false;
@@ -51,7 +51,8 @@ namespace OpenSim
         public static void Main(string[] args)
         {
             // First line
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+            AppDomain.CurrentDomain.UnhandledException +=
+                new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             XmlConfigurator.Configure();
 
@@ -143,7 +144,7 @@ namespace OpenSim
             msg += "\r\n";
 
             msg += "Exception: " + e.ExceptionObject.ToString() + "\r\n";
-            Exception ex = (Exception)e.ExceptionObject;
+            Exception ex = (Exception) e.ExceptionObject;
             if (ex.InnerException != null)
             {
                 msg += "InnerException: " + ex.InnerException.ToString() + "\r\n";
@@ -177,7 +178,7 @@ namespace OpenSim
                 m_log.ErrorFormat("[CRASH LOGGER CRASHED]: {0}", e2);
             }
 
-            _IsHandlingException=false;
+            _IsHandlingException = false;
         }
     }
 }

@@ -85,7 +85,8 @@ namespace OpenSim
             m_log.Info("====================================================================");
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
-            m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode", (ConfigurationSettings.Standalone ? "sandbox" : "grid"));
+            m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode",
+                             (ConfigurationSettings.Standalone ? "sandbox" : "grid"));
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Is Server GC: {0}", GCSettings.IsServerGC.ToString());
             // http://msdn.microsoft.com/en-us/library/bb384202.aspx
             //GCSettings.LatencyMode = GCLatencyMode.Batch;
@@ -100,7 +101,7 @@ namespace OpenSim
             base.StartupSpecific();
 
             //Run Startup Commands
-            if (String.IsNullOrEmpty( m_startupCommandsFile ))
+            if (String.IsNullOrEmpty(m_startupCommandsFile))
             {
                 m_log.Info("[STARTUP]: No startup command script specified. Moving on...");
             }
@@ -114,7 +115,7 @@ namespace OpenSim
             {
                 m_scriptTimer = new Timer();
                 m_scriptTimer.Enabled = true;
-                m_scriptTimer.Interval = 1200 * 1000;
+                m_scriptTimer.Interval = 1200*1000;
                 m_scriptTimer.Elapsed += RunAutoTimerScript;
             }
 
@@ -122,7 +123,8 @@ namespace OpenSim
 
             // For now, start at the 'root' level by default
             if (m_sceneManager.Scenes.Count == 1) // If there is only one region, select it
-                ChangeSelectedRegion("region", new string[] {"change", "region", m_sceneManager.Scenes[0].RegionInfo.RegionName});
+                ChangeSelectedRegion("region",
+                                     new string[] {"change", "region", m_sceneManager.Scenes[0].RegionInfo.RegionName});
             else
                 ChangeSelectedRegion("region", new string[] {"change", "region", "root"});
         }
@@ -130,164 +132,164 @@ namespace OpenSim
         private void RegisterConsoleCommands()
         {
             m_console.Commands.AddCommand("region", false, "clear assets",
-                    "clear assets",
-                    "Clear the asset cache", HandleClearAssets);
+                                          "clear assets",
+                                          "Clear the asset cache", HandleClearAssets);
 
             m_console.Commands.AddCommand("region", false, "force update",
-                    "force update",
-                    "Force the update of all objects on clients",
-                    HandleForceUpdate);
+                                          "force update",
+                                          "Force the update of all objects on clients",
+                                          HandleForceUpdate);
 
             m_console.Commands.AddCommand("region", false, "debug packet",
-                    "debug packet <level>",
-                    "Turn on packet debugging", Debug);
+                                          "debug packet <level>",
+                                          "Turn on packet debugging", Debug);
 
             m_console.Commands.AddCommand("region", false, "debug scene",
-                    "debug scene <cripting> <collisions> <physics>",
-                    "Turn on scene debugging", Debug);
+                                          "debug scene <cripting> <collisions> <physics>",
+                                          "Turn on scene debugging", Debug);
 
             m_console.Commands.AddCommand("region", false, "change region",
-                    "change region <region name>",
-                    "Change current console region", ChangeSelectedRegion);
+                                          "change region <region name>",
+                                          "Change current console region", ChangeSelectedRegion);
 
             m_console.Commands.AddCommand("region", false, "save xml",
-                    "save xml",
-                    "Save a region's data in XML format", SaveXml);
+                                          "save xml",
+                                          "Save a region's data in XML format", SaveXml);
 
             m_console.Commands.AddCommand("region", false, "save xml2",
-                    "save xml2",
-                    "Save a region's data in XML2 format", SaveXml2);
+                                          "save xml2",
+                                          "Save a region's data in XML2 format", SaveXml2);
 
             m_console.Commands.AddCommand("region", false, "load xml",
-                    "load xml [-newIDs [<x> <y> <z>]]",
-                    "Load a region's data from XML format", LoadXml);
+                                          "load xml [-newIDs [<x> <y> <z>]]",
+                                          "Load a region's data from XML format", LoadXml);
 
             m_console.Commands.AddCommand("region", false, "load xml2",
-                    "load xml2",
-                    "Load a region's data from XML2 format", LoadXml2);
+                                          "load xml2",
+                                          "Load a region's data from XML2 format", LoadXml2);
 
             m_console.Commands.AddCommand("region", false, "save prims xml2",
-                    "save prims xml2 [<prim name> <file name>]",
-                    "Save named prim to XML2", SavePrimsXml2);
+                                          "save prims xml2 [<prim name> <file name>]",
+                                          "Save named prim to XML2", SavePrimsXml2);
 
             m_console.Commands.AddCommand("region", false, "load oar",
-                    "load oar <oar name>",
-                    "Load a region's data from OAR archive", LoadOar);
+                                          "load oar <oar name>",
+                                          "Load a region's data from OAR archive", LoadOar);
 
             m_console.Commands.AddCommand("region", false, "save oar",
-                    "save oar <oar name>",
-                    "Save a region's data to an OAR archive",
-                    "More information on forthcoming options here soon", SaveOar);
+                                          "save oar <oar name>",
+                                          "Save a region's data to an OAR archive",
+                                          "More information on forthcoming options here soon", SaveOar);
 
             m_console.Commands.AddCommand("region", false, "edit scale",
-                    "edit scale <name> <x> <y> <z>",
-                    "Change the scale of a named prim", HandleEditScale);
+                                          "edit scale <name> <x> <y> <z>",
+                                          "Change the scale of a named prim", HandleEditScale);
 
             m_console.Commands.AddCommand("region", false, "kick user",
-                    "kick user <first> <last>",
-                    "Kick a user off the simulator", KickUserCommand);
+                                          "kick user <first> <last>",
+                                          "Kick a user off the simulator", KickUserCommand);
 
             m_console.Commands.AddCommand("region", false, "show assets",
-                    "show assets",
-                    "Show asset data", HandleShow);
+                                          "show assets",
+                                          "Show asset data", HandleShow);
 
             m_console.Commands.AddCommand("region", false, "show users",
-                    "show users [full]",
-                    "Show user data", HandleShow);
+                                          "show users [full]",
+                                          "Show user data", HandleShow);
 
             m_console.Commands.AddCommand("region", false, "show users full",
-                    "show users full",
-                    String.Empty, HandleShow);
+                                          "show users full",
+                                          String.Empty, HandleShow);
 
             m_console.Commands.AddCommand("region", false, "show modules",
-                    "show modules",
-                    "Show module data", HandleShow);
+                                          "show modules",
+                                          "Show module data", HandleShow);
 
             m_console.Commands.AddCommand("region", false, "show regions",
-                    "show regions",
-                    "Show region data", HandleShow);
+                                          "show regions",
+                                          "Show region data", HandleShow);
 
             m_console.Commands.AddCommand("region", false, "show queues",
-                    "show queues",
-                    "Show queue data", HandleShow);
+                                          "show queues",
+                                          "Show queue data", HandleShow);
 
             m_console.Commands.AddCommand("region", false, "backup",
-                    "backup",
-                    "Persist objects to the database now", RunCommand);
+                                          "backup",
+                                          "Persist objects to the database now", RunCommand);
 
             m_console.Commands.AddCommand("region", false, "create region",
-                    "create region",
-                    "Create a new region", HandleCreateRegion);
+                                          "create region",
+                                          "Create a new region", HandleCreateRegion);
 
             m_console.Commands.AddCommand("region", false, "login enable",
-                    "login enable",
-                    "Enable logins to the simulator", HandleLoginEnable);
+                                          "login enable",
+                                          "Enable logins to the simulator", HandleLoginEnable);
 
             m_console.Commands.AddCommand("region", false, "login disable",
-                    "login disable",
-                    "Disable logins to the simulator", HandleLoginDisable);
+                                          "login disable",
+                                          "Disable logins to the simulator", HandleLoginDisable);
 
             m_console.Commands.AddCommand("region", false, "login status",
-                    "login status",
-                    "Display status of logins", HandleLoginStatus);
+                                          "login status",
+                                          "Display status of logins", HandleLoginStatus);
 
             m_console.Commands.AddCommand("region", false, "restart",
-                    "restart",
-                    "Restart all sims in this instance", RunCommand);
+                                          "restart",
+                                          "Restart all sims in this instance", RunCommand);
 
             m_console.Commands.AddCommand("region", false, "config set",
-                    "config set <section> <field> <value>",
-                    "Set a config option", HandleConfig);
+                                          "config set <section> <field> <value>",
+                                          "Set a config option", HandleConfig);
 
             m_console.Commands.AddCommand("region", false, "config get",
-                    "config get <section> <field>",
-                    "Read a config option", HandleConfig);
+                                          "config get <section> <field>",
+                                          "Read a config option", HandleConfig);
 
             m_console.Commands.AddCommand("region", false, "config save",
-                    "config save",
-                    "Save current configuration", HandleConfig);
+                                          "config save",
+                                          "Save current configuration", HandleConfig);
 
             m_console.Commands.AddCommand("region", false, "command-script",
-                    "command-script <script>",
-                    "Run a command script from file", RunCommand);
+                                          "command-script <script>",
+                                          "Run a command script from file", RunCommand);
 
             m_console.Commands.AddCommand("region", false, "remove-region",
-                    "remove-region <name>",
-                    "Remove a region from this simulator", RunCommand);
+                                          "remove-region <name>",
+                                          "Remove a region from this simulator", RunCommand);
 
             m_console.Commands.AddCommand("region", false, "delete-region",
-                    "delete-region <name>",
-                    "Delete a region from disk", RunCommand);
+                                          "delete-region <name>",
+                                          "Delete a region from disk", RunCommand);
 
             m_console.Commands.AddCommand("region", false, "predecode-j2k",
-                    "predecode-j2k [<num threads>]>",
-                    "Precache assets,decode j2k layerdata", RunCommand);
+                                          "predecode-j2k [<num threads>]>",
+                                          "Precache assets,decode j2k layerdata", RunCommand);
 
             m_console.Commands.AddCommand("region", false, "modules list",
-                    "modules list",
-                    "List modules", HandleModules);
+                                          "modules list",
+                                          "List modules", HandleModules);
 
             m_console.Commands.AddCommand("region", false, "modules load",
-                    "modules load <name>",
-                    "Load a module", HandleModules);
+                                          "modules load <name>",
+                                          "Load a module", HandleModules);
 
             m_console.Commands.AddCommand("region", false, "modules unload",
-                    "modules unload <name>",
-                    "Unload a module", HandleModules);
+                                          "modules unload <name>",
+                                          "Unload a module", HandleModules);
 
             m_console.Commands.AddCommand("region", false, "Add-InventoryHost",
-                    "Add-InventoryHost <host>",
-                    String.Empty, RunCommand);
+                                          "Add-InventoryHost <host>",
+                                          String.Empty, RunCommand);
 
             if (ConfigurationSettings.Standalone)
             {
                 m_console.Commands.AddCommand("region", false, "create user",
-                        "create user [<first> [<last> [<pass> [<x> <y> [<email>]]]]]",
-                        "Create a new user", HandleCreateUser);
+                                              "create user [<first> [<last> [<pass> [<x> <y> [<email>]]]]]",
+                                              "Create a new user", HandleCreateUser);
 
                 m_console.Commands.AddCommand("region", false, "reset user password",
-                        "reset user password [<first> [<last> [<password>]]]",
-                        "Reset a user password", HandleResetUserPassword);
+                                              "reset user password [<first> [<last> [<password>]]]",
+                                              "Reset a user password", HandleResetUserPassword);
             }
         }
 
@@ -321,15 +323,16 @@ namespace OpenSim
             {
                 RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
 
-                if (presence.Firstname.ToLower().Contains(cmdparams[2].ToLower()) && presence.Lastname.ToLower().Contains(cmdparams[3].ToLower()))
+                if (presence.Firstname.ToLower().Contains(cmdparams[2].ToLower()) &&
+                    presence.Lastname.ToLower().Contains(cmdparams[3].ToLower()))
                 {
                     m_console.Notice(
                         String.Format(
-                             "Kicking user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
-                             presence.Firstname,
-                             presence.Lastname,
-                             presence.UUID,
-                             regionInfo.RegionName));
+                            "Kicking user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
+                            presence.Firstname,
+                            presence.Lastname,
+                            presence.UUID,
+                            regionInfo.RegionName));
 
                     presence.Scene.IncomingCloseAgent(presence.UUID);
                 }
@@ -458,9 +461,9 @@ namespace OpenSim
                         }
                         else
                         {
-                           // IConfig c = DefaultConfig().Configs[cmdparams[1]];
-                           // if (c == null)
-                           //     c = DefaultConfig().AddConfig(cmdparams[1]);
+                            // IConfig c = DefaultConfig().Configs[cmdparams[1]];
+                            // if (c == null)
+                            //     c = DefaultConfig().AddConfig(cmdparams[1]);
                             IConfig c;
                             IConfigSource source = new IniConfigSource();
                             c = source.AddConfig(cmdparams[1]);
@@ -471,11 +474,11 @@ namespace OpenSim
                                 m_config.Source.Merge(source);
 
                                 m_console.Error(n, n + " " + n + " " + cmdparams[1] + " " + cmdparams[2] + " " +
-                                                _value);
+                                                   _value);
                             }
                         }
                         break;
-                    
+
                     case "get":
                         if (cmdparams.Length < 3)
                         {
@@ -498,7 +501,7 @@ namespace OpenSim
                         }
 
                         break;
-                    
+
                     case "save":
                         m_console.Notice("Saving configuration file: " + Application.iniFilePath);
                         m_config.Save(Application.iniFilePath);
@@ -541,7 +544,6 @@ namespace OpenSim
                         {
                             foreach (Scene s in new ArrayList(m_sceneManager.Scenes))
                             {
-
                                 m_console.Notice("Loading module: " + cmdparams[1]);
                                 m_moduleLoader.LoadRegionModules(cmdparams[1], s);
                             }
@@ -569,58 +571,58 @@ namespace OpenSim
 
             switch (command)
             {
-            case "command-script":
-                if (cmdparams.Length > 0)
-                {
-                    RunCommandScript(cmdparams[0]);
-                }
-                break;
+                case "command-script":
+                    if (cmdparams.Length > 0)
+                    {
+                        RunCommandScript(cmdparams[0]);
+                    }
+                    break;
 
-            case "backup":
-                m_sceneManager.BackupCurrentScene();
-                break;
+                case "backup":
+                    m_sceneManager.BackupCurrentScene();
+                    break;
 
-            case "remove-region":
-                string regRemoveName = CombineParams(cmdparams, 0);
+                case "remove-region":
+                    string regRemoveName = CombineParams(cmdparams, 0);
 
-                Scene removeScene;
-                if (m_sceneManager.TryGetScene(regRemoveName, out removeScene))
-                    RemoveRegion(removeScene, false);
-                else
-                    m_console.Error("no region with that name");
-                break;
+                    Scene removeScene;
+                    if (m_sceneManager.TryGetScene(regRemoveName, out removeScene))
+                        RemoveRegion(removeScene, false);
+                    else
+                        m_console.Error("no region with that name");
+                    break;
 
-            case "delete-region":
-                string regDeleteName = CombineParams(cmdparams, 0);
+                case "delete-region":
+                    string regDeleteName = CombineParams(cmdparams, 0);
 
-                Scene killScene;
-                if (m_sceneManager.TryGetScene(regDeleteName, out killScene))
-                    RemoveRegion(killScene, true);
-                else
-                    m_console.Error("no region with that name");
-                break;
+                    Scene killScene;
+                    if (m_sceneManager.TryGetScene(regDeleteName, out killScene))
+                        RemoveRegion(killScene, true);
+                    else
+                        m_console.Error("no region with that name");
+                    break;
 
-            case "restart":
-                m_sceneManager.RestartCurrentScene();
-                break;
+                case "restart":
+                    m_sceneManager.RestartCurrentScene();
+                    break;
 
-            case "Add-InventoryHost":
-                if (cmdparams.Length > 0)
-                {
-                    m_commsManager.AddInventoryService(cmdparams[0]);
-                }
-                break;
+                case "Add-InventoryHost":
+                    if (cmdparams.Length > 0)
+                    {
+                        m_commsManager.AddInventoryService(cmdparams[0]);
+                    }
+                    break;
 
-            case "predecode-j2k":
-                if (cmdparams.Length > 0)
-                {
-                    m_sceneManager.CacheJ2kDecode(Convert.ToInt32(cmdparams[0]));
-                }
-                else
-                {
-                    m_sceneManager.CacheJ2kDecode(1);
-                }
-                break;
+                case "predecode-j2k":
+                    if (cmdparams.Length > 0)
+                    {
+                        m_sceneManager.CacheJ2kDecode(Convert.ToInt32(cmdparams[0]));
+                    }
+                    else
+                    {
+                        m_sceneManager.CacheJ2kDecode(1);
+                    }
+                    break;
             }
         }
 
@@ -743,10 +745,10 @@ namespace OpenSim
         }
 
         // see BaseOpenSimServer
-        override public void HandleShow(string mod, string[] cmd)
+        public override void HandleShow(string mod, string[] cmd)
         {
             base.HandleShow(mod, cmd);
-            
+
             List<string> args = new List<string>(cmd);
             args.RemoveAt(0);
             string[] showParams = args.ToArray();
@@ -812,11 +814,12 @@ namespace OpenSim
                 case "regions":
                     m_sceneManager.ForEachScene(
                         delegate(Scene scene)
-                        {
-                            m_console.Notice("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " +
-                                             scene.RegionInfo.RegionLocX + " , Region YLoc: " +
-                                             scene.RegionInfo.RegionLocY + " , Region Port: " + scene.RegionInfo.InternalEndPoint.Port.ToString());
-                        });
+                            {
+                                m_console.Notice("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " +
+                                                 scene.RegionInfo.RegionLocX + " , Region YLoc: " +
+                                                 scene.RegionInfo.RegionLocY + " , Region Port: " +
+                                                 scene.RegionInfo.InternalEndPoint.Port.ToString());
+                            });
                     break;
 
                 case "queues":
@@ -842,16 +845,16 @@ namespace OpenSim
                                                                                     (IStatsCollector) client;
 
                                                                                 report = report + string.Format("{0,7} {1,7} {2,7} {3,7} {4,7} {5,7} {6,7} {7,7} {8,7} {9,7}\n",
-                                 "Send",
-                                 "In",
-                                 "Out",
-                                 "Resend",
-                                 "Land",
-                                 "Wind",
-                                 "Cloud",
-                                 "Task",
-                                 "Texture",
-                                 "Asset");
+                                                                                             "Send",
+                                                                                             "In",
+                                                                                             "Out",
+                                                                                             "Resend",
+                                                                                             "Land",
+                                                                                             "Wind",
+                                                                                             "Cloud",
+                                                                                             "Task",
+                                                                                             "Texture",
+                                                                                             "Asset");
                                                                                 report = report + stats.Report() +
                                                                                          "\n\n";
                                                                             }
@@ -878,7 +881,7 @@ namespace OpenSim
                 firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
             else firstName = cmdparams[2];
 
-            if ( cmdparams.Length < 4 )
+            if (cmdparams.Length < 4)
                 lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
             else lastName = cmdparams[3];
 
@@ -886,11 +889,11 @@ namespace OpenSim
                 password = MainConsole.Instance.PasswdPrompt("Password");
             else password = cmdparams[4];
 
-            if ( cmdparams.Length < 6 )
+            if (cmdparams.Length < 6)
                 regX = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region X", regX.ToString()));
             else regX = Convert.ToUInt32(cmdparams[5]);
 
-            if ( cmdparams.Length < 7 )
+            if (cmdparams.Length < 7)
                 regY = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region Y", regY.ToString()));
             else regY = Convert.ToUInt32(cmdparams[6]);
 
@@ -922,11 +925,11 @@ namespace OpenSim
                 firstName = MainConsole.Instance.CmdPrompt("First name");
             else firstName = cmdparams[3];
 
-            if ( cmdparams.Length < 5 )
+            if (cmdparams.Length < 5)
                 lastName = MainConsole.Instance.CmdPrompt("Last name");
             else lastName = cmdparams[4];
 
-            if ( cmdparams.Length < 6 )
+            if (cmdparams.Length < 6)
                 newPassword = MainConsole.Instance.PasswdPrompt("New password");
             else newPassword = cmdparams[5];
 

@@ -45,10 +45,11 @@ namespace OpenSim
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public ConfigurationLoader()
-        {           
+        {
         }
 
-        public OpenSimConfigSource LoadConfigSettings(IConfigSource configSource, out ConfigSettings configSettings, out NetworkServersInfo networkInfo)
+        public OpenSimConfigSource LoadConfigSettings(IConfigSource configSource, out ConfigSettings configSettings,
+                                                      out NetworkServersInfo networkInfo)
         {
             m_configSettings = configSettings = new ConfigSettings();
             m_networkServersInfo = networkInfo = new NetworkServersInfo();
@@ -70,16 +71,17 @@ namespace OpenSim
             m_config.Source.Merge(DefaultConfig());
 
             m_log.Info("[CONFIG] Reading configuration settings");
-            
+
             Uri configUri;
-            String xmlPath = Path.Combine(Util.configDir(), "OpenSim.xml");     
+            String xmlPath = Path.Combine(Util.configDir(), "OpenSim.xml");
 
             //check for master .INI file (name passed in command line, no default), or XML over http
             if (masterFileName.Length > 0) // If a master file name is given ...
             {
                 m_log.InfoFormat("[CONFIG] Reading config master file {0}", masterfilePath);
 
-                bool isMasterUri = Uri.TryCreate(masterFileName, UriKind.Absolute, out configUri) && configUri.Scheme == Uri.UriSchemeHttp;
+                bool isMasterUri = Uri.TryCreate(masterFileName, UriKind.Absolute, out configUri) &&
+                                   configUri.Scheme == Uri.UriSchemeHttp;
 
                 if (!ReadConfig(masterFileName, masterfilePath, m_config, isMasterUri))
                 {
@@ -100,10 +102,11 @@ namespace OpenSim
                     }
                 }
             }
-            
+
             // Check for .INI file (either default or name passed on command
             // line) or XML config source over http
-            bool isIniUri = Uri.TryCreate(iniFileName, UriKind.Absolute, out configUri) && configUri.Scheme == Uri.UriSchemeHttp;
+            bool isIniUri = Uri.TryCreate(iniFileName, UriKind.Absolute, out configUri) &&
+                            configUri.Scheme == Uri.UriSchemeHttp;
             iniFileExists = ReadConfig(iniFileName, Application.iniFilePath, m_config, isIniUri);
 
             if (!iniFileExists)
@@ -119,7 +122,7 @@ namespace OpenSim
                     m_config.Source = new XmlConfigSource();
                     m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
                 }
-            }            
+            }
 
             m_config.Source.Merge(configSource);
 
@@ -152,7 +155,7 @@ namespace OpenSim
         private bool ReadConfig(string iniName, string iniPath, OpenSimConfigSource m_config, bool isUri)
         {
             bool success = false;
-          
+
             if (!isUri && File.Exists(iniPath))
             {
                 m_log.InfoFormat("[CONFIG] Reading configuration file {0}", Path.GetFullPath(iniPath));
@@ -235,7 +238,7 @@ namespace OpenSim
                 config.Set("userDatabase_plugin", "OpenSim.Data.SQLite.dll");
                 config.Set("user_source", "");
                 config.Set("asset_plugin", "OpenSim.Data.SQLite.dll");
-                config.Set("asset_source", "");                
+                config.Set("asset_source", "");
                 config.Set("LibrariesXMLFile", string.Format(".{0}inventory{0}Libraries.xml", Path.DirectorySeparatorChar));
                 config.Set("AssetSetsXMLFile", string.Format(".{0}assets{0}AssetSets.xml", Path.DirectorySeparatorChar));
                 config.Set("dump_assets_to_file", false);
@@ -307,8 +310,8 @@ namespace OpenSim
 
                 m_configSettings.LibrariesXMLFile = standaloneConfig.GetString("LibrariesXMLFile");
                 m_configSettings.AssetSetsXMLFile = standaloneConfig.GetString("AssetSetsXMLFile");
-                
-                m_configSettings.DumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);                                
+
+                m_configSettings.DumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }
 
             m_networkServersInfo.loadFromConfiguration(m_config.Source);

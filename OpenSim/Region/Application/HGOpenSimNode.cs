@@ -33,11 +33,7 @@ using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Communications.Hypergrid;
-using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
@@ -68,24 +64,26 @@ namespace OpenSim
 
             base.StartupSpecific();
 
-            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>] <cr>", "Set local coordinate to map HG regions to", RunCommand);
-            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region", "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>", "Link a hypergrid region", RunCommand);
-        
+            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>] <cr>",
+                                                     "Set local coordinate to map HG regions to", RunCommand);
+            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
+                                                     "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
+                                                     "Link a hypergrid region", RunCommand);
         }
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
-                                     AgentCircuitManager circuitManager)
+                                             AgentCircuitManager circuitManager)
         {
             HGSceneCommunicationService sceneGridService = new HGSceneCommunicationService(m_commsManager, HGServices);
-            
+
             return
                 new HGScene(
                     regionInfo, circuitManager, m_commsManager, sceneGridService, storageManager,
-                    m_moduleLoader, m_configSettings.DumpAssetsToFile, m_configSettings.PhysicalPrim, 
+                    m_moduleLoader, m_configSettings.DumpAssetsToFile, m_configSettings.PhysicalPrim,
                     m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }
 
-        new void RunCommand(string module, string[] cp)
+        private new void RunCommand(string module, string[] cp)
         {
             List<string> cmdparams = new List<string>(cp);
             if (cmdparams.Count < 1)
@@ -128,7 +126,8 @@ namespace OpenSim
                 }
 
                 if (cmdparams[2].Contains(":"))
-                { // New format
+                {
+                    // New format
                     uint xloc, yloc;
                     string mapName;
                     try
@@ -154,7 +153,8 @@ namespace OpenSim
                     HGHyperlink.TryLinkRegionToCoords(m_sceneManager.CurrentOrFirstScene, null, mapName, xloc, yloc);
                 }
                 else
-                { // old format
+                {
+                    // old format
                     RegionInfo regInfo;
                     uint xloc, yloc;
                     uint externalPort;
@@ -205,7 +205,7 @@ namespace OpenSim
                     {
                         string excludeString = cmdparams[1].ToLower();
                         excludeString = excludeString.Remove(0, 12);
-                        char[] splitter = { ';' };
+                        char[] splitter = {';'};
 
                         excludeSections = excludeString.Split(splitter);
                     }
@@ -236,7 +236,7 @@ namespace OpenSim
                 m_log.Error(e.ToString());
             }
         }
-        
+
 
         private void ReadLinkFromConfig(IConfig config)
         {
@@ -255,19 +255,23 @@ namespace OpenSim
 
             if (m_enableAutoMapping)
             {
-                xloc = (uint)((xloc % 100) + m_autoMappingX);
-                yloc = (uint)((yloc % 100) + m_autoMappingY);
+                xloc = (uint) ((xloc%100) + m_autoMappingX);
+                yloc = (uint) ((yloc%100) + m_autoMappingY);
             }
 
-            if (((realXLoc == 0) && (realYLoc == 0)) || (((realXLoc - xloc < 3896) || (xloc - realXLoc < 3896)) && ((realYLoc - yloc < 3896) || (yloc - realYLoc < 3896))))
+            if (((realXLoc == 0) && (realYLoc == 0)) ||
+                (((realXLoc - xloc < 3896) || (xloc - realXLoc < 3896)) &&
+                 ((realYLoc - yloc < 3896) || (yloc - realYLoc < 3896))))
             {
-                if (HGHyperlink.TryCreateLink(m_sceneManager.CurrentOrFirstScene, null, xloc, yloc, "", externalPort, externalHostName, out regInfo))
+                if (
+                    HGHyperlink.TryCreateLink(m_sceneManager.CurrentOrFirstScene, null, xloc, yloc, "", externalPort,
+                                              externalHostName, out regInfo))
                 {
                     regInfo.RegionName = config.GetString("localName", "");
                 }
             }
         }
-        
+
 
         private void LinkRegionCmdUsage()
         {
