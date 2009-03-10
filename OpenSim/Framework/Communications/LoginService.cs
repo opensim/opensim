@@ -56,6 +56,9 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         protected LibraryRootFolder m_libraryRootFolder;
 
+        protected uint m_defaultHomeX;
+        protected uint m_defaultHomeY;
+
         /// <summary>
         /// Constructor
         /// </summary>

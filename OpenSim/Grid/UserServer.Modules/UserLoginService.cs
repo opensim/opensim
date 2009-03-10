@@ -71,6 +71,8 @@ namespace OpenSim.Grid.UserServer.Modules
             : base(userManager, libraryRootFolder, welcomeMess)
         {
             m_config = config;
+            m_defaultHomeX = m_config.DefaultX;
+            m_defaultHomeY = m_config.DefaultY;
             m_inventoryService = inventoryService;
             m_regionProfileService = regionProfileService;
         }
@@ -302,8 +304,8 @@ namespace OpenSim.Grid.UserServer.Modules
 
             // Send him to default region instead
             // Load information from the gridserver
-            ulong defaultHandle = (((ulong) m_config.DefaultX * Constants.RegionSize) << 32) |
-                                  ((ulong) m_config.DefaultY * Constants.RegionSize);
+            ulong defaultHandle = (((ulong) m_defaultHomeX * Constants.RegionSize) << 32) |
+                                  ((ulong) m_defaultHomeY * Constants.RegionSize);
 
             if ((regionInfo != null) && (defaultHandle == regionInfo.regionHandle))
             {

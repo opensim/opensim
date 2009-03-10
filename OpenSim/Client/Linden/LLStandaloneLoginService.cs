@@ -48,10 +48,8 @@ namespace OpenSim.Client.Linden
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected NetworkServersInfo serversInfo;
-        protected uint defaultHomeX;
-        protected uint defaultHomeY;
-        protected bool authUsers = false;
+        protected NetworkServersInfo m_serversInfo;
+        protected bool m_authUsers = false;
 
         /// <summary>
         /// Used by the login service to make requests to the inventory service.
@@ -71,10 +69,10 @@ namespace OpenSim.Client.Linden
             bool authenticate, LibraryRootFolder libraryRootFolder, ILoginServiceToRegionsConnector regionsConnector)
             : base(userManager, libraryRootFolder, welcomeMess)
         {
-            this.serversInfo = serversInfo;
-            defaultHomeX = this.serversInfo.DefaultHomeLocX;
-            defaultHomeY = this.serversInfo.DefaultHomeLocY;
-            authUsers = authenticate;
+            this.m_serversInfo = serversInfo;
+            m_defaultHomeX = this.m_serversInfo.DefaultHomeLocX;
+            m_defaultHomeY = this.m_serversInfo.DefaultHomeLocY;
+            m_authUsers = authenticate;
 
             m_interServiceInventoryService = interServiceInventoryService;
             m_regionsConnector = regionsConnector;
@@ -88,12 +86,12 @@ namespace OpenSim.Client.Linden
                 return profile;
             }
 
-            if (!authUsers)
+            if (!m_authUsers)
             {
                 //no current user account so make one
                 m_log.Info("[LOGIN]: No user account found so creating a new one.");
 
-                m_userManager.AddUser(firstname, lastname, "test", "", defaultHomeX, defaultHomeY);
+                m_userManager.AddUser(firstname, lastname, "test", "", m_defaultHomeX, m_defaultHomeY);
 
                 return m_userManager.GetUserProfile(firstname, lastname);
             }
@@ -103,7 +101,7 @@ namespace OpenSim.Client.Linden
 
         public override bool AuthenticateUser(UserProfileData profile, string password)
         {
-            if (!authUsers)
+            if (!m_authUsers)
             {
                 //for now we will accept any password in sandbox mode
                 m_log.Info("[LOGIN]: Authorising user (no actual password check)");
@@ -235,8 +233,8 @@ namespace OpenSim.Client.Linden
             //m_log.InfoFormat("[LOGIN]: StartLocation not available sending to region {0}", regionInfo.regionName);
 
             // Send him to default region instead
-            ulong defaultHandle = (((ulong)defaultHomeX * Constants.RegionSize) << 32) |
-                                  ((ulong)defaultHomeY * Constants.RegionSize);
+            ulong defaultHandle = (((ulong)m_defaultHomeX * Constants.RegionSize) << 32) |
+                                  ((ulong)m_defaultHomeY * Constants.RegionSize);
 
             if ((regionInfo != null) && (defaultHandle == regionInfo.RegionHandle))
             {
@@ -328,13 +326,13 @@ namespace OpenSim.Client.Linden
 
             string seedcap = "http://";
 
-            if (serversInfo.HttpUsesSSL)
+            if (m_serversInfo.HttpUsesSSL)
             {
-                seedcap = "https://" + serversInfo.HttpSSLCN + ":" + serversInfo.httpSSLPort + capsSeedPath;
+                seedcap = "https://" + m_serversInfo.HttpSSLCN + ":" + m_serversInfo.httpSSLPort + capsSeedPath;
             }
             else
             {
-                seedcap = "http://" + regionInfo.ExternalHostName + ":" + serversInfo.HttpListenerPort + capsSeedPath;
+                seedcap = "http://" + regionInfo.ExternalHostName + ":" + m_serversInfo.HttpListenerPort + capsSeedPath;
             }
 
             response.SeedCapability = seedcap;
