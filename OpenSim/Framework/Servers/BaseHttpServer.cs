@@ -94,17 +94,13 @@ namespace OpenSim.Framework.Servers
             m_port = port;
         }
 
-        public BaseHttpServer(uint port, bool ssl)
+        public BaseHttpServer(uint port, bool ssl) : this (port)
         {
-            m_ssl = ssl;
-            m_port = port;            
+            m_ssl = ssl;          
         }
 
-        public BaseHttpServer(uint port, bool ssl, uint sslport, string CN)
+        public BaseHttpServer(uint port, bool ssl, uint sslport, string CN) : this (port, ssl)
         {
-            m_ssl = ssl;
-            m_port = port;
-
             if (m_ssl)
             {
                 m_sslport = sslport;
@@ -139,12 +135,7 @@ namespace OpenSim.Framework.Servers
 
         public bool AddXmlRPCHandler(string method, XmlRpcMethod handler)
         {
-            lock (m_rpcHandlers)
-            {
-                m_rpcHandlers[method] = handler;
-                m_rpcHandlersKeepAlive[method] = true; // default
-                return true;
-            }
+            return AddXmlRPCHandler(method, handler, true);
         }
 
         public bool AddXmlRPCHandler(string method, XmlRpcMethod handler, bool keepAlive)
@@ -152,9 +143,10 @@ namespace OpenSim.Framework.Servers
             lock (m_rpcHandlers)
             {
                 m_rpcHandlers[method] = handler;
-                m_rpcHandlersKeepAlive[method] = keepAlive; // default
-                return true;
+                m_rpcHandlersKeepAlive[method] = keepAlive; // default              
             }
+            
+            return true;
         }
 
         /// <summary>
@@ -1076,7 +1068,6 @@ namespace OpenSim.Framework.Servers
             // to display the form, or process it.
             // a better way would be nifty.
 
-
             Stream requestStream = request.InputStream;
 
             Encoding encoding = Encoding.UTF8;
@@ -1453,8 +1444,7 @@ namespace OpenSim.Framework.Servers
         }
 
         public void httpServerException(object source, Exception exception)
-        {
-            
+        {            
             m_log.ErrorFormat("[HTTPSERVER]: {0} had an exception {1}", source.ToString(), exception.ToString());
            /*
             if (HTTPDRunning)// && NotSocketErrors > 5)
@@ -1495,12 +1485,16 @@ namespace OpenSim.Framework.Servers
                 m_HTTPHandlers.Remove(path);
                 return;
             }
+            
             m_HTTPHandlers.Remove(GetHandlerKey(httpMethod, path));
         }
 
-        // Remove the agent IF it is registered. Intercept the possible
-        // exception.
-
+        /// <summary>
+        /// Remove the agent IF it is registered. Intercept the possible exception.
+        /// </summary>
+        /// <param name="agent"></param>
+        /// <param name="handler"></param>
+        /// <returns></returns>
         public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
         {
             try
@@ -1517,6 +1511,7 @@ namespace OpenSim.Framework.Servers
 
             return false;
         }
+        
         public bool RemoveLLSDHandler(string path, LLSDMethod handler)
         {
 
@@ -1535,7 +1530,6 @@ namespace OpenSim.Framework.Servers
 
             return false;
         }
-
 
         public string GetHTTP404(string host)
         {
@@ -1628,6 +1622,5 @@ namespace OpenSim.Framework.Servers
             
             return;
         }
-
     }
 }
