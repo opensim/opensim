@@ -1247,7 +1247,24 @@ namespace OpenSim.Region.Framework.Scenes
                 // Vector3 oldPos = group.AbsolutePosition;
                 if (group.IsAttachment || (group.RootPart.Shape.PCode == 9 && group.RootPart.Shape.State != 0))
                 {
+ 
+                    // If this is an attachment, then we need to save the modified
+                    // object back into the avatar's inventory. First we save the
+                    // attachment point information, then we update the relative 
+                    // positioning (which caused this method to get driven in the
+                    // first place. Then we have to mark the object as NOT an
+                    // attachment. This is necessary in order to correctly save
+                    // and retrieve GroupPosition information for the attachment.
+                    // Then we save the asset back into the appropriate inventory
+                    // entry. Finally, we restore the object's attachment status.
+
+                    byte attachmentPoint = group.GetAttachmentPoint();
                     group.UpdateGroupPosition(pos);
+                    group.RootPart.IsAttachment = false;
+                    group.AbsolutePosition = group.RootPart.AttachedPos;
+                    m_parentScene.updateKnownAsset(remoteClient, group, group.GetFromAssetID(), group.OwnerID);
+                    group.SetAttachmentPoint(attachmentPoint);
+
                 }
                 else
                 {
