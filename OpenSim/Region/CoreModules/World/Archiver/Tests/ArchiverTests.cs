@@ -46,8 +46,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         private void SaveCompleted(string errorMessage)
         {
             lock (this)
-            {
-                Monitor.PulseAll(this);
+            {               
+                System.Console.WriteLine("About to pulse ArchiverTests");
+                Monitor.PulseAll(this);                
             }            
         }
         
@@ -57,7 +58,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]        
         public void TestSaveOarV0p2()
         {        
-            //log4net.Config.XmlConfigurator.Configure();
+            log4net.Config.XmlConfigurator.Configure();
             
             ArchiverModule archiverModule = new ArchiverModule();
             SerialiserModule serialiserModule = new SerialiserModule();
