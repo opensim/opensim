@@ -26,7 +26,6 @@
  * 
  */
 
-
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -63,15 +62,12 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                 this, "export-map",
                 "export-map [<path>]",
                 "Save an image of the world map", HandleExportWorldMapConsoleCommand);            
-
         }
-
 
         public override string Name
         {
             get { return "HGWorldMap"; }
         }
-
 
         #endregion
 
@@ -143,10 +139,10 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             }
         }
 
-
         private void FillInMap(List<MapBlockData> mapBlocks, int minX, int minY, int maxX, int maxY)
         {
             for (int x = minX; x <= maxX; x++)
+            {
                 for (int y = minY; y <= maxY; y++)
                 {
                     MapBlockData mblock = mapBlocks.Find(delegate(MapBlockData mb) { return ((mb.X == x) && (mb.Y == y)); });
@@ -161,6 +157,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                         mapBlocks.Add(mblock);
                     }
                 }
+            }
         }
     }    
 }

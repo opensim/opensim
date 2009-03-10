@@ -251,7 +251,7 @@ namespace OpenSim.Client.MXP.ClientStack
 
                 if (avatarExt.Body != null)
                 {
-                    foreach(OmBipedBoneOrientation boneOrientation in avatarExt.Body.BipedBoneOrientations)
+                    foreach (OmBipedBoneOrientation boneOrientation in avatarExt.Body.BipedBoneOrientations)
                     {
                         if (boneOrientation.Bone == OmBipedBones.Head)
                         {
