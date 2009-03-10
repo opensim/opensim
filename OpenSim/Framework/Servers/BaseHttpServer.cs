@@ -499,26 +499,29 @@ namespace OpenSim.Framework.Servers
         {
             string bestMatch = null;
 
-            foreach (string pattern in m_streamHandlers.Keys)
+            lock (m_streamHandlers)
             {
-                if (handlerKey.StartsWith(pattern))
+                foreach (string pattern in m_streamHandlers.Keys)
                 {
-                    if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
+                    if (handlerKey.StartsWith(pattern))
                     {
-                        bestMatch = pattern;
+                        if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
+                        {
+                            bestMatch = pattern;
+                        }
                     }
                 }
-            }
-
-            if (String.IsNullOrEmpty(bestMatch))
-            {
-                streamHandler = null;
-                return false;
-            }
-            else
-            {
-                streamHandler = m_streamHandlers[bestMatch];
-                return true;
+                
+                if (String.IsNullOrEmpty(bestMatch))
+                {
+                    streamHandler = null;
+                    return false;
+                }
+                else
+                {
+                    streamHandler = m_streamHandlers[bestMatch];
+                    return true;
+                }
             }
         }
 
@@ -1482,7 +1485,7 @@ namespace OpenSim.Framework.Servers
 
             //m_log.DebugFormat("[BASE HTTP SERVER]: Removing handler key {0}", handlerKey);
 
-            m_streamHandlers.Remove(handlerKey);
+            lock (m_streamHandlers) m_streamHandlers.Remove(handlerKey);
         }
 
         public void RemoveHTTPHandler(string httpMethod, string path)
