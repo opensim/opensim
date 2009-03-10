@@ -38,7 +38,6 @@ using OpenSim.Region.CoreModules.Avatar.InstantMessage;
 using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
 using OpenSim.Region.CoreModules.Scripting.LoadImageURL;
 using OpenSim.Region.CoreModules.Scripting.XMLRPC;
-using OpenSim.Framework.Servers;
 
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {
@@ -52,11 +51,18 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         #region IApplicationPlugin Members
 
         // TODO: required by IPlugin, but likely not at all right
-        string m_name = "LoadRegionsPlugin";
-        string m_version = "0.0";
+        private string m_name = "LoadRegionsPlugin";
+        private string m_version = "0.0";
 
-        public string Version { get { return m_version; } }
-        public string Name { get { return m_name; } }
+        public string Version
+        {
+            get { return m_version; }
+        }
+
+        public string Name
+        {
+            get { return m_name; }
+        }
 
         protected OpenSimBase m_openSim;
 
@@ -106,7 +112,8 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             for (int i = 0; i < regionsToLoad.Length; i++)
             {
                 IScene scene;
-                m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + Thread.CurrentThread.ManagedThreadId.ToString() +
+                m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " +
+                            Thread.CurrentThread.ManagedThreadId.ToString() +
                             ")");
                 m_openSim.CreateRegion(regionsToLoad[i], true, out scene);
                 if (scene != null)
@@ -151,22 +158,23 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     if (region.RegionID == checkedRegion.RegionID)
                     {
                         m_log.ErrorFormat(
-                             "[LOADREGIONS]: Regions {0} and {1} have the same UUID {2}",
-                             region.RegionName, checkedRegion.RegionName, region.RegionID);
+                            "[LOADREGIONS]: Regions {0} and {1} have the same UUID {2}",
+                            region.RegionName, checkedRegion.RegionName, region.RegionID);
                         return false;
                     }
-                    else if (region.RegionLocX == checkedRegion.RegionLocX && region.RegionLocY == checkedRegion.RegionLocY)
+                    else if (region.RegionLocX == checkedRegion.RegionLocX &&
+                             region.RegionLocY == checkedRegion.RegionLocY)
                     {
                         m_log.ErrorFormat(
-                             "[LOADREGIONS]: Regions {0} and {1} have the same location {2} {3}",
-                             region.RegionName, checkedRegion.RegionName, region.RegionLocX, region.RegionLocY);
+                            "[LOADREGIONS]: Regions {0} and {1} have the same location {2} {3}",
+                            region.RegionName, checkedRegion.RegionName, region.RegionLocX, region.RegionLocY);
                         return false;
                     }
                     else if (region.InternalEndPoint.Port == checkedRegion.InternalEndPoint.Port)
                     {
                         m_log.ErrorFormat(
-                             "[LOADREGIONS]: Regions {0} and {1} have the same internal IP port {2}",
-                             region.RegionName, checkedRegion.RegionName, region.InternalEndPoint.Port);
+                            "[LOADREGIONS]: Regions {0} and {1} have the same internal IP port {2}",
+                            region.RegionName, checkedRegion.RegionName, region.InternalEndPoint.Port);
                         return false;
                     }
                 }
