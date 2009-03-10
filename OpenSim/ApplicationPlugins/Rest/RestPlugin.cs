@@ -45,18 +45,18 @@ namespace OpenSim.ApplicationPlugins.Rest
         protected static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IConfig        _config;       // Configuration source: Rest Plugins
-        private IConfig        _pluginConfig; // Configuration source: Plugin specific
-        private OpenSimBase    _app;          // The 'server'
-        private BaseHttpServer _httpd;        // The server's RPC interface
-        private string         _prefix;       // URL prefix below
-                                              // which all REST URLs
-                                              // are living
-        private StringWriter  _sw = null;
+        private IConfig _config; // Configuration source: Rest Plugins
+        private IConfig _pluginConfig; // Configuration source: Plugin specific
+        private OpenSimBase _app; // The 'server'
+        private BaseHttpServer _httpd; // The server's RPC interface
+        private string _prefix; // URL prefix below
+        // which all REST URLs
+        // are living
+        private StringWriter _sw = null;
         private RestXmlWriter _xw = null;
 
         private string _godkey;
-        private int    _reqk;
+        private int _reqk;
 
         [ThreadStatic]
         private static string  _threadRequestID = String.Empty;
@@ -150,14 +150,16 @@ namespace OpenSim.ApplicationPlugins.Rest
 
         public XmlTextWriter XmlWriter
         {
-            get {
+            get
+            {
                 if (null == _xw)
                 {
                     _sw = new StringWriter();
                     _xw = new RestXmlWriter(_sw);
                     _xw.Formatting = Formatting.Indented;
                 }
-                return _xw; }
+                return _xw;
+            }
         }
 
         public string XmlWriterResult
@@ -171,19 +173,23 @@ namespace OpenSim.ApplicationPlugins.Rest
                 return _sw.ToString();
             }
         }
+
         #endregion properties
 
-
         #region methods
+
         // TODO: required by IPlugin, but likely not at all right
-        string m_version = "0.0";
+        private string m_version = "0.0";
 
-        public string Version { get { return m_version; } }
+        public string Version
+        {
+            get { return m_version; }
+        }
 
-        public void Initialise() 
-        { 
+        public void Initialise()
+        {
             m_log.Info("[RESTPLUGIN]: " + Name + " cannot be default-initialized!");
-            throw new PluginNotInitialisedException (Name);
+            throw new PluginNotInitialisedException(Name);
         }
 
         /// <summary>
@@ -250,8 +256,8 @@ namespace OpenSim.ApplicationPlugins.Rest
         {
         }
 
-        private List<RestStreamHandler> _handlers               = new List<RestStreamHandler>();
-        private Dictionary<string, IHttpAgentHandler> _agents   = new Dictionary<string, IHttpAgentHandler>();
+        private List<RestStreamHandler> _handlers = new List<RestStreamHandler>();
+        private Dictionary<string, IHttpAgentHandler> _agents = new Dictionary<string, IHttpAgentHandler>();
 
         /// <summary>
         /// Add a REST stream handler to the underlying HTTP server.
@@ -327,7 +333,7 @@ namespace OpenSim.ApplicationPlugins.Rest
             if (null == keys) return false;
 
             // we take the last key supplied
-            return keys[keys.Length-1] == _godkey;
+            return keys[keys.Length - 1] == _godkey;
         }
 
         /// <summary>
@@ -351,11 +357,11 @@ namespace OpenSim.ApplicationPlugins.Rest
                 _httpd.RemoveStreamHandler(h.HttpMethod, h.Path);
             }
             _handlers = null;
-            foreach (KeyValuePair<string,IHttpAgentHandler> h in _agents)
+            foreach (KeyValuePair<string, IHttpAgentHandler> h in _agents)
             {
-                _httpd.RemoveAgentHandler(h.Key,h.Value);
+                _httpd.RemoveAgentHandler(h.Key, h.Value);
             }
-            _agents   = null;
+            _agents = null;
         }
 
         public virtual void Dispose()
@@ -375,7 +381,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         {
             string m = String.Format(format, msg);
 
-            response.StatusCode = (int)status;
+            response.StatusCode = (int) status;
             response.StatusDescription = m;
 
             m_log.ErrorFormat("{0} {1} failed: {2}", MsgID, method, m);
@@ -394,7 +400,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         {
             string m = String.Format("exception occurred: {0}", e.Message);
 
-            response.StatusCode = (int)status;
+            response.StatusCode = (int) status;
             response.StatusDescription = m;
 
             m_log.DebugFormat("{0} {1} failed: {2}", MsgID, method, e.ToString());
@@ -402,6 +408,7 @@ namespace OpenSim.ApplicationPlugins.Rest
 
             return String.Format("<error>{0}</error>", e.Message);
         }
+
         #endregion methods
     }
 }

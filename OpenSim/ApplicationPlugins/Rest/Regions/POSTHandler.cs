@@ -34,10 +34,10 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.ApplicationPlugins.Rest.Regions
 {
-
     public partial class RestRegionPlugin : RestPlugin
     {
         #region POST methods
+
         public string PostHandler(string request, string path, string param,
                                   OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
@@ -59,24 +59,26 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                 if (String.IsNullOrEmpty(param)) return CreateRegion(httpRequest, httpResponse);
 
                 // Parse region ID and other parameters
-                param = param.TrimEnd(new char[]{'/'});
+                param = param.TrimEnd(new char[] {'/'});
                 string[] comps = param.Split('/');
-                UUID regionID = (UUID)comps[0];
+                UUID regionID = (UUID) comps[0];
 
                 m_log.DebugFormat("{0} POST region UUID {1}", MsgID, regionID.ToString());
                 if (UUID.Zero == regionID) throw new Exception("missing region ID");
 
                 Scene scene = null;
                 App.SceneManager.TryGetScene(regionID, out scene);
-                if (null == scene) return Failure(httpResponse, OSHttpStatusCode.ClientErrorNotFound,
-                                                  "POST", "cannot find region {0}", regionID.ToString());
+                if (null == scene)
+                    return Failure(httpResponse, OSHttpStatusCode.ClientErrorNotFound,
+                                   "POST", "cannot find region {0}", regionID.ToString());
 
-                if (2 == comps.Length) {
+                if (2 == comps.Length)
+                {
                     // check for {prims}
                     switch (comps[1].ToLower())
                     {
-                    case "prims":
-                        return LoadPrims(request, httpRequest, httpResponse, scene);
+                        case "prims":
+                            return LoadPrims(request, httpRequest, httpResponse, scene);
                     }
                 }
 
@@ -106,9 +108,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
         public string LoadPrims(string requestBody, OSHttpRequest request, OSHttpResponse response, Scene scene)
         {
             IRegionSerialiserModule serialiser = scene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)                
+            if (serialiser != null)
                 serialiser.LoadPrimsFromXml2(scene, new StringReader(requestBody), true);
-            
+
             return "";
         }
 
