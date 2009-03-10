@@ -26,24 +26,15 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.RegionLoader.Filesystem;
-using OpenSim.Framework.RegionLoader.Web;
-using OpenSim.Region.CoreModules.Agent.AssetTransaction;
-using OpenSim.Region.CoreModules.Avatar.InstantMessage;
-using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
-using OpenSim.Region.CoreModules.Scripting.LoadImageURL;
-using OpenSim.Region.CoreModules.Scripting.XMLRPC;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Servers;
 using OpenSim.Region.Communications.Hypergrid;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
-using OpenSim.Framework.Servers;
 
 namespace OpenSim.ApplicationPlugins.CreateCommsManager
 {
@@ -54,11 +45,18 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         #region IApplicationPlugin Members
 
         // TODO: required by IPlugin, but likely not at all right
-        string m_name = "CreateCommsManagerPlugin";
-        string m_version = "0.0";
+        private string m_name = "CreateCommsManagerPlugin";
+        private string m_version = "0.0";
 
-        public string Version { get { return m_version; } }
-        public string Name { get { return m_name; } }
+        public string Version
+        {
+            get { return m_version; }
+        }
+
+        public string Name
+        {
+            get { return m_name; }
+        }
 
         protected OpenSimBase m_openSim;
 
@@ -133,7 +131,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
             HGOpenSimNode hgNode = null;
             try
             {
-                hgNode = (HGOpenSimNode)openSim;
+                hgNode = (HGOpenSimNode) openSim;
             }
             catch (Exception e)
             {
@@ -178,12 +176,14 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         protected virtual void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
         {
             LocalInventoryService inventoryService = new LocalInventoryService();
-            inventoryService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneInventoryPlugin, m_openSim.ConfigurationSettings.StandaloneInventorySource);
+            inventoryService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneInventoryPlugin,
+                                       m_openSim.ConfigurationSettings.StandaloneInventorySource);
 
             LocalUserServices userService =
                 new LocalUserServices(
                     m_openSim.NetServersInfo.DefaultHomeLocX, m_openSim.NetServersInfo.DefaultHomeLocY, inventoryService);
-            userService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneUserPlugin, m_openSim.ConfigurationSettings.StandaloneUserSource);
+            userService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneUserPlugin,
+                                  m_openSim.ConfigurationSettings.StandaloneUserSource);
 
             LocalBackEndServices backendService = new LocalBackEndServices();
 
@@ -215,12 +215,12 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
             LocalUserServices userService =
                 new LocalUserServices(
-                     m_openSim.NetServersInfo.DefaultHomeLocX, m_openSim.NetServersInfo.DefaultHomeLocY, inventoryService);
+                    m_openSim.NetServersInfo.DefaultHomeLocX, m_openSim.NetServersInfo.DefaultHomeLocY, inventoryService);
             userService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneUserPlugin, m_openSim.ConfigurationSettings.StandaloneUserSource);
 
             HGGridServicesStandalone gridService = new HGGridServicesStandalone(m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, m_openSim.SceneManager);
 
-          //  LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, gridService.LocalBackend);
+            //  LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, gridService.LocalBackend);
 
             m_commsManager = new HGCommunicationsStandalone(m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache,
                 userService, userService, inventoryService, gridService, userService, libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);
@@ -236,7 +236,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         {
             m_commsManager = new HGCommunicationsGridMode(m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, m_openSim.SceneManager, libraryRootFolder);
 
-            HGServices = ((HGCommunicationsGridMode)m_commsManager).HGServices;
+            HGServices = ((HGCommunicationsGridMode) m_commsManager).HGServices;
 
             m_httpServer.AddStreamHandler(new OpenSim.SimStatusHandler());
         }
