@@ -56,20 +56,17 @@ namespace OpenSim.Data
 
             if (!responseData.ContainsKey("error"))
             {
-                simData = new RegionProfileData();
-                simData.regionLocX = Convert.ToUInt32((string) responseData["region_locx"]);
-                simData.regionLocY = Convert.ToUInt32((string) responseData["region_locy"]);
-                simData.regionHandle =
-                    Utils.UIntsToLong((simData.regionLocX * Constants.RegionSize),
-                                      (simData.regionLocY*Constants.RegionSize));
-                simData.serverIP = (string) responseData["sim_ip"];
-                simData.serverPort = Convert.ToUInt32((string) responseData["sim_port"]);
-                simData.httpPort = Convert.ToUInt32((string) responseData["http_port"]);
-                simData.remotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
-                simData.serverURI = (string) responseData["server_uri"];
-                simData.httpServerURI = "http://" + (string)responseData["sim_ip"] + ":" + simData.httpPort.ToString() + "/";
-                simData.UUID = new UUID((string) responseData["region_UUID"]);
-                simData.regionName = (string) responseData["region_name"];
+                uint locX = Convert.ToUInt32((string)responseData["region_locx"]);
+                uint locY = Convert.ToUInt32((string)responseData["region_locy"]);
+                string externalHostName = (string)responseData["sim_ip"];
+                uint simPort = Convert.ToUInt32((string)responseData["sim_port"]);
+                uint httpPort = Convert.ToUInt32((string)responseData["http_port"]);
+                uint remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
+                string serverUri = (string)responseData["server_uri"];
+                UUID regionID = new UUID((string)responseData["region_UUID"]);
+                string regionName = (string)responseData["region_name"];
+
+                simData = RegionProfileData.Create(regionID, regionName, locX, locY, externalHostName, simPort, httpPort, remotingPort, serverUri);
             }
 
             return simData;

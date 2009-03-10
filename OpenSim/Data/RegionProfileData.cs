@@ -279,6 +279,30 @@ namespace OpenSim.Data
             get { return originUUID; }
             set { originUUID = value; }
         }
-        
+
+        public RegionInfo ToRegionInfo( )
+        {
+            return RegionInfo.Create(UUID, regionName, regionLocX, regionLocY, serverIP, httpPort, serverPort, remotingPort);
+        }
+
+        public static RegionProfileData Create(UUID regionID, string regionName, uint locX, uint locY, string externalHostName, uint regionPort, uint httpPort, uint remotingPort, string serverUri)
+        {
+            RegionProfileData regionProfile;
+            regionProfile = new RegionProfileData();
+            regionProfile.regionLocX = locX;
+            regionProfile.regionLocY = locY;
+            regionProfile.regionHandle =
+                Utils.UIntsToLong((regionProfile.regionLocX * Constants.RegionSize),
+                                  (regionProfile.regionLocY*Constants.RegionSize));
+            regionProfile.serverIP = externalHostName;
+            regionProfile.serverPort = regionPort;
+            regionProfile.httpPort = httpPort;
+            regionProfile.remotingPort = remotingPort;
+            regionProfile.serverURI = serverUri;
+            regionProfile.httpServerURI = "http://" + externalHostName + ":" + httpPort + "/";
+            regionProfile.UUID = regionID;
+            regionProfile.regionName = regionName;
+            return regionProfile;
+        }
     }
 }

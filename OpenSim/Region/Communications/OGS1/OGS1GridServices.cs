@@ -405,24 +405,22 @@ namespace OpenSim.Region.Communications.OGS1
                     uint regX = Convert.ToUInt32((string) responseData["region_locx"]);
                     uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
                     string externalHostName = (string) responseData["sim_ip"];
-                    uint port = Convert.ToUInt32(responseData["sim_port"]);
+                    uint simPort = Convert.ToUInt32(responseData["sim_port"]);
+                    string regionName = (string)responseData["region_name"];
+                    UUID regionID = new UUID((string)responseData["region_UUID"]);
+                    uint remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
+                    
+                    uint httpPort = 9000;
+                    if (responseData.ContainsKey("http_port"))
+                    {
+                        httpPort = Convert.ToUInt32((string)responseData["http_port"]);
+                    }
+
+
                     // string externalUri = (string) responseData["sim_uri"];
 
                     //IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
-                    IPEndPoint neighbourInternalEndPoint = new IPEndPoint(Util.GetHostFromDNS(externalHostName), (int)port);
-                    
-                    regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, externalHostName);
-
-                    regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
-                    regionInfo.RemotingAddress = externalHostName;
-
-                    if (responseData.ContainsKey("http_port"))
-                    {
-                        regionInfo.HttpPort = Convert.ToUInt32((string) responseData["http_port"]);
-                    }
-
-                    regionInfo.RegionID = new UUID((string) responseData["region_UUID"]);
-                    regionInfo.RegionName = (string) responseData["region_name"];
+                    regionInfo = RegionInfo.Create(regionID, regionName, regX, regY, externalHostName, httpPort, simPort, remotingPort);
 
                     lock (m_remoteRegionInfoCache)
                     {
