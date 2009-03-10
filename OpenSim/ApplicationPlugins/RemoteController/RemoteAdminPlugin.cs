@@ -997,13 +997,13 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if (requestData.ContainsKey("start_region_x"))   regX = Convert.ToUInt32((Int32)requestData["start_region_x"]);
                     if (requestData.ContainsKey("start_region_y"))   regY = Convert.ToUInt32((Int32)requestData["start_region_y"]);
 
-                    if (requestData.ContainsKey("start_lookat_x"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_x"]);
+                    if (requestData.ContainsKey("start_lookat_x"))   ulaX = Convert.ToUInt32((Int32)requestData["start_lookat_x"]);
                     if (requestData.ContainsKey("start_lookat_y"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_y"]);
-                    if (requestData.ContainsKey("start_lookat_z"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_z"]);
+                    if (requestData.ContainsKey("start_lookat_z"))   ulaZ = Convert.ToUInt32((Int32)requestData["start_lookat_z"]);
 
-                    if (requestData.ContainsKey("start_standat_x"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_x"]);
+                    if (requestData.ContainsKey("start_standat_x"))  usaX = Convert.ToUInt32((Int32)requestData["start_standat_x"]);
                     if (requestData.ContainsKey("start_standat_y"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_y"]);
-                    if (requestData.ContainsKey("start_standat_z"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_z"]);
+                    if (requestData.ContainsKey("start_standat_z"))  usaZ = Convert.ToUInt32((Int32)requestData["start_standat_z"]);
 
                     UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
 
