@@ -99,11 +99,11 @@ namespace OpenSim.Grid.UserServer.Modules
                 m_httpServer.AddStreamHandler(new OpenIdStreamHandler("GET", "/openid/server/", this));
             }
         }
-
-        public void setloginlevel(int level)
+        
+        public  void  setloginlevel(int level)
         {
-            m_minLoginLevel = level;
-            m_log.InfoFormat("[GRID]: Login Level set to {0} ", level);
+              m_minLoginLevel = level;
+              m_log.InfoFormat("[GRID]: Login Level set to {0} ", level);
         }
         public void setwelcometext(string text)
         {
@@ -199,24 +199,155 @@ namespace OpenSim.Grid.UserServer.Modules
             //base.LogOffUser(theUser);
         }
 
-        protected override RegionInfo RequestClosestRegion(string region)
+        /// <summary>
+        /// Customises the login response and fills in missing values.
+        /// </summary>
+        /// <param name="response">The existing response</param>
+        /// <param name="theUser">The user profile</param>
+        /// <param name="startLocationRequest">The requested start location</param>
+        public override bool CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
         {
-            return m_regionProfileService.RequestSimProfileData(region,
-                                                           m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey).ToRegionInfo();
+            // add active gestures to login-response
+            AddActiveGestures(response, theUser);
+
+            // HomeLocation
+            RegionProfileData homeInfo = null;
+            // use the homeRegionID if it is stored already. If not, use the regionHandle as before
+            UUID homeRegionId = theUser.HomeRegionID;
+            ulong homeRegionHandle = theUser.HomeRegion;
+            if (homeRegionId != UUID.Zero)
+            {
+                homeInfo = GetRegionInfo(homeRegionId);
+            }
+            else
+            {
+                homeInfo = GetRegionInfo(homeRegionHandle);
+            }
+
+            if (homeInfo != null)
+            {
+                response.Home =
+                    string.Format(
+                        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                        (homeInfo.regionLocX*Constants.RegionSize),
+                        (homeInfo.regionLocY*Constants.RegionSize),
+                        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+                        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+            }
+            else
+            {
+                // Emergency mode: Home-region isn't available, so we can't request the region info.
+                // Use the stored home regionHandle instead.
+                // NOTE: If the home-region moves, this will be wrong until the users update their user-profile again
+                ulong regionX = homeRegionHandle >> 32;
+                ulong regionY = homeRegionHandle & 0xffffffff;
+                response.Home =
+                    string.Format(
+                        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                        regionX, regionY,
+                        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+                        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+                m_log.InfoFormat("[LOGIN] Home region of user {0} {1} is not available; using computed region position {2} {3}",
+                                 theUser.FirstName, theUser.SurName,
+                                 regionX, regionY);
+            }
+
+            // StartLocation
+            RegionProfileData regionInfo = null;
+            if (startLocationRequest == "home")
+            {
+                regionInfo = homeInfo;
+                theUser.CurrentAgent.Position = theUser.HomeLocation;
+                response.LookAt = "[r" + theUser.HomeLookAt.X.ToString() + ",r" + theUser.HomeLookAt.Y.ToString() + ",r" + theUser.HomeLookAt.Z.ToString() + "]";
+            }
+            else if (startLocationRequest == "last")
+            {
+                UUID lastRegion = theUser.CurrentAgent.Region;
+                regionInfo = GetRegionInfo(lastRegion);
+                response.LookAt = "[r" + theUser.CurrentAgent.LookAt.X.ToString() + ",r" + theUser.CurrentAgent.LookAt.Y.ToString() + ",r" + theUser.CurrentAgent.LookAt.Z.ToString() + "]";
+            }
+            else
+            {
+                Regex reURI = new Regex(@"^uri:(?<region>[^&]+)&(?<x>\d+)&(?<y>\d+)&(?<z>\d+)$");
+                Match uriMatch = reURI.Match(startLocationRequest);
+                if (uriMatch == null)
+                {
+                    m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, but can't process it", startLocationRequest);
+                }
+                else
+                {
+                    string region = uriMatch.Groups["region"].ToString();
+                    regionInfo = RequestClosestRegion(region);
+                    if (regionInfo == null)
+                    {
+                        m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, can't locate region {1}", startLocationRequest, region);
+                    }
+                    else
+                    {
+                        theUser.CurrentAgent.Position = new Vector3(float.Parse(uriMatch.Groups["x"].Value),
+                            float.Parse(uriMatch.Groups["y"].Value), float.Parse(uriMatch.Groups["z"].Value));
+                    }
+                }
+                response.LookAt = "[r0,r1,r0]";
+                // can be: last, home, safe, url
+                response.StartLocation = "url";
+            }
+
+            if ((regionInfo != null) && (PrepareLoginToRegion(regionInfo, theUser, response)))
+            {
+                return true;
+            }
+
+            // StartLocation not available, send him to a nearby region instead
+            //regionInfo = RegionProfileData.RequestSimProfileData("", m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
+            //m_log.InfoFormat("[LOGIN]: StartLocation not available sending to region {0}", regionInfo.regionName);
+
+            // Send him to default region instead
+            // Load information from the gridserver
+            ulong defaultHandle = (((ulong) m_defaultHomeX * Constants.RegionSize) << 32) |
+                                  ((ulong) m_defaultHomeY * Constants.RegionSize);
+
+            if ((regionInfo != null) && (defaultHandle == regionInfo.regionHandle))
+            {
+                m_log.ErrorFormat("[LOGIN]: Not trying the default region since this is the same as the selected region");
+                return false;
+            }
+
+            m_log.Error("[LOGIN]: Sending user to default region " + defaultHandle + " instead");
+            regionInfo = GetRegionInfo(defaultHandle);
+
+            // Customise the response
+            //response.Home =
+            //    string.Format(
+            //        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+            //        (SimInfo.regionLocX * Constants.RegionSize),
+            //        (SimInfo.regionLocY*Constants.RegionSize),
+            //        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+            //        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+            theUser.CurrentAgent.Position = new Vector3(128,128,0);
+            response.StartLocation = "safe";
+
+            return PrepareLoginToRegion(regionInfo, theUser, response);
         }
 
-        protected override RegionInfo GetRegionInfo(ulong homeRegionHandle)
+        protected RegionProfileData RequestClosestRegion(string region)
+        {
+            return m_regionProfileService.RequestSimProfileData(region,
+                                                           m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
+        }
+
+        protected RegionProfileData GetRegionInfo(ulong homeRegionHandle)
         {
             return m_regionProfileService.RequestSimProfileData(homeRegionHandle,
                                                            m_config.GridServerURL, m_config.GridSendKey,
-                                                           m_config.GridRecvKey).ToRegionInfo();
+                                                           m_config.GridRecvKey);
         }
 
-        protected override RegionInfo GetRegionInfo(UUID homeRegionId)
+        protected RegionProfileData GetRegionInfo(UUID homeRegionId)
         {
             return m_regionProfileService.RequestSimProfileData(homeRegionId,
                                                            m_config.GridServerURL, m_config.GridSendKey,
-                                                           m_config.GridRecvKey).ToRegionInfo();
+                                                           m_config.GridRecvKey);
         }
 
         /// <summary>
@@ -228,7 +359,7 @@ namespace OpenSim.Grid.UserServer.Modules
         /// <param name="theUser">
         /// A <see cref="UserProfileData"/>
         /// </param>
-        protected override void AddActiveGestures(LoginResponse response, UserProfileData theUser)
+        private void AddActiveGestures(LoginResponse response, UserProfileData theUser)
         {
             List<InventoryItemBase> gestures = m_inventoryService.GetActiveGestures(theUser.ID);
             //m_log.DebugFormat("[LOGIN]: AddActiveGestures, found {0}", gestures == null ? 0 : gestures.Count);
@@ -246,23 +377,18 @@ namespace OpenSim.Grid.UserServer.Modules
             response.ActiveGestures = list;
         }
 
-        protected override bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response)
-        {
-            return PrepareLoginToRegion(RegionProfileData.FromRegionInfo(regionInfo), user, response);
-        }
-
         /// <summary>
         /// Prepare a login to the given region.  This involves both telling the region to expect a connection
         /// and appropriately customising the response to the user.
         /// </summary>
-        /// <param name="regionInfo"></param>
+        /// <param name="sim"></param>
         /// <param name="user"></param>
         /// <param name="response"></param>
         /// <returns>true if the region was successfully contacted, false otherwise</returns>
         private bool PrepareLoginToRegion(RegionProfileData regionInfo, UserProfileData user, LoginResponse response)
         {
             try
-            {
+            {                
                 response.SimAddress = Util.GetHostFromURL(regionInfo.serverURI).ToString();
                 response.SimPort = uint.Parse(regionInfo.serverURI.Split(new char[] { '/', ':' })[4]);
                 response.RegionX = regionInfo.regionLocX;
@@ -279,11 +405,11 @@ namespace OpenSim.Grid.UserServer.Modules
                 m_log.InfoFormat(
                     "[LOGIN]: Telling {0} @ {1},{2} ({3}) to prepare for client connection",
                     regionInfo.regionName, response.RegionX, response.RegionY, regionInfo.httpServerURI);
-
+                
                 // Update agent with target sim
                 user.CurrentAgent.Region = regionInfo.UUID;
                 user.CurrentAgent.Handle = regionInfo.regionHandle;
-
+                
                 // Prepare notification
                 Hashtable loginParams = new Hashtable();
                 loginParams["session_id"] = user.CurrentAgent.SessionID.ToString();
@@ -291,7 +417,7 @@ namespace OpenSim.Grid.UserServer.Modules
                 loginParams["firstname"] = user.FirstName;
                 loginParams["lastname"] = user.SurName;
                 loginParams["agent_id"] = user.ID.ToString();
-                loginParams["circuit_code"] = (Int32)Convert.ToUInt32(response.CircuitCode);
+                loginParams["circuit_code"] = (Int32) Convert.ToUInt32(response.CircuitCode);
                 loginParams["startpos_x"] = user.CurrentAgent.Position.X.ToString();
                 loginParams["startpos_y"] = user.CurrentAgent.Position.Y.ToString();
                 loginParams["startpos_z"] = user.CurrentAgent.Position.Z.ToString();
@@ -324,10 +450,10 @@ namespace OpenSim.Grid.UserServer.Modules
 
                     if (GridResp.Value != null)
                     {
-                        Hashtable resp = (Hashtable)GridResp.Value;
+                        Hashtable resp = (Hashtable) GridResp.Value;
                         if (resp.ContainsKey("success"))
                         {
-                            if ((string)resp["success"] == "FALSE")
+                            if ((string) resp["success"] == "FALSE")
                             {
                                 responseSuccess = false;
                             }
@@ -407,7 +533,7 @@ namespace OpenSim.Grid.UserServer.Modules
 
                 foreach (InventoryFolderBase InvFolder in folders)
                 {
-                    //                    m_log.DebugFormat("[LOGIN]: Received agent inventory folder {0}", InvFolder.name);
+//                    m_log.DebugFormat("[LOGIN]: Received agent inventory folder {0}", InvFolder.name);
 
                     if (InvFolder.ParentID == UUID.Zero)
                     {
@@ -416,8 +542,8 @@ namespace OpenSim.Grid.UserServer.Modules
                     TempHash = new Hashtable();
                     TempHash["name"] = InvFolder.Name;
                     TempHash["parent_id"] = InvFolder.ParentID.ToString();
-                    TempHash["version"] = (Int32)InvFolder.Version;
-                    TempHash["type_default"] = (Int32)InvFolder.Type;
+                    TempHash["version"] = (Int32) InvFolder.Version;
+                    TempHash["type_default"] = (Int32) InvFolder.Type;
                     TempHash["folder_id"] = InvFolder.ID.ToString();
                     AgentInventoryArray.Add(TempHash);
                 }
@@ -433,14 +559,14 @@ namespace OpenSim.Grid.UserServer.Modules
         public XmlRpcResponse XmlRPCSetLoginParams(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
             UserProfileData userProfile;
             Hashtable responseData = new Hashtable();
 
             UUID uid;
             string pass = requestData["password"].ToString();
 
-            if (!UUID.TryParse((string)requestData["avatar_uuid"], out uid))
+            if (!UUID.TryParse((string) requestData["avatar_uuid"], out uid))
             {
                 responseData["error"] = "No authorization";
                 response.Value = responseData;
@@ -471,5 +597,6 @@ namespace OpenSim.Grid.UserServer.Modules
             response.Value = responseData;
             return response;
         }
+
     }
 }

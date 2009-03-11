@@ -126,17 +126,150 @@ namespace OpenSim.Client.Linden
             }
         }
 
-        protected override RegionInfo RequestClosestRegion(string region)
+        /// <summary>
+        /// Customises the login response and fills in missing values.
+        /// </summary>
+        /// <param name="response">The existing response</param>
+        /// <param name="theUser">The user profile</param>
+        /// <param name="startLocationRequest">The requested start location</param>
+        public override bool CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
+        {
+            // add active gestures to login-response
+            AddActiveGestures(response, theUser);
+
+            // HomeLocation
+            RegionInfo homeInfo = null;
+
+            // use the homeRegionID if it is stored already. If not, use the regionHandle as before
+            UUID homeRegionId = theUser.HomeRegionID;
+            ulong homeRegionHandle = theUser.HomeRegion;
+            if (homeRegionId != UUID.Zero)
+            {
+                homeInfo = GetRegionInfo(homeRegionId);
+            }
+            else
+            {
+                homeInfo = GetRegionInfo(homeRegionHandle);
+            }
+
+            if (homeInfo != null)
+            {
+                response.Home =
+                    string.Format(
+                        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                        (homeInfo.RegionLocX * Constants.RegionSize),
+                        (homeInfo.RegionLocY * Constants.RegionSize),
+                        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+                        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+            }
+            else
+            {
+                m_log.InfoFormat("not found the region at {0} {1}", theUser.HomeRegionX, theUser.HomeRegionY);
+                // Emergency mode: Home-region isn't available, so we can't request the region info.
+                // Use the stored home regionHandle instead.
+                // NOTE: If the home-region moves, this will be wrong until the users update their user-profile again
+                ulong regionX = homeRegionHandle >> 32;
+                ulong regionY = homeRegionHandle & 0xffffffff;
+                response.Home =
+                    string.Format(
+                        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                        regionX, regionY,
+                        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+                        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+
+                m_log.InfoFormat("[LOGIN] Home region of user {0} {1} is not available; using computed region position {2} {3}",
+                                 theUser.FirstName, theUser.SurName,
+                                 regionX, regionY);
+            }
+
+            // StartLocation
+            RegionInfo regionInfo = null;
+            if (startLocationRequest == "home")
+            {
+                regionInfo = homeInfo;
+                theUser.CurrentAgent.Position = theUser.HomeLocation;
+                response.LookAt = "[r" + theUser.HomeLookAt.X.ToString() + ",r" + theUser.HomeLookAt.Y.ToString() + ",r" + theUser.HomeLookAt.Z.ToString() + "]";
+            }
+            else if (startLocationRequest == "last")
+            {
+                UUID lastRegion = theUser.CurrentAgent.Region;
+                regionInfo = GetRegionInfo(lastRegion);
+                response.LookAt = "[r" + theUser.CurrentAgent.LookAt.X.ToString() + ",r" + theUser.CurrentAgent.LookAt.Y.ToString() + ",r" + theUser.CurrentAgent.LookAt.Z.ToString() + "]";
+            }
+            else
+            {
+                Regex reURI = new Regex(@"^uri:(?<region>[^&]+)&(?<x>\d+)&(?<y>\d+)&(?<z>\d+)$");
+                Match uriMatch = reURI.Match(startLocationRequest);
+                if (uriMatch == null)
+                {
+                    m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, but can't process it", startLocationRequest);
+                }
+                else
+                {
+                    string region = uriMatch.Groups["region"].ToString();
+                    regionInfo = RequestClosestRegion(region);
+                    if (regionInfo == null)
+                    {
+                        m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, can't locate region {1}", startLocationRequest, region);
+                    }
+                    else
+                    {
+                        theUser.CurrentAgent.Position = new Vector3(float.Parse(uriMatch.Groups["x"].Value),
+                            float.Parse(uriMatch.Groups["y"].Value), float.Parse(uriMatch.Groups["z"].Value));
+                    }
+                }
+                response.LookAt = "[r0,r1,r0]";
+                // can be: last, home, safe, url
+                response.StartLocation = "url";
+            }
+
+            if ((regionInfo != null) && (PrepareLoginToRegion(regionInfo, theUser, response)))
+            {
+                return true;
+            }
+
+            // StartLocation not available, send him to a nearby region instead
+            // regionInfo = m_gridService.RequestClosestRegion("");
+            //m_log.InfoFormat("[LOGIN]: StartLocation not available sending to region {0}", regionInfo.regionName);
+
+            // Send him to default region instead
+            ulong defaultHandle = (((ulong)m_defaultHomeX * Constants.RegionSize) << 32) |
+                                  ((ulong)m_defaultHomeY * Constants.RegionSize);
+
+            if ((regionInfo != null) && (defaultHandle == regionInfo.RegionHandle))
+            {
+                m_log.ErrorFormat("[LOGIN]: Not trying the default region since this is the same as the selected region");
+                return false;
+            }
+
+            m_log.Error("[LOGIN]: Sending user to default region " + defaultHandle + " instead");
+            regionInfo = GetRegionInfo(defaultHandle);
+
+            // Customise the response
+            //response.Home =
+            //    string.Format(
+            //        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+            //        (SimInfo.regionLocX * Constants.RegionSize),
+            //        (SimInfo.regionLocY*Constants.RegionSize),
+            //        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+            //        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+            theUser.CurrentAgent.Position = new Vector3(128, 128, 0);
+            response.StartLocation = "safe";
+
+            return PrepareLoginToRegion(regionInfo, theUser, response);
+        }
+
+        protected RegionInfo RequestClosestRegion(string region)
         {
             return m_regionsConnector.RequestClosestRegion(region);
         }
 
-        protected override RegionInfo GetRegionInfo(ulong homeRegionHandle)
+        protected RegionInfo GetRegionInfo(ulong homeRegionHandle)
         {
             return m_regionsConnector.RequestNeighbourInfo(homeRegionHandle);
         }
 
-        protected override RegionInfo GetRegionInfo(UUID homeRegionId)
+        protected RegionInfo GetRegionInfo(UUID homeRegionId)
         {
             return m_regionsConnector.RequestNeighbourInfo(homeRegionId);
         }
@@ -150,7 +283,7 @@ namespace OpenSim.Client.Linden
         /// <param name="theUser">
         /// A <see cref="UserProfileData"/>
         /// </param>
-        protected override void AddActiveGestures(LoginResponse response, UserProfileData theUser)
+        private void AddActiveGestures(LoginResponse response, UserProfileData theUser)
         {
             List<InventoryItemBase> gestures = m_interServiceInventoryService.GetActiveGestures(theUser.ID);
             //m_log.DebugFormat("[LOGIN]: AddActiveGestures, found {0}", gestures == null ? 0 : gestures.Count);
@@ -176,7 +309,7 @@ namespace OpenSim.Client.Linden
         /// <param name="user"></param>
         /// <param name="response"></param>
         /// <returns>true if the region was successfully contacted, false otherwise</returns>
-        protected override bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response)
+        protected bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response)
         {
             IPEndPoint endPoint = regionInfo.ExternalEndPoint;
             response.SimAddress = endPoint.Address.ToString();
