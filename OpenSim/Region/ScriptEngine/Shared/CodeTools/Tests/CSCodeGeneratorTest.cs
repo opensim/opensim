@@ -376,7 +376,7 @@ default
 */
 default
 {
-    touch_start(integer num_detected) /* this should be stripped */
+    touch_start(integer /* you can't see me! */ num_detected) /* this should be stripped */
     {
         /*
          * fill

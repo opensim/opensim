@@ -45,6 +45,15 @@ namespace OpenSim.Data.Tests
         public UUID zero = UUID.Zero;
         public static Random random;
 
+        [TearDown]
+        public void removeAllRegions()
+        {
+            // Clean up all the regions.
+            foreach (RegionProfileData region in db.GetRegionsByName("", 100))
+            {
+                db.DeleteProfile(region.Uuid.ToString());
+            }
+        }
 
         public void SuperInit()
         {
@@ -60,6 +69,44 @@ namespace OpenSim.Data.Tests
             region2 = UUID.Random();
             region3 = UUID.Random();
             random = new Random();
+        }
+
+        protected RegionProfileData createRegion(UUID regionUUID, string regionName)
+        {
+            RegionProfileData reg = new RegionProfileData();
+            reg.Uuid = regionUUID;
+            reg.RegionName = regionName;
+            reg.RegionHandle = (ulong) random.Next();
+            reg.RegionLocX = (uint) random.Next();
+            reg.RegionLocY = (uint) random.Next();
+            reg.RegionLocZ = (uint) random.Next();
+            reg.RegionSendKey = RandomName();
+            reg.RegionRecvKey = RandomName();
+            reg.RegionSecret = RandomName();
+            reg.RegionOnline = false;
+            reg.ServerIP = RandomName();
+            reg.ServerPort = (uint) random.Next();
+            reg.ServerURI = RandomName();
+            reg.ServerHttpPort = (uint) random.Next();
+            reg.ServerRemotingPort = (uint) random.Next();
+            reg.NorthOverrideHandle = (ulong) random.Next();
+            reg.SouthOverrideHandle = (ulong) random.Next();
+            reg.EastOverrideHandle = (ulong) random.Next();
+            reg.WestOverrideHandle = (ulong) random.Next();
+            reg.RegionDataURI = RandomName();
+            reg.RegionAssetURI = RandomName();
+            reg.RegionAssetSendKey = RandomName();
+            reg.RegionAssetRecvKey = RandomName();
+            reg.RegionUserURI = RandomName();
+            reg.RegionUserSendKey = RandomName();
+            reg.RegionUserRecvKey = RandomName();
+            reg.RegionMapTextureID = UUID.Random();
+            reg.Owner_uuid = UUID.Random();
+            reg.OriginUUID = UUID.Random();
+
+            db.AddProfile(reg);
+
+            return reg;
         }
 
         [Test]
@@ -78,137 +125,57 @@ namespace OpenSim.Data.Tests
         }
 
         [Test]
-        public void T010_SimpleAddRetrieveProfile()
-        {
-            RegionProfileData reg = new RegionProfileData();
-            reg.Uuid = region1;
-            reg.RegionName = "My new Region";
-            reg.RegionHandle = (ulong) random.Next();
-            reg.RegionLocX = 1000;
-            reg.RegionLocY = 1000;
-            reg.RegionLocZ = 0;
-
-            db.AddProfile(reg);
-
-            RegionProfileData retreg = db.GetProfileByUUID(region1);
-
-            Assert.That(retreg.RegionName, Is.EqualTo("My new Region"));
-            Assert.That(retreg.Uuid, Is.EqualTo(region1));
-        }
-
-        [Test]
         public void T011_AddRetrieveCompleteTest()
         {
-            string regionname = "|<Goth@m Ci1y>|";
-            ulong regionhandle = (ulong) random.Next();
-            uint regionlocx = (uint) random.Next();
-            uint regionlocy = (uint) random.Next();
-            uint regionlocz = (uint) random.Next();
-            string regionsendkey = RandomName();
-            string regionrecvkey = RandomName();
-            string regionsecret = RandomName();
-            bool regiononline = false;
-            string serverip = RandomName();
-            uint serverport = (uint) random.Next();
-            string serveruri = RandomName();
-            uint serverhttpport = (uint) random.Next();
-            uint serverremotingport = (uint) random.Next();
-            ulong northovrhandle = (ulong) random.Next();
-            ulong southovrhandle = (ulong) random.Next();
-            ulong eastovrhandle = (ulong) random.Next();
-            ulong westovrhandle = (ulong) random.Next();
-            string regiondatauri = RandomName();
-            string regionasseturi = RandomName();
-            string regionassetsendkey = RandomName();
-            string regionassetrcvkey = RandomName();
-            string regionuseruri = RandomName();
-            string regionusersendkey = RandomName();
-            string regionuserrcvkey = RandomName();
-            UUID regionmaptextureid = UUID.Random();
-            UUID owner_uuid = UUID.Random();
-            UUID originuuid = UUID.Random();
-
-
-            RegionProfileData reg = new RegionProfileData();
-            reg.Uuid = region2;
-            reg.RegionName = regionname;
-            reg.RegionHandle = regionhandle;
-            reg.RegionLocX = regionlocx;
-            reg.RegionLocY = regionlocy;
-            reg.RegionLocZ = regionlocz;
-            reg.RegionSendKey = regionsendkey;
-            reg.RegionRecvKey = regionrecvkey;
-            reg.RegionSecret = regionsecret;
-            reg.RegionOnline = regiononline;
-            reg.OriginUUID = originuuid;
-            reg.ServerIP = serverip;
-            reg.ServerPort = serverport;
-            reg.ServerURI = serveruri;
-            reg.ServerHttpPort = serverhttpport;
-            reg.ServerRemotingPort = serverremotingport;
-            reg.NorthOverrideHandle = northovrhandle;
-            reg.SouthOverrideHandle = southovrhandle;
-            reg.EastOverrideHandle = eastovrhandle;
-            reg.WestOverrideHandle = westovrhandle;
-            reg.RegionDataURI = regiondatauri;
-            reg.RegionAssetURI = regionasseturi;
-            reg.RegionAssetSendKey = regionassetsendkey;
-            reg.RegionAssetRecvKey = regionassetrcvkey;
-            reg.RegionUserURI = regionuseruri;
-            reg.RegionUserSendKey = regionusersendkey;
-            reg.RegionUserRecvKey = regionuserrcvkey;
-            reg.RegionMapTextureID = regionmaptextureid;
-            reg.Owner_uuid = owner_uuid;
-            reg.OriginUUID = originuuid;
-
-            db.AddProfile(reg);
-
+            RegionProfileData newreg = createRegion(region2, "|<Goth@m Ci1y>|");
             RegionProfileData retreg = db.GetProfileByUUID(region2);
 
-            Assert.That(retreg.RegionName, Is.EqualTo(regionname));
+            Assert.That(retreg.RegionName, Is.EqualTo(newreg.RegionName));
             Assert.That(retreg.Uuid, Is.EqualTo(region2));
-            Assert.That(retreg.RegionHandle, Is.EqualTo(regionhandle));
-            Assert.That(retreg.RegionLocX, Is.EqualTo(regionlocx));
-            Assert.That(retreg.RegionLocY, Is.EqualTo(regionlocy));
-            Assert.That(retreg.RegionLocZ, Is.EqualTo(regionlocz));
-            Assert.That(retreg.RegionSendKey, Is.EqualTo(regionsendkey));
-            Assert.That(retreg.RegionRecvKey, Is.EqualTo(regionrecvkey));
-            Assert.That(retreg.RegionSecret, Is.EqualTo(regionsecret));
-            Assert.That(retreg.RegionOnline, Is.EqualTo(regiononline));
-            Assert.That(retreg.OriginUUID, Is.EqualTo(originuuid));
-            Assert.That(retreg.ServerIP, Is.EqualTo(serverip));
-            Assert.That(retreg.ServerPort, Is.EqualTo(serverport));
-            Assert.That(retreg.ServerURI, Is.EqualTo(serveruri));
-            Assert.That(retreg.ServerHttpPort, Is.EqualTo(serverhttpport));
-            Assert.That(retreg.ServerRemotingPort, Is.EqualTo(serverremotingport));
-            Assert.That(retreg.NorthOverrideHandle, Is.EqualTo(northovrhandle));
-            Assert.That(retreg.SouthOverrideHandle, Is.EqualTo(southovrhandle));
-            Assert.That(retreg.EastOverrideHandle, Is.EqualTo(eastovrhandle));
-            Assert.That(retreg.WestOverrideHandle, Is.EqualTo(westovrhandle));
-            Assert.That(retreg.RegionDataURI, Is.EqualTo(regiondatauri));
-            Assert.That(retreg.RegionAssetURI, Is.EqualTo(regionasseturi));
-            Assert.That(retreg.RegionAssetSendKey, Is.EqualTo(regionassetsendkey));
-            Assert.That(retreg.RegionAssetRecvKey, Is.EqualTo(regionassetrcvkey));
-            Assert.That(retreg.RegionUserURI, Is.EqualTo(regionuseruri));
-            Assert.That(retreg.RegionUserSendKey, Is.EqualTo(regionusersendkey));
-            Assert.That(retreg.RegionUserRecvKey, Is.EqualTo(regionuserrcvkey));
-            Assert.That(retreg.RegionMapTextureID, Is.EqualTo(regionmaptextureid));
-            Assert.That(retreg.Owner_uuid, Is.EqualTo(owner_uuid));
-            Assert.That(retreg.OriginUUID, Is.EqualTo(originuuid));
+            Assert.That(retreg.RegionHandle, Is.EqualTo(newreg.RegionHandle));
+            Assert.That(retreg.RegionLocX, Is.EqualTo(newreg.RegionLocX));
+            Assert.That(retreg.RegionLocY, Is.EqualTo(newreg.RegionLocY));
+            Assert.That(retreg.RegionLocZ, Is.EqualTo(newreg.RegionLocZ));
+            Assert.That(retreg.RegionSendKey, Is.EqualTo(newreg.RegionSendKey));
+            Assert.That(retreg.RegionRecvKey, Is.EqualTo(newreg.RegionRecvKey));
+            Assert.That(retreg.RegionSecret, Is.EqualTo(newreg.RegionSecret));
+            Assert.That(retreg.RegionOnline, Is.EqualTo(newreg.RegionOnline));
+            Assert.That(retreg.OriginUUID, Is.EqualTo(newreg.OriginUUID));
+            Assert.That(retreg.ServerIP, Is.EqualTo(newreg.ServerIP));
+            Assert.That(retreg.ServerPort, Is.EqualTo(newreg.ServerPort));
+            Assert.That(retreg.ServerURI, Is.EqualTo(newreg.ServerURI));
+            Assert.That(retreg.ServerHttpPort, Is.EqualTo(newreg.ServerHttpPort));
+            Assert.That(retreg.ServerRemotingPort, Is.EqualTo(newreg.ServerRemotingPort));
+            Assert.That(retreg.NorthOverrideHandle, Is.EqualTo(newreg.NorthOverrideHandle));
+            Assert.That(retreg.SouthOverrideHandle, Is.EqualTo(newreg.SouthOverrideHandle));
+            Assert.That(retreg.EastOverrideHandle, Is.EqualTo(newreg.EastOverrideHandle));
+            Assert.That(retreg.WestOverrideHandle, Is.EqualTo(newreg.WestOverrideHandle));
+            Assert.That(retreg.RegionDataURI, Is.EqualTo(newreg.RegionDataURI));
+            Assert.That(retreg.RegionAssetURI, Is.EqualTo(newreg.RegionAssetURI));
+            Assert.That(retreg.RegionAssetSendKey, Is.EqualTo(newreg.RegionAssetSendKey));
+            Assert.That(retreg.RegionAssetRecvKey, Is.EqualTo(newreg.RegionAssetRecvKey));
+            Assert.That(retreg.RegionUserURI, Is.EqualTo(newreg.RegionUserURI));
+            Assert.That(retreg.RegionUserSendKey, Is.EqualTo(newreg.RegionUserSendKey));
+            Assert.That(retreg.RegionUserRecvKey, Is.EqualTo(newreg.RegionUserRecvKey));
+            Assert.That(retreg.RegionMapTextureID, Is.EqualTo(newreg.RegionMapTextureID));
+            Assert.That(retreg.Owner_uuid, Is.EqualTo(newreg.Owner_uuid));
+            Assert.That(retreg.OriginUUID, Is.EqualTo(newreg.OriginUUID));
 
-            retreg = db.GetProfileByHandle(regionhandle);
-            Assert.That(retreg.Uuid, Is.EqualTo(region2));
-
-            retreg = db.GetProfileByString(regionname);
+            retreg = db.GetProfileByHandle(newreg.RegionHandle);
             Assert.That(retreg.Uuid, Is.EqualTo(region2));
 
-            RegionProfileData[] retregs = db.GetProfilesInRange(regionlocx,regionlocy,regionlocx,regionlocy);
+            retreg = db.GetProfileByString(newreg.RegionName);
+            Assert.That(retreg.Uuid, Is.EqualTo(region2));
+
+            RegionProfileData[] retregs = db.GetProfilesInRange(newreg.RegionLocX,newreg.RegionLocY,newreg.RegionLocX,newreg.RegionLocY);
             Assert.That(retregs[0].Uuid, Is.EqualTo(region2));
         }
 
         [Test]
         public void T012_DeleteProfile()
         {
+            createRegion(region1, "doesn't matter");
+
             db.DeleteProfile(region1.ToString());
             RegionProfileData retreg = db.GetProfileByUUID(region1);
             Assert.That(retreg,Is.Null);
@@ -217,6 +184,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T013_UpdateProfile()
         {
+            createRegion(region2, "|<Goth@m Ci1y>|");
+
             RegionProfileData retreg = db.GetProfileByUUID(region2);
             retreg.regionName = "Gotham City";
 
@@ -229,6 +198,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T014_RegionList()
         {
+            createRegion(region2, "Gotham City");
+
             RegionProfileData retreg = db.GetProfileByUUID(region2);
             retreg.RegionName = "Gotham Town";
             retreg.Uuid = region1;
@@ -249,8 +220,7 @@ namespace OpenSim.Data.Tests
             Assert.That(listreg[1].Uuid, Is.EqualTo(region1) | Is.EqualTo(region2));
         }
 
-        [Test]
-        public static string RandomName()
+        protected static string RandomName()
         {
             StringBuilder name = new StringBuilder();
             int size = random.Next(5,12);
