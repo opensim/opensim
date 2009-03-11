@@ -3495,6 +3495,7 @@ if (m_shape != null) {
             if (PhysActor != null)
             {
                 PhysActor.Shape = m_shape;
+                m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
             }
 
             // This is what makes vehicle trailers work
