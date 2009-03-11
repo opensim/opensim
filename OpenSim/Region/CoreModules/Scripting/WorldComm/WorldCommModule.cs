@@ -575,13 +575,16 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         {
             List<Object> data = new List<Object>();
 
-            foreach (List<ListenerInfo> list in m_listeners.Values)
+            lock (m_listeners)
             {
-                foreach (ListenerInfo l in list)
-                {
-                    if (l.GetItemID() == itemID)
-                        data.AddRange(l.GetSerializationData());
-                }
+				foreach (List<ListenerInfo> list in m_listeners.Values)
+				{
+					foreach (ListenerInfo l in list)
+					{
+						if (l.GetItemID() == itemID)
+							data.AddRange(l.GetSerializationData());
+					}
+				}
             }
             return (Object[])data.ToArray();
         }
