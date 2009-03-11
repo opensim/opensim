@@ -81,7 +81,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Are we applying physics to any of the prims in this scene?
         /// </summary>
         public bool m_physicalPrim;
-        public float m_maxNonphys = 65536;
+        public float m_maxNonphys = 256;
         public float m_maxPhys = 10;
         public bool m_clampPrimSize = false;
         public bool m_trustBinaries = false;
@@ -342,11 +342,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // Region config overrides global config
                 //
                 IConfig startupConfig = m_config.Configs["Startup"];
-                m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", 65536.0f);
+                m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", m_maxNonphys);
                 if (RegionInfo.NonphysPrimMax > 0)
                     m_maxNonphys = RegionInfo.NonphysPrimMax;
 
-                m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", 10.0f);
+                m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", m_maxPhys);
 
                 if (RegionInfo.PhysPrimMax > 0)
                     m_maxPhys = RegionInfo.PhysPrimMax;
@@ -354,12 +354,12 @@ namespace OpenSim.Region.Framework.Scenes
                 // Here, if clamping is requested in either global or
                 // local config, it will be used
                 //
-                m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", false);
+                m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", m_clampPrimSize);
                 if (RegionInfo.ClampPrimSize)
                     m_clampPrimSize = true;
 
-                m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", false);
-                m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", false);
+                m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
+                m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
                 m_dontPersistBefore =
                   startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
                 m_dontPersistBefore *= 10000000;

@@ -292,7 +292,7 @@ namespace OpenSim
                 m_configSettings.EstateConnectionString = startupConfig.GetString("estate_connection_string", m_configSettings.StorageConnectionString);
                 m_configSettings.AssetStorage = startupConfig.GetString("asset_database");
                 m_configSettings.AssetCache = startupConfig.GetString("AssetCache");
-                m_configSettings.ClientstackDll = startupConfig.GetString("clientstack_plugin");
+                m_configSettings.ClientstackDll = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
 
             IConfig standaloneConfig = m_config.Source.Configs["StandAlone"];

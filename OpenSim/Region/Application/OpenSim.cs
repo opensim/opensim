@@ -68,8 +68,8 @@ namespace OpenSim
 
             if (startupConfig != null)
             {
-                m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", String.Empty);
-                m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", String.Empty);
+                m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "startup_commands.txt");
+                m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", "shutdown_commands.txt");
 
                 m_gui = startupConfig.GetBoolean("gui", false);
 
