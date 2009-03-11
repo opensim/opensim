@@ -1654,6 +1654,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //Ckrinke This variable is not used, so comment out to remove the warning from the compiler (3-21-08)
             //Ckrinke            uint FULL_MASK_PERMISSIONS = 2147483647;
 
+            int itemsSent = 0;
             if (fetchItems)
             {
                 InventoryDescendentsPacket descend = CreateInventoryDescendentsPacket(ownerID, folderID);
@@ -1714,9 +1715,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     i++;
                     count++;
+                    itemsSent++;
                     if (i == MAX_ITEMS_PER_PACKET)
                     {
                         descend.Header.Zerocoded = true;
+                        AddNullFolderBlockToDecendentsPacket(ref descend);
                         OutPacket(descend, ThrottleOutPacketType.Asset);
 
                         if ((items.Count - count) > 0)
@@ -1736,8 +1739,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
 
-                if (i < MAX_ITEMS_PER_PACKET)
+                if (0 < i && i < MAX_ITEMS_PER_PACKET)
                 {
+                    AddNullFolderBlockToDecendentsPacket(ref descend);
                     OutPacket(descend, ThrottleOutPacketType.Asset);
                 }
             }
@@ -1772,8 +1776,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     i++;
                     count++;
+                    itemsSent++;
                     if (i == MAX_ITEMS_PER_PACKET)
                     {
+                        AddNullItemBlockToDescendentsPacket(ref descend);
                         OutPacket(descend, ThrottleOutPacketType.Asset);
 
                         if ((folders.Count - count) > 0)
@@ -1795,11 +1801,61 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
 
-                if (i < MAX_ITEMS_PER_PACKET)
+                if (0 < i && i < MAX_ITEMS_PER_PACKET)
                 {
+                    AddNullItemBlockToDescendentsPacket(ref descend);
                     OutPacket(descend, ThrottleOutPacketType.Asset);
                 }
             }
+
+            if (itemsSent == 0)
+            {
+                // no items found.
+                InventoryDescendentsPacket descend = CreateInventoryDescendentsPacket(ownerID, folderID);
+                descend.AgentData.Descendents = 0;
+                AddNullItemBlockToDescendentsPacket(ref descend);
+                AddNullFolderBlockToDecendentsPacket(ref descend);
+                OutPacket(descend, ThrottleOutPacketType.Asset);
+            }
+        }
+
+        private void AddNullFolderBlockToDecendentsPacket(ref InventoryDescendentsPacket packet)
+        {
+            packet.FolderData = new InventoryDescendentsPacket.FolderDataBlock[1];
+            packet.FolderData[0] = new InventoryDescendentsPacket.FolderDataBlock();
+            packet.FolderData[0].FolderID = UUID.Zero;
+            packet.FolderData[0].ParentID = UUID.Zero;
+            packet.FolderData[0].Type = -1;
+            packet.FolderData[0].Name = new byte[0];
+        }
+
+        private void AddNullItemBlockToDescendentsPacket(ref InventoryDescendentsPacket packet)
+        {
+            packet.ItemData = new InventoryDescendentsPacket.ItemDataBlock[1];
+            packet.ItemData[0] = new InventoryDescendentsPacket.ItemDataBlock();
+            packet.ItemData[0].ItemID = UUID.Zero;
+            packet.ItemData[0].AssetID = UUID.Zero;
+            packet.ItemData[0].CreatorID = UUID.Zero;
+            packet.ItemData[0].BaseMask = 0;
+            packet.ItemData[0].Description = new byte[0];
+            packet.ItemData[0].EveryoneMask = 0;
+            packet.ItemData[0].OwnerMask = 0;
+            packet.ItemData[0].FolderID = UUID.Zero;
+            packet.ItemData[0].InvType = (sbyte)0;
+            packet.ItemData[0].Name = new byte[0];
+            packet.ItemData[0].NextOwnerMask = 0;
+            packet.ItemData[0].OwnerID = UUID.Zero;
+            packet.ItemData[0].Type = -1;
+
+            packet.ItemData[0].GroupID = UUID.Zero;
+            packet.ItemData[0].GroupOwned = false;
+            packet.ItemData[0].GroupMask = 0;
+            packet.ItemData[0].CreationDate = 0;
+            packet.ItemData[0].SalePrice = 0;
+            packet.ItemData[0].SaleType = 0;
+            packet.ItemData[0].Flags = 0;
+
+            // No need to add CRC
         }
 
         private InventoryDescendentsPacket CreateInventoryDescendentsPacket(UUID ownerID, UUID folderID)
