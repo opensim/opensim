@@ -109,7 +109,8 @@ namespace OpenSim.Framework.Communications
                         _info["login"] 
                             = String.Format(
                                 "http://127.0.0.1:{0}/", 
-                                netCfg.GetString("http_listener_port", NetworkServersInfo.DefaultHttpListenerPort));
+                                netCfg.GetString(
+                                    "http_listener_port", NetworkServersInfo.DefaultHttpListenerPort.ToString()));
                     
                     IssueWarning();
                 }
