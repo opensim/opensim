@@ -1,3 +1,11 @@
+; This file shows initialization defaults for OpenSimulator.  If you want to override these
+; please copy/rename this file from .ini.example file to .ini.  For example
+;
+; chat.ini.example => chat.ini
+;
+; or you can copy and paste the settings from this file directly to bin/OpenSim.ini
+;
+
 [Startup]
     ; Set this to true if you want to log crashes to disk
     ; this can be useful when submitting bug reports.
@@ -217,22 +225,6 @@
 
     ;emailmodule = DefaultEmailModule
 
-[SMTP]
-
-    enabled=false
-
-    ;enabled=true
-    ;internal_object_host=lsl.opensim.local
-    ;host_domain_header_from=127.0.0.1
-    ;SMTP_SERVER_HOSTNAME=127.0.0.1
-    ;SMTP_SERVER_PORT=25
-    ;SMTP_SERVER_LOGIN=foo
-    ;SMTP_SERVER_PASSWORD=bar
-
-[Communications]
-
-;InterregionComms = "LocalComms"
-InterregionComms = "RESTComms"
 
 [StandAlone]
     accounts_authenticate = true
@@ -293,64 +285,45 @@ InterregionComms = "RESTComms"
     dump_assets_to_file = false
 
 
-[ClientStack.LindenUDP]
-    ; This is the multiplier applied to all client throttles for outgoing UDP network data
-    ; If it is set to 1, then we obey the throttle settings as given to us by the client.  If it is set to 3, for example, then we 
-    ; multiply that setting by 3 (e.g. if the client gives us a setting of 250 kilobits per second then we
-    ; will actually push down data at a maximum rate of 750 kilobits per second).
-    ; 
-    ; In principle, setting a multiplier greater than 1 will allow data to be pushed down to a client much faster
-    ; than its UI allows the setting to go.  This may be okay in some situations, such as standalone OpenSim
-    ; applications on a LAN.  However, the greater the multipler, the higher the risk of packet drop, resulting
-    ; in symptoms such as missing terrain or objects.  A much better solution is to change the client UI to allow
-    ; higher network bandwidth settings directly, though this isn't always possible.
-    ;
-    ; Currently this setting is 2 by default because we currently send much more texture data than is strictly
-    ; necessary.  A setting of 1 could result in slow texture transfer.  This will be fixed when the transfer
-    ; of textures at different levels of quality is improved.
-    ; 
-    ; Pre r7113, this setting was not exposed but was effectively 8.  You may want to try this if you encounter
-    ; unexpected difficulties
-    client_throttle_multiplier = 2;   
+[Network]
+    http_listener_port = 9000
+    default_location_x = 1000
+    default_location_y = 1000
 
+    ; ssl config: Experimental!  The auto https config only really works definately on windows XP now
+    ; you need a Cert Request/Signed pair installed in the MY store with the CN specified below
+    ; you can use https on other platforms, but you'll need to configure the httpapi yourself for now
+    http_listener_ssl = false ; Also create a SSL server
+    http_listener_cn = "localhost" ; Use the cert with the common name
+    http_listener_sslport = 9001 ; Use this port for SSL connections
+    http_listener_ssl_cert = "" ; Currently unused, but will be used for OSHttpServer
 
+    ; Uncomment below to enable llRemoteData/remote channels
+    ; remoteDataPort = 20800
 
+    grid_server_url = "http://127.0.0.1:8001"
+    grid_send_key = "null"
+    grid_recv_key = "null"
 
+    user_server_url = "http://127.0.0.1:8002"
+    user_send_key = "null"
+    user_recv_key = "null"
 
+    asset_server_url = "http://127.0.0.1:8003"
 
+    inventory_server_url = "http://127.0.0.1:8004"
 
-[DataSnapshot]
-    ; The following set of configs pertains to search.
-    ; Set index_sims to true to enable search engines to index your searchable data
-    ; If false, no data will be exposed, DataSnapshot module will be off, and you can ignore the rest of these search-related configs
-    ; default is false
-    index_sims = false
+    ; The MessagingServer is a companion of the UserServer. It uses
+    ; user_send_key and user_recv_key, too
+    messaging_server_url = "http://127.0.0.1:8006"
 
-    ; The variable data_exposure controls what the regions expose:
-    ;    minimum: exposes only things explicitly marked for search
-    ;    all: exposes everything
-    data_exposure = minimum
+    ; What is reported as the "X-Secondlife-Shard"
+    ; Defaults to the user server url if not set
+    ; The old default is "OpenSim", set here fro compatibility
+    shard = "OpenSim"
 
-    ; If search is on, change this to your grid name; will be ignored for standalones
-    gridname = "OSGrid"
-
-    ; Period between data snapshots, in seconds. 20 minutes, for starters, so that you see the initial changes fast.
-    ; Later, you may want to increase this to 3600 (1 hour) or more
-    default_snapshot_period = 1200
-
-    ; This will be created in bin, if it doesn't exist already. It will hold the data snapshots.
-    snapshot_cache_directory = "DataSnapshot"
-
-    ; This semicolon-separated string serves to notify specific data services about the existence 
-    ; of this sim. Uncomment if you want to index your data with this and/or other search providers.
-    ;data_services="http://metaverseink.com/cgi-bin/register.py"
-
-
-[OpenGridProtocol]
-    ;These are the settings for the Open Grid Protocol..  the Agent Domain, Region Domain,   you know..
-    ;On/true or Off/false
-    ogp_enabled=false
-
-    ;Name Prefix/suffix when using OGP
-    ogp_firstname_prefix=""
-    ogp_lastname_suffix="_EXTERNAL"
+    ; What is reported as the "User-Agent" when using llHTTPRequest
+    ; Defaults to not sent if not set here. See the notes section in the wiki at
+    ; http://wiki.secondlife.com/wiki/LlHTTPRequest for comments on adding
+    ; " (Mozilla Compatible)" to the text where there are problems with a web server
+    ;user_agent = "OpenSim LSL (Mozilla Compatible)"

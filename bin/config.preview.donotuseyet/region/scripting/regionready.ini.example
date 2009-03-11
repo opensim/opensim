@@ -1,0 +1,19 @@
+; This file shows initialization defaults for OpenSimulator.  If you want to override these
+; please copy/rename this file from .ini.example file to .ini.  For example
+;
+; chat.ini.example => chat.ini
+;
+; or you can copy and paste the settings from this file directly to bin/OpenSim.ini
+;
+
+[RegionReady]
+    ; Enable this module to get notified once all items and scripts in the region have been completely loaded and compiled
+    ; default is false
+    enabled = false
+
+    ; Channel on which to signal region readiness through a message
+    ; formatted as follows: "{0|1},n,[oar error]"
+    ; - the first number indicating whether the OAR file loaded ok (1 == ok, 0 == error)
+    ; - the second number indicates how many scrips failed to compile
+    ; - "oar error" if supplied, provides the error message from the OAR load
+    channel_notify = -800

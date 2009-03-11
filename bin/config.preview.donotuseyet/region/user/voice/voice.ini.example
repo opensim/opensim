@@ -1,0 +1,17 @@
+; This file shows initialization defaults for OpenSimulator.  If you want to override these
+; please copy/rename this file from .ini.example file to .ini.  For example
+;
+; chat.ini.example => chat.ini
+;
+; or you can copy and paste the settings from this file directly to bin/OpenSim.ini
+;
+
+[Voice]
+    ; PLEASE NOTE that we don't have voice support in OpenSim quite yet - these configuration options are stubs
+    enabled = false
+    ; This is not supported by the SLViewer right now and
+    ; hardcoded within the SL Viewer. Maybe it will be
+    ; changed in future. :-)
+    account_management_server = https://www.bhr.vivox.com/api2
+    ; Global SIP Server for conference calls
+    sip_domain = testserver.com

@@ -1,0 +1,15 @@
+; This file shows initialization defaults for OpenSimulator.  If you want to override these
+; please copy/rename this file from .ini.example file to .ini.  For example
+;
+; chat.ini.example => chat.ini
+;
+; or you can copy and paste the settings from this file directly to bin/OpenSim.ini
+;
+
+[Trees]
+    ; Enable this to allow the tree module to manage your sim trees, including growing, reproducing and dying
+    ; default is false
+    active_trees = false
+
+    ; Density of tree population
+    tree_density = 1000.0

@@ -1,0 +1,34 @@
+; This file shows initialization defaults for OpenSimulator.  If you want to override these
+; please copy/rename this file from .ini.example file to .ini.  For example
+;
+; chat.ini.example => chat.ini
+;
+; or you can copy and paste the settings from this file directly to bin/OpenSim.ini
+;
+
+[RemoteAdmin]
+    enabled = false
+    access_password = unknown
+
+    ; the create_region XmlRpc call uses region_file_template to generate
+    ; the file name of newly create regions (if they are created
+    ; persistent). the parameter available are:
+    ;     {0} - X location
+    ;     {1} - Y location
+    ;     {2} - region UUID
+    ;     {3} - region port
+    ;     {4} - region name with " ", ":", "/" mapped to  "_"
+
+    region_file_template = "{0}x{1}-{2}.xml"
+
+    ; we can limit the number of regions that XmlRpcCreateRegion will
+    ; allow by setting this to a positive, non-0 number: as long as the
+    ; number of regions is below region_limits, XmlRpcCreateRegion will
+    ; succeed. setting region_limit to 0 disables the check.
+    ; default is 0
+    ;region_limit = 0
+
+    ; enable only those methods you deem to be appropriate using a | delimited whitelist
+    ; for example, enabled_methods = admin_broadcast|admin_region_query|admin_save_oar|admin_save_xml    
+    ; if this parameter is not specified but enabled = true, all methods will be available
+    enabled_methods = all
