@@ -22,4 +22,7 @@
     <Extension path="/OpenSim/AssetInventoryServer/AuthorizationProvider">
         <Plugin id="AuthorizeAll" provider="OpenSim.Grid.AssetInventoryServer.Plugins.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.AuthorizeAllPlugin" />
     </Extension>
+    <Extension path="/OpenSim/AssetInventoryServer/Frontend">
+        <Plugin id="InventoryArchive" provider="OpenSim.Grid.AssetInventoryServer.Plugins.dll" type="OpenSim.Grid.AssetInventoryServer.Plugins.InventoryArchivePlugin" />
+    </Extension>
 </Addin>

@@ -122,6 +122,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                         ms.Seek(0, SeekOrigin.Begin);
                         buffer = ms.GetBuffer();
                         Array.Resize<byte>(ref buffer, (int) ms.Length);
+                        ms.Close();
                         httpResponse.StatusCode = (int) HttpStatusCode.OK;
                     }
                     else
