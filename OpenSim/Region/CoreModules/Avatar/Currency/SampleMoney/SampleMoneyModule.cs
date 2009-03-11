@@ -267,7 +267,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Currency.SampleMoney
                 // Helpers.TryParse(EBA, out EconomyBaseAccount);
 
                 // UserLevelPaysFees = startupConfig.GetInt("UserLevelPaysFees", -1);
-                m_stipend = startupConfig.GetInt("UserStipend", 500);
+                m_stipend = startupConfig.GetInt("UserStipend", 1000);
                 m_minFundsBeforeRefresh = startupConfig.GetInt("IssueStipendWhenClientIsBelowAmount", 10);
                 m_keepMoneyAcrossLogins = startupConfig.GetBoolean("KeepMoneyAcrossLogins", true);
                 m_MoneyAddress = startupConfig.GetString("CurrencyServer", String.Empty);

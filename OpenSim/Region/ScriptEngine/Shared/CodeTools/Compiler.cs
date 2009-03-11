@@ -100,7 +100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         public void ReadConfig()
         {
             // Get some config
-            WriteScriptSourceToDebugFile = m_scriptEngine.Config.GetBoolean("WriteScriptSourceToDebugFile", true);
+            WriteScriptSourceToDebugFile = m_scriptEngine.Config.GetBoolean("WriteScriptSourceToDebugFile", false);
             CompileWithDebugInformation = m_scriptEngine.Config.GetBoolean("CompileWithDebugInformation", true);
 
             // Get file prefix from scriptengine name and make it file system safe:
@@ -187,7 +187,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// </summary>
         private void DeleteOldFiles()
         {
-
             // CREATE FOLDER IF IT DOESNT EXIST
             if (!Directory.Exists(ScriptEnginesPath))
             {

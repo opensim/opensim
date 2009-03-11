@@ -112,10 +112,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// WARNING! ONLY UPDATE maxFunctionExecutionTimems, NEVER THIS DIRECTLY.
         /// </summary>
         public static long maxFunctionExecutionTimens;
+        
         /// <summary>
         /// Enforce max execution time
         /// </summary>
         public static bool EnforceMaxExecutionTime;
+        
         /// <summary>
         /// Kill script (unload) when it exceeds execution time
         /// </summary>
@@ -163,7 +165,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Refresh config
             numberOfThreads = m_ScriptEngine.ScriptConfigSource.GetInt("NumberOfScriptThreads", 2);
             maxFunctionExecutionTimems = m_ScriptEngine.ScriptConfigSource.GetInt("MaxEventExecutionTimeMs", 5000);
-            EnforceMaxExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("EnforceMaxEventExecutionTime", false);
+            EnforceMaxExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("EnforceMaxEventExecutionTime", true);
             KillScriptOnMaxFunctionExecutionTime = m_ScriptEngine.ScriptConfigSource.GetBoolean("DeactivateScriptOnTimeout", false);
             EventExecutionMaxQueueSize = m_ScriptEngine.ScriptConfigSource.GetInt("EventExecutionMaxQueueSize", 300);
 

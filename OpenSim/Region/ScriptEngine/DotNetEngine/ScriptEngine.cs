@@ -171,7 +171,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void ReadConfig()
         {
-            RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 30);
+            RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 0);
 
             if (m_EventQueueManager != null) m_EventQueueManager.ReadConfig();
             if (m_EventManager != null) m_EventManager.ReadConfig();

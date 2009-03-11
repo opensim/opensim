@@ -34,7 +34,7 @@ namespace OpenSim.Framework
     {
         public static readonly uint DefaultHttpListenerPort = 9000;
         public static uint RemotingListenerPort = 8895;
-        public string AssetSendKey = String.Empty;
+        public string AssetSendKey = String.Empty;        
         public string AssetURL = "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString() + "/";
 
         public string GridRecvKey = String.Empty;
@@ -85,7 +85,7 @@ namespace OpenSim.Framework
             httpSSLPort =
                 (uint)config.Configs["Network"].GetInt("http_listener_sslport", ((int)DefaultHttpListenerPort+1));
             HttpUsesSSL = config.Configs["Network"].GetBoolean("http_listener_ssl", false);
-            HttpSSLCN = config.Configs["Network"].GetString("http_listener_cn", "");
+            HttpSSLCN = config.Configs["Network"].GetString("http_listener_cn", "localhost");
             RemotingListenerPort =
                 (uint) config.Configs["Network"].GetInt("remoting_listener_port", (int) RemotingListenerPort);
             GridURL =

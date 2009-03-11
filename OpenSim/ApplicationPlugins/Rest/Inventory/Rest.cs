@@ -81,7 +81,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         internal static bool                      Secure            = true;
         internal static bool                      ExtendedEscape    = true;
         internal static bool                      DumpAsset         = false;
-        internal static bool                      Fill              = false;
+        internal static bool                      Fill              = true;
         internal static bool                      FlushEnabled      = true;
         internal static string                    Realm             = "OpenSim REST";
         internal static string                    Scheme            = AS_BASIC;

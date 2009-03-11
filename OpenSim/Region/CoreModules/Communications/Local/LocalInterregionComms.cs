@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Communications.Local
             {
                 IConfig startupConfig = config.Configs["Communications"];
 
-                if ((startupConfig != null) && (startupConfig.GetString("InterregionComms", "RESTCommms") == "LocalComms"))
+                if ((startupConfig != null) && (startupConfig.GetString("InterregionComms", "RESTComms") == "LocalComms"))
                 {
                     m_log.Debug("[LOCAL COMMS]: Enabling InterregionComms LocalComms module");
                     m_enabled = true;

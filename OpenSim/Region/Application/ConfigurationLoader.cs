@@ -231,14 +231,14 @@ namespace OpenSim
                 if (null == config)
                     config = defaultConfig.AddConfig("StandAlone");
 
-                config.Set("accounts_authenticate", false);
+                config.Set("accounts_authenticate", true);
                 config.Set("welcome_message", "Welcome to OpenSimulator");
                 config.Set("inventory_plugin", "OpenSim.Data.SQLite.dll");
                 config.Set("inventory_source", "");
                 config.Set("userDatabase_plugin", "OpenSim.Data.SQLite.dll");
                 config.Set("user_source", "");
                 config.Set("asset_plugin", "OpenSim.Data.SQLite.dll");
-                config.Set("asset_source", "");
+                config.Set("asset_source", "URI=file:Asset.db,version=3");
                 config.Set("LibrariesXMLFile", string.Format(".{0}inventory{0}Libraries.xml", Path.DirectorySeparatorChar));
                 config.Set("AssetSetsXMLFile", string.Format(".{0}assets{0}AssetSets.xml", Path.DirectorySeparatorChar));
                 config.Set("dump_assets_to_file", false);
@@ -288,11 +288,16 @@ namespace OpenSim
                     Thread.Sleep(3000);
                 }
 
-                m_configSettings.StorageConnectionString = startupConfig.GetString("storage_connection_string");
-                m_configSettings.EstateConnectionString = startupConfig.GetString("estate_connection_string", m_configSettings.StorageConnectionString);
-                m_configSettings.AssetStorage = startupConfig.GetString("asset_database");
-                m_configSettings.AssetCache = startupConfig.GetString("AssetCache");
-                m_configSettings.ClientstackDll = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
+                m_configSettings.StorageConnectionString 
+                    = startupConfig.GetString("storage_connection_string");
+                m_configSettings.EstateConnectionString 
+                    = startupConfig.GetString("estate_connection_string", m_configSettings.StorageConnectionString);
+                m_configSettings.AssetStorage 
+                    = startupConfig.GetString("asset_database");
+                m_configSettings.AssetCache 
+                    = startupConfig.GetString("AssetCache", "OpenSim.Framework.Communications.Cache.AssetCache");
+                m_configSettings.ClientstackDll 
+                    = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
 
             IConfig standaloneConfig = m_config.Source.Configs["StandAlone"];

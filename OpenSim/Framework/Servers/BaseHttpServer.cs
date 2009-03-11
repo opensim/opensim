@@ -115,7 +115,6 @@ namespace OpenSim.Framework.Servers
         {
             string httpMethod = handler.HttpMethod;
             string path = handler.Path;
-
             string handlerKey = GetHandlerKey(httpMethod, path);
 
             lock (m_streamHandlers)
@@ -187,7 +186,6 @@ namespace OpenSim.Framework.Servers
         // Note that the agent string is provided simply to differentiate
         // the handlers - it is NOT required to be an actual agent header
         // value.
-
         public bool AddAgentHandler(string agent, IHttpAgentHandler handler)
         {
             lock (m_agentHandlers)

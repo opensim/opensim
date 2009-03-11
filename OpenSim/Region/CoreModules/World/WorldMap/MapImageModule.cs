@@ -74,7 +74,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             byte[] imageData = null;
 
             bool drawPrimVolume = true;
-            bool textureTerrain = true;
+            bool textureTerrain = false;
 
             try
             {

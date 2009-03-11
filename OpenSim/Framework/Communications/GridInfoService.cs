@@ -102,9 +102,15 @@ namespace OpenSim.Framework.Communications
                 else if (null != netCfg)
                 {
                     if (grid)
-                        _info["login"] = netCfg.GetString("user_server_url");
-                        else
-                            _info["login"] = String.Format("http://127.0.0.1:{0}/", netCfg.GetString("http_listener_port"));
+                        _info["login"] 
+                            = netCfg.GetString(
+                                "user_server_url", "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString());
+                    else
+                        _info["login"] 
+                            = String.Format(
+                                "http://127.0.0.1:{0}/", 
+                                netCfg.GetString("http_listener_port", NetworkServersInfo.DefaultHttpListenerPort));
+                    
                     IssueWarning();
                 }
                 else

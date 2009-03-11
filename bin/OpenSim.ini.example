@@ -236,7 +236,7 @@ InterregionComms = "RESTComms"
 
 [StandAlone]
     accounts_authenticate = true
-    welcome_message = "Welcome to OpenSim"
+    welcome_message = "Welcome to OpenSimulator"
 
     ; Asset database provider
     asset_plugin = "OpenSim.Data.SQLite.dll"
@@ -244,8 +244,8 @@ InterregionComms = "RESTComms"
     ; asset_plugin = "OpenSim.Data.NHibernate.dll" ; for nhibernate
 
     ; the Asset DB source.  This only works for sqlite, mysql, and nhibernate for now
-    ; Asset Source SQLite example
-    ; asset_source = "URI=file:Asset.db,version=3"
+    ; Asset source SQLite example
+    asset_source = "URI=file:Asset.db,version=3"
     ; Asset Source NHibernate example (DIALECT;DRIVER;CONNECTSTRING)
     ; asset_source = "SQLiteDialect;SqliteClientDriver;URI=file:Asset.db,version=3"
     ; Asset Source MySQL example
@@ -256,11 +256,12 @@ InterregionComms = "RESTComms"
     ; inventory_plugin = "OpenSim.Data.MySQL.dll"
     ; inventory_plugin = "OpenSim.Data.NHibernate.dll" ; for nhibernate
 
+    ; Inventory source SQLite example
+    inventory_source = "URI=file:inventoryStore.db,version=3"
     ; Inventory Source NHibernate example (DIALECT;DRIVER;CONNECTSTRING)
     ; inventory_source = "SQLiteDialect;SqliteClientDriver;URI=file:Inventory.db,version=3"
     ; Inventory Source MySQL example
     ;inventory_source = "Data Source=localhost;Database=opensim;User ID=opensim;Password=****;"
-
 
     ; User Data Database provider
     ;
@@ -274,6 +275,8 @@ InterregionComms = "RESTComms"
     ; userDatabase_plugin = "OpenSim.Data.MySQL.dll"
     ; userDatabase_plugin = "OpenSim.Data.NHibernate.dll" ; for nhibernate
 
+    ; User source SQLite example
+    user_source = "URI=file:userprofiles.db,version=3"
     ; User Source NHibernate Example (DIALECT;DRIVER;CONNECTSTRING)
     ; user_source = "SQLiteDialect;SqliteClientDriver;URI=file:User.db,version=3"
     ; User Source MySQL example
@@ -281,11 +284,11 @@ InterregionComms = "RESTComms"
 
     ; Specifies the location and filename of the default inventory library control file.  The path can be relative or absolute
     ; Default is ./inventory/Libraries.xml
-    ;LibrariesXMLFile="./inventory/Libraries.xml"
+    LibrariesXMLFile="./inventory/Libraries.xml"
     
     ; Specifies the location and filename of the inventory library assets control file.  The path can be relative or absolute
     ; Setting is optional. Default is ./assets/AssetSets.xml
-    ;AssetSetsXMLFile="./assets/AssetSets.xml"
+    AssetSetsXMLFile="./assets/AssetSets.xml"
 
     dump_assets_to_file = false
 
@@ -416,18 +419,15 @@ InterregionComms = "RESTComms"
     nm_terraincontact_erp = 0.1025
 
     ; Moving Terrain Contact (avatar is moving)
-
     m_terraincontact_friction = 75.0
     m_terraincontact_bounce = 0.05
     m_terrainContact_erp = 0.05025
 
     ; Moving Avatar to object Contact
-
     m_avatarobjectcontact_friction = 75.0
     m_avatarobjectcontact_bounce = 0.1
 
     ; Object to Object Contact and Non-Moving Avatar to object
-
     objectcontact_friction = 250.0
     objectcontact_bounce = 0.2
 
@@ -455,7 +455,6 @@ InterregionComms = "RESTComms"
     ; used to calculate mass of avatar.
     ; float AVvolume = (float) (Math.PI*Math.Pow(CAPSULE_RADIUS, 2)*CAPSULE_LENGTH);
     ; av_density * AVvolume;
-
     av_density = 80
 
     ; use this value to cut 52% of the height the sim gives us
@@ -516,6 +515,7 @@ InterregionComms = "RESTComms"
     ; ## Physics logging settings - logfiles are saved to *.DIF files
     ; ##
 
+    ; default is false
     ;physics_logging = true
     ;; every n simulation iterations, the physics snapshot file is updated
     ;physics_logging_interval = 50
@@ -526,7 +526,9 @@ InterregionComms = "RESTComms"
     ; ## Joint support
     ; ##
 
-    ; if you would like physics joints to be enabled through a special naming convention in the client, set this to true. (see NINJA Physics documentation, http://opensimulator.org/wiki/NINJA_Physics)
+    ; if you would like physics joints to be enabled through a special naming convention in the client, set this to true. 
+    ; (see NINJA Physics documentation, http://opensimulator.org/wiki/NINJA_Physics)
+    ; default is false
     ;use_NINJA_physics_joints = true
 
 
@@ -546,16 +548,18 @@ InterregionComms = "RESTComms"
     region_file_template = "{0}x{1}-{2}.xml"
 
     ; we can limit the number of regions that XmlRpcCreateRegion will
-    ;allow by setting this to a positive, non-0 number: as long as the
-    ;number of regions is below region_limits, XmlRpcCreateRegion will
-    ;succeed. setting region_limit to 0 disables the check.
+    ; allow by setting this to a positive, non-0 number: as long as the
+    ; number of regions is below region_limits, XmlRpcCreateRegion will
+    ; succeed. setting region_limit to 0 disables the check.
+    ; default is 0
     ;region_limit = 0
 
-    enabled_methods = all
     ; enable only those methods you deem to be appropriate using a | delimited whitelist
     ; for example, enabled_methods = admin_broadcast|admin_region_query|admin_save_oar|admin_save_xml    
     ; if this parameter is not specified but enabled = true, all methods will be available
+    enabled_methods = all
    
+
 [RestPlugins]
     ; Change this to true to enable REST Plugins. This must be true if you wish to use
     ; REST Region or REST Asset and Inventory Plugins
@@ -689,7 +693,6 @@ InterregionComms = "RESTComms"
     ScriptDelayFactor = 1.0
     ScriptDistanceLimitFactor = 1.0
 
-
     ;
     ; These settings are specific to DotNetEngine script engine
     ; Other script engines based on OpenSim.Region.ScriptEngine.Common.dll will have almost identical settings, but in another section of this config file.
@@ -780,10 +783,11 @@ InterregionComms = "RESTComms"
     ; Async LL command sleep
     ; If no async LL commands are waiting, how long should thread sleep before checking again
     ; Async LL commands are LSL-commands that causes an event to be fired back with result
-    AsyncLLCommandLoopms=50
+    ; currently unused
+    ; AsyncLLCommandLoopms=50
 
     ; When script is converted from LSL to C#, or just plain compiled, a copy of the script source will be put in the ScriptEngine folder
-    WriteScriptSourceToDebugFile=true
+    WriteScriptSourceToDebugFile=false
 
     ; Specify default script compiler
     ; If you do not specify //cs, //vb, //js or //lsl tag as the first characters of your script then the default compiler will be chosen
@@ -796,18 +800,19 @@ InterregionComms = "RESTComms"
     ; AllowedCompilers=lsl,cs,js,vb.  *warning*, non lsl languages have access to static methods such as System.IO.File.  Enable at your own risk.
     AllowedCompilers=lsl
 
-
     ; Compile scripts with debugging
     ; Probably a thousand times slower, but gives you a line number when something goes wrong.
     CompileWithDebugInformation=true
 
     ; Remove old scripts on next startup
-    CleanUpOldScriptsOnStartup=true
+    ; currently unused
+    ;CleanUpOldScriptsOnStartup=true
 
 
 [LL-Functions]
     ; Set the following to true to allow administrator owned scripts to execute console commands
-    AllowosConsoleCommand=false
+    ; currently unused
+    ; AllowosConsoleCommand=false
 
     AllowGodFunctions = false
 
@@ -820,18 +825,24 @@ InterregionComms = "RESTComms"
     ; The following set of configs pertains to search.
     ; Set index_sims to true to enable search engines to index your searchable data
     ; If false, no data will be exposed, DataSnapshot module will be off, and you can ignore the rest of these search-related configs
+    ; default is false
     index_sims = false
+
     ; The variable data_exposure controls what the regions expose:
     ;    minimum: exposes only things explicitly marked for search
     ;    all: exposes everything
     data_exposure = minimum
+
     ; If search is on, change this to your grid name; will be ignored for standalones
     gridname = "OSGrid"
+
     ; Period between data snapshots, in seconds. 20 minutes, for starters, so that you see the initial changes fast.
     ; Later, you may want to increase this to 3600 (1 hour) or more
     default_snapshot_period = 1200
+
     ; This will be created in bin, if it doesn't exist already. It will hold the data snapshots.
     snapshot_cache_directory = "DataSnapshot"
+
     ; This semicolon-separated string serves to notify specific data services about the existence 
     ; of this sim. Uncomment if you want to index your data with this and/or other search providers.
     ;data_services="http://metaverseink.com/cgi-bin/register.py"
@@ -909,24 +920,35 @@ InterregionComms = "RESTComms"
 [XEngine]
     ; Enable this engine in this OpenSim instance
     Enabled = true
+
     ; How many threads to keep alive even if nothing is happening
     MinThreads = 2
+
     ; How many threads to start at maximum load
     MaxThreads = 100
+
     ; Time a thread must be idle (in seconds) before it dies
     IdleTimeout = 60
+
     ; Thread priority ("Lowest", "BelowNormal", "Normal", "AboveNormal", "Highest")
     Priority = "BelowNormal"
+
     ; Maximum number of events to queue for a script (excluding timers)
     MaxScriptEventQueue = 300
+
     ; Stack size per thread created
     ThreadStackSize = 262144
+
     ; Rate to poll for asynchronous command replies (ms)
-    AsyncLLCommandLoopms = 50
+    ; currently unused
+    ;AsyncLLCommandLoopms = 50
+
     ; Save the source of all compiled scripts
     WriteScriptSourceToDebugFile = false
+
     ; Default language for scripts
     DefaultCompileLanguage = lsl
+
     ; List of allowed languages (lsl,vb,js,cs)
     ; AllowedCompilers=lsl,cs,js,vb.  
     ; *warning*, non lsl languages have access to static methods such as System.IO.File.  Enable at your own risk.
@@ -934,20 +956,28 @@ InterregionComms = "RESTComms"
 
     ; Compile debug info (line numbers) into the script assemblies
     CompileWithDebugInformation = true
+
     ; Allow the use of os* functions (some are dangerous)
     AllowOSFunctions = false
+
     ; Threat level to allow, one of None, VeryLow, Low, Moderate, High, VeryHigh, Severe
     OSFunctionThreatLevel = VeryLow
+
     ; Interval (s) between background save of script states
     SaveInterval = 120
+
     ; Interval (s) between maintenance runs (0 = disable)
     MaintenanceInterval = 10
+
     ; Time a script can spend in an event handler before it is interrupted
     EventLimit = 30
+
     ; If a script overruns it's event limit, kill the script?
     KillTimedOutScripts = false
+
     ; Sets the multiplier for the scripting delays
     ScriptDelayFactor = 1.0
+
     ; The factor the 10 m distances llimits are multiplied by
     ScriptDistanceLimitFactor = 1.0
 
@@ -964,10 +994,10 @@ InterregionComms = "RESTComms"
     ; Comma separated list of UUIDS allows the function for that list of UUIDS
     ; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb
 
-
     ; Allow for llCreateLink and llBreakLink to work without asking for permission 
     ; only enable this in a trusted environment otherwise you may be subject to hijacking
     ; AutomaticLinkPermission = false
+
 
 [GridInfo]
     ; These settings are used to return information on a get_grid_info call.
@@ -987,30 +1017,36 @@ InterregionComms = "RESTComms"
     ; short grid name: the short name of your grid
     gridnick = "hippogrid"
 
-
     ; login page: optional: if it exists it will be used to tell the client to use
     ;                       this as splash page
-    welcome = http://127.0.0.1/welcome
+    ; currently unused
+    ;welcome = http://127.0.0.1/welcome
 
     ; helper uri: optional: if it exists if will be used to tell the client to use
     ;                       this for all economy related things
-    economy = http://127.0.0.1:9000/
+    ; currently unused
+    ;economy = http://127.0.0.1:9000/
 
     ; web page of grid: optional: page providing further information about your grid
-    about = http://127.0.0.1/about/
+    ; currently unused
+    ;about = http://127.0.0.1/about/
 
     ; account creation: optional: page providing further information about obtaining
     ;                             a user account on your grid
-    register = http://127.0.0.1/register
+    ; currently unused
+    ;register = http://127.0.0.1/register
 
     ; help: optional: page providing further assistance for users of your grid
-    help = http://127.0.0.1/help
+    ; currently unused
+    ;help = http://127.0.0.1/help
 
     ; password help: optional: page providing password assistance for users of your grid
-    password = http://127.0.0.1/password
+    ; currently unused
+    ;password = http://127.0.0.1/password
 
+
+[OpenGridProtocol]
     ;These are the settings for the Open Grid Protocol..  the Agent Domain, Region Domain,   you know..
-    [OpenGridProtocol]
     ;On/true or Off/false
     ogp_enabled=false
 
@@ -1049,16 +1085,19 @@ InterregionComms = "RESTComms"
     ; {1} is replaced with the region's UUID
     broker = "http://broker.place.com/{1}"
 
-[Trees]
 
+[Trees]
     ; Enable this to allow the tree module to manage your sim trees, including growing, reproducing and dying
+    ; default is false
     active_trees = false
 
     ; Density of tree population
     tree_density = 1000.0
 
+
 [RegionReady]
     ; Enable this module to get notified once all items and scripts in the region have been completely loaded and compiled
+    ; default is false
     enabled = false
 
     ; Channel on which to signal region readiness through a message
@@ -1068,5 +1107,8 @@ InterregionComms = "RESTComms"
     ; - "oar error" if supplied, provides the error message from the OAR load
     channel_notify = -800
 
+
 [MRM]
-	Enabled = false ; Enables the Mini Region Modules Script Engine. WARNING: SECURITY RISK.
+    ; Enables the Mini Region Modules Script Engine. WARNING: SECURITY RISK.
+    ; default is false
+	  Enabled = false 

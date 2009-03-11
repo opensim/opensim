@@ -64,7 +64,7 @@ namespace OpenSim.Region.DataSnapshot
 
         //DataServices and networking
         private string m_dataServices = "noservices";
-        public string m_listener_port = "9000"; //TODO: Set default port over 9000
+        public string m_listener_port = NetworkServersInfo.DefaultHttpListenerPort.ToString();
         public string m_hostname = "127.0.0.1";
 
         //Update timers
@@ -101,14 +101,24 @@ namespace OpenSim.Region.DataSnapshot
                     try
                     {
                         m_enabled = config.Configs["DataSnapshot"].GetBoolean("index_sims", m_enabled);
-                        if (config.Configs["Startup"].GetBoolean("gridmode", true))
+                        if (config.Configs["Startup"].GetBoolean("gridmode", false))
                         {
-                            m_gridinfo.Add("gridserverURL", config.Configs["Network"].GetString("grid_server_url", "harbl"));
-                            m_gridinfo.Add("userserverURL", config.Configs["Network"].GetString("user_server_url", "harbl"));
-                            m_gridinfo.Add("assetserverURL", config.Configs["Network"].GetString("asset_server_url", "harbl"));
+                            m_gridinfo.Add(
+                                 "gridserverURL", 
+                                 config.Configs["Network"].GetString(
+                                     "grid_server_url", "http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString()));
+                            m_gridinfo.Add(
+                                 "userserverURL", 
+                                 config.Configs["Network"].GetString(
+                                 "user_server_url", "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString()));
+                            m_gridinfo.Add(
+                                 "assetserverURL", 
+                                 config.Configs["Network"].GetString(
+                                 "asset_server_url", "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString()));
                         }
 
-                        m_gridinfo.Add("Name", config.Configs["DataSnapshot"].GetString("gridname", "harbl"));
+                        m_gridinfo.Add(
+                            "Name", config.Configs["DataSnapshot"].GetString("gridname", "the lost continent of hippo"));
                         m_exposure_level = config.Configs["DataSnapshot"].GetString("data_exposure", m_exposure_level);
                         m_period = config.Configs["DataSnapshot"].GetInt("default_snapshot_period", m_period);
                         m_maxStales = config.Configs["DataSnapshot"].GetInt("max_changes_before_update", m_maxStales);

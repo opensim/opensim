@@ -8717,7 +8717,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IConfigSource config = new IniConfigSource(Application.iniFilePath);
             if (config.Configs["Network"] != null)
             {
-                shard = config.Configs["Network"].GetString("user_server_url", shard);
+                shard 
+                    = config.Configs["Network"].GetString(
+                        "user_server_url", "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString());
                 shard = config.Configs["Network"].GetString("shard", shard);
             }
 

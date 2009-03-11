@@ -366,8 +366,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     gravityy = physicsconfig.GetFloat("world_gravityy", 0f);
                     gravityz = physicsconfig.GetFloat("world_gravityz", -9.8f);
 
-                    worldHashspaceLow = physicsconfig.GetInt("world_hashspace_low", -4);
-                    worldHashspaceHigh = physicsconfig.GetInt("world_hashspace_high", 128);
+                    worldHashspaceLow = physicsconfig.GetInt("world_hashspace_size_low", -4);
+                    worldHashspaceHigh = physicsconfig.GetInt("world_hashspace_size_high", 128);
 
                     metersInSpace = physicsconfig.GetFloat("meters_in_small_space", 29.9f);
                     smallHashspaceLow = physicsconfig.GetInt("small_hashspace_size_low", -4);
@@ -380,7 +380,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     nmTerrainContactERP = physicsconfig.GetFloat("nm_terraincontact_erp", 0.1025f);
 
                     mTerrainContactFriction = physicsconfig.GetFloat("m_terraincontact_friction", 75f);
-                    mTerrainContactBounce = physicsconfig.GetFloat("m_terraincontact_bounce", 0.1f);
+                    mTerrainContactBounce = physicsconfig.GetFloat("m_terraincontact_bounce", 0.05f);
                     mTerrainContactERP = physicsconfig.GetFloat("m_terraincontact_erp", 0.05025f);
 
                     nmAvatarObjectContactFriction = physicsconfig.GetFloat("objectcontact_friction", 250f);
@@ -411,7 +411,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     meshSculptedPrim = physicsconfig.GetBoolean("mesh_sculpted_prim", true);
                     meshSculptLOD = physicsconfig.GetFloat("mesh_lod", 32f);
                     MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", 16f);
-                    m_filterCollisions = physicsconfig.GetBoolean("filter_collisions", true);
+                    m_filterCollisions = physicsconfig.GetBoolean("filter_collisions", false);
 
                     if (Environment.OSVersion.Platform == PlatformID.Unix)
                     {
