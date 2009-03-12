@@ -83,7 +83,8 @@ namespace OpenSim.Framework
                 pair["seed"] = OSD.FromString(kvp.Value);
                 childrenSeeds.Add(pair);
             }
-            args["children_seeds"] = childrenSeeds;
+            if (ChildrenCapSeeds.Count > 0)
+                args["children_seeds"] = childrenSeeds;
 
             args["child"] = OSD.FromBoolean(child);
             args["circuit_code"] = OSD.FromString(circuitcode.ToString());
