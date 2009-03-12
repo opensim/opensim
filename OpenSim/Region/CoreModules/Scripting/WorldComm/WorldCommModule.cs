@@ -577,14 +577,14 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
             lock (m_listeners)
             {
-				foreach (List<ListenerInfo> list in m_listeners.Values)
-				{
-					foreach (ListenerInfo l in list)
-					{
-						if (l.GetItemID() == itemID)
-							data.AddRange(l.GetSerializationData());
-					}
-				}
+                foreach (List<ListenerInfo> list in m_listeners.Values)
+                {
+                    foreach (ListenerInfo l in list)
+                    {
+                        if (l.GetItemID() == itemID)
+                            data.AddRange(l.GetSerializationData());
+                    }
+                }
             }
             return (Object[])data.ToArray();
         }
