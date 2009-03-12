@@ -102,7 +102,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     availableMethods["admin_restart"] = XmlRpcRestartMethod;
                     availableMethods["admin_load_heightmap"] = XmlRpcLoadHeightmapMethod;
                     availableMethods["admin_create_user"] = XmlRpcCreateUserMethod;
-                    availableMethods["admin_create_user_email"] = XmlRpcCreateUserMethodEmail;
+                    availableMethods["admin_create_user_email"] = XmlRpcCreateUserMethod;
                     availableMethods["admin_exists_user"] = XmlRpcUserExistsMethod;
                     availableMethods["admin_update_user"] = XmlRpcUpdateUserAccountMethod;
                     availableMethods["admin_load_xml"] = XmlRpcLoadXMLMethod;
@@ -692,6 +692,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>avatar's last name</description></item>
         /// <item><term>user_password</term>
         ///       <description>avatar's password</description></item>
+        /// <item><term>user_email</term>
+        ///       <description>email of the avatar's owner (optional)</description></item>
         /// <item><term>start_region_x</term>
         ///       <description>avatar's start region coordinates, X value</description></item>
         /// <item><term>start_region_y</term>
@@ -739,121 +741,21 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     string firstname = (string) requestData["user_firstname"];
                     string lastname = (string) requestData["user_lastname"];
                     string passwd = (string) requestData["user_password"];
-                    string email = ""; //Empty string for email
                     uint regX = Convert.ToUInt32((Int32) requestData["start_region_x"]);
                     uint regY = Convert.ToUInt32((Int32) requestData["start_region_y"]);
 
-                    UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
-                    if (null != userProfile)
-                        throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
+                    string email = ""; // empty string for email
+                    if (requestData.Contains("user_email"))
+                        email = (string)requestData["user_email"];
 
-                    UUID userID = m_app.CommunicationsManager.UserAdminService.AddUser(firstname, lastname,
-                                                                                       passwd, email, regX, regY);
-
-                    if (userID == UUID.Zero)
-                        throw new Exception(String.Format("failed to create new user {0} {1}",
-                                                          firstname, lastname));
-
-                    responseData["success"] = "true";
-                    responseData["avatar_uuid"] = userID.ToString();
-
-                    response.Value = responseData;
-
-                    m_log.InfoFormat("[RADMIN]: CreateUser: User {0} {1} created, UUID {2}", firstname, lastname, userID);
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[RADMIN] CreateUser: failed: {0}", e.Message);
-                    m_log.DebugFormat("[RADMIN] CreateUser: failed: {0}", e.ToString());
-
-                    responseData["success"] = "false";
-                    responseData["avatar_uuid"] = UUID.Zero.ToString();
-                    responseData["error"] = e.Message;
-
-                    response.Value = responseData;
-                }
-                return response;
-            }
-        }
-
-        /// <summary>
-        /// Create a new user account.
-        /// <summary>
-        /// <param name="request">incoming XML RPC request</param>
-        /// <remarks>
-        /// XmlRpcCreateUserMethod takes the following XMLRPC
-        /// parameters
-        /// <list type="table">
-        /// <listheader><term>parameter name</term><description>description</description></listheader>
-        /// <item><term>password</term>
-        ///       <description>admin password as set in OpenSim.ini</description></item>
-        /// <item><term>user_firstname</term>
-        ///       <description>avatar's first name</description></item>
-        /// <item><term>user_lastname</term>
-        ///       <description>avatar's last name</description></item>
-        /// <item><term>user_password</term>
-        ///       <description>avatar's password</description></item>
-        /// <item><term>start_region_x</term>
-        ///       <description>avatar's start region coordinates, X value</description></item>
-        /// <item><term>start_region_y</term>
-        ///       <description>avatar's start region coordinates, Y value</description></item>
-        /// <item><term>user_email</term>
-        ///       <description>email of avatar</description></item>
-        /// </list>
-        ///
-        /// XmlRpcCreateUserMethod returns
-        /// <list type="table">
-        /// <listheader><term>name</term><description>description</description></listheader>
-        /// <item><term>success</term>
-        ///       <description>true or false</description></item>
-        /// <item><term>error</term>
-        ///       <description>error message if success is false</description></item>
-        /// <item><term>avatar_uuid</term>
-        ///       <description>UUID of the newly created avatar
-        ///                    account; UUID.Zero if failed.
-        ///       </description></item>
-        /// </list>
-        /// </remarks>
-        public XmlRpcResponse XmlRpcCreateUserMethodEmail(XmlRpcRequest request)
-        {
-            m_log.Info("[RADMIN]: CreateUser: new request");
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable responseData = new Hashtable();
-
-            lock (this)
-            {
-                try
-                {
-                    Hashtable requestData = (Hashtable) request.Params[0];
-
-                    // check completeness
-                    checkStringParameters(request, new string[]
-                                                       {
-                                                           "password", "user_firstname",
-                                                           "user_lastname", "user_password", "user_email"
-                                                       });
-                    checkIntegerParams(request, new string[] {"start_region_x", "start_region_y"});
-
-                    // check password
-                    if (!String.IsNullOrEmpty(requiredPassword) &&
-                        (string) requestData["password"] != requiredPassword) throw new Exception("wrong password");
-
-                    // do the job
-                    string firstname = (string) requestData["user_firstname"];
-                    string lastname = (string) requestData["user_lastname"];
-                    string passwd = (string) requestData["user_password"];
-                    string email = (string) requestData["user_email"];
-                    uint regX = Convert.ToUInt32((Int32) requestData["start_region_x"]);
-                    uint regY = Convert.ToUInt32((Int32) requestData["start_region_y"]);
-
-                    UserProfileData userProfile =
+                    UserProfileData userProfile = 
                         m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
                     if (null != userProfile)
                         throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
 
-                    UUID userID
-                        = m_app.CommunicationsManager.UserAdminService.AddUser(
-                            firstname, lastname, passwd, email, regX, regY);
+                    UUID userID = 
+                        m_app.CommunicationsManager.UserAdminService.AddUser(firstname, lastname,
+                                                                             passwd, email, regX, regY);
 
                     if (userID == UUID.Zero)
                         throw new Exception(String.Format("failed to create new user {0} {1}",
@@ -954,12 +856,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         }
 
         /// <summary>
-        /// Update the password of a user account.
+        /// Update a user account.
         /// <summary>
         /// <param name="request">incoming XML RPC request</param>
         /// <remarks>
         /// XmlRpcUpdateUserAccountMethod takes the following XMLRPC
-        /// parameters
+        /// parameters (changeable ones are optional)
         /// <list type="table">
         /// <listheader><term>parameter name</term><description>description</description></listheader>
         /// <item><term>password</term>
@@ -976,6 +878,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// <item><term>start_region_y</term>
         ///       <description>avatar's start region coordinates, Y
         ///                    value (changeable)</description></item>
+        /// <item><term>about_real_world</term>
+        ///       <description>"about" text of avatar owner (changeable)</description></item>
+        /// <item><term>about_virtual_world</term>
+        ///       <description>"about" text of avatar (changeable)</description></item>
         /// </list>
         ///
         /// XmlRpcCreateUserMethod returns
@@ -1000,11 +906,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     Hashtable requestData = (Hashtable) request.Params[0];
 
                     // check completeness
-                    checkStringParameters(request, new string[]
-                                                       {
-                                                           "password", "user_firstname",
-                                                           "user_lastname"
-                                                       });
+                    checkStringParameters(request, new string[] {
+                            "password", "user_firstname",
+                            "user_lastname"});
 
                     // check password
                     if (!String.IsNullOrEmpty(requiredPassword) &&
@@ -1013,7 +917,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     // do the job
                     string firstname = (string) requestData["user_firstname"];
                     string lastname = (string) requestData["user_lastname"];
-
 
                     string passwd = String.Empty;
                     uint? regX = null;
@@ -1024,7 +927,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     uint? usaX = null;
                     uint? usaY = null;
                     uint? usaZ = null;
-
+                    string aboutFirstLive = String.Empty;
+                    string aboutAvatar = String.Empty;
 
                     if (requestData.ContainsKey("user_password")) passwd = (string) requestData["user_password"];
                     if (requestData.ContainsKey("start_region_x"))
@@ -1045,6 +949,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         usaY = Convert.ToUInt32((Int32) requestData["start_standat_y"]);
                     if (requestData.ContainsKey("start_standat_z"))
                         usaZ = Convert.ToUInt32((Int32) requestData["start_standat_z"]);
+                    if (requestData.ContainsKey("about_real_world"))
+                        aboutFirstLive = (string)requestData["about_real_world"];
+                    if (requestData.ContainsKey("about_virtual_world"))
+                        aboutAvatar = (string)requestData["about_virtual_world"];
 
                     UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
 
@@ -1067,6 +975,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if (null != ulaX) userProfile.HomeLookAtX = (uint) ulaX;
                     if (null != ulaY) userProfile.HomeLookAtY = (uint) ulaY;
                     if (null != ulaZ) userProfile.HomeLookAtZ = (uint) ulaZ;
+
+                    if (String.Empty != aboutFirstLive) userProfile.FirstLifeAboutText = aboutFirstLive;
+                    if (String.Empty != aboutAvatar) userProfile.AboutText = aboutAvatar;
 
                     if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
                         throw new Exception("did not manage to update user profile");
