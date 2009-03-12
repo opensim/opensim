@@ -479,7 +479,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (client is IClientCore)
             {
                 handlerClientConnect = OnClientConnect;
-                handlerClientConnect((IClientCore) client);
+                if (handlerClientConnect != null)
+                    handlerClientConnect((IClientCore)client);
             }
         }
 
