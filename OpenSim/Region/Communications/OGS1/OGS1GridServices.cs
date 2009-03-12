@@ -416,11 +416,14 @@ namespace OpenSim.Region.Communications.OGS1
                         httpPort = Convert.ToUInt32((string)responseData["http_port"]);
                     }
 
+                    // Ok, so this is definitively the wrong place to do this, way too hard coded, but it doesn't seem we GET this info?
+
+                    string simURI = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.InternalEndPoint.Port;
 
                     // string externalUri = (string) responseData["sim_uri"];
 
                     //IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
-                    regionInfo = RegionInfo.Create(regionID, regionName, regX, regY, externalHostName, httpPort, simPort, remotingPort);
+                    regionInfo = RegionInfo.Create(regionID, regionName, regX, regY, externalHostName, httpPort, simPort, remotingPort, simURI );
 
                     lock (m_remoteRegionInfoCache)
                     {

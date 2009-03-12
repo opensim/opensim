@@ -282,7 +282,20 @@ namespace OpenSim.Data
 
         public RegionInfo ToRegionInfo( )
         {
-            return RegionInfo.Create(UUID, regionName, regionLocX, regionLocY, serverIP, httpPort, serverPort, remotingPort);
+            return RegionInfo.Create(UUID, regionName, regionLocX, regionLocY, serverIP, httpPort, serverPort, remotingPort, serverURI );
+        }
+
+        public static RegionProfileData FromRegionInfo( RegionInfo regionInfo )
+        {
+            if( regionInfo == null )
+            {
+                return null;
+            }
+
+            return Create(regionInfo.RegionID, regionInfo.RegionName, regionInfo.RegionLocX,
+                                         regionInfo.RegionLocY, regionInfo.ExternalHostName,
+                                         (uint) regionInfo.ExternalEndPoint.Port, regionInfo.HttpPort, regionInfo.RemotingPort,
+                                         regionInfo.ServerURI);
         }
 
         public static RegionProfileData Create(UUID regionID, string regionName, uint locX, uint locY, string externalHostName, uint regionPort, uint httpPort, uint remotingPort, string serverUri)

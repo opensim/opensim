@@ -676,7 +676,7 @@ namespace OpenSim.Framework
                 proxyUrl = args["proxy_url"].AsString();
         }
 
-        public static RegionInfo Create(UUID regionID, string regionName, uint regX, uint regY, string externalHostName, uint httpPort, uint simPort, uint remotingPort)
+        public static RegionInfo Create(UUID regionID, string regionName, uint regX, uint regY, string externalHostName, uint httpPort, uint simPort, uint remotingPort, string serverURI)
         {
             RegionInfo regionInfo;
             IPEndPoint neighbourInternalEndPoint = new IPEndPoint(Util.GetHostFromDNS(externalHostName), (int)simPort);                    
@@ -686,6 +686,7 @@ namespace OpenSim.Framework
             regionInfo.HttpPort = httpPort;
             regionInfo.RegionID = regionID;
             regionInfo.RegionName = regionName;
+            regionInfo.ServerURI = serverURI;
             return regionInfo;
         }
     }
