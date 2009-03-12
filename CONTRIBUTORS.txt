@@ -75,6 +75,7 @@ Patches
 * nornalbion
 * openlifegrid.com
 * ralphos
+* rtomita
 * Ruud Lathorp
 * SachaMagne
 * Salahzar Stenvaag
