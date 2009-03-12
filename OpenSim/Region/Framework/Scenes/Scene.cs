@@ -752,7 +752,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
             HeartbeatThread = new Thread(new ParameterizedThreadStart(Heartbeat));
             HeartbeatThread.SetApartmentState(ApartmentState.MTA);
-            HeartbeatThread.Name = "Heartbeat";
+            HeartbeatThread.Name = string.Format("Heartbeat for region {0}", RegionInfo.RegionName);
             HeartbeatThread.Priority = ThreadPriority.AboveNormal;
             ThreadTracker.Add(HeartbeatThread);
             HeartbeatThread.Start();
