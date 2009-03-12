@@ -318,7 +318,7 @@ namespace OpenSim.Framework.Communications
             return GoodLogin;
         }
 
-        protected virtual bool TryAuthenticateLLSDLogin( string firstname, string lastname, string passwd, out UserProfileData userProfile)
+        protected virtual bool TryAuthenticateLLSDLogin(string firstname, string lastname, string passwd, out UserProfileData userProfile)
         {
             bool GoodLogin = false;
             userProfile = GetTheUser(firstname, lastname);
@@ -369,7 +369,7 @@ namespace OpenSim.Framework.Communications
                         }
                         m_log.Info("[LOGIN]: LLSD Login Requested for: '" + firstname+"' '"+lastname+"' / "+passwd);
 
-                        if (!TryAuthenticateLLSDLogin( firstname, lastname, passwd, out userProfile))
+                        if (!TryAuthenticateLLSDLogin(firstname, lastname, passwd, out userProfile))
                         {
                             return logResponse.CreateLoginFailedResponseLLSD();
                         }
@@ -985,7 +985,7 @@ namespace OpenSim.Framework.Communications
             m_log.Error("[LOGIN]: Sending user to default region " + defaultHandle + " instead");
             regionInfo = GetRegionInfo(defaultHandle);
 
-            if( regionInfo == null )
+            if (regionInfo == null)
             {
                 m_log.ErrorFormat("[LOGIN]: No default region available. Aborting.");
                 return false;
