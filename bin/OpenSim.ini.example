@@ -1100,11 +1100,12 @@ InterregionComms = "RESTComms"
     ; default is false
     enabled = false
 
-    ; Channel on which to signal region readiness through a message
-    ; formatted as follows: "{0|1},n,[oar error]"
-    ; - the first number indicating whether the OAR file loaded ok (1 == ok, 0 == error)
-    ; - the second number indicates how many scrips failed to compile
-    ; - "oar error" if supplied, provides the error message from the OAR load
+     ; Channel on which to signal region readiness through a message
+     ; formatted as follows: "{server_startup|oar_file_load},{0|1},n,[oar error]"
+     ; - the first field indicating whether this is an initial server startup
+     ; - the second field is a number indicating whether the OAR file loaded ok (1 == ok, 0 == error)
+     ; - the third field is a number indicating how many scripts failed to compile
+     ; - "oar error" if supplied, provides the error message from the OAR load
     channel_notify = -800
 
 

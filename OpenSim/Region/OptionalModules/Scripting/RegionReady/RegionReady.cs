@@ -107,17 +107,21 @@ namespace OpenSim.Region.CoreModules.Scripting.RegionReady
         {
             if (m_firstEmptyCompileQueue || m_oarFileLoading) 
             {
+                OSChatMessage c = new OSChatMessage();
+                if (m_firstEmptyCompileQueue) 
+                    c.Message = "server_startup,";
+                else 
+                    c.Message = "oar_file_load,";
                 m_firstEmptyCompileQueue = false;
                 m_oarFileLoading = false;
 
                 m_scene.Backup();
 
-                OSChatMessage c = new OSChatMessage();
                 c.From = "RegionReady";
                 if (m_lastOarLoadedOk) 
-                    c.Message = "1,";
+                    c.Message += "1,";
                 else
-                    c.Message = "0,";
+                    c.Message += "0,";
                 c.Channel = m_channelNotify;
                 c.Message += numScriptsFailed.ToString() + "," + message;
                 c.Type = ChatTypeEnum.Region;
