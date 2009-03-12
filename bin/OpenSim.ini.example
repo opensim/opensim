@@ -293,6 +293,49 @@ InterregionComms = "RESTComms"
     dump_assets_to_file = false
 
 
+[Network]
+    http_listener_port = 9000
+    default_location_x = 1000
+    default_location_y = 1000
+
+    ; ssl config: Experimental!  The auto https config only really works definately on windows XP now
+    ; you need a Cert Request/Signed pair installed in the MY store with the CN specified below
+    ; you can use https on other platforms, but you'll need to configure the httpapi yourself for now
+    http_listener_ssl = false ; Also create a SSL server
+    http_listener_cn = "localhost" ; Use the cert with the common name
+    http_listener_sslport = 9001 ; Use this port for SSL connections
+    http_listener_ssl_cert = "" ; Currently unused, but will be used for OSHttpServer
+
+    ; Uncomment below to enable llRemoteData/remote channels
+    ; remoteDataPort = 20800
+
+    grid_server_url = "http://127.0.0.1:8001"
+    grid_send_key = "null"
+    grid_recv_key = "null"
+
+    user_server_url = "http://127.0.0.1:8002"
+    user_send_key = "null"
+    user_recv_key = "null"
+
+    asset_server_url = "http://127.0.0.1:8003"
+
+    inventory_server_url = "http://127.0.0.1:8004"
+
+    ; The MessagingServer is a companion of the UserServer. It uses
+    ; user_send_key and user_recv_key, too
+    messaging_server_url = "http://127.0.0.1:8006"
+
+    ; What is reported as the "X-Secondlife-Shard"
+    ; Defaults to the user server url if not set
+    ; The old default is "OpenSim", set here fro compatibility
+    shard = "OpenSim"
+
+    ; What is reported as the "User-Agent" when using llHTTPRequest
+    ; Defaults to not sent if not set here. See the notes section in the wiki at
+    ; http://wiki.secondlife.com/wiki/LlHTTPRequest for comments on adding
+    ; " (Mozilla Compatible)" to the text where there are problems with a web server
+    ;user_agent = "OpenSim LSL (Mozilla Compatible)"
+
 [ClientStack.LindenUDP]
     ; This is the multiplier applied to all client throttles for outgoing UDP network data
     ; If it is set to 1, then we obey the throttle settings as given to us by the client.  If it is set to 3, for example, then we 
@@ -311,12 +354,471 @@ InterregionComms = "RESTComms"
     ; 
     ; Pre r7113, this setting was not exposed but was effectively 8.  You may want to try this if you encounter
     ; unexpected difficulties
-    client_throttle_multiplier = 2;   
+    client_throttle_multiplier = 2;
 
 
+[Chat]
+    ; Controls whether the chat module is enabled.  Default is true.
+    enabled = true;
+
+    ; Distance in meters that whispers should travel.  Default is 10m
+    whisper_distance = 10
+
+    ; Distance in meters that ordinary chat should travel.  Default is 30m
+    say_distance = 30
+
+    ; Distance in meters that shouts should travel.  Default is 100m
+    shout_distance = 100
 
 
+[Messaging]
+    ; Control which region module is used for instant messaging.
+    ; Default is InstantMessageModule (this is the name of the core IM module as well as the setting)
+    InstantMessageModule = InstantMessageModule
 
+
+[ODEPhysicsSettings]
+    ;##
+    ;## World Settings
+    ;##
+
+    ;Gravity.  Feel like falling up?  change world_gravityz to 9.8 instead of -9.8.  m/s
+    world_gravityx = 0
+    world_gravityy = 0
+    world_gravityz = -9.8
+
+    ; World Step size. (warning these are dangerous.  Changing these will probably cause your scene to explode dramatically)
+    ; reference: fps = (0.09375/ODE_STEPSIZE) * 1000;
+    world_stepsize = 0.020
+    world_internal_steps_without_collisions = 10
+
+    ;World Space settings. Affects memory consumption vs Collider CPU time for avatar and physical prim
+    world_hashspace_size_low = -4
+    world_hashSpace_size_high = 128
+
+    ;Dynamic space settings Affects memory consumption vs Collider CPU time for static prim
+    meters_in_small_space = 29.9
+    small_hashspace_size_low = -4
+    small_hashspace_size_high = 66
+
+    ; ##
+    ; ## Contact properties. (the stuff that happens when things come in contact with each other)
+    ; ##
+
+    ; surface layer around geometries other geometries can sink into before generating a contact
+    world_contact_surface_layer = 0.001
+
+    ; Filtering Collisions helps keep things stable physics wise, but sometimes 
+    ; it can be over zealous.  If you notice bouncing, chances are it's being just
+    ; that
+    filter_collisions = false
+
+    ; Non Moving Terrain Contact (avatar isn't moving)
+    nm_terraincontact_friction = 255.0
+    nm_terraincontact_bounce = 0.1
+    nm_terraincontact_erp = 0.1025
+
+    ; Moving Terrain Contact (avatar is moving)
+    m_terraincontact_friction = 75.0
+    m_terraincontact_bounce = 0.05
+    m_terrainContact_erp = 0.05025
+
+    ; Moving Avatar to object Contact
+    m_avatarobjectcontact_friction = 75.0
+    m_avatarobjectcontact_bounce = 0.1
+
+    ; Object to Object Contact and Non-Moving Avatar to object
+    objectcontact_friction = 250.0
+    objectcontact_bounce = 0.2
+
+    ; ##
+    ; ## Avatar Control
+    ; ##
+
+    ; PID Controller Settings. These affect the math that causes the avatar to reach the
+    ; desired velocity
+    ; See http://en.wikipedia.org/wiki/PID_controller
+
+    av_pid_derivative_linux = 2200.0
+    av_pid_proportional_linux = 900.0;
+
+    av_pid_derivative_win = 2200.0
+    av_pid_proportional_win = 900.0;
+
+    ;girth of the avatar.  Adds radius to the height also
+    av_capsule_radius = 0.37
+
+    ; Max force permissible to use to keep the avatar standing up straight
+    av_capsule_standup_tensor_win = 550000
+    av_capsule_standup_tensor_linux = 550000
+
+    ; used to calculate mass of avatar.
+    ; float AVvolume = (float) (Math.PI*Math.Pow(CAPSULE_RADIUS, 2)*CAPSULE_LENGTH);
+    ; av_density * AVvolume;
+    av_density = 80
+
+    ; use this value to cut 52% of the height the sim gives us
+    av_height_fudge_factor = 0.52
+
+    ; Movement.  Smaller is faster.
+
+    ; speed of movement with Always Run off
+    av_movement_divisor_walk = 1.3
+
+    ; speed of movement with Always Run on
+    av_movement_divisor_run = 0.8
+
+    ; When the avatar flies, it will be moved up by this amount off the ground (in meters)
+    minimum_ground_flight_offset = 3.0
+
+    ; ##
+    ; ## Object options
+    ; ##
+
+    ; used in the mass calculation.
+    geometry_default_density = 10.000006836
+
+    ; amount of ODE steps where object is non moving for ODE to automatically put it to sleep
+    body_frames_auto_disable = 20
+
+    ; used to control llMove2Target
+    body_pid_derivative = 35
+    body_pid_gain = 25
+
+    ; amount of time a geom/body will try to cross a region border before it gets disabled
+    geom_crossing_failures_before_outofbounds = 5
+
+    ; start throttling the object updates if object comes in contact with 3 or more other objects
+    geom_contactpoints_start_throttling = 3
+
+    ; send 1 update for every x updates below when throttled
+    geom_updates_before_throttled_update = 15
+
+    ; Used for llSetStatus.  How rigid the object rotation is held on the axis specified
+    body_motor_joint_maxforce_tensor_linux = 5
+    body_motor_joint_maxforce_tensor_win = 5
+
+    ; ##
+    ; ## Sculpted Prim settings
+    ; ##
+
+    ; Do we want to mesh sculpted prim to collide like they look?
+    mesh_sculpted_prim = true
+
+    ; number^2 non-physical level of detail of the sculpt texture.  32x32 - 1024 verticies
+    mesh_lod = 32
+
+    ; number^2 physical level of detail of the sculpt texture.  16x16 - 256 verticies
+    mesh_physical_lod = 16
+
+    ; ##
+    ; ## Physics logging settings - logfiles are saved to *.DIF files
+    ; ##
+
+    ; default is false
+    ;physics_logging = true
+    ;; every n simulation iterations, the physics snapshot file is updated
+    ;physics_logging_interval = 50
+    ;; append to existing physics logfile, or overwrite existing logfiles?
+    ;physics_logging_append_existing_logfile = true
+
+    ; ##
+    ; ## Joint support
+    ; ##
+
+    ; if you would like physics joints to be enabled through a special naming convention in the client, set this to true. 
+    ; (see NINJA Physics documentation, http://opensimulator.org/wiki/NINJA_Physics)
+    ; default is false
+    ;use_NINJA_physics_joints = true
+
+
+[RemoteAdmin]
+    enabled = false
+    access_password = unknown
+
+    ; the create_region XmlRpc call uses region_file_template to generate
+    ; the file name of newly create regions (if they are created
+    ; persistent). the parameter available are:
+    ;     {0} - X location
+    ;     {1} - Y location
+    ;     {2} - region UUID
+    ;     {3} - region port
+    ;     {4} - region name with " ", ":", "/" mapped to  "_"
+
+    region_file_template = "{0}x{1}-{2}.xml"
+
+    ; we can limit the number of regions that XmlRpcCreateRegion will
+    ; allow by setting this to a positive, non-0 number: as long as the
+    ; number of regions is below region_limits, XmlRpcCreateRegion will
+    ; succeed. setting region_limit to 0 disables the check.
+    ; default is 0
+    ;region_limit = 0
+
+    ; enable only those methods you deem to be appropriate using a | delimited whitelist
+    ; for example, enabled_methods = admin_broadcast|admin_region_query|admin_save_oar|admin_save_xml    
+    ; if this parameter is not specified but enabled = true, all methods will be available
+    enabled_methods = all
+   
+
+[RestPlugins]
+    ; Change this to true to enable REST Plugins. This must be true if you wish to use
+    ; REST Region or REST Asset and Inventory Plugins
+    enabled = false
+    god_key = SECRET
+    prefix = /admin
+
+
+[RestRegionPlugin]
+    ; Change this to true to enable the REST Region Plugin
+    enabled = false
+
+
+[RestHandler]
+  ; Change this to true to enable the REST Asset and Inventory Plugin
+  enabled = false
+  authenticate=true
+  secured=true
+  extended-escape=true
+  realm=OpenSim REST
+  dump-asset=false
+  path-fill=true
+  dump-line-size=32
+  flush-on-error=true
+
+
+; Uncomment the following for IRC bridge
+; experimental, so if it breaks... keep both parts... yada yada
+; also, not good error detection when it fails
+;[IRC]
+    ;enabled = true ; you need to set this otherwise it won't connect
+    ;server  = name.of.irc.server.on.the.net
+    ;; user password - only use this if the server requires one
+    ;password = mypass
+    ;nick    = OpenSimBotNameProbablyMakeThisShorter
+    ;channel = #the_irc_channel_you_want_to_connect_to
+    ;port = 6667
+    ;; channel to listen for configuration commands
+    ;commands_enabled = false
+    ;command_channel = 2777
+    ;report_clients = true
+    ;; relay private chat connections
+    ;; relay_private_channels = true: will relay IRC chat from/to private in-world channels
+    ;; relay_private_channel_out -- channel to send messages out to the IRC bridge
+    ;; relay_private_channel_in -- channel to receive message from the IRC bridge
+    ;; relay_chat = false: IRC bridge will not relay normal chat
+    ;; access_password -- simple security device
+    ;;
+    ;; so, to just relay chat from an IRC channel to in-world region and vice versa:
+    ;;
+    ;;     relay_private_channels = false
+    ;;     relay_chat = true
+    ;;
+    ;; to relay chat only to/from private in-world channels:
+    ;;
+    ;;     relay_chat = false
+    ;;     relay_private_channels = true
+    ;;     relay_private_channel_in = 2226
+    ;;     relay_private_channel_out = 2225
+    ;;
+    ;; in this example, all chat coming in from IRC will be send out via
+    ;; in-world channel 2226, and all chat from in-world channel 2225 will
+    ;; be relayed to the IRC channel.
+    ;;
+    ;relay_private_channels = false
+    ;relay_private_channel_in = 2226
+    ;relay_private_channel_out = 2225
+    ;relay_chat = true
+    ;access_password = foobar
+
+    ;fallback_region = name of "default" region
+    ;MSGformat fields : 0=botnick, 1=user, 2=region, 3=message
+    ; must start with "PRIVMSG {0} : " or irc server will get upset
+    ;for <bot>:<user in region> :<message>
+    ;msgformat = "PRIVMSG {0} :<{1} in {2}>: {3}"
+    ;for <bot>:<message> - <user of region> :
+    msgformat = "PRIVMSG {0} : {3} - {1} of {2}"
+    ;for <bot>:<message> - from <user> :
+    ;msgformat = "PRIVMSG {0} : {3} - from {1}"
+
+;[CMS]
+    ;enabled = true
+    ;channel = 345
+
+
+[Voice]
+    ; PLEASE NOTE that we don't have voice support in OpenSim quite yet - these configuration options are stubs
+    enabled = false
+    ; This is not supported by the SLViewer right now and
+    ; hardcoded within the SL Viewer. Maybe it will be
+    ; changed in future. :-)
+    account_management_server = https://www.bhr.vivox.com/api2
+    ; Global SIP Server for conference calls
+    sip_domain = testserver.com
+
+
+[AsteriskVoice]
+    ; PLEASE NOTE that we don't have voice support in OpenSim quite yet - these configuration options are stubs
+    enabled = false
+    ; SIP account server domain
+    sip_domain = testserver.com
+    ; SIP conf server domain
+    conf_domain = testserver.com
+    ; URL of the asterisk opensim frontend
+    asterisk_frontend = http://testserver.com:49153/
+    ; password for the asterisk frontend XmlRpc calls
+    asterisk_password = bah-humbug
+    ; timeout for XmlRpc calls to asterisk front end (in ms)
+    asterisk_timeout = 3000
+    ; salt for asterisk nonces
+    asterisk_salt = paluempalum
+
+
+; Uncomment the following to control the progression of daytime
+; in the Sim.  The defaults are what is shown below
+;[Sun]
+    ; number of wall clock hours for an opensim day.  24.0 would mean realtime
+    ;day_length = 4
+    ; Year length in days
+    ;year_length = 60
+    ; Day to Night Ratio
+    ;day_night_offset = 0.45
+    ; send a Sun update every update_interval # of frames.  A lower number will
+    ; make for smoother sun transition at the cost of network
+    ;update_interval = 100
+
+
+[ScriptEngine.DotNetEngine]
+    Enabled = true
+
+    ScriptDelayFactor = 1.0
+    ScriptDistanceLimitFactor = 1.0
+
+    ;
+    ; These settings are specific to DotNetEngine script engine
+    ; Other script engines based on OpenSim.Region.ScriptEngine.Common.dll will have almost identical settings, but in another section of this config file.
+    ;
+
+    ; When a script receives an event the event is queued.
+    ; Any free thread will start executing this event. One script can only have one event executed simultaneously.
+    ; If you have only one thread, and one script has a loop or does a lot of work, then no other scripts can run at the same time.
+    ; Same if you have 10 threads, then only 10 scripts can be run simultaneously.
+    ; But because most scripts exit after their task, the threads are free to go on to the next script.
+
+    ; Refresh ScriptEngine config options (these settings) every xx seconds
+    ; 0 = Do not refresh
+    ; Set it to number of seconds between refresh, for example 30.
+    ; Will allow you to change ScriptEngine settings while server is running just by using "CONFIG SET" on console
+    ; For example to increase or decrease number of threads: CONFIG SET NumberOfScriptThreads 10
+    ; NOTE! Disabled for now. Feature does not work.
+    RefreshConfig=0
+
+    ; Number of threads to use for script event execution
+    ; Threads are shared across all regions
+    NumberOfScriptThreads=2
+
+    ; Script event execution thread priority inside application.
+    ; Valid values: Lowest, BelowNormal, Normal, AboveNormal, Highest
+    ScriptThreadPriority=BelowNormal
+
+    ; How long MAX should a script event be allowed to run (per event execution)?
+    ; Do not set this too low (like 50ms) as there are some time wasted in simply executing a function
+    ; There is also a small speed penalty for every kill that is made
+    MaxEventExecutionTimeMs=5000
+
+    ; Should we enable the max script event execution thread to look for scripts that exceed their timeslice?
+    EnforceMaxEventExecutionTime=true
+
+    ; Should we stop the script completely when time exceeds?
+    ; This is useful if you have a high <MaxEventExecutionTimeMs> and want to deactivate scripts that go wrong
+    ; Note that for example physics engine can slow down the system and make scripts spend more time
+    DeactivateScriptOnTimeout=false
+
+    ; If no scripts have executed in this pass how long should we sleep before checking again
+    ; Impact:
+    ; Too low and you will waste lots of CPU
+    ; Too high and people touching object or similar will have to wait up to this amount of time before script responding
+    SleepTimeIfNoScriptExecutionMs=50
+
+    ; AppDomains are used for two things:
+    ; * Security: Scripts inside AppDomains are limited in permissions.
+    ; * Script unloading: When a script is deactivated it can not be unloaded. Only whole AppDomains can be unloaded.
+    ;                     AppDomains are therefore only unloaded once ALL active scripts inside it has been deactivated (removed from prims).
+    ; Each AppDomain has some memory overhead. But leaving dead scripts in memory also has memory overhead.
+    ScriptsPerAppDomain=1
+
+    ; MaintenanceLoop
+    ; How often to run maintenance loop
+    ; Maintenance loop is doing: script compile/load, script unload, reload config, adjust running config and enforce max execution time
+    MaintenanceLoopms=50
+
+    ; How many maintenanceloops between each of these.
+    ; (if 2 then function will be executed every MaintenanceLoopms*2 ms)
+    ; Script loading/unloading
+
+    ; How long load/unload thread should sleep if there is nothing to do
+    ; Higher value makes it respond slower when scripts are added/removed from prims
+    ; But once active it will process all in queue before sleeping again
+    MaintenanceLoopTicks_ScriptLoadUnload=1
+
+    ; Other tasks
+    ; check if we need to reload config, adjust running config and enforce max execution time
+    MaintenanceLoopTicks_Other=10
+
+    ; Allow the use of os* functions (some are dangerous)
+    ; Default is false
+    AllowOSFunctions = false
+
+    ; Threat level to allow if os functions are enabled
+    ; One of None, VeryLow, Low, Moderate, High, VeryHigh, Severe
+    ; Default is VeryLow
+    OSFunctionThreatLevel = VeryLow
+
+    ; Maximum number of items in load/unload queue before we start rejecting loads
+    ; Note that we will only be rejecting load. Unloads will still be able to queue.
+    LoadUnloadMaxQueueSize=100
+
+    ; Maximum number of (LSL) events that can be queued before new events are ignored.
+    EventExecutionMaxQueueSize=300
+
+    ; Async LL command sleep
+    ; If no async LL commands are waiting, how long should thread sleep before checking again
+    ; Async LL commands are LSL-commands that causes an event to be fired back with result
+    ; currently unused
+    ; AsyncLLCommandLoopms=50
+
+    ; When script is converted from LSL to C#, or just plain compiled, a copy of the script source will be put in the ScriptEngine folder
+    WriteScriptSourceToDebugFile=false
+
+    ; Specify default script compiler
+    ; If you do not specify //cs, //vb, //js or //lsl tag as the first characters of your script then the default compiler will be chosen
+    ; Valid languages are: lsl, cs, js and vb
+    DefaultCompileLanguage=lsl
+
+    ; Specify what compilers are allowed to be used
+    ; Note vb only works on Windows for now (Mono lacks VB compile support)
+    ; Valid languages are: lsl, cs, js and vb
+    ; AllowedCompilers=lsl,cs,js,vb.  *warning*, non lsl languages have access to static methods such as System.IO.File.  Enable at your own risk.
+    AllowedCompilers=lsl
+
+    ; Compile scripts with debugging
+    ; Probably a thousand times slower, but gives you a line number when something goes wrong.
+    CompileWithDebugInformation=true
+
+    ; Remove old scripts on next startup
+    ; currently unused
+    ;CleanUpOldScriptsOnStartup=true
+
+
+[LL-Functions]
+    ; Set the following to true to allow administrator owned scripts to execute console commands
+    ; currently unused
+    ; AllowosConsoleCommand=false
+
+    AllowGodFunctions = false
+
+    ; Maximum number of llListen events we allow per script
+    ; Set this to 0 to have no limit imposed.
+    max_listens_per_script = 64
 
 
 [DataSnapshot]
@@ -346,6 +848,203 @@ InterregionComms = "RESTComms"
     ;data_services="http://metaverseink.com/cgi-bin/register.py"
 
 
+[Economy]
+    ; These economy values get used in the BetaGridLikeMoneyModule.  - This module is for demonstration only -
+    ; In grid mode, use this currency XMLRPC server.  Leave blank for normal functionality
+    CurrencyServer = ""
+    ; "http://192.168.1.127/currency.php"
+
+    ; In grid mode, this is the land XMLRPC server. Leave blank for normal functionality
+    LandServer = ""
+    ;"http://192.168.1.127/landtool.php"
+
+    ; 45000 is the highest value that the sim could possibly report because of protocol constraints
+    ObjectCapacity = 45000
+
+    ; Money Unit fee to upload textures, animations etc
+    PriceUpload = 0
+
+    ; Money Unit fee to create groups
+    PriceGroupCreate = 0
+
+    ; This is the account Money goes to for fees.  Remember, economy requires that money circulates somewhere... even if it's an upload fee
+    EconomyBaseAccount = 00000000-0000-0000-0000-000000000000
+
+    ; This is the type of user that will pay fees.
+    ; Set this to 2 for users, estate managers and Estate Owners
+    ; Set this to 1 for Users and Estate Managers
+    ; Set this to 0 for Users only.
+    ; -1 disables
+    UserLevelPaysFees = -1
+
+    ; Amount to give to user as a stipend
+    UserStipend = 1000
+
+    ; When a user gets low on money units and logs off, then logs back on, issue a new stipend if they have less money units then this
+    ; amount. Be aware that the account money isn't stored anywhere so users will get a stipend if you restart the simulator
+    IssueStipendWhenClientIsBelowAmount = 10
+
+    ; If this is true, the simulator will remember account balances until the simulator is shutdown or restarted.
+    KeepMoneyAcrossLogins = true
+
+    ; We don't really know what the rest of these values do.  These get sent to the client
+    ; These taken from Agni at a Public Telehub.  Change at your own risk.
+    ObjectCount = 0
+    PriceEnergyUnit = 100
+    PriceObjectClaim = 10
+    PricePublicObjectDecay = 4
+    PricePublicObjectDelete = 4
+    PriceParcelClaim = 1
+    PriceParcelClaimFactor = 1
+
+    PriceRentLight = 5
+    TeleportMinPrice = 2
+    TeleportPriceExponent = 2
+    EnergyEfficiency = 1
+    PriceObjectRent = 1
+    PriceObjectScaleFactor = 10
+    PriceParcelRent = 1
+
+
+[SVN]
+    Enabled = false
+    Directory = SVNmodule\repo
+    URL = "svn://your.repo.here/"
+    Username = "user"
+    Password = "password"
+    ImportOnStartup = false
+    Autosave = false
+    AutoSavePeriod = 15 ; Number of minutes between autosave backups
+
+
+[XEngine]
+    ; Enable this engine in this OpenSim instance
+    Enabled = true
+
+    ; How many threads to keep alive even if nothing is happening
+    MinThreads = 2
+
+    ; How many threads to start at maximum load
+    MaxThreads = 100
+
+    ; Time a thread must be idle (in seconds) before it dies
+    IdleTimeout = 60
+
+    ; Thread priority ("Lowest", "BelowNormal", "Normal", "AboveNormal", "Highest")
+    Priority = "BelowNormal"
+
+    ; Maximum number of events to queue for a script (excluding timers)
+    MaxScriptEventQueue = 300
+
+    ; Stack size per thread created
+    ThreadStackSize = 262144
+
+    ; Rate to poll for asynchronous command replies (ms)
+    ; currently unused
+    ;AsyncLLCommandLoopms = 50
+
+    ; Save the source of all compiled scripts
+    WriteScriptSourceToDebugFile = false
+
+    ; Default language for scripts
+    DefaultCompileLanguage = lsl
+
+    ; List of allowed languages (lsl,vb,js,cs)
+    ; AllowedCompilers=lsl,cs,js,vb.  
+    ; *warning*, non lsl languages have access to static methods such as System.IO.File.  Enable at your own risk.
+    AllowedCompilers=lsl
+
+    ; Compile debug info (line numbers) into the script assemblies
+    CompileWithDebugInformation = true
+
+    ; Allow the use of os* functions (some are dangerous)
+    AllowOSFunctions = false
+
+    ; Threat level to allow, one of None, VeryLow, Low, Moderate, High, VeryHigh, Severe
+    OSFunctionThreatLevel = VeryLow
+
+    ; Interval (s) between background save of script states
+    SaveInterval = 120
+
+    ; Interval (s) between maintenance runs (0 = disable)
+    MaintenanceInterval = 10
+
+    ; Time a script can spend in an event handler before it is interrupted
+    EventLimit = 30
+
+    ; If a script overruns it's event limit, kill the script?
+    KillTimedOutScripts = false
+
+    ; Sets the multiplier for the scripting delays
+    ScriptDelayFactor = 1.0
+
+    ; The factor the 10 m distances llimits are multiplied by
+    ScriptDistanceLimitFactor = 1.0
+
+    ; OS Functions enable/disable
+    ; For each function, you can add one line, as shown
+    ; The default for all functions allows them if below threat level
+
+    ; true allows the use of the function unconditionally
+    ; Allow_osSetRegionWaterHeight = true
+
+    ; false disables the function completely
+    ; Allow_osSetRegionWaterHeight = false
+
+    ; Comma separated list of UUIDS allows the function for that list of UUIDS
+    ; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb
+
+    ; Allow for llCreateLink and llBreakLink to work without asking for permission 
+    ; only enable this in a trusted environment otherwise you may be subject to hijacking
+    ; AutomaticLinkPermission = false
+
+
+[GridInfo]
+    ; These settings are used to return information on a get_grid_info call.
+    ; Client launcher scripts and third-party clients make use of this to
+    ; autoconfigure the client and to provide a nice user experience. If you
+    ; want to facilitate that, you should configure the settings here according
+    ; to your grid or standalone setup.
+    ;
+    ; See http://opensimulator.org/wiki/GridInfo
+
+    ; login uri: for grid this is the user server URI
+    login = http://127.0.0.1:9000/
+
+    ; long grid name: the long name of your grid
+    gridname = "the lost continent of hippo"
+
+    ; short grid name: the short name of your grid
+    gridnick = "hippogrid"
+
+    ; login page: optional: if it exists it will be used to tell the client to use
+    ;                       this as splash page
+    ; currently unused
+    ;welcome = http://127.0.0.1/welcome
+
+    ; helper uri: optional: if it exists if will be used to tell the client to use
+    ;                       this for all economy related things
+    ; currently unused
+    ;economy = http://127.0.0.1:9000/
+
+    ; web page of grid: optional: page providing further information about your grid
+    ; currently unused
+    ;about = http://127.0.0.1/about/
+
+    ; account creation: optional: page providing further information about obtaining
+    ;                             a user account on your grid
+    ; currently unused
+    ;register = http://127.0.0.1/register
+
+    ; help: optional: page providing further assistance for users of your grid
+    ; currently unused
+    ;help = http://127.0.0.1/help
+
+    ; password help: optional: page providing password assistance for users of your grid
+    ; currently unused
+    ;password = http://127.0.0.1/password
+
+
 [OpenGridProtocol]
     ;These are the settings for the Open Grid Protocol..  the Agent Domain, Region Domain,   you know..
     ;On/true or Off/false
@@ -354,3 +1053,62 @@ InterregionComms = "RESTComms"
     ;Name Prefix/suffix when using OGP
     ogp_firstname_prefix=""
     ogp_lastname_suffix="_EXTERNAL"
+
+
+[Concierge]
+    ; Enable concierge module
+    ; Default is false
+    enabled = false
+
+    ; name of the concierge
+    whoami = "jeeves"
+
+    ; password for updating the welcome message templates via XmlRpc
+    password = SECRET
+
+    ; regex specifying for which regions concierge service is desired; if
+    ; empty, then for all
+    regions = "^MeetingSpace-"
+
+    ; for each region that matches the regions regexp you can provide
+    ; (optionally) a welcome template using format substitution:
+    ; {0} is replaced with the name of the avatar entering the region
+    ; {1} is replaced with the name of the region
+    ; {2} is replaced with the name of the concierge (whoami variable above)
+
+    welcomes = /path/to/welcome/template/directory
+
+    ; Concierge can send attendee lists to an event broker whenever an
+    ; avatar enters or leaves a concierged region. the URL is subject
+    ; to format substitution:
+    ; {0} is replaced with the region's name
+    ; {1} is replaced with the region's UUID
+    broker = "http://broker.place.com/{1}"
+
+
+[Trees]
+    ; Enable this to allow the tree module to manage your sim trees, including growing, reproducing and dying
+    ; default is false
+    active_trees = false
+
+    ; Density of tree population
+    tree_density = 1000.0
+
+
+[RegionReady]
+    ; Enable this module to get notified once all items and scripts in the region have been completely loaded and compiled
+    ; default is false
+    enabled = false
+
+    ; Channel on which to signal region readiness through a message
+    ; formatted as follows: "{0|1},n,[oar error]"
+    ; - the first number indicating whether the OAR file loaded ok (1 == ok, 0 == error)
+    ; - the second number indicates how many scrips failed to compile
+    ; - "oar error" if supplied, provides the error message from the OAR load
+    channel_notify = -800
+
+
+[MRM]
+    ; Enables the Mini Region Modules Script Engine. WARNING: SECURITY RISK.
+    ; default is false
+	  Enabled = false 
