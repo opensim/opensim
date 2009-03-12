@@ -39,7 +39,7 @@ using OpenSim.Tests.Common.Setup;
 using log4net;
 using System.Reflection;
 
-namespace OpenSim.Region.CoreModules.Scenes.Tests
+namespace OpenSim.Region.Framework.Scenes.Tests
 {
     /// <summary>
     /// Linking tests

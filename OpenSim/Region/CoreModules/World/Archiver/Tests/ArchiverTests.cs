@@ -27,6 +27,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using log4net.Config;
 using NUnit.Framework;
@@ -164,6 +165,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(gotObject2File, Is.True, "No object2 file in archive");
             
             // TODO: Test presence of more files and contents of files.
+            // Temporary
+            Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
         }
 
         /// <summary>
@@ -302,6 +305,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 Assert.That(object2PartMerged.Name, Is.EqualTo(part2Name), "object2 names not identical after merge"); 
                 Assert.That(object2PartMerged.GroupPosition, Is.EqualTo(part2GroupPosition), "object2 group position not equal after merge");
             }
+                
+            // Temporary
+            Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());                
         }
     }
 }

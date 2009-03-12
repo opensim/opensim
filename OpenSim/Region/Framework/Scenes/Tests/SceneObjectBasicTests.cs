@@ -37,13 +37,13 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
 
-namespace OpenSim.Region.CoreModules.Scenes.Tests
+namespace OpenSim.Region.Framework.Scenes.Tests
 {
     /// <summary>
     /// Basic scene object tests (create, read and delete but not update).
     /// </summary>
     [TestFixture]
-    public class SceneObjectTests
+    public class SceneObjectBasicTests
     {         
         /// <summary>
         /// Test adding an object to a scene.

@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Net;
 using Nini.Config;
 using OpenMetaverse;
@@ -66,6 +67,8 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static TestScene SetupScene(string name, UUID id, uint x, uint y, CommunicationsManager cm)
         {
+            Console.WriteLine("Setting up test scene {0}", name);
+            
             RegionInfo regInfo = new RegionInfo(x, y, new IPEndPoint(IPAddress.Loopback, 9000), "127.0.0.1");
             regInfo.RegionName = name;
             regInfo.RegionID = id;
