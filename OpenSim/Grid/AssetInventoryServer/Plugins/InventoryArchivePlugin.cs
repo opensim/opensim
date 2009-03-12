@@ -33,8 +33,8 @@ using System.Xml;
 using System.Reflection;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Archive;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using log4net;
 

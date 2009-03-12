@@ -31,7 +31,7 @@ using System.Reflection;
 using System.Text;
 using log4net;
 
-namespace OpenSim.Region.CoreModules.World.Archiver
+namespace OpenSim.Framework.Archive
 {
     /// <summary>
     /// Temporary code to do the bare minimum required to read a tar archive for our purposes
@@ -39,8 +39,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     public class TarArchiveReader
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        public enum TarEntryType 
+
+        public enum TarEntryType
         {
             TYPE_UNKNOWN = 0,
             TYPE_NORMAL_FILE = 1,
@@ -89,7 +89,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 return null;
 
             entryType = header.EntryType;
-            filePath = header.FilePath;            
+            filePath = header.FilePath;
             return ReadData(header.FileSize);
         }
 
@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // If we've reached the end of the archive we'll be in null block territory, which means
             // the next byte will be 0
             if (header[0] == 0)
-                return null;           
+                return null;
 
             TarHeader tarHeader = new TarHeader();
 
@@ -117,15 +117,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 header = m_br.ReadBytes(512);
             }
             else
-            {               
+            {
                 tarHeader.FilePath = m_asciiEncoding.GetString(header, 0, 100);
                 tarHeader.FilePath = tarHeader.FilePath.Trim(m_nullCharArray);
                 //m_log.DebugFormat("[TAR ARCHIVE READER]: Got short file name {0}", tarHeader.FilePath);
             }
-                        
+
             tarHeader.FileSize = ConvertOctalBytesToDecimal(header, 124, 11);
 
-            switch (header[156]) 
+            switch (header[156])
             {
                 case 0:
                     tarHeader.EntryType = TarEntryType.TYPE_NORMAL_FILE;
@@ -154,11 +154,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 case (byte)'7':
                     tarHeader.EntryType = TarEntryType.TYPE_CONTIGUOUS_FILE;
                 break;
-            }       
-            
+            }
+
             return tarHeader;
         }
-        
+
         /// <summary>
         /// Read data following a header
         /// </summary>
@@ -179,7 +179,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 m_br.ReadBytes(paddingLeft);
             }
-            
+
             return data;
         }
 

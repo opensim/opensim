@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace OpenSim.Region.CoreModules.World.Archiver
+namespace OpenSim.Framework.Archive
 {
     /// <summary>
     /// Temporary code to produce a tar archive in tar v7 format
@@ -45,12 +45,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Binary writer for the underlying stream
         /// </summary>
         protected BinaryWriter m_bw;
-        
+
         public TarArchiveWriter(Stream s)
         {
             m_bw = new BinaryWriter(s);
         }
-        
+
         /// <summary>
         /// Write a directory entry to the tar archive.  We can only handle one path level right now!
         /// </summary>
@@ -63,7 +63,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             WriteFile(dirName, new byte[0]);
         }
-        
+
         /// <summary>
         /// Write a file to the tar archive
         /// </summary>
@@ -83,9 +83,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             if (filePath.Length > 100)
                 WriteEntry("././@LongLink", m_asciiEncoding.GetBytes(filePath), 'L');
-            
+
             char fileType;
-            
+
             if (filePath.EndsWith("/"))
             {
                 fileType = '5';
@@ -93,11 +93,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             else
             {
                 fileType = '0';
-            }     
-         
+            }
+
             WriteEntry(filePath, data, fileType);
         }
-        
+
         /// <summary>
         /// Finish writing the raw tar archive data to a stream.  The stream will be closed on completion.
         /// </summary>
@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public void Close()
         {
             //m_log.Debug("[TAR ARCHIVE WRITER]: Writing final consecutive 0 blocks");
-            
+
             // Write two consecutive 0 blocks to end the archive
             byte[] finalZeroPadding = new byte[1024];
             m_bw.Write(finalZeroPadding);
@@ -133,7 +133,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             byte[] oBytes = m_asciiEncoding.GetBytes(oString);
 
             return oBytes;
-        }    
+        }
 
         /// <summary>
         /// Write a particular entry
@@ -211,7 +211,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 byte[] padding = new byte[paddingRequired];
                 m_bw.Write(padding);
-            }            
-        }   
+            }
+        }
     }
 }

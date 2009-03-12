@@ -105,6 +105,27 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Framework.Archive" path="OpenSim/Framework/Archive" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Framework.Statistics" path="OpenSim/Framework/Statistics" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1098,6 +1119,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Region.Framework" />
+      <Reference name="OpenSim.Framework.Archive"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
@@ -1138,11 +1160,12 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Archive"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Grid.AssetInventoryServer" />
       <Reference name="log4net"/>
 
-      <!-- Needed for TarArchiver. Hopefully it can be moved to Framework or something so we don't depend on Region DLLs. -->
+      <!-- Needed for InventoryArchiveConstants. Hopefully it can be moved to Framework or something so we don't depend on Region DLLs. -->
       <Reference name="OpenSim.Region.CoreModules"/>
 
       <Files>
@@ -2951,6 +2974,7 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Archive"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>

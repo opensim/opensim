@@ -35,6 +35,7 @@ using System.Text;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Archive;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;

@@ -32,6 +32,7 @@ using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Archive;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
