@@ -41,47 +41,47 @@ using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
-{        
+{
     public class InventoryArchiveWriteRequest
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);      
-        
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         protected TarArchiveWriter m_archive;
         protected UuidGatherer m_assetGatherer;
         protected Dictionary<UUID, int> assetUuids = new Dictionary<UUID, int>();
-        
+
         private InventoryArchiverModule m_module;
         private CachedUserInfo m_userInfo;
         private string m_invPath;
-        
+
         /// <value>
         /// The stream to which the inventory archive will be saved.
         /// </value>
         private Stream m_saveStream;
-        
+
         /// <summary>
         /// Constructor
-        /// </summary>        
+        /// </summary>
         public InventoryArchiveWriteRequest(
             InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, string savePath)
             : this(
                 module,
                 userInfo,
-                invPath, 
+                invPath,
                 new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress))
         {
         }
-        
+
         /// <summary>
         /// Constructor
-        /// </summary>        
+        /// </summary>
         public InventoryArchiveWriteRequest(
             InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, Stream saveStream)
         {
             m_module = module;
             m_userInfo = userInfo;
             m_invPath = invPath;
-            m_saveStream = saveStream;          
+            m_saveStream = saveStream;
             m_assetGatherer = new UuidGatherer(m_module.CommsManager.AssetCache);
         }
 
@@ -89,22 +89,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             AssetsArchiver assetsArchiver = new AssetsArchiver(assetsFound);
             assetsArchiver.Archive(m_archive);
-            
+
             Exception reportedException = null;
             bool succeeded = true;
-            
+
             try
             {
                 m_archive.Close();
-            } 
+            }
             catch (IOException e)
             {
-                m_saveStream.Close();                
+                m_saveStream.Close();
                 reportedException = e;
                 succeeded = false;
             }
-                   
-            m_module.TriggerInventoryArchiveSaved(succeeded, m_userInfo, m_invPath, m_saveStream, reportedException);          
+
+            m_module.TriggerInventoryArchiveSaved(succeeded, m_userInfo, m_invPath, m_saveStream, reportedException);
         }
 
         protected void SaveInvItem(InventoryItemBase inventoryItem, string path)
@@ -113,9 +113,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             StringWriter sw = new StringWriter();
             XmlTextWriter writer = new XmlTextWriter(sw);
             writer.Formatting = Formatting.Indented;
-            
+
             writer.WriteStartElement("InventoryItem");
-            
+
             writer.WriteStartElement("Name");
             writer.WriteString(inventoryItem.Name);
             writer.WriteEndElement();
@@ -170,7 +170,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             writer.WriteStartElement("GroupOwned");
             writer.WriteString(inventoryItem.GroupOwned.ToString());
             writer.WriteEndElement();
-            
+
             writer.WriteEndElement();
 
             m_archive.WriteFile(filename, sw.ToString());
@@ -180,43 +180,43 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         protected void SaveInvDir(InventoryFolderImpl inventoryFolder, string path)
         {
-            path += 
+            path +=
                 string.Format(
-                    "{0}{1}{2}/", 
+                    "{0}{1}{2}/",
                     inventoryFolder.Name,
-                    InventoryArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, 
+                    ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR,
                     inventoryFolder.ID);
             m_archive.WriteDir(path);
-            
+
             List<InventoryFolderImpl> childFolders = inventoryFolder.RequestListOfFolderImpls();
-            List<InventoryItemBase> items = inventoryFolder.RequestListOfItems();           
-            
+            List<InventoryItemBase> items = inventoryFolder.RequestListOfItems();
+
             /*
             Dictionary identicalFolderNames = new Dictionary<string, int>();
-            
+
             foreach (InventoryFolderImpl folder in inventories)
             {
-                
+
                 if (!identicalFolderNames.ContainsKey(folder.Name))
                     identicalFolderNames[folder.Name] = 0;
                 else
                     identicalFolderNames[folder.Name] = identicalFolderNames[folder.Name]++;
-                
+
                 int folderNameNumber = identicalFolderName[folder.Name];
-                
+
                 SaveInvDir(
-                    folder, 
+                    folder,
                     string.Format(
-                        "{0}{1}{2}/", 
-                        path, InventoryArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, folderNameNumber));
+                        "{0}{1}{2}/",
+                        path, ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, folderNameNumber));
             }
             */
-            
+
             foreach (InventoryFolderImpl childFolder in childFolders)
             {
                 SaveInvDir(childFolder, path);
             }
-            
+
             foreach (InventoryItemBase item in items)
             {
                 SaveInvItem(item, path);
@@ -232,9 +232,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             InventoryItemBase inventoryItem = null;
 
             if (!m_userInfo.HasReceivedInventory)
-            {            
-                // If the region server has access to the user admin service (by which users are created), 
-                // then we'll assume that it's okay to fiddle with the user's inventory even if they are not on the 
+            {
+                // If the region server has access to the user admin service (by which users are created),
+                // then we'll assume that it's okay to fiddle with the user's inventory even if they are not on the
                 // server.
                 //
                 // FIXME: FetchInventory should probably be assumed to by async anyway, since even standalones might
@@ -252,7 +252,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     m_userInfo.FetchInventory();
                 }
             }
-            
+
             // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
             // itself (possibly at a small loss in efficiency).
             string[] components
@@ -280,8 +280,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 inventoryItem = m_userInfo.RootFolder.FindItemByPath(m_invPath);
             }
-            
-            m_archive = new TarArchiveWriter(m_saveStream);            
+
+            m_archive = new TarArchiveWriter(m_saveStream);
 
             if (null == inventoryFolder)
             {
@@ -289,16 +289,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     m_saveStream.Close();
                     m_module.TriggerInventoryArchiveSaved(
-                        false, m_userInfo, m_invPath, m_saveStream, 
+                        false, m_userInfo, m_invPath, m_saveStream,
                         new Exception(string.Format("Could not find inventory entry at path {0}", m_invPath)));
                     return;
                 }
                 else
                 {
                     m_log.DebugFormat(
-                        "[INVENTORY ARCHIVER]: Found item {0} {1} at {2}", 
+                        "[INVENTORY ARCHIVER]: Found item {0} {1} at {2}",
                         inventoryItem.Name, inventoryItem.ID, m_invPath);
-                    
+
                     //get and export item info
                     SaveInvItem(inventoryItem, m_invPath);
                 }
@@ -306,11 +306,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             else
             {
                 m_log.DebugFormat(
-                    "[INVENTORY ARCHIVER]: Found folder {0} {1} at {2}", 
+                    "[INVENTORY ARCHIVER]: Found folder {0} {1} at {2}",
                     inventoryFolder.Name, inventoryFolder.ID, m_invPath);
-                
+
                 //recurse through all dirs getting dirs and files
-                SaveInvDir(inventoryFolder, InventoryArchiveConstants.INVENTORY_PATH);
+                SaveInvDir(inventoryFolder, ArchiveConstants.INVENTORY_PATH);
             }
 
             new AssetsRequest(assetUuids.Keys, m_module.CommsManager.AssetCache, ReceivedAllAssets).Execute();

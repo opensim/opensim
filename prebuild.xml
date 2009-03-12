@@ -118,6 +118,7 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="OpenMetaverse" />
       <Reference name="System"/>
       <Reference name="log4net.dll"/>
 
@@ -865,6 +866,36 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Grid.AssetInventoryServer.Plugins" path="OpenSim/Grid/AssetInventoryServer/Plugins" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Web"/>
+      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="OpenMetaverse.StructuredData"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Archive"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Grid.AssetInventoryServer" />
+      <Reference name="log4net"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="false" />
+        <Match path="Resources" pattern="*.addin.xml" buildAction="EmbeddedResource" recurse="true" />
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Grid.AssetInventoryServer.Plugins.Simple" path="OpenSim/Grid/AssetInventoryServer/Plugins/Simple" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1138,39 +1169,6 @@
           <Exclude name="Tests" pattern="Tests" />
 	  <Exclude name="TerrainDefaultEffects" pattern="World/Terrain/DefaultEffects" />
         </Match>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Grid.AssetInventoryServer.Plugins" path="OpenSim/Grid/AssetInventoryServer/Plugins" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Web"/>
-      <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenMetaverse.StructuredData"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Archive"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Grid.AssetInventoryServer" />
-      <Reference name="log4net"/>
-
-      <!-- Needed for InventoryArchiveConstants. Hopefully it can be moved to Framework or something so we don't depend on Region DLLs. -->
-      <Reference name="OpenSim.Region.CoreModules"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="false" />
-        <Match path="Resources" pattern="*.addin.xml" buildAction="EmbeddedResource" recurse="true" />
       </Files>
     </Project>
 

@@ -35,7 +35,6 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Archive;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins
@@ -146,7 +145,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
             MemoryStream ms = new MemoryStream();
             GZipStream gzs = new GZipStream(ms, CompressionMode.Compress, true);
             TarArchiveWriter archive = new TarArchiveWriter(gzs);
-            WriteInventoryFolderToArchive(archive, rootFolder, InventoryArchiveConstants.INVENTORY_PATH);
+            WriteInventoryFolderToArchive(archive, rootFolder, ArchiveConstants.INVENTORY_PATH);
 
             archive.Close();
 
@@ -181,7 +180,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
 
         private static void WriteInventoryFolderToArchive(TarArchiveWriter archive, InventoryFolderWithChildren folder, string path)
         {
-            path += string.Format("{0}{1}{2}/", folder.Name, InventoryArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, folder.ID);
+            path += string.Format("{0}{1}{2}/", folder.Name, ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, folder.ID);
             archive.WriteDir(path);
 
             foreach (InventoryNodeBase inventoryNode in folder.Children.Values)
