@@ -1,10 +1,9 @@
-; This file shows initialization defaults for OpenSimulator.  If you want to override these
-; please copy/rename this file from .ini.example file to .ini.  For example
+; This is an example OpenSim.ini file.  You will need to copy or rename this from
+; OpenSim.ini.example to OpenSim.ini before OpenSimulator will start up.
 ;
-; chat.ini.example => chat.ini
-;
-; or you can copy and paste the settings from this file directly to bin/OpenSim.ini
-;
+; If this file is not changed then OpenSimulator will start up in standalone mode using the file based
+; SQLite database to store its data.
+
 
 [Startup]
     ; Set this to true if you want to log crashes to disk

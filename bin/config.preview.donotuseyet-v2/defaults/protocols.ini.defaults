@@ -1,10 +1,4 @@
-; This file shows initialization defaults for OpenSimulator.  If you want to override these
-; please copy/rename this file from .ini.example file to .ini.  For example
-;
-; chat.ini.example => chat.ini
-;
-; or you can copy and paste the settings from this file directly to bin/OpenSim.ini
-;
+; Communication protocols settings
 
 [ClientStack.LindenUDP]
     ; This is the multiplier applied to all client throttles for outgoing UDP network data
@@ -25,3 +19,27 @@
     ; Pre r7113, this setting was not exposed but was effectively 8.  You may want to try this if you encounter
     ; unexpected difficulties
     client_throttle_multiplier = 2;
+
+
+[Communications]
+
+;InterregionComms = "LocalComms"
+InterregionComms = "RESTComms"
+
+
+; This file shows initialization defaults for OpenSimulator.  If you want to override these
+; please copy/rename this file from .ini.example file to .ini.  For example
+;
+; chat.ini.example => chat.ini
+;
+; or you can copy and paste the settings from this file directly to bin/OpenSim.ini
+;
+
+[OpenGridProtocol]
+    ;These are the settings for the Open Grid Protocol..  the Agent Domain, Region Domain,   you know..
+    ;On/true or Off/false
+    ogp_enabled=false
+
+    ;Name Prefix/suffix when using OGP
+    ogp_firstname_prefix=""
+    ogp_lastname_suffix="_EXTERNAL"

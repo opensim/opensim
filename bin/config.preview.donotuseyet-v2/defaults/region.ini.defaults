@@ -1,0 +1,130 @@
+; Region settings
+
+
+[Chat]
+    ; Controls whether the chat module is enabled.  Default is true.
+    enabled = true;
+
+    ; Distance in meters that whispers should travel.  Default is 10m
+    whisper_distance = 10
+
+    ; Distance in meters that ordinary chat should travel.  Default is 30m
+    say_distance = 30
+
+    ; Distance in meters that shouts should travel.  Default is 100m
+    shout_distance = 100
+
+
+[Economy]
+    ; These economy values get used in the BetaGridLikeMoneyModule.  - This module is for demonstration only -
+    ; In grid mode, use this currency XMLRPC server.  Leave blank for normal functionality
+    CurrencyServer = ""
+    ; "http://192.168.1.127/currency.php"
+
+    ; In grid mode, this is the land XMLRPC server. Leave blank for normal functionality
+    LandServer = ""
+    ;"http://192.168.1.127/landtool.php"
+
+    ; 45000 is the highest value that the sim could possibly report because of protocol constraints
+    ObjectCapacity = 45000
+
+    ; Money Unit fee to upload textures, animations etc
+    PriceUpload = 0
+
+    ; Money Unit fee to create groups
+    PriceGroupCreate = 0
+
+    ; This is the account Money goes to for fees.  Remember, economy requires that money circulates somewhere... even if it's an upload fee
+    EconomyBaseAccount = 00000000-0000-0000-0000-000000000000
+
+    ; This is the type of user that will pay fees.
+    ; Set this to 2 for users, estate managers and Estate Owners
+    ; Set this to 1 for Users and Estate Managers
+    ; Set this to 0 for Users only.
+    ; -1 disables
+    UserLevelPaysFees = -1
+
+    ; Amount to give to user as a stipend
+    UserStipend = 1000
+
+    ; When a user gets low on money units and logs off, then logs back on, issue a new stipend if they have less money units then this
+    ; amount. Be aware that the account money isn't stored anywhere so users will get a stipend if you restart the simulator
+    IssueStipendWhenClientIsBelowAmount = 10
+
+    ; If this is true, the simulator will remember account balances until the simulator is shutdown or restarted.
+    KeepMoneyAcrossLogins = true
+
+    ; We don't really know what the rest of these values do.  These get sent to the client
+    ; These taken from Agni at a Public Telehub.  Change at your own risk.
+    ObjectCount = 0
+    PriceEnergyUnit = 100
+    PriceObjectClaim = 10
+    PricePublicObjectDecay = 4
+    PricePublicObjectDelete = 4
+    PriceParcelClaim = 1
+    PriceParcelClaimFactor = 1
+
+    PriceRentLight = 5
+    TeleportMinPrice = 2
+    TeleportPriceExponent = 2
+    EnergyEfficiency = 1
+    PriceObjectRent = 1
+    PriceObjectScaleFactor = 10
+    PriceParcelRent = 1
+
+
+[Messaging]
+    ; Control which region module is used for instant messaging.
+    ; Default is InstantMessageModule (this is the name of the core IM module as well as the setting)
+    InstantMessageModule = InstantMessageModule
+
+
+; Uncomment the following to control the progression of daytime
+; in the Sim.  The defaults are what is shown below
+;[Sun]
+    ; number of wall clock hours for an opensim day.  24.0 would mean realtime
+    ;day_length = 4
+    ; Year length in days
+    ;year_length = 60
+    ; Day to Night Ratio
+    ;day_night_offset = 0.45
+    ; send a Sun update every update_interval # of frames.  A lower number will
+    ; make for smoother sun transition at the cost of network
+    ;update_interval = 100
+
+
+[Trees]
+    ; Enable this to allow the tree module to manage your sim trees, including growing, reproducing and dying
+    ; default is false
+    active_trees = false
+
+    ; Density of tree population
+    tree_density = 1000.0
+
+
+[Voice]
+    ; PLEASE NOTE that we don't have voice support in OpenSim quite yet - these configuration options are stubs
+    enabled = false
+    ; This is not supported by the SLViewer right now and
+    ; hardcoded within the SL Viewer. Maybe it will be
+    ; changed in future. :-)
+    account_management_server = https://www.bhr.vivox.com/api2
+    ; Global SIP Server for conference calls
+    sip_domain = testserver.com
+
+
+[AsteriskVoice]
+    ; PLEASE NOTE that we don't have voice support in OpenSim quite yet - these configuration options are stubs
+    enabled = false
+    ; SIP account server domain
+    sip_domain = testserver.com
+    ; SIP conf server domain
+    conf_domain = testserver.com
+    ; URL of the asterisk opensim frontend
+    asterisk_frontend = http://testserver.com:49153/
+    ; password for the asterisk frontend XmlRpc calls
+    asterisk_password = bah-humbug
+    ; timeout for XmlRpc calls to asterisk front end (in ms)
+    asterisk_timeout = 3000
+    ; salt for asterisk nonces
+    asterisk_salt = paluempalum
