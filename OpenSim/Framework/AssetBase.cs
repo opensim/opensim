@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Xml.Serialization;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -96,16 +97,11 @@ namespace OpenSim.Framework
             set { m_metadata.Temporary = value; }
         }
 
-        // We have methods here because properties are serialized, and we don't
-        // want that.
-        public virtual AssetMetadata getMetadata()
+        [XmlIgnore]
+        public AssetMetadata Metadata
         {
-            return m_metadata;
-        }
-
-        public virtual void setMetadata(AssetMetadata metadata)
-        {
-            m_metadata = metadata;
+            get { return m_metadata; }
+            set { m_metadata = value; }
         }
     }
 

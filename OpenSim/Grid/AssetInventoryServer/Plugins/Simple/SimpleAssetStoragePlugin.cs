@@ -97,7 +97,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         public BackendResponse TryFetchDataMetadata(UUID assetID, out AssetBase asset)
         {
             asset = new AssetBase();
-            AssetMetadata metadata = asset.getMetadata();
+            AssetMetadata metadata = asset.Metadata;
 
             string filename;
             BackendResponse ret;
@@ -139,7 +139,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
         public BackendResponse TryCreateAsset(AssetBase asset)
         {
             BackendResponse ret;
-            AssetMetadata metadata = asset.getMetadata();
+            AssetMetadata metadata = asset.Metadata;
 
             string path;
             string filename = String.Format("{0}.{1}", asset.FullID, Utils.ContentTypeToExtension(metadata.ContentType));
