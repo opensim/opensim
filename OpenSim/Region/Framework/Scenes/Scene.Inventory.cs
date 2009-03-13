@@ -518,6 +518,7 @@ namespace OpenSim.Region.Framework.Scenes
                             itemCopy.GroupPermissions = item.GroupPermissions & item.NextPermissions;
                             itemCopy.BasePermissions = item.BasePermissions;
                         }
+                        
                         itemCopy.GroupID = UUID.Zero;
                         itemCopy.GroupOwned = false;
                         itemCopy.Flags = item.Flags;
@@ -2467,12 +2468,16 @@ namespace OpenSim.Region.Framework.Scenes
                             part.NextOwnerMask = item.NextPermissions;
                         }
                     }
+                    
                     rootPart.TrimPermissions();
+                    
                     if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
                     {
                         group.ClearPartAttachmentData();
                     }
+                    
                     group.UpdateGroupRotation(rot);
+                    
                     //group.ApplyPhysics(m_physicalPrim);
                     if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
                     {

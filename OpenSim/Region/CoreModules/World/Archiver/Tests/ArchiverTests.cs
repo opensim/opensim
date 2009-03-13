@@ -222,6 +222,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 object1PartLoaded.RotationOffset, Is.EqualTo(rotationOffset), "object1 rotation offset not equal");
             Assert.That(
                 object1PartLoaded.OffsetPosition, Is.EqualTo(offsetPosition), "object1 offset position not equal");
+                            
+            // Temporary
+            Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());             
         }
         
         /// <summary>
@@ -304,10 +307,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 Assert.That(object2PartMerged, Is.Not.Null, "object2 was not present after merge");
                 Assert.That(object2PartMerged.Name, Is.EqualTo(part2Name), "object2 names not identical after merge"); 
                 Assert.That(object2PartMerged.GroupPosition, Is.EqualTo(part2GroupPosition), "object2 group position not equal after merge");
-            }
-                
-            // Temporary
-            Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());                
+            }               
         }
     }
 }

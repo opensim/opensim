@@ -200,11 +200,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             TarArchiveReader.TarEntryType entryType;
             while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
             {
-                if (entryType == TarArchiveReader.TarEntryType.TYPE_DIRECTORY)
-                {
-                    m_log.WarnFormat("[INVENTORY ARCHIVER]: Ignoring directory entry {0}", filePath);
-                }
-                else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                 {
                     if (LoadAsset(filePath, data))
                         successfulAssetRestores++;
@@ -212,24 +208,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         failedAssetRestores++;
                 }
                 else if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH))
-                {
-                    InventoryItemBase item = LoadInvItem(m_asciiEncoding.GetString(data));
+                {                    
+                    string fsPath = filePath.Substring(ArchiveConstants.INVENTORY_PATH.Length);
 
-                    if (item != null)
-                    {
-                        // Don't use the item ID that's in the file
-                        item.ID = UUID.Random();
-
-                        item.Creator = m_userInfo.UserProfile.ID;
-                        item.Owner = m_userInfo.UserProfile.ID;
-
-                        string fsPath = filePath.Substring(ArchiveConstants.INVENTORY_PATH.Length);
+                    // Remove the file portion if we aren't already dealing with a directory path
+                    if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
                         fsPath = fsPath.Remove(fsPath.LastIndexOf("/") + 1);
-                        string originalFsPath = fsPath;
+                    
+                    string originalFsPath = fsPath;
 
-                        m_log.DebugFormat("[INVENTORY ARCHIVER]: Loading to folder {0}", fsPath);
+                    m_log.DebugFormat("[INVENTORY ARCHIVER]: Loading to folder {0}", fsPath);
 
-                        InventoryFolderImpl foundFolder = null;
+                    InventoryFolderImpl foundFolder = null;
+                    
+                    // XXX: Nasty way of dealing with a path that has no directory component
+                    if (fsPath.Length > 0)
+                    {
                         while (null == foundFolder && fsPath.Length > 0)
                         {
                             if (foldersCreated.ContainsKey(fsPath))
@@ -256,81 +250,99 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                        foundFolder = rootDestinationFolder;
+                    }
 
-                        string fsPathSectionToCreate = originalFsPath.Substring(fsPath.Length);
-                        string[] rawDirsToCreate
-                            = fsPathSectionToCreate.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-                        int i = 0;
+                    string fsPathSectionToCreate = originalFsPath.Substring(fsPath.Length);
+                    string[] rawDirsToCreate
+                        = fsPathSectionToCreate.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                    int i = 0;
 
-                        while (i < rawDirsToCreate.Length)
+                    while (i < rawDirsToCreate.Length)
+                    {
+                        m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0}", rawDirsToCreate[i]);
+
+                        int identicalNameIdentifierIndex
+                            = rawDirsToCreate[i].LastIndexOf(
+                                ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR);
+                        string folderName = rawDirsToCreate[i].Remove(identicalNameIdentifierIndex);
+
+                        UUID newFolderId = UUID.Random();
+                        m_userInfo.CreateFolder(
+                            folderName, newFolderId, (ushort)AssetType.Folder, foundFolder.ID);
+                        foundFolder = foundFolder.GetChildFolder(newFolderId);
+
+                        // Record that we have now created this folder
+                        fsPath += rawDirsToCreate[i] + "/";
+                        m_log.DebugFormat("[INVENTORY ARCHIVER]: Recording creation of fs path {0}", fsPath);
+                        foldersCreated[fsPath] = foundFolder;
+
+                        if (0 == i)
+                            nodesLoaded.Add(foundFolder);
+
+                        i++;
+                    }
+
+                    /*
+                    string[] rawFolders = filePath.Split(new char[] { '/' });
+
+                    // Find the folders that do exist along the path given
+                    int i = 0;
+                    bool noFolder = false;
+                    InventoryFolderImpl foundFolder = rootDestinationFolder;
+                    while (!noFolder && i < rawFolders.Length)
+                    {
+                        InventoryFolderImpl folder = foundFolder.FindFolderByPath(rawFolders[i]);
+                        if (null != folder)
                         {
-                            m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0}", rawDirsToCreate[i]);
-
-                            int identicalNameIdentifierIndex
-                                = rawDirsToCreate[i].LastIndexOf(
-                                    ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR);
-                            string folderName = rawDirsToCreate[i].Remove(identicalNameIdentifierIndex);
-
-                            UUID newFolderId = UUID.Random();
-                            m_userInfo.CreateFolder(
-                                folderName, newFolderId, (ushort)AssetType.Folder, foundFolder.ID);
-                            foundFolder = foundFolder.GetChildFolder(newFolderId);
-
-                            // Record that we have now created this folder
-                            fsPath += rawDirsToCreate[i] + "/";
-                            m_log.DebugFormat("[INVENTORY ARCHIVER]: Recording creation of fs path {0}", fsPath);
-                            foldersCreated[fsPath] = foundFolder;
-
-                            if (0 == i)
-                                nodesLoaded.Add(foundFolder);
-
+                            m_log.DebugFormat("[INVENTORY ARCHIVER]: Found folder {0}", folder.Name);
+                            foundFolder = folder;
                             i++;
                         }
-
-                        /*
-                        string[] rawFolders = filePath.Split(new char[] { '/' });
-
-                        // Find the folders that do exist along the path given
-                        int i = 0;
-                        bool noFolder = false;
-                        InventoryFolderImpl foundFolder = rootDestinationFolder;
-                        while (!noFolder && i < rawFolders.Length)
+                        else
                         {
-                            InventoryFolderImpl folder = foundFolder.FindFolderByPath(rawFolders[i]);
-                            if (null != folder)
-                            {
-                                m_log.DebugFormat("[INVENTORY ARCHIVER]: Found folder {0}", folder.Name);
-                                foundFolder = folder;
-                                i++;
-                            }
-                            else
-                            {
-                                noFolder = true;
-                            }
+                            noFolder = true;
                         }
+                    }
 
-                        // Create any folders that did not previously exist
-                        while (i < rawFolders.Length)
-                        {
-                            m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0}", rawFolders[i]);
+                    // Create any folders that did not previously exist
+                    while (i < rawFolders.Length)
+                    {
+                        m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0}", rawFolders[i]);
 
-                            UUID newFolderId = UUID.Random();
-                            m_userInfo.CreateFolder(
-                                rawFolders[i++], newFolderId, (ushort)AssetType.Folder, foundFolder.ID);
-                            foundFolder = foundFolder.GetChildFolder(newFolderId);
+                        UUID newFolderId = UUID.Random();
+                        m_userInfo.CreateFolder(
+                            rawFolders[i++], newFolderId, (ushort)AssetType.Folder, foundFolder.ID);
+                        foundFolder = foundFolder.GetChildFolder(newFolderId);
+                    }
+                    */
+
+                    if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
+                    {
+                        InventoryItemBase item = LoadInvItem(m_asciiEncoding.GetString(data));
+                        
+                        if (item != null)
+                        {      
+                            // Don't use the item ID that's in the file
+                            item.ID = UUID.Random();
+
+                            item.Creator = m_userInfo.UserProfile.ID;
+                            item.Owner = m_userInfo.UserProfile.ID;
+                            
+                            // Reset folder ID to the one in which we want to load it
+                            item.Folder = foundFolder.ID;
+
+                            m_userInfo.AddItem(item);
+                            successfulItemRestores++;
+
+                            // If we're loading an item directly into the given destination folder then we need to record
+                            // it separately from any loaded root folders
+                            if (rootDestinationFolder == foundFolder)
+                                nodesLoaded.Add(item);
                         }
-                        */
-
-                        // Reset folder ID to the one in which we want to load it
-                        item.Folder = foundFolder.ID;
-
-                        m_userInfo.AddItem(item);
-                        successfulItemRestores++;
-
-                        // If we're loading an item directly into the given destination folder then we need to record
-                        // it separately from any loaded root folders
-                        if (rootDestinationFolder == foundFolder)
-                            nodesLoaded.Add(item);
                     }
                 }
             }

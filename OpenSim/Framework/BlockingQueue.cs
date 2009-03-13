@@ -65,6 +65,7 @@ namespace OpenSim.Framework
 
                 if (m_pqueue.Count > 0)
                     return m_pqueue.Dequeue();
+                
                 return m_queue.Dequeue();
             }
         }

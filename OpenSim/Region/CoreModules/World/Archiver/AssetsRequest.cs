@@ -83,6 +83,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         protected internal void Execute()
         {
+            m_log.DebugFormat("[ARCHIVER]: AssetsRequest executed looking for {0} assets", m_repliesRequired);
+            
             // We can stop here if there are no assets to fetch
             if (m_repliesRequired == 0)
                 m_assetsRequestCallback(m_assets, m_notFoundAssetUuids);
@@ -100,6 +102,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="asset"></param>
         public void AssetRequestCallback(UUID assetID, AssetBase asset)
         {
+            //m_log.DebugFormat("[ARCHIVER]: Received callback for asset {0}", assetID);
+            
             if (asset != null)
             {
                 m_assetCache.ExpireAsset(assetID);
@@ -110,11 +114,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_notFoundAssetUuids.Add(assetID);
             }
 
-            //m_log.DebugFormat(
-            //    "[ARCHIVER]: Received {0} assets and notification of {1} missing assets", m_assets.Count, m_notFoundAssetUuids.Count);
-
             if (m_assets.Count + m_notFoundAssetUuids.Count == m_repliesRequired)
             {
+                m_log.DebugFormat(
+                    "[ARCHIVER]: Successfully received {0} assets and notification of {1} missing assets", 
+                    m_assets.Count, m_notFoundAssetUuids.Count);
+                
                 // We want to stop using the asset cache thread asap as we now need to do the actual work of producing the archive
                 Thread newThread = new Thread(PerformAssetsRequestCallback);
                 newThread.Name = "OpenSimulator archiving thread post assets receipt";
