@@ -312,18 +312,20 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     m_assetServer.StoreAsset(asset);
                 }
+                
+                if (StatsManager.SimExtraStats != null)
+                    StatsManager.SimExtraStats.AddAsset(asset);                
             }
         }
 
         public void ExpireAsset(UUID uuid)
         {
-            // uuid is unique, so no need to worry about it showing up
-            // in the 2 caches differently.  Also, locks are probably
-            // needed in all of this, or move to synchronized non
-            // generic forms for Dictionaries.
             if (m_memcache.Contains(uuid))
             {
                 m_memcache.Remove(uuid);
+
+                if (StatsManager.SimExtraStats != null)
+                    StatsManager.SimExtraStats.RemoveAsset(uuid);                
             }
         }
 

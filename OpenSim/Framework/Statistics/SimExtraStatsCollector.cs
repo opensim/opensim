@@ -80,11 +80,23 @@ namespace OpenSim.Framework.Statistics
         /// <summary>
         /// These statistics are being collected by push rather than pull.  Pull would be simpler, but I had the
         /// notion of providing some flow statistics (which pull wouldn't give us).  Though admittedly these
-        /// haven't yet been implemented... :)
+        /// haven't yet been implemented...
         /// </summary>
         public long AssetsInCache { get { return assetsInCache; } }
+        
+        /// <value>
+        /// Currently unused
+        /// </value>
         public long TexturesInCache { get { return texturesInCache; } }
+        
+        /// <value>
+        /// Currently misleading since we can't currently subtract removed asset memory usage without a performance hit
+        /// </value>
         public long AssetCacheMemoryUsage { get { return assetCacheMemoryUsage; } }
+        
+        /// <value>
+        /// Currently unused
+        /// </value>
         public long TextureCacheMemoryUsage { get { return textureCacheMemoryUsage; } }
 
         public float TimeDilation { get { return timeDilation; } }
@@ -108,6 +120,7 @@ namespace OpenSim.Framework.Statistics
         public float PendingUploads { get { return pendingUploads; } }
         public float ActiveScripts { get { return activeScripts; } }
         public float ScriptLinesPerSecond { get { return scriptLinesPerSecond; } }
+        
         /// <summary>
         /// This is the time it took for the last asset request made in response to a cache miss.
         /// </summary>
@@ -159,7 +172,12 @@ namespace OpenSim.Framework.Statistics
         public void AddAsset(AssetBase asset)
         {
             assetsInCache++;
-            assetCacheMemoryUsage += asset.Data.Length;
+            //assetCacheMemoryUsage += asset.Data.Length;
+        }
+        
+        public void RemoveAsset(UUID uuid)
+        {
+            assetsInCache--;
         }
 
         public void AddTexture(AssetBase image)
@@ -272,6 +290,8 @@ namespace OpenSim.Framework.Statistics
             StringBuilder sb = new StringBuilder(Environment.NewLine);
             sb.Append("ASSET STATISTICS");
             sb.Append(Environment.NewLine);
+                        
+            /*
             sb.Append(
                 string.Format(
 @"Asset cache contains   {0,6} non-texture assets using {1,10} K
@@ -284,6 +304,19 @@ Asset service request failures: {6}"+ Environment.NewLine,
                     assetRequestTimeAfterCacheMiss.Milliseconds / 1000.0,
                     BlockedMissingTextureRequests,
                     AssetServiceRequestFailures));
+            */
+            
+            sb.Append(
+                string.Format(
+@"Asset cache contains   {0,6} assets
+Latest asset request time after cache miss: {1}s
+Blocked client requests for missing textures: {2}
+Asset service request failures: {3}" + Environment.NewLine,
+                    AssetsInCache,
+                    assetRequestTimeAfterCacheMiss.Milliseconds / 1000.0,
+                    BlockedMissingTextureRequests,
+                    AssetServiceRequestFailures));
+            
 
             sb.Append(Environment.NewLine);
             sb.Append("CONNECTION STATISTICS");
