@@ -201,7 +201,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             m_scene.RegionInfo.RegionSettings.FixedSun = UseFixedSun;
             m_scene.RegionInfo.RegionSettings.SunPosition = SunHour;
 
-            m_scene.EventManager.TriggerEstateToolsTimeUpdate(m_scene.RegionInfo.RegionHandle, UseFixedSun, UseEstateSun, SunHour);
+            TriggerEstateToolsSunUpdate();
 
             //m_log.Debug("[ESTATE]: UFS: " + UseFixedSun.ToString());
             //m_log.Debug("[ESTATE]: SunHour: " + SunHour.ToString());
@@ -819,19 +819,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             m_scene.RegionInfo.EstateSettings.Save();
 
-            float sun = (float)m_scene.RegionInfo.RegionSettings.SunPosition;
-            if (m_scene.RegionInfo.RegionSettings.UseEstateSun)
-            {
-                sun = (float)m_scene.RegionInfo.EstateSettings.SunPosition;
-                if (m_scene.RegionInfo.EstateSettings.UseGlobalTime)
-                    sun  = m_scene.EventManager.GetSunLindenHour();
-            }
-
-            m_scene.EventManager.TriggerEstateToolsTimeUpdate(
-                    m_scene.RegionInfo.RegionHandle,
-                    m_scene.RegionInfo.EstateSettings.FixedSun ||
-                    m_scene.RegionInfo.RegionSettings.FixedSun,
-                    m_scene.RegionInfo.RegionSettings.UseEstateSun, sun);
+            TriggerEstateToolsSunUpdate();
 
             sendDetailedEstateData(remoteClient, invoice);
         }
@@ -851,6 +839,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void PostInitialise()
         {
+            // Sets up the sun module based no the saved Estate and Region Settings
+            // DO NOT REMOVE or the sun will stop working
+            TriggerEstateToolsSunUpdate();
         }
 
         public void Close()
@@ -870,6 +861,40 @@ namespace OpenSim.Region.CoreModules.World.Estate
         #endregion
 
         #region Other Functions
+
+        private void TriggerEstateToolsSunUpdate()
+        {
+            float sun;
+            if (m_scene.RegionInfo.RegionSettings.UseEstateSun)
+            {
+                sun = (float)m_scene.RegionInfo.EstateSettings.SunPosition;
+                if (m_scene.RegionInfo.EstateSettings.UseGlobalTime)
+                {
+                    sun = m_scene.EventManager.GetCurrentTimeAsSunLindenHour() - 6.0f;
+                }
+
+                // 
+                m_scene.EventManager.TriggerEstateToolsSunUpdate(
+                        m_scene.RegionInfo.RegionHandle,
+                        m_scene.RegionInfo.EstateSettings.FixedSun,
+                        m_scene.RegionInfo.RegionSettings.UseEstateSun, 
+                        sun);
+            }
+            else
+            {
+                // Use the Sun Position from the Region Settings
+                sun = (float)m_scene.RegionInfo.RegionSettings.SunPosition - 6.0f;
+
+                m_scene.EventManager.TriggerEstateToolsSunUpdate(
+                        m_scene.RegionInfo.RegionHandle,
+                        m_scene.RegionInfo.RegionSettings.FixedSun,
+                        m_scene.RegionInfo.RegionSettings.UseEstateSun, 
+                        sun);
+            }
+
+
+        }
+
 
         public void changeWaterHeight(float height)
         {

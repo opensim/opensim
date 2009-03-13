@@ -933,6 +933,15 @@ namespace OpenSim.Framework
 
         bool AddMoney(int debit);
 
+        /// <summary>
+        /// Update the client as to where the sun is currently located.
+        /// </summary>
+        /// <param name="sunPos"></param>
+        /// <param name="sunVel"></param>
+        /// <param name="CurrentTime">Seconds since Unix Epoch 01/01/1970 00:00:00</param>
+        /// <param name="SecondsPerSunCycle"></param>
+        /// <param name="SecondsPerYear"></param>
+        /// <param name="OrbitalPosition">The orbital position is given in radians, and must be "adjusted" for the linden client, see LLClientView</param>
         void SendSunPos(Vector3 sunPos, Vector3 sunVel, ulong CurrentTime, uint SecondsPerSunCycle, uint SecondsPerYear,
                         float OrbitalPosition);
 

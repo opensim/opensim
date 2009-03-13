@@ -202,10 +202,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event ScriptTimerEvent OnScriptTimerEvent;
 
-        public delegate void EstateToolsTimeUpdate(ulong regionHandle, bool FixedTime, bool EstateSun, float LindenHour);
+        public delegate void EstateToolsSunUpdate(ulong regionHandle, bool FixedTime, bool EstateSun, float LindenHour);
         public delegate void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID);
 
-        public event EstateToolsTimeUpdate OnEstateToolsTimeUpdate;
+        public event EstateToolsSunUpdate OnEstateToolsSunUpdate;
 
         public delegate void ObjectBeingRemovedFromScene(SceneObjectGroup obj);
         public event ObjectBeingRemovedFromScene OnObjectBeingRemovedFromScene;
@@ -264,7 +264,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event ChatBroadcastEvent OnChatBroadcast;
 
         public delegate float SunLindenHour();
-        public event SunLindenHour OnGetSunLindenHour;
+        public event SunLindenHour OnGetCurrentTimeAsLindenSunHour;
 
         /// <summary>
         /// Called when oar file has finished loading, although
@@ -411,14 +411,14 @@ namespace OpenSim.Region.Framework.Scenes
         private ParcelPrimCountTainted handlerParcelPrimCountTainted = null;
         private ObjectBeingRemovedFromScene handlerObjectBeingRemovedFromScene = null;
         private ScriptTimerEvent handlerScriptTimerEvent = null;
-        private EstateToolsTimeUpdate handlerEstateToolsTimeUpdate = null;
+        private EstateToolsSunUpdate handlerEstateToolsSunUpdate = null;
 
         private ScriptColliding handlerCollidingStart = null;
         private ScriptColliding handlerColliding = null;
         private ScriptColliding handlerCollidingEnd = null;
         private GetScriptRunning handlerGetScriptRunning = null;
 
-        private SunLindenHour handlerSunGetLindenHour = null;
+        private SunLindenHour handlerCurrentTimeAsLindenSunHour = null;
         private OnSetRootAgentSceneDelegate handlerSetRootAgentScene = null;
 
         private OarFileLoaded handlerOarFileLoaded = null;
@@ -910,21 +910,28 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerEstateToolsTimeUpdate(ulong regionHandle, bool FixedTime, bool useEstateTime, float LindenHour)
+        /// <summary>
+        /// Updates the system as to how the position of the sun should be handled.
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="FixedTime">True if the Sun Position is fixed</param>
+        /// <param name="useEstateTime">True if the Estate Settings should be used instead of region</param>
+        /// <param name="FixedSunHour">The hour 0.0 <= FixedSunHour <= 24.0 at which the sun is fixed at. Sun Hour 0 is sun-rise, when Day/Night ratio is 1:1</param>
+        public void TriggerEstateToolsSunUpdate(ulong regionHandle, bool FixedTime, bool useEstateTime, float FixedSunHour)
         {
-            handlerEstateToolsTimeUpdate = OnEstateToolsTimeUpdate;
-            if (handlerEstateToolsTimeUpdate != null)
+            handlerEstateToolsSunUpdate = OnEstateToolsSunUpdate;
+            if (handlerEstateToolsSunUpdate != null)
             {
-                handlerEstateToolsTimeUpdate(regionHandle, FixedTime, useEstateTime, LindenHour);
+                handlerEstateToolsSunUpdate(regionHandle, FixedTime, useEstateTime, FixedSunHour);
             }
         }
 
-        public float GetSunLindenHour()
+        public float GetCurrentTimeAsSunLindenHour()
         {
-            handlerSunGetLindenHour = OnGetSunLindenHour;
-            if (handlerSunGetLindenHour != null)
+            handlerCurrentTimeAsLindenSunHour = OnGetCurrentTimeAsLindenSunHour;
+            if (handlerCurrentTimeAsLindenSunHour != null)
             {
-                return handlerSunGetLindenHour();
+                return handlerCurrentTimeAsLindenSunHour();
             }
             return 6;
         }

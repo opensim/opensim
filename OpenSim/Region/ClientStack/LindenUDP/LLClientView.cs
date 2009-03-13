@@ -87,6 +87,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private int m_inPacketsChecked;
 
+        // Used to adjust Sun Orbit values so Linden based viewers properly position sun
+        private const float m_sunPainDaHalfOrbitalCutoff = 4.712388980384689858f;
+
+
         /* protected variables */
 
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers =
@@ -2403,10 +2407,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendSunPos(Vector3 Position, Vector3 Velocity, ulong CurrentTime, uint SecondsPerSunCycle, uint SecondsPerYear, float OrbitalPosition)
         {
+            // Viewers based on the Linden viwer code, do wacky things for oribital positions from Midnight to Sunrise
+            // So adjust for that
+            // Contributed by: Godfrey
+
+            if (OrbitalPosition > m_sunPainDaHalfOrbitalCutoff) // things get weird from midnight to sunrise
+            {
+                OrbitalPosition = (OrbitalPosition - m_sunPainDaHalfOrbitalCutoff) * 0.6666666667f + m_sunPainDaHalfOrbitalCutoff;
+            }
+
+
+
             SimulatorViewerTimeMessagePacket viewertime = (SimulatorViewerTimeMessagePacket)PacketPool.Instance.GetPacket(PacketType.SimulatorViewerTimeMessage);
             viewertime.TimeInfo.SunDirection = Position;
             viewertime.TimeInfo.SunAngVelocity = Velocity;
-            viewertime.TimeInfo.UsecSinceStart = CurrentTime;
+
+            // Sun module used to add 6 hours to adjust for linden sun hour, adding here
+            // to prevent existing code from breaking if it assumed that 6 hours were included.
+            // 21600 == 6 hours * 60 minutes * 60 Seconds
+            viewertime.TimeInfo.UsecSinceStart = CurrentTime + 21600;
+
             viewertime.TimeInfo.SecPerDay = SecondsPerSunCycle;
             viewertime.TimeInfo.SecPerYear = SecondsPerYear;
             viewertime.TimeInfo.SunPhase = OrbitalPosition;

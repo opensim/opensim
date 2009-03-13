@@ -62,6 +62,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osSetRegionWaterHeight(height);
         }
 
+        public void osSetRegionSunSettings(bool useEstateSun, bool sunFixed, double sunHour)
+        {
+            m_OSSL_Functions.osSetRegionSunSettings(useEstateSun, sunFixed, sunHour);
+        }
+
         public double osList2Double(LSL_Types.list src, int index)
         {
             return m_OSSL_Functions.osList2Double(src, index);

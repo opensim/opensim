@@ -86,8 +86,9 @@
     ;day_length = 4
     ; Year length in days
     ;year_length = 60
-    ; Day to Night Ratio
-    ;day_night_offset = 0.45
+    ; Horizon shift, changes Day to Night Ratio, more shift, the time the sun spends above the horizon,
+    ; .5 matches very closely with what LL based viewers display
+    ;day_night_offset = 0.5
     ; send a Sun update every update_interval # of frames.  A lower number will
     ; make for smoother sun transition at the cost of network
     ;update_interval = 100
