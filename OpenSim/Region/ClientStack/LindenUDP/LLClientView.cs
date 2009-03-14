@@ -4066,6 +4066,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     handlerUpdatePrimSingleRotation(localId, rot2, this);
                                 }
                                 break;
+                            case 4:
+                            case 20:
+                                Vector3 scale4 = new Vector3(block.Data, 0);
+
+                                handlerUpdatePrimScale = OnUpdatePrimScale;
+                                if (handlerUpdatePrimScale != null)
+                                {
+//                                     m_log.Debug("new scale is " + scale4.X + " , " + scale4.Y + " , " + scale4.Z);
+                                    handlerUpdatePrimScale(localId, scale4, this);
+                                }
+                                break;
                             case 5:
 
                                 Vector3 scale1 = new Vector3(block.Data, 12);
@@ -4115,6 +4126,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     //m_log.Debug("new rotation position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
                                     // m_log.Debug("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
                                     handlerUpdatePrimGroupRotation(localId, pos3, rot4, this);
+                                }
+                                break;
+                            case 12:
+                            case 28:
+                                Vector3 scale7 = new Vector3(block.Data, 0);
+
+                                handlerUpdatePrimGroupScale = OnUpdatePrimGroupScale;
+                                if (handlerUpdatePrimGroupScale != null)
+                                {
+//                                     m_log.Debug("new scale is " + scale7.X + " , " + scale7.Y + " , " + scale7.Z);
+                                    handlerUpdatePrimGroupScale(localId, scale7, this);
                                 }
                                 break;
                             case 13:
@@ -4168,6 +4190,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                         handlerUpdatePrimSinglePosition(localId, pos6, this);
                                     }
                                 }
+                                break;
+                            default:
+                                m_log.Debug("[CLIENT] MultipleObjUpdate recieved an unknown packet type: " + (block.Type));
                                 break;
                         }
                     }
