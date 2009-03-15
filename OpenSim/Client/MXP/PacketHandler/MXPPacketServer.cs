@@ -40,6 +40,7 @@ using OpenSim.Client.MXP.ClientStack;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Communications;
+using System.Security.Cryptography;
 
 namespace OpenSim.Client.MXP.PacketHandler
 {
@@ -214,17 +215,6 @@ namespace OpenSim.Client.MXP.PacketHandler
 
         #region Processing
 
-        public void PrintDebugInformation()
-        {
-            m_log.Info("[MXP ClientStack] Statistics report");
-            m_log.Info("Pending Sessions: " + PendingSessionCount);
-            m_log.Info("Sessions: " + SessionCount + " (Clients: " + m_clients.Count + " )");
-            m_log.Info("Transmitter Alive?: " + IsTransmitterAlive);
-            m_log.Info("Packets Sent/Received: " + PacketsSent + " / " + PacketsReceived);
-            m_log.Info("Bytes Sent/Received: " + BytesSent + " / " + BytesReceived);
-            m_log.Info("Send/Receive Rate (bps): " + SendRate + " / " + ReceiveRate);
-        }
-
         public void Process()
         {
             ProcessMessages();
@@ -243,65 +233,12 @@ namespace OpenSim.Client.MXP.PacketHandler
 
             foreach (MXPClientView clientView in m_sessionsToRemove)
             {
-                clientView.Scene.RemoveClient(clientView.AgentId);
+                clientView.OnClean();
                 m_clients.Remove(clientView);
                 m_sessions.Remove(clientView.Session);
             }
 
             m_sessionsToRemove.Clear();
-        }
-
-        public bool AuthoriseUser(string participantName, string password, UUID sceneId, out UUID userId, out string firstName, out string lastName)
-        {
-            userId = UUID.Zero;
-            firstName = "";
-            lastName = "";
-
-            if (!m_scenes.ContainsKey(sceneId))
-            {
-                m_log.Info("Login failed as region was not found: " + sceneId);
-                return false;
-            }
-           
-            string[] nameParts=participantName.Split(' ');
-            if (nameParts.Length != 2)
-            {
-                m_log.Info("Login failed as user name is not formed of first and last name separated by space: " + participantName);
-                return false;
-            }
-            firstName = nameParts[0];
-            lastName = nameParts[1];
-            
-            UserProfileData userProfile = m_scenes[sceneId].CommsManager.UserService.GetUserProfile(firstName, lastName);
-            if (userProfile == null && !m_accountsAuthenticate)
-            {
-                userId = ((UserManagerBase)m_scenes[sceneId].CommsManager.UserService).AddUser(firstName, lastName, "test", "", 1000, 1000);
-            }
-            else
-            {
-                if (userProfile == null)
-                {
-                    m_log.Info("Login failed as user was not found: " + participantName);
-                    return false;
-                }
-                userId = userProfile.ID;
-            }
-
-            if (m_accountsAuthenticate)
-            {
-                if (!password.StartsWith("$1$"))
-                {
-                    password = "$1$" + Util.Md5Hash(password);
-                }
-                password = password.Remove(0, 3); //remove $1$
-                string s = Util.Md5Hash(password + ":" + userProfile.PasswordSalt);
-                return (userProfile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                                   || userProfile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
-            }
-            else
-            {
-                return true;
-            }
         }
 
         public void ProcessMessages()
@@ -327,9 +264,9 @@ namespace OpenSim.Client.MXP.PacketHandler
 
                         JoinRequestMessage joinRequestMessage = (JoinRequestMessage) message;
 
-                        UUID userId;
-                        string firstName;
-                        string lastName;
+                        m_log.Info("[MXP ClientStack] Session join request: " + session.SessionId + " (" +
+                           (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
+                            session.RemoteEndPoint.Port + ")");
 
                         if (joinRequestMessage.BubbleId == Guid.Empty)
                         {
@@ -337,7 +274,7 @@ namespace OpenSim.Client.MXP.PacketHandler
                             {
                                 if (scene.RegionInfo.RegionName == joinRequestMessage.BubbleName)
                                 {
-                                    m_log.Info("Resolved region by name: " + joinRequestMessage.BubbleName + " (" + scene.RegionInfo.RegionID+")");
+                                    m_log.Info("[MXP ClientStack] Resolved region by name: " + joinRequestMessage.BubbleName + " (" + scene.RegionInfo.RegionID + ")");
                                     joinRequestMessage.BubbleId = scene.RegionInfo.RegionID.Guid;
                                 }
                             }
@@ -345,47 +282,71 @@ namespace OpenSim.Client.MXP.PacketHandler
 
                         if (joinRequestMessage.BubbleId == Guid.Empty)
                         {
-                            m_log.Warn("Failed to resolve region by name: "+joinRequestMessage.BubbleName);
+                            m_log.Warn("[MXP ClientStack] Failed to resolve region by name: " + joinRequestMessage.BubbleName);
+                        }
+                        
+                        UUID sceneId = new UUID(joinRequestMessage.BubbleId);
+
+                        bool regionExists = true;
+                        if (!m_scenes.ContainsKey(sceneId))
+                        {
+                            m_log.Info("[MXP ClientStack] No such region: " + sceneId);
+                            regionExists=false;
                         }
 
-                        bool authorized = AuthoriseUser(joinRequestMessage.ParticipantName,
+                        UserProfileData user=null;
+                        UUID userId=UUID.Zero;
+                        string firstName=null;
+                        string lastName=null;
+                        bool authorized = regionExists?AuthoriseUser(joinRequestMessage.ParticipantName,
                                                         joinRequestMessage.ParticipantPassphrase,
-                                                        new UUID(joinRequestMessage.BubbleId), out userId, out firstName, out lastName);
+                                                        new UUID(joinRequestMessage.BubbleId), out userId, out firstName, out lastName, out user)
+                                                        :false;
 
                         if (authorized)
-                        {
-                            Scene target = m_scenes[new UUID(joinRequestMessage.BubbleId)];
-
+                        {                            
+                            Scene scene = m_scenes[sceneId];
                             UUID mxpSessionID = UUID.Random();
 
                             m_log.Info("[MXP ClientStack] Session join request success: " + session.SessionId + " (" +
-                                       (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
-                                       session.RemoteEndPoint.Port + ")");
+                               (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
+                               session.RemoteEndPoint.Port + ")");
 
-                            AcceptConnection(session, joinRequestMessage, mxpSessionID,userId);
+                            m_log.Info("[MXP ClientStack] Attaching UserAgent to UserProfile...");
+                            AttachUserAgentToUserProfile(session, mxpSessionID, sceneId, user);
+                            m_log.Info("[MXP ClientStack] Attached UserAgent to UserProfile.");
+                            m_log.Info("[MXP ClientStack] Preparing Scene to Connection...");
+                            PrepareSceneForConnection(mxpSessionID, sceneId, user);
+                            m_log.Info("[MXP ClientStack] Prepared Scene to Connection.");
+                            m_log.Info("[MXP ClientStack] Accepting connection...");
+                            AcceptConnection(session, joinRequestMessage, mxpSessionID, userId);
+                            m_log.Info("[MXP ClientStack] Accepted connection.");
 
-                            MXPClientView client = new MXPClientView(session, mxpSessionID,userId, target,
-                                                                     firstName, lastName);
-                            m_log.Info("[MXP ClientStack] Created Client");
+                            m_log.Info("[MXP ClientStack] Creating ClientView....");
+                            MXPClientView client = new MXPClientView(session, mxpSessionID, userId, scene, firstName, lastName);
                             m_clients.Add(client);
+                            m_log.Info("[MXP ClientStack] Created ClientView.");
 
-                            m_log.Info("[MXP ClientStack] Adding to Scene");
-                            target.ClientManager.Add(client.CircuitCode, client);
 
-                            m_log.Info("[MXP ClientStack] Initialising...");
+                            m_log.Info("[MXP ClientStack] Adding ClientView to Scene...");                            
+                            scene.ClientManager.Add(client.CircuitCode, client);
+                            m_log.Info("[MXP ClientStack] Added ClientView to Scene.");                            
 
-                            client.MXPSentSynchronizationBegin(m_scenes[new UUID(joinRequestMessage.BubbleId)].SceneContents.GetTotalObjectsCount());
+                            
+                            client.MXPSendSynchronizationBegin(m_scenes[new UUID(joinRequestMessage.BubbleId)].SceneContents.GetTotalObjectsCount());
 
+                            m_log.Info("[MXP ClientStack] Starting ClientView...");
                             try
                             {
                                 client.Start();
-                            } catch( Exception e)
+                                m_log.Info("[MXP ClientStack] Started ClientView.");
+                            }
+                            catch (Exception e)
                             {
                                 m_log.Info(e);
                             }
 
                             m_log.Info("[MXP ClientStack] Connected");
-                            //target.EventManager.TriggerOnNewClient(client);
                         }
                         else
                         {
@@ -510,6 +471,138 @@ namespace OpenSim.Client.MXP.PacketHandler
             session.Send(joinResponseMessage);
 
             session.SetStateDisconnected();
+        }
+
+        public bool AuthoriseUser(string participantName, string password, UUID sceneId, out UUID userId, out string firstName, out string lastName, out UserProfileData userProfile)
+        {
+            userId = UUID.Zero;
+            firstName = "";
+            lastName = "";
+            userProfile = null;
+
+            string[] nameParts = participantName.Split(' ');
+            if (nameParts.Length != 2)
+            {
+                m_log.Info("[MXP ClientStack] Login failed as user name is not formed of first and last name separated by space: " + participantName);
+                return false;
+            }
+            firstName = nameParts[0];
+            lastName = nameParts[1];
+
+            userProfile = m_scenes[sceneId].CommsManager.UserService.GetUserProfile(firstName, lastName);
+            if (userProfile == null && !m_accountsAuthenticate)
+            {
+                userId = ((UserManagerBase)m_scenes[sceneId].CommsManager.UserService).AddUser(firstName, lastName, "test", "", 1000, 1000);
+            }
+            else
+            {
+                if (userProfile == null)
+                {
+                    m_log.Info("Login failed as user was not found: " + participantName);
+                    return false;
+                }
+                userId = userProfile.ID;
+            }
+
+            if (m_accountsAuthenticate)
+            {
+                if (!password.StartsWith("$1$"))
+                {
+                    password = "$1$" + Util.Md5Hash(password);
+                }
+                password = password.Remove(0, 3); //remove $1$
+                string s = Util.Md5Hash(password + ":" + userProfile.PasswordSalt);
+                return (userProfile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                                   || userProfile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        private void AttachUserAgentToUserProfile(Session session, UUID sessionId, UUID sceneId, UserProfileData userProfile)
+        {
+            Scene scene = m_scenes[sceneId];
+            CommunicationsManager commsManager = m_scenes[sceneId].CommsManager;
+            UserManagerBase userService = (UserManagerBase)commsManager.UserService;
+
+            UserAgentData agent = new UserAgentData();
+
+            // User connection
+            agent.AgentOnline = true;
+            agent.AgentIP = session.RemoteEndPoint.Address.ToString();
+            agent.AgentPort = (uint)session.RemoteEndPoint.Port;
+
+            agent.SecureSessionID = UUID.Random();
+            agent.SessionID = sessionId;
+
+            // Profile UUID
+            agent.ProfileID = userProfile.ID;
+
+            // Current location/position/alignment
+            if (userProfile.CurrentAgent != null)
+            {
+                agent.Region = userProfile.CurrentAgent.Region;
+                agent.Handle = userProfile.CurrentAgent.Handle;
+                agent.Position = userProfile.CurrentAgent.Position;
+                agent.LookAt = userProfile.CurrentAgent.LookAt;
+            }
+            else
+            {
+                agent.Region = userProfile.HomeRegionID;
+                agent.Handle = userProfile.HomeRegion;
+                agent.Position = userProfile.HomeLocation;
+                agent.LookAt = userProfile.HomeLookAt;
+            }
+
+            // What time did the user login?
+            agent.LoginTime = Util.UnixTimeSinceEpoch();
+            agent.LogoutTime = 0;
+
+            userProfile.CurrentAgent = agent;
+
+            userService.CommitAgent(ref userProfile);
+        }
+
+        private void PrepareSceneForConnection(UUID sessionId, UUID sceneId, UserProfileData userProfile)
+        {
+            Scene scene = m_scenes[sceneId];
+            CommunicationsManager commsManager = m_scenes[sceneId].CommsManager;
+            UserManagerBase userService = (UserManagerBase)commsManager.UserService;
+
+            AgentCircuitData agent = new AgentCircuitData();
+            agent.AgentID = userProfile.ID;
+            agent.firstname = userProfile.FirstName;
+            agent.lastname = userProfile.SurName;
+            agent.SessionID = sessionId;
+            agent.SecureSessionID = userProfile.CurrentAgent.SecureSessionID;
+            agent.circuitcode = sessionId.CRC();
+            agent.BaseFolder = UUID.Zero;
+            agent.InventoryFolder = UUID.Zero;
+            agent.startpos = new Vector3(0, 0, 0); // TODO Fill in region start position
+            agent.CapsPath = "http://localhost/";
+            agent.Appearance = userService.GetUserAppearance(userProfile.ID);
+
+            if (agent.Appearance == null)
+            {
+                m_log.WarnFormat("[INTER]: Appearance not found for {0} {1}. Creating default.", agent.firstname, agent.lastname);
+                agent.Appearance = new AvatarAppearance();
+            }
+
+            scene.NewUserConnection(agent);
+
+        }
+
+        public void PrintDebugInformation()
+        {
+            m_log.Info("[MXP ClientStack] Statistics report");
+            m_log.Info("Pending Sessions: " + PendingSessionCount);
+            m_log.Info("Sessions: " + SessionCount + " (Clients: " + m_clients.Count + " )");
+            m_log.Info("Transmitter Alive?: " + IsTransmitterAlive);
+            m_log.Info("Packets Sent/Received: " + PacketsSent + " / " + PacketsReceived);
+            m_log.Info("Bytes Sent/Received: " + BytesSent + " / " + BytesReceived);
+            m_log.Info("Send/Receive Rate (bps): " + SendRate + " / " + ReceiveRate);
         }
 
         #endregion

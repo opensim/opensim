@@ -38,21 +38,20 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Client.MXP
 {
+
     /**
      * MXP Client Module which adds MXP support to client / region communication.
      */
     public class MXPModule : IRegionModule
     {
-
-        private int m_port = 1253;
-        //private int m_ticks = 0;
-        private bool m_shutdown = false;
+        private MXPPacketServer m_server;
 
         private IConfigSource m_config;
-        private readonly Timer m_ticker = new Timer(100);
-        private readonly Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
+        private int m_port = 1253;
 
-        private MXPPacketServer m_server;
+        private readonly Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
+        private readonly Timer m_ticker = new Timer(100);
+        private bool m_shutdown = false;
 
         public void Initialise(Scene scene, IConfigSource source)
         {
@@ -88,13 +87,6 @@ namespace OpenSim.Client.MXP
 
             if (!m_shutdown)
                 m_ticker.Start();
-
-            // Commenting this at because of the excess flood to log.
-            // TODO: Add ini file option.
-            /*if (++ticks % 100 == 0)
-            {
-                server.PrintDebugInformation();
-            }*/
         }
 
         public void Close()

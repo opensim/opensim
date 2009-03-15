@@ -189,8 +189,6 @@ namespace OpenSim.Client.MXP.ClientStack
 
         private void MXPProcessModifyRequest(ModifyRequestMessage modifyRequest)
         {
-            m_log.Debug("Received modify request for: " + modifyRequest.ObjectFragment.ObjectName);
-
             ObjectFragment objectFragment=modifyRequest.ObjectFragment;
             if (objectFragment.ObjectId == m_userID.Guid)
             {
@@ -448,7 +446,7 @@ namespace OpenSim.Client.MXP.ClientStack
             Session.Send(pe);
         }
 
-        public void MXPSentSynchronizationBegin(int objectCount)
+        public void MXPSendSynchronizationBegin(int objectCount)
         {
             m_objectsToSynchronize = objectCount;
             m_objectsSynchronized = 0;
@@ -767,6 +765,15 @@ namespace OpenSim.Client.MXP.ClientStack
             //throw new System.NotImplementedException();
         }
 
+        public void OnClean()
+        {
+            if (OnLogout != null)
+                OnLogout(this);
+
+            if (OnConnectionClosed != null)
+                OnConnectionClosed(this);
+        }
+
         public void Close(bool ShutdownCircuit)
         {
             m_log.Info("[MXP ClientStack] Close Called with SC=" + ShutdownCircuit);
@@ -780,16 +787,6 @@ namespace OpenSim.Client.MXP.ClientStack
                 Session.SetStateDisconnected();
             }
 
-            // Handle OpenSim cleanup
-            if (ShutdownCircuit)
-            {
-                if (OnConnectionClosed != null)
-                    OnConnectionClosed(this);
-            }
-            else
-            {
-                Scene.RemoveClient(AgentId);
-            }
         }
 
         public void Kick(string message)
@@ -800,6 +797,17 @@ namespace OpenSim.Client.MXP.ClientStack
         public void Start()
         {
             Scene.AddNewClient(this);
+
+            // Mimicking LLClientView which gets always set appearance from client.
+            OpenSim.Region.Framework.Scenes.Scene scene=(OpenSim.Region.Framework.Scenes.Scene)Scene;
+            AvatarAppearance appearance;
+            scene.GetAvatarAppearance(this,out appearance);
+            List<byte> visualParams = new List<byte>();
+            foreach (byte visualParam in appearance.VisualParams)
+            {
+                visualParams.Add(visualParam);
+            }
+            OnSetAppearance(appearance.Texture.ToBytes(), visualParams);
         }
 
         public void Stop()
