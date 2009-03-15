@@ -42,9 +42,11 @@ namespace OpenSim.Region.CoreModules
 
         private int m_frame = 0;
         private int m_frame_mod = 150;
-        private Random rndnums = new Random(Environment.TickCount);
+        private Random m_rndnums = new Random(Environment.TickCount);
         private Scene m_scene = null;
-        private bool ready = false;
+        private bool m_ready = false;
+        private float m_strength = 1.0F;
+        private bool m_enabled = true;
 
         // Simplified windSpeeds based on the fact that the client protocal tracks at a resolution of 16m
         private Vector2[] windSpeeds = new Vector2[16 * 16];
@@ -53,18 +55,33 @@ namespace OpenSim.Region.CoreModules
      
         public void Initialise(Scene scene, IConfigSource config)
         {
-            m_scene = scene;
-            m_frame = 0;
+            IConfig windConfig = config.Configs["Wind"];
 
-            scene.EventManager.OnFrame += WindUpdate;            
-            scene.EventManager.OnMakeChildAgent += MakeChildAgent;
-            scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
-            scene.EventManager.OnClientClosed += ClientLoggedOut;
-            scene.RegisterModuleInterface<IWindModule>(this);
+            if (windConfig != null)
+            {
+                m_enabled = windConfig.GetBoolean("enabled", true);
+                m_strength = windConfig.GetFloat("strength", 1.0F);
+            }
 
-            GenWindPos();
+            if (m_enabled)
+            {
 
-            ready = true;
+                m_scene = scene;
+                m_frame = 0;
+
+
+                scene.EventManager.OnFrame += WindUpdate;
+                scene.EventManager.OnMakeChildAgent += MakeChildAgent;
+                scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+                scene.EventManager.OnClientClosed += ClientLoggedOut;
+                scene.RegisterModuleInterface<IWindModule>(this);
+
+                GenWindPos();
+
+                m_ready = true;
+
+            }
+
         }
 
         public void PostInitialise()
@@ -73,13 +90,16 @@ namespace OpenSim.Region.CoreModules
 
         public void Close()
         {
-            ready = false;
-            //  Remove our hooks
-            m_scene.EventManager.OnFrame -= WindUpdate;
-            // m_scene.EventManager.OnNewClient -= SunToClient;
-            m_scene.EventManager.OnMakeChildAgent -= MakeChildAgent;
-            m_scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
-            m_scene.EventManager.OnClientClosed -= ClientLoggedOut;
+            if (m_enabled)
+            {
+                m_ready = false;
+                //  Remove our hooks
+                m_scene.EventManager.OnFrame -= WindUpdate;
+                // m_scene.EventManager.OnNewClient -= SunToClient;
+                m_scene.EventManager.OnMakeChildAgent -= MakeChildAgent;
+                m_scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
+                m_scene.EventManager.OnClientClosed -= ClientLoggedOut;
+            }
         }
 
         public string Name
@@ -122,7 +142,7 @@ namespace OpenSim.Region.CoreModules
 
         public void WindToClient(IClientAPI client)
         {
-            if (ready)
+            if (m_ready)
             {
                 //if (!sunFixed)
                     //GenWindPos();    // Generate shared values once
@@ -132,7 +152,7 @@ namespace OpenSim.Region.CoreModules
 
         public void WindUpdate()
         {
-            if (((m_frame++ % m_frame_mod) != 0) || !ready)
+            if (((m_frame++ % m_frame_mod) != 0) || !m_ready)
             {
                 return;
             }
@@ -182,8 +202,10 @@ namespace OpenSim.Region.CoreModules
             {
                 for (int x = 0; x < 16; x++)
                 {
-                    windSpeeds[y * 16 + x].X = (float)(rndnums.NextDouble() * 2d - 1d); // -1 to 1
-                    windSpeeds[y * 16 + x].Y = (float)(rndnums.NextDouble() * 2d - 1d); // -1 to 1
+                    windSpeeds[y * 16 + x].X = (float)(m_rndnums.NextDouble() * 2d - 1d); // -1 to 1
+                    windSpeeds[y * 16 + x].Y = (float)(m_rndnums.NextDouble() * 2d - 1d); // -1 to 1
+                    windSpeeds[y * 16 + x].X *= m_strength;
+                    windSpeeds[y * 16 + x].Y *= m_strength;
                 }
             }
         }
