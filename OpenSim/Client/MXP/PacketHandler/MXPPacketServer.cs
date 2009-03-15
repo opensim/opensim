@@ -39,6 +39,7 @@ using OpenMetaverse;
 using OpenSim.Client.MXP.ClientStack;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Framework.Communications;
 
 namespace OpenSim.Client.MXP.PacketHandler
 {
@@ -59,6 +60,8 @@ namespace OpenSim.Client.MXP.PacketHandler
         private readonly IList<MXPClientView> m_sessionsToRemove = new List<MXPClientView>();
 
         private readonly int m_port;
+        private readonly bool m_accountsAuthenticate;
+
         private readonly String m_programName;
         private readonly byte m_programMajorVersion;
         private readonly byte m_programMinorVersion;
@@ -67,12 +70,12 @@ namespace OpenSim.Client.MXP.PacketHandler
 
         #region Constructors
 
-        public MXPPacketServer(int port, Dictionary<UUID, Scene> scenes)
+        public MXPPacketServer(int port, Dictionary<UUID, Scene> scenes, bool accountsAuthenticate)
         {
-            this.m_port = port;
+            m_port = port;
+            m_accountsAuthenticate = accountsAuthenticate;
 
             m_scenes = scenes;
-
 
             m_programMinorVersion = 63;
             m_programMajorVersion = 0;
@@ -259,7 +262,7 @@ namespace OpenSim.Client.MXP.PacketHandler
                 m_log.Info("Login failed as region was not found: " + sceneId);
                 return false;
             }
-            
+           
             string[] nameParts=participantName.Split(' ');
             if (nameParts.Length != 2)
             {
@@ -270,21 +273,35 @@ namespace OpenSim.Client.MXP.PacketHandler
             lastName = nameParts[1];
             
             UserProfileData userProfile = m_scenes[sceneId].CommsManager.UserService.GetUserProfile(firstName, lastName);
-            if (userProfile == null)
+            if (userProfile == null && !m_accountsAuthenticate)
             {
-                m_log.Info("Login failed as user was not found: " + participantName);
-                return false;
+                userId = ((UserManagerBase)m_scenes[sceneId].CommsManager.UserService).AddUser(firstName, lastName, "test", "", 1000, 1000);
             }
-            userId = userProfile.ID;
+            else
+            {
+                if (userProfile == null)
+                {
+                    m_log.Info("Login failed as user was not found: " + participantName);
+                    return false;
+                }
+                userId = userProfile.ID;
+            }
 
-            if (!password.StartsWith("$1$"))
+            if (m_accountsAuthenticate)
             {
-                password = "$1$" + Util.Md5Hash(password);
+                if (!password.StartsWith("$1$"))
+                {
+                    password = "$1$" + Util.Md5Hash(password);
+                }
+                password = password.Remove(0, 3); //remove $1$
+                string s = Util.Md5Hash(password + ":" + userProfile.PasswordSalt);
+                return (userProfile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                                   || userProfile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
             }
-            password = password.Remove(0, 3); //remove $1$
-            string s = Util.Md5Hash(password + ":" + userProfile.PasswordSalt);
-            return (userProfile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                               || userProfile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
+            else
+            {
+                return true;
+            }
         }
 
         public void ProcessMessages()

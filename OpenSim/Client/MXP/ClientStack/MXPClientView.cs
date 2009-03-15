@@ -45,7 +45,7 @@ using MXP.Common.Proto;
 
 namespace OpenSim.Client.MXP.ClientStack
 {
-    class MXPClientView : IClientAPI, IClientCore
+    public class MXPClientView : IClientAPI, IClientCore
     {
         internal static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

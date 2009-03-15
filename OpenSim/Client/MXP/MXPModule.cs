@@ -38,6 +38,9 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Client.MXP
 {
+    /**
+     * MXP Client Module which adds MXP support to client / region communication.
+     */
     public class MXPModule : IRegionModule
     {
 
@@ -70,7 +73,7 @@ namespace OpenSim.Client.MXP
 
                 m_port = con.GetInt("Port", m_port);
 
-                m_server = new MXPPacketServer(m_port, m_scenes);
+                m_server = new MXPPacketServer(m_port, m_scenes,m_config.Configs["StandAlone"].GetBoolean("accounts_authenticate",true));
 
                 m_ticker.AutoReset = false;
                 m_ticker.Elapsed += ticker_Elapsed;
