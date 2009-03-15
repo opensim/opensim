@@ -418,7 +418,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                     // Ok, so this is definitively the wrong place to do this, way too hard coded, but it doesn't seem we GET this info?
 
-                    string simURI = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.InternalEndPoint.Port;
+                    string simURI = "http://" + externalHostName + ":" + simPort;
 
                     // string externalUri = (string) responseData["sim_uri"];
 
