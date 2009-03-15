@@ -500,16 +500,33 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         internal void ExecuteEvent(uint localID, UUID itemID,
                 string FunctionName, DetectParams[] qParams, object[] args)
         {
-            InstanceData id = GetScript(localID, itemID);
-            if (id == null)
-                return;
-
-            detparms[id] = qParams;
-
-            if (id.Running)
-                id.Script.ExecuteEvent(id.State, FunctionName, args);
-
-            detparms.Remove(id);
+            int ExeStage=0;             //        ;^) Ewe Loon, for debuging
+            InstanceData id=null;
+            try                         //        ;^) Ewe Loon,fix
+            {                           //        ;^) Ewe Loon,fix
+                ExeStage = 1;           //        ;^) Ewe Loon, for debuging
+                id = GetScript(localID, itemID);
+                if (id == null)
+                    return;
+                ExeStage = 2;           //        ;^) Ewe Loon, for debuging
+                if (qParams.Length>0)   //        ;^) Ewe Loon,fix
+                    detparms[id] = qParams;
+                ExeStage = 3;           //        ;^) Ewe Loon, for debuging
+                if (id.Running)
+                    id.Script.ExecuteEvent(id.State, FunctionName, args);
+                ExeStage = 4;           //        ;^) Ewe Loon, for debuging
+                if (qParams.Length>0)   //        ;^) Ewe Loon,fix 
+                    detparms.Remove(id);
+                ExeStage = 5;           //        ;^) Ewe Loon, for debuging
+            }
+            catch (Exception e)         //        ;^) Ewe Loon, From here down tis fix
+            {                          
+                if ((ExeStage == 3)&&(qParams.Length>0))
+                    detparms.Remove(id);
+                SceneObjectPart ob = m_scriptEngine.World.GetSceneObjectPart(localID);
+                m_log.InfoFormat("[Script Error] ,{0},{1},@{2},{3},{4},{5}", ob.Name , FunctionName, ExeStage, e.Message, qParams.Length, detparms.Count);
+                if (ExeStage != 2) throw e;
+            }            
         }
 
         public uint GetLocalID(UUID itemID)
@@ -569,6 +586,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
                 Dictionary<UUID, InstanceData> Obj;
                 Scripts.TryGetValue(localID, out Obj);
+                if (Obj==null) return null;
                 if (Obj.ContainsKey(itemID) == false)
                     return null;
 
