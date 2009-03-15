@@ -269,7 +269,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         // Internal  functions for the above public interface
         //-------------------------------------------------------------------
 
-        protected bool DoCreateChildAgentCall(RegionInfo region, AgentCircuitData aCircuit)
+        public bool DoCreateChildAgentCall(RegionInfo region, AgentCircuitData aCircuit)
         {
             // Eventually, we want to use a caps url instead of the agentID
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + aCircuit.AgentID + "/";
@@ -354,7 +354,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         }
 
-        protected bool DoChildAgentUpdateCall(RegionInfo region, IAgentData cAgentData)
+        public bool DoChildAgentUpdateCall(RegionInfo region, IAgentData cAgentData)
         {
             // Eventually, we want to use a caps url instead of the agentID
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + cAgentData.AgentID + "/";
@@ -438,7 +438,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             return true;
         }
 
-        protected bool DoReleaseAgentCall(ulong regionHandle, UUID id, string uri)
+        public bool DoReleaseAgentCall(ulong regionHandle, UUID id, string uri)
         {
             //m_log.Debug("   >>> DoReleaseAgentCall <<< " + uri);
 
@@ -470,7 +470,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             return true;
         }
 
-        protected bool DoCloseAgentCall(RegionInfo region, UUID id)
+        public bool DoCloseAgentCall(RegionInfo region, UUID id)
         {
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + id + "/" + region.RegionHandle.ToString() +"/";
 
@@ -504,7 +504,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             return true;
         }
         
-        protected bool DoCreateObjectCall(RegionInfo region, ISceneObject sog)
+        public bool DoCreateObjectCall(RegionInfo region, ISceneObject sog)
         {
             ulong regionHandle = GetRegionHandle(region.RegionHandle);
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/object/" + sog.UUID + "/" + regionHandle.ToString() + "/";
@@ -585,7 +585,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         }
 
-        protected bool DoHelloNeighbourCall(RegionInfo region, RegionInfo thisRegion)
+        public bool DoHelloNeighbourCall(RegionInfo region, RegionInfo thisRegion)
         {
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/region/" + thisRegion.RegionID + "/";
             //m_log.Debug("   >>> DoHelloNeighbourCall <<< " + uri);
