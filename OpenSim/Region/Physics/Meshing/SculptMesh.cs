@@ -369,9 +369,9 @@ namespace PrimMesher
                 this.normals[face.v3] += surfaceNormal;
             }
 
-            int numCoords = this.coords.Count;
-            for (int i = 0; i < numCoords; i++)
-                this.coords[i].Normalize();
+            int numNormals = this.normals.Count;
+            for (int i = 0; i < numNormals; i++)
+                this.normals[i] = this.normals[i].Normalize();
 
             if (sculptType != SculptType.plane)
             { // blend the vertex normals at the cylinder seam
