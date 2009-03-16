@@ -233,6 +233,7 @@ namespace OpenSim.Client.MXP.PacketHandler
 
             foreach (MXPClientView clientView in m_sessionsToRemove)
             {
+                clientView.Scene.RemoveClient(clientView.AgentId);
                 clientView.OnClean();
                 m_clients.Remove(clientView);
                 m_sessions.Remove(clientView.Session);
@@ -393,7 +394,7 @@ namespace OpenSim.Client.MXP.PacketHandler
                         }
 
                         m_log.Info("[MXP ClientStack] Removing Client from Scene");
-                        clientView.Scene.RemoveClient(clientView.AgentId);
+                        //clientView.Scene.RemoveClient(clientView.AgentId);
                     }
                     if (message.GetType() == typeof(LeaveResponseMessage))
                     {
@@ -407,7 +408,7 @@ namespace OpenSim.Client.MXP.PacketHandler
                         }
 
                         m_log.Info("[MXP ClientStack] Removing Client from Scene");
-                        clientView.Scene.RemoveClient(clientView.AgentId);
+                        //clientView.Scene.RemoveClient(clientView.AgentId);
                     }
                     else
                     {
@@ -490,6 +491,7 @@ namespace OpenSim.Client.MXP.PacketHandler
             lastName = nameParts[1];
 
             userProfile = m_scenes[sceneId].CommsManager.UserService.GetUserProfile(firstName, lastName);
+
             if (userProfile == null && !m_accountsAuthenticate)
             {
                 userId = ((UserManagerBase)m_scenes[sceneId].CommsManager.UserService).AddUser(firstName, lastName, "test", "", 1000, 1000);
@@ -498,7 +500,7 @@ namespace OpenSim.Client.MXP.PacketHandler
             {
                 if (userProfile == null)
                 {
-                    m_log.Info("Login failed as user was not found: " + participantName);
+                    m_log.Info("[MXP ClientStack] Login failed as user was not found: " + participantName);
                     return false;
                 }
                 userId = userProfile.ID;

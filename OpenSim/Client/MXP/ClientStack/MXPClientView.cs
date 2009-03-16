@@ -42,6 +42,7 @@ using MXP.Extentions.OpenMetaverseFragments.Proto;
 using MXP.Util;
 using MXP.Fragments;
 using MXP.Common.Proto;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Client.MXP.ClientStack
 {
@@ -303,11 +304,18 @@ namespace OpenSim.Client.MXP.ClientStack
             String typeName = ToOmType(primShape.PCode);
             m_log.Info("[MXP ClientStack] Transmitting Primitive" + typeName);
 
-            PerceptionEventMessage pe = new PerceptionEventMessage();
-
+            PerceptionEventMessage pe = new PerceptionEventMessage();           
             pe.ObjectFragment.ObjectId = objectID.Guid;
-            // TODO Resolve ParentID
+
             pe.ObjectFragment.ParentObjectId = Guid.Empty;
+
+            // Resolving parent UUID.
+            OpenSim.Region.Framework.Scenes.Scene scene = (OpenSim.Region.Framework.Scenes.Scene)Scene;
+            if (scene.Entities.ContainsKey(parentID))
+            {
+                pe.ObjectFragment.ParentObjectId = scene.Entities[parentID].UUID.Guid;
+            }
+
             pe.ObjectFragment.ObjectIndex = localID;
             pe.ObjectFragment.ObjectName = typeName + " Object";
             pe.ObjectFragment.OwnerId = ownerID.Guid;
@@ -387,7 +395,6 @@ namespace OpenSim.Client.MXP.ClientStack
             PerceptionEventMessage pe = new PerceptionEventMessage();
 
             pe.ObjectFragment.ObjectId = avatarID.Guid;
-            // TODO Resolve ParentID
             pe.ObjectFragment.ParentObjectId = parentId.Guid;
             pe.ObjectFragment.ObjectIndex = avatarLocalID;
             pe.ObjectFragment.ObjectName = participantName;
@@ -397,7 +404,8 @@ namespace OpenSim.Client.MXP.ClientStack
             pe.ObjectFragment.Acceleration = new MsdVector3f();
             pe.ObjectFragment.AngularAcceleration = new MsdQuaternion4f();
             pe.ObjectFragment.AngularVelocity = new MsdQuaternion4f();
-            pe.ObjectFragment.BoundingSphereRadius = 1; // TODO Fill in appropriate value
+
+            pe.ObjectFragment.BoundingSphereRadius = 1.0f; // TODO Fill in appropriate value
 
             pe.ObjectFragment.Location = ToOmVector(position);
 
@@ -425,11 +433,11 @@ namespace OpenSim.Client.MXP.ClientStack
             pe.ObjectFragment.Acceleration = new MsdVector3f();
             pe.ObjectFragment.AngularAcceleration = new MsdQuaternion4f();
             pe.ObjectFragment.AngularVelocity = new MsdQuaternion4f();
-            pe.ObjectFragment.BoundingSphereRadius = 1; // TODO Fill in appropriate value
+            pe.ObjectFragment.BoundingSphereRadius = 128f;
 
             pe.ObjectFragment.Location = new MsdVector3f();
 
-            pe.ObjectFragment.Mass = 1.0f; // TODO Fill in appropriate value
+            pe.ObjectFragment.Mass = 1.0f;
             pe.ObjectFragment.Orientation = new MsdQuaternion4f();
             pe.ObjectFragment.Velocity = new MsdVector3f();
 
