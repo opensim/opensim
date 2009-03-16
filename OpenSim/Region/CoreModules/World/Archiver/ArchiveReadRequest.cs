@@ -35,7 +35,7 @@ using System.Text;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Archive;
+using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
@@ -52,14 +52,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         private static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
 
-        private Scene m_scene;                        
+        private Scene m_scene;
         private Stream m_loadStream;
         private string m_errorMessage;
-        
+
         /// <value>
         /// Should the archive being loaded be merged with what is already on the region?
         /// </value>
-        private bool m_merge;        
+        private bool m_merge;
 
         /// <summary>
         /// Used to cache lookups for valid uuids.
@@ -109,7 +109,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     //m_log.DebugFormat(
                     //    "[ARCHIVER]: Successfully read {0} ({1} bytes)}", filePath, data.Length);
-                    
+
                     if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType)
                     {
                         m_log.WarnFormat(

@@ -31,7 +31,7 @@ using System.Reflection;
 using System.Text;
 using log4net;
 
-namespace OpenSim.Framework.Archive
+namespace OpenSim.Framework.Serialization
 {
     /// <summary>
     /// Temporary code to do the bare minimum required to read a tar archive for our purposes

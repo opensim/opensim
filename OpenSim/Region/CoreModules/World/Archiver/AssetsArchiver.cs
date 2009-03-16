@@ -32,7 +32,7 @@ using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Archive;
+using OpenSim.Framework.Serialization;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -47,7 +47,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Post a message to the log every x assets as a progress bar
         /// </value>
         private static int LOG_ASSET_LOAD_NOTIFICATION_INTERVAL = 50;
-        
+
         /// <summary>
         /// Archive assets
         /// </summary>
@@ -122,7 +122,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
             //archive.AddDir("assets");
-            
+
             int assetsAdded = 0;
 
             foreach (UUID uuid in m_assets.Keys)
@@ -145,13 +145,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 archive.WriteFile(
                     ArchiveConstants.ASSETS_PATH + uuid.ToString() + extension,
                     asset.Data);
-                
+
                 assetsAdded++;
-                
+
                 if (assetsAdded % LOG_ASSET_LOAD_NOTIFICATION_INTERVAL == 0)
                     m_log.InfoFormat("[ARCHIVER]: Added {0} assets to archive", assetsAdded);
             }
-            
+
             if (assetsAdded % LOG_ASSET_LOAD_NOTIFICATION_INTERVAL != 0)
                 m_log.InfoFormat("[ARCHIVER]: Added {0} assets to archive", assetsAdded);
         }

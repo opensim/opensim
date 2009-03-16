@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace OpenSim.Framework.Archive
+namespace OpenSim.Framework.Serialization
 {
     /// <summary>
     /// Temporary code to produce a tar archive in tar v7 format

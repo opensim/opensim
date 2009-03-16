@@ -105,7 +105,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Archive" path="OpenSim/Framework/Archive" type="Library">
+    <Project name="OpenSim.Framework.Serialization" path="OpenSim/Framework/Serialization" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -885,7 +885,7 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Archive"/>
+      <Reference name="OpenSim.Framework.Serialization"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Grid.AssetInventoryServer" />
       <Reference name="log4net"/>
@@ -1150,7 +1150,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Region.Framework" />
-      <Reference name="OpenSim.Framework.Archive"/>
+      <Reference name="OpenSim.Framework.Serialization"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
@@ -2972,7 +2972,7 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Archive"/>
+      <Reference name="OpenSim.Framework.Serialization"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>

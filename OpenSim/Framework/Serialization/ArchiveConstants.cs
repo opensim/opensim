@@ -28,7 +28,7 @@
 using System.Collections.Generic;
 using OpenMetaverse;
 
-namespace OpenSim.Framework.Archive
+namespace OpenSim.Framework.Serialization
 {
     /// <summary>
     /// Constants for the archiving module

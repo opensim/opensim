@@ -33,7 +33,7 @@ using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Archive;
+using OpenSim.Framework.Serialization;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -44,7 +44,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     /// Method called when all the necessary assets for an archive request have been received.
     /// </summary>
     public delegate void AssetsRequestCallback(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids);
-    
+
     /// <summary>
     /// Execute the write of an archive once we have received all the necessary data
     /// </summary>
@@ -81,34 +81,34 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
 
             m_log.InfoFormat(
-                "[ARCHIVER]: Received {0} of {1} assets requested", 
+                "[ARCHIVER]: Received {0} of {1} assets requested",
                 assetsFound.Count, assetsFound.Count + assetsNotFoundUuids.Count);
-            
+
             m_log.InfoFormat("[ARCHIVER]: Creating archive file.  This may take some time.");
 
             TarArchiveWriter archive = new TarArchiveWriter(m_saveStream);
 
             // Write out control file
             archive.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p2ControlFile());
-            
+
             m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
-            
+
             // Write out region settings
-            string settingsPath 
+            string settingsPath
                 = String.Format("{0}{1}.xml", ArchiveConstants.SETTINGS_PATH, m_scene.RegionInfo.RegionName);
             archive.WriteFile(settingsPath, RegionSettingsSerializer.Serialize(m_scene.RegionInfo.RegionSettings));
-            
+
             m_log.InfoFormat("[ARCHIVER]: Added region settings to archive.");
 
             // Write out terrain
-            string terrainPath 
+            string terrainPath
                 = String.Format("{0}{1}.r32", ArchiveConstants.TERRAINS_PATH, m_scene.RegionInfo.RegionName);
-            
+
             MemoryStream ms = new MemoryStream();
             m_terrainModule.SaveToStream(terrainPath, ms);
             archive.WriteFile(terrainPath, ms.ToArray());
             ms.Close();
-            
+
             m_log.InfoFormat("[ARCHIVER]: Added terrain information to archive.");
 
             // Write out scene object metadata
@@ -128,7 +128,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 archive.WriteFile(filename, serializedObject);
             }
-            
+
             m_log.InfoFormat("[ARCHIVER]: Added scene objects to archive.");
 
             // Write out assets
@@ -138,7 +138,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             archive.Close();
 
             m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive for {0}", m_scene.RegionInfo.RegionName);
-            
+
             m_scene.EventManager.TriggerOarFileSaved(String.Empty);
         }
 

@@ -35,7 +35,7 @@ using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Archive;
+using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.CoreModules.World.Archiver;
@@ -208,19 +208,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         failedAssetRestores++;
                 }
                 else if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH))
-                {                    
+                {
                     string fsPath = filePath.Substring(ArchiveConstants.INVENTORY_PATH.Length);
 
                     // Remove the file portion if we aren't already dealing with a directory path
                     if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
                         fsPath = fsPath.Remove(fsPath.LastIndexOf("/") + 1);
-                    
+
                     string originalFsPath = fsPath;
 
                     m_log.DebugFormat("[INVENTORY ARCHIVER]: Loading to folder {0}", fsPath);
 
                     InventoryFolderImpl foundFolder = null;
-                    
+
                     // XXX: Nasty way of dealing with a path that has no directory component
                     if (fsPath.Length > 0)
                     {
@@ -323,15 +323,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
                     {
                         InventoryItemBase item = LoadInvItem(m_asciiEncoding.GetString(data));
-                        
+
                         if (item != null)
-                        {      
+                        {
                             // Don't use the item ID that's in the file
                             item.ID = UUID.Random();
 
                             item.Creator = m_userInfo.UserProfile.ID;
                             item.Owner = m_userInfo.UserProfile.ID;
-                            
+
                             // Reset folder ID to the one in which we want to load it
                             item.Folder = foundFolder.ID;
 

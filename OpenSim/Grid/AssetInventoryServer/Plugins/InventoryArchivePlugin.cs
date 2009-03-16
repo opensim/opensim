@@ -33,7 +33,7 @@ using System.Xml;
 using System.Reflection;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Archive;
+using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Servers;
 using log4net;
 
