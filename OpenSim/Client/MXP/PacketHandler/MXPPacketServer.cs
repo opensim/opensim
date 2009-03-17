@@ -525,7 +525,7 @@ namespace OpenSim.Client.MXP.PacketHandler
 
         private void AttachUserAgentToUserProfile(Session session, UUID sessionId, UUID sceneId, UserProfileData userProfile)
         {
-            Scene scene = m_scenes[sceneId];
+            //Scene scene = m_scenes[sceneId];
             CommunicationsManager commsManager = m_scenes[sceneId].CommsManager;
             UserManagerBase userService = (UserManagerBase)commsManager.UserService;
 
