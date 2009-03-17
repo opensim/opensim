@@ -48,6 +48,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         protected List<Scene> m_Scenes = new List<Scene>();
         protected Dictionary<UUID, ulong> m_UserRegionMap = new Dictionary<UUID, ulong>();
 
+        public event UndeliveredMessage OnUndeliveredMessage;
+
         public virtual void Initialise(Scene scene, IConfigSource config)
         {
             IConfig cnf = config.Configs["Messaging"];
@@ -162,6 +164,18 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 //m_log.DebugFormat("[INSTANT MESSAGE]: Delivering via grid");
                 // Still here, try send via Grid
                 SendGridInstantMessageViaXMLRPC(im, result);
+                return;
+            }
+
+            UndeliveredMessage handlerUndeliveredMessage = OnUndeliveredMessage;
+
+            // If this event has handlers, then the IM will be considered
+            // delivered. This will suppress the error message.
+            //
+            if (handlerUndeliveredMessage != null)
+            {
+                handlerUndeliveredMessage(im);
+                result(true);
                 return;
             }
 
