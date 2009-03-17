@@ -693,6 +693,11 @@ InterregionComms = "RESTComms"
     ScriptDelayFactor = 1.0
     ScriptDistanceLimitFactor = 1.0
 
+    ; Maximum length of notecard line read
+    ; Increasing this to large values potentially opens
+    ; up the system to malicious scripters
+    ; NotecardLineReadCharsMax = 255
+
     ;
     ; These settings are specific to DotNetEngine script engine
     ; Other script engines based on OpenSim.Region.ScriptEngine.Common.dll will have almost identical settings, but in another section of this config file.
@@ -980,6 +985,11 @@ InterregionComms = "RESTComms"
 
     ; The factor the 10 m distances llimits are multiplied by
     ScriptDistanceLimitFactor = 1.0
+
+    ; Maximum length of notecard line read
+    ; Increasing this to large values potentially opens
+    ; up the system to malicious scripters
+    ; NotecardLineReadCharsMax = 255
 
     ; OS Functions enable/disable
     ; For each function, you can add one line, as shown

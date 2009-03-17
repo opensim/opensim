@@ -82,6 +82,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private bool m_waitingForScriptAnswer=false;
         private bool m_automaticLinkPermission=false;
         private IMessageTransferModule m_TransferModule = null;
+        private int m_notecardLineReadCharsMax = 255;
 
         //private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -100,6 +101,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_ScriptEngine.Config.GetFloat("MinTimerInterval", 0.5f);
             m_automaticLinkPermission =
                 m_ScriptEngine.Config.GetBoolean("AutomaticLinkPermission", false);
+            m_notecardLineReadCharsMax =
+                m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
+            if (m_notecardLineReadCharsMax > 65535)
+                m_notecardLineReadCharsMax = 65535;
 
             m_TransferModule =
                     m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
@@ -9133,7 +9138,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         AsyncCommands.
                         DataserverPlugin.DataserverReply(item.AssetID.ToString(),
-                                NotecardCache.GetLine(item.AssetID, line));
+                        NotecardCache.GetLine(item.AssetID, line, m_notecardLineReadCharsMax));
                         // ScriptSleep(100);
                         return tid.ToString();
                     }
@@ -9147,7 +9152,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         NotecardCache.Cache(id, data);
                         AsyncCommands.
                                 DataserverPlugin.DataserverReply(id.ToString(),
-                                NotecardCache.GetLine(id, line));
+                                NotecardCache.GetLine(id, line, m_notecardLineReadCharsMax));
                     });
 
                     // ScriptSleep(100);
@@ -9291,7 +9296,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public static string GetLine(UUID assetID, int line)
+        public static string GetLine(UUID assetID, int line, int maxLength)
         {
             if (line < 0)
                 return "";
@@ -9309,8 +9314,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return "\n\n\n";
 
                 data = m_Notecards[assetID].text[line];
-                if (data.Length > 255)
-                    data = data.Substring(0, 255);
+                if (data.Length > maxLength)
+                    data = data.Substring(0, maxLength);
 
                 return data;
             }
