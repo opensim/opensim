@@ -65,6 +65,9 @@ namespace OpenSim.Framework.Communications
 
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
         RegionInfo RequestNeighbourInfo(UUID regionID);
+        RegionInfo RequestNeighbourInfo(string name);
+        RegionInfo RequestNeighbourInfo(string host, uint port);
+
         RegionInfo RequestClosestRegion(string regionName);
         Dictionary<string, string> GetGridSettings();
         List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);

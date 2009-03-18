@@ -69,6 +69,9 @@ namespace OpenSim
             MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
                                                      "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
                                                      "Link a hypergrid region", RunCommand);
+            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "unlink-region",
+                                                     "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
+                                                     "Unlink a hypergrid region", RunCommand);
         }
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
@@ -188,6 +191,18 @@ namespace OpenSim
                 }
                 return;
             }
+            else if (command.Equals("unlink-region"))
+            {
+                if (cmdparams.Count < 1)
+                {
+                    UnlinkRegionCmdUsage();
+                    return;
+                }
+                if (HGHyperlink.TryUnlinkRegion(m_sceneManager.CurrentOrFirstScene, cmdparams[0]))
+                    m_log.InfoFormat("[HGrid]: Successfully unlinked {0}", cmdparams[0]);
+                else
+                    m_log.InfoFormat("[HGrid]: Unable to unlink {0}, region not found", cmdparams[0]);
+            }
         }
 
         private void LoadXmlLinkFile(List<string> cmdparams)
@@ -279,5 +294,12 @@ namespace OpenSim
             m_log.Info("Usage: link-region <Xloc> <Yloc> <HostName> <HttpPort> [<LocalName>]");
             m_log.Info("Usage: link-region <URI_of_xml> [<exclude>]");
         }
+
+        private void UnlinkRegionCmdUsage()
+        {
+            m_log.Info("Usage: unlink-region <HostName>:<HttpPort>");
+            m_log.Info("Usage: unlink-region <LocalName>");
+        }
+
     }
 }

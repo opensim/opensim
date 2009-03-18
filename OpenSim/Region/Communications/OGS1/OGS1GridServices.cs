@@ -445,6 +445,28 @@ namespace OpenSim.Region.Communications.OGS1
             return regionInfo;
         }
 
+        /// <summary>
+        /// Get information about a neighbouring region
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <returns></returns>
+        public RegionInfo RequestNeighbourInfo(string name)
+        {
+            // Not implemented yet
+            return null;
+        }
+
+        /// <summary>
+        /// Get information about a neighbouring region
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <returns></returns>
+        public RegionInfo RequestNeighbourInfo(string host, uint port)
+        {
+            // Not implemented yet
+            return null;
+        }
+
         public RegionInfo RequestClosestRegion(string regionName)
         {
             foreach (RegionInfo ri in m_remoteRegionInfoCache.Values)

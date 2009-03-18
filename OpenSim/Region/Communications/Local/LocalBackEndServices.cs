@@ -199,6 +199,38 @@ namespace OpenSim.Region.Communications.Local
         }
 
         /// <summary>
+        /// Get information about a neighbouring region
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <returns></returns>
+        public RegionInfo RequestNeighbourInfo(string name)
+        {
+            foreach (RegionInfo info in m_regions.Values)
+            {
+                if (info.RegionName == name)
+                    return info;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Get information about a neighbouring region
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <returns></returns>
+        public RegionInfo RequestNeighbourInfo(string host, uint port)
+        {
+            foreach (RegionInfo info in m_regions.Values)
+            {
+                if ((info.ExternalHostName == host) && (info.HttpPort == port))
+                    return info;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Get information about the closet region given a region name.
         /// </summary>
         /// <param name="regionName"></param>

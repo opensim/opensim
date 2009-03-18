@@ -149,6 +149,48 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             return true;
         }
 
+        public static bool TryUnlinkRegion(Scene m_scene, string mapName)
+        {
+            RegionInfo regInfo = null;
+            if (mapName.Contains(":"))
+            {
+                string host = "127.0.0.1";
+                string portstr;
+                string regionName = "";
+                uint port = 9000;
+                string[] parts = mapName.Split(new char[] { ':' });
+                if (parts.Length >= 1)
+                {
+                    host = parts[0];
+                }
+                if (parts.Length >= 2)
+                {
+                    portstr = parts[1];
+                    if (!UInt32.TryParse(portstr, out port))
+                        regionName = parts[1];
+                }
+                // always take the last one
+                if (parts.Length >= 3)
+                {
+                    regionName = parts[2];
+                }
+                regInfo = m_scene.CommsManager.GridService.RequestNeighbourInfo(host, port);
+            }
+            else
+            {
+                regInfo = m_scene.CommsManager.GridService.RequestNeighbourInfo(mapName);
+            }
+            if (regInfo != null)
+            {
+                return m_scene.CommsManager.GridService.DeregisterRegion(regInfo);
+            }
+            else
+            {
+                m_log.InfoFormat("[HGrid]: Region {0} not found", mapName);
+                return false;
+            }
+        }
+
         /// <summary>
         /// Cope with this viewer limitation.
         /// </summary>

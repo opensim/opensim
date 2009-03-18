@@ -258,6 +258,47 @@ namespace OpenSim.Region.Communications.Hypergrid
             return null;
         }
 
+        public virtual RegionInfo RequestNeighbourInfo(string name)
+        {
+            foreach (RegionInfo info in m_hyperlinkRegions)
+            {
+                //m_log.Debug("    .. " + info.RegionHandle);
+                if (info.RegionName == name) return info;
+            }
+
+            foreach (RegionInfo info in m_knownRegions.Values)
+            {
+                if (info.RegionName == name)
+                {
+                    //m_log.Debug("XXX------ known region " + info.RegionHandle);
+                    return info;
+                }
+            }
+
+            return null;
+        }
+
+        public virtual RegionInfo RequestNeighbourInfo(string hostName, uint port)
+        {
+            foreach (RegionInfo info in m_hyperlinkRegions)
+            {
+                //m_log.Debug("    .. " + info.RegionHandle);
+                if ((info.ExternalHostName == hostName) && (info.HttpPort == port))
+                    return info;
+            }
+
+            foreach (RegionInfo info in m_knownRegions.Values)
+            {
+                if ((info.ExternalHostName == hostName) && (info.HttpPort == port))
+                {
+                    //m_log.Debug("XXX------ known region " + info.RegionHandle);
+                    return info;
+                }
+            }
+
+            return null;
+        }
+
         public virtual RegionInfo RequestClosestRegion(string regionName)
         {
             foreach (RegionInfo info in m_hyperlinkRegions)
