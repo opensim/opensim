@@ -45,6 +45,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         //
         // TIMER
         //
+        static private string MakeTimerKey(uint localID, UUID itemID)
+        {
+            return localID.ToString() + itemID.ToString();
+        }
+	
+
         private class TimerClass
         {
             public uint localID;
@@ -55,15 +61,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             public long next;
         }
 
-        private List<TimerClass> Timers = new List<TimerClass>();
+        private Dictionary<string,TimerClass> Timers = new Dictionary<string,TimerClass>();
         private object TimerListLock = new object();
 
         public void SetTimerEvent(uint m_localID, UUID m_itemID, double sec)
         {
-            // Always remove first, in case this is a re-set
-            UnSetTimerEvents(m_localID, m_itemID);
             if (sec == 0) // Disabling timer
+            {
+                UnSetTimerEvents(m_localID, m_itemID);
                 return;
+            }
 
             // Add to timer
             TimerClass ts = new TimerClass();
@@ -75,21 +82,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             //ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
             ts.next = DateTime.Now.Ticks + ts.interval;
+
+            string key = MakeTimerKey(m_localID, m_itemID);
             lock (TimerListLock)
             {
-                Timers.Add(ts);
+                // Adds if timer doesn't exist, otherwise replaces with new timer
+                Timers[key] = ts;
             }
         }
 
         public void UnSetTimerEvents(uint m_localID, UUID m_itemID)
         {
             // Remove from timer
+            string key = MakeTimerKey(m_localID, m_itemID);
             lock (TimerListLock)
             {
-                foreach (TimerClass ts in new ArrayList(Timers))
+                if (Timers.ContainsKey(key))
                 {
-                    if (ts.localID == m_localID && ts.itemID == m_itemID)
-                        Timers.Remove(ts);
+                    Timers.Remove(key);
                 }
             }
         }
@@ -103,7 +113,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             lock (TimerListLock)
             {
                 // Go through all timers
-                foreach (TimerClass ts in Timers)
+                Dictionary<string, TimerClass>.ValueCollection tvals = Timers.Values;
+                foreach (TimerClass ts in tvals)
                 {
                     // Time has passed?
                     if (ts.next < DateTime.Now.Ticks)
@@ -128,7 +139,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             lock (TimerListLock)
             {
-                foreach (TimerClass ts in Timers)
+                Dictionary<string, TimerClass>.ValueCollection tvals = Timers.Values;
+                foreach (TimerClass ts in tvals)
                 {
                     if (ts.itemID == itemID)
                     {
@@ -155,7 +167,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 ts.next = DateTime.Now.Ticks + (long)data[idx+1];
                 idx += 2;
 
-                Timers.Add(ts);
+                Timers.Add(MakeTimerKey(localID,itemID), ts);
             }
         }
     }

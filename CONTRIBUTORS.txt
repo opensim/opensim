@@ -52,6 +52,7 @@ Patches
 * daTwitch 
 * devalnor-#708
 * dmiles (Daxtron Labs)
+* dslake (Intel)
 * Gerhard
 * Godfrey
 * Grumly57
