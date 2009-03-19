@@ -54,15 +54,5 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
             return folder;
         }
-
-        public InventoryItemBase GetInventoryItem(UUID itemID)
-        {
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                return plugin.getInventoryItem(itemID);
-            }
-
-            return null;
-        }
     }
 }

@@ -321,6 +321,16 @@ namespace OpenSim.Framework.Communications
             }
         }
 
+        public InventoryItemBase GetInventoryItem(UUID itemID)
+        {
+            foreach (IInventoryDataPlugin plugin in m_plugins)
+            {
+                return plugin.getInventoryItem(itemID);
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Used to create a new user inventory.
         /// </summary>
