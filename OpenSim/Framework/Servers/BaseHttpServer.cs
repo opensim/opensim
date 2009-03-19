@@ -549,26 +549,29 @@ namespace OpenSim.Framework.Servers
             
             string bestMatch = null;
 
-            foreach (string pattern in m_HTTPHandlers.Keys)
+            lock (m_HTTPHandlers)
             {
-                if (handlerKey.StartsWith(pattern))
+                foreach (string pattern in m_HTTPHandlers.Keys)
                 {
-                    if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
+                    if (handlerKey.StartsWith(pattern))
                     {
-                        bestMatch = pattern;
+                        if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
+                        {
+                            bestMatch = pattern;
+                        }
                     }
                 }
-            }
 
-            if (String.IsNullOrEmpty(bestMatch))
-            {
-                HTTPHandler = null;
-                return false;
-            }
-            else
-            {
-                HTTPHandler = m_HTTPHandlers[bestMatch];
-                return true;
+                if (String.IsNullOrEmpty(bestMatch))
+                {
+                    HTTPHandler = null;
+                    return false;
+                }
+                else
+                {
+                    HTTPHandler = m_HTTPHandlers[bestMatch];
+                    return true;
+                }
             }
         }
 
@@ -925,25 +928,28 @@ namespace OpenSim.Framework.Servers
 
             //m_log.DebugFormat("[BASE HTTP HANDLER]: Checking if we have an HTTP handler for {0}", searchquery);
             
-            foreach (string pattern in m_HTTPHandlers.Keys)
+            lock (m_HTTPHandlers)
             {
-                if (searchquery.StartsWith(pattern) && searchquery.Length >= pattern.Length)
+                foreach (string pattern in m_HTTPHandlers.Keys)
                 {
-                    bestMatch = pattern;
+                    if (searchquery.StartsWith(pattern) && searchquery.Length >= pattern.Length)
+                    {
+                        bestMatch = pattern;
+                    }
                 }
-            }
 
-            // extra kicker to remove the default XMLRPC login case..  just in case..
-            if (path == "/")
-                return false;
+                // extra kicker to remove the default XMLRPC login case..  just in case..
+                if (path == "/")
+                    return false;
 
-            if (String.IsNullOrEmpty(bestMatch))
-            {
-                return false;
-            }
-            else
-            {
-                return true;
+                if (String.IsNullOrEmpty(bestMatch))
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
         }
 
@@ -1214,32 +1220,35 @@ namespace OpenSim.Framework.Servers
 //            m_log.DebugFormat(
 //                "[BASE HTTP HANDLER]: TryGetHTTPHandlerPathBased() looking for HTTP handler to match {0}", searchquery);
             
-            foreach (string pattern in m_HTTPHandlers.Keys)
+            lock (m_HTTPHandlers)
             {
-                if (searchquery.ToLower().StartsWith(pattern.ToLower()))
+                foreach (string pattern in m_HTTPHandlers.Keys)
                 {
-                    if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
+                    if (searchquery.ToLower().StartsWith(pattern.ToLower()))
                     {
-                        // You have to specifically register for '/' and to get it, you must specificaly request it
-                        //
-                        if (pattern == "/" && searchquery == "/" || pattern != "/")
-                            bestMatch = pattern;
+                        if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
+                        {
+                            // You have to specifically register for '/' and to get it, you must specificaly request it
+                            //
+                            if (pattern == "/" && searchquery == "/" || pattern != "/")
+                                bestMatch = pattern;
+                        }
                     }
-                }
-            }           
+                }           
 
-            if (String.IsNullOrEmpty(bestMatch))
-            {
-                httpHandler = null;
-                return false;
-            }
-            else
-            {
-                if (bestMatch == "/" && searchquery != "/")
+                if (String.IsNullOrEmpty(bestMatch))
+                {
+                    httpHandler = null;
                     return false;
+                }
+                else
+                {
+                    if (bestMatch == "/" && searchquery != "/")
+                        return false;
 
-                httpHandler =  m_HTTPHandlers[bestMatch];
-                return true;
+                    httpHandler =  m_HTTPHandlers[bestMatch];
+                    return true;
+                }
             }
         }
 
