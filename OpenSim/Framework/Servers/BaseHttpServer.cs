@@ -180,7 +180,7 @@ namespace OpenSim.Framework.Servers
         /// 
         /// http://<hostname>:<port><method>
         /// 
-        /// if the method starts with a slash.  For example, AddHTTPHandler("/object/", ...) on a standalone region
+        /// if the method name starts with a slash.  For example, AddHTTPHandler("/object/", ...) on a standalone region
         /// server will register a handler that can be invoked with either
         /// 
         /// http://localhost:9000/?method=/object/
@@ -1504,15 +1504,23 @@ namespace OpenSim.Framework.Servers
             lock (m_streamHandlers) m_streamHandlers.Remove(handlerKey);
         }
 
+        /// <summary>
+        /// Remove an HTTP handler
+        /// </summary>
+        /// <param name="httpMethod"></param>
+        /// <param name="path"></param>
         public void RemoveHTTPHandler(string httpMethod, string path)
         {
-            if (httpMethod != null && httpMethod.Length == 0)
+            lock (m_HTTPHandlers)
             {
-                m_HTTPHandlers.Remove(path);
-                return;
+                if (httpMethod != null && httpMethod.Length == 0)
+                {
+                    m_HTTPHandlers.Remove(path);
+                    return;
+                }
+                
+                m_HTTPHandlers.Remove(GetHandlerKey(httpMethod, path));
             }
-            
-            m_HTTPHandlers.Remove(GetHandlerKey(httpMethod, path));
         }
 
         /// <summary>
@@ -1540,7 +1548,6 @@ namespace OpenSim.Framework.Servers
         
         public bool RemoveLLSDHandler(string path, LLSDMethod handler)
         {
-
             try
             {
                 if (handler == m_llsdHandlers[path])
