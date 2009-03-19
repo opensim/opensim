@@ -28,6 +28,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.Interfaces;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
@@ -39,7 +40,7 @@ namespace OpenSim.Framework.Communications.Capabilities
     public class CapsHandlers
     {
         private Dictionary <string, IRequestHandler> m_capsHandlers = new Dictionary<string, IRequestHandler>();
-        private BaseHttpServer m_httpListener;
+        private IHttpServer m_httpListener;
         private string m_httpListenerHostName;
         private uint m_httpListenerPort;
         private bool m_useSSL = false;
@@ -67,7 +68,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <param name="httpListenerHostname">host name of the HTTP
         /// server</param>
         /// <param name="httpListenerPort">HTTP port</param>
-        public CapsHandlers(BaseHttpServer httpListener, string httpListenerHostname, uint httpListenerPort, bool https)
+        public CapsHandlers(IHttpServer httpListener, string httpListenerHostname, uint httpListenerPort, bool https)
         {
             m_httpListener = httpListener;
             m_httpListenerHostName = httpListenerHostname;

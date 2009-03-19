@@ -41,10 +41,11 @@ using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
 using CoolHTTPListener = HttpServer.HttpListener;
 using HttpListener=System.Net.HttpListener;
+using OpenSim.Framework.Servers.Interfaces;
 
 namespace OpenSim.Framework.Servers
 {
-    public class BaseHttpServer
+    public class BaseHttpServer : IHttpServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
@@ -148,11 +149,6 @@ namespace OpenSim.Framework.Servers
             return true;
         }
 
-        /// <summary>
-        /// Gets the XML RPC handler for given method name
-        /// </summary>
-        /// <param name="method">Name of the method</param>
-        /// <returns>Returns null if not found</returns>
         public XmlRpcMethod GetXmlRPCHandler(string method)
         {
             lock (m_rpcHandlers)
@@ -168,32 +164,6 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        /// <summary>
-        /// Add a handler for an HTTP request
-        /// </summary>
-        /// 
-        /// This handler can actually be invoked either as 
-        /// 
-        /// http://<hostname>:<port>/?method=<methodName> 
-        /// 
-        /// or
-        /// 
-        /// http://<hostname>:<port><method>
-        /// 
-        /// if the method name starts with a slash.  For example, AddHTTPHandler("/object/", ...) on a standalone region
-        /// server will register a handler that can be invoked with either
-        /// 
-        /// http://localhost:9000/?method=/object/
-        /// 
-        /// or
-        /// 
-        /// http://localhost:9000/object/
-        /// 
-        /// <param name="methodName"></param>
-        /// <param name="handler"></param>
-        /// <returns>
-        /// true if the handler was successfully registered, false if a handler with the same name already existed.
-        /// </returns>
         public bool AddHTTPHandler(string methodName, GenericHTTPMethod handler)
         {
             //m_log.DebugFormat("[BASE HTTP SERVER]: Registering {0}", methodName);
@@ -229,12 +199,6 @@ namespace OpenSim.Framework.Servers
             return false;
         }
 
-        /// <summary>
-        /// Adds a LLSD handler, yay.
-        /// </summary>
-        /// <param name="path">/resource/ path</param>
-        /// <param name="handler">handle the LLSD response</param>
-        /// <returns></returns>
         public bool AddLLSDHandler(string path, LLSDMethod handler)
         {
             lock (m_llsdHandlers)
@@ -1313,7 +1277,6 @@ namespace OpenSim.Framework.Servers
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
 
-
             try
             {
                 response.OutputStream.Write(buffer, 0, buffer.Length);
@@ -1334,8 +1297,7 @@ namespace OpenSim.Framework.Servers
                     // This has to be here to prevent a Linux/Mono crash
                     m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
                 }
-            }
-            
+            }            
         }
 
         public void SendHTML404(OSHttpResponse response, string host)
@@ -1513,11 +1475,6 @@ namespace OpenSim.Framework.Servers
             lock (m_streamHandlers) m_streamHandlers.Remove(handlerKey);
         }
 
-        /// <summary>
-        /// Remove an HTTP handler
-        /// </summary>
-        /// <param name="httpMethod"></param>
-        /// <param name="path"></param>
         public void RemoveHTTPHandler(string httpMethod, string path)
         {
             lock (m_HTTPHandlers)
@@ -1532,12 +1489,6 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        /// <summary>
-        /// Remove the agent IF it is registered. Intercept the possible exception.
-        /// </summary>
-        /// <param name="agent"></param>
-        /// <param name="handler"></param>
-        /// <returns></returns>
         public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
         {
             try

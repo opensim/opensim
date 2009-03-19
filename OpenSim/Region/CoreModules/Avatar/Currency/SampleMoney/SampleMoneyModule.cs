@@ -38,7 +38,7 @@ using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -133,7 +133,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Currency.SampleMoney
             if (m_enabled)
             {
                 scene.RegisterModuleInterface<IMoneyModule>(this);
-                BaseHttpServer httpServer = scene.CommsManager.HttpServer;
+                IHttpServer httpServer = scene.CommsManager.HttpServer;
 
                 lock (m_scenel)
                 {

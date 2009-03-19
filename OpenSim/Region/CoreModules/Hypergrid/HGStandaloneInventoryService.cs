@@ -35,6 +35,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -114,7 +115,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         protected void AddHttpHandlers(Scene m_scene)
         {
-            BaseHttpServer httpServer = m_scene.CommsManager.HttpServer;
+            IHttpServer httpServer = m_scene.CommsManager.HttpServer;
             
             httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<Guid, InventoryCollection>(

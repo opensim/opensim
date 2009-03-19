@@ -38,7 +38,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
-using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 
@@ -97,9 +97,10 @@ namespace OpenSim.Client.Linden
                     }
 
                     //TODO: fix casting.
-                    LibraryRootFolder rootFolder = m_firstScene.CommsManager.UserProfileCacheService.LibraryRoot as LibraryRootFolder;
+                    LibraryRootFolder rootFolder 
+                        = m_firstScene.CommsManager.UserProfileCacheService.LibraryRoot as LibraryRootFolder;
                    
-                    BaseHttpServer httpServer = m_firstScene.CommsManager.HttpServer;
+                    IHttpServer httpServer = m_firstScene.CommsManager.HttpServer;
 
                     //TODO: fix the casting of the user service, maybe by registering the userManagerBase with scenes, or refactoring so we just need a IUserService reference
                     m_loginService = new LLStandaloneLoginService((UserManagerBase)m_firstScene.CommsManager.UserService, welcomeMessage, m_firstScene.CommsManager.InterServiceInventoryService, m_firstScene.CommsManager.NetworkServersInfo, authenticate, rootFolder, this);

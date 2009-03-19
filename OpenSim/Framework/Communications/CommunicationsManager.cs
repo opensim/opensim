@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.Interfaces;
 
 namespace OpenSim.Framework.Communications
 {
@@ -106,12 +106,14 @@ namespace OpenSim.Framework.Communications
         }        
         protected IUserAdminService m_userAdminService;        
 
-        public BaseHttpServer HttpServer
+        /// <value>
+        /// OpenSimulator's built in HTTP server
+        /// </value>
+        public IHttpServer HttpServer
         {
             get { return m_httpServer; }
         }
-        protected BaseHttpServer m_httpServer;
-
+        protected IHttpServer m_httpServer;
 
         /// <summary>
         /// Constructor
@@ -120,7 +122,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="httpServer"></param>
         /// <param name="assetCache"></param>
         /// <param name="dumpAssetsToFile"></param>
-        public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, IAssetCache assetCache,
+        public CommunicationsManager(NetworkServersInfo serversInfo, IHttpServer httpServer, IAssetCache assetCache,
                                      bool dumpAssetsToFile, LibraryRootFolder libraryRootFolder)
         {
             m_networkServersInfo = serversInfo;

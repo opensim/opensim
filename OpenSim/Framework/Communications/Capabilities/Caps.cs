@@ -33,6 +33,7 @@ using System.Reflection;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.Interfaces;
 
 // using OpenSim.Region.Framework.Interfaces;
 
@@ -95,7 +96,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
 
         //private string eventQueue = "0100/";
-        private BaseHttpServer m_httpListener;
+        private IHttpServer m_httpListener;
         private UUID m_agentID;
         private IAssetCache m_assetCache;
         private int m_eventQueueCount = 1;
@@ -120,7 +121,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         public FetchInventoryDescendentsCAPS CAPSFetchInventoryDescendents = null;
         public GetClientDelegate GetClient = null;
 
-        public Caps(IAssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
+        public Caps(IAssetCache assetCache, IHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     UUID agent, bool dumpAssetsToFile, string regionName)
         {
             m_assetCache = assetCache;
@@ -808,7 +809,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             private UUID newAssetID;
             private UUID inventoryItemID;
             private UUID parentFolder;
-            private BaseHttpServer httpListener;
+            private IHttpServer httpListener;
             private bool m_dumpAssetsToFile;
             private string m_assetName = String.Empty;
             private string m_assetDes = String.Empty;
@@ -818,7 +819,7 @@ namespace OpenSim.Framework.Communications.Capabilities
 
             public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
                                  UUID parentFolderID, string invType, string assetType, string path,
-                                 BaseHttpServer httpServer, bool dumpAssetsToFile)
+                                 IHttpServer httpServer, bool dumpAssetsToFile)
             {
                 m_assetName = assetName;
                 m_assetDes = description;
@@ -907,10 +908,10 @@ namespace OpenSim.Framework.Communications.Capabilities
 
             private string uploaderPath = String.Empty;
             private UUID inventoryItemID;
-            private BaseHttpServer httpListener;
+            private IHttpServer httpListener;
             private bool m_dumpAssetToFile;
 
-            public ItemUpdater(UUID inventoryItem, string path, BaseHttpServer httpServer, bool dumpAssetToFile)
+            public ItemUpdater(UUID inventoryItem, string path, IHttpServer httpServer, bool dumpAssetToFile)
             {
                 m_dumpAssetToFile = dumpAssetToFile;
 
@@ -991,11 +992,11 @@ namespace OpenSim.Framework.Communications.Capabilities
             private UUID inventoryItemID;
             private UUID primID;
             private bool isScriptRunning;
-            private BaseHttpServer httpListener;
+            private IHttpServer httpListener;
             private bool m_dumpAssetToFile;
 
             public TaskInventoryScriptUpdater(UUID inventoryItemID, UUID primID, int isScriptRunning,
-                                              string path, BaseHttpServer httpServer, bool dumpAssetToFile)
+                                              string path, IHttpServer httpServer, bool dumpAssetToFile)
             {
                 m_dumpAssetToFile = dumpAssetToFile;
 
