@@ -155,25 +155,25 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             if (mapName.Contains(":"))
             {
                 string host = "127.0.0.1";
-                string portstr;
-                string regionName = "";
+                //string portstr;
+                //string regionName = "";
                 uint port = 9000;
                 string[] parts = mapName.Split(new char[] { ':' });
                 if (parts.Length >= 1)
                 {
                     host = parts[0];
                 }
-                if (parts.Length >= 2)
-                {
-                    portstr = parts[1];
-                    if (!UInt32.TryParse(portstr, out port))
-                        regionName = parts[1];
-                }
+//                if (parts.Length >= 2)
+//                {
+//                    portstr = parts[1];
+//                    if (!UInt32.TryParse(portstr, out port))
+//                        regionName = parts[1];
+//                }
                 // always take the last one
-                if (parts.Length >= 3)
-                {
-                    regionName = parts[2];
-                }
+//                if (parts.Length >= 3)
+//                {
+//                    regionName = parts[2];
+//                }
                 regInfo = m_scene.CommsManager.GridService.RequestNeighbourInfo(host, port);
             }
             else
