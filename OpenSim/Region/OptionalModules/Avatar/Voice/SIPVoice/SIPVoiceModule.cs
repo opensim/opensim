@@ -48,6 +48,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.SIPVoice
 
         private static readonly string m_parcelVoiceInfoRequestPath = "0007/";
         private static readonly string m_provisionVoiceAccountRequestPath = "0008/";
+        private static readonly string m_chatSessionRequestPath = "0009/";
         private IConfig m_config;
         private Scene m_scene;
         private string m_sipDomain;
@@ -118,6 +119,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.SIPVoice
                                                                return ProvisionVoiceAccountRequest(request, path, param,
                                                                                                    agentID, caps);
                                                            }));
+            caps.RegisterHandler("ChatSessionRequest",
+                                 new RestStreamHandler("POST", capsBase + m_chatSessionRequestPath,
+                                                       delegate(string request, string path, string param,
+                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                                       {
+                                                           return ChatSessionRequest(request, path, param,
+                                                                                     agentID, caps);
+                                                       }));
+
         }
 
         /// <summary>
@@ -198,5 +208,27 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.SIPVoice
 
             return null;
         }
+
+        /// <summary>
+        /// Callback for a client request for ParcelVoiceInfo
+        /// </summary>
+        /// <param name="scene">current scene object of the client</param>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <param name="agentID"></param>
+        /// <param name="caps"></param>
+        /// <returns></returns>
+        public string ChatSessionRequest(string request, string path, string param,
+                                         UUID agentID, Caps caps)
+        {
+            ScenePresence avatar = m_scene.GetScenePresence(agentID);
+            string        avatarName = avatar.Name;
+
+            m_log.DebugFormat("[CAPS][CHATSESSION]: avatar \"{0}\": request: {1}, path: {2}, param: {3}",
+                              avatarName, request, path, param);
+            return "<llsd>true</llsd>";
+        }
+
     }
 }
