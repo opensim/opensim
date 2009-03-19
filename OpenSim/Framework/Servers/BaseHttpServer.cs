@@ -168,13 +168,41 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        public bool AddHTTPHandler(string method, GenericHTTPMethod handler)
+        /// <summary>
+        /// Add a handler for an HTTP request
+        /// </summary>
+        /// 
+        /// This handler can actually be invoked either as 
+        /// 
+        /// http://<hostname>:<port>/?method=<methodName> 
+        /// 
+        /// or
+        /// 
+        /// http://<hostname>:<port><method>
+        /// 
+        /// if the method starts with a slash.  For example, AddHTTPHandler("/object/", ...) on a standalone region
+        /// server will register a handler that can be invoked with either
+        /// 
+        /// http://localhost:9000/?method=/object/
+        /// 
+        /// or
+        /// 
+        /// http://localhost:9000/object/
+        /// 
+        /// <param name="methodName"></param>
+        /// <param name="handler"></param>
+        /// <returns>
+        /// true if the handler was successfully registered, false if a handler with the same name already existed.
+        /// </returns>
+        public bool AddHTTPHandler(string methodName, GenericHTTPMethod handler)
         {
+            //m_log.DebugFormat("[BASE HTTP SERVER]: Registering {0}", methodName);
+            
             lock (m_HTTPHandlers)
             {
-                if (!m_HTTPHandlers.ContainsKey(method))
+                if (!m_HTTPHandlers.ContainsKey(methodName))
                 {
-                    m_HTTPHandlers.Add(method, handler);
+                    m_HTTPHandlers.Add(methodName, handler);
                     return true;
                 }
             }
@@ -517,6 +545,8 @@ namespace OpenSim.Framework.Servers
 
         private bool TryGetHTTPHandler(string handlerKey, out GenericHTTPMethod HTTPHandler)
         {
+            //m_log.DebugFormat("[BASE HTTP HANDLER]: Looking for HTTP handler for {0}", handlerKey);
+            
             string bestMatch = null;
 
             foreach (string pattern in m_HTTPHandlers.Keys)
@@ -878,7 +908,6 @@ namespace OpenSim.Framework.Servers
         /// <returns>true if we have one, false if not</returns>
         private bool DoWeHaveAHTTPHandler(string path)
         {
-
             string[] pathbase = path.Split('/');
             string searchquery = "/";
 
@@ -894,14 +923,13 @@ namespace OpenSim.Framework.Servers
 
             string bestMatch = null;
 
+            //m_log.DebugFormat("[BASE HTTP HANDLER]: Checking if we have an HTTP handler for {0}", searchquery);
+            
             foreach (string pattern in m_HTTPHandlers.Keys)
             {
-
                 if (searchquery.StartsWith(pattern) && searchquery.Length >= pattern.Length)
                 {
-
                     bestMatch = pattern;
-
                 }
             }
 
@@ -911,12 +939,10 @@ namespace OpenSim.Framework.Servers
 
             if (String.IsNullOrEmpty(bestMatch))
             {
-
                 return false;
             }
             else
             {
-
                 return true;
             }
         }
@@ -1024,7 +1050,8 @@ namespace OpenSim.Framework.Servers
                     catch (SocketException f)
                     {
                         // This has to be here to prevent a Linux/Mono crash
-                        m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", f);
+                        m_log.WarnFormat(
+                            "[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", f);
                     }
                 }
                 catch(Exception)
@@ -1184,6 +1211,9 @@ namespace OpenSim.Framework.Servers
 
             string bestMatch = null;
 
+//            m_log.DebugFormat(
+//                "[BASE HTTP HANDLER]: TryGetHTTPHandlerPathBased() looking for HTTP handler to match {0}", searchquery);
+            
             foreach (string pattern in m_HTTPHandlers.Keys)
             {
                 if (searchquery.ToLower().StartsWith(pattern.ToLower()))
@@ -1196,9 +1226,7 @@ namespace OpenSim.Framework.Servers
                             bestMatch = pattern;
                     }
                 }
-            }
-
-           
+            }           
 
             if (String.IsNullOrEmpty(bestMatch))
             {

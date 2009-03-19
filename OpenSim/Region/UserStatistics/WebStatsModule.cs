@@ -69,21 +69,19 @@ namespace OpenSim.Region.UserStatistics
         private string m_loglines = String.Empty;
         private volatile int lastHit = 12000;
 
-
         public virtual void Initialise(Scene scene, IConfigSource config)
         {
             IConfig cnfg;
             try
             {
                 cnfg = config.Configs["WebStats"];
-                enabled = cnfg.GetBoolean("enabled", false);
-                
-                
+                enabled = cnfg.GetBoolean("enabled", false);                              
             } 
             catch (Exception)
             {
                 enabled = false;
             }
+            
             if (!enabled)
             {
                 return;
@@ -130,14 +128,12 @@ namespace OpenSim.Region.UserStatistics
 
                     scene.CommsManager.HttpServer.AddHTTPHandler("/SStats/", HandleStatsRequest);
                     scene.CommsManager.HttpServer.AddHTTPHandler("/CAPS/VS/", HandleUnknownCAPSRequest);
-
-
                 }
+                
                 m_scene.Add(scene);
                 m_simstatsCounters.Add(scene.RegionInfo.RegionID, new USimStatsData(scene.RegionInfo.RegionID));
                 scene.StatsReporter.OnSendStatsResult += ReceiveClassicSimStatsPacket;
-            }
-            
+            }            
         }
 
         public void ReceiveClassicSimStatsPacket(SimStats stats)
@@ -168,10 +164,10 @@ namespace OpenSim.Region.UserStatistics
                 }
             } 
             catch (KeyNotFoundException)
-            {
-               
+            {               
             }
         }
+        
         public Hashtable HandleUnknownCAPSRequest(Hashtable request)
         {
             //string regpath = request["uri"].ToString();
@@ -247,9 +243,7 @@ namespace OpenSim.Region.UserStatistics
 
             return responsedata;
         }
-
        
-
         public void CheckAndUpdateDatabase(SqliteConnection db)
         {
             lock (db)
