@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
     public class EventQueueGetModule : IEventQueue, IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private Scene m_scene = null;
+        protected Scene m_scene = null;
         private IConfigSource m_gConfig;
         bool enabledYN = false;
         
@@ -65,7 +65,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
         private Dictionary<UUID, UUID> m_AvatarQueueUUIDMapping = new Dictionary<UUID, UUID>();
             
         #region IRegionModule methods
-        public void Initialise(Scene scene, IConfigSource config)
+        public virtual void Initialise(Scene scene, IConfigSource config)
         {
             m_gConfig = config;
 
@@ -110,11 +110,11 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
         {
         }
 
-        public void Close()
+        public virtual void Close()
         {
         }
 
-        public string Name
+        public virtual string Name
         {
             get { return "EventQueueGetModule"; }
         }
@@ -553,19 +553,19 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             Enqueue(item, avatarID);
         }
 
-        public void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID)
+        public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID)
         {
             OSD item = EventQueueHelper.EnableSimulator(handle, endPoint);
             Enqueue(item, avatarID);
         }
 
-        public void EstablishAgentCommunication(UUID avatarID, IPEndPoint endPoint, string capsPath) 
+        public virtual void EstablishAgentCommunication(UUID avatarID, IPEndPoint endPoint, string capsPath) 
         {
             OSD item = EventQueueHelper.EstablishAgentCommunication(avatarID, endPoint.ToString(), capsPath);
             Enqueue(item, avatarID);
         }
 
-        public void TeleportFinishEvent(ulong regionHandle, byte simAccess, 
+        public virtual void TeleportFinishEvent(ulong regionHandle, byte simAccess, 
                                         IPEndPoint regionExternalEndPoint,
                                         uint locationID, uint flags, string capsURL, 
                                         UUID avatarID)
@@ -575,7 +575,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             Enqueue(item, avatarID);
         }
 
-        public void CrossRegion(ulong handle, Vector3 pos, Vector3 lookAt,
+        public virtual void CrossRegion(ulong handle, Vector3 pos, Vector3 lookAt,
                                 IPEndPoint newRegionExternalEndPoint,
                                 string capsURL, UUID avatarID, UUID sessionID)
         {
