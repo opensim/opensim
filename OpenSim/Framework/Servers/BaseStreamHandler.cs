@@ -26,6 +26,7 @@
  */
 
 using System.IO;
+using OpenSim.Framework.Servers.Interfaces;
 
 namespace OpenSim.Framework.Servers
 {

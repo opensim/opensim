@@ -33,6 +33,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.Interfaces;
 using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins

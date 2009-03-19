@@ -28,6 +28,7 @@
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using OpenSim.Framework.Servers.Interfaces;
 
 namespace OpenSim.Framework.Servers
 {

@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.Interfaces;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
@@ -51,7 +52,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
     public class RestHandler : RestPlugin, IRestHandler, IHttpAgentHandler
     {
-
         // Handler tables: both stream and REST are supported. The path handlers and their
         // respective allocators are stored in separate tables.
 

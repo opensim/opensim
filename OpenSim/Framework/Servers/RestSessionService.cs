@@ -33,6 +33,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using log4net;
+using OpenSim.Framework.Servers.Interfaces;
 
 namespace OpenSim.Framework.Servers
 {

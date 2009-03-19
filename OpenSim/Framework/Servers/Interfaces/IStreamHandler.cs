@@ -53,6 +53,7 @@ namespace OpenSim.Framework.Servers
         // Handle request stream, return byte array
         void Handle(string path, Stream request, Stream response, OSHttpRequest httpReqbuest, OSHttpResponse httpResponse);
     }
+    
     public interface IGenericHTTPHandler : IRequestHandler
     {
         Hashtable Handle(string path, Hashtable request);

@@ -35,6 +35,7 @@ using DotNetOpenId;
 using DotNetOpenId.Provider;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.Interfaces;
 
 namespace OpenSim.Grid.UserServer.Modules
 {
