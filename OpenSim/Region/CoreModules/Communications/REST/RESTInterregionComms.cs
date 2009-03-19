@@ -1051,7 +1051,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         #region Misc
 
-        protected OSDMap GetOSDMap(Hashtable request)
+        public static OSDMap GetOSDMap(Hashtable request)
         {
             OSDMap args = null;
             try
@@ -1084,7 +1084,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         /// <param name="uri">Something like this: /agent/uuid/ or /agent/uuid/handle/release</param>
         /// <param name="uri">uuid on uuid field</param>
         /// <param name="action">optional action</param>
-        protected bool GetParams(string uri, out UUID uuid, out ulong regionHandle, out string action)
+        public static bool GetParams(string uri, out UUID uuid, out ulong regionHandle, out string action)
         {
             uuid = UUID.Zero;
             action = "";
