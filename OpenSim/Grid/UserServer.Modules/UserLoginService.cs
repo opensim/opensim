@@ -364,68 +364,6 @@ namespace OpenSim.Grid.UserServer.Modules
             return true;
         }
 
-        // See LoginService
-        protected override InventoryData GetInventorySkeleton(UUID userID)
-        {
-            m_log.DebugFormat(
-                "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of user {1}",
-                m_config.InventoryUrl, userID);
-
-            List<InventoryFolderBase> folders = m_inventoryService.GetInventorySkeleton(userID);
-
-            if (null == folders || folders.Count == 0)
-            {
-                m_log.InfoFormat(
-                    "[LOGIN]: A root inventory folder for user {0} was not found.  Requesting creation.", userID);
-
-                // Although the create user function creates a new agent inventory along with a new user profile, some
-                // tools are creating the user profile directly in the database without creating the inventory.  At
-                // this time we'll accomodate them by lazily creating the user inventory now if it doesn't already
-                // exist.
-                if (!m_inventoryService.CreateNewUserInventory(userID))
-                {
-                    throw new Exception(
-                        String.Format(
-                            "The inventory creation request for user {0} did not succeed."
-                            + "  Please contact your inventory service provider for more information.",
-                            userID));
-                }
-                m_log.InfoFormat("[LOGIN]: A new inventory skeleton was successfully created for user {0}", userID);
-
-                folders = m_inventoryService.GetInventorySkeleton(userID);
-            }
-
-            if (folders != null && folders.Count > 0)
-            {
-                UUID rootID = UUID.Zero;
-                ArrayList AgentInventoryArray = new ArrayList();
-                Hashtable TempHash;
-
-                foreach (InventoryFolderBase InvFolder in folders)
-                {
-                    //                    m_log.DebugFormat("[LOGIN]: Received agent inventory folder {0}", InvFolder.name);
-
-                    if (InvFolder.ParentID == UUID.Zero)
-                    {
-                        rootID = InvFolder.ID;
-                    }
-                    TempHash = new Hashtable();
-                    TempHash["name"] = InvFolder.Name;
-                    TempHash["parent_id"] = InvFolder.ParentID.ToString();
-                    TempHash["version"] = (Int32)InvFolder.Version;
-                    TempHash["type_default"] = (Int32)InvFolder.Type;
-                    TempHash["folder_id"] = InvFolder.ID.ToString();
-                    AgentInventoryArray.Add(TempHash);
-                }
-
-                return new InventoryData(AgentInventoryArray, rootID);
-            }
-            throw new Exception(
-                String.Format(
-                    "A root inventory folder for user {0} could not be retrieved from the inventory service",
-                    userID));
-        }
-
         public XmlRpcResponse XmlRPCSetLoginParams(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();

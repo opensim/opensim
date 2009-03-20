@@ -201,44 +201,10 @@ namespace OpenSim.Client.Linden
 
             if (m_regionsConnector.RegionLoginsEnabled)
             {
-                // m_log.Info("[LLStandaloneLoginModule] Informing region about user");
                 return m_regionsConnector.NewUserConnection(regionInfo.RegionHandle, agent);
             }
 
             return false;
-        }
-
-        // See LoginService
-        protected override InventoryData GetInventorySkeleton(UUID userID)
-        {
-            List<InventoryFolderBase> folders = m_inventoryService.GetInventorySkeleton(userID);
-
-            // If we have user auth but no inventory folders for some reason, create a new set of folders.
-            if (null == folders || 0 == folders.Count)
-            {
-                m_inventoryService.CreateNewUserInventory(userID);
-                folders = m_inventoryService.GetInventorySkeleton(userID);
-            }
-
-            UUID rootID = UUID.Zero;
-            ArrayList AgentInventoryArray = new ArrayList();
-            Hashtable TempHash;
-            foreach (InventoryFolderBase InvFolder in folders)
-            {
-                if (InvFolder.ParentID == UUID.Zero)
-                {
-                    rootID = InvFolder.ID;
-                }
-                TempHash = new Hashtable();
-                TempHash["name"] = InvFolder.Name;
-                TempHash["parent_id"] = InvFolder.ParentID.ToString();
-                TempHash["version"] = (Int32)InvFolder.Version;
-                TempHash["type_default"] = (Int32)InvFolder.Type;
-                TempHash["folder_id"] = InvFolder.ID.ToString();
-                AgentInventoryArray.Add(TempHash);
-            }
-
-            return new InventoryData(AgentInventoryArray, rootID);
         }
 
         public override void LogOffUser(UserProfileData theUser, string message)

@@ -90,13 +90,6 @@ namespace OpenSim.Framework.Communications
         {
         }
 
-        /// <summary>
-        /// Get the initial login inventory skeleton (in other words, the folder structure) for the given user.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <returns></returns>
-        /// <exception cref='System.Exception'>This will be thrown if there is a problem with the inventory service</exception>
-        protected abstract InventoryData GetInventorySkeleton(UUID userID);
 
         /// <summary>
         /// Called when we receive the client's initial XMLRPC login_to_simulator request message
@@ -107,13 +100,13 @@ namespace OpenSim.Framework.Communications
         {
             // Temporary fix
             m_loginMutex.WaitOne();
-            
+
             try
             {
                 //CFK: CustomizeResponse contains sufficient strings to alleviate the need for this.
                 //CKF: m_log.Info("[LOGIN]: Attempting login now...");
                 XmlRpcResponse response = new XmlRpcResponse();
-                Hashtable requestData = (Hashtable) request.Params[0];
+                Hashtable requestData = (Hashtable)request.Params[0];
 
                 SniffLoginKey((Uri)request.Params[2], requestData);
 
@@ -301,14 +294,14 @@ namespace OpenSim.Framework.Communications
             {
                 if (requestData.Contains("passwd"))
                 {
-                    string passwd = (string) requestData["passwd"];
+                    string passwd = (string)requestData["passwd"];
                     GoodLogin = AuthenticateUser(userProfile, passwd);
                 }
                 if (!GoodLogin && (requestData.Contains("web_login_key")))
                 {
                     try
                     {
-                        UUID webloginkey = new UUID((string) requestData["web_login_key"]);
+                        UUID webloginkey = new UUID((string)requestData["web_login_key"]);
                         GoodLogin = AuthenticateUser(userProfile, webloginkey);
                     }
                     catch (Exception e)
@@ -372,7 +365,7 @@ namespace OpenSim.Framework.Communications
                             m_log.Info("[LOGIN]: LLSD StartLocation Requested: " + map["start"].AsString());
                             startLocationRequest = map["start"].AsString();
                         }
-                        m_log.Info("[LOGIN]: LLSD Login Requested for: '" + firstname+"' '"+lastname+"' / "+passwd);
+                        m_log.Info("[LOGIN]: LLSD Login Requested for: '" + firstname + "' '" + lastname + "' / " + passwd);
 
                         if (!TryAuthenticateLLSDLogin(firstname, lastname, passwd, out userProfile))
                         {
@@ -385,7 +378,7 @@ namespace OpenSim.Framework.Communications
                 else
                     return logResponse.CreateLoginFailedResponseLLSD();
 
-               
+
                 if (userProfile.GodLevel < m_minLoginLevel)
                 {
                     return logResponse.CreateLoginBlockedResponseLLSD();
@@ -520,7 +513,7 @@ namespace OpenSim.Framework.Communications
             string firstname = String.Empty;
             string lastname = String.Empty;
             string location = String.Empty;
-            string region =String.Empty;
+            string region = String.Empty;
             string grid = String.Empty;
             string channel = String.Empty;
             string version = String.Empty;
@@ -560,7 +553,7 @@ namespace OpenSim.Framework.Communications
                 lang = wfcut.Replace((string)keysvals["lang"], String.Empty, 99999);
 
             if (keysvals.Contains("password"))
-                password = wfcut.Replace((string)keysvals["password"],  String.Empty, 99999);
+                password = wfcut.Replace((string)keysvals["password"], String.Empty, 99999);
 
             // load our login form.
             string loginform = GetLoginForm(firstname, lastname, location, region, grid, channel, version, lang, password, errormessages);
@@ -578,11 +571,11 @@ namespace OpenSim.Framework.Communications
                     UUID webloginkey = UUID.Random();
                     m_userManager.StoreWebLoginKey(user.ID, webloginkey);
                     //statuscode = 301;
-                    
-//                    string redirectURL = "about:blank?redirect-http-hack=" +
-//                                         HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
-//                                                               lastname +
-//                                                               "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
+
+                    //                    string redirectURL = "about:blank?redirect-http-hack=" +
+                    //                                         HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
+                    //                                                               lastname +
+                    //                                                               "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
                     //m_log.Info("[WEB]: R:" + redirectURL);
                     returnactions["int_response_code"] = statuscode;
                     //returnactions["str_redirect_location"] = redirectURL;
@@ -612,7 +605,7 @@ namespace OpenSim.Framework.Communications
         {
             // inject our values in the form at the markers
 
-            string loginform=String.Empty;
+            string loginform = String.Empty;
             string file = Path.Combine(Util.configDir(), "http_loginform.html");
             if (!File.Exists(file))
             {
@@ -753,7 +746,7 @@ namespace OpenSim.Framework.Communications
             m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.ID);
 
             // Match web login key unless it's the default weblogin key UUID.Zero
-            passwordSuccess = ((profile.WebLoginKey==webloginkey) && profile.WebLoginKey != UUID.Zero);
+            passwordSuccess = ((profile.WebLoginKey == webloginkey) && profile.WebLoginKey != UUID.Zero);
 
             return passwordSuccess;
         }
@@ -801,7 +794,7 @@ namespace OpenSim.Framework.Communications
                 LoginResponse.BuddyList.BuddyInfo buddyitem = new LoginResponse.BuddyList.BuddyInfo(fl.Friend);
                 buddyitem.BuddyID = fl.Friend;
                 buddyitem.BuddyRightsHave = (int)fl.FriendListOwnerPerms;
-                buddyitem.BuddyRightsGiven = (int) fl.FriendPerms;
+                buddyitem.BuddyRightsGiven = (int)fl.FriendPerms;
                 buddylistreturn.AddNewBuddy(buddyitem);
             }
             return buddylistreturn;
@@ -996,14 +989,6 @@ namespace OpenSim.Framework.Communications
                 return false;
             }
 
-            // Customise the response
-            //response.Home =
-            //    string.Format(
-            //        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
-            //        (SimInfo.regionLocX * Constants.RegionSize),
-            //        (SimInfo.regionLocY*Constants.RegionSize),
-            //        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
-            //        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
             theUser.CurrentAgent.Position = new Vector3(128, 128, 0);
             response.StartLocation = "safe";
 
@@ -1040,6 +1025,69 @@ namespace OpenSim.Framework.Communications
                 }
             }
             response.ActiveGestures = list;
+        }
+
+        /// <summary>
+        /// Get the initial login inventory skeleton (in other words, the folder structure) for the given user.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        /// <exception cref='System.Exception'>This will be thrown if there is a problem with the inventory service</exception>
+        protected InventoryData GetInventorySkeleton(UUID userID)
+        {
+            List<InventoryFolderBase> folders = m_inventoryService.GetInventorySkeleton(userID);
+
+            // If we have user auth but no inventory folders for some reason, create a new set of folders.
+            if (folders == null || folders.Count == 0)
+            {
+                m_log.InfoFormat(
+                    "[LOGIN]: A root inventory folder for user {0} was not found.  Requesting creation.", userID);
+
+                // Although the create user function creates a new agent inventory along with a new user profile, some
+                // tools are creating the user profile directly in the database without creating the inventory.  At
+                // this time we'll accomodate them by lazily creating the user inventory now if it doesn't already
+                // exist.
+                if (!m_inventoryService.CreateNewUserInventory(userID))
+                {
+                    throw new Exception(
+                        String.Format(
+                            "The inventory creation request for user {0} did not succeed."
+                            + "  Please contact your inventory service provider for more information.",
+                            userID));
+                }
+
+                m_log.InfoFormat("[LOGIN]: A new inventory skeleton was successfully created for user {0}", userID);
+
+                folders = m_inventoryService.GetInventorySkeleton(userID);
+
+                if (folders == null || folders.Count == 0)
+                {
+                    throw new Exception(
+                        String.Format(
+                            "A root inventory folder for user {0} could not be retrieved from the inventory service",
+                            userID));
+                }
+            }
+
+            UUID rootID = UUID.Zero;
+            ArrayList AgentInventoryArray = new ArrayList();
+            Hashtable TempHash;
+            foreach (InventoryFolderBase InvFolder in folders)
+            {
+                if (InvFolder.ParentID == UUID.Zero)
+                {
+                    rootID = InvFolder.ID;
+                }
+                TempHash = new Hashtable();
+                TempHash["name"] = InvFolder.Name;
+                TempHash["parent_id"] = InvFolder.ParentID.ToString();
+                TempHash["version"] = (Int32)InvFolder.Version;
+                TempHash["type_default"] = (Int32)InvFolder.Type;
+                TempHash["folder_id"] = InvFolder.ID.ToString();
+                AgentInventoryArray.Add(TempHash);
+            }
+
+            return new InventoryData(AgentInventoryArray, rootID);
         }
     }
 }
