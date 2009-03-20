@@ -403,7 +403,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_activeScripts += number;
         }
 
-        protected internal void DropObject(uint objectLocalID, IClientAPI remoteClient)
+        public void DropObject(uint objectLocalID, IClientAPI remoteClient)
         {
             List<EntityBase> EntityList = GetEntities();
 
