@@ -52,11 +52,6 @@ namespace OpenSim.Client.Linden
         protected bool m_authUsers = false;
 
         /// <summary>
-        /// Used by the login service to make requests to the inventory service.
-        /// </summary>
-        protected IInterServiceInventoryServices m_interServiceInventoryService;
-
-        /// <summary>
         /// Used to make requests to the local regions.
         /// </summary>
         protected ILoginServiceToRegionsConnector m_regionsConnector;
@@ -74,7 +69,7 @@ namespace OpenSim.Client.Linden
             m_defaultHomeY = this.m_serversInfo.DefaultHomeLocY;
             m_authUsers = authenticate;
 
-            m_interServiceInventoryService = interServiceInventoryService;
+            m_inventoryService = interServiceInventoryService;
             m_regionsConnector = regionsConnector;
         }
 
@@ -139,33 +134,6 @@ namespace OpenSim.Client.Linden
         protected override RegionInfo GetRegionInfo(UUID homeRegionId)
         {
             return m_regionsConnector.RequestNeighbourInfo(homeRegionId);
-        }
-
-        /// <summary>
-        /// Add active gestures of the user to the login response.
-        /// </summary>
-        /// <param name="response">
-        /// A <see cref="LoginResponse"/>
-        /// </param>
-        /// <param name="theUser">
-        /// A <see cref="UserProfileData"/>
-        /// </param>
-        protected override void AddActiveGestures(LoginResponse response, UserProfileData theUser)
-        {
-            List<InventoryItemBase> gestures = m_interServiceInventoryService.GetActiveGestures(theUser.ID);
-            //m_log.DebugFormat("[LOGIN]: AddActiveGestures, found {0}", gestures == null ? 0 : gestures.Count);
-            ArrayList list = new ArrayList();
-            if (gestures != null)
-            {
-                foreach (InventoryItemBase gesture in gestures)
-                {
-                    Hashtable item = new Hashtable();
-                    item["item_id"] = gesture.ID.ToString();
-                    item["asset_id"] = gesture.AssetID.ToString();
-                    list.Add(item);
-                }
-            }
-            response.ActiveGestures = list;
         }
 
         /// <summary>
@@ -243,13 +211,13 @@ namespace OpenSim.Client.Linden
         // See LoginService
         protected override InventoryData GetInventorySkeleton(UUID userID)
         {
-            List<InventoryFolderBase> folders = m_interServiceInventoryService.GetInventorySkeleton(userID);
+            List<InventoryFolderBase> folders = m_inventoryService.GetInventorySkeleton(userID);
 
             // If we have user auth but no inventory folders for some reason, create a new set of folders.
             if (null == folders || 0 == folders.Count)
             {
-                m_interServiceInventoryService.CreateNewUserInventory(userID);
-                folders = m_interServiceInventoryService.GetInventorySkeleton(userID);
+                m_inventoryService.CreateNewUserInventory(userID);
+                folders = m_inventoryService.GetInventorySkeleton(userID);
             }
 
             UUID rootID = UUID.Zero;

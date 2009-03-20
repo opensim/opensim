@@ -60,6 +60,11 @@ namespace OpenSim.Framework.Communications
         protected uint m_defaultHomeY;
 
         /// <summary>
+        /// Used by the login service to make requests to the inventory service.
+        /// </summary>
+        protected IInterServiceInventoryServices m_inventoryService;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="userManager"></param>
@@ -1008,7 +1013,33 @@ namespace OpenSim.Framework.Communications
         protected abstract RegionInfo RequestClosestRegion(string region);
         protected abstract RegionInfo GetRegionInfo(ulong homeRegionHandle);
         protected abstract RegionInfo GetRegionInfo(UUID homeRegionId);
-        protected abstract void AddActiveGestures(LoginResponse response, UserProfileData theUser);
         protected abstract bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response);
+
+        /// <summary>
+        /// Add active gestures of the user to the login response.
+        /// </summary>
+        /// <param name="response">
+        /// A <see cref="LoginResponse"/>
+        /// </param>
+        /// <param name="theUser">
+        /// A <see cref="UserProfileData"/>
+        /// </param>
+        protected void AddActiveGestures(LoginResponse response, UserProfileData theUser)
+        {
+            List<InventoryItemBase> gestures = m_inventoryService.GetActiveGestures(theUser.ID);
+            //m_log.DebugFormat("[LOGIN]: AddActiveGestures, found {0}", gestures == null ? 0 : gestures.Count);
+            ArrayList list = new ArrayList();
+            if (gestures != null)
+            {
+                foreach (InventoryItemBase gesture in gestures)
+                {
+                    Hashtable item = new Hashtable();
+                    item["item_id"] = gesture.ID.ToString();
+                    item["asset_id"] = gesture.AssetID.ToString();
+                    list.Add(item);
+                }
+            }
+            response.ActiveGestures = list;
+        }
     }
 }

@@ -241,25 +241,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
             m_httpServer.AddStreamHandler(new OpenSim.SimStatusHandler());
         }
 
-        //private LocalLoginService CreateLoginService(LibraryRootFolder libraryRootFolder, IInterServiceInventoryServices inventoryService, LocalUserServices userService, LocalBackEndServices backendService)
-        //{
-        //    LocalLoginService loginService =
-        //        new LocalLoginService(
-        //            userService, m_openSim.ConfigurationSettings.StandaloneWelcomeMessage, inventoryService, backendService, m_openSim.NetServersInfo,
-        //            m_openSim.ConfigurationSettings.StandaloneAuthenticate, libraryRootFolder);
-
-        //    // set up XMLRPC handler for client's initial login request message
-        //    m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
-
-        //    // provides the web form login
-        //    m_httpServer.AddHTTPHandler("login", loginService.ProcessHTMLLogin);
-
-        //    // Provides the LLSD login
-        //    m_httpServer.SetDefaultLLSDHandler(loginService.LLSDLoginMethod);
-
-        //    return loginService;
-        //}
-
         private void CreateGridInfoService()
         {
             // provide grid info

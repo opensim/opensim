@@ -53,8 +53,6 @@ namespace OpenSim.Grid.UserServer.Modules
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected IInterServiceInventoryServices m_inventoryService;
-
         public event UserLoggedInAtLocation OnUserLoggedInAtLocation;
 
         private UserLoggedInAtLocation handlerUserLoggedInAtLocation;
@@ -242,33 +240,6 @@ namespace OpenSim.Grid.UserServer.Modules
             {
                 return null;
             }
-        }
-
-        /// <summary>
-        /// Add active gestures of the user to the login response.
-        /// </summary>
-        /// <param name="response">
-        /// A <see cref="LoginResponse"/>
-        /// </param>
-        /// <param name="theUser">
-        /// A <see cref="UserProfileData"/>
-        /// </param>
-        protected override void AddActiveGestures(LoginResponse response, UserProfileData theUser)
-        {
-            List<InventoryItemBase> gestures = m_inventoryService.GetActiveGestures(theUser.ID);
-            //m_log.DebugFormat("[LOGIN]: AddActiveGestures, found {0}", gestures == null ? 0 : gestures.Count);
-            ArrayList list = new ArrayList();
-            if (gestures != null)
-            {
-                foreach (InventoryItemBase gesture in gestures)
-                {
-                    Hashtable item = new Hashtable();
-                    item["item_id"] = gesture.ID.ToString();
-                    item["asset_id"] = gesture.AssetID.ToString();
-                    list.Add(item);
-                }
-            }
-            response.ActiveGestures = list;
         }
 
         protected override bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response)
