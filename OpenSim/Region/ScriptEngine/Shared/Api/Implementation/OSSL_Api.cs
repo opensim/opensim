@@ -807,6 +807,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //World.Permissions.GenericEstatePermission(
             if (World.Permissions.IsGod(m_host.OwnerID))
             {
+                while (sunHour > 24.0)
+                    sunHour -= 24.0;
+
+                while (sunHour < 0)
+                    sunHour += 24.0;
+                    
+
                 World.RegionInfo.RegionSettings.UseEstateSun = useEstateSun;
                 World.RegionInfo.RegionSettings.SunPosition  = sunHour + 6; // LL Region Sun Hour is 6 to 30
                 World.RegionInfo.RegionSettings.FixedSun     = sunFixed;
@@ -814,6 +821,87 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 World.EventManager.TriggerEstateToolsSunUpdate(World.RegionInfo.RegionHandle, sunFixed, useEstateSun, (float)sunHour);
             }
+        }
+
+        /// <summary>
+        /// Changes the Estate Sun Settings, then Triggers a Sun Update
+        /// </summary>
+        /// <param name="sunFixed">True to keep the sun stationary, false to use global time</param>
+        /// <param name="sunHour">The "Sun Hour" that is desired, 0...24, with 0 just after SunRise</param>
+        public void osSetEstateSunSettings(bool sunFixed, double sunHour)
+        {
+            CheckThreatLevel(ThreatLevel.Nuisance, "osSetEstateSunSettings");
+
+            m_host.AddScriptLPS(1);
+            //Check to make sure that the script's owner is the estate manager/master
+            //World.Permissions.GenericEstatePermission(
+            if (World.Permissions.IsGod(m_host.OwnerID))
+            {
+                while (sunHour > 24.0)
+                    sunHour -= 24.0;
+
+                while (sunHour < 0)
+                    sunHour += 24.0;
+
+                World.RegionInfo.EstateSettings.UseGlobalTime = !sunFixed;
+                World.RegionInfo.EstateSettings.SunPosition = sunHour;
+                World.RegionInfo.EstateSettings.FixedSun = sunFixed;
+                World.RegionInfo.EstateSettings.Save();
+
+                World.EventManager.TriggerEstateToolsSunUpdate(World.RegionInfo.RegionHandle, sunFixed, World.RegionInfo.RegionSettings.UseEstateSun, (float)sunHour);
+            }
+        }
+
+        /// <summary>
+        /// Return the current Sun Hour 0...24, with 0 being roughly sun-rise
+        /// </summary>
+        /// <returns></returns>
+        public double osGetCurrentSunHour()
+        {
+            CheckThreatLevel(ThreatLevel.None, "osGetCurrentSunHour");
+
+            m_host.AddScriptLPS(1);
+
+            // Must adjust for the fact that Region Sun Settings are still LL offset
+            double sunHour = World.RegionInfo.RegionSettings.SunPosition - 6;
+
+            // See if the sun module has registered itself, if so it's authoritative
+            ISunModule module = World.RequestModuleInterface<ISunModule>();
+            if (module != null)
+            {
+                sunHour = module.GetCurrentSunHour();
+            }
+
+            return sunHour;
+        }
+
+        public double osSunGetParam(string param)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osSunGetParam");
+            m_host.AddScriptLPS(1);
+
+            double value = 0.0;
+
+            ISunModule module = World.RequestModuleInterface<ISunModule>();
+            if (module != null)
+            {
+                value = module.GetSunParameter(param);
+            }
+
+            return value;
+        }
+
+        public void osSunSetParam(string param, double value)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osSunSetParam");
+            m_host.AddScriptLPS(1);
+
+            ISunModule module = World.RequestModuleInterface<ISunModule>();
+            if (module != null)
+            {
+                module.SetSunParameter(param, value);
+            }
+
         }
 
 

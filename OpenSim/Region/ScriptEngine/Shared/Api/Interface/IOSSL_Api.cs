@@ -98,6 +98,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         void osSetRegionWaterHeight(double height);
         void osSetRegionSunSettings(bool useEstateSun, bool sunFixed, double sunHour);
+        void osSetEstateSunSettings(bool sunFixed, double sunHour);
+        double osGetCurrentSunHour();
+        double osSunGetParam(string param);
+        void osSunSetParam(string param, double value);
+
 
         string osGetScriptEngineName();
         string osGetSimulatorVersion();

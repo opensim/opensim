@@ -67,6 +67,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osSetRegionSunSettings(useEstateSun, sunFixed, sunHour);
         }
 
+        public void osSetEstateSunSettings(bool sunFixed, double sunHour)
+        {
+            m_OSSL_Functions.osSetEstateSunSettings(sunFixed, sunHour);
+        }
+
+        public double osGetCurrentSunHour()
+        {
+            return m_OSSL_Functions.osGetCurrentSunHour();
+        }
+
+        public double osSunGetParam(string param)
+        {
+            return m_OSSL_Functions.osSunGetParam(param);
+        }
+
+        public void osSunSetParam(string param, double value)
+        {
+            m_OSSL_Functions.osSunSetParam(param, value);
+        }
+
+
         public double osList2Double(LSL_Types.list src, int index)
         {
             return m_OSSL_Functions.osList2Double(src, index);
