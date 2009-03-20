@@ -2264,7 +2264,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override bool IsPhysical
         {
             get { return m_isphysical; }
-            set { m_isphysical = value; }
+            set { 
+                  m_isphysical = value;
+                  if (!m_isphysical) // Zero the remembered last velocity
+                      m_lastVelocity = new PhysicsVector(0.0f, 0.0f, 0.0f);
+                }
         }
 
         public void setPrimForRemoval()
