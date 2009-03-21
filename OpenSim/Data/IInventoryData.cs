@@ -109,6 +109,12 @@ namespace OpenSim.Data
         void deleteInventoryItem(UUID item);
 
         /// <summary>
+        ///
+        /// </summary>
+        /// <param name="item"></param>
+        InventoryItemBase queryInventoryItem(UUID item);
+
+        /// <summary>
         /// Adds a new folder specified by folder
         /// </summary>
         /// <param name="folder">The inventory folder</param>

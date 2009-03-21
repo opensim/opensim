@@ -105,6 +105,14 @@ namespace OpenSim.Framework.Communications
         bool DeleteItem(InventoryItemBase item);
 
         /// <summary>
+        /// Query the server for an item that may have been added by
+        /// another region
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>true if the item was found in local cache</returns>
+        InventoryItemBase QueryItem(InventoryItemBase item);
+
+        /// <summary>
         /// Does the given user have an inventory structure?
         /// </summary>
         /// <param name="userID"></param>

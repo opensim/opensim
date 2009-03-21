@@ -36,6 +36,7 @@ namespace OpenSim.Framework.Communications.Cache
     internal delegate void AddItemDelegate(InventoryItemBase itemInfo);
     internal delegate void UpdateItemDelegate(InventoryItemBase itemInfo);
     internal delegate void DeleteItemDelegate(UUID itemID);
+    internal delegate void QueryItemDelegate(UUID itemID);
 
     internal delegate void CreateFolderDelegate(string folderName, UUID folderID, ushort folderType, UUID parentID);
     internal delegate void MoveFolderDelegate(UUID folderID, UUID parentID);
@@ -767,6 +768,47 @@ namespace OpenSim.Framework.Communications.Cache
 
             return RootFolder.FindFolderForType(type);
         }
+
+        // Load additional items that other regions have put into the database
+        // The item will be added tot he local cache. Returns true if the item
+        // was found and can be sent to the client
+        //
+        public bool QueryItem(UUID itemID)
+        {
+            if (m_hasReceivedInventory)
+            {
+                InventoryItemBase item = RootFolder.FindItem(itemID);
+
+                if (item != null)
+                {
+                    // Item is in local cache, just update client
+                    //
+                    return true;
+                }
+
+                InventoryItemBase itemInfo = m_commsManager.InventoryService.QueryItem(item);
+                if (itemInfo != null)
+                {
+                    InventoryFolderImpl folder = RootFolder.FindFolder(itemInfo.Folder);
+                    ItemReceive(itemInfo, folder);
+                    return true;
+                }
+
+                return false;
+            }
+            else
+            {
+                AddRequest(
+                    new InventoryRequest(
+                        Delegate.CreateDelegate(typeof(QueryItemDelegate), this, "QueryItem"),
+                        new object[] { itemID }));
+
+                return true;
+            }
+
+            return false;
+        }
+
     }
 
     /// <summary>

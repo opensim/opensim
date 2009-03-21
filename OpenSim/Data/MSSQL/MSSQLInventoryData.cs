@@ -530,6 +530,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        public InventoryItemBase queryInventoryItem(UUID itemID)
+        {
+            return null;
+        }
+
         /// <summary>
         /// Returns all activated gesture-items in the inventory of the specified avatar.
         /// </summary>
