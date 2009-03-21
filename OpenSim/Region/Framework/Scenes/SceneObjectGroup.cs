@@ -1514,19 +1514,19 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart rootpart = m_rootPart;
             if (rootpart != null)
             {
-                if (rootpart.PhysActor != null)
+                if (IsAttachment)
                 {
-                    if (IsAttachment)
+                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
+                    if (avatar != null)
                     {
-                        ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
-                        if (avatar != null)
-                        {
-                            avatar.PushForce(impulse);
-                        }
+                        avatar.PushForce(impulse);
                     }
-                    else
+                }
+                else
+                {
+                    if (rootpart.PhysActor != null)
                     {
-                        rootpart.PhysActor.AddForce(impulse,true);
+                        rootpart.PhysActor.AddForce(impulse, true);
                         m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
                     }
                 }
