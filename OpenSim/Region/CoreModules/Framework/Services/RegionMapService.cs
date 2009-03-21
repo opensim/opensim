@@ -64,8 +64,8 @@ namespace OpenSim.Region.CoreModules.Framework.Services
                 initialized = true;
                 m_scene = scene;
 
-                // This module is only on for standalones in hypergrid mode
-                enabled = !config.Configs["Startup"].GetBoolean("gridmode", true) && config.Configs["Startup"].GetBoolean("hypergrid", false);
+                // This module is only on for hypergrid mode
+                enabled = config.Configs["Startup"].GetBoolean("hypergrid", false);
             }
         }
 
@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.Framework.Services
         {
             if (enabled)
             {
-                m_log.Info("[HGStandaloneGridService]: Starting...");
+                m_log.Info("[RegionMapService]: Starting...");
 
                 //m_assetService = new AssetService(m_scene);
                 new GridService(m_scene);
@@ -86,7 +86,7 @@ namespace OpenSim.Region.CoreModules.Framework.Services
 
         public string Name
         {
-            get { return "HGStandaloneGridService"; }
+            get { return "RegionMapService"; }
         }
 
         public bool IsSharedModule

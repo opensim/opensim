@@ -48,7 +48,6 @@ namespace OpenSim.Region.CoreModules.Framework.Services
         private static bool enabled = false;
 
         Scene m_scene;
-        //AssetService m_assetService;
 
         #region IRegionModule interface
 
@@ -68,9 +67,8 @@ namespace OpenSim.Region.CoreModules.Framework.Services
         {
             if (enabled)
             {
-                m_log.Info("[HGStandaloneAssetService]: Starting...");
+                m_log.Info("[RegionAssetService]: Starting...");
 
-                //m_assetService = new AssetService(m_scene);
                 new AssetService(m_scene);
             }
         }
@@ -81,7 +79,7 @@ namespace OpenSim.Region.CoreModules.Framework.Services
 
         public string Name
         {
-            get { return "HGStandaloneAssetService"; }
+            get { return "RegionAssetService"; }
         }
 
         public bool IsSharedModule
@@ -121,76 +119,6 @@ namespace OpenSim.Region.CoreModules.Framework.Services
             httpServer.AddStreamHandler(new GetAssetStreamHandler(m_assetProvider));
             httpServer.AddStreamHandler(new PostAssetStreamHandler(m_assetProvider));
 
-        }
-
-        ///// <summary>
-        ///// Check that the source of an inventory request is one that we trust.
-        ///// </summary>
-        ///// <param name="peer"></param>
-        ///// <returns></returns>
-        //public bool CheckTrustSource(IPEndPoint peer)
-        //{
-        //    if (m_doLookup)
-        //    {
-        //        m_log.InfoFormat("[GRID AGENT INVENTORY]: Checking trusted source {0}", peer);
-        //        UriBuilder ub = new UriBuilder(m_userserver_url);
-        //        IPAddress[] uaddrs = Dns.GetHostAddresses(ub.Host);
-        //        foreach (IPAddress uaddr in uaddrs)
-        //        {
-        //            if (uaddr.Equals(peer.Address))
-        //            {
-        //                return true;
-        //            }
-        //        }
-
-        //        m_log.WarnFormat(
-        //            "[GRID AGENT INVENTORY]: Rejecting request since source {0} was not in the list of trusted sources",
-        //            peer);
-
-        //        return false;
-        //    }
-        //    else
-        //    {
-        //        return true;
-        //    }
-        //}
-
-        /// <summary>
-        /// Check that the source of an inventory request for a particular agent is a current session belonging to
-        /// that agent.
-        /// </summary>
-        /// <param name="session_id"></param>
-        /// <param name="avatar_id"></param>
-        /// <returns></returns>
-        public bool CheckAuthSession(string session_id, string avatar_id)
-        {
-            if (m_doLookup)
-            {
-                m_log.InfoFormat("[HGStandaloneInvService]: checking authed session {0} {1}", session_id, avatar_id);
-                UUID userID = UUID.Zero;
-                UUID sessionID = UUID.Zero;
-                UUID.TryParse(avatar_id, out userID);
-                UUID.TryParse(session_id, out sessionID);
-                if (userID.Equals(UUID.Zero) || sessionID.Equals(UUID.Zero))
-                {
-                    m_log.Info("[HGStandaloneInvService]: Invalid user or session id " + avatar_id + "; " + session_id);
-                    return false;
-                }
-                UserProfileData userProfile = m_userService.GetUserProfile(userID);
-                if (userProfile != null && userProfile.CurrentAgent != null &&
-                    userProfile.CurrentAgent.SessionID == sessionID)
-                {
-                    m_log.Info("[HGStandaloneInvService]: user is logged in and session is valid. Authorizing access.");
-                    return true;
-                }
-
-                m_log.Warn("[HGStandaloneInvService]: unknown user or session_id, request rejected");
-                return false;
-            }
-            else
-            {
-                return true;
-            }
         }
     }
 }
