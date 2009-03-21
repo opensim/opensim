@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Communications
     /// <summary>
     /// Base class for user management (create, read, etc)
     /// </summary>
-    public abstract class UserManagerBase : IUserService, IUserAdminService, IAvatarService, IMessagingService
+    public abstract class UserManagerBase : IUserService, IUserAdminService, IAvatarService, IMessagingService, IAuthentication
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -750,5 +750,86 @@ namespace OpenSim.Framework.Communications
                 }
             }
         }
+
+        #region IAuthentication
+
+        protected Dictionary<UUID, List<string>> m_userKeys = new Dictionary<UUID, List<string>>();
+
+        /// <summary>
+        /// This generates authorization keys in the form
+        /// http://userserver/uuid
+        /// after verifying that the caller is, indeed, authorized to request a key
+        /// </summary>
+        /// <param name="url">URL of the user server</param>
+        /// <param name="userID">The user ID requesting the new key</param>
+        /// <param name="authToken">The original authorization token for that user, obtained during login</param>
+        /// <returns></returns>
+        public string GetNewKey(string url, UUID userID, UUID authToken)
+        {
+            UserProfileData profile = GetUserProfile(userID);
+            string newKey = string.Empty;
+            if (!url.EndsWith("/"))
+                url = url + "/";
+
+            if (profile != null)
+            {
+                // I'm overloading webloginkey for this, so that no changes are needed in the DB
+                // The uses of webloginkey are fairly mutually exclusive
+                if (profile.WebLoginKey.Equals(authToken))
+                {
+                    newKey = UUID.Random().ToString();
+                    List<string> keys;
+                    lock (m_userKeys)
+                    {
+                        if (m_userKeys.ContainsKey(userID))
+                        {
+                            keys = m_userKeys[userID];
+                        }
+                        else
+                        {
+                            keys = new List<string>();
+                            m_userKeys.Add(userID, keys);
+                        }
+                        keys.Add(newKey);
+                    }
+                    m_log.InfoFormat("[USERAUTH]: Successfully generated new auth key for user {0}", userID);
+                }
+                else
+                    m_log.Info("[USERAUTH]: Unauthorized key generation request. Denying new key.");
+            }
+            else
+                m_log.Info("[USERAUTH]: User not found.");
+
+            return url + newKey;
+        }
+
+        /// <summary>
+        /// This verifies the uuid portion of the key given out by GenerateKey
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public bool VerifyKey(UUID userID, string key)
+        {
+            lock (m_userKeys)
+            {
+                if (m_userKeys.ContainsKey(userID))
+                {
+                    List<string> keys = m_userKeys[userID];
+                    if (keys.Contains(key))
+                    {
+                        // Keys are one-time only, so remove it
+                        keys.Remove(key);
+                        return true;
+                    }
+                    return false;
+                }
+                else
+                    return false;
+            }
+        }
+
+        #endregion
+
     }
 }

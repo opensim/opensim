@@ -27,6 +27,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -38,6 +39,9 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.CoreModules.Communications.REST;
+
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Region.CoreModules.Hypergrid
 {
@@ -97,8 +101,10 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private InventoryServiceBase m_inventoryService;
-        private IUserService m_userService;
+        private UserManagerBase m_userService;
+        private Scene m_scene;
         private bool m_doLookup = false;
+        private string m_thisInventoryUrl = "http://localhost:9000";
 
         public bool DoLookup
         {
@@ -106,17 +112,24 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             set { m_doLookup = value; }
         }
 
-        public InventoryService(Scene m_scene)
+        public InventoryService(Scene _m_scene)
         {
+            m_scene = _m_scene;
             m_inventoryService = (InventoryServiceBase)m_scene.CommsManager.SecureInventoryService;
-            m_userService = m_scene.CommsManager.UserService;
-            AddHttpHandlers(m_scene);
+            m_userService = (UserManagerBase)m_scene.CommsManager.UserService;
+            m_thisInventoryUrl = m_scene.CommsManager.NetworkServersInfo.InventoryURL;
+            if (!m_thisInventoryUrl.EndsWith("/"))
+                m_thisInventoryUrl += "/";
+
+            AddHttpHandlers();
         }
 
-        protected void AddHttpHandlers(Scene m_scene)
+        protected void AddHttpHandlers()
         {
             IHttpServer httpServer = m_scene.CommsManager.HttpServer;
-            
+
+            httpServer.AddHTTPHandler("/InvCap/", CapHandler);
+
             httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<Guid, InventoryCollection>(
                     "POST", "/GetInventory/", GetUserInventory, CheckAuthSession));
@@ -231,6 +244,17 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             }
         }
 
+        // In truth, this is not called from the outside, for standalones. I'm just making it
+        // a handler already so that this can be reused for the InventoryServer.
+        public string CreateCapUrl(Guid _userid)
+        {
+            UUID userID = new UUID(_userid);
+            UUID random = UUID.Random();
+            string url = m_thisInventoryUrl + random.ToString() + "/";
+            m_log.InfoFormat("[HGStandaloneInvService] Creating Cap URL {0} for user {1}", url, userID.ToString());
+            return url;
+        }
+
 
         /// <summary>
         /// Return a user's entire inventory
@@ -290,6 +314,37 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             return invCollection;
         }
 
+        public InventoryCollection FetchDescendants(InventoryFolderBase fb)
+        {
+            m_log.Info("[HGStandaloneInvService]: Processing request for folder " + fb.ID);
+
+            // Uncomment me to simulate a slow responding inventory server
+            //Thread.Sleep(16000);
+
+            InventoryCollection invCollection = new InventoryCollection();
+
+            List<InventoryItemBase> items = ((InventoryServiceBase)m_inventoryService).RequestFolderItems(fb.ID);
+            List<InventoryFolderBase> folders = ((InventoryServiceBase)m_inventoryService).RequestSubFolders(fb.ID);
+
+            invCollection.UserID = fb.Owner;
+            invCollection.Folders = folders;
+            invCollection.Items = items;
+
+            m_log.DebugFormat("[HGStandaloneInvService]: Found {0} items and {1} folders", items.Count, folders.Count);
+
+            return invCollection;
+        }
+
+        public InventoryItemBase GetInventoryItem(InventoryItemBase item)
+        {
+            m_log.Info("[HGStandaloneInvService]: Processing request for item " + item.ID);
+
+            item = ((InventoryServiceBase)m_inventoryService).GetInventoryItem(item.ID);
+            if (item == null)
+                m_log.Debug("[HGStandaloneInvService]: null item");
+            return item;
+        }
+
         /// <summary>
         /// Guid to UUID wrapper for same name IInventoryServices method
         /// </summary>
@@ -309,5 +364,210 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
             return ((InventoryServiceBase)m_inventoryService).GetActiveGestures(userID);
         }
+
+
+        #region Caps
+
+        Dictionary<UUID, List<string>> invCaps = new Dictionary<UUID, List<string>>();
+
+        public Hashtable CapHandler(Hashtable request)
+        {
+            m_log.Debug("[CONNECTION DEBUGGING]: InvCapHandler Called");
+
+            m_log.Debug("---------------------------");
+            m_log.Debug(" >> uri=" + request["uri"]);
+            m_log.Debug(" >> content-type=" + request["content-type"]);
+            m_log.Debug(" >> http-method=" + request["http-method"]);
+            m_log.Debug("---------------------------\n");
+
+            // these are requests if the type
+            // http://inventoryserver/InvCap/uuuuuuuu-uuuu-uuuu-uuuu-uuuuuuuuuuuu/kkkkkkkk-kkkk-kkkk-kkkk-kkkkkkkkkkkk/
+
+            Hashtable responsedata = new Hashtable();
+            responsedata["content_type"] = "text/plain";
+
+            UUID userID;
+            string authToken = string.Empty;
+            string authority = string.Empty;
+            if (!GetParams(request, out userID, out authority, out authToken))
+            {
+                m_log.InfoFormat("[HGStandaloneInvService]: Invalid parameters for InvCap message {0}", request["uri"]);
+                responsedata["int_response_code"] = 404;
+                responsedata["str_response_string"] = "Not found";
+
+                return responsedata;
+            }
+
+            // Next, let's parse the verb
+            string method = (string)request["http-method"];
+            if (method.Equals("GET"))
+            {
+                DoInvCapPost(request, responsedata, userID, authToken);
+                return responsedata;
+            }
+            //else if (method.Equals("DELETE"))
+            //{
+            //    DoAgentDelete(request, responsedata, agentID, action, regionHandle);
+
+            //    return responsedata;
+            //}
+            else
+            {
+                m_log.InfoFormat("[HGStandaloneInvService]: method {0} not supported in agent message", method);
+                responsedata["int_response_code"] = 405;
+                responsedata["str_response_string"] = "Method not allowed";
+
+                return responsedata;
+            }
+
+        }
+
+        public virtual void DoInvCapPost(Hashtable request, Hashtable responsedata, UUID userID, string authToken)
+        {
+
+            // This is the meaning of POST agent
+
+            // Check Auth Token
+            if (!(m_userService is IAuthentication))
+            {
+                m_log.Debug("[HGStandaloneInvService]: UserService is not IAuthentication. Denying access to inventory.");
+                responsedata["int_response_code"] = 501;
+                responsedata["str_response_string"] = "Not implemented";
+                return;
+            }
+
+            bool success = ((IAuthentication)m_userService).VerifyKey(userID, authToken);
+
+            if (success)
+            {
+
+                m_log.DebugFormat("[HGStandaloneInvService]: User has been authorized. Creating service handlers.");
+                
+                // Then establish secret service handlers
+
+                RegisterCaps(userID, authToken);
+
+                responsedata["int_response_code"] = 200;
+                responsedata["str_response_string"] = "OK";
+            }
+            else
+            {
+                m_log.DebugFormat("[HGStandaloneInvService]: User has is unauthorized. Denying service handlers.");
+                responsedata["int_response_code"] = 403;
+                responsedata["str_response_string"] = "Forbidden";
+            }
+        }
+
+
+        /// <summary>
+        /// Extract the params from a request.
+        /// </summary>
+        public static bool GetParams(Hashtable request, out UUID uuid, out string authority, out string authKey)
+        {
+            uuid = UUID.Zero;
+            authority = string.Empty;
+            authKey = string.Empty;
+
+            string uri = (string)request["uri"];
+            uri = uri.Trim(new char[] { '/' });
+            string[] parts = uri.Split('/');
+            if (parts.Length <= 1)
+            {
+                return false;
+            }
+            else
+            {
+                if (!UUID.TryParse(parts[1], out uuid))
+                    return false;
+
+                if (parts.Length >= 3)
+                {
+                    authKey = parts[2];
+                    return true;
+                }
+            }
+
+            Uri authUri;
+            Hashtable headers = (Hashtable)request["headers"];
+
+            // Authorization keys look like this:
+            // http://orgrid.org:8002/<uuid>
+            if (headers.ContainsKey("authorization"))
+            {
+                if (Uri.TryCreate((string)headers["authorization"], UriKind.Absolute, out authUri))
+                {
+                    authority = authUri.Authority;
+                    authKey = authUri.PathAndQuery.Trim('/');
+                    m_log.DebugFormat("[HGStandaloneInvService]: Got authority {0} and key {1}", authority, authKey);
+                    return true;
+                }
+                else
+                    m_log.Debug("[HGStandaloneInvService]: Wrong format for Authorization header: " + (string)headers["authorization"]);
+            }
+            else
+                m_log.Debug("[HGStandaloneInvService]: Authorization header not found");
+
+            return false;
+        }
+
+        void RegisterCaps(UUID userID, string authToken)
+        {
+            IHttpServer httpServer = m_scene.CommsManager.HttpServer;
+
+            lock (invCaps)
+            {
+                if (invCaps.ContainsKey(userID))
+                {
+                    // Remove the old ones
+                    DeregisterCaps(httpServer, invCaps[userID]);
+                    invCaps.Remove(userID);
+                }
+            }
+
+            List<string> caps = new List<string>();
+
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<Guid, InventoryCollection>(
+                                        "POST", AddAndGetCapUrl(authToken, "/GetInventory/", caps), GetUserInventory, CheckAuthSession));
+
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, InventoryCollection>(
+                                        "POST", AddAndGetCapUrl(authToken, "/FetchDescendants/", caps), FetchDescendants, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
+                                        "POST", AddAndGetCapUrl(authToken, "/GetItem/", caps), GetInventoryItem, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
+                                        "POST", AddAndGetCapUrl(authToken, "/NewFolder/", caps), m_inventoryService.AddFolder, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
+                                        "POST", AddAndGetCapUrl(authToken, "/UpdateFolder/", caps), m_inventoryService.UpdateFolder, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
+                                        "POST", AddAndGetCapUrl(authToken, "/MoveFolder/", caps), m_inventoryService.MoveFolder, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
+                                        "POST", AddAndGetCapUrl(authToken, "/PurgeFolder/", caps), m_inventoryService.PurgeFolder, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
+                                        "POST", AddAndGetCapUrl(authToken, "/NewItem/", caps), m_inventoryService.AddItem, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
+                                        "POST", AddAndGetCapUrl(authToken, "/DeleteItem/", caps), m_inventoryService.DeleteItem, CheckAuthSession));
+            
+            lock (invCaps)
+                invCaps.Add(userID, caps);
+        }
+
+        string AddAndGetCapUrl(string authToken, string capType, List<string> caps)
+        {
+            string capUrl = "/" + authToken + capType;
+
+            m_log.Debug("[HGStandaloneInvService] Adding inventory cap " + capUrl);
+            caps.Add(capUrl);
+            return capUrl;
+        }
+
+        void DeregisterCaps(IHttpServer httpServer, List<string> caps)
+        {
+            foreach (string capUrl in caps)
+            {
+                m_log.Debug("[HGStandaloneInvService] Removing inventory cap " + capUrl);
+                httpServer.RemoveStreamHandler("POST", capUrl);
+            }
+        }
+
+        #endregion Caps
     }
 }
