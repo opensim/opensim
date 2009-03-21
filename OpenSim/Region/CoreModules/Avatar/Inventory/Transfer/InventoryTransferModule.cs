@@ -79,6 +79,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                 scene.EventManager.OnNewClient += OnNewClient;
                 scene.EventManager.OnClientClosed += ClientLoggedOut;
+                scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
             }
         }
 
@@ -383,6 +384,77 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         {
             if (m_AgentRegions.ContainsKey(agentID))
                 m_AgentRegions.Remove(agentID);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="msg"></param>
+        private void OnGridInstantMessage(GridInstantMessage msg)
+        {
+            Scene scene = FindClientScene(new UUID(msg.toAgentID));
+
+            // Find agent to deliver to
+            //
+            ScenePresence user = scene.GetScenePresence(new UUID(msg.toAgentID));
+
+            if (user == null) // Shouldn't happen
+            {
+                m_log.Debug("[INVENTORY TRANSFER] Can't find recipient");
+                return;
+            }
+
+            CachedUserInfo userInfo =
+                    scene.CommsManager.UserProfileCacheService.
+                    GetUserDetails(user.ControllingClient.AgentId);
+
+            if (userInfo == null)
+            {
+                m_log.Debug("[INVENTORY TRANSFER] Can't find user info of recipient");
+                return;
+            }
+
+            AssetType assetType = (AssetType)msg.binaryBucket[0];
+
+            if (AssetType.Folder == assetType)
+            {
+                // Folders not implemented yet
+                //
+                return;
+            }
+            else
+            {
+                UUID itemID = new UUID(msg.binaryBucket, 1);
+
+                // Fetch from database
+                //
+                if (!userInfo.QueryItem(itemID))
+                {
+                    m_log.Debug("[INVENTORY TRANSFER] Can't find item to give");
+                    return;
+                }
+
+                // Get item info
+                //
+                InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+                if (item == null)
+                {
+                    m_log.Debug("[INVENTORY TRANSFER] Can't retrieve item to give");
+                    return;
+                }
+
+                // Update item to viewer (makes it appear in proper folder)
+                //
+                user.ControllingClient.SendBulkUpdateInventory(item);
+
+                // Deliver message
+                //
+                user.ControllingClient.SendInstantMessage(
+                        new UUID(msg.fromAgentID), msg.message,
+                        new UUID(msg.toAgentID),
+                        msg.fromAgentName, msg.dialog, msg.timestamp,
+                        itemID, false, msg.binaryBucket);
+            }
         }
     }
 }
