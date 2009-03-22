@@ -2097,7 +2097,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bulkUpdate.ItemData[0].AssetID = item.AssetID;
             bulkUpdate.ItemData[0].CreatorID = item.Creator;
             bulkUpdate.ItemData[0].BaseMask = item.BasePermissions;
-            bulkUpdate.ItemData[0].CreationDate = 1000;
+            bulkUpdate.ItemData[0].CreationDate = item.CreationDate;
             bulkUpdate.ItemData[0].Description = LLUtil.StringToPacketBytes(item.Description);
             bulkUpdate.ItemData[0].EveryoneMask = item.EveryOnePermissions;
             bulkUpdate.ItemData[0].FolderID = item.Folder;
