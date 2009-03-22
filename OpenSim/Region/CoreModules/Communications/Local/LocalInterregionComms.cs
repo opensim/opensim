@@ -260,6 +260,15 @@ namespace OpenSim.Region.CoreModules.Communications.Local
             // ? weird. should not happen
             return m_sceneList[0].RegionInfo.RegionID;
         }
+
+        public bool IsLocalRegion(ulong regionhandle)
+        {
+            foreach (Scene s in m_sceneList)
+                if (s.RegionInfo.RegionHandle == regionhandle)
+                    return true;
+            return false;
+        }
+
         #endregion
     }
 }

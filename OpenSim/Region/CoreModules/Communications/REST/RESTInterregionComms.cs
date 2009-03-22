@@ -136,15 +136,18 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 return true;
 
             // else do the remote thing
-            RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
-            if (regInfo != null)
+            if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                SendUserInformation(regInfo, aCircuit);
+                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                if (regInfo != null)
+                {
+                    SendUserInformation(regInfo, aCircuit);
 
-                return DoCreateChildAgentCall(regInfo, aCircuit);
+                    return DoCreateChildAgentCall(regInfo, aCircuit);
+                }
+                //else
+                //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             }
-            //else
-            //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
         }
 
@@ -155,13 +158,16 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 return true;
 
             // else do the remote thing
-            RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
-            if (regInfo != null)
+            if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                return DoChildAgentUpdateCall(regInfo, cAgentData);
+                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                if (regInfo != null)
+                {
+                    return DoChildAgentUpdateCall(regInfo, cAgentData);
+                }
+                //else
+                //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             }
-            //else
-            //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
 
         }
@@ -173,13 +179,16 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 return true;
 
             // else do the remote thing
-            RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
-            if (regInfo != null)
+            if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                return DoChildAgentUpdateCall(regInfo, cAgentData);
+                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                if (regInfo != null)
+                {
+                    return DoChildAgentUpdateCall(regInfo, cAgentData);
+                }
+                //else
+                //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             }
-            //else
-            //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
 
         }
@@ -201,13 +210,16 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 return true;
 
             // else do the remote thing
-            RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
-            if (regInfo != null)
+            if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                return DoCloseAgentCall(regInfo, id);
+                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                if (regInfo != null)
+                {
+                    return DoCloseAgentCall(regInfo, id);
+                }
+                //else
+                //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             }
-            //else
-            //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
         }
 
@@ -225,13 +237,16 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             }
 
             // else do the remote thing
-            RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
-            if (regInfo != null)
+            if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                return DoCreateObjectCall(regInfo, sog);
+                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                if (regInfo != null)
+                {
+                    return DoCreateObjectCall(regInfo, sog);
+                }
+                //else
+                //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             }
-            //else
-            //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
         }
 
