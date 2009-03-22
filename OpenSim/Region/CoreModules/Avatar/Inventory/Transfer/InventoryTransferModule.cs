@@ -392,6 +392,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         /// <param name="msg"></param>
         private void OnGridInstantMessage(GridInstantMessage msg)
         {
+            // Check if this is ours to handle
+            //
+            if (msg.dialog != (byte) InstantMessageDialog.InventoryOffered)
+                return;
+
+            if (msg.binaryBucket.Length < 17) // Invalid
+                return;
+
             Scene scene = FindClientScene(new UUID(msg.toAgentID));
 
             // Find agent to deliver to
