@@ -773,23 +773,30 @@ namespace OpenSim.Framework.Communications.Cache
         // The item will be added tot he local cache. Returns true if the item
         // was found and can be sent to the client
         //
-        public bool QueryItem(UUID itemID)
+        public bool QueryItem(InventoryItemBase item)
         {
             if (m_hasReceivedInventory)
             {
-                InventoryItemBase item = RootFolder.FindItem(itemID);
+                InventoryItemBase invItem = RootFolder.FindItem(item.ID);
 
-                if (item != null)
+                if (invItem != null)
                 {
                     // Item is in local cache, just update client
                     //
                     return true;
                 }
 
-                item = new InventoryItemBase();
-                item.ID = itemID;
+                InventoryItemBase itemInfo = null;
 
-                InventoryItemBase itemInfo = m_commsManager.InventoryService.QueryItem(item);
+                if (m_commsManager.SecureInventoryService != null)
+                {
+                    m_commsManager.SecureInventoryService.QueryItem(item, m_session_id);
+                }
+                else
+                {
+                    m_commsManager.InventoryService.QueryItem(item);
+                }
+
                 if (itemInfo != null)
                 {
                     InventoryFolderImpl folder = RootFolder.FindFolder(itemInfo.Folder);
@@ -804,7 +811,7 @@ namespace OpenSim.Framework.Communications.Cache
                 AddRequest(
                     new InventoryRequest(
                         Delegate.CreateDelegate(typeof(QueryItemDelegate), this, "QueryItem"),
-                        new object[] { itemID }));
+                        new object[] { item.ID }));
 
                 return true;
             }

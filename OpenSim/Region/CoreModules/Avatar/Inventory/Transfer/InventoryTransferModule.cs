@@ -433,10 +433,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             else
             {
                 UUID itemID = new UUID(msg.binaryBucket, 1);
+                InventoryItemBase item = new InventoryItemBase();
+
+                item.ID = itemID;
+                item.Owner = user.ControllingClient.AgentId;
 
                 // Fetch from database
                 //
-                if (!userInfo.QueryItem(itemID))
+                if (!userInfo.QueryItem(item))
                 {
                     m_log.Debug("[INVENTORY TRANSFER] Can't find item to give");
                     return;
@@ -444,7 +448,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                 // Get item info
                 //
-                InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+                item = userInfo.RootFolder.FindItem(item.ID);
                 if (item == null)
                 {
                     m_log.Debug("[INVENTORY TRANSFER] Can't retrieve item to give");

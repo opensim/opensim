@@ -317,6 +317,29 @@ namespace OpenSim.Region.Communications.Hypergrid
 
             return false;
         }
+
+        public InventoryItemBase QueryItem(InventoryItemBase item, UUID session_id)
+        {
+            if (IsLocalStandaloneUser(item.Owner))
+            {
+                return base.QueryItem(item);
+            }
+
+            try
+            {
+                string invServ = GetUserInventoryURI(item.Owner);
+
+                return SynchronousRestSessionObjectPoster<InventoryItemBase, InventoryItemBase>.BeginPostObject(
+                    "POST", invServ + "/QueryItem/", item, session_id.ToString(), item.Owner.ToString());
+            }
+            catch (WebException e)
+            {
+                m_log.ErrorFormat("[HGrid INVENTORY SERVICE]: Query inventory item operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+
+            return null;
+        }
         #endregion
 
         #region Methods common to ISecureInventoryService and IInventoryService
