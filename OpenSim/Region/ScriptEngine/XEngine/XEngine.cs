@@ -504,6 +504,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             CultureInfo USCulture = new CultureInfo("en-US");
             Thread.CurrentThread.CurrentCulture = USCulture;
 
+            Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap;
+
             try
             {
                 lock (m_AddingAssemblies) 
@@ -515,6 +517,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     } else {
                         m_AddingAssemblies[assembly]++;
                     }
+                    linemap = m_Compiler.LineMap();
                 }
 
                 string[] warnings = m_Compiler.GetWarnings();
@@ -649,7 +652,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             part.ParentGroup.RootPart.Name, item.Name);
 
                     instance.AppDomain = appDomain;
-                    instance.LineMap = m_Compiler.LineMap();
+                    instance.LineMap = linemap;
 
                     m_Scripts[itemID] = instance;
                 }
