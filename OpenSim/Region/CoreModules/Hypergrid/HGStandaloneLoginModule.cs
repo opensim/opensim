@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             }
         }
        
-        protected HGStandaloneLoginService m_loginService;
+        protected HGLoginAuthService m_loginService;
 
         #region IRegionModule Members
 
@@ -103,7 +103,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                     IHttpServer httpServer = m_firstScene.CommsManager.HttpServer;
 
                     //TODO: fix the casting of the user service, maybe by registering the userManagerBase with scenes, or refactoring so we just need a IUserService reference
-                    m_loginService = new HGStandaloneLoginService((UserManagerBase)m_firstScene.CommsManager.UserService, welcomeMessage, m_firstScene.CommsManager.InterServiceInventoryService, m_firstScene.CommsManager.NetworkServersInfo, authenticate, rootFolder, this);
+                    m_loginService = new HGLoginAuthService((UserManagerBase)m_firstScene.CommsManager.UserService, welcomeMessage, m_firstScene.CommsManager.InterServiceInventoryService, m_firstScene.CommsManager.NetworkServersInfo, authenticate, rootFolder, this);
 
                     httpServer.AddXmlRPCHandler("hg_login", m_loginService.XmlRpcLoginMethod);
                     httpServer.AddXmlRPCHandler("hg_new_auth_key", m_loginService.XmlRpcGenerateKeyMethod);

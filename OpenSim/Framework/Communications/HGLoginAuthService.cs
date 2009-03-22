@@ -32,12 +32,9 @@ using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Interfaces;
 
 using OpenMetaverse;
 
@@ -45,9 +42,9 @@ using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 
-namespace OpenSim.Region.CoreModules.Hypergrid
+namespace OpenSim.Framework.Communications
 {
-    public class HGStandaloneLoginService : LoginService
+    public class HGLoginAuthService : LoginService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -65,7 +62,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         protected ILoginServiceToRegionsConnector m_regionsConnector;
 
 
-        public HGStandaloneLoginService(
+        public HGLoginAuthService(
             UserManagerBase userManager, string welcomeMess,
             IInterServiceInventoryServices interServiceInventoryService,
             NetworkServersInfo serversInfo,
