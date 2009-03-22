@@ -790,11 +790,11 @@ namespace OpenSim.Framework.Communications.Cache
 
                 if (m_commsManager.SecureInventoryService != null)
                 {
-                    m_commsManager.SecureInventoryService.QueryItem(item, m_session_id);
+                    itemInfo = m_commsManager.SecureInventoryService.QueryItem(item, m_session_id);
                 }
                 else
                 {
-                    m_commsManager.InventoryService.QueryItem(item);
+                    itemInfo = m_commsManager.InventoryService.QueryItem(item);
                 }
 
                 if (itemInfo != null)

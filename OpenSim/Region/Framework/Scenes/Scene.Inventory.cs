@@ -525,8 +525,6 @@ namespace OpenSim.Region.Framework.Scenes
                         itemCopy.SalePrice = item.SalePrice;
                         itemCopy.SaleType = item.SaleType;
 
-                        itemCopy.CreationDate = item.CreationDate;
-
                         recipientUserInfo.AddItem(itemCopy);
 
                         if (!Permissions.BypassPermissions())
