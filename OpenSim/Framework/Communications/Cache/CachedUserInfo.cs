@@ -786,6 +786,9 @@ namespace OpenSim.Framework.Communications.Cache
                     return true;
                 }
 
+                item = new InventoryItemBase();
+                item.ID = itemID;
+
                 InventoryItemBase itemInfo = m_commsManager.InventoryService.QueryItem(item);
                 if (itemInfo != null)
                 {
