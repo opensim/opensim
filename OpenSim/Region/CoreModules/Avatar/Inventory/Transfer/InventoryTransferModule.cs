@@ -451,6 +451,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                 user.ControllingClient.SendBulkUpdateInventory(folderInfo);
 
+                               // This unelegant, slow kludge is to reload the folders and
+                               // items. Since a folder give can transfer subfolders and
+                               // items, this is the easiest way to pull that stuff in
+                               //
+                               userInfo.DropInventory();
+                               userInfo.FetchInventory();
+
                 // Deliver message
                 //
                 user.ControllingClient.SendInstantMessage(
