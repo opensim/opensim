@@ -56,6 +56,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns></returns>
         bool SendChildAgentUpdate(ulong regionHandle, AgentPosition data);
 
+        bool SendRetrieveRootAgent(ulong regionHandle, UUID id, out IAgentData agent);
+
         /// <summary>
         /// Message from receiving region to departing region, telling it got contacted by the client.
         /// When sent over REST, it invokes the opaque uri.

@@ -192,7 +192,28 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             return false;
 
         }
-        
+
+        public bool SendRetrieveRootAgent(ulong regionHandle, UUID id, out IAgentData agent)
+        {
+            // Try local first
+            if (m_localBackend.SendRetrieveRootAgent(regionHandle, id, out agent))
+                return true;
+
+            // else do the remote thing
+            if (!m_localBackend.IsLocalRegion(regionHandle))
+            {
+                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                if (regInfo != null)
+                {
+                    return DoRetrieveRootAgentCall(regInfo, id, out agent);
+                }
+                //else
+                //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
+            }
+            return false;
+
+        }
+
         public bool SendReleaseAgent(ulong regionHandle, UUID id, string uri)
         {
             // Try local first
@@ -202,6 +223,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             // else do the remote thing
             return DoReleaseAgentCall(regionHandle, id, uri);
         }
+
 
         public bool SendCloseAgent(ulong regionHandle, UUID id)
         {
@@ -288,12 +310,13 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         {
             // Eventually, we want to use a caps url instead of the agentID
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + aCircuit.AgentID + "/";
-            //m_log.Debug("   >>> DoCreateChildAgentCall <<< " + uri);
+            //Console.WriteLine("   >>> DoCreateChildAgentCall <<< " + uri);
 
-            WebRequest AgentCreateRequest = WebRequest.Create(uri);
+            HttpWebRequest AgentCreateRequest = (HttpWebRequest)WebRequest.Create(uri);
             AgentCreateRequest.Method = "POST";
             AgentCreateRequest.ContentType = "application/json";
             AgentCreateRequest.Timeout = 10000;
+            //AgentCreateRequest.KeepAlive = false;
 
             // Fill it in
             OSDMap args = null;
@@ -373,18 +396,19 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         {
             // Eventually, we want to use a caps url instead of the agentID
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + cAgentData.AgentID + "/";
-            //m_log.Debug("   >>> DoChildAgentUpdateCall <<< " + uri);
+            //Console.WriteLine("   >>> DoChildAgentUpdateCall <<< " + uri);
 
-            WebRequest ChildUpdateRequest = WebRequest.Create(uri);
+            HttpWebRequest ChildUpdateRequest = (HttpWebRequest)WebRequest.Create(uri);
             ChildUpdateRequest.Method = "PUT";
             ChildUpdateRequest.ContentType = "application/json";
             ChildUpdateRequest.Timeout = 10000;
+            //ChildUpdateRequest.KeepAlive = false;
 
             // Fill it in
             OSDMap args = null;
             try
             {
-                args = cAgentData.PackUpdateMessage();
+                args = cAgentData.Pack();
             }
             catch (Exception e)
             {
@@ -453,6 +477,61 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             return true;
         }
 
+        public bool DoRetrieveRootAgentCall(RegionInfo region, UUID id, out IAgentData agent)
+        {
+            agent = null;
+            // Eventually, we want to use a caps url instead of the agentID
+            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + id + "/" + region.RegionHandle.ToString() + "/";
+            //Console.WriteLine("   >>> DoRetrieveRootAgentCall <<< " + uri);
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.Method = "GET";
+            request.Timeout = 10000;
+            //request.Headers.Add("authorization", ""); // coming soon
+
+            HttpWebResponse webResponse = null;
+            string reply = string.Empty;
+            try
+            {
+                webResponse = (HttpWebResponse)request.GetResponse();
+                if (webResponse == null)
+                {
+                    m_log.Info("[REST COMMS]: Null reply on agent get ");
+                }
+
+                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                reply = sr.ReadToEnd().Trim();
+                sr.Close();
+
+                //Console.WriteLine("[REST COMMS]: ChilAgentUpdate reply was " + reply);
+
+            }
+            catch (WebException ex)
+            {
+                m_log.InfoFormat("[REST COMMS]: exception on reply of agent get {0}", ex.Message);
+                // ignore, really
+                return false;
+            }
+
+            if (webResponse.StatusCode == HttpStatusCode.OK)
+            {
+                // we know it's jason
+                OSDMap args = GetOSDMap(reply);
+                if (args == null)
+                {
+                    //Console.WriteLine("[REST COMMS]: Error getting OSDMap from reply");
+                    return false;
+                }
+
+                agent = new CompleteAgentData();
+                agent.Unpack(args);
+                return true;
+            }
+
+            //Console.WriteLine("[REST COMMS]: DoRetrieveRootAgentCall returned status " + webResponse.StatusCode);
+            return false;
+        }
+
         public bool DoReleaseAgentCall(ulong regionHandle, UUID id, string uri)
         {
             //m_log.Debug("   >>> DoReleaseAgentCall <<< " + uri);
@@ -466,7 +545,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 WebResponse webResponse = request.GetResponse();
                 if (webResponse == null)
                 {
-                    m_log.Info("[REST COMMS]: Null reply on agent get ");
+                    m_log.Info("[REST COMMS]: Null reply on agent delete ");
                 }
 
                 StreamReader sr = new StreamReader(webResponse.GetResponseStream());
@@ -478,18 +557,19 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             }
             catch (WebException ex)
             {
-                m_log.InfoFormat("[REST COMMS]: exception on reply of agent get {0}", ex.Message);
+                m_log.InfoFormat("[REST COMMS]: exception on reply of agent delete {0}", ex.Message);
                 // ignore, really
             }
 
             return true;
         }
 
+
         public bool DoCloseAgentCall(RegionInfo region, UUID id)
         {
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + id + "/" + region.RegionHandle.ToString() +"/";
 
-            //m_log.Debug("   >>> DoCloseAgentCall <<< " + uri);
+            //Console.WriteLine("   >>> DoCloseAgentCall <<< " + uri);
 
             WebRequest request = WebRequest.Create(uri);
             request.Method = "DELETE";
@@ -500,7 +580,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 WebResponse webResponse = request.GetResponse();
                 if (webResponse == null)
                 {
-                    m_log.Info("[REST COMMS]: Null reply on agent get ");
+                    m_log.Info("[REST COMMS]: Null reply on agent delete ");
                 }
 
                 StreamReader sr = new StreamReader(webResponse.GetResponseStream());
@@ -512,7 +592,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             }
             catch (WebException ex)
             {
-                m_log.InfoFormat("[REST COMMS]: exception on reply of agent get {0}", ex.Message);
+                m_log.InfoFormat("[REST COMMS]: exception on reply of agent delete {0}", ex.Message);
                 // ignore, really
             }
 
@@ -696,14 +776,15 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         {
             //m_log.Debug("[CONNECTION DEBUGGING]: AgentHandler Called");
 
-            //m_log.Debug("---------------------------");
-            //m_log.Debug(" >> uri=" + request["uri"]);
-            //m_log.Debug(" >> content-type=" + request["content-type"]);
-            //m_log.Debug(" >> http-method=" + request["http-method"]);
-            //m_log.Debug("---------------------------\n");
+            m_log.Debug("---------------------------");
+            m_log.Debug(" >> uri=" + request["uri"]);
+            m_log.Debug(" >> content-type=" + request["content-type"]);
+            m_log.Debug(" >> http-method=" + request["http-method"]);
+            m_log.Debug("---------------------------\n");
 
             Hashtable responsedata = new Hashtable();
             responsedata["content_type"] = "text/html";
+            responsedata["keepalive"] = false;
 
             UUID agentID;
             string action;
@@ -729,10 +810,14 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 DoAgentPost(request, responsedata, agentID);
                 return responsedata;
             }
+            else if (method.Equals("GET"))
+            {
+                DoAgentGet(request, responsedata, agentID, regionHandle);
+                return responsedata;
+            }
             else if (method.Equals("DELETE"))
             {
                 DoAgentDelete(request, responsedata, agentID, action, regionHandle);
-
                 return responsedata;
             }
             else
@@ -748,7 +833,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected virtual void DoAgentPost(Hashtable request, Hashtable responsedata, UUID id)
         {
-            OSDMap args = GetOSDMap(request);
+            OSDMap args = GetOSDMap((string)request["body"]);
             if (args == null)
             {
                 responsedata["int_response_code"] = 400;
@@ -782,7 +867,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected virtual void DoAgentPut(Hashtable request, Hashtable responsedata)
         {
-            OSDMap args = GetOSDMap(request);
+            OSDMap args = GetOSDMap((string)request["body"]);
             if (args == null)
             {
                 responsedata["int_response_code"] = 400;
@@ -810,13 +895,14 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 AgentData agent = new AgentData();
                 try
                 {
-                    agent.UnpackUpdateMessage(args);
+                    agent.Unpack(args);
                 }
                 catch (Exception ex)
                 {
                     m_log.InfoFormat("[REST COMMS]: exception on unpacking ChildAgentUpdate message {0}", ex.Message);
                     return;
                 }
+
                 //agent.Dump();
                 // This is one of the meanings of PUT agent
                 result = m_localBackend.SendChildAgentUpdate(regionhandle, agent);
@@ -827,7 +913,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 AgentPosition agent = new AgentPosition();
                 try
                 {
-                    agent.UnpackUpdateMessage(args);
+                    agent.Unpack(args);
                 }
                 catch (Exception ex)
                 {
@@ -840,10 +926,46 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
             }
 
-
-
             responsedata["int_response_code"] = 200;
             responsedata["str_response_string"] = result.ToString();
+        }
+
+        protected virtual void DoAgentGet(Hashtable request, Hashtable responsedata, UUID id, ulong regionHandle)
+        {
+            IAgentData agent = null;
+            bool result = m_localBackend.SendRetrieveRootAgent(regionHandle, id, out agent);
+            OSDMap map = null;
+            if (result)
+            {
+                if (agent != null) // just to make sure
+                {
+                    map = agent.Pack();
+                    string strBuffer = "";
+                    try
+                    {
+                        strBuffer = OSDParser.SerializeJsonString(map);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.WarnFormat("[REST COMMS]: Exception thrown on serialization of CreateObject: {0}", e.Message);
+                        // ignore. buffer will be empty, caller should check.
+                    }
+
+                    responsedata["content_type"] = "application/json";
+                    responsedata["int_response_code"] = 200;
+                    responsedata["str_response_string"] = strBuffer;
+                }
+                else
+                {
+                    responsedata["int_response_code"] = 500;
+                    responsedata["str_response_string"] = "Internal error";
+                }
+            }
+            else
+            {
+                responsedata["int_response_code"] = 404;
+                responsedata["str_response_string"] = "Not Found";
+            }
         }
 
         protected virtual void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, ulong regionHandle)
@@ -857,6 +979,8 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
             responsedata["int_response_code"] = 200;
             responsedata["str_response_string"] = "OpenSim agent " + id.ToString();
+
+            m_log.Debug("[REST COMMS]: Agent Deleted.");
         }
 
         /**
@@ -918,7 +1042,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected virtual void DoObjectPost(Hashtable request, Hashtable responsedata, ulong regionhandle)
         {
-            OSDMap args = GetOSDMap(request);
+            OSDMap args = GetOSDMap((string)request["body"]);
             if (args == null)
             {
                 responsedata["int_response_code"] = 400;
@@ -1030,7 +1154,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected virtual void DoRegionPost(Hashtable request, Hashtable responsedata, UUID id)
         {
-            OSDMap args = GetOSDMap(request);
+            OSDMap args = GetOSDMap((string)request["body"]);
             if (args == null)
             {
                 responsedata["int_response_code"] = 400;
@@ -1066,14 +1190,14 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         #region Misc
 
-        public static OSDMap GetOSDMap(Hashtable request)
+        public static OSDMap GetOSDMap(string data)
         {
             OSDMap args = null;
             try
             {
                 OSD buffer;
                 // We should pay attention to the content-type, but let's assume we know it's Json
-                buffer = OSDParser.DeserializeJson((string)request["body"]);
+                buffer = OSDParser.DeserializeJson(data);
                 if (buffer.Type == OSDType.Map)
                 {
                     args = (OSDMap)buffer;
@@ -1082,13 +1206,13 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 else
                 {
                     // uh?
-                    m_log.Debug("[REST COMMS]: Got OSD of type " + buffer.Type.ToString());
+                    Console.WriteLine("[REST COMMS]: Got OSD of type " + buffer.Type.ToString());
                     return null;
                 }
             }
             catch (Exception ex)
             {
-                m_log.InfoFormat("[REST COMMS]: exception on parse of REST message {0}", ex.Message);
+                Console.WriteLine("[REST COMMS]: exception on parse of REST message " + ex.Message);
                 return null;
             }
         }

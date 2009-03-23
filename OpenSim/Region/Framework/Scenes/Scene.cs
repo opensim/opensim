@@ -2549,6 +2549,19 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
+        public virtual bool IncomingRetrieveRootAgent(UUID id, out IAgentData agent)
+        {
+            agent = null;
+            ScenePresence sp = GetScenePresence(id);
+            if ((sp != null) && (!sp.IsChildAgent))
+            {
+                sp.IsChildAgent = true;
+                return sp.CopyAgent(out agent);
+            }
+
+            return false;
+        }
+
         public virtual bool IncomingReleaseAgent(UUID id)
         {
             return m_sceneGridService.ReleaseAgent(id);

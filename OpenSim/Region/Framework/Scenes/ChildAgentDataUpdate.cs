@@ -40,8 +40,8 @@ namespace OpenSim.Region.Framework.Scenes
     {
         UUID AgentID { get; set; }
 
-        OSDMap PackUpdateMessage();
-        void UnpackUpdateMessage(OSDMap map);
+        OSDMap Pack();
+        void Unpack(OSDMap map);
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ namespace OpenSim.Region.Framework.Scenes
         public byte[] Throttles;
 
 
-        public OSDMap PackUpdateMessage()
+        public OSDMap Pack()
         {
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentPosition");
@@ -101,7 +101,7 @@ namespace OpenSim.Region.Framework.Scenes
             return args;
         }
 
-        public void UnpackUpdateMessage(OSDMap args)
+        public void Unpack(OSDMap args)
         {
             if (args.ContainsKey("region_handle"))
                 UInt64.TryParse(args["region_handle"].AsString(), out RegionHandle);
@@ -257,7 +257,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string CallbackURI;
 
-        public OSDMap PackUpdateMessage()
+        public virtual OSDMap Pack()
         {
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentData");
@@ -346,7 +346,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Avoiding reflection makes it painful to write, but that's the price!
         /// </summary>
         /// <param name="hash"></param>
-        public void UnpackUpdateMessage(OSDMap args)
+        public virtual void Unpack(OSDMap args)
         {
             if (args.ContainsKey("region_handle"))
                 UInt64.TryParse(args["region_handle"].AsString(), out RegionHandle);
@@ -494,6 +494,19 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.Info("UUID: " + AgentID);
             m_log.Info("Region: " + RegionHandle);
             m_log.Info("Position: " + Position);
+        }
+    }
+
+    public class CompleteAgentData : AgentData
+    {
+        public override OSDMap Pack() 
+        {
+            return base.Pack();
+        }
+
+        public override void Unpack(OSDMap map)
+        {
+            base.Unpack(map);
         }
     }
 

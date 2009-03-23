@@ -2879,6 +2879,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
+        public bool CopyAgent(out IAgentData agent)
+        {
+            agent = new CompleteAgentData();
+            CopyTo((AgentData)agent);
+            return true;
+        }
+
         #endregion Child Agent Updates
 
         /// <summary>

@@ -162,6 +162,21 @@ namespace OpenSim.Region.CoreModules.Communications.Local
             return false;
         }
 
+        public bool SendRetrieveRootAgent(ulong regionHandle, UUID id, out IAgentData agent)
+        {
+            agent = null;
+            foreach (Scene s in m_sceneList)
+            {
+                if (s.RegionInfo.RegionHandle == regionHandle)
+                {
+                    //m_log.Debug("[LOCAL COMMS]: Found region to send ChildAgentUpdate");
+                    return s.IncomingRetrieveRootAgent(id, out agent);
+                }
+            }
+            //m_log.Debug("[LOCAL COMMS]: region not found for ChildAgentUpdate");
+            return false;
+        }
+
         public bool SendReleaseAgent(ulong regionHandle, UUID id, string uri)
         {
             //uint x, y;
