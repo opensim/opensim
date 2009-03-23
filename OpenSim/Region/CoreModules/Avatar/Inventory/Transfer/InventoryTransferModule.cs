@@ -426,9 +426,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
             if (AssetType.Folder == assetType)
             {
-                // Folders not implemented yet
+                UUID folderID = new UUID(msg.binaryBucket, 1);
+                InventoryFolderBase folder = new InventoryFolderBase();
+
+                folder.ID = folderID;
+                folder.Owner = user.ControllingClient.AgentId;
+
+                // Fetch from database
                 //
-                return;
+                if (!userInfo.QueryFolder(folder))
+                {
+                    m_log.Debug("[INVENTORY TRANSFER] Can't find folder to give");
+                    return;
+                }
+
+                // Get folder info
+                //
+                InventoryFolderImpl folderInfo = userInfo.RootFolder.FindFolder(folder.ID);
+                if (folderInfo == null)
+                {
+                    m_log.Debug("[INVENTORY TRANSFER] Can't retrieve folder to give");
+                    return;
+                }
+
+                user.ControllingClient.SendBulkUpdateInventory(folderInfo);
+
+                // Deliver message
+                //
+                user.ControllingClient.SendInstantMessage(
+                        new UUID(msg.fromAgentID), msg.message,
+                        new UUID(msg.toAgentID),
+                        msg.fromAgentName, msg.dialog, msg.timestamp,
+                        folderID, false, msg.binaryBucket);
             }
             else
             {

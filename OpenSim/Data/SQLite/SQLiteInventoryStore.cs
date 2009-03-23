@@ -631,6 +631,11 @@ namespace OpenSim.Data.SQLite
             return null;
         }
 
+        public InventoryFolderBase queryInventoryFolder(UUID folderID)
+        {
+            return null;
+        }
+
         /// <summary>
         /// Delete all items in the specified folder
         /// </summary>

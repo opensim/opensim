@@ -312,6 +312,22 @@ namespace OpenSim.Region.Communications.OGS1
             return null;
         }
 
+        public InventoryFolderBase QueryFolder(InventoryFolderBase item, UUID session_id)
+        {
+            try
+            {
+                return SynchronousRestSessionObjectPoster<InventoryFolderBase, InventoryFolderBase>.BeginPostObject(
+                    "POST", _inventoryServerUrl + "/QueryFolder/", item, session_id.ToString(), item.Owner.ToString());
+            }
+            catch (WebException e)
+            {
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Query inventory item operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+
+            return null;
+        }
+
         public bool HasInventoryForUser(UUID userID)
         {
             return false;

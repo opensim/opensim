@@ -182,6 +182,11 @@ namespace OpenSim.Data.NHibernate
             return null;
         }
 
+        public InventoryFolderBase queryInventoryFolder(UUID folderID)
+        {
+            return null;
+        }
+
         /// <summary>
         /// Returns an inventory folder by its UUID
         /// </summary>

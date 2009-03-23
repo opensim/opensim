@@ -553,6 +553,11 @@ namespace OpenSim.Data.MySQL
             return getInventoryItem(itemID);
         }
 
+        public InventoryFolderBase queryInventoryFolder(UUID folderID)
+        {
+            return getInventoryFolder(folderID);
+        }
+
         /// <summary>
         /// Creates a new inventory folder
         /// </summary>

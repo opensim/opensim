@@ -113,6 +113,14 @@ namespace OpenSim.Framework.Communications
         InventoryItemBase QueryItem(InventoryItemBase item);
 
         /// <summary>
+        /// Query the server for a folder that may have been added by
+        /// another region
+        /// </summary>
+        /// <param name="folder"></param>
+        /// <returns>true if the folder was found in local cache</returns>
+        InventoryFolderBase QueryFolder(InventoryFolderBase folder);
+
+        /// <summary>
         /// Does the given user have an inventory structure?
         /// </summary>
         /// <param name="userID"></param>

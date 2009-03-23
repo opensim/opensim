@@ -292,6 +292,20 @@ namespace OpenSim.Framework.Communications
             return null;
         }
 
+        public virtual InventoryFolderBase QueryFolder(InventoryFolderBase item)
+        {
+            foreach (IInventoryDataPlugin plugin in m_plugins)
+            {
+                InventoryFolderBase result = plugin.queryInventoryFolder(item.ID);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Purge a folder of all items items and subfolders.
         ///

@@ -120,6 +120,11 @@ namespace OpenSim.Tests.Common.Mock
             return null;
         }
 
+        public InventoryFolderBase queryInventoryFolder(UUID folderID)
+        {
+            return null;
+        }
+
         public void addInventoryFolder(InventoryFolderBase folder)
         {
             m_folders[folder.ID] = folder;

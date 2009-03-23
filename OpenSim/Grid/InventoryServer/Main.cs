@@ -131,6 +131,10 @@ namespace OpenSim.Grid.InventoryServer
                 new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
                     "POST", "/QueryItem/", m_inventoryService.QueryItem, m_inventoryService.CheckAuthSession));
 
+            m_httpServer.AddStreamHandler(
+                new RestDeserialiseSecureHandler<InventoryFolderBase, InventoryFolderBase>(
+                    "POST", "/QueryFolder/", m_inventoryService.QueryFolder, m_inventoryService.CheckAuthSession));
+
             // WARNING: Root folders no longer just delivers the root and immediate child folders (e.g
             // system folders such as Objects, Textures), but it now returns the entire inventory skeleton.
             // It would have been better to rename this request, but complexities in the BaseHttpServer

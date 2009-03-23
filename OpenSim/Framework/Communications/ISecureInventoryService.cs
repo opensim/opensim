@@ -98,6 +98,8 @@ namespace OpenSim.Framework.Communications
 
         InventoryItemBase QueryItem(InventoryItemBase item, UUID session_id);
 
+        InventoryFolderBase QueryFolder(InventoryFolderBase item, UUID session_id);
+
         /// <summary>
         /// Does the given user have an inventory structure?
         /// </summary>

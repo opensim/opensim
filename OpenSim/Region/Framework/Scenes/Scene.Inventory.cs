@@ -618,6 +618,13 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
+            if (!recipientUserInfo.HasReceivedInventory)
+            {
+                recipientUserInfo.FetchInventory();
+                if (!WaitForInventory(recipientUserInfo))
+                    return null;
+            }
+
             if (recipientParentFolderId == UUID.Zero)
                 recipientParentFolderId = recipientUserInfo.RootFolder.ID;
 
