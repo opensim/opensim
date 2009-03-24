@@ -100,7 +100,7 @@ namespace OpenSim.Region.CoreModules.Framework.Services
 
     public class GridService
     {
-        private IUserService m_userService;
+//        private IUserService m_userService;
         private IGridServices m_gridService;
         private bool m_doLookup = false;
 
@@ -115,14 +115,14 @@ namespace OpenSim.Region.CoreModules.Framework.Services
         public GridService(Scene m_scene)
         {
             AddHandlers(m_scene);
-            m_userService = m_scene.CommsManager.UserService;
+//            m_userService = m_scene.CommsManager.UserService;
             m_gridService = m_scene.CommsManager.GridService;
         }
 
         protected void AddHandlers(Scene m_scene)
         {
-            IAssetDataPlugin m_assetProvider 
-                = ((AssetServerBase)m_scene.CommsManager.AssetCache.AssetServer).AssetProviderPlugin;
+//            IAssetDataPlugin m_assetProvider 
+//                = ((AssetServerBase)m_scene.CommsManager.AssetCache.AssetServer).AssetProviderPlugin;
 
             IHttpServer httpServer = m_scene.CommsManager.HttpServer;
             httpServer.AddXmlRPCHandler("simulator_data_request", XmlRpcSimulatorDataRequestMethod);

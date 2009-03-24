@@ -93,7 +93,7 @@ namespace OpenSim.Region.CoreModules.Framework.Services
 
     public class AssetService
     {
-        private IUserService m_userService;
+//        private IUserService m_userService;
         private bool m_doLookup = false;
 
         public bool DoLookup
@@ -101,13 +101,13 @@ namespace OpenSim.Region.CoreModules.Framework.Services
             get { return m_doLookup; }
             set { m_doLookup = value; }
         }
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log
+//            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public AssetService(Scene m_scene)
         {
             AddHttpHandlers(m_scene);
-            m_userService = m_scene.CommsManager.UserService;
+//            m_userService = m_scene.CommsManager.UserService;
         }
 
         protected void AddHttpHandlers(Scene m_scene)
@@ -117,8 +117,7 @@ namespace OpenSim.Region.CoreModules.Framework.Services
 
             IHttpServer httpServer = m_scene.CommsManager.HttpServer;
             httpServer.AddStreamHandler(new GetAssetStreamHandler(m_assetProvider));
-            httpServer.AddStreamHandler(new PostAssetStreamHandler(m_assetProvider));
-
+            httpServer.AddStreamHandler(new PostAssetStreamHandler(m_assetProvider));
         }
     }
 }
