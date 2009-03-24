@@ -79,6 +79,11 @@ namespace OpenSim.Framework.Communications
             m_inventoryService = interServiceInventoryService;
         }
 
+        public void SetServersInfo(NetworkServersInfo sinfo)
+        {
+            m_serversInfo = sinfo;
+        }
+
         public override XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
             m_log.Info("[HGLOGIN] HGLogin called " + request.MethodName);
