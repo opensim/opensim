@@ -167,10 +167,24 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
             IRegionSerialiserModule serialiser = m_scene.RequestModuleInterface<IRegionSerialiserModule>();
-            ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+            int sceneObjectsLoadedCount = 0;
+            
 
             foreach (string serialisedSceneObject in serialisedSceneObjects)
             {
+                m_log.DebugFormat("[ARCHIVER]: Loading xml with raw size {0}", serialisedSceneObject.Length);
+
+                // Really large xml files (multi megabyte) appear to cause
+                // memory problems
+                // when loading the xml.  But don't enable this check yet
+/*
+                if (serialisedSceneObject.Length > 5000000)
+                {
+                    m_log.Error("[ARCHIVER]: Ignoring xml since size > 5000000);");
+                    continue;
+                }
+*/
+
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
 
                 // For now, give all incoming scene objects new uuids.  This will allow scenes to be cloned
@@ -222,25 +236,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 if (m_scene.AddRestoredSceneObject(sceneObject, true, false))
                 {
-                    sceneObjects.Add(sceneObject);
+                    sceneObjectsLoadedCount++;
+                    sceneObject.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 0);
                 }
             }
 
-            m_log.InfoFormat("[ARCHIVER]: Restored {0} scene objects to the scene", sceneObjects.Count);
+            m_log.InfoFormat("[ARCHIVER]: Restored {0} scene objects to the scene", sceneObjectsLoadedCount);
 
-            int ignoredObjects = serialisedSceneObjects.Count - sceneObjects.Count;
+            int ignoredObjects = serialisedSceneObjects.Count - sceneObjectsLoadedCount;
 
             if (ignoredObjects > 0)
                 m_log.WarnFormat("[ARCHIVER]: Ignored {0} scene objects that already existed in the scene", ignoredObjects);
 
             m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
-
-            m_log.Debug("[ARCHIVER]: Starting scripts");
-
-            foreach (SceneObjectGroup sceneObject in sceneObjects)
-            {
-                sceneObject.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 0);
-            }
 
             m_scene.EventManager.TriggerOarFileLoaded(m_errorMessage);
         }
