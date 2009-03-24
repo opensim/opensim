@@ -66,15 +66,37 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         /// <param name="data"></param>
         public void ReturnData(UUID id, byte[] data)
         {
-            if (Updaters.ContainsKey(id))
+
+			DynamicTextureUpdater updater = null;
+
+            lock(Updaters)
             {
-                DynamicTextureUpdater updater = Updaters[id];
+				if (Updaters.ContainsKey(id))
+				{
+					updater = Updaters[id];
+                }
+            }
+
+            if(updater != null)
+            {
                 if (RegisteredScenes.ContainsKey(updater.SimUUID))
                 {
                     Scene scene = RegisteredScenes[updater.SimUUID];
                     updater.DataReceived(data, scene);
                 }
             }
+
+			if(updater.UpdateTimer == 0)
+			{
+				lock(Updaters)
+				{
+					if (!Updaters.ContainsKey(updater.UpdaterID))
+					{
+						Updaters.Remove(updater.UpdaterID);
+					}
+				}
+			}
+
         }
 
         public UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url,
@@ -101,9 +123,12 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 updater.BlendWithOldTexture = SetBlending;
                 updater.FrontAlpha = AlphaValue;
 
-                if (!Updaters.ContainsKey(updater.UpdaterID))
+                lock(Updaters)
                 {
-                    Updaters.Add(updater.UpdaterID, updater);
+					if (!Updaters.ContainsKey(updater.UpdaterID))
+					{
+						Updaters.Add(updater.UpdaterID, updater);
+					}
                 }
 
                 RenderPlugins[contentType].AsyncConvertUrl(updater.UpdaterID, url, extraParams);
@@ -134,9 +159,12 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 updater.BlendWithOldTexture = SetBlending;
                 updater.FrontAlpha = AlphaValue;
 
-                if (!Updaters.ContainsKey(updater.UpdaterID))
+                lock(Updaters)
                 {
-                    Updaters.Add(updater.UpdaterID, updater);
+					if (!Updaters.ContainsKey(updater.UpdaterID))
+					{
+						Updaters.Add(updater.UpdaterID, updater);
+					}
                 }
 
                 RenderPlugins[contentType].AsyncConvertData(updater.UpdaterID, data, extraParams);
@@ -270,7 +298,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 // remove the old asset from the cache
                 UUID oldID = tmptex.DefaultTexture.TextureID;
-                scene.CommsManager.AssetCache.ExpireAsset(oldID);
 
                 tmptex.DefaultTexture.TextureID = asset.FullID;
                 // I'm pretty sure we always want to force this to true
@@ -278,6 +305,9 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 part.Shape.Textures = tmptex;
                 part.ScheduleFullUpdate();
+
+                scene.CommsManager.AssetCache.ExpireAsset(oldID);
+
             }
 
             private byte[] BlendTextures(byte[] frontImage, byte[] backImage, bool setNewAlpha, byte newAlpha)

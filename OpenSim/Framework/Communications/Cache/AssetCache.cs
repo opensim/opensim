@@ -350,7 +350,7 @@ namespace OpenSim.Framework.Communications.Cache
                     // If it's a direct request for a script, drop it
                     // because it's a hacked client
                     if (req.AssetRequestSource != 2 || assetInf.Type != 10)
-                        AssetRequests.Add(req);
+                        lock(AssetRequests) AssetRequests.Add(req);
                 }
             }
 
@@ -487,7 +487,7 @@ namespace OpenSim.Framework.Communications.Cache
             req.Params = transferRequest.TransferInfo.Params;
             req.AssetInf = new AssetInfo(asset);
             req.NumPackets = CalculateNumPackets(asset.Data);
-            AssetRequests.Add(req);
+            lock(AssetRequests) AssetRequests.Add(req);
         }
 
         /// <summary>
@@ -506,16 +506,16 @@ namespace OpenSim.Framework.Communications.Cache
             int num = Math.Min(5, AssetRequests.Count);
 
             AssetRequest req;
-            AssetRequestToClient req2 = null;
+            AssetRequestToClient req2 = new AssetRequestToClient();
+
             for (int i = 0; i < num; i++)
             {
-                req = AssetRequests[i];
-                if (req2 == null)
+                lock(AssetRequests)
                 {
-                    req2 = new AssetRequestToClient();
+                   req = AssetRequests[0];
+                   AssetRequests.RemoveAt(0);
                 }
-                
-                // Trying to limit memory usage by only creating AssetRequestToClient if needed               
+
                 req2.AssetInf = req.AssetInf;
                 req2.AssetRequestSource = req.AssetRequestSource;
                 req2.DataPointer = req.DataPointer;
@@ -528,13 +528,9 @@ namespace OpenSim.Framework.Communications.Cache
                 req2.RequestAssetID = req.RequestAssetID;
                 req2.TransferRequestID = req.TransferRequestID;
                 req.RequestUser.SendAsset(req2);
+
             }
 
-            //remove requests that have been completed
-            for (int i = 0; i < num; i++)
-            {
-                AssetRequests.RemoveAt(0);
-            }
         }
 
         public class AssetRequest
