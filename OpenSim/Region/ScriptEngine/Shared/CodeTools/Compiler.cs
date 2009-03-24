@@ -216,21 +216,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             }
 
             foreach (string file in Directory.GetFiles(Path.Combine(ScriptEnginesPath,
-                                m_scriptEngine.World.RegionInfo.RegionID.ToString())))
+                     m_scriptEngine.World.RegionInfo.RegionID.ToString()),FilePrefix + "_compiled*"))
             {
-                //m_log.Error("[Compiler]: FILE FOUND: " + file);
-
-                if (file.ToLower().StartsWith(FilePrefix + "_compiled_") ||
-                    file.ToLower().StartsWith(FilePrefix + "_source_"))
+                try
                 {
-                    try
-                    {
-                        File.Delete(file);
-                    }
-                    catch (Exception ex)
-                    {
-                        m_log.Error("[Compiler]: Exception trying delete old script file \"" + file + "\": " + ex.ToString());
-                    }
+                    File.Delete(file);
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("[Compiler]: Exception trying delete old script file \"" + file + "\": " + ex.ToString());
+                }
+            }
+            foreach (string file in Directory.GetFiles(Path.Combine(ScriptEnginesPath,
+                    m_scriptEngine.World.RegionInfo.RegionID.ToString()), FilePrefix + "_source*"))
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("[Compiler]: Exception trying delete old script file \"" + file + "\": " + ex.ToString());
                 }
             }
         }
