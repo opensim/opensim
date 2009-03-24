@@ -110,12 +110,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     //m_log.DebugFormat(
                     //    "[ARCHIVER]: Successfully read {0} ({1} bytes)}", filePath, data.Length);
 
-                    if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType)
-                    {
-                        m_log.WarnFormat(
-                            "[ARCHIVER]: Ignoring directory entry {0}", filePath);
-                    }
-                    else if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
+                    if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
                     {
                         serialisedSceneObjects.Add(m_asciiEncoding.GetString(data));
                     }
@@ -172,18 +167,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             foreach (string serialisedSceneObject in serialisedSceneObjects)
             {
+                /*
                 m_log.DebugFormat("[ARCHIVER]: Loading xml with raw size {0}", serialisedSceneObject.Length);
 
                 // Really large xml files (multi megabyte) appear to cause
                 // memory problems
                 // when loading the xml.  But don't enable this check yet
-/*
+                
                 if (serialisedSceneObject.Length > 5000000)
                 {
                     m_log.Error("[ARCHIVER]: Ignoring xml since size > 5000000);");
                     continue;
                 }
-*/
+                */
 
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
 

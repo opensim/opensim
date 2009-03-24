@@ -110,8 +110,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="assetUuids">The assets gathered</param>
         public void GatherAssetUuids(SceneObjectGroup sceneObject, IDictionary<UUID, int> assetUuids)
         {
-            m_log.DebugFormat(
-                "[ASSET GATHERER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
+//            m_log.DebugFormat(
+//                "[ASSET GATHERER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
 
             foreach (SceneObjectPart part in sceneObject.GetParts())
             {
