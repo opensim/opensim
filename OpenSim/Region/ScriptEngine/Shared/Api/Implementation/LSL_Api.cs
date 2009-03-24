@@ -4405,7 +4405,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 try
                 {
-                    SceneObjectPart obj = World.GetSceneObjectPart(World.Entities[key].LocalId);
+                    SceneObjectPart obj = World.GetSceneObjectPart(key);
                     if (obj == null)
                         return id; // the key is for an agent so just return the key
                     else
