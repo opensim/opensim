@@ -70,8 +70,11 @@ namespace OpenSim.Framework.Communications
             : base(userManager, libraryRootFolder, welcomeMess)
         {
             this.m_serversInfo = serversInfo;
-            m_defaultHomeX = this.m_serversInfo.DefaultHomeLocX;
-            m_defaultHomeY = this.m_serversInfo.DefaultHomeLocY;
+            if (m_serversInfo != null)
+            {
+                m_defaultHomeX = this.m_serversInfo.DefaultHomeLocX;
+                m_defaultHomeY = this.m_serversInfo.DefaultHomeLocY;
+            }
             m_authUsers = authenticate;
 
             m_interServiceInventoryService = interServiceInventoryService;
@@ -101,7 +104,6 @@ namespace OpenSim.Framework.Communications
             uint uy = (uint)(y / Constants.RegionSize);
             ulong regionHandle = Util.UIntsToLong(ux, uy);
             responseData["region_handle"] = regionHandle.ToString();
-            responseData["http_port"] = (UInt32)m_serversInfo.HttpListenerPort;
 
             // Let's remove the seed cap from the login
             //responseData.Remove("seed_capability");
@@ -255,8 +257,7 @@ namespace OpenSim.Framework.Communications
 
 
         /// <summary>
-        /// Prepare a login to the given region.  This involves both telling the region to expect a connection
-        /// and appropriately customising the response to the user.
+        /// Not really informing the region. Just filling out the response fields related to the region. 
         /// </summary>
         /// <param name="sim"></param>
         /// <param name="user"></param>
@@ -269,6 +270,7 @@ namespace OpenSim.Framework.Communications
             response.SimPort = (uint)endPoint.Port;
             response.RegionX = regionInfo.RegionLocX;
             response.RegionY = regionInfo.RegionLocY;
+            response.SimHttpPort = regionInfo.HttpPort;
 
             string capsPath = CapsUtil.GetRandomCapsObjectPath();
             string capsSeedPath = CapsUtil.GetCapsSeedPath(capsPath);
@@ -281,11 +283,11 @@ namespace OpenSim.Framework.Communications
 
             if (m_serversInfo.HttpUsesSSL)
             {
-                seedcap = "https://" + m_serversInfo.HttpSSLCN + ":" + m_serversInfo.httpSSLPort + capsSeedPath;
+                seedcap = "https://" + m_serversInfo.HttpSSLCN + ":" + regionInfo.HttpPort + capsSeedPath;
             }
             else
             {
-                seedcap = "http://" + regionInfo.ExternalHostName + ":" + m_serversInfo.HttpListenerPort + capsSeedPath;
+                seedcap = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort + capsSeedPath;
             }
 
             response.SeedCapability = seedcap;
@@ -299,31 +301,7 @@ namespace OpenSim.Framework.Communications
             user.CurrentAgent.Region = regionInfo.RegionID;
             user.CurrentAgent.Handle = regionInfo.RegionHandle;
 
-            AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = user.ID;
-            agent.firstname = user.FirstName;
-            agent.lastname = user.SurName;
-            agent.SessionID = user.CurrentAgent.SessionID;
-            agent.SecureSessionID = user.CurrentAgent.SecureSessionID;
-            agent.circuitcode = Convert.ToUInt32(response.CircuitCode);
-            agent.BaseFolder = UUID.Zero;
-            agent.InventoryFolder = UUID.Zero;
-            agent.startpos = user.CurrentAgent.Position;
-            agent.CapsPath = capsPath;
-            agent.Appearance = m_userManager.GetUserAppearance(user.ID);
-            if (agent.Appearance == null)
-            {
-                m_log.WarnFormat("[INTER]: Appearance not found for {0} {1}. Creating default.", agent.firstname, agent.lastname);
-                agent.Appearance = new AvatarAppearance();
-            }
-
-            if (m_regionsConnector.RegionLoginsEnabled)
-            {
-                // m_log.Info("[LLStandaloneLoginModule] Informing region about user");
-                return m_regionsConnector.NewUserConnection(regionInfo.RegionHandle, agent);
-            }
-
-            return false;
+            return true;
         }
 
         public override void LogOffUser(UserProfileData theUser, string message)

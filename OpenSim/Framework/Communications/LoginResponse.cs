@@ -75,6 +75,7 @@ namespace OpenSim.Framework.Communications
         private string everLoggedIn;
         private string login;
         private uint simPort;
+        private uint simHttpPort;
         private string simAddress;
         private string agentAccess;
         private Int32 circuitCode;
@@ -354,6 +355,7 @@ namespace OpenSim.Framework.Communications
 
                 responseData["sim_port"] = (Int32) SimPort;
                 responseData["sim_ip"] = SimAddress;
+                responseData["http_port"] = (Int32)SimHttpPort;
 
                 responseData["agent_id"] = AgentID.ToString();
                 responseData["session_id"] = SessionID.ToString();
@@ -577,6 +579,12 @@ namespace OpenSim.Framework.Communications
         {
             get { return simPort; }
             set { simPort = value; }
+        }
+
+        public uint SimHttpPort
+        {
+            get { return simHttpPort; }
+            set { simHttpPort = value; }
         }
 
         public string SimAddress
