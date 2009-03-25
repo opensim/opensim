@@ -291,47 +291,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         private void BeginRobustReceive()
         {
-            try
+            bool done = false;
+
+            while (!done)
             {
-                BeginReceive();
+                try
+                {
+                    BeginReceive();
+                    done = true;
+                }
+                catch (SocketException e)
+                {
+                    // ENDLESS LOOP ON PURPOSE!
+                    // Reset connection and get next UDP packet off the buffer
+                    // If the UDP packet is part of the same stream, this will happen several hundreds of times before
+                    // the next set of UDP data is for a valid client.         
+
+                    try
+                    {
+                        CloseCircuit(e);
+                    }
+                    catch (Exception e2)
+                    {
+                        m_log.ErrorFormat(
+                            "[CLIENT]: Exception thrown when trying to close the circuit for {0} - {1}", reusedEpSender,
+                            e2);
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    m_log.Info(
+                        "[UDPSERVER]: UDP Object disposed.   No need to worry about this if you're restarting the simulator.");
+
+                    done = true;
+                }
             }
-            catch (SocketException e)
-            {
-                // ENDLESS LOOP ON PURPOSE!
-                // Reset connection and get next UDP packet off the buffer
-                // If the UDP packet is part of the same stream, this will happen several hundreds of times before
-                // the next set of UDP data is for a valid client.         
-                ResetServerEndPoint(e);
-            }
-            catch (ObjectDisposedException)
-            {
-                m_log.Info("[UDPSERVER]: UDP Object disposed.   No need to worry about this if you're restarting the simulator.");
-            }            
         }       
-
-        /// <summary>
-        /// Reset the server endpoint
-        /// </summary>
-        /// <param name="e">
-        /// The exception that has triggered the reset.  Can be null if there was no exception.
-        /// </param>
-        private void ResetServerEndPoint(Exception e)
-        {
-            try
-            {
-                CloseCircuit(e);
-            }
-            catch (Exception e2)
-            {
-                m_log.ErrorFormat(
-                    "[CLIENT]: Exception thrown when trying to close the circuit for {0} - {1}", reusedEpSender, e2);
-            }
-
-            // ENDLESS LOOP ON PURPOSE!            
-            // We need to purge the UDP stream of crap from the client that disconnected nastily or the UDP server will die
-            // The only way to do that is to BeginRobustReceive again!
-            BeginRobustReceive();
-        }
 
         /// <summary>
         /// Close a client circuit.  This is done in response to an exception on receive, and should not be called
