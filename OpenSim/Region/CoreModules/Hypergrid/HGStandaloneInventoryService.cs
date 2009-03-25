@@ -33,8 +33,10 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
@@ -102,6 +104,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         
         private InventoryServiceBase m_inventoryService;
         private UserManagerBase m_userService;
+        IAssetDataPlugin m_assetProvider;
         private Scene m_scene;
         private bool m_doLookup = false;
         private string m_thisInventoryUrl = "http://localhost:9000";
@@ -120,6 +123,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             m_thisInventoryUrl = m_scene.CommsManager.NetworkServersInfo.InventoryURL;
             if (!m_thisInventoryUrl.EndsWith("/"))
                 m_thisInventoryUrl += "/";
+
+            m_assetProvider = ((AssetServerBase)m_scene.CommsManager.AssetCache.AssetServer).AssetProviderPlugin; 
 
             AddHttpHandlers();
         }
@@ -365,6 +370,31 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             return ((InventoryServiceBase)m_inventoryService).GetActiveGestures(userID);
         }
 
+        public AssetBase GetAsset(InventoryItemBase item)
+        {
+            m_log.Info("[HGStandaloneInvService]: Get asset " + item.AssetID + " for item " + item.ID);
+            InventoryItemBase item2 = ((InventoryServiceBase)m_inventoryService).GetInventoryItem(item.ID);
+            if (item2 == null)
+            {
+                m_log.Debug("[HGStandaloneInvService]: null item");
+                return null;
+            }
+            if (item2.Owner != item.Owner)
+            {
+                m_log.Debug("[HGStandaloneInvService]: client is trying to get an item for which he is not the owner");
+                return null;
+            }
+
+            // All good, get the asset
+            AssetBase asset = m_assetProvider.FetchAsset(item.AssetID);
+            m_log.Debug("[HGStandaloneInvService] Found asset " + ((asset == null)? "NULL" : "Not Null"));
+            if (asset == null)
+            {
+                m_log.Debug("  >> Sending assetID " + item.AssetID);
+                asset = new AssetBase(item.AssetID, "NULL");
+            }
+            return asset;
+        }
 
         #region Caps
 
@@ -545,7 +575,12 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                                         "POST", AddAndGetCapUrl(authToken, "/NewItem/", caps), m_inventoryService.AddItem, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
                                         "POST", AddAndGetCapUrl(authToken, "/DeleteItem/", caps), m_inventoryService.DeleteItem, CheckAuthSession));
-            
+
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, AssetBase>(
+                                        "POST", AddAndGetCapUrl(authToken, "/GetAsset/", caps), GetAsset, CheckAuthSession));
+            //httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<AssetBase, bool>(
+            //                            "POST", AddAndGetCapUrl(authToken, "/PostAsset/", caps), m_inventoryService.DeleteItem, CheckAuthSession));
+
             lock (invCaps)
                 invCaps.Add(userID, caps);
         }
