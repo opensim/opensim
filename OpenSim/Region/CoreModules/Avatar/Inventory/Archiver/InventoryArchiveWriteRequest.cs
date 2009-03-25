@@ -46,13 +46,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected TarArchiveWriter m_archive;
-        protected UuidGatherer m_assetGatherer;
-        protected Dictionary<UUID, int> assetUuids = new Dictionary<UUID, int>();
-
         private InventoryArchiverModule m_module;
         private CachedUserInfo m_userInfo;
-        private string m_invPath;
+        private string m_invPath;        
+        protected TarArchiveWriter m_archive;
+        protected UuidGatherer m_assetGatherer;
+        
+        /// <value>
+        /// Used to collect the uuids of the assets that we need to save into the archive
+        /// </value>
+        protected Dictionary<UUID, int> m_assetUuids = new Dictionary<UUID, int>();
+        
+        /// <value>
+        /// Used to collect the uuids of the users that we need to save into the archive
+        /// </value>
+        protected Dictionary<UUID, int> m_userUuids = new Dictionary<UUID, int>();
 
         /// <value>
         /// The stream to which the inventory archive will be saved.
@@ -175,19 +183,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             m_archive.WriteFile(filename, sw.ToString());
 
-            // Record the creator of this item
-            CachedUserInfo creator 
-                = m_module.CommsManager.UserProfileCacheService.GetUserDetails(inventoryItem.Creator);
+            UUID creatorId = inventoryItem.Creator;
             
-            if (creator != null)
-                m_log.DebugFormat(
-                    "[INVENTORY ARCHIVER]: Got creator {0} {1}", creator.UserProfile.Name, creator.UserProfile.ID);
-            else
-                m_log.WarnFormat(
-                    "[INVENTORY ARCHIVER]: Failed to get creator profile for {0} {1}", 
-                    inventoryItem.Name, inventoryItem.ID);
+            // Record the creator of this item
+            m_userUuids[creatorId] = 1;
 
-            m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, assetUuids);
+            m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, m_assetUuids);
         }
 
         protected void SaveInvDir(InventoryFolderImpl inventoryFolder, string path)
@@ -299,6 +300,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 if (null == inventoryItem)
                 {
+                    // We couldn't find the path indicated 
                     m_saveStream.Close();
                     m_module.TriggerInventoryArchiveSaved(
                         false, m_userInfo, m_invPath, m_saveStream,
@@ -324,8 +326,31 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 //recurse through all dirs getting dirs and files
                 SaveInvDir(inventoryFolder, ArchiveConstants.INVENTORY_PATH);
             }
-
-            new AssetsRequest(assetUuids.Keys, m_module.CommsManager.AssetCache, ReceivedAllAssets).Execute();
+            
+            SaveUsers();
+            new AssetsRequest(m_assetUuids.Keys, m_module.CommsManager.AssetCache, ReceivedAllAssets).Execute();
+        }
+        
+        /// <summary>
+        /// Save information for the users that we've collected.
+        /// XXX: Doesn't actually do this yet.
+        /// </summary>
+        protected void SaveUsers()
+        {
+            m_log.InfoFormat("[INVENTORY ARCHIVER]: Saving user information for {0} users", m_userUuids.Count);
+            
+            foreach (UUID creatorId in m_userUuids.Keys)
+            {
+                // Record the creator of this item
+                CachedUserInfo creator 
+                    = m_module.CommsManager.UserProfileCacheService.GetUserDetails(creatorId);
+            
+                if (creator != null)
+                    m_log.DebugFormat(
+                        "[INVENTORY ARCHIVER]: Got creator {0} {1}", creator.UserProfile.Name, creator.UserProfile.ID);
+                else
+                    m_log.WarnFormat("[INVENTORY ARCHIVER]: Failed to get creator profile for {0}", creatorId);
+            }
         }
     }
 }
