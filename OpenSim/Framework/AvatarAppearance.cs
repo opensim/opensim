@@ -38,7 +38,7 @@ namespace OpenSim.Framework
     {
 //        private static readonly ILog m_log
 //            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         // these are guessed at by the list here -
         // http://wiki.secondlife.com/wiki/Avatar_Appearance.  We'll
         // correct them over time for when were are wrong.
@@ -104,127 +104,127 @@ namespace OpenSim.Framework
             get { return m_wearables[BODY].ItemID; }
             set { m_wearables[BODY].ItemID = value; }
         }
-        
+
         public virtual UUID BodyAsset {
             get { return m_wearables[BODY].AssetID; }
             set { m_wearables[BODY].AssetID = value; }
         }
-        
+
         public virtual UUID SkinItem {
             get { return m_wearables[SKIN].ItemID; }
             set { m_wearables[SKIN].ItemID = value; }
         }
-        
+
         public virtual UUID SkinAsset {
             get { return m_wearables[SKIN].AssetID; }
             set { m_wearables[SKIN].AssetID = value; }
         }
-        
+
         public virtual UUID HairItem {
             get { return m_wearables[HAIR].ItemID; }
             set { m_wearables[HAIR].ItemID = value; }
         }
-        
+
         public virtual UUID HairAsset {
             get { return m_wearables[HAIR].AssetID; }
             set { m_wearables[HAIR].AssetID = value; }
         }
-        
+
         public virtual UUID EyesItem {
             get { return m_wearables[EYES].ItemID; }
             set { m_wearables[EYES].ItemID = value; }
         }
-        
+
         public virtual UUID EyesAsset {
             get { return m_wearables[EYES].AssetID; }
             set { m_wearables[EYES].AssetID = value; }
         }
-        
+
         public virtual UUID ShirtItem {
             get { return m_wearables[SHIRT].ItemID; }
             set { m_wearables[SHIRT].ItemID = value; }
         }
-        
+
         public virtual UUID ShirtAsset {
             get { return m_wearables[SHIRT].AssetID; }
             set { m_wearables[SHIRT].AssetID = value; }
         }
-        
+
         public virtual UUID PantsItem {
             get { return m_wearables[PANTS].ItemID; }
             set { m_wearables[PANTS].ItemID = value; }
         }
-        
+
         public virtual UUID PantsAsset {
             get { return m_wearables[PANTS].AssetID; }
             set { m_wearables[PANTS].AssetID = value; }
         }
-        
+
         public virtual UUID ShoesItem {
             get { return m_wearables[SHOES].ItemID; }
             set { m_wearables[SHOES].ItemID = value; }
         }
-        
+
         public virtual UUID ShoesAsset {
             get { return m_wearables[SHOES].AssetID; }
             set { m_wearables[SHOES].AssetID = value; }
         }
-        
+
         public virtual UUID SocksItem {
             get { return m_wearables[SOCKS].ItemID; }
             set { m_wearables[SOCKS].ItemID = value; }
         }
-        
+
         public virtual UUID SocksAsset {
             get { return m_wearables[SOCKS].AssetID; }
             set { m_wearables[SOCKS].AssetID = value; }
         }
-        
+
         public virtual UUID JacketItem {
             get { return m_wearables[JACKET].ItemID; }
             set { m_wearables[JACKET].ItemID = value; }
         }
-        
+
         public virtual UUID JacketAsset {
             get { return m_wearables[JACKET].AssetID; }
             set { m_wearables[JACKET].AssetID = value; }
         }
-        
+
         public virtual UUID GlovesItem {
             get { return m_wearables[GLOVES].ItemID; }
             set { m_wearables[GLOVES].ItemID = value; }
         }
-        
+
         public virtual UUID GlovesAsset {
             get { return m_wearables[GLOVES].AssetID; }
             set { m_wearables[GLOVES].AssetID = value; }
         }
-        
+
         public virtual UUID UnderShirtItem {
             get { return m_wearables[UNDERSHIRT].ItemID; }
             set { m_wearables[UNDERSHIRT].ItemID = value; }
         }
-        
+
         public virtual UUID UnderShirtAsset {
             get { return m_wearables[UNDERSHIRT].AssetID; }
             set { m_wearables[UNDERSHIRT].AssetID = value; }
         }
-        
+
         public virtual UUID UnderPantsItem {
             get { return m_wearables[UNDERPANTS].ItemID; }
             set { m_wearables[UNDERPANTS].ItemID = value; }
         }
-        
+
         public virtual UUID UnderPantsAsset {
             get { return m_wearables[UNDERPANTS].AssetID; }
             set { m_wearables[UNDERPANTS].AssetID = value; }
         }
-        
+
         public virtual UUID SkirtItem {
             get { return m_wearables[SKIRT].ItemID; }
             set { m_wearables[SKIRT].ItemID = value; }
         }
-        
+
         public virtual UUID SkirtAsset {
             get { return m_wearables[SKIRT].AssetID; }
             set { m_wearables[SKIRT].AssetID = value; }
@@ -240,6 +240,15 @@ namespace OpenSim.Framework
             m_wearables[SHIRT].ItemID = SHIRT_ITEM;
             m_wearables[PANTS].AssetID = PANTS_ASSET;
             m_wearables[PANTS].ItemID = PANTS_ITEM;
+        }
+
+        public virtual void SetDefaultParams(byte[] vparams)
+        {
+            // TODO: Figure out better values then 'fat scientist 150' or 'alien 0'
+            for (int i = 0; i < VISUALPARAM_COUNT; i++)
+            {
+                vparams[i] = 150;
+            }
         }
 
         protected Primitive.TextureEntry m_texture;
@@ -280,6 +289,8 @@ namespace OpenSim.Framework
             m_serial = 0;
             m_owner = owner;
             m_visualparams = new byte[VISUALPARAM_COUNT];
+            // This sets Visual Params with *less* weirder values then default. Instead of a ugly alien, it looks like a fat scientist
+            SetDefaultParams(m_visualparams);
             SetDefaultWearables();
             m_texture = GetDefaultTexture();
         }

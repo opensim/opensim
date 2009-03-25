@@ -320,7 +320,7 @@ namespace OpenSim.Region.Communications.Local
             else
             {
                 m_log.WarnFormat("[INTER]: Appearance not found for {0} {1}. Creating default.", agent.firstname, agent.lastname);
-                agent.Appearance = new AvatarAppearance();
+                agent.Appearance = new AvatarAppearance(agent.AgentID);
             }
 
             TriggerExpectUser(regionHandle, agent);

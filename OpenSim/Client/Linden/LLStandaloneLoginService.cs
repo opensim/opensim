@@ -196,7 +196,7 @@ namespace OpenSim.Client.Linden
             if (agent.Appearance == null)
             {
                 m_log.WarnFormat("[INTER]: Appearance not found for {0} {1}. Creating default.", agent.firstname, agent.lastname);
-                agent.Appearance = new AvatarAppearance();
+                agent.Appearance = new AvatarAppearance(agent.AgentID);
             }
 
             if (m_regionsConnector.RegionLoginsEnabled)

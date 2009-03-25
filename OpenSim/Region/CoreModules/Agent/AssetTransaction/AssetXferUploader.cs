@@ -43,6 +43,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private UUID InventFolder = UUID.Zero;
         private sbyte invType = 0;
         private bool m_createItem = false;
+        private uint m_createItemCallback = 0;
         private string m_description = String.Empty;
         private bool m_dumpAssetToFile;
         private bool m_finished = false;
@@ -148,7 +149,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             m_finished = true;
             if (m_createItem)
             {
-                DoCreateItem(0);
+                DoCreateItem(m_createItemCallback);
             }
             else if (m_storeLocal)
             {
@@ -205,6 +206,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 else
                 {
                     m_createItem = true; //set flag so the inventory item is created when upload is complete
+                    m_createItemCallback = callbackID;
                 }
             }
         }

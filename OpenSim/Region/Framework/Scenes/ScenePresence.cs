@@ -2389,6 +2389,11 @@ namespace OpenSim.Region.Framework.Scenes
                 UpdateMovementAnimations();
                 m_startAnimationSet = true;
             }
+
+            Quaternion rot = m_bodyRot;
+            m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
+                m_pos, m_appearance.Texture.ToBytes(), m_parentID, rot);
+
         }
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
