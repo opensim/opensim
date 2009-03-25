@@ -1007,7 +1007,7 @@ namespace OpenSim
                 {
                     m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME, false, loadOffset);
                 }
-                catch
+                catch (FileNotFoundException)
                 {
                     m_console.Error("Default xml not found. Usage: load-xml <filename>");
                 }
@@ -1018,14 +1018,7 @@ namespace OpenSim
         {
             if (cmdparams.Length > 2)
             {
-                try
-                {
-                    m_sceneManager.SaveCurrentSceneToXml2(cmdparams[2]);
-                }
-                catch
-                {
-                    m_console.Error("Unable to save xml. Usage: save xml2 <filename>");
-                }
+                m_sceneManager.SaveCurrentSceneToXml2(cmdparams[2]);
             }
             else
             {
@@ -1041,7 +1034,7 @@ namespace OpenSim
                 {
                     m_sceneManager.LoadCurrentSceneFromXml2(cmdparams[2]);
                 }
-                catch
+                catch (FileNotFoundException)
                 {
                     m_console.Error("Specified xml not found. Usage: load xml2 <filename>");
                 }
@@ -1052,7 +1045,7 @@ namespace OpenSim
                 {
                     m_sceneManager.LoadCurrentSceneFromXml2(DEFAULT_PRIM_BACKUP_FILENAME);
                 }
-                catch
+                catch (FileNotFoundException)
                 {
                     m_console.Error("Default xml not found. Usage: load xml2 <filename>");
                 }
@@ -1071,7 +1064,7 @@ namespace OpenSim
                 {
                     m_sceneManager.LoadArchiveToCurrentScene(cmdparams[2]);
                 }
-                catch
+                catch (FileNotFoundException)
                 {
                     m_console.Error("Specified oar not found. Usage: load oar <filename>");
                 }
@@ -1082,7 +1075,7 @@ namespace OpenSim
                 {
                     m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);
                 }
-                catch
+                catch (FileNotFoundException)
                 {
                     m_console.Error("Default oar not found. Usage: load oar <filename>");
                 }
@@ -1097,14 +1090,7 @@ namespace OpenSim
         {
             if (cmdparams.Length > 2)
             {
-                try
-                {
-                    m_sceneManager.SaveCurrentSceneToArchive(cmdparams[2]);
-                }
-                catch
-                {
-                    m_console.Error("Unable to save oar. Usage: save oar <filename>");
-                }
+                m_sceneManager.SaveCurrentSceneToArchive(cmdparams[2]);
             }
             else
             {
