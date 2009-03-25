@@ -186,7 +186,7 @@ namespace OpenSim
                                           "Change the scale of a named prim", HandleEditScale);
 
             m_console.Commands.AddCommand("region", false, "kick user",
-                                          "kick user <first> <last>",
+                                          "kick user <first> <last> [message]",
                                           "Kick a user off the simulator", KickUserCommand);
 
             m_console.Commands.AddCommand("region", false, "show assets",
@@ -317,6 +317,10 @@ namespace OpenSim
             if (cmdparams.Length < 4)
                 return;
 
+            string alert = null;
+            if (cmdparams.Length > 4)
+                alert = String.Join(" ", cmdparams, 4, cmdparams.Length - 4);
+
             IList agents = m_sceneManager.GetCurrentSceneAvatars();
 
             foreach (ScenePresence presence in agents)
@@ -326,6 +330,13 @@ namespace OpenSim
                 if (presence.Firstname.ToLower().Contains(cmdparams[2].ToLower()) &&
                     presence.Lastname.ToLower().Contains(cmdparams[3].ToLower()))
                 {
+                    if (alert != null && !presence.IsChildAgent) 
+                    {
+                        IDialogModule dialogModule = presence.Scene.RequestModuleInterface<IDialogModule>();
+                        if (dialogModule != null)
+                            dialogModule.SendAlertToUser(presence.UUID, alert, true);
+                    }
+                    
                     m_console.Notice(
                         String.Format(
                             "Kicking user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
