@@ -865,7 +865,6 @@ namespace OpenSim.Framework.Communications.Cache
                 return true;
             }
         }
-
     }
 
     /// <summary>

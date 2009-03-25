@@ -65,11 +65,11 @@ namespace OpenSim.Framework.Servers
         /// <remarks>
         /// IsContentTypeSet will go away together with .NET base.
         /// </remarks>
-        public bool IsContentTypeSet
-        {
-            get { return _contentTypeSet; }
-        }
-        private bool _contentTypeSet;
+        // public bool IsContentTypeSet
+        // {
+        //     get { return _contentTypeSet; }
+        // }
+        // private bool _contentTypeSet;
 
 
         /// <summary>

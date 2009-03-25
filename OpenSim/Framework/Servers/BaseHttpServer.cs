@@ -54,7 +54,7 @@ namespace OpenSim.Framework.Servers
         public volatile bool HTTPDRunning = false;
 
         protected Thread m_workerThread;
-        protected HttpListener m_httpListener;
+        // protected HttpListener m_httpListener;
         protected CoolHTTPListener m_httpListener2;
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers        = new Dictionary<string, XmlRpcMethod>();
         protected Dictionary<string, bool> m_rpcHandlersKeepAlive       = new Dictionary<string, bool>();
@@ -371,7 +371,7 @@ namespace OpenSim.Framework.Servers
                     }
 
                     request.InputStream.Close();
-                    if (!response.IsContentTypeSet) response.ContentType = requestHandler.ContentType;
+                    response.ContentType = requestHandler.ContentType;
                     if (!response.SendChunked)
                         response.ContentLength64 = buffer.LongLength;
 

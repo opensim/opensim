@@ -69,7 +69,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         #region Declares
 
         private Thread scriptLoadUnloadThread;
-        private static Thread staticScriptLoadUnloadThread;
+        private static Thread staticScriptLoadUnloadThread = null;
         private Queue<LUStruct> LUQueue = new Queue<LUStruct>();
         private static bool PrivateThread;
         private int LoadUnloadMaxQueueSize;

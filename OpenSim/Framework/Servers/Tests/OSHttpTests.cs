@@ -281,7 +281,7 @@ namespace OpenSim.Framework.Servers.Tests
             {
                 get { return _cookies; }
             }
-            private ResponseCookies _cookies;
+            private ResponseCookies _cookies = null;
 
             public TestHttpResponse()
             {
