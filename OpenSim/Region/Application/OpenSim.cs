@@ -319,7 +319,7 @@ namespace OpenSim
 
             string alert = null;
             if (cmdparams.Length > 4)
-                alert = String.Join(" ", cmdparams, 4, cmdparams.Length - 4);
+                alert = String.Format("\n{0}\n", String.Join(" ", cmdparams, 4, cmdparams.Length - 4));
 
             IList agents = m_sceneManager.GetCurrentSceneAvatars();
 
@@ -330,21 +330,18 @@ namespace OpenSim
                 if (presence.Firstname.ToLower().Contains(cmdparams[2].ToLower()) &&
                     presence.Lastname.ToLower().Contains(cmdparams[3].ToLower()))
                 {
-                    if (alert != null && !presence.IsChildAgent) 
-                    {
-                        IDialogModule dialogModule = presence.Scene.RequestModuleInterface<IDialogModule>();
-                        if (dialogModule != null)
-                            dialogModule.SendAlertToUser(presence.UUID, alert, true);
-                    }
-                    
                     m_console.Notice(
                         String.Format(
                             "Kicking user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
-                            presence.Firstname,
-                            presence.Lastname,
-                            presence.UUID,
-                            regionInfo.RegionName));
+                            presence.Firstname, presence.Lastname, presence.UUID, regionInfo.RegionName));
 
+                    // kick client...
+                    if (alert != null)
+                        presence.ControllingClient.Kick(alert);
+                    else 
+                        presence.ControllingClient.Kick("\nThe OpenSim manager kicked you out.\n");
+
+                    // ...and close on our side
                     presence.Scene.IncomingCloseAgent(presence.UUID);
                 }
             }
