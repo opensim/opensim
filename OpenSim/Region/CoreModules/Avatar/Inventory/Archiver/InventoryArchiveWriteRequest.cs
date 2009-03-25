@@ -175,6 +175,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             m_archive.WriteFile(filename, sw.ToString());
 
+            // Record the creator of this item
+            CachedUserInfo creator 
+                = m_module.CommsManager.UserProfileCacheService.GetUserDetails(inventoryItem.Creator);
+            
+            if (creator != null)
+                m_log.DebugFormat(
+                    "[INVENTORY ARCHIVER]: Got creator {0} {1}", creator.UserProfile.Name, creator.UserProfile.ID);
+            else
+                m_log.WarnFormat(
+                    "[INVENTORY ARCHIVER]: Failed to get creator profile for {0} {1}", 
+                    inventoryItem.Name, inventoryItem.ID);
+
             m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, assetUuids);
         }
 
