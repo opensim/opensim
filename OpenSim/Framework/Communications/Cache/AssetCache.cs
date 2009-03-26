@@ -333,6 +333,9 @@ namespace OpenSim.Framework.Communications.Cache
         public virtual void AssetReceived(AssetBase asset, bool IsTexture)
         {
             AssetInfo assetInf = new AssetInfo(asset);
+
+            ProcessRecievedAsset(IsTexture, assetInf);
+
             if (!m_memcache.Contains(assetInf.FullID))
             {
                 m_memcache.AddOrUpdate(assetInf.FullID, assetInf, TimeSpan.FromHours(24));
@@ -347,10 +350,19 @@ namespace OpenSim.Framework.Communications.Cache
                     req.NumPackets = CalculateNumPackets(assetInf.Data);
 
                     RequestedAssets.Remove(assetInf.FullID);
-                    // If it's a direct request for a script, drop it
-                    // because it's a hacked client
-                    if (req.AssetRequestSource != 2 || assetInf.Type != 10)
-                        lock(AssetRequests) AssetRequests.Add(req);
+            
+                    if (req.AssetRequestSource == 2 && assetInf.Type == 10)
+                    {
+                        // If it's a direct request for a script, drop it
+                        // because it's a hacked client
+                    }
+                    else
+                    {
+                        lock (AssetRequests)
+                        {
+                            AssetRequests.Add(req);
+                        }
+                    }
                 }
             }
 
@@ -375,6 +387,10 @@ namespace OpenSim.Framework.Communications.Cache
                     req.Callback(asset.FullID, asset);
                 }
             }
+        }
+
+        protected void ProcessRecievedAsset(bool IsTexture, AssetInfo assetInf)
+        {
         }
 
         // See IAssetReceiver
