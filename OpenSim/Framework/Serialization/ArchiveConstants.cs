@@ -83,8 +83,8 @@ namespace OpenSim.Framework.Serialization
         /// <value>
         /// Extensions used for asset types in the archive
         /// </value>
-        public const IDictionary<sbyte, string> ASSET_TYPE_TO_EXTENSION = new Dictionary<sbyte, string>();
-        public const IDictionary<string, sbyte> EXTENSION_TO_ASSET_TYPE = new Dictionary<string, sbyte>();
+        public static readonly IDictionary<sbyte, string> ASSET_TYPE_TO_EXTENSION = new Dictionary<sbyte, string>();
+        public static readonly IDictionary<string, sbyte> EXTENSION_TO_ASSET_TYPE = new Dictionary<string, sbyte>();
 
         static ArchiveConstants()
         {
