@@ -112,6 +112,10 @@ namespace OpenSim.Framework.Communications.Capabilities
         {
             get { return m_httpListener.SSLCommonName; }
         }
+        public CapsHandlers CapsHandlers
+        {
+            get { return m_capsHandlers; }
+        }
 
         // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
@@ -626,7 +630,9 @@ namespace OpenSim.Framework.Communications.Capabilities
         public string NoteCardAgentInventory(string request, string path, string param,
                                              OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            m_log.Debug("[CAPS]: NoteCardAgentInventory Request in region: " + m_regionName);
+            m_log.Debug("[CAPS]: NoteCardAgentInventory Request in region: " + m_regionName + "\n" + request);
+            m_log.Debug("[CAPS]: NoteCardAgentInventory Request is: " + request);
+            
             //OpenMetaverse.StructuredData.OSDMap hash = (OpenMetaverse.StructuredData.OSDMap)OpenMetaverse.StructuredData.LLSDParser.DeserializeBinary(Utils.StringToBytes(request));
             Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Utils.StringToBytes(request));
             LLSDItemUpdate llsdRequest = new LLSDItemUpdate();

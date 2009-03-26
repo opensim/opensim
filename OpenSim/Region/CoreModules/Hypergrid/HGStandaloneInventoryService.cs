@@ -37,6 +37,8 @@ using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
+using LLSDHelpers = OpenSim.Framework.Communications.Capabilities.LLSDHelpers;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
@@ -108,6 +110,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         private Scene m_scene;
         private bool m_doLookup = false;
         private string m_thisInventoryUrl = "http://localhost:9000";
+        private string m_thisHostname = "127.0.0.1";
+        private uint m_thisPort = 9000;
 
         public bool DoLookup
         {
@@ -123,6 +127,13 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             m_thisInventoryUrl = m_scene.CommsManager.NetworkServersInfo.InventoryURL;
             if (!m_thisInventoryUrl.EndsWith("/"))
                 m_thisInventoryUrl += "/";
+
+            Uri uri = new Uri(m_thisInventoryUrl);
+            if (uri != null)
+            {
+                m_thisHostname = uri.Host;
+                m_thisPort = (uint)uri.Port;
+            }
 
             m_assetProvider = ((AssetServerBase)m_scene.CommsManager.AssetCache.AssetServer).AssetProviderPlugin; 
 
@@ -494,9 +505,63 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             return true;
         }
 
+        /// <summary>
+        /// <see>CapsUpdatedInventoryItemAsset(IClientAPI, UUID, byte[])</see>
+        /// </summary>
+        public UUID UpdateInventoryItemAsset(UUID userID, UUID itemID, byte[] data)
+        {
+            m_log.Debug("[HGStandaloneInvService]: UpdateInventoryitemAsset for user " + userID + " item " + itemID);
+            InventoryItemBase item = m_inventoryService.GetInventoryItem(itemID);
+
+            if (item != null)
+            {
+                // We're still not dealing with permissions
+                //if ((InventoryType)item.InvType == InventoryType.Notecard)
+                //{
+                //    if (!Permissions.CanEditNotecard(itemID, UUID.Zero, userID))
+                //    {
+                //        //remoteClient.SendAgentAlertMessage("Insufficient permissions to edit notecard", false);
+                //        return UUID.Zero;
+                //    }
+
+                //    //remoteClient.SendAgentAlertMessage("Notecard saved", false);
+                //}
+                //else if ((InventoryType)item.InvType == InventoryType.LSL)
+                //{
+                //    if (!Permissions.CanEditScript(itemID, UUID.Zero, remoteClient.AgentId))
+                //    {
+                //        //remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
+                //        return UUID.Zero;
+                //    }
+
+                //    //remoteClient.SendAgentAlertMessage("Script saved", false);
+                //}
+
+                AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data);
+                PostAsset(asset);
+
+                item.AssetID = asset.FullID;
+
+                return (asset.FullID);
+            }
+            return UUID.Zero;
+        }
+
+        private AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data)
+        {
+            AssetBase asset = new AssetBase();
+            asset.Name = name;
+            asset.Description = description;
+            asset.Type = assetType;
+            asset.FullID = UUID.Random();
+            asset.Data = (data == null) ? new byte[1] : data;
+
+            return asset;
+        }
+
         #region Caps
 
-        Dictionary<UUID, List<string>> invCaps = new Dictionary<UUID, List<string>>();
+        Dictionary<UUID, Hashtable> invCaps = new Dictionary<UUID, Hashtable>();
 
         public Hashtable CapHandler(Hashtable request)
         {
@@ -573,10 +638,11 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                 
                 // Then establish secret service handlers
 
-                RegisterCaps(userID, authToken);
+                Hashtable usercaps = RegisterCaps(userID, authToken);
 
                 responsedata["int_response_code"] = 200;
-                responsedata["str_response_string"] = "OK";
+                //responsedata["str_response_string"] = "OK";
+                responsedata["str_response_string"] = SerializeHashtable(usercaps);
             }
             else
             {
@@ -638,7 +704,17 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             return false;
         }
 
-        void RegisterCaps(UUID userID, string authToken)
+        string SerializeHashtable(Hashtable hash)
+        {
+            string result = string.Empty;
+            foreach (object key in hash.Keys)
+            {
+                result += key.ToString() + "," + hash[key].ToString() + ";";
+            }
+            return result;
+        }
+
+        Hashtable RegisterCaps(UUID userID, string authToken)
         {
             IHttpServer httpServer = m_scene.CommsManager.HttpServer;
 
@@ -652,58 +728,63 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                 }
             }
 
-            List<string> caps = new List<string>();
+            Caps caps = new Caps(null, httpServer, m_thisHostname, m_thisPort, authToken, userID, false, "Inventory");
+            caps.RegisterInventoryServiceHandlers("/" + authToken + "/InventoryCap/");
+            caps.ItemUpdatedCall = UpdateInventoryItemAsset;
+            Hashtable capsHandlers = caps.CapsHandlers.CapsDetails;
 
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<Guid, InventoryCollection>(
-                                        "POST", AddAndGetCapUrl(authToken, "/GetInventory/", caps), GetUserInventory, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "GetInventory", capsHandlers), GetUserInventory, CheckAuthSession));
 
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, InventoryCollection>(
-                                        "POST", AddAndGetCapUrl(authToken, "/FetchDescendants/", caps), FetchDescendants, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "FetchDescendants", capsHandlers), FetchDescendants, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
-                                        "POST", AddAndGetCapUrl(authToken, "/NewFolder/", caps), m_inventoryService.AddFolder, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "NewFolder", capsHandlers), m_inventoryService.AddFolder, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
-                                        "POST", AddAndGetCapUrl(authToken, "/UpdateFolder/", caps), m_inventoryService.UpdateFolder, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "UpdateFolder", capsHandlers), m_inventoryService.UpdateFolder, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
-                                        "POST", AddAndGetCapUrl(authToken, "/MoveFolder/", caps), m_inventoryService.MoveFolder, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "MoveFolder", capsHandlers), m_inventoryService.MoveFolder, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
-                                        "POST", AddAndGetCapUrl(authToken, "/PurgeFolder/", caps), m_inventoryService.PurgeFolder, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "PurgeFolder", capsHandlers), m_inventoryService.PurgeFolder, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
-                                        "POST", AddAndGetCapUrl(authToken, "/RemoveFolder/", caps), RemoveFolder, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "RemoveFolder", capsHandlers), RemoveFolder, CheckAuthSession));
 
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
-                                        "POST", AddAndGetCapUrl(authToken, "/GetItem/", caps), GetInventoryItem, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "GetItem", capsHandlers), GetInventoryItem, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
-                                        "POST", AddAndGetCapUrl(authToken, "/NewItem/", caps), AddItem, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "NewItem", capsHandlers), AddItem, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
-                                        "POST", AddAndGetCapUrl(authToken, "/UpdateItem/", caps), UpdateItem, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "UpdateItem", capsHandlers), UpdateItem, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
-                                        "POST", AddAndGetCapUrl(authToken, "/MoveItem/", caps), MoveItem, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "MoveItem", capsHandlers), MoveItem, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
-                                        "POST", AddAndGetCapUrl(authToken, "/DeleteItem/", caps), DeleteItem, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "DeleteItem", capsHandlers), DeleteItem, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
-                                        "POST", AddAndGetCapUrl(authToken, "/CopyItem/", caps), CopyItem, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "CopyItem", capsHandlers), CopyItem, CheckAuthSession));
 
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, AssetBase>(
-                                        "POST", AddAndGetCapUrl(authToken, "/GetAsset/", caps), GetAsset, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "GetAsset", capsHandlers), GetAsset, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<AssetBase, bool>(
-                                        "POST", AddAndGetCapUrl(authToken, "/PostAsset/", caps), PostAsset, CheckAuthSession));
+                                        "POST", AddAndGetCapUrl(authToken, "PostAsset", capsHandlers), PostAsset, CheckAuthSession));
 
             lock (invCaps)
-                invCaps.Add(userID, caps);
+                invCaps.Add(userID, capsHandlers);
+
+            return capsHandlers;
         }
 
-        string AddAndGetCapUrl(string authToken, string capType, List<string> caps)
+        string AddAndGetCapUrl(string authToken, string capType, Hashtable caps)
         {
-            string capUrl = "/" + authToken + capType;
+            string capUrl = "/" + authToken + "/" + capType + "/";
 
             m_log.Debug("[HGStandaloneInvService] Adding inventory cap " + capUrl);
-            caps.Add(capUrl);
+            caps.Add(capType, capUrl);
             return capUrl;
         }
 
-        void DeregisterCaps(IHttpServer httpServer, List<string> caps)
+        void DeregisterCaps(IHttpServer httpServer, Hashtable caps)
         {
-            foreach (string capUrl in caps)
+            foreach (string capUrl in caps.Values)
             {
                 m_log.Debug("[HGStandaloneInvService] Removing inventory cap " + capUrl);
                 httpServer.RemoveStreamHandler("POST", capUrl);
