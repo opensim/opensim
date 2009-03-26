@@ -309,7 +309,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             //
             if (File.Exists(OutFile) && File.Exists(OutFile+".text") && File.Exists(OutFile+".map"))
             {
-                // TODO: Read .map file here
+                ReadMapFile(OutFile+".map");
                 return OutFile;
             }
 
@@ -749,6 +749,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 ret.Add(kvp, m_positionMap[kvp]);
             
             return ret;
+        }
+
+        private void ReadMapFile(string filename)
+        {
+            try
+            {
+                StreamReader r = File.OpenText(filename);
+
+                m_positionMap = new Dictionary<KeyValuePair<int,int>, KeyValuePair<int, int>>();
+                
+                string line;
+                while ((line = r.ReadLine()) != null)
+                {
+                    String[] parts = line.Split(new Char[] {','});
+                    int kk = System.Convert.ToInt32(parts[0]);
+                    int kv = System.Convert.ToInt32(parts[1]);
+                    int vk = System.Convert.ToInt32(parts[2]);
+                    int vv = System.Convert.ToInt32(parts[3]);
+
+                    KeyValuePair<int, int> k = new KeyValuePair<int, int>(kk, kv);
+                    KeyValuePair<int, int> v = new KeyValuePair<int, int>(vk, vv);
+
+                    m_positionMap[k] = v;
+                }
+            }
+            catch (Exception e)
+            {
+            }
         }
     }
 }

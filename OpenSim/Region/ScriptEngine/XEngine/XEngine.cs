@@ -780,6 +780,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             
                             if (File.Exists(m_Assemblies[assetID]+".mdb"))
                                 File.Delete(m_Assemblies[assetID]+".mdb");
+                            
+                            if (File.Exists(m_Assemblies[assetID]+".map"))
+                                File.Delete(m_Assemblies[assetID]+".map");
                         }
                         catch (Exception)
                         {
