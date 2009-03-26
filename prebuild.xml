@@ -121,7 +121,7 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="log4net.dll"/>
-      <Reference name="OpenMetaverse" />
+      <Reference name="OpenMetaverse.dll" />
       <Reference name="OpenSim.Framework"/>
 
       <Files>
