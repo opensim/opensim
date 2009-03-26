@@ -92,6 +92,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private StateSource m_stateSource;
         private bool m_postOnRez;
         private bool m_startedFromSavedState = false;
+        private string m_CurrentState = String.Empty;
 
         //private ISponsor m_ScriptSponsor;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
@@ -870,21 +871,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             string xml = ScriptSerializer.Serialize(this);
 
-            try
+            if (m_CurrentState != xml)
             {
-                FileStream fs = File.Create(Path.Combine(Path.GetDirectoryName(assembly), m_ItemID.ToString() + ".state"));
-                System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-                Byte[] buf = enc.GetBytes(xml);
-                fs.Write(buf, 0, buf.Length);
-                fs.Close();
-            }
-            catch(Exception e)
-            {
-                m_log.Error("Unable to save xml\n"+e.ToString());
-            }
-            if (!File.Exists(Path.Combine(Path.GetDirectoryName(assembly), m_ItemID.ToString() + ".state")))
-            {
-                throw new Exception("Completed persistence save, but no file was created");
+                try
+                {
+                    FileStream fs = File.Create(Path.Combine(Path.GetDirectoryName(assembly), m_ItemID.ToString() + ".state"));
+                    System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                    Byte[] buf = enc.GetBytes(xml);
+                    fs.Write(buf, 0, buf.Length);
+                    fs.Close();
+                }
+                catch(Exception e)
+                {
+                    m_log.Error("Unable to save xml\n"+e.ToString());
+                }
+                //if (!File.Exists(Path.Combine(Path.GetDirectoryName(assembly), m_ItemID.ToString() + ".state")))
+                //{
+                //    throw new Exception("Completed persistence save, but no file was created");
+                //}
+                m_CurrentState = xml;
             }
         }
 
