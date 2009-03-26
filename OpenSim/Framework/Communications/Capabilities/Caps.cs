@@ -630,8 +630,8 @@ namespace OpenSim.Framework.Communications.Capabilities
         public string NoteCardAgentInventory(string request, string path, string param,
                                              OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            m_log.Debug("[CAPS]: NoteCardAgentInventory Request in region: " + m_regionName + "\n" + request);
-            m_log.Debug("[CAPS]: NoteCardAgentInventory Request is: " + request);
+            //m_log.Debug("[CAPS]: NoteCardAgentInventory Request in region: " + m_regionName + "\n" + request);
+            //m_log.Debug("[CAPS]: NoteCardAgentInventory Request is: " + request);
             
             //OpenMetaverse.StructuredData.OSDMap hash = (OpenMetaverse.StructuredData.OSDMap)OpenMetaverse.StructuredData.LLSDParser.DeserializeBinary(Utils.StringToBytes(request));
             Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Utils.StringToBytes(request));
