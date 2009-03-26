@@ -494,8 +494,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             UUID assetID = item.AssetID;
 
-//            m_log.DebugFormat("[XEngine] Compiling script {0} ({1})",
-//                    item.Name, itemID.ToString());
+            //m_log.DebugFormat("[XEngine] Compiling script {0} ({1} on object {2})",
+            //        item.Name, itemID.ToString(), part.ParentGroup.RootPart.Name);
 
             ScenePresence presence = m_Scene.GetScenePresence(item.OwnerID);
 
@@ -559,7 +559,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 try
                 {
                     // DISPLAY ERROR INWORLD
-                    m_ScriptErrorMessage += "Failed to compile: " + e.Message.ToString();
+                    m_ScriptErrorMessage += "Failed to compile script in object: '" + part.ParentGroup.RootPart.Name + "' Script name: '" + item.Name + "' Error message: " + e.Message.ToString();
+
                     m_ScriptFailCount++;
                     string text = "Error compiling script:\n" + e.Message.ToString();
                     if (text.Length > 1000)
