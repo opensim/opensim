@@ -340,6 +340,12 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             return invCollection;
         }
 
+        public bool RemoveFolder(InventoryFolderBase folder)
+        {
+            m_log.Debug("[HGStandaloneInvService]: Removefolder: Operation not implemented yet.");
+            return false;
+        }
+
         public InventoryItemBase GetInventoryItem(InventoryItemBase item)
         {
             m_log.Info("[HGStandaloneInvService]: Processing request for item " + item.ID);
@@ -348,6 +354,61 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             if (item == null)
                 m_log.Debug("[HGStandaloneInvService]: null item");
             return item;
+        }
+
+        public InventoryItemBase AddItem(InventoryItemBase item)
+        {
+            if (m_inventoryService.AddItem(item))
+                return item;
+            else
+            {
+                item.ID = UUID.Zero;
+                return item;
+            }
+        }
+
+        public InventoryItemBase UpdateItem(InventoryItemBase item)
+        {
+            if (m_inventoryService.UpdateItem(item))
+                return item;
+            else
+            {
+                item.ID = UUID.Zero;
+                return item;
+            }
+        }
+
+        public InventoryItemBase MoveItem(InventoryItemBase newitem)
+        {
+            InventoryItemBase Item = m_inventoryService.GetInventoryItem(newitem.ID);
+            if (Item != null)
+            {
+                if (newitem.Name != String.Empty)
+                {
+                    Item.Name = newitem.Name;
+                }
+                Item.Folder = newitem.Folder;
+                m_inventoryService.UpdateItem(Item);
+                return Item;
+            }
+            else
+            {
+                m_log.Debug("[HGStandaloneInvService]: Failed to find item " + newitem.ID);
+                newitem.ID = UUID.Zero;
+                return newitem;
+            }
+
+        }
+        public InventoryItemBase DeleteItem(InventoryItemBase item)
+        {
+            item = m_inventoryService.GetInventoryItem(item.ID);
+            if (m_inventoryService.DeleteItem(item))
+                return item;
+            else
+            {
+                item.ID = UUID.Zero;
+                return item;
+            }
         }
 
         /// <summary>
@@ -391,9 +452,16 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             if (asset == null)
             {
                 m_log.Debug("  >> Sending assetID " + item.AssetID);
-                asset = new AssetBase(item.AssetID, "NULL");
+                asset = new AssetBase(item.AssetID, "NULL"); // send an asset with no data
             }
             return asset;
+        }
+
+        public bool PostAsset(AssetBase asset)
+        {
+            m_log.Info("[HGStandaloneInvService]: Post asset " + asset.FullID);
+            m_assetProvider.CreateAsset(asset);
+            return true;
         }
 
         #region Caps
@@ -561,8 +629,6 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, InventoryCollection>(
                                         "POST", AddAndGetCapUrl(authToken, "/FetchDescendants/", caps), FetchDescendants, CheckAuthSession));
-            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
-                                        "POST", AddAndGetCapUrl(authToken, "/GetItem/", caps), GetInventoryItem, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
                                         "POST", AddAndGetCapUrl(authToken, "/NewFolder/", caps), m_inventoryService.AddFolder, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
@@ -571,15 +637,24 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                                         "POST", AddAndGetCapUrl(authToken, "/MoveFolder/", caps), m_inventoryService.MoveFolder, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
                                         "POST", AddAndGetCapUrl(authToken, "/PurgeFolder/", caps), m_inventoryService.PurgeFolder, CheckAuthSession));
-            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
-                                        "POST", AddAndGetCapUrl(authToken, "/NewItem/", caps), m_inventoryService.AddItem, CheckAuthSession));
-            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
-                                        "POST", AddAndGetCapUrl(authToken, "/DeleteItem/", caps), m_inventoryService.DeleteItem, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
+                                        "POST", AddAndGetCapUrl(authToken, "/RemoveFolder/", caps), RemoveFolder, CheckAuthSession));
+
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
+                                        "POST", AddAndGetCapUrl(authToken, "/GetItem/", caps), GetInventoryItem, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
+                                        "POST", AddAndGetCapUrl(authToken, "/NewItem/", caps), AddItem, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
+                                        "POST", AddAndGetCapUrl(authToken, "/UpdateItem/", caps), UpdateItem, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
+                                        "POST", AddAndGetCapUrl(authToken, "/MoveItem/", caps), MoveItem, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
+                                        "POST", AddAndGetCapUrl(authToken, "/DeleteItem/", caps), DeleteItem, CheckAuthSession));
 
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, AssetBase>(
                                         "POST", AddAndGetCapUrl(authToken, "/GetAsset/", caps), GetAsset, CheckAuthSession));
-            //httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<AssetBase, bool>(
-            //                            "POST", AddAndGetCapUrl(authToken, "/PostAsset/", caps), m_inventoryService.DeleteItem, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<AssetBase, bool>(
+                                        "POST", AddAndGetCapUrl(authToken, "/PostAsset/", caps), PostAsset, CheckAuthSession));
 
             lock (invCaps)
                 invCaps.Add(userID, caps);
