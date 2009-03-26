@@ -216,6 +216,16 @@ namespace PrimMesher
 
         public SculptMesh(Bitmap sculptBitmap, SculptType sculptType, int lod, bool viewerMode)
         {
+            _SculptMesh(sculptBitmap, sculptType, lod, viewerMode, false, false);
+        }
+
+        public SculptMesh(Bitmap sculptBitmap, SculptType sculptType, int lod, bool viewerMode, bool mirror, bool invert)
+        {
+            _SculptMesh(sculptBitmap, sculptType, lod, viewerMode, mirror, invert);
+        }
+
+        void _SculptMesh(Bitmap sculptBitmap, SculptType sculptType, int lod, bool viewerMode, bool mirror, bool invert)
+        {
             coords = new List<Coord>();
             faces = new List<Face>();
             normals = new List<Coord>();
@@ -310,6 +320,7 @@ namespace PrimMesher
                     color = bitmap.GetPixel(imageX == width ? 0 : imageX, imageY == height ? height - 1 : imageY);
 
                     x = (color.R - 128) * pixScale;
+                    if (mirror) x = -x;
                     y = (color.G - 128) * pixScale;
                     z = (color.B - 128) * pixScale;
 

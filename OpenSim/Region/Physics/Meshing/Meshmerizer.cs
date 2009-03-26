@@ -202,7 +202,6 @@ namespace OpenSim.Region.Physics.Meshing
                     return null;
                 }
 
-
                 PrimMesher.SculptMesh.SculptType sculptType;
                 switch ((OpenMetaverse.SculptType)primShape.SculptType)
                 {
@@ -220,7 +219,11 @@ namespace OpenSim.Region.Physics.Meshing
                         sculptType = PrimMesher.SculptMesh.SculptType.sphere;
                         break;
                 }
-                sculptMesh = new PrimMesher.SculptMesh((Bitmap)idata, sculptType, (int)lod, false);
+
+                bool mirror = ((primShape.SculptType & 128) != 0);
+                bool invert = ((primShape.SculptType & 64) != 0);
+
+                sculptMesh = new PrimMesher.SculptMesh((Bitmap)idata, sculptType, (int)lod, false, mirror, invert);
 
                 idata.Dispose();
 
