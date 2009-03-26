@@ -118,9 +118,11 @@
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="OpenMetaverse" />
       <Reference name="System"/>
+      <Reference name="System.Xml"/>
       <Reference name="log4net.dll"/>
+      <Reference name="OpenMetaverse" />
+      <Reference name="OpenSim.Framework"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

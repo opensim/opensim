@@ -35,6 +35,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
+using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.CoreModules.World.Archiver;
@@ -346,10 +347,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     = m_module.CommsManager.UserProfileCacheService.GetUserDetails(creatorId);
             
                 if (creator != null)
-                    m_log.DebugFormat(
-                        "[INVENTORY ARCHIVER]: Got creator {0} {1}", creator.UserProfile.Name, creator.UserProfile.ID);
+                {
+                    m_archive.WriteFile(
+                        ArchiveConstants.USERS_PATH + creator.UserProfile.Name + ".xml",
+                        UserProfileSerializer.Serialize(creator.UserProfile));
+                }
                 else
+                {
                     m_log.WarnFormat("[INVENTORY ARCHIVER]: Failed to get creator profile for {0}", creatorId);
+                }
             }
         }
     }
