@@ -300,12 +300,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (Script == String.Empty)
             {
                 if (File.Exists(OutFile))
-                {
-//                    m_log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
                     return OutFile;
-                }
 
                 throw new Exception("Cannot find script assembly and no script text present");
+            }
+
+            // Don't recompile if we already have it
+            //
+            if (File.Exists(OutFile) && File.Exists(OutFile+".text") && File.Exists(OutFile+".map"))
+            {
+                // TODO: Read .map file here
+                return OutFile;
             }
 
             enumCompileType l = DefaultCompileLanguage;
@@ -351,14 +356,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 }
 
                 m_positionMap = ((CSCodeGenerator) LSL_Converter).PositionMap;
-            }
-
-            // Check this late so the map is generated on sim start
-            //
-            if (File.Exists(OutFile) && File.Exists(OutFile+".text"))
-            {
-//                m_log.DebugFormat("[Compiler] Returning existing assembly for {0}", asset);
-                return OutFile;
             }
 
             if (l == enumCompileType.yp)
@@ -645,6 +642,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             FileStream sfs = File.Create(OutFile+".text");
             sfs.Write(buf, 0, buf.Length);
             sfs.Close();
+
+            string posmap = String.Empty;
+            foreach (KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>> kvp in m_positionMap)
+            {
+                KeyValuePair<int, int> k = kvp.Key;
+                KeyValuePair<int, int> v = kvp.Value;
+                posmap += String.Format("{0},{1},{2},{3}\n",
+                        k.Key, k.Value, v.Key, v.Value);
+            }
+
+            buf = enc.GetBytes(posmap);
+
+            FileStream mfs = File.Create(OutFile+".map");
+            mfs.Write(buf, 0, buf.Length);
+            mfs.Close();
 
             return OutFile;
         }
