@@ -27,6 +27,7 @@
 
 using System.IO;
 using System.Xml;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Framework.Serialization.External
@@ -53,7 +54,7 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteAttributeString("minor_version", MINOR_VERSION.ToString());
                        
             xtw.WriteElementString("name", profile.Name);
-            xtw.WriteElementString("id", profile.ID);
+            xtw.WriteElementString("id", profile.ID.ToString());
             xtw.WriteElementString("about", profile.AboutText);
   
             // Not sure if we're storing this yet, need to take a look
