@@ -384,7 +384,7 @@ namespace PrimMesher
     {
         private float iX, iY; // intersection point
 
-        private Angle[] angles3 =
+        private static Angle[] angles3 =
         {
             new Angle(0.0f, 1.0f, 0.0f),
             new Angle(0.33333333333333333f, -0.5f, 0.86602540378443871f),
@@ -392,7 +392,7 @@ namespace PrimMesher
             new Angle(1.0f, 1.0f, 0.0f)
         };
 
-        private Coord[] normals3 =
+        private static Coord[] normals3 =
         {
             new Coord(0.25f, 0.4330127019f, 0.0f).Normalize(),
             new Coord(-0.5f, 0.0f, 0.0f).Normalize(),
@@ -400,7 +400,7 @@ namespace PrimMesher
             new Coord(0.25f, 0.4330127019f, 0.0f).Normalize()
         };
 
-        private Angle[] angles4 =
+        private static Angle[] angles4 =
         {
             new Angle(0.0f, 1.0f, 0.0f),
             new Angle(0.25f, 0.0f, 1.0f),
@@ -409,7 +409,7 @@ namespace PrimMesher
             new Angle(1.0f, 1.0f, 0.0f)
         };
 
-        private Coord[] normals4 = 
+        private static Coord[] normals4 = 
         {
             new Coord(0.5f, 0.5f, 0.0f).Normalize(),
             new Coord(-0.5f, 0.5f, 0.0f).Normalize(),
@@ -418,7 +418,7 @@ namespace PrimMesher
             new Coord(0.5f, 0.5f, 0.0f).Normalize()
         };
 
-        private Angle[] angles24 =
+        private static Angle[] angles24 =
         {
             new Angle(0.0f, 1.0f, 0.0f),
             new Angle(0.041666666666666664f, 0.96592582628906831f, 0.25881904510252074f),
