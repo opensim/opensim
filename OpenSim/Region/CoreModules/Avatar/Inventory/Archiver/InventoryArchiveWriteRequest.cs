@@ -315,7 +315,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         inventoryItem.Name, inventoryItem.ID, m_invPath);
 
                     //get and export item info
-                    SaveInvItem(inventoryItem, m_invPath);
+                    SaveInvItem(inventoryItem, ArchiveConstants.INVENTORY_PATH + m_invPath);
                 }
             }
             else
