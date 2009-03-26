@@ -153,6 +153,13 @@ namespace OpenSim.Framework.Communications.Capabilities
 
             string capsBase = "/CAPS/" + m_capsObjectPath;
 
+            RegisterRegionServiceHandlers(capsBase);
+            RegisterInventoryServiceHandlers(capsBase);
+
+        }
+
+        public void RegisterRegionServiceHandlers(string capsBase)
+        {
             try
             {
                 // the root of all evil
@@ -164,6 +171,22 @@ namespace OpenSim.Framework.Communications.Capabilities
                 //    new LLSDStreamhandler<OSDMapRequest, OSDMapLayerResponse>("POST",
                 //                                                                capsBase + m_mapLayerPath,
                 //                                                                GetMapLayer);
+                m_capsHandlers["UpdateScriptTaskInventory"] =
+                    new RestStreamHandler("POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory);
+                m_capsHandlers["UpdateScriptTask"] = m_capsHandlers["UpdateScriptTaskInventory"];
+
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[CAPS]: " + e.ToString());
+            }
+        }
+
+        public void RegisterInventoryServiceHandlers(string capsBase)
+        {
+            try
+            {
+                // I don't think this one works...
                 m_capsHandlers["NewFileAgentInventory"] =
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST",
                                                                                            capsBase + m_newInventory,
@@ -171,10 +194,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                 m_capsHandlers["UpdateNotecardAgentInventory"] =
                     new RestStreamHandler("POST", capsBase + m_notecardUpdatePath, NoteCardAgentInventory);
                 m_capsHandlers["UpdateScriptAgentInventory"] = m_capsHandlers["UpdateNotecardAgentInventory"];
-                m_capsHandlers["UpdateScriptTaskInventory"] =
-                    new RestStreamHandler("POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory);
                 m_capsHandlers["UpdateScriptAgent"] = m_capsHandlers["UpdateScriptAgentInventory"];
-                m_capsHandlers["UpdateScriptTask"] = m_capsHandlers["UpdateScriptTaskInventory"];
 
                 // justincc: I've disabled the CAPS service for now to fix problems with selecting textures, and
                 // subsequent inventory breakage, in the edit object pane (such as mantis 1085).  This requires
@@ -186,8 +206,8 @@ namespace OpenSim.Framework.Communications.Capabilities
                 // This is very probably just a temporary measure - once the CAPS service appears again on the Linden grid
                 // we will be
                 // able to get the data we need to implement the necessary part of the protocol to fix the issue above.
-//                m_capsHandlers["FetchInventoryDescendents"] =
-//                    new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryRequest);
+                //                m_capsHandlers["FetchInventoryDescendents"] =
+                //                    new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryRequest);
 
                 // m_capsHandlers["FetchInventoryDescendents"] =
                 //     new LLSDStreamhandler<LLSDFetchInventoryDescendents, LLSDInventoryDescendents>("POST",
