@@ -69,6 +69,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         // Avatar Info Commands
         string osGetAgentIP(string agent);
+        LSL_List osGetAgents(); 
 
         // Teleport commands
         void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);

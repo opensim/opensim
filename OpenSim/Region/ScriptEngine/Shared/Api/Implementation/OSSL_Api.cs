@@ -582,6 +582,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return "";
         }
 
+        // Get a list of all the avatars/agents in the region
+        public LSL_List osGetAgents()
+        {
+            // threat level is None as we could get this information with an
+            // in-world script as well, just not as efficient
+            CheckThreatLevel(ThreatLevel.None, "osGetAgents");
+
+            LSL_List result = new LSL_List();
+            foreach (ScenePresence avatar in World.GetAvatars()) 
+            {
+                result.Add(avatar.Name);
+            }
+            return result;
+        }        
+
         // Adam's super super custom animation functions
         public void osAvatarPlayAnimation(string avatar, string animation)
         {
@@ -595,7 +610,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence target = (ScenePresence)World.Entities[avatarID];
                 if (target != null)
                 {
-					UUID animID=UUID.Zero;
+                    UUID animID=UUID.Zero;
                     lock (m_host.TaskInventory)
                     {
                         foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
@@ -626,9 +641,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (World.Entities.ContainsKey(avatarID) && World.Entities[avatarID] is ScenePresence)
             {
                 ScenePresence target = (ScenePresence)World.Entities[avatarID];
-				if (target != null)
-				{
-					UUID animID=UUID.Zero;
+                if (target != null)
+                {
+                    UUID animID=UUID.Zero;
                     lock (m_host.TaskInventory)
                     {
                         foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
@@ -645,7 +660,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         target.RemoveAnimation(animation);
                     else
                         target.RemoveAnimation(animID);
-				}
+                }
             }
         }
 
@@ -998,16 +1013,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // see http://www.json.org/ for more details on JSON
 
-            string currentKey=null;
+            string currentKey = null;
             Stack objectStack = new Stack(); // objects in JSON can be nested so we need to keep a track of this
             Hashtable jsondata = new Hashtable(); // the hashtable to be returned
-            int i=0;
+            int i = 0;
             try
             {
 
                 // iterate through the serialised stream of tokens and store at the right depth in the hashtable
                 // the top level hashtable may contain more nested hashtables within it each containing an objects representation
-                for (i=0;i<JSON.Length; i++)
+                for (i = 0; i < JSON.Length; i++)
                 {
 
                     // m_log.Debug(""+JSON[i]);
@@ -1017,12 +1032,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             // create hashtable and add it to the stack or array if we are populating one, we can have a lot of nested objects in JSON
 
                             Hashtable currentObject = new Hashtable();
-                            if (objectStack.Count==0) // the stack should only be empty for the first outer object
+                            if (objectStack.Count == 0) // the stack should only be empty for the first outer object
                             {
 
                                 objectStack.Push(jsondata);
                             }
-                            else if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            else if (objectStack.Peek().ToString() == "System.Collections.ArrayList")
                             {
                                 // add it to the parent array
                                 ((ArrayList)objectStack.Peek()).Add(currentObject);
@@ -1036,26 +1051,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
 
                             // clear the key
-                            currentKey=null;
-                        break;
+                            currentKey = null;
+                            break;
+
                         case '}':
                             // pop the hashtable off the stack
                             objectStack.Pop();
-                        break;
+                            break;
+
                         case '"':// string boundary
 
-                            string tokenValue="";
+                            string tokenValue = "";
                             i++; // move to next char
 
                             // just loop through until the next quote mark storing the string, ignore quotes with pre-ceding \
-                            while (JSON[i]!='"')
+                            while (JSON[i] != '"')
                             {
-                                tokenValue+=JSON[i];
+                                tokenValue += JSON[i];
 
                                 // handle escaped double quotes \"
-                                if (JSON[i]=='\\' && JSON[i+1]=='"')
+                                if (JSON[i] == '\\' && JSON[i+1] == '"')
                                 {
-                                    tokenValue+=JSON[i+1];
+                                    tokenValue += JSON[i+1];
                                     i++;
                                 }
                                 i++;
@@ -1063,11 +1080,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
 
                             // ok we've got a string, if we've got an array on the top of the stack then we store it
-                            if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            if (objectStack.Peek().ToString() == "System.Collections.ArrayList")
                             {
                                 ((ArrayList)objectStack.Peek()).Add(tokenValue);
                             }
-                            else if (currentKey==null)   // no key stored and its not an array this must be a key so store it
+                            else if (currentKey == null)   // no key stored and its not an array this must be a key so store it
                             {
                                 currentKey = tokenValue;
                             }
@@ -1076,20 +1093,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 // we have a key so lets store this value
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,tokenValue);
                                 // now lets clear the key, we're done with it and moving on
-                                currentKey=null;
+                                currentKey = null;
                             }
 
-                        break;
+                            break;
+
                         case ':':// key : value separator
-                        // just ignore
-                        break;
+                            // just ignore
+                            break;
+
                         case ' ':// spaces
-                        // just ignore
-                        break;
+                            // just ignore
+                            break;
+
                         case '[': // array start
                             ArrayList currentArray = new ArrayList();
 
-                            if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            if (objectStack.Peek().ToString() == "System.Collections.ArrayList")
                             {
                                 ((ArrayList)objectStack.Peek()).Add(currentArray);
                             }
@@ -1097,69 +1117,76 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,currentArray);
                                 // clear the key
-                                currentKey=null;
+                                currentKey = null;
                             }
                             objectStack.Push(currentArray);
 
-                        break;
+                            break;
+
                         case ',':// seperator
                             // just ignore
-                        break;
+                            break;
+
                         case ']'://Array end
                             // pop the array off the stack
                             objectStack.Pop();
-                        break;
+                            break;
+
                         case 't': // we've found a character start not in quotes, it must be a boolean true
 
-                            if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            if (objectStack.Peek().ToString() == "System.Collections.ArrayList")
                             {
                                 ((ArrayList)objectStack.Peek()).Add(true);
                             }
                             else
                             {
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,true);
-                                currentKey=null;
+                                currentKey = null;
                             }
 
                             //advance the counter to the letter 'e'
-                            i = i+3;
-                        break;
+                            i = i + 3;
+                            break;
+
                         case 'f': // we've found a character start not in quotes, it must be a boolean false
 
-                            if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            if (objectStack.Peek().ToString() == "System.Collections.ArrayList")
                             {
                                 ((ArrayList)objectStack.Peek()).Add(false);
                             }
                             else
                             {
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,false);
-                                currentKey=null;
+                                currentKey = null;
                             }
                             //advance the counter to the letter 'e'
-                            i = i+4;
-                        break;
+                            i = i + 4;
+                            break;
+
                         case '\n':// carriage return
                             // just ignore
-                        break;
+                            break;
+
                         case '\r':// carriage return
                             // just ignore
-                        break;
+                            break;
+
                         default:
                             // ok here we're catching all numeric types int,double,long we might want to spit these up mr accurately
                             // but for now we'll just do them as strings
 
-                            string numberValue="";
+                            string numberValue = "";
 
                             // just loop through until the next known marker quote mark storing the string
                             while (JSON[i] != '"' && JSON[i] != ',' && JSON[i] != ']' && JSON[i] != '}' && JSON[i] != ' ')
                             {
-                                numberValue+=""+JSON[i++];
+                                numberValue += "" + JSON[i++];
                             }
 
                             i--; // we want to process this caracter that marked the end of this string in the main loop
 
                             // ok we've got a string, if we've got an array on the top of the stack then we store it
-                            if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            if (objectStack.Peek().ToString() == "System.Collections.ArrayList")
                             {
                                 ((ArrayList)objectStack.Peek()).Add(numberValue);
                             }
@@ -1168,10 +1195,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 // we have a key so lets store this value
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,numberValue);
                                 // now lets clear the key, we're done with it and moving on
-                                currentKey=null;
+                                currentKey = null;
                             }
 
-                        break;
+                            break;
                     }
                 }
             }
