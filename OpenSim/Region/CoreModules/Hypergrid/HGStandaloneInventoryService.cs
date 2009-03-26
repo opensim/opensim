@@ -399,6 +399,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             }
 
         }
+
         public InventoryItemBase DeleteItem(InventoryItemBase item)
         {
             item = m_inventoryService.GetInventoryItem(item.ID);
@@ -409,6 +410,35 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                 item.ID = UUID.Zero;
                 return item;
             }
+        }
+
+        public InventoryItemBase CopyItem(InventoryItemBase olditem)
+        {
+            InventoryItemBase Item = m_inventoryService.GetInventoryItem(olditem.ID); // this is the old item id
+            // BIG HACK here
+            UUID newID = olditem.AssetID;
+            if (Item != null)
+            {
+                if (olditem.Name != String.Empty)
+                {
+                    Item.Name = olditem.Name;
+                }
+                Item.ID = newID;
+                Item.Folder = olditem.Folder;
+                // There should be some tests here about the owner, etc but I'm going to ignore that
+                // because I'm not sure it makes any sense
+
+                // Also I should probably close the asset...
+                m_inventoryService.AddItem(Item);
+                return Item;
+            }
+            else
+            {
+                m_log.Debug("[HGStandaloneInvService]: Failed to find item " + olditem.ID);
+                olditem.ID = UUID.Zero;
+                return olditem;
+            }
+
         }
 
         /// <summary>
@@ -650,6 +680,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                                         "POST", AddAndGetCapUrl(authToken, "/MoveItem/", caps), MoveItem, CheckAuthSession));
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
                                         "POST", AddAndGetCapUrl(authToken, "/DeleteItem/", caps), DeleteItem, CheckAuthSession));
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
+                                        "POST", AddAndGetCapUrl(authToken, "/CopyItem/", caps), CopyItem, CheckAuthSession));
 
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<InventoryItemBase, AssetBase>(
                                         "POST", AddAndGetCapUrl(authToken, "/GetAsset/", caps), GetAsset, CheckAuthSession));
