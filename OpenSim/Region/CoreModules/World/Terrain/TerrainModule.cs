@@ -801,6 +801,66 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             CheckForTerrainUpdates();
         }
 
+        private void InterfaceRescaleTerrain(Object[] args)
+        {
+            double desiredMin = (double)args[0];
+            double desiredMax = (double)args[1];
+
+            // determine desired scaling factor
+            double desiredRange = desiredMax - desiredMin;
+            //m_log.InfoFormat("Desired {0}, {1} = {2}", new Object[] { desiredMin, desiredMax, desiredRange });
+
+            if (desiredRange == 0d)
+            {
+                // delta is zero so flatten at requested height
+                InterfaceFillTerrain(new Object[] { args[1] });
+            }
+            else
+            {
+                //work out current heightmap range
+                double currMin = double.MaxValue;
+                double currMax = double.MinValue;
+
+                int width = m_channel.Width;
+                int height = m_channel.Height;
+
+                for (int x = 0; x < width; x++)
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                        double currHeight = m_channel[x, y];
+                        if (currHeight < currMin)
+                        {
+                            currMin = currHeight;
+                        }
+                        else if (currHeight > currMax)
+                        {
+                            currMax = currHeight;
+                        }
+                    }
+                }
+
+                double currRange = currMax - currMin;
+                double scale = desiredRange / currRange;
+
+                //m_log.InfoFormat("Current {0}, {1} = {2}", new Object[] { currMin, currMax, currRange });
+                //m_log.InfoFormat("Scale = {0}", scale);
+
+                // scale the heightmap accordingly
+                for (int x = 0; x < width; x++)
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                            double currHeight = m_channel[x, y] - currMin;
+                            m_channel[x, y] = desiredMin + (currHeight * scale);
+                    }
+                }
+
+                CheckForTerrainUpdates();
+            }
+
+        }
+
         private void InterfaceElevateTerrain(Object[] args)
         {
             int x, y;
@@ -963,6 +1023,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 new Command("flip", CommandIntentions.COMMAND_HAZARDOUS, InterfaceFlipTerrain, "Flips the current terrain about the X or Y axis");
             flipCommand.AddArgument("direction", "[x|y] the direction to flip the terrain in", "String");
 
+            Command rescaleCommand =
+                new Command("rescale", CommandIntentions.COMMAND_HAZARDOUS, InterfaceRescaleTerrain, "Rescales the current terrain to fit between the given min and max heights");
+            rescaleCommand.AddArgument("min", "min terrain height after rescaling", "Double");
+            rescaleCommand.AddArgument("max", "max terrain height after rescaling", "Double");
+
+
             // Debug
             Command showDebugStatsCommand =
                 new Command("stats", CommandIntentions.COMMAND_STATISTICAL, InterfaceShowDebugStats,
@@ -991,6 +1057,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_commander.RegisterCommand("stats", showDebugStatsCommand);
             m_commander.RegisterCommand("effect", pluginRunCommand);
             m_commander.RegisterCommand("flip", flipCommand);
+            m_commander.RegisterCommand("rescale", rescaleCommand);
 
             // Add this to our scene so scripts can call these functions
             m_scene.RegisterModuleCommander(m_commander);
