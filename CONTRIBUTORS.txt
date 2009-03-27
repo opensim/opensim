@@ -37,7 +37,7 @@ OpenSim Developers (in very rough order of appearance)
 * dalien
 
 Patches
-
+* arthursv
 * A_Biondi
 * alex_carnell
 * awebb (IBM)
