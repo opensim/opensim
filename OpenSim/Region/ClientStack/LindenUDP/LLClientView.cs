@@ -298,6 +298,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private RetrieveInstantMessages handlerRetrieveInstantMessages;
 
+        private PickDelete handlerPickDelete;
+        private PickGodDelete handlerPickGodDelete;
+        private PickInfoUpdate handlerPickInfoUpdate;
+        private AvatarNotesUpdate handlerAvatarNotesUpdate;
+
         private readonly IGroupsModule m_GroupsModule;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
@@ -1082,6 +1087,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event UpdateUserInfo OnUpdateUserInfo;
 
         public event RetrieveInstantMessages OnRetrieveInstantMessages;
+
+        public event PickDelete OnPickDelete;
+        public event PickGodDelete OnPickGodDelete;
+        public event PickInfoUpdate OnPickInfoUpdate;
+        public event AvatarNotesUpdate OnAvatarNotesUpdate;
 
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
@@ -7517,6 +7527,51 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerRetrieveInstantMessages(this);
                     break;
 
+                case PacketType.PickDelete:
+                    PickDeletePacket pickDelete =
+                            (PickDeletePacket)Pack;
+
+                    handlerPickDelete = OnPickDelete;
+                    if (handlerPickDelete != null)
+                        handlerPickDelete(this, pickDelete.Data.PickID); 
+                    break;
+                case PacketType.PickGodDelete:
+                    PickGodDeletePacket pickGodDelete =
+                            (PickGodDeletePacket)Pack;
+
+                    handlerPickGodDelete = OnPickGodDelete;
+                    if (handlerPickGodDelete != null)
+                        handlerPickGodDelete(this,
+                                pickGodDelete.AgentData.AgentID,
+                                pickGodDelete.Data.PickID,
+                                pickGodDelete.Data.QueryID); 
+                    break;
+                case PacketType.PickInfoUpdate:
+                    PickInfoUpdatePacket pickInfoUpdate =
+                            (PickInfoUpdatePacket)Pack;
+
+                    handlerPickInfoUpdate = OnPickInfoUpdate;
+                    if (handlerPickInfoUpdate != null)
+                        handlerPickInfoUpdate(this,
+                                pickInfoUpdate.Data.PickID,
+                                pickInfoUpdate.Data.CreatorID,
+                                pickInfoUpdate.Data.TopPick,
+                                Utils.BytesToString(pickInfoUpdate.Data.Name),
+                                Utils.BytesToString(pickInfoUpdate.Data.Desc),
+                                pickInfoUpdate.Data.SnapshotID,
+                                pickInfoUpdate.Data.SortOrder,
+                                pickInfoUpdate.Data.Enabled);
+                    break;
+                case PacketType.AvatarNotesUpdate:
+                    AvatarNotesUpdatePacket avatarNotesUpdate =
+                            (AvatarNotesUpdatePacket)Pack;
+
+                    handlerAvatarNotesUpdate = OnAvatarNotesUpdate;
+                    if (handlerAvatarNotesUpdate != null)
+                        handlerAvatarNotesUpdate(this,
+                                avatarNotesUpdate.Data.TargetID,
+                                Utils.BytesToString(avatarNotesUpdate.Data.Notes));
+                    break;
                 default:
                     m_log.Warn("[CLIENT]: unhandled packet " + Pack);
                     break;

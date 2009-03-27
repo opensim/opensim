@@ -255,6 +255,11 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public event RetrieveInstantMessages OnRetrieveInstantMessages;
 
+        public event PickDelete OnPickDelete;
+        public event PickGodDelete OnPickGodDelete;
+        public event PickInfoUpdate OnPickInfoUpdate;
+        public event AvatarNotesUpdate OnAvatarNotesUpdate;
+
 #pragma warning restore 67
 
         private UUID myID = UUID.Random();

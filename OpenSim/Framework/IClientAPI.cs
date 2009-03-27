@@ -427,6 +427,10 @@ namespace OpenSim.Framework
     public delegate void UserInfoRequest(IClientAPI client);
     public delegate void UpdateUserInfo(bool imViaEmail, bool visible, IClientAPI client);
     public delegate void RetrieveInstantMessages(IClientAPI client);
+    public delegate void PickDelete(IClientAPI client, UUID pickID);
+    public delegate void PickGodDelete(IClientAPI client, UUID agentID, UUID pickID, UUID queryID);
+    public delegate void PickInfoUpdate(IClientAPI client, UUID pickID, UUID creatorID, bool topPick, string name, string desc, UUID snapshotID, int sortOrder, bool enabled);
+    public delegate void AvatarNotesUpdate(IClientAPI client, UUID targetID, string notes);
 
     #endregion
 
@@ -755,6 +759,11 @@ namespace OpenSim.Framework
         event UpdateUserInfo OnUpdateUserInfo;
 
         event RetrieveInstantMessages OnRetrieveInstantMessages;
+
+        event PickDelete OnPickDelete;
+        event PickGodDelete OnPickGodDelete;
+        event PickInfoUpdate OnPickInfoUpdate;
+        event AvatarNotesUpdate OnAvatarNotesUpdate;
         
         /// <summary>
         /// Set the debug level at which packet output should be printed to console.
