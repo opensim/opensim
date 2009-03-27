@@ -64,6 +64,19 @@ namespace OpenSim.Framework
             }
         }
 
+        private Uri m_authUrl;
+        public Uri AuthUrl
+        {
+            get
+            {
+                return m_authUrl;
+            }
+            set
+            {
+                m_authUrl = value;
+            }
+        }
+
         private Uri m_gridServerURL;
 
         public Uri GridServerURL
@@ -79,6 +92,8 @@ namespace OpenSim.Framework
         }
 
         public bool EnableLLSDLogin = true;
+
+        public bool EnableHGLogin = true;
 
         public UserConfig()
         {
@@ -111,6 +126,11 @@ namespace OpenSim.Framework
                                                 "Default Inventory Server URI",
                                                 "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort + "/",
                                                 false);
+            configMember.addConfigurationOption("default_authentication_server",
+                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+                                                "User Server (this) External URI for authentication keys",
+                                                "http://localhost:" + UserConfig.DefaultHttpPort + "/",
+                                                false);
             configMember.addConfigurationOption("library_location",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Path to library control file",
@@ -131,7 +151,10 @@ namespace OpenSim.Framework
                                                 "Known good region Y", "1000", false);
             configMember.addConfigurationOption("enable_llsd_login", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                     "Enable LLSD login support [Currently used by libsl based clients/bots]? true/false", true.ToString(), false);
-            
+
+            configMember.addConfigurationOption("enable_hg_login", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+                    "Enable Hypergrid login support [Currently used by GridSurfer-proxied clients]? true/false", true.ToString(), false);
+
             configMember.addConfigurationOption("default_loginLevel", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Minimum Level a user should have to login [0 default]", "0", false);
             
@@ -156,6 +179,9 @@ namespace OpenSim.Framework
                 case "default_inventory_server":
                     InventoryUrl = new Uri((string) configuration_result);
                     break;
+                case "default_authentication_server":
+                    AuthUrl = new Uri((string)configuration_result);
+                    break;
                 case "database_provider":
                     DatabaseProvider = (string) configuration_result;
                     break;
@@ -177,7 +203,9 @@ namespace OpenSim.Framework
                 case "enable_llsd_login":
                     EnableLLSDLogin = (bool)configuration_result;
                     break;
-
+                case "enable_hg_login":
+                    EnableHGLogin = (bool)configuration_result;
+                    break;
                 case "default_loginLevel":
                     DefaultUserLevel = (uint)configuration_result;
                     break;
