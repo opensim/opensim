@@ -46,6 +46,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     public class InventoryArchiveWriteRequest
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        /// <value>
+        /// Used to select all inventory nodes in a folder but not the folder itself
+        /// </value>
+        private const string STAR_WILDCARD = "*";
 
         private InventoryArchiverModule m_module;
         private CachedUserInfo m_userInfo;
@@ -197,17 +202,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         /// <param name="inventoryFolder">The inventory folder to save</param>
         /// <param name="path">The path to which the folder should be saved</param>
-        protected void SaveInvFolder(InventoryFolderImpl inventoryFolder, string path)
+        /// <param name="saveThisFolderItself">If true, save this folder itself.  If false, only saves contents</param>
+        protected void SaveInvFolder(InventoryFolderImpl inventoryFolder, string path, bool saveThisFolderItself)
         {
-            path +=
-                string.Format(
-                    "{0}{1}{2}/",
-                    inventoryFolder.Name,
-                    ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR,
-                    inventoryFolder.ID);
-            
-            // We need to make sure that we record empty folders            
-            m_archive.WriteDir(path);
+            if (saveThisFolderItself)
+            {
+                path +=
+                    string.Format(
+                        "{0}{1}{2}/",
+                        inventoryFolder.Name,
+                        ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR,
+                        inventoryFolder.ID);
+                
+                // We need to make sure that we record empty folders            
+                m_archive.WriteDir(path);
+            }
 
             List<InventoryFolderImpl> childFolders = inventoryFolder.RequestListOfFolderImpls();
             List<InventoryItemBase> items = inventoryFolder.RequestListOfItems();
@@ -235,7 +244,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             foreach (InventoryFolderImpl childFolder in childFolders)
             {
-                SaveInvFolder(childFolder, path);
+                SaveInvFolder(childFolder, path, true);
             }
 
             foreach (InventoryItemBase item in items)
@@ -274,14 +283,27 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 }
             }
 
+            bool foundStar = false;
+            
             // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
             // itself (possibly at a small loss in efficiency).
             string[] components
                 = m_invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
-            m_invPath = String.Empty;
-            foreach (string c in components)
+            
+            int maxComponentIndex = components.Length - 1;
+
+            // If the path terminates with a STAR then later on we want to archive all nodes in the folder but not the
+            // folder itself.  This may get more sophisicated later on
+            if (maxComponentIndex >= 0 && components[maxComponentIndex] == STAR_WILDCARD)
             {
-                m_invPath += c + InventoryFolderImpl.PATH_DELIMITER;
+                foundStar = true;
+                maxComponentIndex--;                
+            }
+            
+            m_invPath = String.Empty;
+            for (int i = 0; i <= maxComponentIndex; i++)
+            {
+                m_invPath += components[i] + InventoryFolderImpl.PATH_DELIMITER;
             }
 
             // Annoyingly Split actually returns the original string if the input string consists only of delimiters
@@ -331,7 +353,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     inventoryFolder.Name, inventoryFolder.ID, m_invPath);
 
                 //recurse through all dirs getting dirs and files
-                SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH);
+                SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !foundStar);
             }
             
             SaveUsers();
