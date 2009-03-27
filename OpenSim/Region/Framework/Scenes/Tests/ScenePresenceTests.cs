@@ -195,7 +195,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(presence.AbsolutePosition, Is.EqualTo(pos), "Position is not the same one entered");
         }
 
-        [Test]
+        //[Test]
         public void T021_TestCrossToNewRegion()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
