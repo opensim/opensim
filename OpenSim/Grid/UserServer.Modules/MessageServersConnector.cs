@@ -74,8 +74,8 @@ namespace OpenSim.Grid.UserServer.Modules
 
         private BaseHttpServer m_httpServer;
 
-        private BlockingQueue<PresenceNotification> m_NotifyQueue =
-                new BlockingQueue<PresenceNotification>();
+        private OpenSim.Framework.BlockingQueue<PresenceNotification> m_NotifyQueue =
+                new OpenSim.Framework.BlockingQueue<PresenceNotification>();
 
         Thread m_NotifyThread;
 

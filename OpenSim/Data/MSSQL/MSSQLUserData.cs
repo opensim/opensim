@@ -597,7 +597,7 @@ namespace OpenSim.Data.MSSQL
                 cmd.Parameters.Add(database.CreateParameter("@owner", appearance.Owner));
                 cmd.Parameters.Add(database.CreateParameter("@serial", appearance.Serial));
                 cmd.Parameters.Add(database.CreateParameter("@visual_params", appearance.VisualParams));
-                cmd.Parameters.Add(database.CreateParameter("@texture", appearance.Texture.ToBytes()));
+                cmd.Parameters.Add(database.CreateParameter("@texture", appearance.Texture.GetBytes()));
                 cmd.Parameters.Add(database.CreateParameter("@avatar_height", appearance.AvatarHeight));
                 cmd.Parameters.Add(database.CreateParameter("@body_item", appearance.BodyItem));
                 cmd.Parameters.Add(database.CreateParameter("@body_asset", appearance.BodyAsset));

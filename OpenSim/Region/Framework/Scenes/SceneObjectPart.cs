@@ -3532,7 +3532,7 @@ if (m_shape != null) {
             //tmpcolor.G = tmpcolor.G*255;
             //tmpcolor.B = tmpcolor.B*255;
             //tex.DefaultTexture.RGBA = tmpcolor;
-            UpdateTextureEntry(tex.ToBytes());
+            UpdateTextureEntry(tex.GetBytes());
         }
 
         /// <summary>

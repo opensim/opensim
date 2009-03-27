@@ -3716,7 +3716,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objdata.TextureAnim = new byte[0];
             objdata.Sound = UUID.Zero;
             Primitive.TextureEntry ntex = new Primitive.TextureEntry(new UUID("00000000-0000-0000-5005-000000000005"));
-            objdata.TextureEntry = ntex.ToBytes();
+            objdata.TextureEntry = ntex.GetBytes();
 
             objdata.State = 0;
             objdata.Data = new byte[0];
@@ -7556,7 +7556,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             shape.PathTwist = addPacket.ObjectData.PathTwist;
             shape.PathTwistBegin = addPacket.ObjectData.PathTwistBegin;
             Primitive.TextureEntry ntex = new Primitive.TextureEntry(new UUID("89556747-24cb-43ed-920b-47caed15465f"));
-            shape.TextureEntry = ntex.ToBytes();
+            shape.TextureEntry = ntex.GetBytes();
             //shape.Textures = ntex;
             return shape;
         }

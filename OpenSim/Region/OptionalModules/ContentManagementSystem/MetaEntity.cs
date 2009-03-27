@@ -261,7 +261,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                 texcolor = tex.DefaultTexture.RGBA;
                 texcolor.A = transparencyAmount;
                 tex.DefaultTexture.RGBA = texcolor;
-                part.Shape.TextureEntry = tex.ToBytes();
+                part.Shape.TextureEntry = tex.GetBytes();
             }
             catch (Exception)
             {

@@ -1171,7 +1171,7 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("?owner", appearance.Owner.ToString());
                 cmd.Parameters.AddWithValue("?serial", appearance.Serial);
                 cmd.Parameters.AddWithValue("?visual_params", appearance.VisualParams);
-                cmd.Parameters.AddWithValue("?texture", appearance.Texture.ToBytes());
+                cmd.Parameters.AddWithValue("?texture", appearance.Texture.GetBytes());
                 cmd.Parameters.AddWithValue("?avatar_height", appearance.AvatarHeight);
                 cmd.Parameters.AddWithValue("?body_item", appearance.BodyItem.ToString());
                 cmd.Parameters.AddWithValue("?body_asset", appearance.BodyAsset.ToString());

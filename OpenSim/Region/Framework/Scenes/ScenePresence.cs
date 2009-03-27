@@ -2236,7 +2236,7 @@ namespace OpenSim.Region.Framework.Scenes
             pos.Z -= m_appearance.HipOffset;
 
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
-                                                            LocalId, m_pos, m_appearance.Texture.ToBytes(),
+                                                            LocalId, m_pos, m_appearance.Texture.GetBytes(),
                                                             m_parentID, rot);
             if (m_sitStatus)
                 GenerateRandomAnimation();
@@ -2315,7 +2315,7 @@ namespace OpenSim.Region.Framework.Scenes
             pos.Z -= m_appearance.HipOffset;
 
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
-                                               m_pos, m_appearance.Texture.ToBytes(), m_parentID, rot);
+                                               m_pos, m_appearance.Texture.GetBytes(), m_parentID, rot);
 
             if (!m_isChildAgent)
             {
@@ -2360,7 +2360,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendAppearanceToOtherAgent(ScenePresence avatar)
         {
             avatar.ControllingClient.SendAppearance(
-                m_appearance.Owner, m_appearance.VisualParams, m_appearance.Texture.ToBytes());
+                m_appearance.Owner, m_appearance.VisualParams, m_appearance.Texture.GetBytes());
         }
 
         /// <summary>
@@ -2392,7 +2392,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Quaternion rot = m_bodyRot;
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
-                m_pos, m_appearance.Texture.ToBytes(), m_parentID, rot);
+                m_pos, m_appearance.Texture.GetBytes(), m_parentID, rot);
 
         }
 
@@ -2801,7 +2801,7 @@ namespace OpenSim.Region.Framework.Scenes
                 cAgent.VisualParams = m_appearance.VisualParams;
 
                 if (m_appearance.Texture != null)
-                    cAgent.AgentTextures = m_appearance.Texture.ToBytes();
+                    cAgent.AgentTextures = m_appearance.Texture.GetBytes();
             }
             catch (Exception e)
             {
@@ -2863,7 +2863,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (cAgent.AgentTextures != null)
                     te = cAgent.AgentTextures;
                 else
-                    te = AvatarAppearance.GetDefaultTexture().ToBytes();
+                    te = AvatarAppearance.GetDefaultTexture().GetBytes();
                 if ((cAgent.VisualParams == null) || (cAgent.VisualParams.Length < AvatarAppearance.VISUALPARAM_COUNT))
                     cAgent.VisualParams = AvatarAppearance.GetDefaultVisualParams();
                 m_appearance.SetAppearance(te, new List<byte>(cAgent.VisualParams));
@@ -2937,7 +2937,7 @@ namespace OpenSim.Region.Framework.Scenes
         static ScenePresence()
         {
             Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
-            DefaultTexture = textu.ToBytes();
+            DefaultTexture = textu.GetBytes();
             
         }
 
@@ -3076,7 +3076,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (DefaultTexture == null)
             {
                 Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
-                DefaultTexture = textu.ToBytes();
+                DefaultTexture = textu.GetBytes();
             } 
             if (DateTime.Now.Month==4&&DateTime.Now.Day==1)
                 m_sitStatus = true;

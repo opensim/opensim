@@ -386,7 +386,7 @@ namespace OpenSim.Framework
             h["owner"] = Owner.ToString();
             h["serial"] = Serial.ToString();
             h["visual_params"] = VisualParams;
-            h["texture"] = Texture.ToBytes();
+            h["texture"] = Texture.GetBytes();
             h["avatar_height"] = AvatarHeight.ToString();
             h["body_item"] = BodyItem.ToString();
             h["body_asset"] = BodyAsset.ToString();

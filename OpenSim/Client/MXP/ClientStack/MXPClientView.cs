@@ -815,7 +815,7 @@ namespace OpenSim.Client.MXP.ClientStack
             {
                 visualParams.Add(visualParam);
             }
-            OnSetAppearance(appearance.Texture.ToBytes(), visualParams);
+            OnSetAppearance(appearance.Texture.GetBytes(), visualParams);
         }
 
         public void Stop()

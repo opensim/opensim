@@ -5051,7 +5051,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 flags |= ScriptBaseClass.AGENT_MOUSELOOK;
             }
 
-            if ((agent.State & (byte)AgentManager.AgentState.Typing) != (byte)0)
+            if ((agent.State & (byte)AgentState.Typing) != (byte)0)
             {
                 flags |= ScriptBaseClass.AGENT_TYPING;
             }

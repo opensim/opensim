@@ -333,7 +333,7 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
-      <Reference name="HttpServer.dll"/>
+      <Reference name="HttpServer_OpenSim.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">
@@ -2912,7 +2912,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="log4net.dll"/>
-      <Reference name="HttpServer.dll"/>
+      <Reference name="HttpServer_OpenSim.dll"/>
       <Reference name="nunit.framework.dll" />
 
       <Files>

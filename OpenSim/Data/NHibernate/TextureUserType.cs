@@ -57,7 +57,7 @@ namespace OpenSim.Data.NHibernate
             }
             else 
             {
-                byte[] bytes = ((Primitive.TextureEntry)texture).ToBytes();
+                byte[] bytes = ((Primitive.TextureEntry)texture).GetBytes();
                 return new Primitive.TextureEntry(bytes, 0, bytes.Length);
             }
         }
@@ -94,7 +94,7 @@ namespace OpenSim.Data.NHibernate
         public void NullSafeSet(IDbCommand cmd, object obj, int index)
         {
             Primitive.TextureEntry texture = (Primitive.TextureEntry)obj;
-            ((IDataParameter)cmd.Parameters[index]).Value = texture.ToBytes();
+            ((IDataParameter)cmd.Parameters[index]).Value = texture.GetBytes();
         }
 
         public object Replace(object original, object target, object owner)

@@ -201,7 +201,7 @@ namespace OpenSim.Framework
                 return new Primitive.TextureEntry(m_textureEntry, 0, m_textureEntry.Length);
             }
 
-            set { m_textureEntry = value.ToBytes(); }
+            set { m_textureEntry = value.GetBytes(); }
         }
 
         public byte[] TextureEntry
