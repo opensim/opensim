@@ -277,7 +277,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(presence.HasAttachments(), Is.False);
         }
 
-        [Test]
+        //[Test]
         public void T032_CrossAttachments()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
