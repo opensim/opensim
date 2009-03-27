@@ -688,10 +688,10 @@ InterregionComms = "RESTComms"
 
 
 [Wind]
-	; Enables the wind module.  Default is true
-	enabled = true
-	; Adjusts wind strength. 0.0 = no wind, 1.0 = normal wind.  Default is 1.0
-	strength = 1.0
+    ; Enables the wind module.  Default is true
+    enabled = true
+    ; Adjusts wind strength. 0.0 = no wind, 1.0 = normal wind.  Default is 1.0
+    strength = 1.0
 	
 
 [Trees]

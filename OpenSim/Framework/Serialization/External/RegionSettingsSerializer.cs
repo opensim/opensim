@@ -31,16 +31,13 @@ using System.Xml;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Region.CoreModules.World.Archiver
+namespace OpenSim.Framework.Serialization.External
 {
     /// <summary>
     /// Serialize and deserialize region settings for an archive file format.
     /// </summary>
     /// We didn't simply use automatic .NET serializagion for OpenSim.Framework.RegionSettings since this is really
-    /// a file format rather than an object serialization.  
-    /// TODO: However, we could still have used separate non-framework classes here to read and write the xml
-    /// automatically rather than laboriously doing it by hand using XmlTextReader and Writer.  Should switch to this
-    /// in the future.
+    /// a file format rather than an object serialization.
     public class RegionSettingsSerializer
     {
         protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
