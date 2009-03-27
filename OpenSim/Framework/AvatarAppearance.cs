@@ -321,12 +321,12 @@ namespace OpenSim.Framework
                            + 0.08f * (float)m_visualparams[77] / 255.0f    // Shoe heel height
                            + 0.07f * (float)m_visualparams[78] / 255.0f    // Shoe platform height
                            + 0.076f * (float)m_visualparams[148] / 255.0f;    // Neck length
-            m_hipOffset    = (0.615385f // Half of avatar
+            m_hipOffset = (0.615385f // Half of avatar
                            + 0.08f * (float)m_visualparams[77] / 255.0f    // Shoe heel height
                            + 0.07f * (float)m_visualparams[78] / 255.0f    // Shoe platform height
                            + 0.3836f * (float)m_visualparams[125] / 255.0f    // Leg length
                            - m_avatarHeight / 2) * 0.3f - 0.04f;
-            //m_log.Debug(">>>>>>> [APPEARANCE]: Height {0} Hip offset {1}", m_avatarHeight, m_hipOffset);
+            //System.Console.WriteLine(">>>>>>> [APPEARANCE]: Height {0} Hip offset {1}" + m_avatarHeight + " " + m_hipOffset);
             //m_log.Debug("------------- Set Appearance Texture ---------------");
             //Primitive.TextureEntryFace[] faces = Texture.FaceTextures;
             //foreach (Primitive.TextureEntryFace face in faces)
@@ -356,6 +356,17 @@ namespace OpenSim.Framework
             textu.CreateFace(5).TextureID = new UUID("00000000-0000-1111-9999-000000000010");
             textu.CreateFace(6).TextureID = new UUID("00000000-0000-1111-9999-000000000011");
             return textu;
+        }
+
+        public static byte[] GetDefaultVisualParams()
+        {
+            byte[] visualParams;
+            visualParams = new byte[VISUALPARAM_COUNT];
+            for (int i = 0; i < VISUALPARAM_COUNT; i++)
+            {
+                visualParams[i] = 100;
+            }
+            return visualParams;
         }
 
         public override String ToString()

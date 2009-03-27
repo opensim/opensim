@@ -3361,19 +3361,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public static void GetDefaultAvatarAppearance(out AvatarWearable[] wearables, out byte[] visualParams)
         {
-            visualParams = GetDefaultVisualParams();
+            visualParams = AvatarAppearance.GetDefaultVisualParams();
             wearables = AvatarWearable.DefaultWearables;
-        }
-
-        private static byte[] GetDefaultVisualParams()
-        {
-            byte[] visualParams;
-            visualParams = new byte[218];
-            for (int i = 0; i < 218; i++)
-            {
-                visualParams[i] = 100;
-            }
-            return visualParams;
         }
 
         #endregion

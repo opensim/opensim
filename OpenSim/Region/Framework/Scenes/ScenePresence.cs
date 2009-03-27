@@ -2849,6 +2849,8 @@ namespace OpenSim.Region.Framework.Scenes
             uint i = 0;
             try
             {
+                if (cAgent.Wearables == null)
+                   cAgent.Wearables  = new UUID[0];
                 AvatarWearable[] wears = new AvatarWearable[cAgent.Wearables.Length / 2];
                 for (uint n = 0; n < cAgent.Wearables.Length; n += 2)
                 {
@@ -2857,12 +2859,13 @@ namespace OpenSim.Region.Framework.Scenes
                     wears[i++] = new AvatarWearable(itemId, assetId);
                 }
                 m_appearance.Wearables = wears;
-
                 byte[] te = null; 
                 if (cAgent.AgentTextures != null)
                     te = cAgent.AgentTextures;
                 else
-                    te = AvatarAppearance.GetDefaultTexture().ToBytes(); 
+                    te = AvatarAppearance.GetDefaultTexture().ToBytes();
+                if ((cAgent.VisualParams == null) || (cAgent.VisualParams.Length < AvatarAppearance.VISUALPARAM_COUNT))
+                    cAgent.VisualParams = AvatarAppearance.GetDefaultVisualParams();
                 m_appearance.SetAppearance(te, new List<byte>(cAgent.VisualParams));
             }
             catch (Exception e)
