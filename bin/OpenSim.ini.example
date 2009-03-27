@@ -687,6 +687,22 @@ InterregionComms = "RESTComms"
     ;update_interval = 100
 
 
+[Wind]
+	; Enables the wind module.  Default is true
+	enabled = true
+	; Adjusts wind strength. 0.0 = no wind, 1.0 = normal wind.  Default is 1.0
+	strength = 1.0
+	
+
+[Trees]
+    ; Enable this to allow the tree module to manage your sim trees, including growing, reproducing and dying
+    ; default is false
+    active_trees = false
+
+    ; Density of tree population
+    tree_density = 1000.0
+
+
 [ScriptEngine.DotNetEngine]
     Enabled = true
 
@@ -1094,15 +1110,6 @@ InterregionComms = "RESTComms"
     ; {0} is replaced with the region's name
     ; {1} is replaced with the region's UUID
     broker = "http://broker.place.com/{1}"
-
-
-[Trees]
-    ; Enable this to allow the tree module to manage your sim trees, including growing, reproducing and dying
-    ; default is false
-    active_trees = false
-
-    ; Density of tree population
-    tree_density = 1000.0
 
 
 [RegionReady]

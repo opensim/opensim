@@ -47,6 +47,7 @@ Patches
 * CharlieO
 * ChrisDown
 * Chris Yeoh
+* coyled
 * Daedius
 * DoranZemlja
 * daTwitch 
@@ -69,6 +70,7 @@ Patches
 * krtaylor (IBM)
 * lulurun 
 * M.Igarashi
+* maimedleech
 * Mic Bowman
 * mikkopa/_someone - RealXtend
 * Mircea Kitsune
