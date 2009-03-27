@@ -534,7 +534,6 @@ namespace OpenSim.Region.Framework.Scenes
             return found;
         }
 
-
         // Alias IncomingHelloNeighbour OtherRegionUp, for now
         public bool IncomingHelloNeighbour(RegionInfo neighbour)
         {
@@ -3063,21 +3062,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ScriptEngines.Add(scriptEngine);
             scriptEngine.InitializeEngine(this);
-        }
-
-        public void TriggerObjectChanged(uint localID, uint change)
-        {
-            m_eventManager.TriggerOnScriptChangedEvent(localID, change);
-        }
-
-        public void TriggerAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 currentpos)
-        {
-            m_eventManager.TriggerAtTargetEvent(localID, handle, targetpos, currentpos);
-        }
-
-        public void TriggerNotAtTargetEvent(uint localID)
-        {
-            m_eventManager.TriggerNotAtTargetEvent(localID);
         }
 
         private bool ScriptDanger(SceneObjectPart part,Vector3 pos)

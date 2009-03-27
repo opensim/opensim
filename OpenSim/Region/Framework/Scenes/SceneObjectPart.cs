@@ -3101,11 +3101,8 @@ if (m_shape != null) {
 
         public void TriggerScriptChangedEvent(Changed val)
         {
-            if (m_parentGroup != null)
-            {
-                if (m_parentGroup.Scene != null)
-                    m_parentGroup.Scene.TriggerObjectChanged(LocalId, (uint)val);
-            }
+            if (m_parentGroup != null && m_parentGroup.Scene != null)
+                m_parentGroup.Scene.EventManager.TriggerOnScriptChangedEvent(LocalId, (uint)val);
         }
 
         public void TrimPermissions()

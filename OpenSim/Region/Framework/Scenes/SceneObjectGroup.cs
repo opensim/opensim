@@ -2939,6 +2939,7 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
                     }
+                    
                     if (atTargets.Count > 0)
                     {
                         uint[] localids = new uint[0];
@@ -2952,16 +2953,20 @@ namespace OpenSim.Region.Framework.Scenes
                                 cntr++;
                             }
                         }
+                        
                         for (int ctr = 0; ctr < localids.Length; ctr++)
                         {
                             foreach (uint target in atTargets.Keys)
                             {
                                 scriptPosTarget att = atTargets[target];
-                                m_scene.TriggerAtTargetEvent(localids[ctr], att.handle, att.targetPos, m_rootPart.GroupPosition);
+                                m_scene.EventManager.TriggerAtTargetEvent(
+                                    localids[ctr], att.handle, att.targetPos, m_rootPart.GroupPosition);
                             }
                         }
+                        
                         return;
                     }
+                    
                     if (m_scriptListens_notAtTarget && !at_target)
                     {
                         //trigger not_at_target
@@ -2976,9 +2981,10 @@ namespace OpenSim.Region.Framework.Scenes
                                 cntr++;
                             }
                         }
+                        
                         for (int ctr = 0; ctr < localids.Length; ctr++)
                         {
-                            m_scene.TriggerNotAtTargetEvent(localids[ctr]);
+                            m_scene.EventManager.TriggerNotAtTargetEvent(localids[ctr]);
                         }
                     }
                 }
