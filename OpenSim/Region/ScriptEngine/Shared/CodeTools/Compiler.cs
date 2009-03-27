@@ -774,7 +774,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     m_positionMap[k] = v;
                 }
             }
-            catch (Exception e)
+            catch
             {
             }
         }
