@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Reflection;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
@@ -52,6 +53,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestLinkDelink2SceneObjects()
         {
+            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            
             bool debugtest = false; 
 
             Scene scene = SceneSetupHelpers.SetupScene();
@@ -122,12 +125,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 m_log.Debug("Group2: Prim2: OffsetPosition:" + part2.AbsolutePosition + ", OffsetRotation:" + part2.RotationOffset);
 
             Assert.That(grp1.Children.Count, Is.EqualTo(1), "Group 1 still contained part2 after delink.");
-            Assert.That(part2.AbsolutePosition == Vector3.Zero);            
+            Assert.That(part2.AbsolutePosition == Vector3.Zero);
         }
 
         [Test]
         public void TestLinkDelink2groups4SceneObjects()
         {
+            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            
             bool debugtest = false;
 
             Scene scene = SceneSetupHelpers.SetupScene();

@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Text;
 using System.Collections.Generic;
@@ -50,6 +51,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T010_AddObjects()
         {
+            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            
             random = new Random();
             SceneObjectGroup found;
             EntityManager entman = new EntityManager();
@@ -77,12 +80,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(entman.ContainsKey(obj1), Is.False);
             Assert.That(entman.ContainsKey(li1), Is.False);
             Assert.That(entman.ContainsKey(obj2), Is.False);            
-            Assert.That(entman.ContainsKey(li2), Is.False);
+            Assert.That(entman.ContainsKey(li2), Is.False);            
         }
 
         [Test]
         public void T011_ThreadAddRemoveTest()
         {   
+            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            
             // This test adds and removes with mutiple threads, attempting to break the 
             // uuid and localid dictionary coherence.
             EntityManager entman = new EntityManager();

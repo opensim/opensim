@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Reflection;
 using Nini.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -51,6 +53,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]        
         public void TestSimpleNotNeighboursTeleport()
         {
+            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            
             log4net.Config.XmlConfigurator.Configure();
             
             UUID sceneAId = UUID.Parse("00000000-0000-0000-0000-000000000100");

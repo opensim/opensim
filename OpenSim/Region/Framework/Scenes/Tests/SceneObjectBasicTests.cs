@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Reflection;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
@@ -51,13 +52,15 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestAddSceneObject()
         {              
+            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            
             Scene scene = SceneSetupHelpers.SetupScene();
             SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
             
             //m_log.Debug("retrievedPart : {0}", retrievedPart);
             // If the parts have the same UUID then we will consider them as one and the same
-            Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));         
+            Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));        
         }
         
         /// <summary>
@@ -66,6 +69,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeleteSceneObject()
         {
+            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            
             TestScene scene = SceneSetupHelpers.SetupScene();         
             SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
             scene.DeleteSceneObject(part.ParentGroup, false);
@@ -80,6 +85,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeleteSceneObjectAsync()
         {
+            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
             TestScene scene = SceneSetupHelpers.SetupScene();
@@ -98,7 +105,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
             sogd.InventoryDeQueueAndDelete();
             SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
-            Assert.That(retrievedPart2, Is.Null);            
+            Assert.That(retrievedPart2, Is.Null);
         }
  
         /// <summary>
@@ -107,6 +114,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeleteSceneObjectAsyncToUserInventory()
         {
+            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());            
             //log4net.Config.XmlConfigurator.Configure();                  
             
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
