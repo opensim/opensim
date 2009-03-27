@@ -117,7 +117,8 @@ namespace OpenSim.Region.CoreModules.Framework.Services
 
             IHttpServer httpServer = m_scene.CommsManager.HttpServer;
             httpServer.AddStreamHandler(new GetAssetStreamHandler(m_assetProvider));
-            httpServer.AddStreamHandler(new PostAssetStreamHandler(m_assetProvider));
+            httpServer.AddStreamHandler(new PostAssetStreamHandler(m_assetProvider));
+
         }
     }
 }
