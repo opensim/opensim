@@ -1589,5 +1589,8 @@ namespace OpenSim.Client.MXP.ClientStack
 
         #endregion
     
+        public void SendCreateGroupReply(UUID groupID, bool success, string message)
+        {
+        }
     }
 }

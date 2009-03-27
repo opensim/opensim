@@ -1094,5 +1094,9 @@ namespace OpenSim.Tests.Common.Mock
         public void SendUserInfoReply(bool imViaEmail, bool visible, string email)
         {
         }
+
+        public void SendCreateGroupReply(UUID groupID, bool success, string message)
+        {
+        }
     }
 }

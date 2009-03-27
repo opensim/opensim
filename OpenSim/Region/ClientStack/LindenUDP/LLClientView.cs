@@ -7194,25 +7194,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (m_GroupsModule != null)
                     {
-                        CreateGroupReplyPacket createGroupReply = (CreateGroupReplyPacket)PacketPool.Instance.GetPacket(PacketType.CreateGroupReply);
-
-                        createGroupReply.AgentData =
-                            new CreateGroupReplyPacket.AgentDataBlock();
-                        createGroupReply.ReplyData =
-                            new CreateGroupReplyPacket.ReplyDataBlock();
-
-                        createGroupReply.AgentData.AgentID = AgentId;
-                        createGroupReply.ReplyData.GroupID = UUID.Zero;
-
-                        IMoneyModule money = m_scene.RequestModuleInterface<IMoneyModule>();
-                        if (money != null && !money.GroupCreationCovered(this))
-                        {
-                            createGroupReply.ReplyData.Success = false;
-                            createGroupReply.ReplyData.Message = Utils.StringToBytes("You do not have sufficient funds to create a group");
-                            OutPacket(createGroupReply, ThrottleOutPacketType.Task);
-                            break;
-                        }
-
                         UUID groupID = m_GroupsModule.CreateGroup(this,
                                                                   Utils.BytesToString(createGroupRequest.GroupData.Name),
                                                                   Utils.BytesToString(createGroupRequest.GroupData.Charter),
@@ -7222,26 +7203,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                                   createGroupRequest.GroupData.OpenEnrollment,
                                                                   createGroupRequest.GroupData.AllowPublish,
                                                                   createGroupRequest.GroupData.MaturePublish);
-                        if (groupID == UUID.Zero)
-                        {
-                            createGroupReply.ReplyData.Success = false;
-                            createGroupReply.ReplyData.Message = Utils.StringToBytes("We're sorry, but we could not create the requested group. Please try another name");
-                            OutPacket(createGroupReply, ThrottleOutPacketType.Task);
-                            break;
-                        }
-
-                        if (money != null)
-                            money.ApplyGroupCreationCharge(AgentId);
-
-                        createGroupReply.ReplyData.Success = true;
-                        createGroupReply.ReplyData.GroupID = groupID;
-                        createGroupReply.ReplyData.Message = Utils.StringToBytes("Group created");
-                        OutPacket(createGroupReply, ThrottleOutPacketType.Task);
-
-                        // Sync with event queue
-                        Thread.Sleep(1000);
-
-                        m_GroupsModule.SendAgentGroupDataUpdate(this);
                     }
                     break;
 
@@ -8636,6 +8597,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
                 }
             }
+        }
+
+        public void SendCreateGroupReply(UUID groupID, bool success, string message)
+        {
+            CreateGroupReplyPacket createGroupReply = (CreateGroupReplyPacket)PacketPool.Instance.GetPacket(PacketType.CreateGroupReply);
+
+            createGroupReply.AgentData =
+                new CreateGroupReplyPacket.AgentDataBlock();
+            createGroupReply.ReplyData =
+                new CreateGroupReplyPacket.ReplyDataBlock();
+
+            createGroupReply.AgentData.AgentID = AgentId;
+            createGroupReply.ReplyData.GroupID = groupID;
+
+            createGroupReply.ReplyData.Success = success;
+            createGroupReply.ReplyData.Message = Utils.StringToBytes(message);
+            OutPacket(createGroupReply, ThrottleOutPacketType.Task);
         }
 
         public string Report()

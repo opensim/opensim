@@ -1057,6 +1057,8 @@ namespace OpenSim.Framework
 
         void SendLeaveGroupReply(UUID groupID, bool success);
 
+        void SendCreateGroupReply(UUID groupID, bool success, string message);
+
         void SendLandStatReply(uint reportType, uint requestFlags, uint resultCount, LandStatReportItem[] lsrpia);
 
         void SendScriptRunningReply(UUID objectID, UUID itemID, bool running);

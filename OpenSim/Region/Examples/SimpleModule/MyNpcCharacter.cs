@@ -1053,6 +1053,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void SendCreateGroupReply(UUID groupID, bool success, string message)
+        {
+        }
+
         #endregion
     }
 }
