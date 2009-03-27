@@ -192,7 +192,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, m_assetUuids);
         }
 
-        protected void SaveInvDir(InventoryFolderImpl inventoryFolder, string path)
+        /// <summary>
+        /// Save an inventory folder
+        /// </summary>
+        /// <param name="inventoryFolder">The inventory folder to save</param>
+        /// <param name="path">The path to which the folder should be saved</param>
+        protected void SaveInvFolder(InventoryFolderImpl inventoryFolder, string path)
         {
             path +=
                 string.Format(
@@ -200,6 +205,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     inventoryFolder.Name,
                     ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR,
                     inventoryFolder.ID);
+            
+            // We need to make sure that we record empty folders            
             m_archive.WriteDir(path);
 
             List<InventoryFolderImpl> childFolders = inventoryFolder.RequestListOfFolderImpls();
@@ -228,7 +235,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             foreach (InventoryFolderImpl childFolder in childFolders)
             {
-                SaveInvDir(childFolder, path);
+                SaveInvFolder(childFolder, path);
             }
 
             foreach (InventoryItemBase item in items)
@@ -314,8 +321,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         "[INVENTORY ARCHIVER]: Found item {0} {1} at {2}",
                         inventoryItem.Name, inventoryItem.ID, m_invPath);
 
-                    //get and export item info
-                    SaveInvItem(inventoryItem, ArchiveConstants.INVENTORY_PATH + m_invPath);
+                    SaveInvItem(inventoryItem, ArchiveConstants.INVENTORY_PATH);
                 }
             }
             else
@@ -325,7 +331,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     inventoryFolder.Name, inventoryFolder.ID, m_invPath);
 
                 //recurse through all dirs getting dirs and files
-                SaveInvDir(inventoryFolder, ArchiveConstants.INVENTORY_PATH);
+                SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH);
             }
             
             SaveUsers();
@@ -334,7 +340,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         
         /// <summary>
         /// Save information for the users that we've collected.
-        /// XXX: Doesn't actually do this yet.
         /// </summary>
         protected void SaveUsers()
         {

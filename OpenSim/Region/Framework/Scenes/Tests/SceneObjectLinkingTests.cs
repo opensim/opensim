@@ -38,7 +38,6 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
 using log4net;
-using System.Reflection;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
