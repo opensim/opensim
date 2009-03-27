@@ -55,16 +55,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             Rest.Log.InfoFormat("{0} User appearance services initializing", MsgId);
             Rest.Log.InfoFormat("{0} Using REST Implementation Version {1}", MsgId, Rest.Version);
 
-            // This is better than a null reference.
-
-            if (Rest.AvatarServices == null)
-                throw new Exception(String.Format("{0} OpenSim inventory services are not available",
-                                                  MsgId));
-
-            if (Rest.UserServices == null)
-                throw new Exception(String.Format("{0} OpenSim user profile services are not available",
-                                                  MsgId));
-
             // If a relative path was specified for the handler's domain,
             // add the standard prefix to make it absolute, e.g. /admin
 

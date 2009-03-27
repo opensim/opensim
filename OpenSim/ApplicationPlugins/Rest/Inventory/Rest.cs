@@ -69,11 +69,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal static IRestHandler              Plugin            = null;
         internal static OpenSimBase               main              = null;
-        internal static CommunicationsManager     Comms             = null;
-        internal static IInventoryServices        InventoryServices = null;
-        internal static IUserService              UserServices      = null;
-        internal static IAvatarService            AvatarServices    = null;
-        internal static IAssetCache               AssetServices     = null;
         internal static string                    Prefix            = null;
         internal static IConfig                   Config            = null;
         internal static string                    GodKey            = null;
@@ -86,6 +81,39 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         internal static string                    Realm             = "OpenSim REST";
         internal static string                    Scheme            = AS_BASIC;
         internal static int                       DumpLineSize      = 32; // Should be a multiple of 16 or (possibly) 4
+
+        /// <summary>
+        /// These are all dependent upon the Comms manager
+        /// being initialized. So they have to be properties
+        /// because the comms manager is now a module and is
+        /// not guaranteed to be there when the rest handler
+        /// initializes.
+        /// </summary>
+
+        internal static CommunicationsManager Comms
+        {
+            get { return main.CommunicationsManager; }
+        }
+
+        internal static IInventoryServices InventoryServices
+        {
+            get { return Comms.InventoryService; }
+        }
+
+        internal static IUserService UserServices
+        {
+            get { return Comms.UserService; }
+        }
+ 
+        internal static IAvatarService AvatarServices
+        {
+            get { return Comms.AvatarService; }
+        }
+
+        internal static IAssetCache AssetServices
+        {
+            get { return Comms.AssetCache; }
+        }
 
         /// <summary>
         /// HTTP requires that status information be generated for PUT

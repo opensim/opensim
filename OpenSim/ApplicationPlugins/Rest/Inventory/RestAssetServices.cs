@@ -46,12 +46,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             Rest.Log.InfoFormat("{0} Asset services initializing", MsgId);
             Rest.Log.InfoFormat("{0} Using REST Implementation Version {1}", MsgId, Rest.Version);
 
-            // This is better than a null reference.
-
-            if (Rest.AssetServices == null)
-                throw new Exception(String.Format("{0} OpenSim asset services are not available",
-                                                  MsgId));
-
             // If the handler specifies a relative path for its domain
             // then we must add the standard absolute prefix, e.g. /admin
 

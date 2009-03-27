@@ -227,16 +227,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // them easy to reach from anywhere in the assembly.
 
                 Rest.main              = openSim;
+                if(Rest.main == null)
+                    throw new Exception("OpenSim base pointer is null");
+
                 Rest.Plugin            = this;
-                Rest.Comms             = Rest.main.CommunicationsManager;
-                Rest.UserServices      = Rest.Comms.UserService;
-                Rest.InventoryServices = Rest.Comms.InventoryService;
-                Rest.AssetServices     = Rest.Comms.AssetCache;
-                Rest.AvatarServices    = Rest.Comms.AvatarService;
                 Rest.Config            = Config;
                 Rest.Prefix            = Prefix;
                 Rest.GodKey            = GodKey;
-
                 Rest.Authenticate      = Rest.Config.GetBoolean("authenticate", Rest.Authenticate);
                 Rest.Scheme            = Rest.Config.GetString("auth-scheme", Rest.Scheme);
                 Rest.Secure            = Rest.Config.GetBoolean("secured", Rest.Secure);
@@ -253,7 +250,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                     (Rest.Authenticate ? "" : "not "));
 
                 Rest.Log.InfoFormat("{0} Security is {1}enabled", MsgId,
-                                    (Rest.Authenticate ? "" : "not "));
+                                    (Rest.Secure ? "" : "not "));
 
                 Rest.Log.InfoFormat("{0} Extended URI escape processing is {1}enabled", MsgId,
                                     (Rest.ExtendedEscape ? "" : "not "));
