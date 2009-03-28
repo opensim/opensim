@@ -359,7 +359,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         public InventoryItemBase GetInventoryItem(InventoryItemBase item)
         {
-            m_log.Info("[HGStandaloneInvService]: Processing request for item " + item.ID);
+            m_log.Info("[HGStandaloneInvService]: Get item " + item.ID);
 
             item = ((InventoryServiceBase)m_inventoryService).GetInventoryItem(item.ID);
             if (item == null)
@@ -369,6 +369,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         public InventoryItemBase AddItem(InventoryItemBase item)
         {
+            m_log.DebugFormat("[HGStandaloneInvService]: Add item {0} from {1}", item.ID, item.Owner);
             if (m_inventoryService.AddItem(item))
                 return item;
             else
@@ -380,6 +381,9 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         public InventoryItemBase UpdateItem(InventoryItemBase item)
         {
+            m_log.DebugFormat("[HGStandaloneInvService]: Update item {0} from {1}", item.ID, item.Owner);
+            InventoryItemBase it = m_inventoryService.GetInventoryItem(item.ID);
+            item.CurrentPermissions = it.CurrentPermissions;
             if (m_inventoryService.UpdateItem(item))
                 return item;
             else
@@ -391,6 +395,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         public InventoryItemBase MoveItem(InventoryItemBase newitem)
         {
+            m_log.DebugFormat("[HGStandaloneInvService]: Move item {0} from {1}", newitem.ID, newitem.Owner);
             InventoryItemBase Item = m_inventoryService.GetInventoryItem(newitem.ID);
             if (Item != null)
             {
@@ -425,6 +430,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         public InventoryItemBase CopyItem(InventoryItemBase olditem)
         {
+            m_log.DebugFormat("[HGStandaloneInvService]: Copy item {0} from {1}", olditem.ID, olditem.Owner);
             InventoryItemBase Item = m_inventoryService.GetInventoryItem(olditem.ID); // this is the old item id
             // BIG HACK here
             UUID newID = olditem.AssetID;
@@ -436,9 +442,9 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                 }
                 Item.ID = newID;
                 Item.Folder = olditem.Folder;
+                Item.Owner = olditem.Owner;
                 // There should be some tests here about the owner, etc but I'm going to ignore that
                 // because I'm not sure it makes any sense
-
                 // Also I should probably close the asset...
                 m_inventoryService.AddItem(Item);
                 return Item;
@@ -475,25 +481,26 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         public AssetBase GetAsset(InventoryItemBase item)
         {
             m_log.Info("[HGStandaloneInvService]: Get asset " + item.AssetID + " for item " + item.ID);
+            AssetBase asset = new AssetBase(item.AssetID, "NULL"); // send an asset with no data
             InventoryItemBase item2 = ((InventoryServiceBase)m_inventoryService).GetInventoryItem(item.ID);
             if (item2 == null)
             {
                 m_log.Debug("[HGStandaloneInvService]: null item");
-                return null;
+                return asset;
             }
             if (item2.Owner != item.Owner)
             {
-                m_log.Debug("[HGStandaloneInvService]: client is trying to get an item for which he is not the owner");
-                return null;
+                m_log.DebugFormat("[HGStandaloneInvService]: client with uuid {0} is trying to get an item of owner {1}", item.Owner, item2.Owner);
+                return asset;
             }
 
             // All good, get the asset
-            AssetBase asset = m_assetProvider.FetchAsset(item.AssetID);
-            m_log.Debug("[HGStandaloneInvService] Found asset " + ((asset == null)? "NULL" : "Not Null"));
-            if (asset == null)
+            AssetBase theasset = m_assetProvider.FetchAsset(item.AssetID);
+            m_log.Debug("[HGStandaloneInvService] Found asset " + ((theasset == null)? "NULL" : "Not Null"));
+            if (theasset != null)
             {
+                asset = theasset;
                 m_log.Debug("  >> Sending assetID " + item.AssetID);
-                asset = new AssetBase(item.AssetID, "NULL"); // send an asset with no data
             }
             return asset;
         }
@@ -541,6 +548,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                 PostAsset(asset);
 
                 item.AssetID = asset.FullID;
+                item.Owner = userID;
+                m_inventoryService.UpdateItem(item);
 
                 return (asset.FullID);
             }
