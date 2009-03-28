@@ -211,7 +211,89 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
                         else
                         {
-                            m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding failed for {0}", AssetId);
+                            /*
+                            Random rnd = new Random();
+                             // scramble ends for test
+                            for (int i = 0; i < texture.LayerInfo.Length; i++)
+                            {
+                                texture.LayerInfo[i].End = rnd.Next(999999);
+                            }
+                            */
+
+                            // Try to do some heuristics error correction!  Yeah.
+                            bool sane2Heuristics = true;
+
+                            if (texture.LayerInfo.Length == 0)
+                                sane2Heuristics = false;
+
+                            if (sane2Heuristics)
+                            {
+                                // Last layer start is less then the end of the file and last layer start is greater then 0
+                                if (texture.LayerInfo[texture.LayerInfo.Length - 1].Start < texture.AssetData.Length && texture.LayerInfo[texture.LayerInfo.Length - 1].Start > 0)
+                                {
+                                }
+                                else
+                                {
+                                    sane2Heuristics = false;
+                                }
+
+                            }
+
+                            if (sane2Heuristics)
+                            {
+                                int start = 0;
+                                
+                                // try to fix it by using consistant data in the start field
+                                for (int i = 0; i < texture.LayerInfo.Length; i++)
+                                {
+                                    if (i == 0)
+                                        start = 0;
+
+                                    if (i == texture.LayerInfo.Length - 1)
+                                        texture.LayerInfo[i].End = texture.AssetData.Length;
+                                    else
+                                        texture.LayerInfo[i].End = texture.LayerInfo[i + 1].Start - 1;
+
+                                    // in this case, the end of the next packet is less then the start of the last packet
+                                    // after we've attempted to fix it which means the start of the last packet is borked
+                                    // there's no recovery from this
+                                    if (texture.LayerInfo[i].End < start)
+                                    {
+                                        sane2Heuristics = false;
+                                        break;
+                                    }
+ 
+                                    if (texture.LayerInfo[i].End < 0 || texture.LayerInfo[i].End > texture.AssetData.Length)
+                                    {
+                                        sane2Heuristics = false;
+                                        break;
+                                    }
+
+                                    if (texture.LayerInfo[i].Start < 0 || texture.LayerInfo[i].Start > texture.AssetData.Length)
+                                    {
+                                        sane2Heuristics = false;
+                                        break;
+                                    }
+
+                                    start = texture.LayerInfo[i].Start;
+                                }
+                            }
+
+                            if (sane2Heuristics)
+                            {
+                                layers = texture.LayerInfo;
+                                fCache.SaveFileCacheForAsset(AssetId, layers);
+
+
+                                // Write out decode time
+                                m_log.InfoFormat("[J2KDecoderModule]: HEURISTICS SUCCEEDED {0} Decode Time: {1}", Environment.TickCount - DecodeTime,
+                                                 AssetId);
+
+                            }
+                            else
+                            {
+                                m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding failed for {0}", AssetId);
+                            }
                         }
                         texture = null; // dereference and dispose of ManagedImage
                     }
