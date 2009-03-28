@@ -55,18 +55,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             lock (m_SceneList)
             {
-                if (m_SceneList.Count == 0)
-                {
-                    IMessageTransferModule trans = scene.RequestModuleInterface<IMessageTransferModule>();
-                    if (trans == null)
-                    {
-                        enabled = false;
-                        return;
-                    }
-
-                    trans.OnUndeliveredMessage += UndeliveredMessage;
-                }
-
                 if (!m_SceneList.Contains(scene))
                     m_SceneList.Add(scene);
 
@@ -76,6 +64,28 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         public void PostInitialise()
         {
+            if (m_SceneList.Count == 0)
+                return;
+
+            IMessageTransferModule trans = m_SceneList[0].RequestModuleInterface<IMessageTransferModule>();
+            if (trans == null)
+            {
+                enabled = false;
+
+                lock (m_SceneList)
+                {
+                    foreach (Scene s in m_SceneList)
+                        s.EventManager.OnNewClient -= OnNewClient;
+
+                    m_SceneList.Clear();
+                }
+
+                return;
+            }
+
+            trans.OnUndeliveredMessage += UndeliveredMessage;
+
+            m_log.Debug("[OFFLINE MESSAGING] Offline messages enabled");
         }
 
         public string Name
@@ -115,16 +125,24 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void UndeliveredMessage(GridInstantMessage im)
         {
-            IClientAPI client = FindClient(new UUID(im.toAgentID));
-            if (client == null)
-                return;
+            if (im.offline != 0)
+            {
+                // TODO: Actually save it
 
-            client.SendInstantMessage(new UUID(im.toAgentID),
-                    "User is not logged in. "+
-                    "Message saved.",
-                    new UUID(im.fromAgentID), "System",
-                    (byte)InstantMessageDialog.BusyAutoResponse,
-                    (uint)Util.UnixTimeSinceEpoch());
+                if(im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
+                {
+                    IClientAPI client = FindClient(new UUID(im.fromAgentID));
+                    if (client == null)
+                        return;
+
+                    client.SendInstantMessage(new UUID(im.fromAgentID),
+                            "User is not logged in. "+
+                            "Message saved.",
+                            new UUID(im.toAgentID), "System",
+                            (byte)InstantMessageDialog.BusyAutoResponse,
+                            (uint)Util.UnixTimeSinceEpoch());
+                }
+            }
         }
     }
 }
