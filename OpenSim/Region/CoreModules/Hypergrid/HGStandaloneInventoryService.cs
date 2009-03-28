@@ -384,6 +384,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             m_log.DebugFormat("[HGStandaloneInvService]: Update item {0} from {1}", item.ID, item.Owner);
             InventoryItemBase it = m_inventoryService.GetInventoryItem(item.ID);
             item.CurrentPermissions = it.CurrentPermissions;
+            item.AssetID = it.AssetID;
             if (m_inventoryService.UpdateItem(item))
                 return item;
             else
@@ -500,7 +501,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             if (theasset != null)
             {
                 asset = theasset;
-                m_log.Debug("  >> Sending assetID " + item.AssetID);
+                //m_log.Debug("  >> Sending assetID " + item.AssetID);
             }
             return asset;
         }
@@ -509,6 +510,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         {
             m_log.Info("[HGStandaloneInvService]: Post asset " + asset.FullID);
             m_assetProvider.CreateAsset(asset);
+  
             return true;
         }
 
