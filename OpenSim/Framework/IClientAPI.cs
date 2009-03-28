@@ -431,6 +431,7 @@ namespace OpenSim.Framework
     public delegate void PickGodDelete(IClientAPI client, UUID agentID, UUID pickID, UUID queryID);
     public delegate void PickInfoUpdate(IClientAPI client, UUID pickID, UUID creatorID, bool topPick, string name, string desc, UUID snapshotID, int sortOrder, bool enabled);
     public delegate void AvatarNotesUpdate(IClientAPI client, UUID targetID, string notes);
+    public delegate void MuteListRequest(IClientAPI client, uint muteCRC);
 
     #endregion
 
@@ -764,6 +765,8 @@ namespace OpenSim.Framework
         event PickGodDelete OnPickGodDelete;
         event PickInfoUpdate OnPickInfoUpdate;
         event AvatarNotesUpdate OnAvatarNotesUpdate;
+
+        event MuteListRequest OnMuteListRequest;
         
         /// <summary>
         /// Set the debug level at which packet output should be printed to console.
@@ -1128,6 +1131,8 @@ namespace OpenSim.Framework
         void SendParcelDwellReply(int localID, UUID parcelID, float dwell);
 
         void SendUserInfoReply(bool imViaEmail, bool visible, string email);
+        
+        void SendUseCachedMuteList();
 
         void KillEndDone();
 

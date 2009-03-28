@@ -260,6 +260,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event PickInfoUpdate OnPickInfoUpdate;
         public event AvatarNotesUpdate OnAvatarNotesUpdate;
 
+        public event MuteListRequest OnMuteListRequest;
+
 #pragma warning restore 67
 
         private UUID myID = UUID.Random();
@@ -1059,6 +1061,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public void SendCreateGroupReply(UUID groupID, bool success, string message)
+        {
+        }
+
+        public void SendUseCachedMuteList()
         {
         }
 

@@ -303,6 +303,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private PickInfoUpdate handlerPickInfoUpdate;
         private AvatarNotesUpdate handlerAvatarNotesUpdate;
 
+        private MuteListRequest handlerMuteListRequest;
+
         private readonly IGroupsModule m_GroupsModule;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
@@ -1092,6 +1094,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event PickGodDelete OnPickGodDelete;
         public event PickInfoUpdate OnPickInfoUpdate;
         public event AvatarNotesUpdate OnAvatarNotesUpdate;
+
+        public event MuteListRequest OnMuteListRequest;
 
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
@@ -6822,8 +6826,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //m_log.Warn("[CLIENT]: unhandled TransferAbort packet");
                     break;
                 case PacketType.MuteListRequest:
-                    // TODO: handle this packet
-                    //m_log.Warn("[CLIENT]: unhandled MuteListRequest packet");
+                    MuteListRequestPacket muteListRequest =
+                            (MuteListRequestPacket)Pack;
+
+                    handlerMuteListRequest = OnMuteListRequest;
+                    if (handlerMuteListRequest != null)
+                    {
+                        handlerMuteListRequest(this, muteListRequest.MuteData.MuteCRC);
+                    }
+                    else
+                    {
+                        SendUseCachedMuteList();
+                    }
                     break;
                 case PacketType.UseCircuitCode:
                     // Don't display this one, we handle it at a lower level
@@ -8674,6 +8688,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             createGroupReply.ReplyData.Success = success;
             createGroupReply.ReplyData.Message = Utils.StringToBytes(message);
             OutPacket(createGroupReply, ThrottleOutPacketType.Task);
+        }
+
+        public void SendUseCachedMuteList()
+        {
+            UseCachedMuteListPacket useCachedMuteList = (UseCachedMuteListPacket)PacketPool.Instance.GetPacket(PacketType.UseCachedMuteList);
+
+            useCachedMuteList.AgentData = new UseCachedMuteListPacket.AgentDataBlock();
+            useCachedMuteList.AgentData.AgentID = AgentId;
+
+            OutPacket(useCachedMuteList, ThrottleOutPacketType.Task);
         }
 
         public string Report()

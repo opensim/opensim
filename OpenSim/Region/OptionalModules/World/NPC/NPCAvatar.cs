@@ -366,6 +366,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event PickInfoUpdate OnPickInfoUpdate;
         public event AvatarNotesUpdate OnAvatarNotesUpdate;
 
+        public event MuteListRequest OnMuteListRequest;
+
 #pragma warning restore 67
 
         #endregion
@@ -1059,6 +1061,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
 
         public void SendCreateGroupReply(UUID groupID, bool success, string message)
+        {
+        }
+
+        public void SendUseCachedMuteList()
         {
         }
 

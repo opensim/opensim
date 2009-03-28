@@ -273,6 +273,8 @@ namespace OpenSim.Tests.Common.Mock
         public event PickInfoUpdate OnPickInfoUpdate;
         public event AvatarNotesUpdate OnAvatarNotesUpdate;
 
+        public event MuteListRequest OnMuteListRequest;
+
 #pragma warning restore 67
 
         /// <value>
@@ -1101,6 +1103,10 @@ namespace OpenSim.Tests.Common.Mock
         }
 
         public void SendCreateGroupReply(UUID groupID, bool success, string message)
+        {
+        }
+
+        public void SendUseCachedMuteList()
         {
         }
     }

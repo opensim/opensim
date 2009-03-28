@@ -746,6 +746,7 @@ namespace OpenSim.Client.MXP.ClientStack
         public event PickGodDelete OnPickGodDelete;
         public event PickInfoUpdate OnPickInfoUpdate;
         public event AvatarNotesUpdate OnAvatarNotesUpdate;
+        public event MuteListRequest OnMuteListRequest;
         #pragma warning restore 67
 
         #endregion
@@ -1594,6 +1595,10 @@ namespace OpenSim.Client.MXP.ClientStack
         #endregion
     
         public void SendCreateGroupReply(UUID groupID, bool success, string message)
+        {
+        }
+
+        public void SendUseCachedMuteList()
         {
         }
     }
