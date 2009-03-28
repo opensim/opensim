@@ -375,6 +375,9 @@ InterregionComms = "RESTComms"
     ; Control which region module is used for instant messaging.
     ; Default is InstantMessageModule (this is the name of the core IM module as well as the setting)
     InstantMessageModule = InstantMessageModule
+    ; MessageTransferModule = MessageTransferModule
+    ; OfflineMessageModule = OfflineMessageModule
+    ; OfflineMessagesURL = http://yourserver/offlines.php
 
 
 [ODEPhysicsSettings]
