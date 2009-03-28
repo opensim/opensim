@@ -2674,7 +2674,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
 
-        public void SendCoarseLocationUpdate(List<Vector3> CoarseLocations)
+        public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)
         {
             if (!IsActive) return; // We don't need to update inactive clients.
 
@@ -2684,14 +2684,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             CoarseLocationUpdatePacket.IndexBlock ib =
                 new CoarseLocationUpdatePacket.IndexBlock();
             loc.Location = new CoarseLocationUpdatePacket.LocationBlock[total];
+            loc.AgentData = new CoarseLocationUpdatePacket.AgentDataBlock[total];
+
             for (int i = 0; i < total; i++)
             {
                 CoarseLocationUpdatePacket.LocationBlock lb =
                     new CoarseLocationUpdatePacket.LocationBlock();
                 lb.X = (byte)CoarseLocations[i].X;
                 lb.Y = (byte)CoarseLocations[i].Y;
-                lb.Z = (byte)(CoarseLocations[i].Z / 4);
+
+                lb.Z = CoarseLocations[i].Z > 1024 ? (byte)0 : (byte)(CoarseLocations[i].Z * 0.25);
                 loc.Location[i] = lb;
+                loc.AgentData[i] = new CoarseLocationUpdatePacket.AgentDataBlock();
+                loc.AgentData[i].AgentID = users[i];
             }
             ib.You = -1;
             ib.Prey = -1;

@@ -2178,6 +2178,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_perfMonMS = System.Environment.TickCount;
 
             List<Vector3> CoarseLocations = new List<Vector3>();
+            List<UUID> AvatarUUIDs = new List<UUID>();
             List<ScenePresence> avatars = m_scene.GetAvatars();
             for (int i = 0; i < avatars.Count; i++)
             {
@@ -2190,21 +2191,24 @@ namespace OpenSim.Region.Framework.Scenes
                         if (sop != null)
                         {
                             CoarseLocations.Add(sop.AbsolutePosition + avatars[i].m_pos);
+                            AvatarUUIDs.Add(avatars[i].UUID);
                         }
                         else
                         {
                             // we can't find the parent..  ! arg!
                             CoarseLocations.Add(avatars[i].m_pos);
+                            AvatarUUIDs.Add(avatars[i].UUID);
                         }
                     }
                     else
                     {
                         CoarseLocations.Add(avatars[i].m_pos);
+                        AvatarUUIDs.Add(avatars[i].UUID);
                     }
                 }
             }
 
-            m_controllingClient.SendCoarseLocationUpdate(CoarseLocations);
+            m_controllingClient.SendCoarseLocationUpdate(AvatarUUIDs, CoarseLocations);
 
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
         }

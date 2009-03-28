@@ -1001,7 +1001,7 @@ namespace OpenSim.Client.MXP.ClientStack
             Session.Send(me);
         }
 
-        public void SendCoarseLocationUpdate(List<Vector3> CoarseLocations)
+        public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)
         {
             // Minimap function, not used.
         }

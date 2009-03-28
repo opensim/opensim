@@ -855,7 +855,7 @@ namespace OpenSim.Framework
         void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
                                    Vector3 velocity, Quaternion rotation);
 
-        void SendCoarseLocationUpdate(List<Vector3> CoarseLocations);
+        void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations);
 
         void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID);
         void SetChildAgentThrottle(byte[] throttle);

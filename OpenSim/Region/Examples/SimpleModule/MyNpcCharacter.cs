@@ -499,7 +499,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public virtual void SendCoarseLocationUpdate(List<Vector3> CoarseLocations)
+        public virtual void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)
         {
         }
 
