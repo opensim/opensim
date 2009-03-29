@@ -378,6 +378,8 @@ InterregionComms = "RESTComms"
     ; MessageTransferModule = MessageTransferModule
     ; OfflineMessageModule = OfflineMessageModule
     ; OfflineMessagesURL = http://yourserver/offlines.php
+    ; MuteListModule = MuteListModule
+    ; MuteListsURL = http://yourserver/mutes.php
 
 
 [ODEPhysicsSettings]

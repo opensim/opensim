@@ -8700,6 +8700,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(useCachedMuteList, ThrottleOutPacketType.Task);
         }
 
+        public void SendMuteListUpdate(string filename)
+        {
+            MuteListUpdatePacket muteListUpdate = (MuteListUpdatePacket)PacketPool.Instance.GetPacket(PacketType.MuteListUpdate);
+
+            muteListUpdate.MuteData = new MuteListUpdatePacket.MuteDataBlock();
+            muteListUpdate.MuteData.AgentID = AgentId;
+            muteListUpdate.MuteData.Filename = Utils.StringToBytes(filename);
+
+            OutPacket(muteListUpdate, ThrottleOutPacketType.Task);
+        }
+
         public string Report()
         {
             LLPacketHandler handler = (LLPacketHandler) m_PacketHandler;

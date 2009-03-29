@@ -1109,5 +1109,9 @@ namespace OpenSim.Tests.Common.Mock
         public void SendUseCachedMuteList()
         {
         }
+
+        public void SendMuteListUpdate(string filename)
+        {
+        }
     }
 }

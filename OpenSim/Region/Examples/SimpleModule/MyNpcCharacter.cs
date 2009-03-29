@@ -1068,6 +1068,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void SendMuteListUpdate(string filename)
+        {
+        }
+
         #endregion
     }
 }

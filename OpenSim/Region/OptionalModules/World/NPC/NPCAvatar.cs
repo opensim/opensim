@@ -1068,6 +1068,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public void SendMuteListUpdate(string filename)
+        {
+        }
+
         #endregion
     }
 }

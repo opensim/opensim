@@ -37,9 +37,9 @@ using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
+namespace OpenSim.Region.CoreModules.Avatar.MuteList
 {
-    public class OfflineMessageModule : IRegionModule
+    public class MuteListModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -54,8 +54,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             IConfig cnf = config.Configs["Messaging"];
             if (cnf != null && cnf.GetString(
-                    "OfflineMessageModule", "None") !=
-                    "OfflineMessageModule")
+                    "MuteListModule", "None") !=
+                    "MuteListModule")
             {
                 enabled = false;
                 return;
@@ -65,10 +65,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             {
                 if (m_SceneList.Count == 0)
                 {
-                    m_RestURL = cnf.GetString("OfflineMessageURL", "");
+                    m_RestURL = cnf.GetString("MuteListURL", "");
                     if (m_RestURL == "")
                     {
-                        m_log.Error("[OFFLINE MESSAGING] Module was enabled, but no URL is given, disabling");
+                        m_log.Error("[MUTE LIST] Module was enabled, but no URL is given, disabling");
                         enabled = false;
                         return;
                     }
@@ -88,31 +88,12 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (m_SceneList.Count == 0)
                 return;
 
-            IMessageTransferModule trans = m_SceneList[0].RequestModuleInterface<IMessageTransferModule>();
-            if (trans == null)
-            {
-                enabled = false;
-
-                lock (m_SceneList)
-                {
-                    foreach (Scene s in m_SceneList)
-                        s.EventManager.OnNewClient -= OnNewClient;
-
-                    m_SceneList.Clear();
-                }
-
-                m_log.Error("[OFFLINE MESSAGING] No message transfer module is enabled. Diabling offline messages");
-                return;
-            }
-
-            trans.OnUndeliveredMessage += UndeliveredMessage;
-
-            m_log.Debug("[OFFLINE MESSAGING] Offline messages enabled");
+            m_log.Debug("[MUTE LIST] Mute list enabled");
         }
 
         public string Name
         {
-            get { return "OfflineMessageModule"; }
+            get { return "MuteListModule"; }
         }
 
         public bool IsSharedModule
@@ -137,64 +118,19 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void OnNewClient(IClientAPI client)
         {
-            client.OnRetrieveInstantMessages += RetrieveInstantMessages;
-            // TODO:: Remove when mute lists are supported
-            //
-            //client.OnEconomyDataRequest += OnEconomyDataRequest;
+            client.OnMuteListRequest += OnMuteListRequest;
         }
 
-        // TODO: Remove method when mute lists are supported
-        //
-        //private void OnEconomyDataRequest(UUID agentID)
-        //{
-        //    IClientAPI client = FindClient(agentID);
-        //    if (client == null)
-        //    {
-        //        m_log.ErrorFormat("[OFFLINE MESSAGING] Can't find client {0}", agentID.ToString());
-        //        return;
-        //    }
-        //    RetrieveInstantMessages(client);
-        //}
-
-        private void RetrieveInstantMessages(IClientAPI client)
+        private void OnMuteListRequest(IClientAPI client, uint crc)
         {
-            m_log.DebugFormat("[OFFLINE MESSAGING] Retrieving stored messages for {0}", client.AgentId);
+            m_log.DebugFormat("[MUTE LIST] Got mute list requestg for crc {0}", crc);
+            string filename = "mutes"+client.AgentId.ToString();
 
-            List<GridInstantMessage>msglist = SynchronousRestObjectPoster.BeginPostObject<UUID, List<GridInstantMessage>>(
-                    "POST", m_RestURL+"/RetrieveMessages/", client.AgentId);
-
-            foreach (GridInstantMessage im in msglist)
+            IXfer xfer = client.Scene.RequestModuleInterface<IXfer>();
+            if (xfer != null)
             {
-                DateTime saved = Util.ToDateTime((uint)im.timestamp);
-
-                client.SendInstantMessage(new UUID(im.toAgentID),
-                        "(saved " + saved.ToString() + ") " + im.message,
-                        new UUID(im.fromAgentID), im.fromAgentName,
-                        (byte)im.dialog,
-                        (uint)im.timestamp);
-            }
-        }
-
-        private void UndeliveredMessage(GridInstantMessage im)
-        {
-            if (im.offline != 0)
-            {
-                bool success = SynchronousRestObjectPoster.BeginPostObject<GridInstantMessage, bool>(
-                        "POST", m_RestURL+"/SaveMessage/", im);
-
-                if(im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
-                {
-                    IClientAPI client = FindClient(new UUID(im.fromAgentID));
-                    if (client == null)
-                        return;
-
-                    client.SendInstantMessage(new UUID(im.fromAgentID),
-                            "User is not logged in. "+
-                            (success ? "Message saved." : "Message not saved"),
-                            new UUID(im.toAgentID), "System",
-                            (byte)InstantMessageDialog.MessageFromAgent,
-                            (uint)Util.UnixTimeSinceEpoch());
-                }
+                xfer.AddNewFile(filename, new Byte[0]);
+                client.SendMuteListUpdate(filename);
             }
         }
     }

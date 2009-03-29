@@ -1601,5 +1601,9 @@ namespace OpenSim.Client.MXP.ClientStack
         public void SendUseCachedMuteList()
         {
         }
+
+        public void SendMuteListUpdate(string filename)
+        {
+        }
     }
 }

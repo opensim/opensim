@@ -1133,6 +1133,7 @@ namespace OpenSim.Framework
         void SendUserInfoReply(bool imViaEmail, bool visible, string email);
         
         void SendUseCachedMuteList();
+        void SendMuteListUpdate(string filename);
 
         void KillEndDone();
 
