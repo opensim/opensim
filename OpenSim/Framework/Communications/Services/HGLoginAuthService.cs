@@ -169,22 +169,28 @@ namespace OpenSim.Framework.Communications.Services
                     m_log.Debug(" >> Null");
             }
 
-            // Verify the key of who's calling
-            UUID userID = UUID.Zero;
-            string authKey = string.Empty;
-            UUID.TryParse((string)request.Params[0], out userID);
-            authKey = (string)request.Params[1];
-
-            m_log.InfoFormat("[HGLOGIN] HGVerifyKey called with key ", authKey);
             bool success = false;
 
-            if (!(m_userManager is IAuthentication))
+            if (request.Params.Count >= 2)
             {
-                m_log.Debug("[HGLOGIN]: UserManager is not IAuthentication service. Denying.");
-            }
-            else
-            {
-                success = ((IAuthentication)m_userManager).VerifyKey(userID, authKey);
+                // Verify the key of who's calling
+                UUID userID = UUID.Zero;
+                string authKey = string.Empty;
+                if (UUID.TryParse((string)request.Params[0], out userID))
+                {
+                    authKey = (string)request.Params[1];
+
+                    m_log.InfoFormat("[HGLOGIN] HGVerifyKey called with key ", authKey);
+
+                    if (!(m_userManager is IAuthentication))
+                    {
+                        m_log.Debug("[HGLOGIN]: UserManager is not IAuthentication service. Denying.");
+                    }
+                    else
+                    {
+                        success = ((IAuthentication)m_userManager).VerifyKey(userID, authKey);
+                    }
+                }
             }
 
             XmlRpcResponse response = new XmlRpcResponse();

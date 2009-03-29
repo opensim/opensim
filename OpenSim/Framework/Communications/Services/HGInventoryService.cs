@@ -35,7 +35,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
-//using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Clients;
 using OpenSim.Framework.Communications.Cache;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 using LLSDHelpers = OpenSim.Framework.Communications.Capabilities.LLSDHelpers;
@@ -64,12 +64,15 @@ namespace OpenSim.Framework.Communications.Services
         // These two used for remote access
         string m_UserServerURL = string.Empty;
         string m_AssetServerURL = string.Empty;
+        SynchronousGridAssetClient m_AssetClient = null;
 
         // Constructor for grid inventory server
         public HGInventoryService(InventoryServiceBase invService, string assetServiceURL, string userServiceURL, IHttpServer httpserver, string thisurl)
         {
             m_UserServerURL = userServiceURL;
             m_AssetServerURL = assetServiceURL;
+
+            m_AssetClient = new SynchronousGridAssetClient(m_AssetServerURL);
 
             Init(invService, thisurl, httpserver);
         }
@@ -298,7 +301,7 @@ namespace OpenSim.Framework.Communications.Services
                 Item.Owner = olditem.Owner;
                 // There should be some tests here about the owner, etc but I'm going to ignore that
                 // because I'm not sure it makes any sense
-                // Also I should probably close the asset...
+                // Also I should probably clone the asset...
                 m_inventoryService.AddItem(Item);
                 return Item;
             }
@@ -319,7 +322,7 @@ namespace OpenSim.Framework.Communications.Services
         public List<InventoryFolderBase> GetInventorySkeleton(Guid rawUserID)
         {
             UUID userID = new UUID(rawUserID);
-            return ((InventoryServiceBase)m_inventoryService).GetInventorySkeleton(userID);
+            return m_inventoryService.GetInventorySkeleton(userID);
         }
 
         public List<InventoryItemBase> GetActiveGestures(Guid rawUserID)
@@ -328,7 +331,7 @@ namespace OpenSim.Framework.Communications.Services
 
             m_log.InfoFormat("[HGStandaloneInvService]: fetching active gestures for user {0}", userID);
 
-            return ((InventoryServiceBase)m_inventoryService).GetActiveGestures(userID);
+            return m_inventoryService.GetActiveGestures(userID);
         }
 
         public AssetBase GetAsset(InventoryItemBase item)
@@ -348,8 +351,10 @@ namespace OpenSim.Framework.Communications.Services
             }
 
             // All good, get the asset
-            AssetBase theasset = m_assetProvider.FetchAsset(item.AssetID);
-            m_log.Debug("[HGStandaloneInvService] Found asset " + ((theasset == null)? "NULL" : "Not Null"));
+            //AssetBase theasset = m_assetProvider.FetchAsset(item.AssetID);
+            AssetBase theasset = FetchAsset(item.AssetID, (item.InvType == (int)InventoryType.Texture)); 
+
+            m_log.Debug("[HGStandaloneInvService] Found asset " + ((theasset == null) ? "NULL" : "Not Null"));
             if (theasset != null)
             {
                 asset = theasset;
@@ -361,7 +366,8 @@ namespace OpenSim.Framework.Communications.Services
         public bool PostAsset(AssetBase asset)
         {
             m_log.Info("[HGStandaloneInvService]: Post asset " + asset.FullID);
-            m_assetProvider.CreateAsset(asset);
+            //m_assetProvider.CreateAsset(asset);
+            StoreAsset(asset);
   
             return true;
         }
@@ -492,7 +498,7 @@ namespace OpenSim.Framework.Communications.Services
                 return;
             }
 
-            bool success = ((IAuthentication)m_userService).VerifyKey(userID, authToken);
+            bool success = VerifyKey(userID, authToken);
 
             if (success)
             {
@@ -653,5 +659,56 @@ namespace OpenSim.Framework.Communications.Services
         }
 
         #endregion Caps
+
+        #region Local vs Remote
+
+        bool VerifyKey(UUID userID, string key)
+        {
+            // Remote call to the Authorization server
+            if (m_userService == null) 
+                return AuthClient.VerifyKey(m_UserServerURL, userID, key);
+            // local call
+            else 
+                return ((IAuthentication)m_userService).VerifyKey(userID, key);
+        }
+
+        AssetBase FetchAsset(UUID assetID, bool isTexture)
+        {
+            // Remote call to the Asset server
+            if (m_assetProvider == null)
+                return m_AssetClient.SyncGetAsset(assetID, isTexture);
+            // local call
+            else
+                return m_assetProvider.FetchAsset(assetID);
+        }
+
+        void StoreAsset(AssetBase asset)
+        {
+            // Remote call to the Asset server
+            if (m_assetProvider == null)
+                m_AssetClient.StoreAsset(asset);
+            // local call
+            else
+                m_assetProvider.CreateAsset(asset);
+        }
+
+        #endregion Local vs Remote
+    }
+
+    class SynchronousGridAssetClient : GridAssetClient
+    {
+        public SynchronousGridAssetClient(string url)
+            : base(url)
+        {
+        }
+
+        public AssetBase SyncGetAsset(UUID assetID, bool isTexture)
+        {
+            AssetRequest assReq = new AssetRequest();
+            assReq.AssetID = assetID;
+            assReq.IsTexture = isTexture;
+            return base.GetAsset(assReq);
+        }
+
     }
 }
