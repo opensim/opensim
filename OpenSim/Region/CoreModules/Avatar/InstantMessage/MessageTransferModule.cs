@@ -113,16 +113,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     if (!user.IsChildAgent)
                     {
                         m_log.DebugFormat("[INSTANT MESSAGE]: Delivering to client");
-                        user.ControllingClient.SendInstantMessage(
-                                new UUID(im.fromAgentID),
-                                im.message,
-                                new UUID(im.toAgentID),
-                                im.fromAgentName,
-                                im.dialog,
-                                im.timestamp,
-                                new UUID(im.imSessionID),
-                                im.fromGroup,
-                                im.binaryBucket);
+                        user.ControllingClient.SendInstantMessage(im);
+
                         // Message sent
                         result(true);
                         return;
@@ -143,16 +135,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
 
                     m_log.DebugFormat("[INSTANT MESSAGE]: Delivering to client");
-                    user.ControllingClient.SendInstantMessage(
-                            new UUID(im.fromAgentID),
-                            im.message,
-                            new UUID(im.toAgentID),
-                            im.fromAgentName,
-                            im.dialog,
-                            im.timestamp,
-                            new UUID(im.imSessionID),
-                            im.fromGroup,
-                            im.binaryBucket);
+                    user.ControllingClient.SendInstantMessage(im);
+
                     // Message sent
                     result(true);
                     return;

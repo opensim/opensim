@@ -167,11 +167,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             {
                 DateTime saved = Util.ToDateTime((uint)im.timestamp);
 
-                client.SendInstantMessage(new UUID(im.toAgentID),
-                        "(saved " + saved.ToString() + ") " + im.message,
-                        new UUID(im.fromAgentID), im.fromAgentName,
-                        (byte)im.dialog,
-                        (uint)im.timestamp);
+                im.message = "(saved " + saved.ToString() + ") " + im.message;
+                client.SendInstantMessage(im);
             }
         }
 
@@ -188,12 +185,13 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     if (client == null)
                         return;
 
-                    client.SendInstantMessage(new UUID(im.fromAgentID),
+                    client.SendInstantMessage(new GridInstantMessage(
+                            null, new UUID(im.toAgentID),
+                            "System", new UUID(im.fromAgentID),
+                            (byte)InstantMessageDialog.MessageFromAgent,
                             "User is not logged in. "+
                             (success ? "Message saved." : "Message not saved"),
-                            new UUID(im.toAgentID), "System",
-                            (byte)InstantMessageDialog.MessageFromAgent,
-                            (uint)Util.UnixTimeSinceEpoch());
+                            false, new Vector3()));
                 }
             }
         }

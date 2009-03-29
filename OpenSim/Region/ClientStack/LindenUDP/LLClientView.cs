@@ -1190,68 +1190,58 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Send an instant message to this client
         /// </summary>
-        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp)
-        {
-            SendInstantMessage(fromAgent, message, toAgent, fromName, dialog, timeStamp, UUID.Zero, false, new byte[0]);
-        }
-
-        /// <summary>
-        /// Send an instant message to this client
-        /// </summary>
         //
         // Don't remove transaction ID! Groups and item gives need to set it!
-        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent,
-                                       string fromName, byte dialog, uint timeStamp,
-                                       UUID transactionID, bool fromGroup, byte[] binaryBucket)
+        public void SendInstantMessage(GridInstantMessage im)
         {
-            if (((Scene)(m_scene)).Permissions.CanInstantMessage(fromAgent, toAgent))
+            if (((Scene)(m_scene)).Permissions.CanInstantMessage(new UUID(im.fromAgentID), new UUID(im.toAgentID)))
             {
                 ImprovedInstantMessagePacket msg
                     = (ImprovedInstantMessagePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedInstantMessage);
 
-                msg.AgentData.AgentID = fromAgent;
+                msg.AgentData.AgentID = new UUID(im.fromAgentID);
                 msg.AgentData.SessionID = UUID.Zero;
-                msg.MessageBlock.FromAgentName = Utils.StringToBytes(fromName);
-                msg.MessageBlock.Dialog = dialog;
-                msg.MessageBlock.FromGroup = fromGroup;
-                if (transactionID == UUID.Zero)
-                    msg.MessageBlock.ID = fromAgent ^ toAgent;
+                msg.MessageBlock.FromAgentName = Utils.StringToBytes(im.fromAgentName);
+                msg.MessageBlock.Dialog = im.dialog;
+                msg.MessageBlock.FromGroup = im.fromGroup;
+                if (im.imSessionID == UUID.Zero.Guid)
+                    msg.MessageBlock.ID = new UUID(im.fromAgentID) ^ new UUID(im.toAgentID);
                 else
-                    msg.MessageBlock.ID = transactionID;
-                msg.MessageBlock.Offline = 0;
-                msg.MessageBlock.ParentEstateID = 0;
-                msg.MessageBlock.Position = new Vector3();
-                msg.MessageBlock.RegionID = UUID.Zero;
-                msg.MessageBlock.Timestamp = timeStamp;
-                msg.MessageBlock.ToAgentID = toAgent;
+                    msg.MessageBlock.ID = new UUID(im.imSessionID);
+                msg.MessageBlock.Offline = im.offline;
+                msg.MessageBlock.ParentEstateID = im.ParentEstateID;
+                msg.MessageBlock.Position = im.Position;
+                msg.MessageBlock.RegionID = new UUID(im.RegionID);
+                msg.MessageBlock.Timestamp = im.timestamp;
+                msg.MessageBlock.ToAgentID = new UUID(im.toAgentID);
                 // Cap the message length at 1099. There is a limit in ImprovedInstantMessagePacket
                 // the limit is 1100 but a 0 byte gets added to mark the end of the string
-                if (message != null && message.Length > 1099)
-                    msg.MessageBlock.Message = Utils.StringToBytes(message.Substring(0, 1099));
+                if (im.message != null && im.message.Length > 1099)
+                    msg.MessageBlock.Message = Utils.StringToBytes(im.message.Substring(0, 1099));
                 else
-                    msg.MessageBlock.Message = Utils.StringToBytes(message);
-                msg.MessageBlock.BinaryBucket = binaryBucket;
+                    msg.MessageBlock.Message = Utils.StringToBytes(im.message);
+                msg.MessageBlock.BinaryBucket = im.binaryBucket;
 
-                if (message.StartsWith("[grouptest]"))
+                if (im.message.StartsWith("[grouptest]"))
                 { // this block is test code for implementing group IM - delete when group IM is finished
                     IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
                     if (eq != null)
                     {
-                        dialog = 17;
+                        im.dialog = 17;
 
                         //eq.ChatterboxInvitation(
                         //    new UUID("00000000-68f9-1111-024e-222222111123"),
-                        //    "OpenSimulator Testing", fromAgent, message, toAgent, fromName, dialog, 0,
-                        //    false, 0, new Vector3(), 1, transactionID, fromGroup, binaryBucket);
+                        //    "OpenSimulator Testing", im.fromAgentID, im.message, im.toAgentID, im.fromAgentName, im.dialog, 0,
+                        //    false, 0, new Vector3(), 1, im.imSessionID, im.fromGroup, im.binaryBucket);
 
                         eq.ChatterboxInvitation(
                             new UUID("00000000-68f9-1111-024e-222222111123"),
-                            "OpenSimulator Testing", fromAgent, message, toAgent, fromName, dialog, 0,
-                            false, 0, new Vector3(), 1, transactionID, fromGroup, Utils.StringToBytes("OpenSimulator Testing"));
+                            "OpenSimulator Testing", new UUID(im.fromAgentID), im.message, new UUID(im.toAgentID), im.fromAgentName, im.dialog, 0,
+                            false, 0, new Vector3(), 1, new UUID(im.imSessionID), im.fromGroup, Utils.StringToBytes("OpenSimulator Testing"));
 
                         eq.ChatterBoxSessionAgentListUpdates(
                             new UUID("00000000-68f9-1111-024e-222222111123"),
-                            fromAgent, toAgent, false, false, false);
+                            new UUID(im.fromAgentID), new UUID(im.toAgentID), false, false, false);
                     }
 
                     Console.WriteLine("SendInstantMessage: " + msg);
@@ -7645,7 +7635,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message)
         {
             if (!ChildAgentStatus())
-                SendInstantMessage(FromAvatarID, Message, AgentId, FromAvatarName, 1, (uint)Util.UnixTimeSinceEpoch());
+                SendInstantMessage(new GridInstantMessage(null, FromAvatarID, FromAvatarName, AgentId, 1, Message, false, new Vector3()));
 
             //SendInstantMessage(FromAvatarID, fromSessionID, Message, AgentId, SessionId, FromAvatarName, (byte)21,(uint) Util.UnixTimeSinceEpoch());
         }

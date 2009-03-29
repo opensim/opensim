@@ -505,12 +505,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp)
-        {
-            
-        }
-
-        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp, UUID transationID, bool fromGroup, byte[] binaryBucket)
+        public void SendInstantMessage(GridInstantMessage im)
         {
             
         }

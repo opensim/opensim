@@ -885,12 +885,7 @@ namespace OpenSim.Client.MXP.ClientStack
             Session.Send(chatActionEvent);
         }
 
-        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp)
-        {
-            // Need to translate to MXP somehow
-        }
-
-        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp, UUID transactionID, bool fromGroup, byte[] binaryBucket)
+        public void SendInstantMessage(GridInstantMessage im)
         {
             // Need to translate to MXP somehow
         }

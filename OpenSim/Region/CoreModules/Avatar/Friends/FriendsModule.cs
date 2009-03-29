@@ -679,9 +679,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 CreateCallingCard(client, friendID, callingCardFolders[0], friendPresence.Name);
 
                 // local message means OnGridInstantMessage won't be triggered, so do the work here.
-                friendPresence.ControllingClient.SendInstantMessage(agentID, agentID.ToString(), friendID, client.Name,
-                                                                    (byte)InstantMessageDialog.FriendshipAccepted,
-                                                                    (uint)Util.UnixTimeSinceEpoch());
+                friendPresence.ControllingClient.SendInstantMessage(
+                        new GridInstantMessage(client.Scene, agentID,
+                        client.Name, friendID,
+                        (byte)InstantMessageDialog.FriendshipAccepted,
+                        agentID.ToString(), false, Vector3.Zero));
                 ApproveFriendship(agentID, friendID, client.Name);
             }
             else

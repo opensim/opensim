@@ -212,11 +212,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     // And notify. Transaction ID is the item ID. We get that
                     // same ID back on the reply so we know what to act on
                     //
-                    user.ControllingClient.SendInstantMessage(
-                            new UUID(im.fromAgentID), im.message,
-                            new UUID(im.toAgentID),
-                            im.fromAgentName, im.dialog, im.timestamp,
-                            copyID, false, im.binaryBucket);
+                    user.ControllingClient.SendInstantMessage(im);
 
                     return;
                 }
@@ -232,11 +228,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                 if (user != null) // Local
                 {
-                    user.ControllingClient.SendInstantMessage(
-                            new UUID(im.fromAgentID), im.message,
-                            new UUID(im.toAgentID),
-                            im.fromAgentName, im.dialog, im.timestamp,
-                            UUID.Zero, false, im.binaryBucket);
+                    user.ControllingClient.SendInstantMessage(im);
                 }
                 else
                 {
@@ -303,11 +295,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                 if (user != null) // Local
                 {
-                    user.ControllingClient.SendInstantMessage(
-                            new UUID(im.fromAgentID), im.message,
-                            new UUID(im.toAgentID),
-                            im.fromAgentName, im.dialog, im.timestamp,
-                            UUID.Zero, false, im.binaryBucket);
+                    user.ControllingClient.SendInstantMessage(im);
                 }
                 else
                 {
@@ -460,11 +448,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                 // Deliver message
                 //
-                user.ControllingClient.SendInstantMessage(
-                        new UUID(msg.fromAgentID), msg.message,
-                        new UUID(msg.toAgentID),
-                        msg.fromAgentName, msg.dialog, msg.timestamp,
-                        folderID, false, msg.binaryBucket);
+                user.ControllingClient.SendInstantMessage(msg);
             }
             else
             {
@@ -497,11 +481,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                 // Deliver message
                 //
-                user.ControllingClient.SendInstantMessage(
-                        new UUID(msg.fromAgentID), msg.message,
-                        new UUID(msg.toAgentID),
-                        msg.fromAgentName, msg.dialog, msg.timestamp,
-                        itemID, false, msg.binaryBucket);
+                user.ControllingClient.SendInstantMessage(msg);
             }
         }
     }

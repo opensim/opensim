@@ -815,11 +815,7 @@ namespace OpenSim.Framework
         void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source,
                              byte audible);
 
-        void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog,
-                                uint timeStamp);
-
-        void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog,
-                                uint timeStamp, UUID transactionID, bool fromGroup, byte[] binaryBucket);
+        void SendInstantMessage(GridInstantMessage im);
 
         void SendGenericMessage(string method, List<string> message);
 

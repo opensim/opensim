@@ -468,12 +468,7 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp)
-        {
-
-        }
-
-        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp, UUID transactionID, bool fromGroup, byte[] binaryBucket)
+        public void SendInstantMessage(GridInstantMessage im)
         {
 
         }

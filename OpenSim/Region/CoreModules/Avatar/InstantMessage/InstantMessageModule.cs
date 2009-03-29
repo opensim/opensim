@@ -137,12 +137,14 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
                         if ((client != null) && !success)
                         {
-                            client.SendInstantMessage(new UUID(im.toAgentID),
-                                    "Unable to send instant message. "+
-                                    "User is not logged in.",
-                                    new UUID(im.fromAgentID), "System",
+                            client.SendInstantMessage(
+                                    new GridInstantMessage(
+                                    null, new UUID(im.fromAgentID), "System",
+                                    new UUID(im.toAgentID),
                                     (byte)InstantMessageDialog.BusyAutoResponse,
-                                    (uint)Util.UnixTimeSinceEpoch());
+                                    "Unable to send instant message. "+
+                                    "User is not logged in.", false,
+                                    new Vector3()));
                         }
                     }
                 );

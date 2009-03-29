@@ -61,13 +61,7 @@ namespace OpenSim.Framework.Client
 
     public interface IClientIM
     {
-        void SendInstantMessage(UUID fromAgent, string message, UUID toAgent,
-                                string fromName, byte dialog, uint timeStamp);
-
-        void SendInstantMessage(UUID fromAgent, string message, UUID toAgent,
-                                string fromName, byte dialog, uint timeStamp,
-                                UUID transactionID, bool fromGroup,
-                                byte[] binaryBucket);
+        void SendInstantMessage(GridInstantMessage im);
 
         event ImprovedInstantMessage OnInstantMessage;
     }
