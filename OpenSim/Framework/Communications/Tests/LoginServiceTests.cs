@@ -34,6 +34,7 @@ using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Communications.Services;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Client.Linden;

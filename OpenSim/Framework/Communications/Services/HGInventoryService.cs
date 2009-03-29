@@ -52,19 +52,41 @@ namespace OpenSim.Framework.Communications.Services
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private InventoryServiceBase m_inventoryService;
-        private UserManagerBase m_userService;
-        IAssetDataPlugin m_assetProvider;
         IHttpServer httpServer;
         private string m_thisInventoryUrl = "http://localhost:9000";
         private string m_thisHostname = "127.0.0.1";
         private uint m_thisPort = 9000;
 
+        // These two used for local access, standalone mode
+        private UserManagerBase m_userService = null;
+        IAssetDataPlugin m_assetProvider = null;
 
-        public HGInventoryService(InventoryServiceBase invService, IAssetDataPlugin assetService, UserManagerBase userService, IHttpServer httpserver, string url)
+        // These two used for remote access
+        string m_UserServerURL = string.Empty;
+        string m_AssetServerURL = string.Empty;
+
+        // Constructor for grid inventory server
+        public HGInventoryService(InventoryServiceBase invService, string assetServiceURL, string userServiceURL, IHttpServer httpserver, string thisurl)
+        {
+            m_UserServerURL = userServiceURL;
+            m_AssetServerURL = assetServiceURL;
+
+            Init(invService, thisurl, httpserver);
+        }
+
+        // Constructor for standalone mode
+        public HGInventoryService(InventoryServiceBase invService, IAssetDataPlugin assetService, UserManagerBase userService, IHttpServer httpserver, string thisurl)
+        {
+            m_userService = userService;
+            m_assetProvider = assetService;
+
+            Init(invService, thisurl, httpserver);
+        }
+
+        private void Init(InventoryServiceBase invService, string thisurl, IHttpServer httpserver)
         {
             m_inventoryService = invService;
-            m_userService = userService;
-            m_thisInventoryUrl = url;
+            m_thisInventoryUrl = thisurl;
             if (!m_thisInventoryUrl.EndsWith("/"))
                 m_thisInventoryUrl += "/";
 
@@ -75,7 +97,6 @@ namespace OpenSim.Framework.Communications.Services
                 m_thisPort = (uint)uri.Port;
             }
 
-            m_assetProvider = assetService;
             httpServer = httpserver;
 
             AddHttpHandlers();

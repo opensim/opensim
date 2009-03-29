@@ -30,6 +30,7 @@ using System.Reflection;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Services;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Communications.Hypergrid;
@@ -210,7 +211,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         {
             // Standalone mode
 
-            HGInventoryService inventoryService = new HGInventoryService(m_openSim.NetServersInfo.InventoryURL, null, false);
+            HGInventoryServiceClient inventoryService = new HGInventoryServiceClient(m_openSim.NetServersInfo.InventoryURL, null, false);
             inventoryService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneInventoryPlugin, m_openSim.ConfigurationSettings.StandaloneInventorySource);
 
             LocalUserServices userService =

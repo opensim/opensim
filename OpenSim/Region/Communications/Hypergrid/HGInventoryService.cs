@@ -40,7 +40,7 @@ using OpenSim.Region.Communications.Local;
 
 namespace OpenSim.Region.Communications.Hypergrid
 {
-    public class HGInventoryService : LocalInventoryService, ISecureInventoryService
+    public class HGInventoryServiceClient : LocalInventoryService, ISecureInventoryService
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -58,7 +58,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             set { m_userProfileCache = value; }
         }
 
-        public HGInventoryService(string inventoryServerUrl, UserProfileCacheService userProfileCacheService, bool gridmode)
+        public HGInventoryServiceClient(string inventoryServerUrl, UserProfileCacheService userProfileCacheService, bool gridmode)
         {
             _inventoryServerUrl = HGNetworkServersInfo.ServerURI(inventoryServerUrl);
             //m_Uri = new Uri(_inventoryServerUrl);
