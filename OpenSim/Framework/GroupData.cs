@@ -92,6 +92,7 @@ namespace OpenSim.Framework
         public string Title;
         public bool IsOwner;
         public bool ListInProfile;
+        public bool AcceptNotices;
     }
 
     public struct GroupRolesData
