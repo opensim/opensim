@@ -53,6 +53,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
 
             IConfig cnf = config.Configs["Messaging"];
+            if (cnf == null)
+            {
+                enabled = false;
+                return;
+            }
             if (cnf != null && cnf.GetString(
                     "OfflineMessageModule", "None") !=
                     "OfflineMessageModule")

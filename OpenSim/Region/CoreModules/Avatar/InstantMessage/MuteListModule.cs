@@ -53,6 +53,12 @@ namespace OpenSim.Region.CoreModules.Avatar.MuteList
                 return;
 
             IConfig cnf = config.Configs["Messaging"];
+            if (cnf == null)
+            {
+                enabled = false;
+                return;
+            }
+
             if (cnf != null && cnf.GetString(
                     "MuteListModule", "None") !=
                     "MuteListModule")
