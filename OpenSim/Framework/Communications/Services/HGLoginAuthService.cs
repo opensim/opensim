@@ -42,7 +42,7 @@ using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 
-namespace OpenSim.Framework.Communications
+namespace OpenSim.Framework.Communications.Services
 {
     public class HGLoginAuthService : LoginService
     {
