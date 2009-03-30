@@ -33,6 +33,7 @@ using log4net;
 using log4net.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Services;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 
@@ -43,6 +44,7 @@ namespace OpenSim.Grid.InventoryServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private GridInventoryService m_inventoryService;
+        private HGInventoryService m_directInventoryService;
 
         public const string LogName = "INVENTORY";
 
@@ -70,13 +72,18 @@ namespace OpenSim.Grid.InventoryServer
             m_inventoryService.DoLookup = config.SessionLookUp;
             m_inventoryService.AddPlugin(config.DatabaseProvider, config.DatabaseConnect);
 
+
             m_log.Info("[" + LogName + "]: Starting HTTP server ...");
 
             m_httpServer = new BaseHttpServer(config.HttpPort);
-            AddHttpHandlers();
+            if (config.RegionAccessToAgentsInventory)
+                AddHttpHandlers();
+
             m_httpServer.Start();
 
             m_log.Info("[" + LogName + "]: Started HTTP server");
+
+            m_directInventoryService = new HGInventoryService(m_inventoryService, config.AssetServerURL, config.UserServerURL, m_httpServer, config.InventoryServerURL);
 
             base.StartupSpecific();
 
