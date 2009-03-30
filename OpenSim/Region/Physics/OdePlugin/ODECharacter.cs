@@ -982,12 +982,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                             + (Amotor!=IntPtr.Zero ? "Amotor ":"") );
                     }
                     AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z, m_tensor);
-                
+                    
                     _parent_scene.geom_name_map[Shell] = m_name;
                     _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
+                    _parent_scene.AddCharacter(this);
                 }
                 else
                 {
+                    _parent_scene.RemoveCharacter(this);
                     // destroy avatar capsule and related ODE data
 
                     // Kill the Amotor

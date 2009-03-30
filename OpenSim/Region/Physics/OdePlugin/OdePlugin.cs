@@ -1339,18 +1339,37 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdeCharacter newAv = new OdeCharacter(avName, this, pos, ode, size, avPIDD, avPIDP, avCapRadius, avStandupTensor, avDensity, avHeightFudgeFactor, avMovementDivisorWalk, avMovementDivisorRun);
             newAv.Flying = isFlying;
             newAv.MinimumGroundFlightOffset = minimumGroundFlightOffset;
-            _characters.Add(newAv);
+            
             return newAv;
+        }
+
+        public void AddCharacter(OdeCharacter chr)
+        {
+            lock (_characters)
+            {
+                if (!_characters.Contains(chr))
+                {
+                    _characters.Add(chr);
+                }
+            }
+        }
+
+        public void RemoveCharacter(OdeCharacter chr)
+        {
+            lock (_characters)
+            {
+                if (_characters.Contains(chr))
+                {
+                    _characters.Remove(chr);
+                }
+            }
         }
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
-            lock (OdeLock)
-            {
-                //m_log.Debug("[PHYSICS]:ODELOCK");
-                ((OdeCharacter) actor).Destroy();
-                _characters.Remove((OdeCharacter) actor);
-            }
+            //m_log.Debug("[PHYSICS]:ODELOCK");
+            ((OdeCharacter) actor).Destroy();
+            
         }
 
         private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
