@@ -490,7 +490,7 @@ namespace OpenSim.Framework.Communications.Services
             // This is the meaning of POST agent
 
             // Check Auth Token
-            if (!(m_userService is IAuthentication))
+            if ((m_userService != null) && !(m_userService is IAuthentication))
             {
                 m_log.Debug("[HGStandaloneInvService]: UserService is not IAuthentication. Denying access to inventory.");
                 responsedata["int_response_code"] = 501;
@@ -499,6 +499,7 @@ namespace OpenSim.Framework.Communications.Services
             }
 
             bool success = VerifyKey(userID, authToken);
+            m_log.Debug("[HGStandaloneInvService]: Key verification returned " + success);
 
             if (success)
             {

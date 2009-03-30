@@ -82,7 +82,7 @@ namespace OpenSim.Framework.Communications.Clients
             XmlRpcResponse reply;
             try
             {
-                reply = request.Send(authurl, 6000);
+                reply = request.Send(authurl, 10000);
             }
             catch (Exception e)
             {
@@ -90,17 +90,25 @@ namespace OpenSim.Framework.Communications.Clients
                 return false;
             }
 
-            if (!reply.IsFault)
+            if (reply != null)
             {
-                bool success = false;
-                if (reply.Value != null)
-                    success = (bool)reply.Value;
+                if (!reply.IsFault)
+                {
+                    bool success = false;
+                    if (reply.Value != null)
+                        success = (bool)reply.Value;
 
-                return success;
+                    return success;
+                }
+                else
+                {
+                    System.Console.WriteLine("[HGrid]: XmlRpc request to verify key failed with message {0}" + reply.FaultString + ", code " + reply.FaultCode);
+                    return false;
+                }
             }
             else
             {
-                System.Console.WriteLine("[HGrid]: XmlRpc request to verify key failed with message {0}" + reply.FaultString + ", code " + reply.FaultCode);
+                System.Console.WriteLine("[HGrid]: XmlRpc request to verify key returned null reply");
                 return false;
             }
         }

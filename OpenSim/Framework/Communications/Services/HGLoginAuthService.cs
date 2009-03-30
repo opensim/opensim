@@ -161,14 +161,6 @@ namespace OpenSim.Framework.Communications.Services
 
         public XmlRpcResponse XmlRpcVerifyKeyMethod(XmlRpcRequest request)
         {
-            foreach (object o in request.Params)
-            {
-                if (o != null)
-                    m_log.Debug(" >> Param " + o.ToString());
-                else
-                    m_log.Debug(" >> Null");
-            }
-
             bool success = false;
 
             if (request.Params.Count >= 2)
@@ -180,7 +172,7 @@ namespace OpenSim.Framework.Communications.Services
                 {
                     authKey = (string)request.Params[1];
 
-                    m_log.InfoFormat("[HGLOGIN] HGVerifyKey called with key ", authKey);
+                    m_log.InfoFormat("[HGLOGIN] HGVerifyKey called with key {0}", authKey);
 
                     if (!(m_userManager is IAuthentication))
                     {
@@ -193,8 +185,9 @@ namespace OpenSim.Framework.Communications.Services
                 }
             }
 
+            m_log.DebugFormat("[HGLOGIN]: Response to VerifyKey is {0}", success);
             XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = (string)success.ToString();
+            response.Value = success;
             return response;
         }
 
