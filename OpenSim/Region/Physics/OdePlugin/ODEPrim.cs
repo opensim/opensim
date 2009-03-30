@@ -1365,7 +1365,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Don't need to re-enable body..   it's done in SetMesh
                     _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
                     // createmesh returns null when it's a shape that isn't a cube.
-                    m_log.Debug(m_localID);
+                   // m_log.Debug(m_localID);
                 }
             }
 
