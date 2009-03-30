@@ -38,6 +38,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.Agent.Capabilities;
+using OpenSim.Region.CoreModules.Avatar.Gods;
 using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Tests.Common.Setup
@@ -82,9 +83,14 @@ namespace OpenSim.Tests.Common.Setup
             TestScene testScene = new TestScene(
                 regInfo, acm, cm, scs, sm, null, false, false, false, configSource, null);
 
-            IRegionModule capsModule = new CapabilitiesModule();
+            IRegionModule capsModule = new CapabilitiesModule();            
             capsModule.Initialise(testScene, new IniConfigSource());
             testScene.AddModule(capsModule.Name, capsModule);
+            
+            IRegionModule godsModule = new GodsModule();
+            godsModule.Initialise(testScene, new IniConfigSource());
+            testScene.AddModule(godsModule.Name, godsModule);
+            
             testScene.SetModuleInterfaces();
 
             testScene.LandChannel = new TestLandChannel();

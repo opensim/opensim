@@ -34,7 +34,7 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Gods
 {
-    public class GodsModules : IRegionModule, IGodsModule
+    public class GodsModule : IRegionModule, IGodsModule
     {
         protected Scene m_scene;
         protected IDialogModule m_dialogModule;
