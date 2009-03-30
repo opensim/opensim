@@ -110,17 +110,17 @@ namespace OpenSim.Region.CoreModules.Avatar.MuteList
         public void Close()
         {
         }
-
-        private IClientAPI FindClient(UUID agentID)
-        {
-            foreach (Scene s in m_SceneList)
-            {
-                ScenePresence presence = s.GetScenePresence(agentID);
-                if (presence != null && !presence.IsChildAgent)
-                    return presence.ControllingClient;
-            }
-            return null;
-        }
+       
+//        private IClientAPI FindClient(UUID agentID)
+//        {
+//            foreach (Scene s in m_SceneList)
+//            {
+//                ScenePresence presence = s.GetScenePresence(agentID);
+//                if (presence != null && !presence.IsChildAgent)
+//                    return presence.ControllingClient;
+//            }
+//            return null;
+//        }
 
         private void OnNewClient(IClientAPI client)
         {

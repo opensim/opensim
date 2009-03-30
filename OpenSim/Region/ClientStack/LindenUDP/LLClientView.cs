@@ -7202,7 +7202,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             i++;
                         }
 
-
                         OutPacket(groupRoleMembersReply, ThrottleOutPacketType.Task);
                     }
                     break;
@@ -7213,15 +7212,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (m_GroupsModule != null)
                     {
-                        UUID groupID = m_GroupsModule.CreateGroup(this,
-                                                                  Utils.BytesToString(createGroupRequest.GroupData.Name),
-                                                                  Utils.BytesToString(createGroupRequest.GroupData.Charter),
-                                                                  createGroupRequest.GroupData.ShowInList,
-                                                                  createGroupRequest.GroupData.InsigniaID,
-                                                                  createGroupRequest.GroupData.MembershipFee,
-                                                                  createGroupRequest.GroupData.OpenEnrollment,
-                                                                  createGroupRequest.GroupData.AllowPublish,
-                                                                  createGroupRequest.GroupData.MaturePublish);
+                        m_GroupsModule.CreateGroup(this,
+                                                   Utils.BytesToString(createGroupRequest.GroupData.Name),
+                                                   Utils.BytesToString(createGroupRequest.GroupData.Charter),
+                                                   createGroupRequest.GroupData.ShowInList,
+                                                   createGroupRequest.GroupData.InsigniaID,
+                                                   createGroupRequest.GroupData.MembershipFee,
+                                                   createGroupRequest.GroupData.OpenEnrollment,
+                                                   createGroupRequest.GroupData.AllowPublish,
+                                                   createGroupRequest.GroupData.MaturePublish);
                     }
                     break;
 
