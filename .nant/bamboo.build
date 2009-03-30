@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <project name="OpenSim" default="build">
+  <setenv name="MONO_THREADS_PER_CPU" value="100" />
   <target name="build">
     <exec program="mono" commandline="../bin/Prebuild.exe /target nant" />
     <nant buildfile="../OpenSim.build" target="build" />

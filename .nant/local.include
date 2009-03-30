@@ -30,6 +30,7 @@
 </target>
 
 <target name="test" depends="build">
+  <setenv name="MONO_THREADS_PER_CPU" value="100" />
       <nunit2 failonerror="true" verbose="true">
       <formatter type="Plain" />
       <test>
