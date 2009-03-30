@@ -1600,5 +1600,9 @@ namespace OpenSim.Client.MXP.ClientStack
         public void SendMuteListUpdate(string filename)
         {
         }
+        
+        public void SendPickInfoReply(UUID pickID,UUID creatorID, bool topPick, UUID parcelID, string name, string desc, UUID snapshotID, string user, string originalName, string simName, Vector3 posGlobal, int sortOrder, bool enabled)
+        {
+        }
     }
 }

@@ -1122,6 +1122,8 @@ namespace OpenSim.Framework
         void SendAgentDropGroup(UUID groupID);
         void SendAvatarNotesReply(UUID targetID, string text);
         void SendAvatarPicksReply(UUID targetID, Dictionary<UUID, string> picks);
+        void SendPickInfoReply(UUID pickID,UUID creatorID, bool topPick, UUID parcelID, string name, string desc, UUID snapshotID, string user, string originalName, string simName, Vector3 posGlobal, int sortOrder, bool enabled);
+
         void SendAvatarClassifiedReply(UUID targetID, Dictionary<UUID, string> classifieds);
 
         void SendParcelDwellReply(int localID, UUID parcelID, float dwell);

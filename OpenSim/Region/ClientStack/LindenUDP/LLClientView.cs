@@ -8701,6 +8701,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(muteListUpdate, ThrottleOutPacketType.Task);
         }
 
+        public void SendPickInfoReply(UUID pickID,UUID creatorID, bool topPick, UUID parcelID, string name, string desc, UUID snapshotID, string user, string originalName, string simName, Vector3 posGlobal, int sortOrder, bool enabled)
+        {
+            PickInfoReplyPacket pickInfoReply = (PickInfoReplyPacket)PacketPool.Instance.GetPacket(PacketType.PickInfoReply);
+
+            pickInfoReply.AgentData = new PickInfoReplyPacket.AgentDataBlock();
+            pickInfoReply.AgentData.AgentID = AgentId;
+
+            pickInfoReply.Data = new PickInfoReplyPacket.DataBlock();
+            pickInfoReply.Data.PickID = pickID;
+            pickInfoReply.Data.CreatorID = creatorID;
+            pickInfoReply.Data.TopPick = topPick;
+            pickInfoReply.Data.ParcelID = parcelID;
+            pickInfoReply.Data.Name = Utils.StringToBytes(name);
+            pickInfoReply.Data.Desc = Utils.StringToBytes(desc);
+            pickInfoReply.Data.SnapshotID = snapshotID;
+            pickInfoReply.Data.User = Utils.StringToBytes(user);
+            pickInfoReply.Data.OriginalName = Utils.StringToBytes(originalName);
+            pickInfoReply.Data.SimName = Utils.StringToBytes(simName);
+            pickInfoReply.Data.PosGlobal = new Vector3d(posGlobal);
+            pickInfoReply.Data.SortOrder = sortOrder;
+            pickInfoReply.Data.Enabled = enabled;
+
+            OutPacket(pickInfoReply, ThrottleOutPacketType.Task);
+        }
+
         public string Report()
         {
             LLPacketHandler handler = (LLPacketHandler) m_PacketHandler;
