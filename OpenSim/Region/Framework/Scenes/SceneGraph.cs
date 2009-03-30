@@ -696,7 +696,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected internal void removeUserCount(bool TypeRCTF)
+        public void removeUserCount(bool TypeRCTF)
         {
             if (TypeRCTF)
             {

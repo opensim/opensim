@@ -1931,9 +1931,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectDuplicate += m_sceneGraph.DuplicateObject;
             client.OnObjectDuplicateOnRay += doObjectDuplicateOnRay;
             client.OnUpdatePrimFlags += m_sceneGraph.UpdatePrimFlags;
-            client.OnRequestObjectPropertiesFamily += m_sceneGraph.RequestObjectPropertiesFamily;
-            client.OnRequestGodlikePowers += handleRequestGodlikePowers;
-            client.OnGodKickUser += HandleGodlikeKickUser;
+            client.OnRequestObjectPropertiesFamily += m_sceneGraph.RequestObjectPropertiesFamily;           
             client.OnObjectPermissions += HandleObjectPermissionsUpdate;
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             client.OnCreateNewInventoryFolder += HandleCreateInventoryFolder;
@@ -1970,8 +1968,11 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnSetScriptRunning += SetScriptRunning;
             client.OnRegionHandleRequest += RegionHandleRequest;
             client.OnUnackedTerrain += TerrainUnAcked;
-
             client.OnObjectOwner += ObjectOwner;
+
+            IGodsModule godsModule = RequestModuleInterface<IGodsModule>();
+            client.OnGodKickUser += godsModule.KickUser;
+            client.OnRequestGodlikePowers += godsModule.RequestGodlikePowers; 
 
             if (StatsReporter != null)
                 client.OnNetworkStatsUpdate += StatsReporter.AddPacketsFromClientStats;
@@ -2658,7 +2659,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="maxY"></param>
         public void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY)
         {
-            m_log.InfoFormat("[MAPBLOCK]: {0}-{1}, {2}-{3}", minX, minY, maxX, maxY);
+            m_log.DebugFormat("[MAPBLOCK]: {0}-{1}, {2}-{3}", minX, minY, maxX, maxY);
             m_sceneGridService.RequestMapBlocks(remoteClient, minX, minY, maxX, maxY);
         }
 
@@ -2817,116 +2818,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        #region Alert Methods
-
-        /// <summary>
-        /// Handle a request for admin rights
-        /// </summary>
-        /// <param name="agentID"></param>
-        /// <param name="sessionID"></param>
-        /// <param name="token"></param>
-        /// <param name="controllingClient"></param>
-        public void handleRequestGodlikePowers(UUID agentID, UUID sessionID, UUID token, bool godLike,
-                                               IClientAPI controllingClient)
-        {
-            ScenePresence sp = null;
-
-            lock (m_scenePresences)
-            {
-                // User needs to be logged into this sim
-                m_scenePresences.TryGetValue(agentID, out sp);
-            }
-
-            if (sp != null)
-            {
-                if (godLike == false)
-                {
-                    sp.GrantGodlikePowers(agentID, sessionID, token, godLike);
-                    return;
-                }
-
-                // First check that this is the sim owner
-                if (Permissions.IsGod(agentID))
-                {
-                    // Next we check for spoofing.....
-                    UUID testSessionID = sp.ControllingClient.SessionId;
-                    if (sessionID == testSessionID)
-                    {
-                        if (sessionID == controllingClient.SessionId)
-                        {
-                            //m_log.Info("godlike: " + godLike.ToString());
-                            sp.GrantGodlikePowers(agentID, testSessionID, token, godLike);
-                        }
-                    }
-                }
-                else
-                {
-                    m_dialogModule.SendAlertToUser(agentID, "Request for god powers denied");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Kicks User specified from the simulator. This logs them off of the grid
-        /// If the client gets the UUID: 44e87126e7944ded05b37c42da3d5cdb it assumes
-        /// that you're kicking it even if the avatar's UUID isn't the UUID that the
-        /// agent is assigned
-        /// </summary>
-        /// <param name="godID">The person doing the kicking</param>
-        /// <param name="sessionID">The session of the person doing the kicking</param>
-        /// <param name="agentID">the person that is being kicked</param>
-        /// <param name="kickflags">This isn't used apparently</param>
-        /// <param name="reason">The message to send to the user after it's been turned into a field</param>
-        public void HandleGodlikeKickUser(UUID godID, UUID sessionID, UUID agentID, uint kickflags, byte[] reason)
-        {
-            // For some reason the client sends this seemingly hard coded UUID for kicking everyone.   Dun-know.
-            UUID kickUserID = new UUID("44e87126e7944ded05b37c42da3d5cdb");
-            lock (m_scenePresences)
-            {
-                if (m_scenePresences.ContainsKey(agentID) || agentID == kickUserID)
-                {
-                    if (Permissions.IsGod(godID))
-                    {
-                        if (agentID == kickUserID)
-                        {
-                            ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                                        {
-                                                            if (controller.AgentId != godID)
-                                                                controller.Kick(Utils.BytesToString(reason));
-                                                        }
-                                );
-
-                            // This is a bit crude.   It seems the client will be null before it actually stops the thread
-                            // The thread will kill itself eventually :/
-                            // Is there another way to make sure *all* clients get this 'inter region' message?
-                            ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                                        {
-                                                            ScenePresence p = GetScenePresence(controller.AgentId);
-                                                            bool childagent = p != null && p.IsChildAgent;
-                                                            if (controller.AgentId != godID && !childagent)
-                                                                // Do we really want to kick the initiator of this madness?
-                                                            {
-                                                                controller.Close(true);
-                                                            }
-                                                        }
-                                );
-                        }
-                        else
-                        {
-                            m_sceneGraph.removeUserCount(!m_scenePresences[agentID].IsChildAgent);
-
-                            m_scenePresences[agentID].ControllingClient.Kick(Utils.BytesToString(reason));
-                            m_scenePresences[agentID].ControllingClient.Close(true);
-                        }
-                    }
-                    else
-                    {
-                        m_dialogModule.SendAlertToUser(godID, "Kick request denied");
-                    }
-                }
-            }
-        }
-
         public void HandleObjectPermissionsUpdate(IClientAPI controller, UUID agentID, UUID sessionID, byte field, uint localId, uint mask, byte set)
         {
             // Check for spoofing..  since this is permissions we're talking about here!
@@ -2943,8 +2834,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
-        #endregion
 
         /// <summary>
         /// Causes all clients to get a full object update on all of the objects in the scene.
@@ -3077,7 +2966,9 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else if ((parcel.landData.Flags & (uint)Parcel.ParcelFlags.AllowGroupScripts) != 0)
                     {
-                        if (part.OwnerID == parcel.landData.OwnerID || (parcel.landData.IsGroupOwned && part.GroupID == parcel.landData.GroupID) || Permissions.IsGod(part.OwnerID))
+                        if (part.OwnerID == parcel.landData.OwnerID 
+                            || (parcel.landData.IsGroupOwned && part.GroupID == parcel.landData.GroupID) 
+                            || Permissions.IsGod(part.OwnerID))
                         {
                             return true;
                         }
