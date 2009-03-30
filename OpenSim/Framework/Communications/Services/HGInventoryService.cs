@@ -464,7 +464,7 @@ namespace OpenSim.Framework.Communications.Services
             string method = (string)request["http-method"];
             if (method.Equals("GET"))
             {
-                DoInvCapPost(request, responsedata, userID, authToken);
+                DoInvCapPost(request, responsedata, userID, authority, authToken);
                 return responsedata;
             }
             //else if (method.Equals("DELETE"))
@@ -484,7 +484,7 @@ namespace OpenSim.Framework.Communications.Services
 
         }
 
-        public virtual void DoInvCapPost(Hashtable request, Hashtable responsedata, UUID userID, string authToken)
+        public virtual void DoInvCapPost(Hashtable request, Hashtable responsedata, UUID userID, string authority, string authToken)
         {
 
             // This is the meaning of POST agent
@@ -498,8 +498,7 @@ namespace OpenSim.Framework.Communications.Services
                 return;
             }
 
-            bool success = VerifyKey(userID, authToken);
-            m_log.Debug("[HGStandaloneInvService]: Key verification returned " + success);
+            bool success = VerifyKey(userID, authority, authToken);
 
             if (success)
             {
@@ -663,11 +662,11 @@ namespace OpenSim.Framework.Communications.Services
 
         #region Local vs Remote
 
-        bool VerifyKey(UUID userID, string key)
+        bool VerifyKey(UUID userID, string authority, string key)
         {
             // Remote call to the Authorization server
             if (m_userService == null) 
-                return AuthClient.VerifyKey(m_UserServerURL, userID, key);
+                return AuthClient.VerifyKey("http://" + authority, userID, key);
             // local call
             else 
                 return ((IAuthentication)m_userService).VerifyKey(userID, key);

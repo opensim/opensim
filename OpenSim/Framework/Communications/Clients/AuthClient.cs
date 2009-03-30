@@ -78,6 +78,8 @@ namespace OpenSim.Framework.Communications.Clients
             SendParams.Add(userID.ToString());
             SendParams.Add(authKey);
 
+            System.Console.WriteLine("[HGrid]: Verifying user key with authority " + authurl);
+
             XmlRpcRequest request = new XmlRpcRequest("hg_verify_auth_key", SendParams);
             XmlRpcResponse reply;
             try
