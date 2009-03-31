@@ -1166,11 +1166,15 @@
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="DotNetOpenMail.dll"/>
+	  
+	  <!-- To allow regions to have mono addins -->
+      <Reference name="Mono.Addins.dll" />
 
       <Files>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests" />
-	  <Exclude name="TerrainDefaultEffects" pattern="World/Terrain/DefaultEffects" />
+          <Exclude name="TerrainDefaultEffects" pattern="World/Terrain/DefaultEffects" />
         </Match>
       </Files>
     </Project>
@@ -3211,6 +3215,7 @@
 
   </Solution>
 </Prebuild>
+
 
 
 

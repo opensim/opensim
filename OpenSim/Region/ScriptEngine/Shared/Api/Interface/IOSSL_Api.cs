@@ -104,6 +104,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         double osSunGetParam(string param);
         void osSunSetParam(string param, double value);
 
+        // Wind Module Functions
+        string osWindActiveModelPluginName();
+        void osWindParamSet(string plugin, string param, float value);
+        float osWindParamGet(string plugin, string param);
+
 
         string osGetScriptEngineName();
         string osGetSimulatorVersion();

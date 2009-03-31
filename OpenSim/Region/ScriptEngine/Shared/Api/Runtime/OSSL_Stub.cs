@@ -87,6 +87,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osSunSetParam(param, value);
         }
 
+        public string osWindActiveModelPluginName()
+        {
+            return m_OSSL_Functions.osWindActiveModelPluginName();
+        }
+
+        void osWindParamSet(string plugin, string param, float value)
+        {
+            m_OSSL_Functions.osWindParamSet(plugin, param, value);
+        }
+
+        float osWindParamGet(string plugin, string param)
+        {
+            return m_OSSL_Functions.osWindParamGet(plugin, param);
+        }
+
+
 
         public double osList2Double(LSL_Types.list src, int index)
         {

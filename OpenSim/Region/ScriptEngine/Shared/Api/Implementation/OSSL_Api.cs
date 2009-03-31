@@ -268,7 +268,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //
         // OpenSim functions
         //
-
         public int osTerrainSetHeight(int x, int y, double val)
         {
             CheckThreatLevel(ThreatLevel.High, "osTerrainSetHeight");
@@ -919,6 +918,50 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
+
+        public string osWindActiveModelPluginName()
+        {
+            CheckThreatLevel(ThreatLevel.None, "osWindActiveModelPluginName");
+            m_host.AddScriptLPS(1);
+
+            IWindModule module = World.RequestModuleInterface<IWindModule>();
+            if (module != null)
+            {
+                return module.WindActiveModelPluginName;
+            }
+
+            return String.Empty;
+        }
+
+        public void osWindParamSet(string plugin, string param, float value)
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osWindParamSet");
+            m_host.AddScriptLPS(1);
+
+            IWindModule module = World.RequestModuleInterface<IWindModule>();
+            if (module != null)
+            {
+                try
+                {
+                    module.WindParamSet(plugin, param, value);
+                }
+                catch (Exception) { }
+            }
+        }
+
+        public float osWindParamGet(string plugin, string param)
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osWindParamGet");
+            m_host.AddScriptLPS(1);
+
+            IWindModule module = World.RequestModuleInterface<IWindModule>();
+            if (module != null)
+            {
+                return module.WindParamGet(plugin, param);
+            }
+
+            return 0.0f;
+        }
 
 
 
