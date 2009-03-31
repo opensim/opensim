@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules
         private Scene m_scene = null;
         private bool m_ready = false;
 
-        private bool m_enabled = true;
+        private bool m_enabled = false;
 
         private IWindModelPlugin m_activeWindPlugin = null;
         private const string m_dWindPluginName = "SimpleRandomWind";
