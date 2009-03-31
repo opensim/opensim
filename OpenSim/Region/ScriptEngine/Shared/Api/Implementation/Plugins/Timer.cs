@@ -49,7 +49,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             return localID.ToString() + itemID.ToString();
         }
-	
 
         private class TimerClass
         {

@@ -227,7 +227,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // them easy to reach from anywhere in the assembly.
 
                 Rest.main              = openSim;
-                if(Rest.main == null)
+                if (Rest.main == null)
                     throw new Exception("OpenSim base pointer is null");
 
                 Rest.Plugin            = this;

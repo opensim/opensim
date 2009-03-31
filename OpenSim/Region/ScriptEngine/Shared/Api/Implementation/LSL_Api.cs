@@ -4998,29 +4998,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             if (dir.x == 0)
             {
-            	if (dir.y == 0)
-            	{
-            		// Direction vector is 0,0 so return
-            		// false since we're staying in the sim
-            	    return 0;
-            	}
-            	else
-            	{
-            		// Y is the only valid direction
-            		edge.y = dir.y / Math.Abs(dir.y);
-            	}
+                if (dir.y == 0)
+                {
+                    // Direction vector is 0,0 so return
+                    // false since we're staying in the sim
+                    return 0;
+                }
+                else
+                {
+                    // Y is the only valid direction
+                    edge.y = dir.y / Math.Abs(dir.y);
+                }
             }
             else
             {
                 LSL_Float mag;
-            	if (dir.x > 0)
-            	{
+                if (dir.x > 0)
+                {
                     mag = (Constants.RegionSize - pos.x) / dir.x;  
-            	}
-            	else
-            	{
+                }
+                else
+                {
                     mag = (pos.x/dir.x);
-            	}
+                }
 
                 mag = Math.Abs(mag);
 
@@ -5028,7 +5028,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (edge.y > Constants.RegionSize || edge.y < 0)
                 {
-                	// Y goes out of bounds first
+                    // Y goes out of bounds first
                     edge.y = dir.y / Math.Abs(dir.y);
                 }
                 else
@@ -5039,18 +5039,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
             
-        	List<SimpleRegionInfo> neighbors = World.CommsManager.GridService.RequestNeighbours(World.RegionInfo.RegionLocX, World.RegionInfo.RegionLocY);
+            List<SimpleRegionInfo> neighbors = World.CommsManager.GridService.RequestNeighbours(World.RegionInfo.RegionLocX, World.RegionInfo.RegionLocY);
             
-        	uint neighborX = World.RegionInfo.RegionLocX + (uint)dir.x;
-        	uint neighborY = World.RegionInfo.RegionLocY + (uint)dir.y;
-        	
-        	foreach (SimpleRegionInfo sri in neighbors)
-        	{
-        		if (sri.RegionLocX == neighborX && sri.RegionLocY == neighborY)
-        			return 0;
-          	}
+            uint neighborX = World.RegionInfo.RegionLocX + (uint)dir.x;
+            uint neighborY = World.RegionInfo.RegionLocY + (uint)dir.y;
             
-        	return 1;
+            foreach (SimpleRegionInfo sri in neighbors)
+            {
+                if (sri.RegionLocX == neighborX && sri.RegionLocY == neighborY)
+                    return 0;
+            }
+            
+            return 1;
         }
 
         /// <summary>

@@ -198,7 +198,7 @@
 
     ;WorldMapModule = "WorldMap"
     ;MapImageModule = "MapImageModule"
-	
+
     ; ##
     ; ## Customized Cache Implementation
     ; ##
@@ -231,8 +231,8 @@
 
 [Communications]
 
-;InterregionComms = "LocalComms"
-InterregionComms = "RESTComms"
+    ;InterregionComms = "LocalComms"
+    InterregionComms = "RESTComms"
 
 [StandAlone]
     accounts_authenticate = true
@@ -579,16 +579,16 @@ InterregionComms = "RESTComms"
 
 
 [RestHandler]
-  ; Change this to true to enable the REST Asset and Inventory Plugin
-  enabled = false
-  authenticate=true
-  secured=true
-  extended-escape=true
-  realm=OpenSim REST
-  dump-asset=false
-  path-fill=true
-  dump-line-size=32
-  flush-on-error=true
+    ; Change this to true to enable the REST Asset and Inventory Plugin
+    enabled = false
+    authenticate = true
+    secured = true
+    extended-escape = true
+    realm = OpenSim REST
+    dump-asset = false
+    path-fill = true
+    dump-line-size = 32
+    flush-on-error = true
 
 
 ; Uncomment the following for IRC bridge
@@ -1122,16 +1122,16 @@ InterregionComms = "RESTComms"
     ; default is false
     enabled = false
 
-     ; Channel on which to signal region readiness through a message
-     ; formatted as follows: "{server_startup|oar_file_load},{0|1},n,[oar error]"
-     ; - the first field indicating whether this is an initial server startup
-     ; - the second field is a number indicating whether the OAR file loaded ok (1 == ok, 0 == error)
-     ; - the third field is a number indicating how many scripts failed to compile
-     ; - "oar error" if supplied, provides the error message from the OAR load
+    ; Channel on which to signal region readiness through a message
+    ; formatted as follows: "{server_startup|oar_file_load},{0|1},n,[oar error]"
+    ; - the first field indicating whether this is an initial server startup
+    ; - the second field is a number indicating whether the OAR file loaded ok (1 == ok, 0 == error)
+    ; - the third field is a number indicating how many scripts failed to compile
+    ; - "oar error" if supplied, provides the error message from the OAR load
     channel_notify = -800
 
 
 [MRM]
     ; Enables the Mini Region Modules Script Engine. WARNING: SECURITY RISK.
     ; default is false
-	  Enabled = false 
+    Enabled = false 

@@ -66,18 +66,17 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         /// <param name="data"></param>
         public void ReturnData(UUID id, byte[] data)
         {
+            DynamicTextureUpdater updater = null;
 
-			DynamicTextureUpdater updater = null;
-
-            lock(Updaters)
+            lock (Updaters)
             {
-				if (Updaters.ContainsKey(id))
-				{
-					updater = Updaters[id];
+                if (Updaters.ContainsKey(id))
+                {
+                    updater = Updaters[id];
                 }
             }
 
-            if(updater != null)
+            if (updater != null)
             {
                 if (RegisteredScenes.ContainsKey(updater.SimUUID))
                 {
@@ -86,27 +85,26 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 }
             }
 
-			if(updater.UpdateTimer == 0)
-			{
-				lock(Updaters)
-				{
-					if (!Updaters.ContainsKey(updater.UpdaterID))
-					{
-						Updaters.Remove(updater.UpdaterID);
-					}
-				}
-			}
-
+            if (updater.UpdateTimer == 0)
+            {
+                lock (Updaters)
+                {
+                    if (!Updaters.ContainsKey(updater.UpdaterID))
+                    {
+                        Updaters.Remove(updater.UpdaterID);
+                    }
+                }
+            }
         }
 
         public UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url,
-                                           string extraParams, int updateTimer)
+                                         string extraParams, int updateTimer)
         {
             return AddDynamicTextureURL(simID, primID, contentType, url, extraParams, updateTimer, false, 255);
         }
 
         public UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url,
-                                           string extraParams, int updateTimer, bool SetBlending, byte AlphaValue)
+                                         string extraParams, int updateTimer, bool SetBlending, byte AlphaValue)
         {
             if (RenderPlugins.ContainsKey(contentType))
             {
@@ -123,12 +121,12 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 updater.BlendWithOldTexture = SetBlending;
                 updater.FrontAlpha = AlphaValue;
 
-                lock(Updaters)
+                lock (Updaters)
                 {
-					if (!Updaters.ContainsKey(updater.UpdaterID))
-					{
-						Updaters.Add(updater.UpdaterID, updater);
-					}
+                    if (!Updaters.ContainsKey(updater.UpdaterID))
+                    {
+                        Updaters.Add(updater.UpdaterID, updater);
+                    }
                 }
 
                 RenderPlugins[contentType].AsyncConvertUrl(updater.UpdaterID, url, extraParams);
@@ -138,13 +136,13 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         }
 
         public UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data,
-                                            string extraParams, int updateTimer)
+                                          string extraParams, int updateTimer)
         {
             return AddDynamicTextureData(simID, primID, contentType, data, extraParams, updateTimer, false, 255);
         }
 
         public UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data,
-                                            string extraParams, int updateTimer, bool SetBlending, byte AlphaValue)
+                                          string extraParams, int updateTimer, bool SetBlending, byte AlphaValue)
         {
             if (RenderPlugins.ContainsKey(contentType))
             {
@@ -159,12 +157,12 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 updater.BlendWithOldTexture = SetBlending;
                 updater.FrontAlpha = AlphaValue;
 
-                lock(Updaters)
+                lock (Updaters)
                 {
-					if (!Updaters.ContainsKey(updater.UpdaterID))
-					{
-						Updaters.Add(updater.UpdaterID, updater);
-					}
+                    if (!Updaters.ContainsKey(updater.UpdaterID))
+                    {
+                        Updaters.Add(updater.UpdaterID, updater);
+                    }
                 }
 
                 RenderPlugins[contentType].AsyncConvertData(updater.UpdaterID, data, extraParams);
@@ -172,7 +170,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             }
             return UUID.Zero;
         }
-
 
         public void GetDrawStringSize(string contentType, string text, string fontName, int fontSize,
                                       out double xSize, out double ySize)
@@ -307,7 +304,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 part.ScheduleFullUpdate();
 
                 scene.CommsManager.AssetCache.ExpireAsset(oldID);
-
             }
 
             private byte[] BlendTextures(byte[] frontImage, byte[] backImage, bool setNewAlpha, byte newAlpha)

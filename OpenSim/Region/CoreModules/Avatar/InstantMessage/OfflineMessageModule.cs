@@ -184,7 +184,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 bool success = SynchronousRestObjectPoster.BeginPostObject<GridInstantMessage, bool>(
                         "POST", m_RestURL+"/SaveMessage/", im);
 
-                if(im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
+                if (im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
                 {
                     IClientAPI client = FindClient(new UUID(im.fromAgentID));
                     if (client == null)

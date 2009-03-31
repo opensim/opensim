@@ -503,7 +503,7 @@ namespace OpenSim.Framework.Communications.Cache
             req.Params = transferRequest.TransferInfo.Params;
             req.AssetInf = new AssetInfo(asset);
             req.NumPackets = CalculateNumPackets(asset.Data);
-            lock(AssetRequests) AssetRequests.Add(req);
+            lock (AssetRequests) AssetRequests.Add(req);
         }
 
         /// <summary>
@@ -526,7 +526,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             for (int i = 0; i < num; i++)
             {
-                lock(AssetRequests)
+                lock (AssetRequests)
                 {
                    req = AssetRequests[0];
                    AssetRequests.RemoveAt(0);
