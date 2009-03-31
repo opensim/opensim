@@ -1297,6 +1297,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 // Recovered for use by fly height. Kitto Flora
         public float GetTerrainHeightAtXY(float x, float y)
         {
+
+            int index;
+
             // Teravus: Kitto, this code causes recurring errors that stall physics permenantly unless 
             // the values are checked, so checking below.
             // Is there any reason that we don't do this in ScenePresence?   
@@ -1306,7 +1309,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 (int)x < 0.001f || (int)y < 0.001f)
                 return 0;
 
-            return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
+            index = (int) ((int)y * Constants.RegionSize + (int)x);
+
+            if (index < _origheightmap.Length)
+                return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
+            else
+                return 0;
         }
 // End recovered. Kitto Flora
 
