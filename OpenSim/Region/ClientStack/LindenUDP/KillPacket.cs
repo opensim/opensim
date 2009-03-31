@@ -37,6 +37,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     class KillPacket : Packet
     {
         private Header header;
+
+        public override int Length
+        {
+            get { return 0; }
+        }
+
         public override void FromBytes(Header header, byte[] bytes, ref int i, ref int packetEnd, byte[] zeroBuffer)
         {
         }
