@@ -445,6 +445,19 @@ namespace OpenSim.Data.MSSQL
                 }
             }
 
+            sql = "UPDATE inventoryfolders SET version = version + 1 WHERE folderID = @folderID";
+            using (AutoClosingSqlCommand command = database.Query(sql))
+            {
+                command.Parameters.Add(database.CreateParameter("folderID", item.Folder.ToString()));
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[INVENTORY DB] Error updating inventory folder for new item :" + e.Message);
+                }
+            }
         }
 
         /// <summary>
@@ -532,12 +545,12 @@ namespace OpenSim.Data.MSSQL
 
         public InventoryItemBase queryInventoryItem(UUID itemID)
         {
-            return null;
+            return getInventoryItem(itemID);
         }
 
         public InventoryFolderBase queryInventoryFolder(UUID folderID)
         {
-            return null;
+            return getInventoryFolder(folderID);
         }
 
         /// <summary>
