@@ -5830,6 +5830,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+                case PacketType.RemoveInventoryObjects:
+                    RemoveInventoryObjectsPacket removeObject = (RemoveInventoryObjectsPacket)Pack;
+                    if (OnRemoveInventoryFolder != null)
+                    {
+                        handlerRemoveInventoryFolder = null;
+                        foreach (RemoveInventoryObjectsPacket.FolderDataBlock datablock in removeObject.FolderData)
+                        {
+                            handlerRemoveInventoryFolder = OnRemoveInventoryFolder;
+
+                            if (handlerRemoveInventoryFolder != null)
+                            {
+                                handlerRemoveInventoryFolder(this, datablock.FolderID);
+                            }
+                        }
+                    }
+
+                    if (OnRemoveInventoryItem != null)
+                    {
+                        handlerRemoveInventoryItem = null;
+                        foreach (RemoveInventoryObjectsPacket.ItemDataBlock datablock in removeObject.ItemData)
+                        {
+                            handlerRemoveInventoryItem = OnRemoveInventoryItem;
+                            if (handlerRemoveInventoryItem != null)
+                            {
+                                handlerRemoveInventoryItem(this, datablock.ItemID);
+                            }
+                        }
+                    }
+                    break;
                 case PacketType.RequestTaskInventory:
                     RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
 
