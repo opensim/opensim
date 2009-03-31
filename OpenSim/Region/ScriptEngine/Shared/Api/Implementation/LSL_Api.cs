@@ -6824,22 +6824,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llBase64ToString(string str)
         {
             m_host.AddScriptLPS(1);
-            UTF8Encoding encoder = new UTF8Encoding();
-            Decoder utf8Decode = encoder.GetDecoder();
             try
             {
-                byte[] todecode_byte = Convert.FromBase64String(str);
-                int charCount = utf8Decode.GetCharCount(todecode_byte, 0, todecode_byte.Length);
-                char[] decoded_char = new char[charCount];
-                utf8Decode.GetChars(todecode_byte, 0, todecode_byte.Length, decoded_char, 0);
-                string result = new String(decoded_char);
-                return result;
+                return Util.Base64ToString(str);
             }
             catch (Exception e)
             {
                 throw new Exception("Error in base64Decode" + e.Message);
             }
         }
+
 
         public LSL_String llXorBase64Strings(string str1, string str2)
         {

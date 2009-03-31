@@ -342,7 +342,7 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static string Md5Hash(string pass)
         {
-            MD5 md5 = MD5CryptoServiceProvider.Create();
+            MD5 md5 = MD5.Create();
             byte[] dataMd5 = md5.ComputeHash(Encoding.Default.GetBytes(pass));
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < dataMd5.Length; i++)
@@ -419,7 +419,7 @@ namespace OpenSim.Framework
                     output.Append(": ");
                 }
 
-                output.Append(CleanString(UTF8Encoding.UTF8.GetString(bytes, 0, bytes.Length - 1)));
+                output.Append(CleanString(Encoding.UTF8.GetString(bytes, 0, bytes.Length - 1)));
             }
             else
             {
@@ -532,7 +532,7 @@ namespace OpenSim.Framework
         /// <returns>safe path</returns>
         public static string safePath(string path)
         {
-            return Regex.Replace(path, @regexInvalidPathChars, string.Empty);
+            return Regex.Replace(path, regexInvalidPathChars, String.Empty);
         }
 
         /// <summary>
@@ -542,7 +542,7 @@ namespace OpenSim.Framework
         /// <returns>safe filename</returns>
         public static string safeFileName(string filename)
         {
-            return Regex.Replace(filename, @regexInvalidFileChars, string.Empty);
+            return Regex.Replace(filename, regexInvalidFileChars, String.Empty);
             ;
         }
 
@@ -594,7 +594,7 @@ namespace OpenSim.Framework
             {
                 FileInfo f = new FileInfo(FileName);
 
-                if (!string.IsNullOrEmpty(f.Extension))
+                if (!String.IsNullOrEmpty(f.Extension))
                 {
                     Name = f.FullName.Substring(0, f.FullName.LastIndexOf('.'));
                 }
@@ -959,7 +959,7 @@ namespace OpenSim.Framework
                     }
                     else if (fieldInfo.FieldType == typeof(System.UInt32))
                     {
-                        fieldInfo.SetValue(settingsClass, System.Convert.ToUInt32(config.Get(fieldInfo.Name, ((uint)fieldInfo.GetValue(settingsClass)).ToString())));
+                        fieldInfo.SetValue(settingsClass, Convert.ToUInt32(config.Get(fieldInfo.Name, ((uint)fieldInfo.GetValue(settingsClass)).ToString())));
                     }
                 }
             }
@@ -987,12 +987,25 @@ namespace OpenSim.Framework
                     }
                     if (propInfo.PropertyType == typeof(System.UInt32))
                     {
-                        propInfo.SetValue(settingsClass, System.Convert.ToUInt32(config.Get(propInfo.Name, ((uint)propInfo.GetValue(settingsClass, null)).ToString())), null);
+                        propInfo.SetValue(settingsClass, Convert.ToUInt32(config.Get(propInfo.Name, ((uint)propInfo.GetValue(settingsClass, null)).ToString())), null);
                     }
                 }
             }
 
             return settingsClass;
+        }
+
+        public static string Base64ToString(string str)
+        {
+            UTF8Encoding encoder = new UTF8Encoding();
+            Decoder utf8Decode = encoder.GetDecoder();
+
+            byte[] todecode_byte = Convert.FromBase64String(str);
+            int charCount = utf8Decode.GetCharCount(todecode_byte, 0, todecode_byte.Length);
+            char[] decoded_char = new char[charCount];
+            utf8Decode.GetChars(todecode_byte, 0, todecode_byte.Length, decoded_char, 0);
+            string result = new String(decoded_char);
+            return result;
         }
     }
 }
