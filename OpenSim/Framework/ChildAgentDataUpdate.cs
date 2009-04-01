@@ -53,44 +53,14 @@ namespace OpenSim.Framework
         public ChildAgentDataUpdate()
         {
         }
-
-        //public ChildAgentDataUpdate(AgentData agent)
-        //{
-        //    ActiveGroupID = agent.ActiveGroupID.Guid;
-        //    AgentID = agent.AgentID.Guid;
-        //    alwaysrun = agent.AlwaysRun;
-        //    AVHeight = agent.Size.Z;
-        //    cameraPosition = new sLLVector3(agent.Center);
-        //    drawdistance = agent.Far;
-        //    godlevel = (float)agent.GodLevel;
-        //    if (agent.Groups.Length > 0)
-        //        GroupAccess = (uint)agent.Groups[0].GroupPowers;
-        //    Position = new sLLVector3(agent.Position);
-        //    regionHandle = agent.RegionHandle;
-        //    throttles = agent.Throttles;
-        //    Velocity = new sLLVector3(agent.Velocity);
-        //}
-
-        //public ChildAgentDataUpdate(AgentPosition agent)
-        //{
-        //    AgentID = agent.AgentID.Guid;
-        //    AVHeight = agent.Size.Z;
-        //    cameraPosition = new sLLVector3(agent.Center);
-        //    drawdistance = agent.Far;
-        //    Position = new sLLVector3(agent.Position);
-        //    regionHandle = agent.RegionHandle;
-        //    throttles = agent.Throttles;
-        //    Velocity = new sLLVector3(agent.Velocity);
-        //}
     }
 
-    /*
     public interface IAgentData
     {
         UUID AgentID { get; set; }
 
-        OSDMap PackUpdateMessage();
-        void UnpackUpdateMessage(OSDMap map);
+        OSDMap Pack();
+        void Unpack(OSDMap map);
     }
 
     /// <summary>
@@ -123,7 +93,7 @@ namespace OpenSim.Framework
         public byte[] Throttles;
 
 
-        public OSDMap PackUpdateMessage()
+        public OSDMap Pack()
         {
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentPosition");
@@ -150,7 +120,7 @@ namespace OpenSim.Framework
             return args;
         }
 
-        public void UnpackUpdateMessage(OSDMap args)
+        public void Unpack(OSDMap args)
         {
             if (args.ContainsKey("region_handle"))
                 UInt64.TryParse(args["region_handle"].AsString(), out RegionHandle);
@@ -256,33 +226,6 @@ namespace OpenSim.Framework
         }
     }
 
-    public class AgentAnimationData
-    {
-        public UUID Animation;
-        public UUID ObjectID;
-
-        public AgentAnimationData(OSDMap args)
-        {
-            UnpackUpdateMessage(args);
-        }
-
-        public OSDMap PackUpdateMessage()
-        {
-            OSDMap anim = new OSDMap();
-            anim["animation"] = OSD.FromUUID(Animation);
-            anim["object_id"] = OSD.FromUUID(ObjectID);
-            return anim;
-        }
-
-        public void UnpackUpdateMessage(OSDMap args)
-        {
-            if (args["animation"] != null)
-                Animation = args["animation"].AsUUID();
-            if (args["object_id"] != null)
-                ObjectID = args["object_id"].AsUUID();
-        }
-    }
-
     public class AgentData : IAgentData
     {
         private UUID m_id;
@@ -318,20 +261,21 @@ namespace OpenSim.Framework
         public bool AlwaysRun;
         public UUID PreyAgent;
         public Byte AgentAccess;
-        public UUID[] AgentTextures;
         public UUID ActiveGroupID;
 
         public AgentGroupData[] Groups;
-        public AgentAnimationData[] Anims;
+        public Animation[] Anims;
 
         public UUID GranterID;
-        public Dictionary<string, string> NVPairs;
 
+        // Appearance
+        public byte[] AgentTextures;
         public byte[] VisualParams;
+        public UUID[] Wearables;
 
         public string CallbackURI;
 
-        public OSDMap PackUpdateMessage()
+        public virtual OSDMap Pack()
         {
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentData");
@@ -367,14 +311,6 @@ namespace OpenSim.Framework
             args["prey_agent"] = OSD.FromUUID(PreyAgent);
             args["agent_access"] = OSD.FromString(AgentAccess.ToString());
 
-            if ((AgentTextures != null) && (AgentTextures.Length > 0))
-            {
-                OSDArray textures = new OSDArray(AgentTextures.Length);
-                foreach (UUID uuid in AgentTextures)
-                    textures.Add(OSD.FromUUID(uuid));
-                args["agent_textures"] = textures;
-            }
-
             args["active_group_id"] = OSD.FromUUID(ActiveGroupID);
 
             if ((Groups != null) && (Groups.Length > 0))
@@ -388,15 +324,34 @@ namespace OpenSim.Framework
             if ((Anims != null) && (Anims.Length > 0))
             {
                 OSDArray anims = new OSDArray(Anims.Length);
-                foreach (AgentAnimationData aanim in Anims)
+                foreach (Animation aanim in Anims)
                     anims.Add(aanim.PackUpdateMessage());
                 args["animations"] = anims;
             }
 
+            //if ((AgentTextures != null) && (AgentTextures.Length > 0))
+            //{
+            //    OSDArray textures = new OSDArray(AgentTextures.Length);
+            //    foreach (UUID uuid in AgentTextures)
+            //        textures.Add(OSD.FromUUID(uuid));
+            //    args["agent_textures"] = textures;
+            //}
+
+            if ((AgentTextures != null) && (AgentTextures.Length > 0))
+                args["texture_entry"] = OSD.FromBinary(AgentTextures);
+
             if ((VisualParams != null) && (VisualParams.Length > 0))
                 args["visual_params"] = OSD.FromBinary(VisualParams);
 
-            // Last few fields are still missing: granter and NVPais
+            // We might not pass this in all cases...
+            if ((Wearables != null) && (Wearables.Length > 0))
+            {
+                OSDArray wears = new OSDArray(Wearables.Length);
+                foreach (UUID uuid in Wearables)
+                    wears.Add(OSD.FromUUID(uuid));
+                args["wearables"] = wears;
+            }
+
 
             if ((CallbackURI != null) && (!CallbackURI.Equals("")))
                 args["callback_uri"] = OSD.FromString(CallbackURI);
@@ -409,7 +364,7 @@ namespace OpenSim.Framework
         /// Avoiding reflection makes it painful to write, but that's the price!
         /// </summary>
         /// <param name="hash"></param>
-        public void UnpackUpdateMessage(OSDMap args)
+        public virtual void Unpack(OSDMap args)
         {
             if (args.ContainsKey("region_handle"))
                 UInt64.TryParse(args["region_handle"].AsString(), out RegionHandle);
@@ -483,15 +438,6 @@ namespace OpenSim.Framework
             if (args["agent_access"] != null)
                 Byte.TryParse(args["agent_access"].AsString(), out AgentAccess);
 
-            if ((args["agent_textures"] != null) && (args["agent_textures"]).Type == OSDType.Array)
-            {
-                OSDArray textures = (OSDArray)(args["agent_textures"]);
-                AgentTextures = new UUID[textures.Count];
-                int i = 0;
-                foreach (OSD o in textures)
-                    AgentTextures[i++] = o.AsUUID();
-            }
-
             if (args["active_group_id"] != null)
                 ActiveGroupID = args["active_group_id"].AsUUID();
 
@@ -512,20 +458,41 @@ namespace OpenSim.Framework
             if ((args["animations"] != null) && (args["animations"]).Type == OSDType.Array)
             {
                 OSDArray anims = (OSDArray)(args["animations"]);
-                Anims = new AgentAnimationData[anims.Count];
+                Anims = new Animation[anims.Count];
                 int i = 0;
                 foreach (OSD o in anims)
                 {
                     if (o.Type == OSDType.Map)
                     {
-                        Anims[i++] = new AgentAnimationData((OSDMap)o);
+                        Anims[i++] = new Animation((OSDMap)o);
                     }
                 }
             }
 
+            //if ((args["agent_textures"] != null) && (args["agent_textures"]).Type == OSDType.Array)
+            //{
+            //    OSDArray textures = (OSDArray)(args["agent_textures"]);
+            //    AgentTextures = new UUID[textures.Count];
+            //    int i = 0;
+            //    foreach (OSD o in textures)
+            //        AgentTextures[i++] = o.AsUUID();
+            //}
+
+            if (args["texture_entry"] != null)
+                AgentTextures = args["texture_entry"].AsBinary();
+
             if (args["visual_params"] != null)
                 VisualParams = args["visual_params"].AsBinary();
 
+            if ((args["wearables"] != null) && (args["wearables"]).Type == OSDType.Array)
+            {
+                OSDArray wears = (OSDArray)(args["wearables"]);
+                Wearables = new UUID[wears.Count];
+                int i = 0;
+                foreach (OSD o in wears)
+                    Wearables[i++] = o.AsUUID();
+            }
+            
             if (args["callback_uri"] != null)
                 CallbackURI = args["callback_uri"].AsString();
         }
@@ -539,49 +506,25 @@ namespace OpenSim.Framework
             //UnpackUpdateMessage(hash);
         }
 
-        /// <summary>
-        /// Soon to be decommissioned
-        /// </summary>
-        /// <param name="cAgent"></param>
-        public void CopyFrom(ChildAgentDataUpdate cAgent)
-        {
-            ActiveGroupID = new UUID(cAgent.ActiveGroupID);
-            
-            AgentID = new UUID(cAgent.AgentID);
-
-            AlwaysRun = cAgent.alwaysrun;
-            
-            // next: ???
-            Size = new Vector3();
-            Size.Z = cAgent.AVHeight;
-            
-            Center = new Vector3(cAgent.cameraPosition.x, cAgent.cameraPosition.y, cAgent.cameraPosition.z);
-            
-            Far = cAgent.drawdistance;
-            
-            // downcasting ???
-            GodLevel = (byte)(cAgent.godlevel);
-
-            Groups = new AgentGroupData[1];
-            Groups[0] = new AgentGroupData(new UUID(cAgent.ActiveGroupID), cAgent.GroupAccess, true);
-            
-            Position = new Vector3(cAgent.Position.x, cAgent.Position.y, cAgent.Position.z);
-            
-            RegionHandle = cAgent.regionHandle;
-            
-            Throttles = cAgent.throttles;
-            
-            Velocity = new Vector3(cAgent.Velocity.x, cAgent.Velocity.y, cAgent.Velocity.z);
-        }
-
         public void Dump()
         {
-            m_log.Info("------------ AgentData ------------");
-            m_log.Info("UUID: " + AgentID);
-            m_log.Info("Region: " + RegionHandle);
-            m_log.Info("Position: " + Position);
+            System.Console.WriteLine("------------ AgentData ------------");
+            System.Console.WriteLine("UUID: " + AgentID);
+            System.Console.WriteLine("Region: " + RegionHandle);
+            System.Console.WriteLine("Position: " + Position);
         }
     }
-  */
 
+    public class CompleteAgentData : AgentData
+    {
+        public override OSDMap Pack() 
+        {
+            return base.Pack();
+        }
+
+        public override void Unpack(OSDMap map)
+        {
+            base.Unpack(map);
+        }
+    }
 }
