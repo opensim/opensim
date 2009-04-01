@@ -371,9 +371,12 @@ namespace OpenSim.Framework.Communications.Services
                 responseData["classified_categories"] = classifiedCategories;
                 responseData["ui-config"] = uiConfig;
 
-                responseData["inventory-skeleton"] = agentInventory;
+                if (agentInventory != null)
+                {
+                    responseData["inventory-skeleton"] = agentInventory;
+                    responseData["inventory-root"] = inventoryRoot;
+                }
                 responseData["inventory-skel-lib"] = inventoryLibrary;
-                responseData["inventory-root"] = inventoryRoot;
                 responseData["inventory-lib-root"] = inventoryLibRoot;
                 responseData["gestures"] = activeGestures;
                 responseData["inventory-lib-owner"] = inventoryLibraryOwner;
@@ -385,8 +388,6 @@ namespace OpenSim.Framework.Communications.Services
                 responseData["message"] = welcomeMessage;
                 responseData["region_x"] = (Int32)(RegionX * Constants.RegionSize);
                 responseData["region_y"] = (Int32)(RegionY * Constants.RegionSize);
-
-                //responseData["inventory-lib-root"] = new ArrayList(); // todo
 
                 if (m_buddyList != null)
                 {

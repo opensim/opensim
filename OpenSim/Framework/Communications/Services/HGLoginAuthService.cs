@@ -324,5 +324,11 @@ namespace OpenSim.Framework.Communications.Services
 
             m_regionsConnector.LogOffUserFromGrid(SimInfo.RegionHandle, theUser.ID, theUser.CurrentAgent.SecureSessionID, "Logging you off");
         }
+
+        protected override bool AllowLoginWithoutInventory()
+        {
+            return true;
+        }
+
     }
 }

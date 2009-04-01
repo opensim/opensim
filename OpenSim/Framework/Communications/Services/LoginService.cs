@@ -197,7 +197,7 @@ namespace OpenSim.Framework.Communications.Services
                     try
                     {
                         UUID agentID = userProfile.ID;
-                        InventoryData inventData;
+                        InventoryData inventData = null;
 
                         try
                         {
@@ -209,16 +209,24 @@ namespace OpenSim.Framework.Communications.Services
                                 "[LOGIN END]: Error retrieving inventory skeleton of agent {0} - {1}",
                                 agentID, e);
 
-                            return logResponse.CreateLoginInventoryFailedResponse();
+                            // Let's not panic
+                            if (!AllowLoginWithoutInventory())
+                                return logResponse.CreateLoginInventoryFailedResponse();
                         }
 
-                        ArrayList AgentInventoryArray = inventData.InventoryArray;
+                        if (inventData != null)
+                        {
+                            ArrayList AgentInventoryArray = inventData.InventoryArray;
 
-                        Hashtable InventoryRootHash = new Hashtable();
-                        InventoryRootHash["folder_id"] = inventData.RootFolderID.ToString();
-                        ArrayList InventoryRoot = new ArrayList();
-                        InventoryRoot.Add(InventoryRootHash);
-                        userProfile.RootInventoryFolderID = inventData.RootFolderID;
+                            Hashtable InventoryRootHash = new Hashtable();
+                            InventoryRootHash["folder_id"] = inventData.RootFolderID.ToString();
+                            ArrayList InventoryRoot = new ArrayList();
+                            InventoryRoot.Add(InventoryRootHash);
+                            userProfile.RootInventoryFolderID = inventData.RootFolderID;
+
+                            logResponse.InventoryRoot = InventoryRoot;
+                            logResponse.InventorySkeleton = AgentInventoryArray;
+                        }
 
                         // Inventory Library Section
                         Hashtable InventoryLibRootHash = new Hashtable();
@@ -228,8 +236,6 @@ namespace OpenSim.Framework.Communications.Services
 
                         logResponse.InventoryLibRoot = InventoryLibRoot;
                         logResponse.InventoryLibraryOwner = GetLibraryOwner();
-                        logResponse.InventoryRoot = InventoryRoot;
-                        logResponse.InventorySkeleton = AgentInventoryArray;
                         logResponse.InventoryLibrary = GetInventoryLibrary();
 
                         logResponse.CircuitCode = Util.RandomClass.Next();
@@ -1011,7 +1017,15 @@ namespace OpenSim.Framework.Communications.Services
         /// </param>
         protected void AddActiveGestures(LoginResponse response, UserProfileData theUser)
         {
-            List<InventoryItemBase> gestures = m_inventoryService.GetActiveGestures(theUser.ID);
+            List<InventoryItemBase> gestures = null;
+            try
+            {
+                gestures = m_inventoryService.GetActiveGestures(theUser.ID);
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[LOGIN]: Unable to retrieve active gestures from inventory server. Reason: " + e.Message);
+            }
             //m_log.DebugFormat("[LOGIN]: AddActiveGestures, found {0}", gestures == null ? 0 : gestures.Count);
             ArrayList list = new ArrayList();
             if (gestures != null)
@@ -1088,6 +1102,11 @@ namespace OpenSim.Framework.Communications.Services
             }
 
             return new InventoryData(AgentInventoryArray, rootID);
+        }
+
+        protected virtual bool AllowLoginWithoutInventory()
+        {
+            return false;
         }
     }
 }
