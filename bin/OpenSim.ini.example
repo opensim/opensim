@@ -7,6 +7,9 @@
     ; (eg default is /opensimdir/crashes/*.txt or C:\opensim\crashes\*.txt)
     crash_dir = "crashes"
 
+    ; Place to create a PID file
+    ; PIDFile = "/tmp/my.pid"
+
     ; Http proxy support for llHTTPRequest and dynamic texture loading
     ; Set HttpProxy to the URL for your proxy server if you would like
     ; to proxy llHTTPRequests through a firewall

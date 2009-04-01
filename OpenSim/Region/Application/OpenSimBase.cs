@@ -188,6 +188,14 @@ namespace OpenSim
         /// </summary>
         protected override void StartupSpecific()
         {
+            IConfig startupConfig = m_config.Source.Configs["Startup"];
+            if (startupConfig != null)
+            {
+                string pidFile = startupConfig.GetString("PIDFile", String.Empty);
+                if (pidFile != String.Empty)
+                    CreatePIDFile(pidFile);
+            }
+
             base.StartupSpecific();
 
             m_stats = StatsManager.StartCollectingSimExtraStats();

@@ -73,6 +73,8 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         protected string m_version;
 
+        protected string m_pidFile = String.Empty;
+
         protected BaseHttpServer m_httpServer;
         public BaseHttpServer HttpServer
         {
@@ -278,6 +280,7 @@ namespace OpenSim.Framework.Servers
             ShutdownSpecific();
             
             m_log.Info("[SHUTDOWN]: Shutdown processing on main thread complete.  Exiting...");
+            RemovePIDFile();
             
             Environment.Exit(0);
         }
@@ -432,6 +435,39 @@ namespace OpenSim.Framework.Servers
             }
 
             m_version += string.IsNullOrEmpty(buildVersion) ? "      " : ("." + buildVersion + "     ").Substring(0, 6);
+        }
+        
+        protected void CreatePIDFile(string path)
+        {
+            try
+            {
+                string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+                FileStream fs = File.Create(path);
+                System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                Byte[] buf = enc.GetBytes(pidstring);
+                fs.Write(buf, 0, buf.Length);
+                fs.Close();
+                m_pidFile = path;
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+            
+        protected void RemovePIDFile()
+        {
+            if (m_pidFile != String.Empty)
+            {
+                try
+                {
+                    File.Delete(m_pidFile);
+                    m_pidFile = String.Empty;
+                }
+                catch (Exception)
+                {
+                }
+            }
         }
     }
 }
