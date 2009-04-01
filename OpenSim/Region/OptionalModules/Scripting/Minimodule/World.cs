@@ -35,7 +35,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         private readonly Scene m_internalScene;
         private readonly Heightmap m_heights;
 
-        private ObjectAccessor m_objs;
+        private readonly ObjectAccessor m_objs;
 
         public World(Scene internalScene)
         {

@@ -80,12 +80,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             get { return new SOPObject(m_rootScene, GetSOP().ParentGroup.RootPart.LocalId); }
         }
 
-        public IObjectFace[] Faces
+        public IObjectMaterial[] Materials
         {
             get
             {
                 SceneObjectPart sop = GetSOP();
-                IObjectFace[] rets = new IObjectFace[getNumberOfSides(sop)];
+                IObjectMaterial[] rets = new IObjectMaterial[getNumberOfSides(sop)];
 
                 for (int i = 0; i < rets.Length;i++ )
                 {
@@ -208,7 +208,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             set { throw new System.NotImplementedException(); }
         }
 
-        public Material Material
+        public PhysicsMaterial PhysicsMaterial
         {
             get { throw new System.NotImplementedException(); }
             set { throw new System.NotImplementedException(); }
