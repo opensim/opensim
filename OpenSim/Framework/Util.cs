@@ -338,28 +338,40 @@ namespace OpenSim.Framework
         /// <summary>
         /// Return an md5 hash of the given string
         /// </summary>
-        /// <param name="pass"></param>
+        /// <param name="data"></param>
         /// <returns></returns>
-        public static string Md5Hash(string pass)
+        public static string Md5Hash(string data)
         {
-            MD5 md5 = MD5.Create();
-            byte[] dataMd5 = md5.ComputeHash(Encoding.Default.GetBytes(pass));
+            byte[] dataMd5 = ComputeMD5Hash(data);
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < dataMd5.Length; i++)
                 sb.AppendFormat("{0:x2}", dataMd5[i]);
             return sb.ToString();
         }
 
+        private static byte[] ComputeMD5Hash(string data)
+        {
+            MD5 md5 = MD5.Create();
+            return md5.ComputeHash(Encoding.Default.GetBytes(data));
+        }
+
         /// <summary>
         /// Return an SHA1 hash of the given string
         /// </summary>
-        /// <param name="src"></param>
+        /// <param name="data"></param>
         /// <returns></returns>
-        public static string SHA1Hash(string src)
+        public static string SHA1Hash(string data)
+        {
+            byte[] hash = ComputeSHA1Hash(data);
+            return BitConverter.ToString(hash).Replace("-", String.Empty);
+        }
+
+        private static byte[] ComputeSHA1Hash(string src)
         {
             SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider();
-            return BitConverter.ToString(SHA1.ComputeHash(Encoding.Default.GetBytes(src))).Replace("-", String.Empty);
+            return SHA1.ComputeHash(Encoding.Default.GetBytes(src));
         }
+
 
         public static int fast_distance2d(int x, int y)
         {
@@ -1006,6 +1018,17 @@ namespace OpenSim.Framework
             utf8Decode.GetChars(todecode_byte, 0, todecode_byte.Length, decoded_char, 0);
             string result = new String(decoded_char);
             return result;
+        }
+
+        public static Guid GetHashGuid(string data, string salt)
+        {
+            byte[] hash = ComputeMD5Hash( data + salt );
+
+            string s = BitConverter.ToString(hash);
+
+            Guid guid = new Guid( hash );
+
+            return guid;
         }
     }
 }

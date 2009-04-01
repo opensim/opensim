@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
@@ -151,6 +152,23 @@ namespace OpenSim.Framework.Tests
                            "Too long UUIDs are regognized as correct UUIDs.");
             Assert.IsFalse(Util.isUUID("01234567-89ab-Cdef-0123+456789AbCdEf"),
                           "UUIDs with wrong format are recognized as correct UUIDs.");
+        }
+
+        [Test]
+        public void GetHashGuidTests()
+        {
+            string string1 = "This is one string";
+            string string2 = "This is another";
+
+            // Two consecutive runs should equal the same
+            Assert.AreEqual(Util.GetHashGuid(string1, "secret1"), Util.GetHashGuid(string1, "secret1"));
+            Assert.AreEqual(Util.GetHashGuid(string2, "secret1"), Util.GetHashGuid(string2, "secret1"));
+
+            // Varying data should not eqal the same
+            Assert.AreNotEqual(Util.GetHashGuid(string1, "secret1"), Util.GetHashGuid(string2, "secret1"));
+
+            // Varying secrets should not eqal the same
+            Assert.AreNotEqual(Util.GetHashGuid(string1, "secret1"), Util.GetHashGuid(string1, "secret2"));
         }
     }
 }
