@@ -34,6 +34,52 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    #region Delegates
+    public delegate uint GenerateClientFlagsHandler(UUID userID, UUID objectIDID);
+    public delegate void SetBypassPermissionsHandler(bool value);
+    public delegate bool BypassPermissionsHandler();
+    public delegate bool PropagatePermissionsHandler();
+    public delegate bool RezObjectHandler(int objectCount, UUID owner, Vector3 objectPosition, Scene scene);
+    public delegate bool DeleteObjectHandler(UUID objectID, UUID deleter, Scene scene);
+    public delegate bool TakeObjectHandler(UUID objectID, UUID stealer, Scene scene);
+    public delegate bool TakeCopyObjectHandler(UUID objectID, UUID userID, Scene inScene);
+    public delegate bool DuplicateObjectHandler(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition);
+    public delegate bool EditObjectHandler(UUID objectID, UUID editorID, Scene scene);
+    public delegate bool EditObjectInventoryHandler(UUID objectID, UUID editorID, Scene scene);
+    public delegate bool MoveObjectHandler(UUID objectID, UUID moverID, Scene scene);
+    public delegate bool ObjectEntryHandler(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene);
+    public delegate bool ReturnObjectHandler(UUID objectID, UUID returnerID, Scene scene);
+    public delegate bool InstantMessageHandler(UUID user, UUID target, Scene startScene);
+    public delegate bool InventoryTransferHandler(UUID user, UUID target, Scene startScene);
+    public delegate bool ViewScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
+    public delegate bool ViewNotecardHandler(UUID script, UUID objectID, UUID user, Scene scene);
+    public delegate bool EditScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
+    public delegate bool EditNotecardHandler(UUID notecard, UUID objectID, UUID user, Scene scene);
+    public delegate bool RunScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
+    public delegate bool StartScriptHandler(UUID script, UUID user, Scene scene);
+    public delegate bool StopScriptHandler(UUID script, UUID user, Scene scene);
+    public delegate bool ResetScriptHandler(UUID prim, UUID script, UUID user, Scene scene);
+    public delegate bool TerraformLandHandler(UUID user, Vector3 position, Scene requestFromScene);
+    public delegate bool RunConsoleCommandHandler(UUID user, Scene requestFromScene);
+    public delegate bool IssueEstateCommandHandler(UUID user, Scene requestFromScene, bool ownerCommand);
+    public delegate bool IsGodHandler(UUID user, Scene requestFromScene);
+    public delegate bool EditParcelHandler(UUID user, ILandObject parcel, Scene scene);
+    public delegate bool SellParcelHandler(UUID user, ILandObject parcel, Scene scene);
+    public delegate bool AbandonParcelHandler(UUID user, ILandObject parcel, Scene scene);
+    public delegate bool ReclaimParcelHandler(UUID user, ILandObject parcel, Scene scene);
+    public delegate bool BuyLandHandler(UUID user, ILandObject parcel, Scene scene);
+    public delegate bool LinkObjectHandler(UUID user, UUID objectID);
+    public delegate bool DelinkObjectHandler(UUID user, UUID objectID);
+    public delegate bool CreateObjectInventoryHandler(int invType, UUID objectID, UUID userID);
+    public delegate bool CopyObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
+    public delegate bool DeleteObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
+    public delegate bool CreateUserInventoryHandler(int invType, UUID userID);
+    public delegate bool EditUserInventoryHandler(UUID itemID, UUID userID);
+    public delegate bool CopyUserInventoryHandler(UUID itemID, UUID userID);
+    public delegate bool DeleteUserInventoryHandler(UUID itemID, UUID userID);
+    public delegate bool TeleportHandler(UUID userID, Scene scene);
+    #endregion
+
     public class ScenePermissions
     {
         private Scene m_scene;
@@ -43,22 +89,53 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene = scene;
         }
 
+        #region Events
+        public event GenerateClientFlagsHandler OnGenerateClientFlags;
+        public event SetBypassPermissionsHandler OnSetBypassPermissions;
+        public event BypassPermissionsHandler OnBypassPermissions;
+        public event PropagatePermissionsHandler OnPropagatePermissions;
+        public event RezObjectHandler OnRezObject;
+        public event DeleteObjectHandler OnDeleteObject;
+        public event TakeObjectHandler OnTakeObject;
+        public event TakeCopyObjectHandler OnTakeCopyObject;
+        public event DuplicateObjectHandler OnDuplicateObject;
+        public event EditObjectHandler OnEditObject;
+        public event EditObjectInventoryHandler OnEditObjectInventory;
+        public event MoveObjectHandler OnMoveObject;
+        public event ObjectEntryHandler OnObjectEntry;
+        public event ReturnObjectHandler OnReturnObject;
+        public event InstantMessageHandler OnInstantMessage;
+        public event InventoryTransferHandler OnInventoryTransfer;
+        public event ViewScriptHandler OnViewScript;
+        public event ViewNotecardHandler OnViewNotecard;
+        public event EditScriptHandler OnEditScript;
+        public event EditNotecardHandler OnEditNotecard;
+        public event RunScriptHandler OnRunScript;
+        public event StartScriptHandler OnStartScript;
+        public event StopScriptHandler OnStopScript;
+        public event ResetScriptHandler OnResetScript;
+        public event TerraformLandHandler OnTerraformLand;
+        public event RunConsoleCommandHandler OnRunConsoleCommand;
+        public event IssueEstateCommandHandler OnIssueEstateCommand;
+        public event IsGodHandler OnIsGod;
+        public event EditParcelHandler OnEditParcel;
+        public event SellParcelHandler OnSellParcel;
+        public event AbandonParcelHandler OnAbandonParcel;
+        public event ReclaimParcelHandler OnReclaimParcel;
+        public event BuyLandHandler OnBuyLand;
+        public event LinkObjectHandler OnLinkObject;
+        public event DelinkObjectHandler OnDelinkObject;
+        public event CreateObjectInventoryHandler OnCreateObjectInventory;
+        public event CopyObjectInventoryHandler OnCopyObjectInventory;
+        public event DeleteObjectInventoryHandler OnDeleteObjectInventory;
+        public event CreateUserInventoryHandler OnCreateUserInventory;
+        public event EditUserInventoryHandler OnEditUserInventory;
+        public event CopyUserInventoryHandler OnCopyUserInventory;
+        public event DeleteUserInventoryHandler OnDeleteUserInventory;
+        public event TeleportHandler OnTeleport;
+        #endregion
+
         #region Object Permission Checks
-
-        public delegate uint GenerateClientFlagsHandler(UUID userID, UUID objectIDID);
-        private List<GenerateClientFlagsHandler> GenerateClientFlagsCheckFunctions = new List<GenerateClientFlagsHandler>();
-
-        public void AddGenerateClientFlagsHandler(GenerateClientFlagsHandler delegateFunc)
-        {
-            if (!GenerateClientFlagsCheckFunctions.Contains(delegateFunc))
-                GenerateClientFlagsCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveGenerateClientFlagsHandler(GenerateClientFlagsHandler delegateFunc)
-        {
-            if (GenerateClientFlagsCheckFunctions.Contains(delegateFunc))
-                GenerateClientFlagsCheckFunctions.Remove(delegateFunc);
-        }
 
         public uint GenerateClientFlags(UUID userID, UUID objectID)
         {
@@ -81,113 +158,68 @@ namespace OpenSim.Region.Framework.Scenes
                 (uint)PrimFlags.ObjectYouOfficer;
             #pragma warning restore 0612
 
-            foreach (GenerateClientFlagsHandler check in GenerateClientFlagsCheckFunctions)
+            GenerateClientFlagsHandler handlerGenerateClientFlags =
+                    OnGenerateClientFlags;
+
+            if (handlerGenerateClientFlags != null)
             {
-                perms &= check(userID, objectID);
+                Delegate[] list = handlerGenerateClientFlags.GetInvocationList();
+                foreach (GenerateClientFlagsHandler check in list)
+                {
+                    perms &= check(userID, objectID);
+                }
             }
             return perms;
         }
 
-        public delegate void SetBypassPermissionsHandler(bool value);
-        private List<SetBypassPermissionsHandler> SetBypassPermissionsCheckFunctions = new List<SetBypassPermissionsHandler>();
-
-        public void AddSetBypassPermissionsHandler(SetBypassPermissionsHandler delegateFunc)
-        {
-            if (!SetBypassPermissionsCheckFunctions.Contains(delegateFunc))
-                SetBypassPermissionsCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveSetBypassPermissionsHandler(SetBypassPermissionsHandler delegateFunc)
-        {
-            if (SetBypassPermissionsCheckFunctions.Contains(delegateFunc))
-                SetBypassPermissionsCheckFunctions.Remove(delegateFunc);
-        }
-
         public void SetBypassPermissions(bool value)
         {
-            foreach (SetBypassPermissionsHandler check in SetBypassPermissionsCheckFunctions)
-            {
-                check(value);
-            }
-        }
-
-        public delegate bool BypassPermissionsHandler();
-        private List<BypassPermissionsHandler> BypassPermissionsCheckFunctions = new List<BypassPermissionsHandler>();
-
-        public void AddBypassPermissionsHandler(BypassPermissionsHandler delegateFunc)
-        {
-            if (!BypassPermissionsCheckFunctions.Contains(delegateFunc))
-                BypassPermissionsCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveBypassPermissionsHandler(BypassPermissionsHandler delegateFunc)
-        {
-            if (BypassPermissionsCheckFunctions.Contains(delegateFunc))
-                BypassPermissionsCheckFunctions.Remove(delegateFunc);
+            SetBypassPermissionsHandler handler = OnSetBypassPermissions;
+            if (handler != null)
+                handler(value);
         }
 
         public bool BypassPermissions()
         {
-            foreach (BypassPermissionsHandler check in BypassPermissionsCheckFunctions)
+            BypassPermissionsHandler handler = OnBypassPermissions;
+            if (handler != null)
             {
-                if (check() == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (BypassPermissionsHandler h in list)
                 {
-                    return false;
+                    if (h() == false)
+                        return false;
                 }
             }
             return true;
         }
 
-        public delegate bool PropagatePermissionsHandler();
-        private List<PropagatePermissionsHandler> PropagatePermissionsCheckFunctions = new List<PropagatePermissionsHandler>();
-
-        public void AddPropagatePermissionsHandler(PropagatePermissionsHandler delegateFunc)
-        {
-            if (!PropagatePermissionsCheckFunctions.Contains(delegateFunc))
-                PropagatePermissionsCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemovePropagatePermissionsHandler(PropagatePermissionsHandler delegateFunc)
-        {
-            if (PropagatePermissionsCheckFunctions.Contains(delegateFunc))
-                PropagatePermissionsCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool PropagatePermissions()
         {
-            foreach (PropagatePermissionsHandler check in PropagatePermissionsCheckFunctions)
+            PropagatePermissionsHandler handler = OnPropagatePermissions;
+            if (handler != null)
             {
-                if (check() == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (PropagatePermissionsHandler h in list)
                 {
-                    return false;
+                    if (h() == false)
+                        return false;
                 }
             }
             return true;
         }
 
         #region REZ OBJECT
-        public delegate bool CanRezObjectHandler(int objectCount, UUID owner, Vector3 objectPosition, Scene scene);
-        private List<CanRezObjectHandler> CanRezObjectCheckFunctions = new List<CanRezObjectHandler>();
-
-        public void AddRezObjectHandler(CanRezObjectHandler delegateFunc)
-        {
-            if (!CanRezObjectCheckFunctions.Contains(delegateFunc))
-                CanRezObjectCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveRezObjectHandler(CanRezObjectHandler delegateFunc)
-        {
-            if (CanRezObjectCheckFunctions.Contains(delegateFunc))
-                CanRezObjectCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanRezObject(int objectCount, UUID owner, Vector3 objectPosition)
         {
-            foreach (CanRezObjectHandler check in CanRezObjectCheckFunctions)
+            RezObjectHandler handler = OnRezObject;
+            if (handler != null)
             {
-                if (check(objectCount, owner,objectPosition, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (RezObjectHandler h in list)
                 {
-                    return false;
+                    if (h(objectCount, owner,objectPosition, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -196,28 +228,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region DELETE OBJECT
-        public delegate bool CanDeleteObjectHandler(UUID objectID, UUID deleter, Scene scene);
-        private List<CanDeleteObjectHandler> CanDeleteObjectCheckFunctions = new List<CanDeleteObjectHandler>();
-
-        public void AddDeleteObjectHandler(CanDeleteObjectHandler delegateFunc)
-        {
-            if (!CanDeleteObjectCheckFunctions.Contains(delegateFunc))
-                CanDeleteObjectCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveDeleteObjectHandler(CanDeleteObjectHandler delegateFunc)
-        {
-            if (CanDeleteObjectCheckFunctions.Contains(delegateFunc))
-                CanDeleteObjectCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanDeleteObject(UUID objectID, UUID deleter)
         {
-            foreach (CanDeleteObjectHandler check in CanDeleteObjectCheckFunctions)
+            DeleteObjectHandler handler = OnDeleteObject;
+            if (handler != null)
             {
-                if (check(objectID,deleter,m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DeleteObjectHandler h in list)
                 {
-                    return false;
+                    if (h(objectID, deleter, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -226,28 +246,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region TAKE OBJECT
-        public delegate bool CanTakeObjectHandler(UUID objectID, UUID stealer, Scene scene);
-        private List<CanTakeObjectHandler> CanTakeObjectCheckFunctions = new List<CanTakeObjectHandler>();
-
-        public void AddTakeObjectHandler(CanTakeObjectHandler delegateFunc)
-        {
-            if (!CanTakeObjectCheckFunctions.Contains(delegateFunc))
-                CanTakeObjectCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveTakeObjectHandler(CanTakeObjectHandler delegateFunc)
-        {
-            if (CanTakeObjectCheckFunctions.Contains(delegateFunc))
-                CanTakeObjectCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanTakeObject(UUID objectID, UUID AvatarTakingUUID)
         {
-            foreach (CanTakeObjectHandler check in CanTakeObjectCheckFunctions)
+            TakeObjectHandler handler = OnTakeObject;
+            if (handler != null)
             {
-                if (check(objectID, AvatarTakingUUID, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (TakeObjectHandler h in list)
                 {
-                    return false;
+                    if (h(objectID, AvatarTakingUUID, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -256,28 +264,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region TAKE COPY OBJECT
-        public delegate bool CanTakeCopyObjectHandler(UUID objectID, UUID userID, Scene inScene);
-        private List<CanTakeCopyObjectHandler> CanTakeCopyObjectCheckFunctions = new List<CanTakeCopyObjectHandler>();
-
-        public void AddTakeCopyObjectHandler(CanTakeCopyObjectHandler delegateFunc)
-        {
-            if (!CanTakeCopyObjectCheckFunctions.Contains(delegateFunc))
-                CanTakeCopyObjectCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveTakeCopyObjectHandler(CanTakeCopyObjectHandler delegateFunc)
-        {
-            if (CanTakeCopyObjectCheckFunctions.Contains(delegateFunc))
-                CanTakeCopyObjectCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanTakeCopyObject(UUID objectID, UUID userID)
         {
-            foreach (CanTakeCopyObjectHandler check in CanTakeCopyObjectCheckFunctions)
+            TakeCopyObjectHandler handler = OnTakeCopyObject;
+            if (handler != null)
             {
-                if (check(objectID,userID,m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (TakeCopyObjectHandler h in list)
                 {
-                    return false;
+                    if (h(objectID, userID, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -286,28 +282,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region DUPLICATE OBJECT
-        public delegate bool CanDuplicateObjectHandler(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition);
-        private List<CanDuplicateObjectHandler> CanDuplicateObjectCheckFunctions = new List<CanDuplicateObjectHandler>();
-
-        public void AddDuplicateObjectHandler(CanDuplicateObjectHandler delegateFunc)
-        {
-            if (!CanDuplicateObjectCheckFunctions.Contains(delegateFunc))
-                CanDuplicateObjectCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveDuplicateObjectHandler(CanDuplicateObjectHandler delegateFunc)
-        {
-            if (CanDuplicateObjectCheckFunctions.Contains(delegateFunc))
-                CanDuplicateObjectCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanDuplicateObject(int objectCount, UUID objectID, UUID owner, Vector3 objectPosition)
         {
-            foreach (CanDuplicateObjectHandler check in CanDuplicateObjectCheckFunctions)
+            DuplicateObjectHandler handler = OnDuplicateObject;
+            if (handler != null)
             {
-                if (check(objectCount, objectID, owner, m_scene, objectPosition) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DuplicateObjectHandler h in list)
                 {
-                    return false;
+                    if (h(objectCount, objectID, owner, m_scene, objectPosition) == false)
+                        return false;
                 }
             }
             return true;
@@ -316,55 +300,31 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region EDIT OBJECT
-        public delegate bool CanEditObjectHandler(UUID objectID, UUID editorID, Scene scene);
-        private List<CanEditObjectHandler> CanEditObjectCheckFunctions = new List<CanEditObjectHandler>();
-
-        public void AddEditObjectHandler(CanEditObjectHandler delegateFunc)
-        {
-            if (!CanEditObjectCheckFunctions.Contains(delegateFunc))
-                CanEditObjectCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveEditObjectHandler(CanEditObjectHandler delegateFunc)
-        {
-            if (CanEditObjectCheckFunctions.Contains(delegateFunc))
-                CanEditObjectCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanEditObject(UUID objectID, UUID editorID)
         {
-            foreach (CanEditObjectHandler check in CanEditObjectCheckFunctions)
+            EditObjectHandler handler = OnEditObject;
+            if (handler != null)
             {
-                if (check(objectID, editorID, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (EditObjectHandler h in list)
                 {
-                    return false;
+                    if (h(objectID, editorID, m_scene) == false)
+                        return false;
                 }
             }
             return true;
         }
 
-        public delegate bool CanEditObjectInventoryHandler(UUID objectID, UUID editorID, Scene scene);
-        private List<CanEditObjectInventoryHandler> CanEditObjectInventoryCheckFunctions = new List<CanEditObjectInventoryHandler>();
-
-        public void AddEditObjectInventoryHandler(CanEditObjectInventoryHandler delegateFunc)
-        {
-            if (!CanEditObjectInventoryCheckFunctions.Contains(delegateFunc))
-                CanEditObjectInventoryCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveEditObjectInventoryHandler(CanEditObjectInventoryHandler delegateFunc)
-        {
-            if (CanEditObjectInventoryCheckFunctions.Contains(delegateFunc))
-                CanEditObjectInventoryCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanEditObjectInventory(UUID objectID, UUID editorID)
         {
-            foreach (CanEditObjectInventoryHandler check in CanEditObjectInventoryCheckFunctions)
+            EditObjectInventoryHandler handler = OnEditObjectInventory;
+            if (handler != null)
             {
-                if (check(objectID, editorID, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (EditObjectInventoryHandler h in list)
                 {
-                    return false;
+                    if (h(objectID, editorID, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -373,28 +333,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region MOVE OBJECT
-        public delegate bool CanMoveObjectHandler(UUID objectID, UUID moverID, Scene scene);
-        private List<CanMoveObjectHandler> CanMoveObjectCheckFunctions = new List<CanMoveObjectHandler>();
-
-        public void AddMoveObjectHandler(CanMoveObjectHandler delegateFunc)
-        {
-            if (!CanMoveObjectCheckFunctions.Contains(delegateFunc))
-                CanMoveObjectCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveMoveObjectHandler(CanMoveObjectHandler delegateFunc)
-        {
-            if (CanMoveObjectCheckFunctions.Contains(delegateFunc))
-                CanMoveObjectCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanMoveObject(UUID objectID, UUID moverID)
         {
-            foreach (CanMoveObjectHandler check in CanMoveObjectCheckFunctions)
+            MoveObjectHandler handler = OnMoveObject;
+            if (handler != null)
             {
-                if (check(objectID,moverID,m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (MoveObjectHandler h in list)
                 {
-                    return false;
+                    if (h(objectID, moverID, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -403,28 +351,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region OBJECT ENTRY
-        public delegate bool CanObjectEntryHandler(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene);
-        private List<CanObjectEntryHandler> CanObjectEntryCheckFunctions = new List<CanObjectEntryHandler>();
-
-        public void AddObjectEntryHandler(CanObjectEntryHandler delegateFunc)
-        {
-            if (!CanObjectEntryCheckFunctions.Contains(delegateFunc))
-                CanObjectEntryCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveObjectEntryHandler(CanObjectEntryHandler delegateFunc)
-        {
-            if (CanObjectEntryCheckFunctions.Contains(delegateFunc))
-                CanObjectEntryCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanObjectEntry(UUID objectID, bool enteringRegion, Vector3 newPoint)
         {
-            foreach (CanObjectEntryHandler check in CanObjectEntryCheckFunctions)
+            ObjectEntryHandler handler = OnObjectEntry;
+            if (handler != null)
             {
-                if (check(objectID, enteringRegion, newPoint, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (ObjectEntryHandler h in list)
                 {
-                    return false;
+                    if (h(objectID, enteringRegion, newPoint, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -433,28 +369,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region RETURN OBJECT
-        public delegate bool CanReturnObjectHandler(UUID objectID, UUID returnerID, Scene scene);
-        private List<CanReturnObjectHandler> CanReturnObjectCheckFunctions = new List<CanReturnObjectHandler>();
-
-        public void AddReturnObjectHandler(CanReturnObjectHandler delegateFunc)
-        {
-            if (!CanReturnObjectCheckFunctions.Contains(delegateFunc))
-                CanReturnObjectCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveReturnObjectHandler(CanReturnObjectHandler delegateFunc)
-        {
-            if (CanReturnObjectCheckFunctions.Contains(delegateFunc))
-                CanReturnObjectCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanReturnObject(UUID objectID, UUID returnerID)
         {
-            foreach (CanReturnObjectHandler check in CanReturnObjectCheckFunctions)
+            ReturnObjectHandler handler = OnReturnObject;
+            if (handler != null)
             {
-                if (check(objectID,returnerID,m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (ReturnObjectHandler h in list)
                 {
-                    return false;
+                    if (h(objectID, returnerID, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -463,28 +387,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region INSTANT MESSAGE
-        public delegate bool CanInstantMessageHandler(UUID user, UUID target, Scene startScene);
-        private List<CanInstantMessageHandler> CanInstantMessageCheckFunctions = new List<CanInstantMessageHandler>();
-
-        public void AddInstantMessageHandler(CanInstantMessageHandler delegateFunc)
-        {
-            if (!CanInstantMessageCheckFunctions.Contains(delegateFunc))
-                CanInstantMessageCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveInstantMessageHandler(CanInstantMessageHandler delegateFunc)
-        {
-            if (CanInstantMessageCheckFunctions.Contains(delegateFunc))
-                CanInstantMessageCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanInstantMessage(UUID user, UUID target)
         {
-            foreach (CanInstantMessageHandler check in CanInstantMessageCheckFunctions)
+            InstantMessageHandler handler = OnInstantMessage;
+            if (handler != null)
             {
-                if (check(user, target, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (InstantMessageHandler h in list)
                 {
-                    return false;
+                    if (h(user, target, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -493,28 +405,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region INVENTORY TRANSFER
-        public delegate bool CanInventoryTransferHandler(UUID user, UUID target, Scene startScene);
-        private List<CanInventoryTransferHandler> CanInventoryTransferCheckFunctions = new List<CanInventoryTransferHandler>();
-
-        public void AddInventoryTransferHandler(CanInventoryTransferHandler delegateFunc)
-        {
-            if (!CanInventoryTransferCheckFunctions.Contains(delegateFunc))
-                CanInventoryTransferCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveInventoryTransferHandler(CanInventoryTransferHandler delegateFunc)
-            {
-                if (CanInventoryTransferCheckFunctions.Contains(delegateFunc))
-                    CanInventoryTransferCheckFunctions.Remove(delegateFunc);
-            }
-
         public bool CanInventoryTransfer(UUID user, UUID target)
         {
-            foreach (CanInventoryTransferHandler check in CanInventoryTransferCheckFunctions)
+            InventoryTransferHandler handler = OnInventoryTransfer;
+            if (handler != null)
             {
-                if (check(user, target, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (InventoryTransferHandler h in list)
                 {
-                    return false;
+                    if (h(user, target, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -523,55 +423,31 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region VIEW SCRIPT
-        public delegate bool CanViewScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
-        private List<CanViewScriptHandler> CanViewScriptCheckFunctions = new List<CanViewScriptHandler>();
-
-        public void AddViewScriptHandler(CanViewScriptHandler delegateFunc)
-        {
-            if (!CanViewScriptCheckFunctions.Contains(delegateFunc))
-                CanViewScriptCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveViewScriptHandler(CanViewScriptHandler delegateFunc)
-        {
-            if (CanViewScriptCheckFunctions.Contains(delegateFunc))
-                CanViewScriptCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanViewScript(UUID script, UUID objectID, UUID user)
         {
-            foreach (CanViewScriptHandler check in CanViewScriptCheckFunctions)
+            ViewScriptHandler handler = OnViewScript;
+            if (handler != null)
             {
-                if (check(script, objectID, user, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (ViewScriptHandler h in list)
                 {
-                    return false;
+                    if (h(script, objectID, user, m_scene) == false)
+                        return false;
                 }
             }
             return true;
         }
 
-        public delegate bool CanViewNotecardHandler(UUID script, UUID objectID, UUID user, Scene scene);
-        private List<CanViewNotecardHandler> CanViewNotecardCheckFunctions = new List<CanViewNotecardHandler>();
-
-        public void AddViewNotecardHandler(CanViewNotecardHandler delegateFunc)
-        {
-            if (!CanViewNotecardCheckFunctions.Contains(delegateFunc))
-                CanViewNotecardCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveViewNotecardHandler(CanViewNotecardHandler delegateFunc)
-        {
-            if (CanViewNotecardCheckFunctions.Contains(delegateFunc))
-                CanViewNotecardCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanViewNotecard(UUID script, UUID objectID, UUID user)
         {
-            foreach (CanViewNotecardHandler check in CanViewNotecardCheckFunctions)
+            ViewNotecardHandler handler = OnViewNotecard;
+            if (handler != null)
             {
-                if (check(script, objectID, user, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (ViewNotecardHandler h in list)
                 {
-                    return false;
+                    if (h(script, objectID, user, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -580,85 +456,49 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region EDIT SCRIPT
-        public delegate bool CanEditScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
-        private List<CanEditScriptHandler> CanEditScriptCheckFunctions = new List<CanEditScriptHandler>();
-
-        public void AddEditScriptHandler(CanEditScriptHandler delegateFunc)
-        {
-            if (!CanEditScriptCheckFunctions.Contains(delegateFunc))
-                CanEditScriptCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveEditScriptHandler(CanEditScriptHandler delegateFunc)
-        {
-            if (CanEditScriptCheckFunctions.Contains(delegateFunc))
-                CanEditScriptCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanEditScript(UUID script, UUID objectID, UUID user)
         {
-            foreach (CanEditScriptHandler check in CanEditScriptCheckFunctions)
+            EditScriptHandler handler = OnEditScript;
+            if (handler != null)
             {
-                if (check(script, objectID, user, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (EditScriptHandler h in list)
                 {
-                    return false;
+                    if (h(script, objectID, user, m_scene) == false)
+                        return false;
                 }
             }
             return true;
         }
 
-        public delegate bool CanEditNotecardHandler(UUID notecard, UUID objectID, UUID user, Scene scene);
-        private List<CanEditNotecardHandler> CanEditNotecardCheckFunctions = new List<CanEditNotecardHandler>();
-
-        public void AddEditNotecardHandler(CanEditNotecardHandler delegateFunc)
-        {
-            if (!CanEditNotecardCheckFunctions.Contains(delegateFunc))
-                CanEditNotecardCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveEditNotecardHandler(CanEditNotecardHandler delegateFunc)
-        {
-            if (CanEditNotecardCheckFunctions.Contains(delegateFunc))
-                CanEditNotecardCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanEditNotecard(UUID script, UUID objectID, UUID user)
+        {
+            EditNotecardHandler handler = OnEditNotecard;
+            if (handler != null)
             {
-                foreach (CanEditNotecardHandler check in CanEditNotecardCheckFunctions)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (EditNotecardHandler h in list)
                 {
-                    if (check(script, objectID, user, m_scene) == false)
-                    {
+                    if (h(script, objectID, user, m_scene) == false)
                         return false;
-                    }
                 }
-                return true;
             }
+            return true;
+        }
 
         #endregion
 
         #region RUN SCRIPT (When Script Placed in Object)
-        public delegate bool CanRunScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
-        private List<CanRunScriptHandler> CanRunScriptCheckFunctions = new List<CanRunScriptHandler>();
-
-        public void AddRunScriptHandler(CanRunScriptHandler delegateFunc)
-        {
-            if (!CanRunScriptCheckFunctions.Contains(delegateFunc))
-                CanRunScriptCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveRunScriptHandler(CanRunScriptHandler delegateFunc)
-        {
-            if (CanRunScriptCheckFunctions.Contains(delegateFunc))
-                CanRunScriptCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanRunScript(UUID script, UUID objectID, UUID user)
         {
-            foreach (CanRunScriptHandler check in CanRunScriptCheckFunctions)
+            RunScriptHandler handler = OnRunScript;
+            if (handler != null)
             {
-                if (check(script, objectID, user, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (RunScriptHandler h in list)
                 {
-                    return false;
+                    if (h(script, objectID, user, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -667,28 +507,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region START SCRIPT (When Script run box is Checked after placed in object)
-        public delegate bool CanStartScriptHandler(UUID script, UUID user, Scene scene);
-        private List<CanStartScriptHandler> CanStartScriptCheckFunctions = new List<CanStartScriptHandler>();
-
-        public void AddStartScriptHandler(CanStartScriptHandler delegateFunc)
-        {
-            if (!CanStartScriptCheckFunctions.Contains(delegateFunc))
-                CanStartScriptCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveStartScriptHandler(CanStartScriptHandler delegateFunc)
-        {
-            if (CanStartScriptCheckFunctions.Contains(delegateFunc))
-                CanStartScriptCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanStartScript(UUID script, UUID user)
         {
-            foreach (CanStartScriptHandler check in CanStartScriptCheckFunctions)
+            StartScriptHandler handler = OnStartScript;
+            if (handler != null)
             {
-                if (check(script, user, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (StartScriptHandler h in list)
                 {
-                    return false;
+                    if (h(script, user, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -697,28 +525,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region STOP SCRIPT (When Script run box is unchecked after placed in object)
-        public delegate bool CanStopScriptHandler(UUID script, UUID user, Scene scene);
-        private List<CanStopScriptHandler> CanStopScriptCheckFunctions = new List<CanStopScriptHandler>();
-
-        public void AddStopScriptHandler(CanStopScriptHandler delegateFunc)
-        {
-            if (!CanStopScriptCheckFunctions.Contains(delegateFunc))
-                CanStopScriptCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveStopScriptHandler(CanStopScriptHandler delegateFunc)
-        {
-            if (CanStopScriptCheckFunctions.Contains(delegateFunc))
-                CanStopScriptCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanStopScript(UUID script, UUID user)
         {
-            foreach (CanStopScriptHandler check in CanStopScriptCheckFunctions)
+            StopScriptHandler handler = OnStopScript;
+            if (handler != null)
             {
-                if (check(script, user, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (StopScriptHandler h in list)
                 {
-                    return false;
+                    if (h(script, user, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -727,28 +543,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region RESET SCRIPT
-        public delegate bool CanResetScriptHandler(UUID prim, UUID script, UUID user, Scene scene);
-        private List<CanResetScriptHandler> CanResetScriptCheckFunctions = new List<CanResetScriptHandler>();
-
-        public void AddResetScriptHandler(CanResetScriptHandler delegateFunc)
-        {
-            if (!CanResetScriptCheckFunctions.Contains(delegateFunc))
-                CanResetScriptCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveResetScriptHandler(CanResetScriptHandler delegateFunc)
-        {
-            if (CanResetScriptCheckFunctions.Contains(delegateFunc))
-                CanResetScriptCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanResetScript(UUID prim, UUID script, UUID user)
         {
-            foreach (CanResetScriptHandler check in CanResetScriptCheckFunctions)
+            ResetScriptHandler handler = OnResetScript;
+            if (handler != null)
             {
-                if (check(prim, script, user, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (ResetScriptHandler h in list)
                 {
-                    return false;
+                    if (h(prim, script, user, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -757,28 +561,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region TERRAFORM LAND
-        public delegate bool CanTerraformLandHandler(UUID user, Vector3 position, Scene requestFromScene);
-        private List<CanTerraformLandHandler> CanTerraformLandCheckFunctions = new List<CanTerraformLandHandler>();
-
-        public void AddTerraformLandHandler(CanTerraformLandHandler delegateFunc)
-        {
-            if (!CanTerraformLandCheckFunctions.Contains(delegateFunc))
-                CanTerraformLandCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveTerraformLandHandler(CanTerraformLandHandler delegateFunc)
-        {
-            if (CanTerraformLandCheckFunctions.Contains(delegateFunc))
-                CanTerraformLandCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanTerraformLand(UUID user, Vector3 pos)
         {
-            foreach (CanTerraformLandHandler check in CanTerraformLandCheckFunctions)
+            TerraformLandHandler handler = OnTerraformLand;
+            if (handler != null)
             {
-                if (check(user, pos, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (TerraformLandHandler h in list)
                 {
-                    return false;
+                    if (h(user, pos, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -787,28 +579,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region RUN CONSOLE COMMAND
-        public delegate bool CanRunConsoleCommandHandler(UUID user, Scene requestFromScene);
-        private List<CanRunConsoleCommandHandler> CanRunConsoleCommandCheckFunctions = new List<CanRunConsoleCommandHandler>();
-
-        public void AddRunConsoleCommandHandler(CanRunConsoleCommandHandler delegateFunc)
-        {
-            if (!CanRunConsoleCommandCheckFunctions.Contains(delegateFunc))
-                CanRunConsoleCommandCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveRunConsoleCommandHandler(CanRunConsoleCommandHandler delegateFunc)
-        {
-            if (CanRunConsoleCommandCheckFunctions.Contains(delegateFunc))
-                CanRunConsoleCommandCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanRunConsoleCommand(UUID user)
         {
-            foreach (CanRunConsoleCommandHandler check in CanRunConsoleCommandCheckFunctions)
+            RunConsoleCommandHandler handler = OnRunConsoleCommand;
+            if (handler != null)
             {
-                if (check(user, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (RunConsoleCommandHandler h in list)
                 {
-                    return false;
+                    if (h(user, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -817,28 +597,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region CAN ISSUE ESTATE COMMAND
-        public delegate bool CanIssueEstateCommandHandler(UUID user, Scene requestFromScene, bool ownerCommand);
-        private List<CanIssueEstateCommandHandler> CanIssueEstateCommandCheckFunctions = new List<CanIssueEstateCommandHandler>();
-
-        public void AddIssueEstateCommandHandler(CanIssueEstateCommandHandler delegateFunc)
-        {
-            if (!CanIssueEstateCommandCheckFunctions.Contains(delegateFunc))
-                CanIssueEstateCommandCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveIssueEstateCommandHandler(CanIssueEstateCommandHandler delegateFunc)
-        {
-            if (CanIssueEstateCommandCheckFunctions.Contains(delegateFunc))
-                CanIssueEstateCommandCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanIssueEstateCommand(UUID user, bool ownerCommand)
         {
-            foreach (CanIssueEstateCommandHandler check in CanIssueEstateCommandCheckFunctions)
+            IssueEstateCommandHandler handler = OnIssueEstateCommand;
+            if (handler != null)
             {
-                if (check(user, m_scene, ownerCommand) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (IssueEstateCommandHandler h in list)
                 {
-                    return false;
+                    if (h(user, m_scene, ownerCommand) == false)
+                        return false;
                 }
             }
             return true;
@@ -846,28 +614,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region CAN BE GODLIKE
-        public delegate bool IsGodHandler(UUID user, Scene requestFromScene);
-        private List<IsGodHandler> IsGodCheckFunctions = new List<IsGodHandler>();
-
-        public void AddIsGodHandler(IsGodHandler delegateFunc)
-        {
-            if (!IsGodCheckFunctions.Contains(delegateFunc))
-                IsGodCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveIsGodHandler(IsGodHandler delegateFunc)
-        {
-            if (IsGodCheckFunctions.Contains(delegateFunc))
-                IsGodCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool IsGod(UUID user)
         {
-            foreach (IsGodHandler check in IsGodCheckFunctions)
+            IsGodHandler handler = OnIsGod;
+            if (handler != null)
             {
-                if (check(user, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (IsGodHandler h in list)
                 {
-                    return false;
+                    if (h(user, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -875,28 +631,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region EDIT PARCEL
-        public delegate bool CanEditParcelHandler(UUID user, ILandObject parcel, Scene scene);
-        private List<CanEditParcelHandler> CanEditParcelCheckFunctions = new List<CanEditParcelHandler>();
-
-        public void AddEditParcelHandler(CanEditParcelHandler delegateFunc)
-        {
-            if (!CanEditParcelCheckFunctions.Contains(delegateFunc))
-                CanEditParcelCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveEditParcelHandler(CanEditParcelHandler delegateFunc)
-        {
-            if (CanEditParcelCheckFunctions.Contains(delegateFunc))
-                CanEditParcelCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanEditParcel(UUID user, ILandObject parcel)
         {
-            foreach (CanEditParcelHandler check in CanEditParcelCheckFunctions)
+            EditParcelHandler handler = OnEditParcel;
+            if (handler != null)
             {
-                if (check(user, parcel, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (EditParcelHandler h in list)
                 {
-                    return false;
+                    if (h(user, parcel, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -904,28 +648,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region SELL PARCEL
-        public delegate bool CanSellParcelHandler(UUID user, ILandObject parcel, Scene scene);
-        private List<CanSellParcelHandler> CanSellParcelCheckFunctions = new List<CanSellParcelHandler>();
-
-        public void AddSellParcelHandler(CanSellParcelHandler delegateFunc)
-        {
-            if (!CanSellParcelCheckFunctions.Contains(delegateFunc))
-                CanSellParcelCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveSellParcelHandler(CanSellParcelHandler delegateFunc)
-        {
-            if (CanSellParcelCheckFunctions.Contains(delegateFunc))
-                CanSellParcelCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanSellParcel(UUID user, ILandObject parcel)
         {
-            foreach (CanSellParcelHandler check in CanSellParcelCheckFunctions)
+            SellParcelHandler handler = OnSellParcel;
+            if (handler != null)
             {
-                if (check(user, parcel, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (SellParcelHandler h in list)
                 {
-                    return false;
+                    if (h(user, parcel, m_scene) == false)
+                        return false;
                 }
             }
             return true;
@@ -933,136 +665,77 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region ABANDON PARCEL
-        public delegate bool CanAbandonParcelHandler(UUID user, ILandObject parcel, Scene scene);
-        private List<CanAbandonParcelHandler> CanAbandonParcelCheckFunctions = new List<CanAbandonParcelHandler>();
-
-        public void AddAbandonParcelHandler(CanAbandonParcelHandler delegateFunc)
-        {
-            if (!CanAbandonParcelCheckFunctions.Contains(delegateFunc))
-                CanAbandonParcelCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveAbandonParcelHandler(CanAbandonParcelHandler delegateFunc)
-        {
-            if (CanAbandonParcelCheckFunctions.Contains(delegateFunc))
-                CanAbandonParcelCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanAbandonParcel(UUID user, ILandObject parcel)
         {
-            foreach (CanAbandonParcelHandler check in CanAbandonParcelCheckFunctions)
+            AbandonParcelHandler handler = OnAbandonParcel;
+            if (handler != null)
             {
-                if (check(user, parcel, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (AbandonParcelHandler h in list)
                 {
-                    return false;
+                    if (h(user, parcel, m_scene) == false)
+                        return false;
                 }
             }
             return true;
         }
         #endregion
 
-        public delegate bool CanReclaimParcelHandler(UUID user, ILandObject parcel, Scene scene);
-        private List<CanReclaimParcelHandler> CanReclaimParcelCheckFunctions = new List<CanReclaimParcelHandler>();
-
-        public void AddReclaimParcelHandler(CanReclaimParcelHandler delegateFunc)
-        {
-            if (!CanReclaimParcelCheckFunctions.Contains(delegateFunc))
-                CanReclaimParcelCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveReclaimParcelHandler(CanReclaimParcelHandler delegateFunc)
-        {
-            if (CanReclaimParcelCheckFunctions.Contains(delegateFunc))
-                CanReclaimParcelCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanReclaimParcel(UUID user, ILandObject parcel)
         {
-            foreach (CanReclaimParcelHandler check in CanReclaimParcelCheckFunctions)
+            ReclaimParcelHandler handler = OnReclaimParcel;
+            if (handler != null)
             {
-                if (check(user, parcel, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (ReclaimParcelHandler h in list)
                 {
-                    return false;
+                    if (h(user, parcel, m_scene) == false)
+                        return false;
                 }
             }
             return true;
-        }
-        public delegate bool CanBuyLandHandler(UUID user, ILandObject parcel, Scene scene);
-        private List<CanBuyLandHandler> CanBuyLandCheckFunctions = new List<CanBuyLandHandler>();
-
-        public void AddCanBuyLandHandler(CanBuyLandHandler delegateFunc)
-        {
-            if (!CanBuyLandCheckFunctions.Contains(delegateFunc))
-                CanBuyLandCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveCanBuyLandHandler(CanBuyLandHandler delegateFunc)
-        {
-            if (CanBuyLandCheckFunctions.Contains(delegateFunc))
-                CanBuyLandCheckFunctions.Remove(delegateFunc);
         }
 
         public bool CanBuyLand(UUID user, ILandObject parcel)
         {
-            foreach (CanBuyLandHandler check in CanBuyLandCheckFunctions)
+            BuyLandHandler handler = OnBuyLand;
+            if (handler != null)
             {
-                if (check(user, parcel, m_scene) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (BuyLandHandler h in list)
                 {
-                    return false;
+                    if (h(user, parcel, m_scene) == false)
+                        return false;
                 }
             }
             return true;
         }
 
-        public delegate bool CanLinkObjectHandler(UUID user, UUID objectID);
-        private List<CanLinkObjectHandler> CanLinkObjectCheckFunctions = new List<CanLinkObjectHandler>();
-
-        public void AddCanLinkObjectHandler(CanLinkObjectHandler delegateFunc)
-        {
-            if (!CanLinkObjectCheckFunctions.Contains(delegateFunc))
-                CanLinkObjectCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveCanLinkObjectHandler(CanLinkObjectHandler delegateFunc)
-        {
-            if (CanLinkObjectCheckFunctions.Contains(delegateFunc))
-                CanLinkObjectCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanLinkObject(UUID user, UUID objectID)
+        {
+            LinkObjectHandler handler = OnLinkObject;
+            if (handler != null)
             {
-                foreach (CanLinkObjectHandler check in CanLinkObjectCheckFunctions)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (LinkObjectHandler h in list)
                 {
-                    if (check(user, objectID) == false)
-                    {
+                    if (h(user, objectID) == false)
                         return false;
-                    }
                 }
-                return true;
             }
-
-        public delegate bool CanDelinkObjectHandler(UUID user, UUID objectID);
-        private List<CanDelinkObjectHandler> CanDelinkObjectCheckFunctions = new List<CanDelinkObjectHandler>();
-
-        public void AddCanDelinkObjectHandler(CanDelinkObjectHandler delegateFunc)
-        {
-            if (!CanDelinkObjectCheckFunctions.Contains(delegateFunc))
-                CanDelinkObjectCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveCanDelinkObjectHandler(CanDelinkObjectHandler delegateFunc)
-        {
-            if (CanDelinkObjectCheckFunctions.Contains(delegateFunc))
-                CanDelinkObjectCheckFunctions.Remove(delegateFunc);
+            return true;
         }
 
         public bool CanDelinkObject(UUID user, UUID objectID)
         {
-            foreach (CanDelinkObjectHandler check in CanDelinkObjectCheckFunctions)
+            DelinkObjectHandler handler = OnDelinkObject;
+            if (handler != null)
             {
-                if (check(user, objectID) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DelinkObjectHandler h in list)
                 {
-                    return false;
+                    if (h(user, objectID) == false)
+                        return false;
                 }
             }
             return true;
@@ -1070,24 +743,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        public delegate bool CanCreateObjectInventoryHandler(int invType, UUID objectID, UUID userID);
-        private List<CanCreateObjectInventoryHandler> CanCreateObjectInventoryCheckFunctions 
-            = new List<CanCreateObjectInventoryHandler>();
-
-        
-        public void AddCanCreateObjectInventoryHandler(CanCreateObjectInventoryHandler delegateFunc)
-        {
-            if (!CanCreateObjectInventoryCheckFunctions.Contains(delegateFunc))
-                CanCreateObjectInventoryCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveCanCreateObjectInventoryHandler(CanCreateObjectInventoryHandler delegateFunc)
-        {
-            if (CanCreateObjectInventoryCheckFunctions.Contains(delegateFunc))
-                CanCreateObjectInventoryCheckFunctions.Remove(delegateFunc);
-        }
-
-        /// <summary>
         /// Check whether the specified user is allowed to directly create the given inventory type in a prim's
         /// inventory (e.g. the New Script button in the 1.21 Linden Lab client).
         /// </summary>
@@ -1097,89 +752,49 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>         
         public bool CanCreateObjectInventory(int invType, UUID objectID, UUID userID)
         {
-            foreach (CanCreateObjectInventoryHandler check in CanCreateObjectInventoryCheckFunctions)
+            CreateObjectInventoryHandler handler = OnCreateObjectInventory;
+            if (handler != null)
             {
-                if (check(invType, objectID, userID) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (CreateObjectInventoryHandler h in list)
                 {
-                    return false;
+                    if (h(invType, objectID, userID) == false)
+                        return false;
                 }
             }
-            
             return true;
         }
 
-        public delegate bool CanCopyObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
-        private List<CanCopyObjectInventoryHandler> CanCopyObjectInventoryCheckFunctions = new List<CanCopyObjectInventoryHandler>();
-
-        public void AddCanCopyObjectInventoryHandler(CanCopyObjectInventoryHandler delegateFunc)
-        {
-            if (!CanCopyObjectInventoryCheckFunctions.Contains(delegateFunc))
-                CanCopyObjectInventoryCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveCanCopyObjectInventoryHandler(CanCopyObjectInventoryHandler delegateFunc)
-        {
-            if (CanCopyObjectInventoryCheckFunctions.Contains(delegateFunc))
-                CanCopyObjectInventoryCheckFunctions.Remove(delegateFunc);
-        }
-       
         public bool CanCopyObjectInventory(UUID itemID, UUID objectID, UUID userID)
         {
-            foreach (CanCopyObjectInventoryHandler check in CanCopyObjectInventoryCheckFunctions)
+            CopyObjectInventoryHandler handler = OnCopyObjectInventory;
+            if (handler != null)
             {
-                if (check(itemID, objectID, userID) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (CopyObjectInventoryHandler h in list)
                 {
-                    return false;
+                    if (h(itemID, objectID, userID) == false)
+                        return false;
                 }
             }
             return true;
-        }
-
-        public delegate bool CanDeleteObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
-        private List<CanDeleteObjectInventoryHandler> CanDeleteObjectInventoryCheckFunctions 
-            = new List<CanDeleteObjectInventoryHandler>();
-
-        public void AddCanDeleteObjectInventoryHandler(CanDeleteObjectInventoryHandler delegateFunc)
-        {
-            if (!CanDeleteObjectInventoryCheckFunctions.Contains(delegateFunc))
-                CanDeleteObjectInventoryCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveCanDeleteObjectInventoryHandler(CanDeleteObjectInventoryHandler delegateFunc)
-        {
-            if (CanDeleteObjectInventoryCheckFunctions.Contains(delegateFunc))
-                CanDeleteObjectInventoryCheckFunctions.Remove(delegateFunc);
         }
 
         public bool CanDeleteObjectInventory(UUID itemID, UUID objectID, UUID userID)
         {
-            foreach (CanDeleteObjectInventoryHandler check in CanDeleteObjectInventoryCheckFunctions)
+            DeleteObjectInventoryHandler handler = OnDeleteObjectInventory;
+            if (handler != null)
             {
-                if (check(itemID, objectID, userID) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DeleteObjectInventoryHandler h in list)
                 {
-                    return false;
+                    if (h(itemID, objectID, userID) == false)
+                        return false;
                 }
             }
-            
             return true;
         }
         
-        public delegate bool CanCreateUserInventoryHandler(int invType, UUID userID);
-        private List<CanCreateUserInventoryHandler> CanCreateUserInventoryCheckFunctions 
-            = new List<CanCreateUserInventoryHandler>();
-        
-        public void AddCanCreateUserInventoryHandler(CanCreateUserInventoryHandler delegateFunc)
-        {
-            if (!CanCreateUserInventoryCheckFunctions.Contains(delegateFunc))
-                CanCreateUserInventoryCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveCanCreateUserInventoryHandler(CanCreateUserInventoryHandler delegateFunc)
-        {
-            if (CanCreateUserInventoryCheckFunctions.Contains(delegateFunc))
-                CanCreateUserInventoryCheckFunctions.Remove(delegateFunc);
-        }
-
         /// <summary>
         /// Check whether the specified user is allowed to create the given inventory type in their inventory.
         /// </summary>
@@ -1188,33 +803,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>         
         public bool CanCreateUserInventory(int invType, UUID userID)
         {
-            foreach (CanCreateUserInventoryHandler check in CanCreateUserInventoryCheckFunctions)
+            CreateUserInventoryHandler handler = OnCreateUserInventory;
+            if (handler != null)
             {
-                if (check(invType, userID) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (CreateUserInventoryHandler h in list)
                 {
-                    return false;
+                    if (h(invType, userID) == false)
+                        return false;
                 }
             }
-            
             return true;
         } 
         
-        public delegate bool CanEditUserInventoryHandler(UUID itemID, UUID userID);
-        private List<CanEditUserInventoryHandler> CanEditUserInventoryCheckFunctions 
-            = new List<CanEditUserInventoryHandler>();
-        
-        public void AddCanEditUserInventoryHandler(CanEditUserInventoryHandler delegateFunc)
-        {
-            if (!CanEditUserInventoryCheckFunctions.Contains(delegateFunc))
-                CanEditUserInventoryCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveCanEditUserInventoryHandler(CanEditUserInventoryHandler delegateFunc)
-        {
-            if (CanEditUserInventoryCheckFunctions.Contains(delegateFunc))
-                CanEditUserInventoryCheckFunctions.Remove(delegateFunc);
-        }
-
         /// <summary>
         /// Check whether the specified user is allowed to edit the given inventory item within their own inventory.
         /// </summary>
@@ -1223,33 +824,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>         
         public bool CanEditUserInventory(UUID itemID, UUID userID)
         {
-            foreach (CanEditUserInventoryHandler check in CanEditUserInventoryCheckFunctions)
+            EditUserInventoryHandler handler = OnEditUserInventory;
+            if (handler != null)
             {
-                if (check(itemID, userID) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (EditUserInventoryHandler h in list)
                 {
-                    return false;
+                    if (h(itemID, userID) == false)
+                        return false;
                 }
             }
-            
             return true;
         }         
         
-        public delegate bool CanCopyUserInventoryHandler(UUID itemID, UUID userID);
-        private List<CanCopyUserInventoryHandler> CanCopyUserInventoryCheckFunctions 
-            = new List<CanCopyUserInventoryHandler>();
-        
-        public void AddCanCopyUserInventoryHandler(CanCopyUserInventoryHandler delegateFunc)
-        {
-            if (!CanCopyUserInventoryCheckFunctions.Contains(delegateFunc))
-                CanCopyUserInventoryCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveCanCopyUserInventoryHandler(CanCopyUserInventoryHandler delegateFunc)
-        {
-            if (CanCopyUserInventoryCheckFunctions.Contains(delegateFunc))
-                CanCopyUserInventoryCheckFunctions.Remove(delegateFunc);
-        }        
-                
         /// <summary>
         /// Check whether the specified user is allowed to copy the given inventory item from their own inventory.
         /// </summary>
@@ -1258,33 +845,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>         
         public bool CanCopyUserInventory(UUID itemID, UUID userID)
         {
-            foreach (CanCopyUserInventoryHandler check in CanCopyUserInventoryCheckFunctions)
+            CopyUserInventoryHandler handler = OnCopyUserInventory;
+            if (handler != null)
             {
-                if (check(itemID, userID) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (CopyUserInventoryHandler h in list)
                 {
-                    return false;
+                    if (h(itemID, userID) == false)
+                        return false;
                 }
             }
-            
             return true;
         }         
         
-        public delegate bool CanDeleteUserInventoryHandler(UUID itemID, UUID userID);
-        private List<CanDeleteUserInventoryHandler> CanDeleteUserInventoryCheckFunctions 
-            = new List<CanDeleteUserInventoryHandler>();
-        
-        public void AddCanDeleteUserInventoryHandler(CanDeleteUserInventoryHandler delegateFunc)
-        {
-            if (!CanDeleteUserInventoryCheckFunctions.Contains(delegateFunc))
-                CanDeleteUserInventoryCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveCanDeleteUserInventoryHandler(CanDeleteUserInventoryHandler delegateFunc)
-        {
-            if (CanDeleteUserInventoryCheckFunctions.Contains(delegateFunc))
-                CanDeleteUserInventoryCheckFunctions.Remove(delegateFunc);
-        }
-
         /// <summary>
         /// Check whether the specified user is allowed to edit the given inventory item within their own inventory.
         /// </summary>
@@ -1293,39 +866,29 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>         
         public bool CanDeleteUserInventory(UUID itemID, UUID userID)
         {
-            foreach (CanDeleteUserInventoryHandler check in CanDeleteUserInventoryCheckFunctions)
+            DeleteUserInventoryHandler handler = OnDeleteUserInventory;
+            if (handler != null)
             {
-                if (check(itemID, userID) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DeleteUserInventoryHandler h in list)
                 {
-                    return false;
+                    if (h(itemID, userID) == false)
+                        return false;
                 }
             }
-            
             return true;
         }         
         
-        public delegate bool CanTeleportHandler(UUID userID);
-        private List<CanTeleportHandler> CanTeleportCheckFunctions = new List<CanTeleportHandler>();
-
-        public void AddCanTeleportHandler(CanTeleportHandler delegateFunc)
-        {
-            if (!CanTeleportCheckFunctions.Contains(delegateFunc))
-                CanTeleportCheckFunctions.Add(delegateFunc);
-        }
-
-        public void RemoveCanTeleportHandler(CanTeleportHandler delegateFunc)
-        {
-            if (CanTeleportCheckFunctions.Contains(delegateFunc))
-                CanTeleportCheckFunctions.Remove(delegateFunc);
-        }
-
         public bool CanTeleport(UUID userID)
         {
-            foreach (CanTeleportHandler check in CanTeleportCheckFunctions)
+            TeleportHandler handler = OnTeleport;
+            if (handler != null)
             {
-                if (check(userID) == false)
+                Delegate[] list = handler.GetInvocationList();
+                foreach (TeleportHandler h in list)
                 {
-                    return false;
+                    if (h(userID, m_scene) == false)
+                        return false;
                 }
             }
             return true;

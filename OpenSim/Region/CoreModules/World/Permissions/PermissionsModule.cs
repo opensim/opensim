@@ -122,51 +122,51 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 m_log.Debug("[PERMISSIONS]: Enabling all region service permission checks");
 
             //Register functions with Scene External Checks!
-            m_scene.Permissions.AddBypassPermissionsHandler(BypassPermissions); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddSetBypassPermissionsHandler(SetBypassPermissions); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddPropagatePermissionsHandler(PropagatePermissions); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddGenerateClientFlagsHandler(GenerateClientFlags); //NOT YET FULLY IMPLEMENTED
-            m_scene.Permissions.AddAbandonParcelHandler(CanAbandonParcel); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddReclaimParcelHandler(CanReclaimParcel); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddIsGodHandler(IsGod); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddDuplicateObjectHandler(CanDuplicateObject); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddDeleteObjectHandler(CanDeleteObject); //MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.AddEditObjectHandler(CanEditObject);//MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.AddEditParcelHandler(CanEditParcel); //FULLY IMPLEMENTED            
-            m_scene.Permissions.AddInstantMessageHandler(CanInstantMessage); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddInventoryTransferHandler(CanInventoryTransfer); //NOT YET IMPLEMENTED
-            m_scene.Permissions.AddIssueEstateCommandHandler(CanIssueEstateCommand); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddMoveObjectHandler(CanMoveObject); //HOPEFULLY FULLY IMPLEMENTED
-            m_scene.Permissions.AddObjectEntryHandler(CanObjectEntry); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddReturnObjectHandler(CanReturnObject); //NOT YET IMPLEMENTED
-            m_scene.Permissions.AddRezObjectHandler(CanRezObject); //HOPEFULLY FULLY IMPLEMENTED
-            m_scene.Permissions.AddRunConsoleCommandHandler(CanRunConsoleCommand); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddRunScriptHandler(CanRunScript); //NOT YET IMPLEMENTED
-            m_scene.Permissions.AddSellParcelHandler(CanSellParcel); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddTakeObjectHandler(CanTakeObject); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddTakeCopyObjectHandler(CanTakeCopyObject); //FULLY IMPLEMENTED
-            m_scene.Permissions.AddTerraformLandHandler(CanTerraformLand); //FULL IMPLEMENTED (POINT ONLY!!! NOT AREA!!!)
-            m_scene.Permissions.AddCanLinkObjectHandler(CanLinkObject); //NOT YET IMPLEMENTED
-            m_scene.Permissions.AddCanDelinkObjectHandler(CanDelinkObject); //NOT YET IMPLEMENTED
-            m_scene.Permissions.AddCanBuyLandHandler(CanBuyLand); //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnBypassPermissions += BypassPermissions;
+            m_scene.Permissions.OnSetBypassPermissions += SetBypassPermissions;
+            m_scene.Permissions.OnPropagatePermissions += PropagatePermissions;
+            m_scene.Permissions.OnGenerateClientFlags += GenerateClientFlags;
+            m_scene.Permissions.OnAbandonParcel += CanAbandonParcel;
+            m_scene.Permissions.OnReclaimParcel += CanReclaimParcel;
+            m_scene.Permissions.OnIsGod += IsGod;
+            m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
+            m_scene.Permissions.OnDeleteObject += CanDeleteObject; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnEditObject += CanEditObject; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnEditParcel += CanEditParcel; //MAYBE FULLY IMPLEMENTED            
+            m_scene.Permissions.OnInstantMessage += CanInstantMessage;
+            m_scene.Permissions.OnInventoryTransfer += CanInventoryTransfer; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnIssueEstateCommand += CanIssueEstateCommand; //FULLY IMPLEMENTED
+            m_scene.Permissions.OnMoveObject += CanMoveObject; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnObjectEntry += CanObjectEntry;
+            m_scene.Permissions.OnReturnObject += CanReturnObject; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnRezObject += CanRezObject; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnRunConsoleCommand += CanRunConsoleCommand;
+            m_scene.Permissions.OnRunScript += CanRunScript; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnSellParcel += CanSellParcel;
+            m_scene.Permissions.OnTakeObject += CanTakeObject;
+            m_scene.Permissions.OnTakeCopyObject += CanTakeCopyObject;
+            m_scene.Permissions.OnTerraformLand += CanTerraformLand;
+            m_scene.Permissions.OnLinkObject += CanLinkObject; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnDelinkObject += CanDelinkObject; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnBuyLand += CanBuyLand; //NOT YET IMPLEMENTED
             
-            m_scene.Permissions.AddViewNotecardHandler(CanViewNotecard); //NOT YET IMPLEMENTED
-            m_scene.Permissions.AddViewScriptHandler(CanViewScript); //NOT YET IMPLEMENTED                       
-            m_scene.Permissions.AddEditNotecardHandler(CanEditNotecard); //NOT YET IMPLEMENTED            
-            m_scene.Permissions.AddEditScriptHandler(CanEditScript); //NOT YET IMPLEMENTED            
+            m_scene.Permissions.OnViewNotecard += CanViewNotecard; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnViewScript += CanViewScript; //NOT YET IMPLEMENTED                       
+            m_scene.Permissions.OnEditNotecard += CanEditNotecard; //NOT YET IMPLEMENTED            
+            m_scene.Permissions.OnEditScript += CanEditScript; //NOT YET IMPLEMENTED            
             
-            m_scene.Permissions.AddCanCreateObjectInventoryHandler(CanCreateObjectInventory); //NOT IMPLEMENTED HERE 
-            m_scene.Permissions.AddEditObjectInventoryHandler(CanEditObjectInventory);//MAYBE FULLY IMPLEMENTED            
-            m_scene.Permissions.AddCanCopyObjectInventoryHandler(CanCopyObjectInventory); //NOT YET IMPLEMENTED
-            m_scene.Permissions.AddCanDeleteObjectInventoryHandler(CanDeleteObjectInventory); //NOT YET IMPLEMENTED
-            m_scene.Permissions.AddResetScriptHandler(CanResetScript);
+            m_scene.Permissions.OnCreateObjectInventory += CanCreateObjectInventory; //NOT IMPLEMENTED HERE 
+            m_scene.Permissions.OnEditObjectInventory += CanEditObjectInventory;//MAYBE FULLY IMPLEMENTED            
+            m_scene.Permissions.OnCopyObjectInventory += CanCopyObjectInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnDeleteObjectInventory += CanDeleteObjectInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnResetScript += CanResetScript;
             
-            m_scene.Permissions.AddCanCreateUserInventoryHandler(CanCreateUserInventory); //NOT YET IMPLEMENTED
-            m_scene.Permissions.AddCanCopyUserInventoryHandler(CanCopyUserInventory); //NOT YET IMPLEMENTED
-            m_scene.Permissions.AddCanEditUserInventoryHandler(CanEditUserInventory); //NOT YET IMPLEMENTED
-            m_scene.Permissions.AddCanDeleteUserInventoryHandler(CanDeleteUserInventory); //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnCreateUserInventory += CanCreateUserInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnCopyUserInventory += CanCopyUserInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnEditUserInventory += CanEditUserInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnDeleteUserInventory += CanDeleteUserInventory; //NOT YET IMPLEMENTED
             
-            m_scene.Permissions.AddCanTeleportHandler(CanTeleport); //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnTeleport += CanTeleport; //NOT YET IMPLEMENTED
 
             m_scene.AddCommand(this, "bypass permissions",
                     "bypass permissions <true / false>",
@@ -1469,7 +1469,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;            
         }        
 
-        private bool CanTeleport(UUID userID)
+        private bool CanTeleport(UUID userID, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
