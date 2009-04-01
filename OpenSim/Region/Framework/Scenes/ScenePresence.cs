@@ -115,8 +115,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private int m_perfMonMS;
 
-        private bool m_sitStatus;
-
         private bool m_setAlwaysRun;
 
         private Quaternion m_bodyRot= Quaternion.Identity;
@@ -565,8 +563,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_firstname = m_controllingClient.FirstName;
             m_lastname = m_controllingClient.LastName;
             m_name = String.Format("{0} {1}", m_firstname, m_lastname);
-            if (DateTime.Now.Month==4&&DateTime.Now.Day==1)
-                m_sitStatus = true;
             m_scene = world;
             m_uuid = client.AgentId;
             m_regionInfo = reginfo;
@@ -599,15 +595,11 @@ namespace OpenSim.Region.Framework.Scenes
             : this(client, world, reginfo)
         {
             m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);
-            if (DateTime.Now.Month==4&&DateTime.Now.Day==1)
-                m_sitStatus = true;
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
             : this(client, world, reginfo)
         {
-            if (DateTime.Now.Month==4&&DateTime.Now.Day==1)
-                m_sitStatus = true;
             m_appearance = appearance;
         }
 
@@ -2239,8 +2231,6 @@ namespace OpenSim.Region.Framework.Scenes
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
                                                             LocalId, m_pos, m_appearance.Texture.GetBytes(),
                                                             m_parentID, rot);
-            if (m_sitStatus)
-                GenerateRandomAnimation();
             m_scene.AddAgentUpdates(1);
         }
 
@@ -2257,8 +2247,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // only send if this is the root (children are only "listening posts" in a foreign region)
                 if (!IsChildAgent)
                 {
-                    if (m_sitStatus)
-                        GenerateRandomAnimation();
                     SendFullUpdateToOtherClient(avatar);
                 }
 
@@ -2268,8 +2256,6 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         avatar.SendFullUpdateToOtherClient(this);
                         avatar.SendAppearanceToOtherAgent(this);
-                        if (m_sitStatus)
-                            GenerateRandomAnimation();
                         avatar.SendAnimPackToClient(ControllingClient);
                     }
                 }
@@ -2284,8 +2270,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_perfMonMS = Environment.TickCount;
 
-            if (m_sitStatus)
-                GenerateRandomAnimation();
             // only send update from root agents to other clients; children are only "listening posts"
             List<ScenePresence> avatars = m_scene.GetAvatars();
             foreach (ScenePresence avatar in avatars)
@@ -2515,8 +2499,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_LastChildAgentUpdatePosition.Y = AbsolutePosition.Y;
                 m_LastChildAgentUpdatePosition.Z = AbsolutePosition.Z;
 
-                if (m_sitStatus)
-                    GenerateRandomAnimation();
             }
         }
 
@@ -3078,8 +3060,6 @@ namespace OpenSim.Region.Framework.Scenes
                 Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
                 DefaultTexture = textu.GetBytes();
             } 
-            if (DateTime.Now.Month==4&&DateTime.Now.Day==1)
-                m_sitStatus = true;
         }
 
         public void AddAttachment(SceneObjectGroup gobj)
