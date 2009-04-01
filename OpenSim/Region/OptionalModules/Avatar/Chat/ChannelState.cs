@@ -60,7 +60,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         internal string IrcChannel           = null;
         internal string BaseNickname         = "OSimBot";
         internal uint   Port                 = 6667;
-        internal string User                 = "USER OpenSimBot 8 * :I'm an OpenSim to IRC bot";
+        internal string User                 = null;
 
         internal bool   ClientReporting      = true;
         internal bool   RelayChat            = true;
@@ -163,6 +163,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             m_log.DebugFormat("[IRC-Channel-{0}] Server : <{1}>", cs.idn, cs.Server);
             cs.Password             = Substitute(rs, config.GetString("password", null));
             // probably not a good idea to put a password in the log file
+            cs.User                 = Substitute(rs, config.GetString("user", null));
             cs.IrcChannel           = Substitute(rs, config.GetString("channel", null));
             m_log.DebugFormat("[IRC-Channel-{0}] IrcChannel : <{1}>", cs.idn, cs.IrcChannel);
             cs.Port                 = Convert.ToUInt32(Substitute(rs, config.GetString("port", Convert.ToString(cs.Port))));

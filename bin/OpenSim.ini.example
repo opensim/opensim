@@ -604,6 +604,7 @@
     ;password = mypass
     ;nick    = OpenSimBotNameProbablyMakeThisShorter
     ;channel = #the_irc_channel_you_want_to_connect_to
+    ;user    = "OpenSimBot 8 * :I'm an OpenSim to IRC bot"
     ;port = 6667
     ;; channel to listen for configuration commands
     ;commands_enabled = false
