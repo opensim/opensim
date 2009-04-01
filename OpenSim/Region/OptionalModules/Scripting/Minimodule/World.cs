@@ -35,27 +35,18 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         private readonly Scene m_internalScene;
         private readonly Heightmap m_heights;
 
+        private ObjectAccessor m_objs;
+
         public World(Scene internalScene)
         {
             m_internalScene = internalScene;
             m_heights = new Heightmap(m_internalScene);
+            m_objs = new ObjectAccessor(m_internalScene);
         }
 
-        public IObject[] Objects
+        public IObjectAccessor Objects
         {
-            get
-            {
-                List<EntityBase> ents = m_internalScene.Entities.GetAllByType<SceneObjectGroup>();
-                IObject[] rets = new IObject[ents.Count];
-
-                for (int i = 0; i < ents.Count; i++)
-                {
-                    EntityBase ent = ents[i];
-                    rets[i] = new SOPObject(m_internalScene, ent.LocalId);
-                }
-
-                return rets;
-            }
+            get { return m_objs; }
         }
 
         public IAvatar[] Avatars
