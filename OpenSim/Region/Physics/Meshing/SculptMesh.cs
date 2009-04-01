@@ -69,8 +69,8 @@ namespace PrimMesher
 
             Bitmap scaledImage = new Bitmap(destWidth, destHeight,
                                      PixelFormat.Format24bppRgb);
-            scaledImage.SetResolution(srcImage.HorizontalResolution,
-                                    srcImage.VerticalResolution);
+
+            scaledImage.SetResolution(96.0f, 96.0f);
 
             Graphics grPhoto = Graphics.FromImage(scaledImage);
             grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bilinear;
