@@ -32,7 +32,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    interface IAvatar
+    public interface IAvatar
     {
         string Name { get; }
         UUID GlobalID { get; }

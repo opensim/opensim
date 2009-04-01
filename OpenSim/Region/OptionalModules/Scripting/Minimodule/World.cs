@@ -58,6 +58,23 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             }
         }
 
+        public IAvatar[] Avatars
+        {
+            get
+            {
+                List<EntityBase> ents = m_internalScene.Entities.GetAllByType<ScenePresence>();
+                IAvatar[] rets = new IAvatar[ents.Count];
+
+                for (int i = 0; i < ents.Count; i++)
+                {
+                    EntityBase ent = ents[i];
+                    rets[i] = new SPAvatar(m_internalScene, ent.UUID);
+                }
+
+                return rets;
+            }
+        }
+
         public IHeightmap Terrain
         {
             get { return m_heights; }

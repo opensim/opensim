@@ -34,6 +34,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     public interface IWorld
     {
         IObject[] Objects { get; }
+        IAvatar[] Avatars { get; }
         IHeightmap Terrain { get; }
     }
 }
