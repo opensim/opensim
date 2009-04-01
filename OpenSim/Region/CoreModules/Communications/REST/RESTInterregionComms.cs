@@ -36,6 +36,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Clients;
 using OpenSim.Region.CoreModules.Communications.Local;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -54,6 +55,8 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         protected LocalInterregionComms m_localBackend;
 
         protected CommunicationsManager m_commsManager;
+
+        protected RegionToRegionClient m_regionClient;
 
         #region IRegionModule
 
@@ -112,6 +115,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             m_localBackend = new LocalInterregionComms();
             m_commsManager = scene.CommsManager;
             m_aScene = scene;
+            m_regionClient = new RegionToRegionClient(m_aScene);
         }
 
         protected virtual void AddHTTPHandlers()
@@ -141,9 +145,9 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
-                    SendUserInformation(regInfo, aCircuit);
+                    m_regionClient.SendUserInformation(regInfo, aCircuit);
 
-                    return DoCreateChildAgentCall(regInfo, aCircuit);
+                    return m_regionClient.DoCreateChildAgentCall(regInfo, aCircuit);
                 }
                 //else
                 //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
@@ -163,7 +167,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
-                    return DoChildAgentUpdateCall(regInfo, cAgentData);
+                    return m_regionClient.DoChildAgentUpdateCall(regInfo, cAgentData);
                 }
                 //else
                 //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
@@ -184,7 +188,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
-                    return DoChildAgentUpdateCall(regInfo, cAgentData);
+                    return m_regionClient.DoChildAgentUpdateCall(regInfo, cAgentData);
                 }
                 //else
                 //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
@@ -205,7 +209,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
-                    return DoRetrieveRootAgentCall(regInfo, id, out agent);
+                    return m_regionClient.DoRetrieveRootAgentCall(regInfo, id, out agent);
                 }
                 //else
                 //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
@@ -221,7 +225,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 return true;
 
             // else do the remote thing
-            return DoReleaseAgentCall(regionHandle, id, uri);
+            return m_regionClient.DoReleaseAgentCall(regionHandle, id, uri);
         }
 
 
@@ -237,7 +241,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
-                    return DoCloseAgentCall(regInfo, id);
+                    return m_regionClient.DoCloseAgentCall(regInfo, id);
                 }
                 //else
                 //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
@@ -264,7 +268,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
-                    return DoCreateObjectCall(regInfo, sog);
+                    return m_regionClient.DoCreateObjectCall(regInfo, sog, m_aScene.m_allowScriptCrossings);
                 }
                 //else
                 //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
@@ -291,7 +295,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 // Don't remote-call this instance; that's a startup hickup
                 !((regInfo.ExternalHostName == thisRegion.ExternalHostName) && (regInfo.HttpPort == thisRegion.HttpPort)))
             {
-                return DoHelloNeighbourCall(regInfo, thisRegion);
+                return m_regionClient.DoHelloNeighbourCall(regInfo, thisRegion);
             }
             //else
             //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
@@ -299,472 +303,6 @@ namespace OpenSim.Region.CoreModules.Communications.REST
         }
 
         #endregion /* IInterregionComms */
-
-        #region DoWork functions for the above public interface
-        
-        //-------------------------------------------------------------------
-        // Internal  functions for the above public interface
-        //-------------------------------------------------------------------
-
-        public bool DoCreateChildAgentCall(RegionInfo region, AgentCircuitData aCircuit)
-        {
-            // Eventually, we want to use a caps url instead of the agentID
-            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + aCircuit.AgentID + "/";
-            //Console.WriteLine("   >>> DoCreateChildAgentCall <<< " + uri);
-
-            HttpWebRequest AgentCreateRequest = (HttpWebRequest)WebRequest.Create(uri);
-            AgentCreateRequest.Method = "POST";
-            AgentCreateRequest.ContentType = "application/json";
-            AgentCreateRequest.Timeout = 10000;
-            //AgentCreateRequest.KeepAlive = false;
-
-            // Fill it in
-            OSDMap args = null;
-            try
-            {
-                args = aCircuit.PackAgentCircuitData();
-            }
-            catch (Exception e)
-            {
-                m_log.Debug("[REST COMMS]: PackAgentCircuitData failed with exception: " + e.Message);
-            }
-            // Add the regionhandle of the destination region
-            ulong regionHandle = GetRegionHandle(region.RegionHandle);
-            args["destination_handle"] = OSD.FromString(regionHandle.ToString());
-
-            string strBuffer = "";
-            byte[] buffer = new byte[1];
-            try
-            {
-                strBuffer = OSDParser.SerializeJsonString(args);
-                UTF8Encoding str = new UTF8Encoding();
-                buffer = str.GetBytes(strBuffer);
-
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[OSG2]: Exception thrown on serialization of ChildCreate: {0}", e.Message);
-                // ignore. buffer will be empty, caller should check.
-            }
-
-            Stream os = null;
-            try
-            { // send the Post
-                AgentCreateRequest.ContentLength = buffer.Length;   //Count bytes to send
-                os = AgentCreateRequest.GetRequestStream();
-                os.Write(buffer, 0, strBuffer.Length);         //Send it
-                os.Close();
-                //m_log.InfoFormat("[REST COMMS]: Posted ChildAgentUpdate request to remote sim {0}", uri);
-            }
-            //catch (WebException ex)
-            catch
-            {
-                //m_log.InfoFormat("[REST COMMS]: Bad send on ChildAgentUpdate {0}", ex.Message);
-
-                return false;
-            }
-
-            // Let's wait for the response
-            //m_log.Info("[REST COMMS]: Waiting for a reply after DoCreateChildAgentCall");
-
-            try
-            {
-                WebResponse webResponse = AgentCreateRequest.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Info("[REST COMMS]: Null reply on DoCreateChildAgentCall post");
-                }
-
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                sr.Close();
-                //m_log.InfoFormat("[REST COMMS]: DoCreateChildAgentCall reply was {0} ", reply);
-
-            }
-            catch (WebException ex)
-            {
-                m_log.InfoFormat("[REST COMMS]: exception on reply of DoCreateChildAgentCall {0}", ex.Message);
-                // ignore, really
-            }
-
-            return true;
-
-        }
-
-        public bool DoChildAgentUpdateCall(RegionInfo region, IAgentData cAgentData)
-        {
-            // Eventually, we want to use a caps url instead of the agentID
-            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + cAgentData.AgentID + "/";
-            //Console.WriteLine("   >>> DoChildAgentUpdateCall <<< " + uri);
-
-            HttpWebRequest ChildUpdateRequest = (HttpWebRequest)WebRequest.Create(uri);
-            ChildUpdateRequest.Method = "PUT";
-            ChildUpdateRequest.ContentType = "application/json";
-            ChildUpdateRequest.Timeout = 10000;
-            //ChildUpdateRequest.KeepAlive = false;
-
-            // Fill it in
-            OSDMap args = null;
-            try
-            {
-                args = cAgentData.Pack();
-            }
-            catch (Exception e)
-            {
-                m_log.Debug("[REST COMMS]: PackUpdateMessage failed with exception: " + e.Message);
-            }
-            // Add the regionhandle of the destination region
-            ulong regionHandle = GetRegionHandle(region.RegionHandle);
-            args["destination_handle"] = OSD.FromString(regionHandle.ToString());
-
-            string strBuffer = "";
-            byte[] buffer = new byte[1];
-            try
-            {
-                strBuffer = OSDParser.SerializeJsonString(args);
-                UTF8Encoding str = new UTF8Encoding();
-                buffer = str.GetBytes(strBuffer);
-
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[REST COMMS]: Exception thrown on serialization of ChildUpdate: {0}", e.Message);
-                // ignore. buffer will be empty, caller should check.
-            }
-
-            Stream os = null;
-            try
-            { // send the Post
-                ChildUpdateRequest.ContentLength = buffer.Length;   //Count bytes to send
-                os = ChildUpdateRequest.GetRequestStream();
-                os.Write(buffer, 0, strBuffer.Length);         //Send it
-                os.Close();
-                //m_log.InfoFormat("[REST COMMS]: Posted ChildAgentUpdate request to remote sim {0}", uri);
-            }
-            //catch (WebException ex)
-            catch                
-            {
-                //m_log.InfoFormat("[REST COMMS]: Bad send on ChildAgentUpdate {0}", ex.Message);
-
-                return false;
-            }
-
-            // Let's wait for the response
-            //m_log.Info("[REST COMMS]: Waiting for a reply after ChildAgentUpdate");
-            
-            try
-            {
-                WebResponse webResponse = ChildUpdateRequest.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Info("[REST COMMS]: Null reply on ChilAgentUpdate post");
-                }
-
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                sr.Close();
-                //m_log.InfoFormat("[REST COMMS]: ChilAgentUpdate reply was {0} ", reply);
-
-            }
-            catch (WebException ex)
-            {
-                m_log.InfoFormat("[REST COMMS]: exception on reply of ChilAgentUpdate {0}", ex.Message);
-                // ignore, really
-            }
-
-            return true;
-        }
-
-        public bool DoRetrieveRootAgentCall(RegionInfo region, UUID id, out IAgentData agent)
-        {
-            agent = null;
-            // Eventually, we want to use a caps url instead of the agentID
-            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + id + "/" + region.RegionHandle.ToString() + "/";
-            //Console.WriteLine("   >>> DoRetrieveRootAgentCall <<< " + uri);
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.Method = "GET";
-            request.Timeout = 10000;
-            //request.Headers.Add("authorization", ""); // coming soon
-
-            HttpWebResponse webResponse = null;
-            string reply = string.Empty;
-            try
-            {
-                webResponse = (HttpWebResponse)request.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Info("[REST COMMS]: Null reply on agent get ");
-                }
-
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                reply = sr.ReadToEnd().Trim();
-                sr.Close();
-
-                //Console.WriteLine("[REST COMMS]: ChilAgentUpdate reply was " + reply);
-
-            }
-            catch (WebException ex)
-            {
-                m_log.InfoFormat("[REST COMMS]: exception on reply of agent get {0}", ex.Message);
-                // ignore, really
-                return false;
-            }
-
-            if (webResponse.StatusCode == HttpStatusCode.OK)
-            {
-                // we know it's jason
-                OSDMap args = GetOSDMap(reply);
-                if (args == null)
-                {
-                    //Console.WriteLine("[REST COMMS]: Error getting OSDMap from reply");
-                    return false;
-                }
-
-                agent = new CompleteAgentData();
-                agent.Unpack(args);
-                return true;
-            }
-
-            //Console.WriteLine("[REST COMMS]: DoRetrieveRootAgentCall returned status " + webResponse.StatusCode);
-            return false;
-        }
-
-        public bool DoReleaseAgentCall(ulong regionHandle, UUID id, string uri)
-        {
-            //m_log.Debug("   >>> DoReleaseAgentCall <<< " + uri);
-
-            WebRequest request = WebRequest.Create(uri);
-            request.Method = "DELETE";
-            request.Timeout = 10000;
-
-            try
-            {
-                WebResponse webResponse = request.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Info("[REST COMMS]: Null reply on agent delete ");
-                }
-
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                sr.Close();
-                //m_log.InfoFormat("[REST COMMS]: ChilAgentUpdate reply was {0} ", reply);
-
-            }
-            catch (WebException ex)
-            {
-                m_log.InfoFormat("[REST COMMS]: exception on reply of agent delete {0}", ex.Message);
-                // ignore, really
-            }
-
-            return true;
-        }
-
-
-        public bool DoCloseAgentCall(RegionInfo region, UUID id)
-        {
-            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + id + "/" + region.RegionHandle.ToString() +"/";
-
-            //Console.WriteLine("   >>> DoCloseAgentCall <<< " + uri);
-
-            WebRequest request = WebRequest.Create(uri);
-            request.Method = "DELETE";
-            request.Timeout = 10000;
-
-            try
-            {
-                WebResponse webResponse = request.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Info("[REST COMMS]: Null reply on agent delete ");
-                }
-
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                sr.Close();
-                //m_log.InfoFormat("[REST COMMS]: ChilAgentUpdate reply was {0} ", reply);
-
-            }
-            catch (WebException ex)
-            {
-                m_log.InfoFormat("[REST COMMS]: exception on reply of agent delete {0}", ex.Message);
-                // ignore, really
-            }
-
-            return true;
-        }
-        
-        public bool DoCreateObjectCall(RegionInfo region, ISceneObject sog)
-        {
-            ulong regionHandle = GetRegionHandle(region.RegionHandle);
-            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/object/" + sog.UUID + "/" + regionHandle.ToString() + "/";
-            //m_log.Debug("   >>> DoCreateChildAgentCall <<< " + uri);
-
-            WebRequest ObjectCreateRequest = WebRequest.Create(uri);
-            ObjectCreateRequest.Method = "POST";
-            ObjectCreateRequest.ContentType = "application/json";
-            ObjectCreateRequest.Timeout = 10000;
-
-            OSDMap args = new OSDMap(2);
-            args["sog"] = OSD.FromString(sog.ToXmlString2());
-            args["extra"] = OSD.FromString(sog.ExtraToXmlString());
-            if (m_aScene.m_allowScriptCrossings)
-            {
-                string state = sog.GetStateSnapshot();
-                if (state.Length > 0)
-                    args["state"] = OSD.FromString(state);
-            }
-
-            string strBuffer = "";
-            byte[] buffer = new byte[1];
-            try
-            {
-                strBuffer = OSDParser.SerializeJsonString(args);
-                UTF8Encoding str = new UTF8Encoding();
-                buffer = str.GetBytes(strBuffer);
-
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[REST COMMS]: Exception thrown on serialization of CreateObject: {0}", e.Message);
-                // ignore. buffer will be empty, caller should check.
-            }
-
-            Stream os = null;
-            try
-            { // send the Post
-                ObjectCreateRequest.ContentLength = buffer.Length;   //Count bytes to send
-                os = ObjectCreateRequest.GetRequestStream();
-                os.Write(buffer, 0, strBuffer.Length);         //Send it
-                os.Close();
-                m_log.InfoFormat("[REST COMMS]: Posted ChildAgentUpdate request to remote sim {0}", uri);
-            }
-            //catch (WebException ex)
-            catch
-            {
-               // m_log.InfoFormat("[REST COMMS]: Bad send on CreateObject {0}", ex.Message);
-
-                return false;
-            }
-
-            // Let's wait for the response
-            //m_log.Info("[REST COMMS]: Waiting for a reply after DoCreateChildAgentCall");
-
-            try
-            {
-                WebResponse webResponse = ObjectCreateRequest.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Info("[REST COMMS]: Null reply on DoCreateObjectCall post");
-                }
-
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                sr.Close();
-                //m_log.InfoFormat("[REST COMMS]: DoCreateChildAgentCall reply was {0} ", reply);
-
-            }
-            catch (WebException ex)
-            {
-                m_log.InfoFormat("[REST COMMS]: exception on reply of DoCreateObjectCall {0}", ex.Message);
-                // ignore, really
-            }
-
-            return true;
-
-        }
-
-        public bool DoHelloNeighbourCall(RegionInfo region, RegionInfo thisRegion)
-        {
-            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/region/" + thisRegion.RegionID + "/";
-            //m_log.Debug("   >>> DoHelloNeighbourCall <<< " + uri);
-
-            WebRequest HelloNeighbourRequest = WebRequest.Create(uri);
-            HelloNeighbourRequest.Method = "POST";
-            HelloNeighbourRequest.ContentType = "application/json";
-            HelloNeighbourRequest.Timeout = 10000;
-
-            // Fill it in
-            OSDMap args = null;
-            try
-            {
-                args = thisRegion.PackRegionInfoData();
-            }
-            catch (Exception e)
-            {
-                m_log.Debug("[REST COMMS]: PackRegionInfoData failed with exception: " + e.Message);
-            }
-            // Add the regionhandle of the destination region
-            ulong regionHandle = GetRegionHandle(region.RegionHandle);
-            args["destination_handle"] = OSD.FromString(regionHandle.ToString());
-
-            string strBuffer = "";
-            byte[] buffer = new byte[1];
-            try
-            {
-                strBuffer = OSDParser.SerializeJsonString(args);
-                UTF8Encoding str = new UTF8Encoding();
-                buffer = str.GetBytes(strBuffer);
-
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[REST COMMS]: Exception thrown on serialization of HelloNeighbour: {0}", e.Message);
-                // ignore. buffer will be empty, caller should check.
-            }
-
-            Stream os = null;
-            try
-            { // send the Post
-                HelloNeighbourRequest.ContentLength = buffer.Length;   //Count bytes to send
-                os = HelloNeighbourRequest.GetRequestStream();
-                os.Write(buffer, 0, strBuffer.Length);         //Send it
-                os.Close();
-                //m_log.InfoFormat("[REST COMMS]: Posted HelloNeighbour request to remote sim {0}", uri);
-            }
-            //catch (WebException ex)
-            catch
-            {
-                //m_log.InfoFormat("[REST COMMS]: Bad send on HelloNeighbour {0}", ex.Message);
-
-                return false;
-            }
-
-            // Let's wait for the response
-            //m_log.Info("[REST COMMS]: Waiting for a reply after DoHelloNeighbourCall");
-
-            try
-            {
-                WebResponse webResponse = HelloNeighbourRequest.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Info("[REST COMMS]: Null reply on DoHelloNeighbourCall post");
-                }
-
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                sr.Close();
-                //m_log.InfoFormat("[REST COMMS]: DoHelloNeighbourCall reply was {0} ", reply);
-
-            }
-            catch (WebException ex)
-            {
-                m_log.InfoFormat("[REST COMMS]: exception on reply of DoHelloNeighbourCall {0}", ex.Message);
-                // ignore, really
-            }
-
-            return true;
-
-        }
-
-        #endregion /* Do Work */
 
         #region Incoming calls from remote instances
 
@@ -833,7 +371,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected virtual void DoAgentPost(Hashtable request, Hashtable responsedata, UUID id)
         {
-            OSDMap args = GetOSDMap((string)request["body"]);
+            OSDMap args = RegionClient.GetOSDMap((string)request["body"]);
             if (args == null)
             {
                 responsedata["int_response_code"] = 400;
@@ -858,7 +396,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             }
 
             // This is the meaning of POST agent
-            AdjustUserInformation(aCircuit);
+            m_regionClient.AdjustUserInformation(aCircuit);
             bool result = m_localBackend.SendCreateChildAgent(regionhandle, aCircuit);
 
             responsedata["int_response_code"] = 200;
@@ -867,7 +405,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected virtual void DoAgentPut(Hashtable request, Hashtable responsedata)
         {
-            OSDMap args = GetOSDMap((string)request["body"]);
+            OSDMap args = RegionClient.GetOSDMap((string)request["body"]);
             if (args == null)
             {
                 responsedata["int_response_code"] = 400;
@@ -1042,7 +580,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected virtual void DoObjectPost(Hashtable request, Hashtable responsedata, ulong regionhandle)
         {
-            OSDMap args = GetOSDMap((string)request["body"]);
+            OSDMap args = RegionClient.GetOSDMap((string)request["body"]);
             if (args == null)
             {
                 responsedata["int_response_code"] = 400;
@@ -1154,7 +692,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected virtual void DoRegionPost(Hashtable request, Hashtable responsedata, UUID id)
         {
-            OSDMap args = GetOSDMap((string)request["body"]);
+            OSDMap args = RegionClient.GetOSDMap((string)request["body"]);
             if (args == null)
             {
                 responsedata["int_response_code"] = 400;
@@ -1190,32 +728,6 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         #region Misc
 
-        public static OSDMap GetOSDMap(string data)
-        {
-            OSDMap args = null;
-            try
-            {
-                OSD buffer;
-                // We should pay attention to the content-type, but let's assume we know it's Json
-                buffer = OSDParser.DeserializeJson(data);
-                if (buffer.Type == OSDType.Map)
-                {
-                    args = (OSDMap)buffer;
-                    return args;
-                }
-                else
-                {
-                    // uh?
-                    Console.WriteLine("[REST COMMS]: Got OSD of type " + buffer.Type.ToString());
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[REST COMMS]: exception on parse of REST message " + ex.Message);
-                return null;
-            }
-        }
 
         /// <summary>
         /// Extract the param from an uri.
@@ -1251,45 +763,51 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         #endregion Misc 
 
-        #region Hyperlinks
-
-        protected virtual ulong GetRegionHandle(ulong handle)
+        protected class RegionToRegionClient : RegionClient
         {
-            if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.FindRegionHandle(handle);
+            Scene m_aScene = null;
 
-            return handle;
-        }
-
-        protected virtual bool IsHyperlink(ulong handle)
-        {
-            if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.IsHyperlinkRegion(handle);
-
-            return false;
-        }
-
-        protected virtual void SendUserInformation(RegionInfo regInfo, AgentCircuitData aCircuit)
-        {
-            try
+            public RegionToRegionClient(Scene s)
             {
-                //if (IsHyperlink(regInfo.RegionHandle))
-                if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                {
-                    ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.SendUserInformation(regInfo, aCircuit);
-                }
+                m_aScene = s;
             }
-            catch // Bad cast
-            { }
 
-        }
+            public override ulong GetRegionHandle(ulong handle)
+            {
+                if (m_aScene.SceneGridService is HGSceneCommunicationService)
+                    return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.FindRegionHandle(handle);
 
-        protected virtual void AdjustUserInformation(AgentCircuitData aCircuit)
-        {
-            if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.AdjustUserInformation(aCircuit);
+                return handle;
+            }
+
+            public override bool IsHyperlink(ulong handle)
+            {
+                if (m_aScene.SceneGridService is HGSceneCommunicationService)
+                    return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.IsHyperlinkRegion(handle);
+
+                return false;
+            }
+
+            public override void SendUserInformation(RegionInfo regInfo, AgentCircuitData aCircuit)
+            {
+                try
+                {
+                    if (m_aScene.SceneGridService is HGSceneCommunicationService)
+                    {
+                        ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.SendUserInformation(regInfo, aCircuit);
+                    }
+                }
+                catch // Bad cast
+                { }
+
+            }
+
+            public override void AdjustUserInformation(AgentCircuitData aCircuit)
+            {
+                if (m_aScene.SceneGridService is HGSceneCommunicationService)
+                    ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.AdjustUserInformation(aCircuit);
+            }
         }
-        #endregion /* Hyperlinks */
 
     }
 }
