@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -37,6 +37,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         uint LocalID { get; }
         UUID GlobalID { get; }
 
+        String Name { get; set; }
+        String Description { get; set; }
+
         IObject[] Children { get; }
 
         /// <summary>
@@ -48,6 +51,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         Vector3 Scale { get; set; }
         Quaternion Rotation { get; set; }
+        Vector3 Position { get; set; }
 
         Vector3 SitTarget { get; set; }
         String SitTargetText { get; set; }

@@ -882,10 +882,10 @@ namespace OpenSim.Data.Tests
 
         private double[,] GenTerrain(double value)
         {
-            double[,] terret = new double[256,256];
+            double[,] terret = new double[Constants.RegionSize, Constants.RegionSize];
             terret.Initialize();
-            for (int x = 0; x < 256; x++) 
-                for (int y = 0; y < 256; y++)
+            for (int x = 0; x < Constants.RegionSize; x++)
+                for (int y = 0; y < Constants.RegionSize; y++)
                     terret[x,y] = value;
             
             return terret;
@@ -893,8 +893,8 @@ namespace OpenSim.Data.Tests
         
         private bool CompareTerrain(double[,] one, double[,] two)
         {
-            for (int x = 0; x < 256; x++) 
-                for (int y = 0; y < 256; y++)
+            for (int x = 0; x < Constants.RegionSize; x++)
+                for (int y = 0; y < Constants.RegionSize; y++)
                     if (one[x,y] != two[x,y]) 
                         return false;
 

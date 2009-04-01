@@ -74,15 +74,15 @@ namespace OpenSim.Data.NHibernate
 
         private static double[,] parseTerrain(byte[] data)
         {
-            double[,] terret = new double[256,256];
+            double[,] terret = new double[Constants.RegionSize, Constants.RegionSize];
             terret.Initialize();
 
             MemoryStream str = new MemoryStream(data);
             BinaryReader br = new BinaryReader(str);
             try {
-                for (int x = 0; x < 256; x++)
+                for (int x = 0; x < Constants.RegionSize; x++)
                 {
-                    for (int y = 0; y < 256; y++)
+                    for (int y = 0; y < Constants.RegionSize; y++)
                     {
                         terret[x, y] = br.ReadDouble();
                     }
@@ -97,13 +97,13 @@ namespace OpenSim.Data.NHibernate
 
         private static byte[] serializeTerrain(double[,] val)
         {
-            MemoryStream str = new MemoryStream((int)(65536 * sizeof (double)));
+            MemoryStream str = new MemoryStream((int) ((Constants.RegionSize*Constants.RegionSize)*sizeof (double)));
             BinaryWriter bw = new BinaryWriter(str);
 
             // TODO: COMPATIBILITY - Add byte-order conversions
-            for (int x = 0; x < 256; x++)
+            for (int x = 0; x < Constants.RegionSize; x++)
             {
-                for (int y = 0; y < 256; y++)
+                for (int y = 0; y < Constants.RegionSize; y++)
                 {
                     double height = val[x, y];
                     if (height <= 0.0)
