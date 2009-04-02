@@ -231,6 +231,10 @@ namespace PrimMesher
             normals = new List<Coord>();
             uvs = new List<UVCoord>();
 
+            if (mirror)
+                if (sculptType != SculptType.plane)
+                    invert = !invert;
+
             //float sourceScaleFactor = (float)lod / (float)Math.Max(sculptBitmap.Width, sculptBitmap.Height);
             float sourceScaleFactor = (float)(lod) / (float)Math.Sqrt(sculptBitmap.Width * sculptBitmap.Height);
             bool scaleSourceImage = sourceScaleFactor < 1.0f ? true : false;
@@ -338,20 +342,43 @@ namespace PrimMesher
 
                         if (viewerMode)
                         {
-                            f1 = new Face(p1, p3, p4, p1, p3, p4);
-                            f1.uv1 = p1;
-                            f1.uv2 = p3;
-                            f1.uv3 = p4;
+                            if (invert)
+                            {
+                                f1 = new Face(p1, p4, p3, p1, p4, p3);
+                                f1.uv1 = p1;
+                                f1.uv2 = p4;
+                                f1.uv3 = p3;
 
-                            f2 = new Face(p1, p4, p2, p1, p4, p2);
-                            f2.uv1 = p1;
-                            f2.uv2 = p4;
-                            f2.uv3 = p2;
+                                f2 = new Face(p1, p2, p4, p1, p2, p4);
+                                f2.uv1 = p1;
+                                f2.uv2 = p2;
+                                f2.uv3 = p4;
+                            }
+                            else
+                            {
+                                f1 = new Face(p1, p3, p4, p1, p3, p4);
+                                f1.uv1 = p1;
+                                f1.uv2 = p3;
+                                f1.uv3 = p4;
+
+                                f2 = new Face(p1, p4, p2, p1, p4, p2);
+                                f2.uv1 = p1;
+                                f2.uv2 = p4;
+                                f2.uv3 = p2;
+                            }
                         }
                         else
                         {
-                            f1 = new Face(p1, p3, p4);
-                            f2 = new Face(p1, p4, p2);
+                            if (invert)
+                            {
+                                f1 = new Face(p1, p4, p3);
+                                f2 = new Face(p1, p2, p4);
+                            }
+                            else
+                            {
+                                f1 = new Face(p1, p3, p4);
+                                f2 = new Face(p1, p4, p2);
+                            }
                         }
 
                         this.faces.Add(f1);
