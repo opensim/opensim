@@ -644,12 +644,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             sfs.Close();
 
             string posmap = String.Empty;
-            foreach (KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>> kvp in m_positionMap)
+            if (m_positionMap != null)
             {
-                KeyValuePair<int, int> k = kvp.Key;
-                KeyValuePair<int, int> v = kvp.Value;
-                posmap += String.Format("{0},{1},{2},{3}\n",
-                        k.Key, k.Value, v.Key, v.Value);
+                foreach (KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>> kvp in m_positionMap)
+                {
+                    KeyValuePair<int, int> k = kvp.Key;
+                    KeyValuePair<int, int> v = kvp.Value;
+                    posmap += String.Format("{0},{1},{2},{3}\n",
+                            k.Key, k.Value, v.Key, v.Value);
+                }
             }
 
             buf = enc.GetBytes(posmap);
