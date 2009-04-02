@@ -1057,7 +1057,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((status & ScriptBaseClass.STATUS_PHYSICS) == ScriptBaseClass.STATUS_PHYSICS)
             {
-                if (value == 1)
+                if (value != 0)
                 {
                     SceneObjectGroup group = m_host.ParentGroup;
                     if (group == null)
@@ -1082,7 +1082,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((status & ScriptBaseClass.STATUS_PHANTOM) == ScriptBaseClass.STATUS_PHANTOM)
             {
-                if (value == 1)
+                if (value != 0)
                     m_host.ScriptSetPhantomStatus(true);
                 else
                     m_host.ScriptSetPhantomStatus(false);
@@ -1115,7 +1115,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((status & ScriptBaseClass.STATUS_DIE_AT_EDGE) == ScriptBaseClass.STATUS_DIE_AT_EDGE)
             {
-                if (value == 1)
+                if (value != 0)
                     m_host.SetDieAtEdge(true);
                 else
                     m_host.SetDieAtEdge(false);
@@ -1972,15 +1972,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             //No energy force yet
-
-            if (force.x > 20000)
-                force.x = 20000;
-            if (force.y > 20000)
-                force.y = 20000;
-            if (force.z > 20000)
-                force.z = 20000;
-
-            m_host.ApplyImpulse(new Vector3((float)force.x, (float)force.y, (float)force.z), local != 0);
+            Vector3 v = new Vector3((float)force.x, (float)force.y, (float)force.z);
+            if (v.Length() > 20000.0f)
+            {
+                v.Normalize();
+                v = v * 20000.0f;
+            }
+            m_host.ApplyImpulse(v, local != 0);
         }
 
         public void llApplyRotationalImpulse(LSL_Vector force, int local)
@@ -2814,7 +2812,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_host.PhysActor != null)
             {
                 PIDHoverType hoverType = PIDHoverType.Ground;
-                if (water == 1)
+                if (water != 0)
                 {
                     hoverType = PIDHoverType.GroundAndWater;
                 }
@@ -6425,9 +6423,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(map, out sculptId))
             {
-                llSay(0, "Could not parse key " + map);
-                return;
+                sculptId = InventoryKey(map, (int)AssetType.Texture);
             }
+
+            if (sculptId == UUID.Zero)
+                return;
 
             shapeBlock.ObjectLocalID = part.LocalId;
             shapeBlock.PathScaleX = 100;
@@ -8860,7 +8860,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             else
             {
-                if (sim_wide == 1)
+                if (sim_wide != 0)
                 {
                     if (category == 0)
                     {
@@ -8955,7 +8955,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
             }
 
-            if (sim_wide == 1)
+            if (sim_wide != 0)
             {
                 decimal v = land.SimwideArea * (decimal)(0.22) * (decimal)bonusfactor;
 
