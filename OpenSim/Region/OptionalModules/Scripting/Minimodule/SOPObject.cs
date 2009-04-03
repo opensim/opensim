@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class SOPObject : IObject
+    class SOPObject : MarshalByRefObject, IObject
     {
         private readonly Scene m_rootScene;
         private readonly uint m_localID;

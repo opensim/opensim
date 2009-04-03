@@ -25,17 +25,21 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenMetaverse;
+
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
     public abstract class MRMBase
     {
         private IWorld m_world;
         private IHost m_host;
+        private UUID m_id;
 
-        public void InitMiniModule(IWorld world, IHost host)
+        public void InitMiniModule(IWorld world, IHost host, UUID uniqueID)
         {
             m_world = world;
             m_host = host;
+            m_id = uniqueID;
         }
 
         protected IWorld World
@@ -46,6 +50,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         protected  IHost Host
         {
             get { return m_host; }
+        }
+
+        public UUID ID
+        {
+            get { return m_id; }
         }
 
         public abstract void Start();

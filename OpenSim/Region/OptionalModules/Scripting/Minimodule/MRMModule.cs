@@ -82,7 +82,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                                                           CompileFromDotNetText(script, itemID.ToString()),
                                                           "OpenSim.MiniModule");
                 m_log.Info("[MRM] Created MRM Instance");
-                mmb.InitMiniModule(m_world, m_host);
+                mmb.InitMiniModule(m_world, m_host, itemID);
                 m_scripts[itemID] = mmb;
 
                 m_log.Info("[MRM] Starting MRM");
