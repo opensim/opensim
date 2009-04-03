@@ -54,7 +54,20 @@ namespace OpenSim
             AppDomain.CurrentDomain.UnhandledException +=
                 new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-            XmlConfigurator.Configure();
+            ArgvConfigSource configSource = new ArgvConfigSource(args);
+            configSource.AddSwitch("Startup", "logconfig");
+            string logConfigFile = configSource.Configs["Startup"].GetString("logconfig", String.Empty);
+            if (logConfigFile != String.Empty)
+            {
+                XmlConfigurator.Configure(new System.IO.FileInfo(logConfigFile));
+                m_log.InfoFormat("[OPENSIM MAIN]: configured log4net using \"{0}\" as configuration file", 
+                                 logConfigFile);
+            } 
+            else
+            {
+                XmlConfigurator.Configure();
+                m_log.Info("[OPENSIM MAIN]: configured log4net using default OpenSim.exe.config");
+            }
 
             m_log.Info("Performing compatibility checks... ");
             string supported = String.Empty;
@@ -69,7 +82,6 @@ namespace OpenSim
 
             Culture.SetCurrentCulture();
 
-            ArgvConfigSource configSource = new ArgvConfigSource(args);
 
             configSource.Alias.AddAlias("On", true);
             configSource.Alias.AddAlias("Off", false);
