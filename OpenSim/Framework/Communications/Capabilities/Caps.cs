@@ -49,6 +49,8 @@ namespace OpenSim.Framework.Communications.Capabilities
 
     public delegate void NewInventoryItem(UUID userID, InventoryItemBase item);
 
+    public delegate void NewAsset(AssetBase asset);
+
     public delegate UUID ItemUpdatedCallback(UUID userID, UUID itemID, byte[] data);
 
     public delegate void TaskScriptUpdatedCallback(UUID userID, UUID itemID, UUID primID,
@@ -120,6 +122,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
         public NewInventoryItem AddNewInventoryItem = null;
+        public NewAsset AddNewAsset = null;
         public ItemUpdatedCallback ItemUpdatedCall = null;
         public TaskScriptUpdatedCallback TaskScriptUpdatedCall = null;
         public FetchInventoryDescendentsCAPS CAPSFetchInventoryDescendents = null;
@@ -674,30 +677,38 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <returns></returns>
         public LLSDAssetUploadResponse NewAgentInventoryRequest(LLSDAssetUploadRequest llsdRequest)
         {
+            //m_log.Debug("[CAPS]: NewAgentInventoryRequest Request is: " + llsdRequest.ToString());
+            //m_log.Debug("asset upload request via CAPS" + llsdRequest.inventory_type + " , " + llsdRequest.asset_type);
+
             if (llsdRequest.asset_type == "texture" ||
                 llsdRequest.asset_type == "animation" ||
                 llsdRequest.asset_type == "sound")
             {
-                IClientAPI client = GetClient(m_agentID);
-                IScene scene = client.Scene;
-
-                IMoneyModule mm = scene.RequestModuleInterface<IMoneyModule>();
-
-                if (mm != null)
+                IClientAPI client = null;
+                IScene scene = null;
+                if (GetClient != null)
                 {
-                    if (!mm.UploadCovered(client))
-                    {
-                        client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+                    client = GetClient(m_agentID);
+                    scene = client.Scene;
 
-                        LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
-                        errorResponse.uploader = "";
-                        errorResponse.state = "error";
-                        return errorResponse;
+                    IMoneyModule mm = scene.RequestModuleInterface<IMoneyModule>();
+
+                    if (mm != null)
+                    {
+                        if (!mm.UploadCovered(client))
+                        {
+                            if (client != null)
+                                client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+
+                            LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
+                            errorResponse.uploader = "";
+                            errorResponse.state = "error";
+                            return errorResponse;
+                        }
                     }
                 }
             }
 
-            //m_log.Debug("asset upload request via CAPS" + llsdRequest.inventory_type +" , "+ llsdRequest.asset_type);
 
             string assetName = llsdRequest.name;
             string assetDes = llsdRequest.description;
@@ -771,7 +782,10 @@ namespace OpenSim.Framework.Communications.Capabilities
             asset.Type = assType;
             asset.Name = assetName;
             asset.Data = data;
-            m_assetCache.AddAsset(asset);
+            if (AddNewAsset != null)
+                AddNewAsset(asset);
+            else if (m_assetCache != null)
+                m_assetCache.AddAsset(asset);
 
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = m_agentID;

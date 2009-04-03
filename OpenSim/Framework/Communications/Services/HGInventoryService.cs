@@ -234,6 +234,11 @@ namespace OpenSim.Framework.Communications.Services
             }
         }
 
+        public void AddUploadedInventoryItem(UUID agentID, InventoryItemBase item)
+        {
+            AddItem(item);
+        }
+
         public InventoryItemBase UpdateItem(InventoryItemBase item)
         {
             m_log.DebugFormat("[HGStandaloneInvService]: Update item {0} from {1}", item.ID, item.Owner);
@@ -370,6 +375,11 @@ namespace OpenSim.Framework.Communications.Services
             StoreAsset(asset);
   
             return true;
+        }
+
+        public void PostAnAsset(AssetBase asset)
+        {
+            PostAsset(asset);
         }
 
         /// <summary>
@@ -598,6 +608,10 @@ namespace OpenSim.Framework.Communications.Services
             Caps caps = new Caps(null, httpServer, m_thisHostname, m_thisPort, authToken, userID, false, "Inventory");
             caps.RegisterInventoryServiceHandlers("/" + authToken + "/InventoryCap/");
             caps.ItemUpdatedCall = UpdateInventoryItemAsset;
+            caps.AddNewInventoryItem = AddUploadedInventoryItem;
+            caps.AddNewAsset = PostAnAsset;
+            //caps.GetClient = 
+
             Hashtable capsHandlers = caps.CapsHandlers.CapsDetails;
 
             httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<Guid, InventoryCollection>(
