@@ -924,7 +924,8 @@ namespace PrimMesher
                 if (hasProfileCut)
                     this.faceNumbers.Add(0);
                 for (int i = 0; i < numHollowVerts; i++)
-                    this.faceNumbers.Add(faceNum++);
+                    //this.faceNumbers.Add(faceNum++);
+                    this.faceNumbers.Add(hollowSides < 5 ? faceNum++ : faceNum);
                 this.bottomFaceNumber = faceNum++;
                 if (hasHollow && hasProfileCut)
                     this.faceNumbers.Add(faceNum++);
