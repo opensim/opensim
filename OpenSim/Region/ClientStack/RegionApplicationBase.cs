@@ -53,7 +53,6 @@ namespace OpenSim.Region.ClientStack
             get { return m_networkServersInfo; }
         }
 
-        protected BaseHttpServer m_httpServer;
         protected uint m_httpServerPort;
         
         public CommunicationsManager CommunicationsManager 

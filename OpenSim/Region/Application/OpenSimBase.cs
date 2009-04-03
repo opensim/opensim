@@ -111,12 +111,7 @@ namespace OpenSim
         }
 
         protected List<IClientNetworkServer> m_clientServers = new List<IClientNetworkServer>();
-
-        public new BaseHttpServer HttpServer
-        {
-            get { return m_httpServer; }
-        }
-
+       
         public uint HttpServerPort
         {
             get { return m_httpServerPort; }
