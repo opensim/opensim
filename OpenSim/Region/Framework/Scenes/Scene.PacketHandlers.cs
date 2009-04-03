@@ -84,6 +84,16 @@ namespace OpenSim.Region.Framework.Scenes
             SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, false);
         }
 
+        public void SimChat(string message, ChatTypeEnum type, Vector3 fromPos, string fromName, UUID fromID, bool fromAgent)
+        {
+            SimChat(Utils.StringToBytes(message), type, 0, fromPos, fromName, fromID, fromAgent);
+        }
+
+        public void SimChat(string message, string fromName)
+        {
+            SimChat(message, ChatTypeEnum.Broadcast, Vector3.Zero, fromName, UUID.Zero, false);
+        }
+
         /// <summary>
         ///
         /// </summary>

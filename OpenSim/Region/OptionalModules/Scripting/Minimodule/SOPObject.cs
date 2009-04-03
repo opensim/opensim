@@ -215,6 +215,17 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             set { throw new System.NotImplementedException(); }
         }
 
+        #region Public Functions
+
+        public void Say(string msg)
+        {
+            SceneObjectPart sop = GetSOP();
+
+            m_rootScene.SimChat(msg, ChatTypeEnum.Say, sop.AbsolutePosition, sop.Name, sop.UUID, false);
+        }
+
+        #endregion
+
 
         #region Supporting Functions
 
