@@ -407,7 +407,7 @@ namespace OpenSim.Region.Framework.Scenes
 //        private static readonly log4net.ILog m_log
 //            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public void addPendingDownload(int count)
+        public void AddPendingDownloads(int count)
         {
             m_pendingDownloads += count;
             if (m_pendingDownloads < 0) m_pendingDownloads = 0;
@@ -437,13 +437,18 @@ namespace OpenSim.Region.Framework.Scenes
             return lastReportedSimFPS;
         }
 
-        public void AddPacketsFromClientStats(int inPackets, int outPackets, int unAckedBytes)
+        public void AddPacketsStats(int inPackets, int outPackets, int unAckedBytes)
         {
             AddInPackets(inPackets);
             AddOutPackets(outPackets);
             AddunAckedBytes(unAckedBytes);
-
         }
+        
+        public void AddAgentTime(int ms)
+        {
+            addFrameMS(ms);
+            addAgentMS(ms);
+        }        
 
         #endregion
     }

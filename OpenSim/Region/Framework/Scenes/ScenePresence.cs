@@ -799,7 +799,7 @@ namespace OpenSim.Region.Framework.Scenes
                     break;
             }
 
-            m_scene.AddAgentTime(Environment.TickCount - m_perfMonMS);
+            m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
         }
 
         #region Status Methods
@@ -1382,7 +1382,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.EventManager.TriggerOnClientMovement(this);
 
-            m_scene.AddAgentTime(Environment.TickCount - m_perfMonMS);
+            m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
         }
 
         public void DoAutoPilot(uint not_used, Vector3 Pos, IClientAPI remote_client)
@@ -2068,7 +2068,7 @@ namespace OpenSim.Region.Framework.Scenes
             newVelocity.Z = direc.Z;
             m_forcesList.Add(newVelocity);
 
-            m_scene.AddAgentTime(Environment.TickCount - m_perfMonMS);
+            m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
         }
 
         #endregion
@@ -2140,8 +2140,8 @@ namespace OpenSim.Region.Framework.Scenes
                 remoteClient.SendAvatarTerseUpdate(m_regionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId, new Vector3(pos.X, pos.Y, pos.Z),
                                                    new Vector3(vel.X, vel.Y, vel.Z), rot);
 
-                m_scene.AddAgentTime(Environment.TickCount - m_perfMonMS);
-                m_scene.AddAgentUpdates(1);
+                m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
+                m_scene.StatsReporter.AddAgentUpdates(1);
             }
         }
 
@@ -2158,7 +2158,7 @@ namespace OpenSim.Region.Framework.Scenes
             lastPhysPos = AbsolutePosition;
             lastPhysRot = m_bodyRot;
 
-            m_scene.AddAgentTime(Environment.TickCount - m_perfMonMS);
+            m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
 
         }
 
@@ -2199,7 +2199,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_controllingClient.SendCoarseLocationUpdate(AvatarUUIDs, CoarseLocations);
 
-            m_scene.AddAgentTime(Environment.TickCount - m_perfMonMS);
+            m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
         }
 
         public void CoarseLocationChange()
@@ -2231,7 +2231,7 @@ namespace OpenSim.Region.Framework.Scenes
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
                                                             LocalId, m_pos, m_appearance.Texture.GetBytes(),
                                                             m_parentID, rot);
-            m_scene.AddAgentUpdates(1);
+            m_scene.StatsReporter.AddAgentUpdates(1);
         }
 
         /// <summary>
@@ -2260,8 +2260,9 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-            m_scene.AddAgentUpdates(avatars.Count);
-            m_scene.AddAgentTime(Environment.TickCount - m_perfMonMS);
+            
+            m_scene.StatsReporter.AddAgentUpdates(avatars.Count);
+            m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
 
             //SendAnimPack();
         }
@@ -2277,8 +2278,8 @@ namespace OpenSim.Region.Framework.Scenes
                 SendFullUpdateToOtherClient(avatar);
 
             }
-            m_scene.AddAgentUpdates(avatars.Count);
-            m_scene.AddAgentTime(Environment.TickCount - m_perfMonMS);
+            m_scene.StatsReporter.AddAgentUpdates(avatars.Count);
+            m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
 
             SendAnimPack();
         }
@@ -2333,7 +2334,7 @@ namespace OpenSim.Region.Framework.Scenes
                                              }
                                          });
             
-            m_scene.AddAgentTime(Environment.TickCount - m_perfMonMS);
+            m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
         }
 
         /// <summary>

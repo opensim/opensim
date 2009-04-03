@@ -1970,12 +1970,11 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnUnackedTerrain += TerrainUnAcked;
             client.OnObjectOwner += ObjectOwner;
 
-            IGodsModule godsModule = RequestModuleInterface<IGodsModule>();
+            IGodsModule godsModule = RequestModuleInterface<IGodsModule>();            
             client.OnGodKickUser += godsModule.KickUser;
             client.OnRequestGodlikePowers += godsModule.RequestGodlikePowers; 
 
-            if (StatsReporter != null)
-                client.OnNetworkStatsUpdate += StatsReporter.AddPacketsFromClientStats;
+            client.OnNetworkStatsUpdate += StatsReporter.AddPacketsStats;
 
             // EventManager.TriggerOnNewClient(client);
         }
@@ -2791,29 +2790,6 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void StoreRemoveFriendship(UUID ownerID, UUID ExfriendID)
         {
             m_sceneGridService.RemoveUserFriend(ownerID, ExfriendID);
-        }
-
-        public void AddPacketStats(int inPackets, int outPackets, int unAckedBytes)
-        {
-            StatsReporter.AddInPackets(inPackets);
-            StatsReporter.AddOutPackets(outPackets);
-            StatsReporter.AddunAckedBytes(unAckedBytes);
-        }
-
-        public void AddAgentTime(int ms)
-        {
-            StatsReporter.addFrameMS(ms);
-            StatsReporter.addAgentMS(ms);
-        }
-
-        public void AddAgentUpdates(int count)
-        {
-            StatsReporter.AddAgentUpdates(count);
-        }
-
-        public void AddPendingDownloads(int count)
-        {
-            StatsReporter.addPendingDownload(count);
         }
 
         #endregion

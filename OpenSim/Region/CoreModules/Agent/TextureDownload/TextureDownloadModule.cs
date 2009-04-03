@@ -291,7 +291,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         {
             sender.Sending = false;
             //m_log.DebugFormat("[TEXTURE]: Removing download stat for {0}", sender.assetID);
-            m_scene.AddPendingDownloads(-1);
+            m_scene.StatsReporter.AddPendingDownloads(-1);
         }
     }
 }
