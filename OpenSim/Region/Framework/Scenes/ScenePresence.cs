@@ -200,6 +200,10 @@ namespace OpenSim.Region.Framework.Scenes
             DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
         }
 
+        protected enum Cardinals
+        {
+            N=1,NE,E,SE,S,SW,W,NW
+        }
         /// <summary>
         /// Position at which a significant movement was made
         /// </summary>
@@ -2260,7 +2264,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-            
+
             m_scene.StatsReporter.AddAgentUpdates(avatars.Count);
             m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
 
@@ -2517,6 +2521,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 pos2 = AbsolutePosition;
             Vector3 vel = Velocity;
+            int neighbor = 0;
+            int[] fix = new int[2];
 
             float timeStep = 0.1f;
             pos2.X = pos2.X + (vel.X*timeStep);
@@ -2525,15 +2531,38 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (!IsInTransit)
             {
-                if ((pos2.X < 0) || (pos2.X > Constants.RegionSize))
+                // Checks if where it's headed exists a region
+                if (pos2.X < 0)
                 {
-                    CrossToNewRegion();
+                    if (pos2.Y < 0)
+                        neighbor = HaveNeighbor(Cardinals.SW, ref fix);
+                    else if (pos2.Y > Constants.RegionSize)
+                        neighbor = HaveNeighbor(Cardinals.NW, ref fix);
+                    else
+                        neighbor = HaveNeighbor(Cardinals.W, ref fix);
                 }
+                else if (pos2.X > Constants.RegionSize)
+                {
+                    if (pos2.Y < 0)
+                        neighbor = HaveNeighbor(Cardinals.SE, ref fix);
+                    else if (pos2.Y > Constants.RegionSize)
+                        neighbor = HaveNeighbor(Cardinals.NE, ref fix);
+                    else
+                        neighbor = HaveNeighbor(Cardinals.E, ref fix);
+                }
+                else if (pos2.Y < 0)
+                    neighbor = HaveNeighbor(Cardinals.S, ref fix);
+                else if (pos2.Y > Constants.RegionSize)
+                    neighbor = HaveNeighbor(Cardinals.N, ref fix);
 
-                if ((pos2.Y < 0) || (pos2.Y > Constants.RegionSize))
-                {
+                // Makes sure avatar does not end up outside region
+                if (neighbor < 0)
+                    AbsolutePosition = new Vector3(
+                                                   AbsolutePosition.X +  3*fix[0],
+                                                   AbsolutePosition.Y +  3*fix[1],
+                                                   AbsolutePosition.Z);
+                else if (neighbor > 0)
                     CrossToNewRegion();
-                }
             }
             else
             {
@@ -2547,7 +2576,36 @@ namespace OpenSim.Region.Framework.Scenes
                 pos2.Z = pos2.Z + (vel.Z * timeStep);
                 m_pos = pos2;
             }
+        }
 
+        protected int HaveNeighbor(Cardinals car, ref int[] fix)
+        {
+            uint neighbourx = m_regionInfo.RegionLocX;
+            uint neighboury = m_regionInfo.RegionLocY;
+
+            int dir = (int)car;
+
+            if (dir > 1 && dir < 5) //Heading East
+                neighbourx++;
+            else if (dir > 5) // Heading West
+                neighbourx--;
+
+            if (dir < 3 || dir == 8) // Heading North
+                neighboury++;
+            else if (dir > 3 && dir < 7) // Heading Sout
+                neighboury--;
+
+            ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
+            SimpleRegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
+
+            if (neighbourRegion == null)
+            {
+                fix[0] = (int)(m_regionInfo.RegionLocX - neighbourx);
+                fix[1] = (int)(m_regionInfo.RegionLocY - neighboury);
+                return dir * (-1);
+            }
+            else
+                return dir;
         }
 
         /// <summary>
