@@ -35,6 +35,7 @@ using log4net;
 using Microsoft.CSharp;
 using Nini.Config;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -61,12 +62,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 }
                 else
                 {
-                    m_log.Info("[MRM] Disabled MRM Module (Express)");
+                    m_log.Info("[MRM] Disabled MRM Module (Disabled in ini)");
                 }
             }
             else
             {
-                m_log.Info("[MRM] Disabled MRM Module (Omission)");
+                m_log.Info("[MRM] Disabled MRM Module (Default disabled)");
             }
         }
 
@@ -74,19 +75,30 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             if (script.StartsWith("//MiniMod:C#"))
             {
-                m_log.Info("[MRM] Found C# MRM");
-                IWorld m_world = new World(m_scene);
-                IHost m_host = new Host(new SOPObject(m_scene, localID));
+                try
+                {
+                    m_log.Info("[MRM] Found C# MRM");
+                    IWorld m_world = new World(m_scene);
+                    IHost m_host = new Host(new SOPObject(m_scene, localID));
 
-                MRMBase mmb = (MRMBase) AppDomain.CurrentDomain.CreateInstanceFromAndUnwrap(
-                                                          CompileFromDotNetText(script, itemID.ToString()),
-                                                          "OpenSim.MiniModule");
-                m_log.Info("[MRM] Created MRM Instance");
-                mmb.InitMiniModule(m_world, m_host, itemID);
-                m_scripts[itemID] = mmb;
+                    MRMBase mmb = (MRMBase)AppDomain.CurrentDomain.CreateInstanceFromAndUnwrap(
+                                                CompileFromDotNetText(script, itemID.ToString()),
+                                                "OpenSim.MiniModule");
+                    m_log.Info("[MRM] Created MRM Instance");
+                    mmb.InitMiniModule(m_world, m_host, itemID);
+                    m_scripts[itemID] = mmb;
 
-                m_log.Info("[MRM] Starting MRM");
-                mmb.Start();
+                    m_log.Info("[MRM] Starting MRM");
+                    mmb.Start();
+                }
+                catch (Exception e)
+                {
+                    m_scene.Broadcast(delegate(IClientAPI user)
+                                          {
+                                              user.SendAlertMessage(
+                                                  "MiniRegionModule Compilation and Initialisation failed: " + e);
+                                          });
+                }
             }
         }
 
