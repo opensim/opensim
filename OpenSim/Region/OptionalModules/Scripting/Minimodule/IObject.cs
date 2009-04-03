@@ -103,6 +103,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         // RadiusOffset, Skew
 
         PhysicsMaterial PhysicsMaterial { get; set; }
+
+        /// <summary>
+        /// Causes the object to speak to its surroundings,
+        /// equivilent to LSL/OSSL llSay
+        /// </summary>
+        /// <param name="msg">The message to send to the user</param>
+        void Say(string msg);
+
     }
 
     public enum PhysicsMaterial
