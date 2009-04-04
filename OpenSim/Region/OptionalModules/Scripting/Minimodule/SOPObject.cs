@@ -31,6 +31,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.OptionalModules.Scripting.Minimodule.Object;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
@@ -414,79 +415,119 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         public double Density
         {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
+            get { return (GetSOP().PhysActor.Mass/Scale.X*Scale.Y/Scale.Z); }
+            set { throw new NotImplementedException(); }
         }
 
         public double Mass
         {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
+            get { return GetSOP().PhysActor.Mass; }
+            set { throw new NotImplementedException(); }
         }
 
         public double Buoyancy
         {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
+            get { return GetSOP().PhysActor.Buoyancy; }
+            set { GetSOP().PhysActor.Buoyancy = (float)value; }
         }
 
         public Vector3 GeometricCenter
         {
-            get { throw new System.NotImplementedException(); }
+            get
+            {
+                PhysicsVector tmp = GetSOP().PhysActor.GeometricCenter;
+                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+            }
         }
 
         public Vector3 CenterOfMass
         {
-            get { throw new System.NotImplementedException(); }
+            get
+            {
+                PhysicsVector tmp = GetSOP().PhysActor.CenterOfMass;
+                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+            }
         }
 
         public Vector3 RotationalVelocity
         {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
+            get
+            {
+                PhysicsVector tmp = GetSOP().PhysActor.RotationalVelocity;
+                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+            }
+            set
+            {
+                GetSOP().PhysActor.RotationalVelocity = new PhysicsVector(value.X, value.Y, value.Z);
+            }
         }
 
         public Vector3 Velocity
         {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
+            get
+            {
+                PhysicsVector tmp = GetSOP().PhysActor.Velocity;
+                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+            }
+            set
+            {
+                GetSOP().PhysActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
+            }
         }
 
         public Vector3 Torque
         {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
+            get
+            {
+                PhysicsVector tmp = GetSOP().PhysActor.Torque;
+                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+            }
+            set
+            {
+                GetSOP().PhysActor.Torque = new PhysicsVector(value.X, value.Y, value.Z);
+            }
         }
 
         public Vector3 Acceleration
         {
-            get { throw new System.NotImplementedException(); }
+            get
+            {
+                PhysicsVector tmp = GetSOP().PhysActor.Acceleration;
+                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+            }
         }
 
         public Vector3 Force
         {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
+            get
+            {
+                PhysicsVector tmp = GetSOP().PhysActor.Force;
+                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+            }
+            set
+            {
+                GetSOP().PhysActor.Force = new PhysicsVector(value.X, value.Y, value.Z);
+            }
         }
 
         public bool FloatOnWater
         {
-            set { throw new System.NotImplementedException(); }
+            set { GetSOP().PhysActor.FloatOnWater = value; }
         }
 
         public void AddForce(Vector3 force, bool pushforce)
         {
-            throw new System.NotImplementedException();
+            GetSOP().PhysActor.AddForce(new PhysicsVector(force.X, force.Y, force.Z), pushforce);
         }
 
         public void AddAngularForce(Vector3 force, bool pushforce)
         {
-            throw new System.NotImplementedException();
+            GetSOP().PhysActor.AddAngularForce(new PhysicsVector(force.X, force.Y, force.Z), pushforce);
         }
 
         public void SetMomentum(Vector3 momentum)
         {
-            throw new System.NotImplementedException();
+            GetSOP().PhysActor.SetMomentum(new PhysicsVector(momentum.X, momentum.Y, momentum.Z));
         }
 
         #endregion
