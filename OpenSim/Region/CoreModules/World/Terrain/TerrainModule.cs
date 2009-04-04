@@ -234,6 +234,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 m_log.Error("Unable to save to " + filename + ", saving of this file format has not been implemented.");
                 throw new TerrainException(String.Format("Unable to save heightmap: saving of this file format not implemented"));
             }
+            catch (IOException ioe)
+            {
+                m_log.Error(String.Format("[TERRAIN]: Unable to save to {0}, {1}", filename, ioe.Message));
+                throw new TerrainException(String.Format("Unable to save heightmap: {0}", ioe.Message));
+            }
         }
 
         /// <summary>
