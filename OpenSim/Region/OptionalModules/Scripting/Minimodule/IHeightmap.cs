@@ -33,9 +33,26 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
     public interface IHeightmap
     {
+        /// <summary>
+        /// Returns [or sets] the heightmap value at specified coordinates.
+        /// </summary>
+        /// <param name="x">X Coordinate</param>
+        /// <param name="y">Y Coordinate</param>
+        /// <returns>A value in meters representing height. Can be negative. Value correlates with Z parameter in world coordinates</returns>
+        double this[int x, int y]
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The maximum height of the region (Y axis), exclusive. (eg Height = 256, max Y = 255). Minimum is always 0 inclusive.
+        /// </summary>
         int Height { get; }
+
+        /// <summary>
+        /// The maximum width of the region (X axis), exclusive. (eg Width = 256, max X = 255). Minimum is always 0 inclusive.
+        /// </summary>
         int Width { get; }
-        double Get(int x, int y);
-        void Set(int x, int y, double val);
     }
 }
