@@ -225,9 +225,8 @@ namespace OpenSim.Region.CoreModules
         {
             ValidateConsole();
 
-            if( (cmdparams.Length != 4)
-                || !cmdparams[1].Equals("base")
-                )
+            if ((cmdparams.Length != 4)
+                || !cmdparams[1].Equals("base"))
             {
                 m_log.Info("[WIND] Invalid parameters to change parameters for Wind module base, usage: wind base <parameter> <value>");
                 return;
@@ -452,14 +451,11 @@ namespace OpenSim.Region.CoreModules
 
         private void GenWindPos()
         {
-            if( m_activeWindPlugin != null )
+            if (m_activeWindPlugin != null)
             {
                 // Tell Wind Plugin to update it's wind data
                 m_activeWindPlugin.WindUpdate(m_frame);
             }
         }
-
-
-
     }
 }
