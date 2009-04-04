@@ -909,6 +909,11 @@ namespace OpenSim.Client.MXP.ClientStack
             // Need to translate to MXP somehow
         }
 
+        public void SendCloudData(float[] cloudCover)
+        {
+            // Need to translate to MXP somehow
+        }
+
         public void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
             //throw new System.NotImplementedException();

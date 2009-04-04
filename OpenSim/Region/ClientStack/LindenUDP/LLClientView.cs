@@ -1360,7 +1360,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        ///  Send the region heightmap to the client
+        ///  Send the wind matrix to the client
         /// </summary>
         /// <param name="windSpeeds">16x16 array of wind speeds</param>
         public virtual void SendWindData(Vector2[] windSpeeds)
@@ -1369,13 +1369,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Send terrain layer information to the client.
+        ///  Send the cloud matrix to the client
+        /// </summary>
+        /// <param name="windSpeeds">16x16 array of cloud densities</param>
+        public virtual void SendCloudData(float[] cloudDensity)
+        {
+            ThreadPool.QueueUserWorkItem(new WaitCallback(DoSendCloudData), (object)cloudDensity);
+        }
+
+        /// <summary>
+        /// Send wind layer information to the client.
         /// </summary>
         /// <param name="o"></param>
         private void DoSendWindData(object o)
         {
             Vector2[] windSpeeds = (Vector2[])o;
-
             TerrainPatch[] patches = new TerrainPatch[2];
             patches[0] = new TerrainPatch();
             patches[0].Data = new float[16 * 16];
@@ -1393,8 +1401,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             LayerDataPacket layerpack = TerrainCompressor.CreateLayerDataPacket(patches, TerrainPatch.LayerType.Wind);
             layerpack.Header.Zerocoded = true;
-
             OutPacket(layerpack, ThrottleOutPacketType.Wind);
+        }
+
+        /// <summary>
+        /// Send cloud layer information to the client.
+        /// </summary>
+        /// <param name="o"></param>
+        private void DoSendCloudData(object o)
+        {
+            float[] cloudCover = (float[])o;
+            TerrainPatch[] patches = new TerrainPatch[1];
+            patches[0] = new TerrainPatch();
+            patches[0].Data = new float[16 * 16];
+
+            for (int y = 0; y < 16; y++)
+            {
+                for (int x = 0; x < 16; x++)
+                {
+                    patches[0].Data[y * 16 + x] = cloudCover[y * 16 + x];
+                }
+            }
+
+            LayerDataPacket layerpack = TerrainCompressor.CreateLayerDataPacket(patches, TerrainPatch.LayerType.Cloud);
+            layerpack.Header.Zerocoded = true;
+            OutPacket(layerpack, ThrottleOutPacketType.Cloud);
         }
 
         /// <summary>

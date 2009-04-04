@@ -491,6 +491,8 @@ namespace OpenSim.Tests.Common.Mock
 
         public virtual void SendWindData(Vector2[] windSpeeds) { }
 
+        public virtual void SendCloudData(float[] cloudCover) { }
+
         public virtual void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
         }

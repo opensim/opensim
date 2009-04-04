@@ -702,6 +702,14 @@
     ; Adjusts wind strength. 0.0 = no wind, 1.0 = normal wind.  Default is 1.0
     strength = 1.0
 	
+[Cloud]
+    ; Enable this to generate classic particle clouds above the sim.
+    ; default is disabled - turn it on here
+    enabled = true
+
+    ; Density of cloud cover 0.0 to 1.0
+    density = 0.5
+
 
 [Trees]
     ; Enable this to allow the tree module to manage your sim trees, including growing, reproducing and dying
