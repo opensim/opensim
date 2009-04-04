@@ -39,6 +39,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// <param name="x">X Coordinate</param>
         /// <param name="y">Y Coordinate</param>
         /// <returns>A value in meters representing height. Can be negative. Value correlates with Z parameter in world coordinates</returns>
+        /// <example>
+        /// double heightVal = World.Heightmap[128,128];
+        /// World.Heightmap[128,128] *= 5.0;
+        /// World.Heightmap[128,128] = 25;
+        /// </example>
         double this[int x, int y]
         {
             get;
@@ -46,13 +51,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         }
 
         /// <summary>
-        /// The maximum height of the region (Y axis), exclusive. (eg Height = 256, max Y = 255). Minimum is always 0 inclusive.
+        /// The maximum length of the region (Y axis), exclusive. (eg Height = 256, max Y = 255). Minimum is always 0 inclusive.
         /// </summary>
-        int Height { get; }
+        /// <example>
+        /// Host.Console.Info("The terrain length of this region is " + World.Heightmap.Length);
+        /// </example>
+        int Length { get; }
 
         /// <summary>
         /// The maximum width of the region (X axis), exclusive. (eg Width = 256, max X = 255). Minimum is always 0 inclusive.
         /// </summary>
+        /// <example>
+        /// Host.Console.Info("The terrain width of this region is " + World.Heightmap.Width);
+        /// </example>
         int Width { get; }
     }
 }

@@ -40,6 +40,27 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// exception. 'Exists' allows you to check the object is still
         /// in play before utilizing it.
         /// </summary>
+        /// <example>
+        /// IObject deleteMe = World.Objects[0];
+        /// 
+        /// if(deleteMe.Exists) {
+        ///     deleteMe.Say("Hello, I still exist!");
+        /// }
+        /// 
+        /// World.Objects.Remove(deleteMe);
+        /// 
+        /// if(!deleteMe.Exists) {
+        ///     Host.Console.Info("I was deleted");
+        /// }
+        /// </example>
+        /// <remarks>
+        /// Objects should be near-guarunteed to exist for any event which
+        /// passes them as an argument. Storing an object for a longer period
+        /// of time however will limit their reliability.
+        /// 
+        /// It is a good practice to use Try/Catch blocks handling for
+        /// NullReferenceException, when accessing remote objects.
+        /// </remarks>
         bool Exists { get; }
 
         /// <summary>

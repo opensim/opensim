@@ -44,7 +44,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             set { Set(x, y, value); }
         }
 
-        public int Height
+        public int Length
         {
             get { return m_scene.Heightmap.Height; }
         }
