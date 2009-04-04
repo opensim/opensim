@@ -136,7 +136,7 @@ namespace OpenSim.Framework.Communications.Services
 
         private void SetDefaultValues()
         {
-            DST = "N";
+            DST = TimeZone.CurrentTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
             StipendSinceLogin = "N";
             Gendered = "Y";
             EverLoggedIn = "Y";
