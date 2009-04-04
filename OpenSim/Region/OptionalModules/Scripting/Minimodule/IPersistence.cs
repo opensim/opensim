@@ -6,8 +6,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
     interface IPersistence
     {
-        Object Get(Guid storageID);
-        Object Get();
+
+        T Get<T>(Guid storageID);
+        T Get<T>();
 
         /// <summary>
         /// Stores 'data' into the persistence system
@@ -17,13 +18,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// </summary>
         /// <param name="storageID"></param>
         /// <param name="data"></param>
-        void Put(Guid storageID, Object data);
+        void Put<T>(Guid storageID, T data);
 
         /// <summary>
         /// Stores 'data' into the persistence system
         /// using the default ID for this script.
         /// </summary>
         /// <param name="data"></param>
-        void Put(Object data);
+        void Put<T>(T data);
     }
 }
