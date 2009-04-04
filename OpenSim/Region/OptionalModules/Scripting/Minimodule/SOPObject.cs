@@ -30,10 +30,11 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.OptionalModules.Scripting.Minimodule.Object;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class SOPObject : MarshalByRefObject, IObject
+    class SOPObject : MarshalByRefObject, IObject, IObjectPhysics 
     {
         private readonly Scene m_rootScene;
         private readonly uint m_localID;
@@ -254,6 +255,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             set { throw new System.NotImplementedException(); }
         }
 
+        public IObjectPhysics Physics
+        {
+            get { return this; }
+        }
+
         #region Public Functions
 
         public void Say(string msg)
@@ -386,5 +392,103 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         #endregion
 
+        #region IObjectPhysics
+
+        public bool Enabled
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public bool Phantom
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public bool PhantomCollisions
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public double Density
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public double Mass
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public double Buoyancy
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public Vector3 GeometricCenter
+        {
+            get { throw new System.NotImplementedException(); }
+        }
+
+        public Vector3 CenterOfMass
+        {
+            get { throw new System.NotImplementedException(); }
+        }
+
+        public Vector3 RotationalVelocity
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public Vector3 Velocity
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public Vector3 Torque
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public Vector3 Acceleration
+        {
+            get { throw new System.NotImplementedException(); }
+        }
+
+        public Vector3 Force
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public bool FloatOnWater
+        {
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public void AddForce(Vector3 force, bool pushforce)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void AddAngularForce(Vector3 force, bool pushforce)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SetMomentum(Vector3 momentum)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        #endregion
     }
 }

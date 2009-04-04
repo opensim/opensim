@@ -28,6 +28,7 @@
 using System;
 using System.Drawing;
 using OpenMetaverse;
+using OpenSim.Region.OptionalModules.Scripting.Minimodule.Object;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
@@ -140,7 +141,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// </summary>
         String Text { get; set; }
 
-        bool IsPhysical { get; set; } // SetStatus(PHYSICS)
         bool IsPhantom { get; set; } // SetStatus(PHANTOM)
         bool IsRotationLockedX { get; set; } // SetStatus(!ROTATE_X)
         bool IsRotationLockedY { get; set; } // SetStatus(!ROTATE_Y)
@@ -161,6 +161,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         // RadiusOffset, Skew
 
         PhysicsMaterial PhysicsMaterial { get; set; }
+
+        IObjectPhysics Physics { get; }
+
 
         /// <summary>
         /// Causes the object to speak to its surroundings,
