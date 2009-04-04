@@ -141,7 +141,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// </summary>
         String Text { get; set; }
 
-        bool IsPhantom { get; set; } // SetStatus(PHANTOM)
         bool IsRotationLockedX { get; set; } // SetStatus(!ROTATE_X)
         bool IsRotationLockedY { get; set; } // SetStatus(!ROTATE_Y)
         bool IsRotationLockedZ { get; set; } // SetStatus(!ROTATE_Z)

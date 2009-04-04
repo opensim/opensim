@@ -184,18 +184,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             set { throw new System.NotImplementedException(); }
         }
 
-        public bool IsPhysical
-        {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
-        }
-
-        public bool IsPhantom
-        {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
-        }
-
         public bool IsRotationLockedX
         {
             get { throw new System.NotImplementedException(); }
