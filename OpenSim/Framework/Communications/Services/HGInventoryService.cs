@@ -62,14 +62,14 @@ namespace OpenSim.Framework.Communications.Services
         IAssetDataPlugin m_assetProvider = null;
 
         // These two used for remote access
-        string m_UserServerURL = string.Empty;
+        //string m_UserServerURL = string.Empty;
         string m_AssetServerURL = string.Empty;
         SynchronousGridAssetClient m_AssetClient = null;
 
         // Constructor for grid inventory server
         public HGInventoryService(InventoryServiceBase invService, string assetServiceURL, string userServiceURL, IHttpServer httpserver, string thisurl)
         {
-            m_UserServerURL = userServiceURL;
+            //m_UserServerURL = userServiceURL;
             m_AssetServerURL = assetServiceURL;
 
             m_AssetClient = new SynchronousGridAssetClient(m_AssetServerURL);

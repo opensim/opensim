@@ -1024,7 +1024,7 @@ namespace OpenSim.Framework
         {
             byte[] hash = ComputeMD5Hash( data + salt );
 
-            string s = BitConverter.ToString(hash);
+            //string s = BitConverter.ToString(hash);
 
             Guid guid = new Guid( hash );
 
