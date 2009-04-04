@@ -33,14 +33,35 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
     public interface IObject
     {
+        /// <summary>
+        /// Returns whether or not this object is still in the world.
+        /// Eg, if you store an IObject reference, however the object
+        /// is deleted before you use it, it will throw a NullReference 
+        /// exception. 'Exists' allows you to check the object is still
+        /// in play before utilizing it.
+        /// </summary>
         bool Exists { get; }
+
+        /// <summary>
+        /// The local region-unique ID for this object.
+        /// </summary>
         uint LocalID { get; }
+
+        /// <summary>
+        /// The global 'world-unique' ID for this object. 
+        /// (Note, may not actually be world unique)
+        /// </summary>
         UUID GlobalID { get; }
 
+        /// <summary>
+        /// The name of this Object.
+        /// </summary>
         String Name { get; set; }
-        String Description { get; set; }
 
-        
+        /// <summary>
+        /// The description assigned to this object.
+        /// </summary>
+        String Description { get; set; }
 
         /// <summary>
         /// Returns the root object of a linkset. If this object is the root, it will return itself.
@@ -67,19 +88,35 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// <summary>
         /// The rotation of the object relative to the Scene
         /// </summary>
-        Quaternion Rotation { get; set; }
+        Quaternion WorldRotation { get; set; }
+
+        /// <summary>
+        /// The rotation of the object relative to a parent object
+        /// If root, works the same as WorldRotation
+        /// </summary>
+        Quaternion OffsetRotation { get; set; }
 
         /// <summary>
         /// The position of the object relative to the Scene
         /// </summary>
-        Vector3 Position { get; set; }
+        Vector3 WorldPosition { get; set; }
 
+        /// <summary>
+        /// The position of the object relative to a parent object
+        /// If root, works the same as WorldPosition
+        /// </summary>
+        Vector3 OffsetPosition { get; set; }
 
         Vector3 SitTarget { get; set; }
         String SitTargetText { get; set; }
 
         String TouchText { get; set; }
 
+        /// <summary>
+        /// Text to be associated with this object, in the 
+        /// Second Life(r) viewer, this is shown above the
+        /// object.
+        /// </summary>
         String Text { get; set; }
 
         bool IsPhysical { get; set; } // SetStatus(PHYSICS)

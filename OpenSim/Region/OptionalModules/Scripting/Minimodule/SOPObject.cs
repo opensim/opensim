@@ -103,13 +103,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             set { GetSOP().Scale = value; }
         }
 
-        public Quaternion Rotation
+        public Quaternion WorldRotation
         {
             get { throw new System.NotImplementedException(); }
             set { throw new System.NotImplementedException(); }
         }
 
-        public Vector3 Position
+        public Quaternion OffsetRotation
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public Vector3 WorldPosition
         {
             get { return GetSOP().AbsolutePosition; }
             set
@@ -117,6 +123,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 SceneObjectPart pos = GetSOP();
                 pos.UpdateOffSet(value - pos.AbsolutePosition);
             }
+        }
+
+        public Vector3 OffsetPosition
+        {
+            get { return GetSOP().OffsetPosition; }
+            set { GetSOP().OffsetPosition = value; }
         }
 
         public Vector3 SitTarget
