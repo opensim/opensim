@@ -170,6 +170,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private GrabObject handlerGrabObject; //OnGrabObject;
         private MoveObject handlerGrabUpdate; //OnGrabUpdate;
         private ObjectSelect handlerDeGrabObject; //OnDeGrabObject;
+        private SpinStart handlerSpinStart; //OnSpinStart;
+        private SpinUpdate handlerSpinUpdate; //OnSpinUpdate;
+        private SpinStop handlerSpinStop; //OnSpinStop;
         private GenericCall7 handlerObjectDescription;
         private GenericCall7 handlerObjectName;
         private GenericCall7 handlerObjectClickAction;
@@ -929,9 +932,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event DelinkObjects OnDelinkObjects;
         public event GrabObject OnGrabObject;
         public event ObjectSelect OnDeGrabObject;
+        public event SpinStart OnSpinStart;
+        public event SpinStop OnSpinStop;
         public event ObjectDuplicate OnObjectDuplicate;
         public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
         public event MoveObject OnGrabUpdate;
+        public event SpinUpdate OnSpinUpdate;
         public event AddNewPrim OnAddPrim;
         public event RequestGodlikePowers OnRequestGodlikePowers;
         public event GodKickUser OnGodKickUser;
@@ -5229,6 +5235,41 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerDeGrabObject(deGrab.ObjectData.LocalID, this);
                     }
                     break;
+                case PacketType.ObjectSpinStart:
+                    //m_log.Warn("[CLIENT]: unhandled ObjectSpinStart packet");
+                    ObjectSpinStartPacket spinStart = (ObjectSpinStartPacket)Pack;
+
+                    handlerSpinStart = OnSpinStart;
+                    if (handlerSpinStart != null)
+                    {
+                        handlerSpinStart(spinStart.ObjectData.ObjectID, this);
+                    }
+                    break;
+                case PacketType.ObjectSpinUpdate:
+                    //m_log.Warn("[CLIENT]: unhandled ObjectSpinUpdate packet");
+                    ObjectSpinUpdatePacket spinUpdate = (ObjectSpinUpdatePacket)Pack;
+                    Vector3 axis;
+                    float angle;
+                    spinUpdate.ObjectData.Rotation.GetAxisAngle(out axis, out angle);
+                    //m_log.Warn("[CLIENT]: ObjectSpinUpdate packet rot axis:" + axis + " angle:" + angle);
+
+                    handlerSpinUpdate = OnSpinUpdate;
+                    if (handlerSpinUpdate != null)
+                    {
+                        handlerSpinUpdate(spinUpdate.ObjectData.ObjectID, spinUpdate.ObjectData.Rotation, this);
+                    }
+                    break;
+                case PacketType.ObjectSpinStop:
+                    //m_log.Warn("[CLIENT]: unhandled ObjectSpinStop packet");
+                    ObjectSpinStopPacket spinStop = (ObjectSpinStopPacket)Pack;
+
+                    handlerSpinStop = OnSpinStop;
+                    if (handlerSpinStop != null)
+                    {
+                        handlerSpinStop(spinStop.ObjectData.ObjectID, this);
+                    }
+                    break;
+
                 case PacketType.ObjectDescription:
                     ObjectDescriptionPacket objDes = (ObjectDescriptionPacket)Pack;
 
@@ -6865,10 +6906,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.AgentHeightWidth:
                     // TODO: handle this packet
                     //m_log.Warn("[CLIENT]: unhandled AgentHeightWidth packet");
-                    break;
-                case PacketType.ObjectSpinStop:
-                    // TODO: handle this packet
-                    //m_log.Warn("[CLIENT]: unhandled ObjectSpinStop packet");
                     break;
 
                 case PacketType.InventoryDescendents:
