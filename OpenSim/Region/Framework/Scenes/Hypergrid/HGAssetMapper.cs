@@ -333,29 +333,26 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         public InventoryItemBase Get(InventoryItemBase item, UUID rootFolder, CachedUserInfo userInfo)
         {
-            if (!IsLocalUser(item.Owner))
+            InventoryClient invCli = null;
+            string inventoryURL = UserInventoryURL(item.Owner);
+            if (!m_inventoryServers.TryGetValue(inventoryURL, out invCli))
             {
-                InventoryClient invCli = null;
-                string inventoryURL = UserInventoryURL(item.Owner);
-                if (!m_inventoryServers.TryGetValue(inventoryURL, out invCli))
+                m_log.Debug("[HGScene]: Starting new InventorytClient for " + inventoryURL);
+                invCli = new InventoryClient(inventoryURL);
+                m_inventoryServers.Add(inventoryURL, invCli);
+            }
+
+            item = invCli.GetInventoryItem(item);
+            if (item != null)
+            {
+                // Change the folder, stick it in root folder, all items flattened out here in this region cache
+                item.Folder = rootFolder;
+                //userInfo.AddItem(item); don't use this, it calls back to the inventory server
+                lock (userInfo.RootFolder.Items)
                 {
-                    m_log.Debug("[HGScene]: Starting new InventorytClient for " + inventoryURL);
-                    invCli = new InventoryClient(inventoryURL);
-                    m_inventoryServers.Add(inventoryURL, invCli);
+                    userInfo.RootFolder.Items[item.ID] = item;
                 }
 
-                item = invCli.GetInventoryItem(item);
-                if (item != null)
-                {
-                    // Change the folder, stick it in root folder, all items flattened out here in this region cache
-                    item.Folder = rootFolder;
-                    //userInfo.AddItem(item); don't use this, it calls back to the inventory server
-                    lock (userInfo.RootFolder.Items)
-                    {
-                        userInfo.RootFolder.Items[item.ID] = item;
-                    }
-
-                }
             }
             return item;
         }

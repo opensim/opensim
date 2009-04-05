@@ -91,11 +91,11 @@ namespace OpenSim.Region.Framework.Interfaces
 
         /// <summary>
         /// Create an object from the user's inventory in the destination region. 
-        /// This message is used primarily for prim crossing.
+        /// This message is used primarily by clients.
         /// </summary>
         /// <param name="regionHandle"></param>
-        /// <param name="sog"></param>
-        /// <param name="isLocalCall"></param>
+        /// <param name="userID"></param>
+        /// <param name="itemID"></param>
         /// <returns></returns>
         bool SendCreateObject(ulong regionHandle, UUID userID, UUID itemID);
 

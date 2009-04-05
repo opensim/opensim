@@ -81,30 +81,22 @@ namespace OpenSim.Region.Communications.Hypergrid
             {
                 m_RequestingInventory.Add(userID, callback);
 
+                string invServer = GetUserInventoryURI(userID);
+                m_log.InfoFormat(
+                    "[HGrid INVENTORY SERVICE]: Requesting inventory from {0}/GetInventory/ for user {1} ({2})",
+                    /*_inventoryServerUrl*/ invServer, userID, userID.Guid);
+
                 try
                 {
-                    string invServer = GetUserInventoryURI(userID);
-                    m_log.InfoFormat(
-                        "[HGrid INVENTORY SERVICE]: Requesting inventory from {0}/GetInventory/ for user {1} ({2})",
-                        /*_inventoryServerUrl*/ invServer, userID, userID.Guid);
 
-
-                    RestSessionObjectPosterResponse<Guid, InventoryCollection> requester
-                        = new RestSessionObjectPosterResponse<Guid, InventoryCollection>();
-                    requester.ResponseCallback = InventoryResponse;
-
-                    requester.BeginPostObject(invServer + "/GetInventory/", userID.Guid, session_id.ToString(), userID.ToString());
-
-                    //Test(userID.Guid);
-
-                    //RestObjectPosterResponse<InventoryCollection> requester
-                    //    = new RestObjectPosterResponse<InventoryCollection>();
+                    //RestSessionObjectPosterResponse<Guid, InventoryCollection> requester
+                    //    = new RestSessionObjectPosterResponse<Guid, InventoryCollection>();
                     //requester.ResponseCallback = InventoryResponse;
 
-                    //requester.BeginPostObject<Guid>(/*_inventoryServerUrl*/ invServer + "/GetInventory/", userID.Guid);
+                    //requester.BeginPostObject(invServer + "/GetInventory/", userID.Guid, session_id.ToString(), userID.ToString());
+                    GetInventoryDelegate d = GetInventoryAsync;
+                    d.BeginInvoke(invServer, userID, session_id, GetInventoryCompleted, d);
 
-                    //RestClient cli = new RestClient(invServer + "/GetInventory/" + userID.Guid);
-                    //Stream reply = cli.Request();
                 }
                 catch (WebException e)
                 {
@@ -131,6 +123,44 @@ namespace OpenSim.Region.Communications.Hypergrid
                 m_log.ErrorFormat("[HGrid INVENTORY SERVICE]: RequestInventoryForUser() - could  not find user profile for {0}", userID);
             }
             
+        }
+
+        private delegate InventoryCollection GetInventoryDelegate(string url, UUID userID, UUID sessionID);
+
+        protected InventoryCollection GetInventoryAsync(string url, UUID userID, UUID sessionID)
+        {
+            InventoryCollection icol = null;
+            try
+            {
+                icol = SynchronousRestSessionObjectPoster<Guid, InventoryCollection>.BeginPostObject("POST", url + "/GetInventory/", 
+                    userID.Guid, sessionID.ToString(), userID.ToString());
+
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[HGrid]: Exception getting users inventory: " + e.Message);
+            }
+            if (icol == null)
+            {
+                // Well, let's synthesize one
+                icol = new InventoryCollection();
+                icol.UserID = userID;
+                icol.Items = new List<InventoryItemBase>();
+                icol.Folders = new List<InventoryFolderBase>();
+                InventoryFolderBase rootFolder = new InventoryFolderBase();
+                rootFolder.ID = UUID.Random();
+                rootFolder.Owner = userID;
+                icol.Folders.Add(rootFolder);
+            }
+
+            return icol;
+        }
+
+        private void GetInventoryCompleted(IAsyncResult iar)
+        {
+            GetInventoryDelegate icon = (GetInventoryDelegate)iar.AsyncState;
+            InventoryCollection icol = icon.EndInvoke(iar);
+            InventoryResponse(icol);
         }
 
         /// <summary>
@@ -460,9 +490,9 @@ namespace OpenSim.Region.Communications.Hypergrid
                     m_log.ErrorFormat("[HGrid INVENTORY SERVICE]: Did not get back an inventory containing a root folder for user {0}", userID);
                 }
 
+                m_RequestingInventory.Remove(userID);
                 callback(folders, items);
 
-                m_RequestingInventory.Remove(userID);
             }
             else
             {
