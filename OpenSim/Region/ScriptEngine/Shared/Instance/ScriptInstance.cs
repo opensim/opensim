@@ -707,6 +707,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         }
                         catch (Exception e)
                         {
+                            m_log.DebugFormat("[Script] Exception: {0}", e.Message);
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
 
