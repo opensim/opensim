@@ -12,8 +12,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         public SEUser(UUID uuid, string name)
         {
-            this.m_uuid = uuid;
-            this.m_name = name;
+            m_uuid = uuid;
+            m_name = name;
         }
 
         public UUID GlobalID
