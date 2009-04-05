@@ -120,6 +120,13 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                 {
                     InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
 
+                    if (item == null)
+                    { // Fetch the item
+                        item = new InventoryItemBase();
+                        item.Owner = remoteClient.AgentId;
+                        item.ID = itemID;
+                        item = m_assMapper.Get(item, userInfo.RootFolder.ID, userInfo);
+                    }
                     if (item != null)
                     {
                         m_assMapper.Get(item.AssetID, remoteClient.AgentId);

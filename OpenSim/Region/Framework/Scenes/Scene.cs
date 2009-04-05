@@ -1731,6 +1731,17 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        public virtual bool IncomingCreateObject(UUID userID, UUID itemID)
+        {
+            ScenePresence sp = GetScenePresence(userID);
+            if (sp != null)
+            {
+                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);
+                SceneObjectGroup sog = m_sceneGraph.RezSingleAttachment(sp.ControllingClient, itemID, attPt);
+            }
+            return false;
+        }
+
         public bool AddSceneObject(UUID primID, SceneObjectGroup sceneObject)
         {
             // If the user is banned, we won't let any of their objects

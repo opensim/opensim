@@ -113,6 +113,17 @@ namespace OpenSim.Region.Communications.Hypergrid
 
                     m_log.ErrorFormat("[HGrid INVENTORY SERVICE]: Request inventory operation failed, {0} {1}",
                         e.Source, e.Message);
+
+                    // Well, let's synthesize one
+                    InventoryCollection icol = new InventoryCollection();
+                    icol.UserID = userID;
+                    icol.Items = new List<InventoryItemBase>();
+                    icol.Folders = new List<InventoryFolderBase>();
+                    InventoryFolderBase rootFolder = new InventoryFolderBase();
+                    rootFolder.ID = UUID.Random();
+                    rootFolder.Owner = userID;
+                    icol.Folders.Add(rootFolder);
+                    InventoryResponse(icol);
                 }
             }
             else

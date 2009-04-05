@@ -417,6 +417,82 @@ namespace OpenSim.Framework.Communications.Clients
 
         }
 
+        public bool DoCreateObjectCall(RegionInfo region, UUID userID, UUID itemID)
+        {
+            ulong regionHandle = GetRegionHandle(region.RegionHandle);
+            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/object/" + UUID.Zero + "/" + regionHandle.ToString() + "/";
+            //m_log.Debug("   >>> DoCreateChildAgentCall <<< " + uri);
+
+            WebRequest ObjectCreateRequest = WebRequest.Create(uri);
+            ObjectCreateRequest.Method = "PUT";
+            ObjectCreateRequest.ContentType = "application/json";
+            ObjectCreateRequest.Timeout = 10000;
+
+            OSDMap args = new OSDMap(2);
+            args["userid"] = OSD.FromUUID(userID);
+            args["itemid"] = OSD.FromUUID(itemID);
+
+            string strBuffer = "";
+            byte[] buffer = new byte[1];
+            try
+            {
+                strBuffer = OSDParser.SerializeJsonString(args);
+                UTF8Encoding str = new UTF8Encoding();
+                buffer = str.GetBytes(strBuffer);
+
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[REST COMMS]: Exception thrown on serialization of CreateObject: {0}", e.Message);
+                // ignore. buffer will be empty, caller should check.
+            }
+
+            Stream os = null;
+            try
+            { // send the Post
+                ObjectCreateRequest.ContentLength = buffer.Length;   //Count bytes to send
+                os = ObjectCreateRequest.GetRequestStream();
+                os.Write(buffer, 0, strBuffer.Length);         //Send it
+                os.Close();
+                //m_log.InfoFormat("[REST COMMS]: Posted CreateObject request to remote sim {0}", uri);
+            }
+            //catch (WebException ex)
+            catch
+            {
+                // m_log.InfoFormat("[REST COMMS]: Bad send on CreateObject {0}", ex.Message);
+
+                return false;
+            }
+
+            // Let's wait for the response
+            //m_log.Info("[REST COMMS]: Waiting for a reply after DoCreateChildAgentCall");
+
+            try
+            {
+                WebResponse webResponse = ObjectCreateRequest.GetResponse();
+                if (webResponse == null)
+                {
+                    m_log.Info("[REST COMMS]: Null reply on DoCreateObjectCall post");
+                }
+
+                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                sr.ReadToEnd().Trim();
+                sr.ReadToEnd().Trim();
+                sr.Close();
+                
+                //m_log.InfoFormat("[REST COMMS]: DoCreateChildAgentCall reply was {0} ", reply);
+
+            }
+            catch (WebException ex)
+            {
+                m_log.InfoFormat("[REST COMMS]: exception on reply of DoCreateObjectCall {0}", ex.Message);
+                // ignore, really
+            }
+
+            return true;
+
+        }
+
         public bool DoHelloNeighbourCall(RegionInfo region, RegionInfo thisRegion)
         {
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/region/" + thisRegion.RegionID + "/";

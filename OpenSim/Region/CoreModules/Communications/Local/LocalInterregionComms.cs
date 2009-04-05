@@ -244,6 +244,19 @@ namespace OpenSim.Region.CoreModules.Communications.Local
             return false;
         }
 
+        public bool SendCreateObject(ulong regionHandle, UUID userID, UUID itemID)
+        {
+            foreach (Scene s in m_sceneList)
+            {
+                if (s.RegionInfo.RegionHandle == regionHandle)
+                {
+                    return s.IncomingCreateObject(userID, itemID);
+                }
+            }
+            return false;
+        }
+
+
         /**
          * Region-related communications 
          */

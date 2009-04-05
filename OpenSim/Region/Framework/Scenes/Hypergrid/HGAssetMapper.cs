@@ -33,6 +33,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Communications.Clients;
 
 //using HyperGrid.Framework;
 //using OpenSim.Region.Communications.Hypergrid;
@@ -49,6 +50,10 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         // This maps between asset UUIDs and asset servers
         private Dictionary<UUID, GridAssetClient> m_assetMap = new Dictionary<UUID, GridAssetClient>();
+
+        // This maps between inventory server urls and inventory server clients
+        private Dictionary<string, InventoryClient> m_inventoryServers = new Dictionary<string, InventoryClient>();
+
 
         private Scene m_scene;
         #endregion
@@ -69,6 +74,14 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
             if (uinfo != null)
                 return (uinfo.UserProfile.UserAssetURI == "") ? null : uinfo.UserProfile.UserAssetURI;
+            return null;
+        }
+
+        private string UserInventoryURL(UUID userID)
+        {
+            CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
+            if (uinfo != null)
+                return (uinfo.UserProfile.UserInventoryURI == "") ? null : uinfo.UserProfile.UserInventoryURI;
             return null;
         }
 
@@ -275,9 +288,9 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         #region Public interface
 
-        public void Get(UUID itemID, UUID ownerID)
+        public void Get(UUID assetID, UUID ownerID)
         {
-            if (!IsInAssetMap(itemID) && !IsLocalUser(ownerID))
+            if (!IsInAssetMap(assetID) && !IsLocalUser(ownerID))
             {
                 // Get the item from the remote asset server onto the local AssetCache
                 // and place an entry in m_assetMap
@@ -295,11 +308,11 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                         m_assetServers.Add(userAssetURL, asscli);
                     }
 
-                    m_log.Debug("[HGScene]: Fetching object " + itemID + " to asset server " + userAssetURL);
-                    bool success = FetchAsset(asscli, itemID, false); // asscli.RequestAsset(item.ItemID, false);
+                    m_log.Debug("[HGScene]: Fetching object " + assetID + " to asset server " + userAssetURL);
+                    bool success = FetchAsset(asscli, assetID, false); // asscli.RequestAsset(item.ItemID, false);
 
                     // OK, now fetch the inside.
-                    Dictionary<UUID, bool> ids = SniffUUIDs(itemID);
+                    Dictionary<UUID, bool> ids = SniffUUIDs(assetID);
                     Dump(ids);
                     foreach (KeyValuePair<UUID, bool> kvp in ids)
                         FetchAsset(asscli, kvp.Key, kvp.Value);
@@ -308,7 +321,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                     if (success)
                     {
                         m_log.Debug("[HGScene]: Successfully fetched item from remote asset server " + userAssetURL);
-                        m_assetMap.Add(itemID, asscli);
+                        m_assetMap.Add(assetID, asscli);
                     }
                     else
                         m_log.Warn("[HGScene]: Could not fetch asset from remote asset server " + userAssetURL);
@@ -318,7 +331,36 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             }
         }
 
-        public void Post(UUID itemID, UUID ownerID)
+        public InventoryItemBase Get(InventoryItemBase item, UUID rootFolder, CachedUserInfo userInfo)
+        {
+            if (!IsLocalUser(item.Owner))
+            {
+                InventoryClient invCli = null;
+                string inventoryURL = UserInventoryURL(item.Owner);
+                if (!m_inventoryServers.TryGetValue(inventoryURL, out invCli))
+                {
+                    m_log.Debug("[HGScene]: Starting new InventorytClient for " + inventoryURL);
+                    invCli = new InventoryClient(inventoryURL);
+                    m_inventoryServers.Add(inventoryURL, invCli);
+                }
+
+                item = invCli.GetInventoryItem(item);
+                if (item != null)
+                {
+                    // Change the folder, stick it in root folder, all items flattened out here in this region cache
+                    item.Folder = rootFolder;
+                    //userInfo.AddItem(item); don't use this, it calls back to the inventory server
+                    lock (userInfo.RootFolder.Items)
+                    {
+                        userInfo.RootFolder.Items[item.ID] = item;
+                    }
+
+                }
+            }
+            return item;
+        }
+
+        public void Post(UUID assetID, UUID ownerID)
         {
             if (!IsLocalUser(ownerID))
             {
@@ -337,11 +379,11 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                         asscli.SetReceiver(m_scene.CommsManager.AssetCache); // Straight to the asset cache!
                         m_assetServers.Add(userAssetURL, asscli);
                     }
-                    m_log.Debug("[HGScene]: Posting object " + itemID + " to asset server " + userAssetURL);
-                    bool success = PostAsset(asscli, itemID);
+                    m_log.Debug("[HGScene]: Posting object " + assetID + " to asset server " + userAssetURL);
+                    bool success = PostAsset(asscli, assetID);
 
                     // Now the inside
-                    Dictionary<UUID, bool> ids = SniffUUIDs(itemID);
+                    Dictionary<UUID, bool> ids = SniffUUIDs(assetID);
                     Dump(ids);
                     foreach (KeyValuePair<UUID, bool> kvp in ids)
                         PostAsset(asscli, kvp.Key);
@@ -349,8 +391,8 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                     if (success)
                     {
                         m_log.Debug("[HGScene]: Successfully posted item to remote asset server " + userAssetURL);
-                        if (!m_assetMap.ContainsKey(itemID))
-                            m_assetMap.Add(itemID, asscli);
+                        if (!m_assetMap.ContainsKey(assetID))
+                            m_assetMap.Add(assetID, asscli);
                     }
                     else
                         m_log.Warn("[HGScene]: Could not post asset to remote asset server " + userAssetURL);

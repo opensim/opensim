@@ -1147,3 +1147,7 @@
     ; Enables the Mini Region Modules Script Engine. WARNING: SECURITY RISK.
     ; default is false
     Enabled = false 
+
+[Hypergrid]
+	; Keep it false for now. Making it true requires the use of a special client in order to access inventory
+	safemode = false

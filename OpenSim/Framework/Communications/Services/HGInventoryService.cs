@@ -107,6 +107,17 @@ namespace OpenSim.Framework.Communications.Services
         public virtual void AddHttpHandlers()
         {
             httpServer.AddHTTPHandler("/InvCap/", CapHandler);
+
+            // Un-cap'ed for now
+            httpServer.AddStreamHandler(new RestDeserialiseSecureHandler<Guid, InventoryItemBase>(
+                    "POST", "/GetItem/", GetInventoryItem, CheckAuthSession));
+
+        }
+
+        public InventoryItemBase GetInventoryItem(Guid id)
+        {
+            UUID itemID = new UUID(id);
+            return m_inventoryService.GetInventoryItem(itemID);
         }
 
         public bool CheckAuthSession(string session_id, string avatar_id)
@@ -353,10 +364,15 @@ namespace OpenSim.Framework.Communications.Services
                 m_log.DebugFormat("[HGStandaloneInvService]: client with uuid {0} is trying to get an item of owner {1}", item.Owner, item2.Owner);
                 return asset;
             }
+            UUID assetID = item2.AssetID;
+            if (assetID != item.AssetID)
+            {
+                m_log.WarnFormat("[HGStandaloneInvService]: asset IDs don't match {0}, {1}", item.AssetID, item2.AssetID);
+            }
 
             // All good, get the asset
             //AssetBase theasset = m_assetProvider.FetchAsset(item.AssetID);
-            AssetBase theasset = FetchAsset(item.AssetID, (item.InvType == (int)InventoryType.Texture)); 
+            AssetBase theasset = FetchAsset(assetID, (item.InvType == (int)InventoryType.Texture)); 
 
             m_log.Debug("[HGStandaloneInvService] Found asset " + ((theasset == null) ? "NULL" : "Not Null"));
             if (theasset != null)

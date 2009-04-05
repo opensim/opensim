@@ -54,6 +54,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static bool initialized = false;
         private static bool enabled = false;
+        private static bool safemode = false;
 
         private bool m_doLookup = false;
         Scene m_scene;
@@ -77,6 +78,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
                 // This module is only on for standalones
                 enabled = !config.Configs["Startup"].GetBoolean("gridmode", true) && config.Configs["Startup"].GetBoolean("hypergrid", false);
+                if (config.Configs["Hypergrid"] != null)
+                    safemode = config.Configs["Hypergrid"].GetBoolean("safemode", false);
             }
         }
 
@@ -116,34 +119,35 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         public virtual void AddHttpHandlers(IHttpServer httpServer)
         {
+            if (!safemode)
+            {
+                httpServer.AddStreamHandler(
+                    new RestDeserialiseSecureHandler<Guid, InventoryCollection>(
+                        "POST", "/GetInventory/", m_inventoryService.GetUserInventory, CheckAuthSession));
+                httpServer.AddStreamHandler(
+                    new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
+                        "POST", "/DeleteItem/", m_inventoryBase.DeleteItem, CheckAuthSession));
+                httpServer.AddStreamHandler(
+                    new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
+                        "POST", "/UpdateFolder/", m_inventoryBase.UpdateFolder, CheckAuthSession));
 
-            httpServer.AddStreamHandler(
-                new RestDeserialiseSecureHandler<Guid, InventoryCollection>(
-                    "POST", "/GetInventory/", m_inventoryService.GetUserInventory, CheckAuthSession));
+                httpServer.AddStreamHandler(
+                    new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
+                        "POST", "/MoveFolder/", m_inventoryBase.MoveFolder, CheckAuthSession));
+
+                httpServer.AddStreamHandler(
+                    new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
+                        "POST", "/PurgeFolder/", m_inventoryBase.PurgeFolder, CheckAuthSession));
+            }
 
             httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
                     "POST", "/NewFolder/", m_inventoryBase.AddFolder, CheckAuthSession));
 
             httpServer.AddStreamHandler(
-                new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
-                    "POST", "/UpdateFolder/", m_inventoryBase.UpdateFolder, CheckAuthSession));
-
-            httpServer.AddStreamHandler(
-                new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
-                    "POST", "/MoveFolder/", m_inventoryBase.MoveFolder, CheckAuthSession));
-
-            httpServer.AddStreamHandler(
-                new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
-                    "POST", "/PurgeFolder/", m_inventoryBase.PurgeFolder, CheckAuthSession));
-
-            httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
                     "POST", "/NewItem/", m_inventoryBase.AddItem, CheckAuthSession));
 
-            httpServer.AddStreamHandler(
-                new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
-                    "POST", "/DeleteItem/", m_inventoryBase.DeleteItem, CheckAuthSession));
 
         }
 

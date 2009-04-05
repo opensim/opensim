@@ -276,6 +276,12 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             return false;
         }
 
+        public bool SendCreateObject(ulong regionHandle, UUID userID, UUID itemID)
+        {
+            // Not Implemented
+            return false;
+        }
+
         /**
          * Region-related communications 
         */
@@ -527,13 +533,13 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         public Hashtable ObjectHandler(Hashtable request)
         {
-            //m_log.Debug("[CONNECTION DEBUGGING]: ObjectHandler Called");
+            m_log.Debug("[CONNECTION DEBUGGING]: ObjectHandler Called");
 
-            //m_log.Debug("---------------------------");
-            //m_log.Debug(" >> uri=" + request["uri"]);
-            //m_log.Debug(" >> content-type=" + request["content-type"]);
-            //m_log.Debug(" >> http-method=" + request["http-method"]);
-            //m_log.Debug("---------------------------\n");
+            m_log.Debug("---------------------------");
+            m_log.Debug(" >> uri=" + request["uri"]);
+            m_log.Debug(" >> content-type=" + request["content-type"]);
+            m_log.Debug(" >> http-method=" + request["http-method"]);
+            m_log.Debug("---------------------------\n");
 
             Hashtable responsedata = new Hashtable();
             responsedata["content_type"] = "text/html";
@@ -557,11 +563,11 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 DoObjectPost(request, responsedata, regionHandle);
                 return responsedata;
             }
-            //else if (method.Equals("PUT"))
-            //{
-            //    DoObjectPut(request, responsedata, agentID);
-            //    return responsedata;
-            //}
+            else if (method.Equals("PUT"))
+            {
+                DoObjectPut(request, responsedata, regionHandle);
+                return responsedata;
+            }
             //else if (method.Equals("DELETE"))
             //{
             //    DoObjectDelete(request, responsedata, agentID, action, regionHandle);
@@ -627,6 +633,31 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             }
             // This is the meaning of POST object
             bool result = m_localBackend.SendCreateObject(regionhandle, sog, false);
+
+            responsedata["int_response_code"] = 200;
+            responsedata["str_response_string"] = result.ToString();
+        }
+
+        protected virtual void DoObjectPut(Hashtable request, Hashtable responsedata, ulong regionhandle)
+        {
+            OSDMap args = RegionClient.GetOSDMap((string)request["body"]);
+            if (args == null)
+            {
+                responsedata["int_response_code"] = 400;
+                responsedata["str_response_string"] = "false";
+                return;
+            }
+
+            UUID userID = UUID.Zero, itemID = UUID.Zero;
+            if (args["userid"] != null)
+                userID = args["userid"].AsUUID();
+            if (args["itemid"] != null)
+                itemID = args["itemid"].AsUUID();
+
+            UUID regionID = m_localBackend.GetRegionID(regionhandle);
+
+            // This is the meaning of PUT object
+            bool result = m_localBackend.SendCreateObject(regionhandle, userID, itemID);
 
             responsedata["int_response_code"] = 200;
             responsedata["str_response_string"] = result.ToString();
