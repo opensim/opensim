@@ -8,8 +8,7 @@
     </Dependencies>
 
     <Extension path = "/OpenSim/RegionModules">
-        <RegionModule id="WorldMapModule" type="OpenSim.Region.CoreModules.World.WorldMap.NewWorldMapModule" />
-        <RegionModule id="CommsModule" type="OpenSim.Region.CoreModules.Communications.Local.NewLocalInterregionComms" />
+<!--        <RegionModule id="WorldMapModule" type="OpenSim.Region.CoreModules.World.WorldMap.WorldMapModule" /> -->
     </Extension>
 
     <Extension path = "/OpenSim/WindModule">
