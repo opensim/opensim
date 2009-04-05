@@ -5,16 +5,24 @@
         <Import assembly="OpenSim.Region.Framework.dll"/>
         <Import assembly="Mono.Addins.dll"/>
     </Runtime>
+
     <ExtensionPoint path="/OpenSim/Startup">
         <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.IApplicationPlugin"/>
     </ExtensionPoint>
+
     <ExtensionPoint path="/OpenSim/AssetCache" name="Region Asset Cache Plugin-point" >
         <ExtensionNode name="Cache" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Framework.IAssetCache"/>
     </ExtensionPoint>
+
     <ExtensionPoint path="/OpenSim/AssetClient" name="Region Asset Cache Server Interface Plugin-point">
         <ExtensionNode name="AssetClient" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Framework.IAssetServer"/>
     </ExtensionPoint>
+
     <ExtensionPoint path="/OpenSim/WindModule" name="Wind Module Plugins for wind models">
 		<ExtensionNode name="WindModel" type="Mono.Addins.TypeExtensionNode" objectType="OpenSim.Region.Framework.Interfaces.IWindModelPlugin"/>
+    </ExtensionPoint>
+
+    <ExtensionPoint path="/OpenSim/RegionModules">
+        <ExtensionNode name="RegionModule" type="Mono.Addins.TypeExtensionNode" objectType="OpenSim.Region.Framework.Interfaces.IRegionModuleBase"/>
     </ExtensionPoint>
 </Addin>

@@ -635,6 +635,7 @@
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="DotNetOpenMail.dll"/>
+      <Reference name="Mono.Addins.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">
@@ -1204,6 +1205,7 @@
           <Exclude name="Tests" pattern="Tests" />
           <Exclude name="TerrainDefaultEffects" pattern="World/Terrain/DefaultEffects" />
         </Match>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
@@ -1483,6 +1485,33 @@
       <Reference name="OpenSim.Framework.RegionLoader.Filesystem"/>
       <Reference name="OpenSim.Framework.RegionLoader.Web"/>
       <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.ApplicationPlugins.RegionModulesController" path="OpenSim/ApplicationPlugins/RegionModulesController" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="Mono.Addins.dll" />
+      <Reference name="Nini.dll" />
+      <Reference name="OpenSim"/>
+      <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
       <Reference name="log4net.dll"/>
 
       <Files>

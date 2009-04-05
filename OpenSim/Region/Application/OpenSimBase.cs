@@ -517,13 +517,22 @@ namespace OpenSim
             IClientNetworkServer clientServer;
             Scene scene = SetupScene(regionInfo, proxyOffset, m_config.Source, out clientServer);
 
-            m_log.Info("[MODULES]: Loading Region's modules");
+            m_log.Info("[MODULES]: Loading Region's modules (old style)");
 
             List<IRegionModule> modules = m_moduleLoader.PickupModules(scene, ".");
 
             // This needs to be ahead of the script engine load, so the
             // script module can pick up events exposed by a module
             m_moduleLoader.InitialiseSharedModules(scene);
+
+            // Use this in the future, the line above will be deprecated soon
+            m_log.Info("[MODULES]: Loading Region's modules (new style)");
+            IRegionModulesController controller;
+            if (ApplicationRegistry.TryGet(out controller))
+            {
+                controller.AddRegionToModules(scene);
+            }
+            else m_log.Error("[MODULES]: The new RegionModulesController is missing...");
 
             scene.SetModuleInterfaces();
 
@@ -571,9 +580,20 @@ namespace OpenSim
                     module.PostInitialise();
                 }
             }
+            scene.EventManager.OnShutdown += delegate() { ShutdownRegion(scene); };
 
             mscene = scene;
             return clientServer;
+        }
+
+        private void ShutdownRegion(Scene scene)
+        {
+            m_log.DebugFormat("[SHUTDOWN]: Shutting down region {0}", scene.RegionInfo.RegionName);
+            IRegionModulesController controller;
+            if (ApplicationRegistry.TryGet<IRegionModulesController>(out controller))
+            {
+                controller.RemoveRegionFromModules(scene);
+            }
         }
 
         public void RemoveRegion(Scene scene, bool cleanup)

@@ -59,13 +59,19 @@ namespace OpenSim.Region.Framework.Scenes
         }
         protected Dictionary<string, IRegionModule> m_modules = new Dictionary<string, IRegionModule>();
 
+        public Dictionary<string, IRegionModuleBase> RegionModules
+        {
+            get { return m_regionModules; }
+        }
+        private Dictionary<string, IRegionModuleBase> m_regionModules = new Dictionary<string, IRegionModuleBase>();
+
         /// <value>
         /// The module interfaces available from this scene.
         /// </value>
         protected Dictionary<Type, List<object>> ModuleInterfaces = new Dictionary<Type, List<object>>();
 
         protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
-        
+
         /// <value>
         /// The module commanders available from this scene
         /// </value>
@@ -235,7 +241,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             Modules.Clear();
-            
+
             try
             {
                 EventManager.TriggerShutdown();
@@ -276,6 +282,24 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Modules.Add(name, module);
             }
+        }
+
+        /// <summary>
+        /// Add a region-module to this scene. TODO: This will replace AddModule in the future.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="module"></param>
+        public void AddRegionModule(string name, IRegionModuleBase module)
+        {
+            if (!RegionModules.ContainsKey(name))
+            {
+                RegionModules.Add(name, module);
+            }
+        }
+
+        public void RemoveRegionModule(string name)
+        {
+            RegionModules.Remove(name);
         }
 
         /// <summary>
@@ -363,6 +387,25 @@ namespace OpenSim.Region.Framework.Scenes
                     foreach (PCode pcode in entityCreator.CreationCapabilities)
                     {
                         m_entityCreators[pcode] = entityCreator;
+                    }
+                }
+            }
+        }
+
+        public void UnregisterModuleInterface<M>(M mod)
+        {
+            List<Object> l;
+            if (ModuleInterfaces.TryGetValue(typeof(M), out l))
+            {
+                if (l.Remove(mod))
+                {
+                    if (mod is IEntityCreator)
+                    {
+                        IEntityCreator entityCreator = (IEntityCreator)mod;
+                        foreach (PCode pcode in entityCreator.CreationCapabilities)
+                        {
+                            m_entityCreators[pcode] = null;
+                        }
                     }
                 }
             }
@@ -462,11 +505,19 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (mod != null)
             {
-                if (!(mod is IRegionModule))
-                    throw new Exception("AddCommand module parameter must be IRegionModule");
-                IRegionModule module = (IRegionModule)mod;
-                modulename = module.Name;
-                shared = module.IsSharedModule;
+                if (mod is IRegionModule)
+                {
+                    IRegionModule module = (IRegionModule)mod;
+                    modulename = module.Name;
+                    shared = module.IsSharedModule;
+                }
+                else if (mod is IRegionModuleBase)
+                {
+                    IRegionModuleBase module = (IRegionModuleBase)mod;
+                    modulename = module.Name;
+                    shared = mod is ISharedRegionModule;
+                }
+                else throw new Exception("AddCommand module parameter must be IRegionModule or IRegionModuleBase");
             }
 
             MainConsole.Instance.Commands.AddCommand(modulename, shared, command, shorthelp, longhelp, callback);

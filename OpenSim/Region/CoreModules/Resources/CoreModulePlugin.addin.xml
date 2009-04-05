@@ -1,0 +1,20 @@
+<Addin id="OpenSim.Region.CoreModules" version="0.2">
+    <Runtime>
+        <Import assembly="OpenSim.Region.CoreModules.dll"/>
+    </Runtime>
+
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+    </Dependencies>
+
+    <Extension path = "/OpenSim/RegionModules">
+        <RegionModule id="WorldMapModule" type="OpenSim.Region.CoreModules.World.WorldMap.NewWorldMapModule" />
+        <RegionModule id="CommsModule" type="OpenSim.Region.CoreModules.Communications.Local.NewLocalInterregionComms" />
+    </Extension>
+
+    <Extension path = "/OpenSim/WindModule">
+        <WindModel id="ConfigurableWind" type="OpenSim.Region.CoreModules.World.Wind.Plugins.ConfigurableWind" />
+        <WindModel id="SimpleRandomWind" type="OpenSim.Region.CoreModules.World.Wind.Plugins.SimpleRandomWind" />
+    </Extension>
+
+</Addin>
