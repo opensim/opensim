@@ -1509,6 +1509,7 @@
       <Reference name="Mono.Addins.dll" />
       <Reference name="Nini.dll" />
       <Reference name="OpenSim"/>
+      <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
