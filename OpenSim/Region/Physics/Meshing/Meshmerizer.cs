@@ -215,8 +215,10 @@ namespace OpenSim.Region.Physics.Meshing
                         sculptType = PrimMesher.SculptMesh.SculptType.torus;
                         break;
                     case OpenMetaverse.SculptType.Sphere:
-                    default:
                         sculptType = PrimMesher.SculptMesh.SculptType.sphere;
+                        break;
+                    default:
+                        sculptType = PrimMesher.SculptMesh.SculptType.plane;
                         break;
                 }
 
