@@ -699,9 +699,25 @@
 [Wind]
     ; Enables the wind module.  Default is true
     enabled = true
+
+    ; How often should wind be updated, as a function of world frames.  Approximately 50 frames a second
+    wind_update_rate = 150
+
+    ; The Default Wind Plugin to load
+    wind_plugin = SimpleRandomWind
+
+    ; These settings are specific to the ConfigurableWind plugin
+    ; To use ConfigurableWind as the default, simply change wind_plugin to ConfigurableWind and uncomment the following.
+    ; avg_strength  = 5.0
+    ; avg_direction = 0.0
+    ; var_strength  = 0.0
+    ; var_direction = 0.0
+    ; rate_change   = 1.0
+
+    ; This setting is specific to the SimpleRandomWind plugin
     ; Adjusts wind strength. 0.0 = no wind, 1.0 = normal wind.  Default is 1.0
     strength = 1.0
-	
+
 [Cloud]
     ; Enable this to generate classic particle clouds above the sim.
     ; default is disabled - turn it on here
