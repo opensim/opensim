@@ -30,6 +30,8 @@ using System.Collections.Generic;
 
 using OpenMetaverse;
 
+using OpenSim.Region.Framework.Interfaces;
+
 namespace OpenSim.Region.CoreModules.World.Wind.Plugins
 {
     class SimpleRandomWind : Mono.Addins.TypeExtensionNode, IWindModelPlugin

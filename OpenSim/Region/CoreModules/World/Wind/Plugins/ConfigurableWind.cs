@@ -32,6 +32,7 @@ using System.Reflection;
 using log4net;
 using OpenMetaverse;
 
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.CoreModules.World.Wind;
 
 namespace OpenSim.Region.CoreModules.World.Wind.Plugins

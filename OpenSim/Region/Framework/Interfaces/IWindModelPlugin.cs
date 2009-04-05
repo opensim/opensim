@@ -33,7 +33,7 @@ using OpenSim.Framework;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.World.Wind
+namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IWindModelPlugin : IPlugin
     {
