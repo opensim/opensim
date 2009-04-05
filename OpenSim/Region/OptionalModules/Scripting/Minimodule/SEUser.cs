@@ -10,7 +10,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         private readonly UUID m_uuid;
         private readonly string m_name;
 
-        public SIUser(UUID uuid, string name)
+        public SEUser(UUID uuid, string name)
         {
             this.m_uuid = uuid;
             this.m_name = name;
