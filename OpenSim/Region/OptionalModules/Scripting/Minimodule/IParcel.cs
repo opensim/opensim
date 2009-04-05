@@ -10,5 +10,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         string Name { get; set; }
         string Description { get; set; }
         ISocialEntity Owner { get; set; }
+        bool[,] Bitmap { get; set; }
     }
 }
