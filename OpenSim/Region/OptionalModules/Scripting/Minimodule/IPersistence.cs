@@ -6,7 +6,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
     interface IPersistence
     {
-
         T Get<T>(Guid storageID);
         T Get<T>();
 
