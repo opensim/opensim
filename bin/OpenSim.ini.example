@@ -220,6 +220,24 @@
 
     ;emailmodule = DefaultEmailModule
 
+    ; ##
+    ; ## ANIMATIONS
+    ; ##
+
+    ; If enabled, enableFlySlow will change the primary fly state to
+    ; FLYSLOW, and the "always run" state will be the regular fly.
+
+    enableflyslow = false
+   
+    ; PreJump is an additional animation state, but it probably
+    ; won't look right until the physics engine supports it 
+    ; (i.e delays takeoff for a moment)
+
+    ; This is commented so it will come on automatically once it's
+    ; supported.
+
+    ; enableprejump = true
+
 [SMTP]
 
     enabled=false
@@ -236,6 +254,18 @@
 
     ;InterregionComms = "LocalComms"
     InterregionComms = "RESTComms"
+
+[AutoOAR]
+
+    ;Enable the AutoOAR module. 
+    ;OAR's are automatically exported to Regionname_x_y.oar.tar.gz
+
+    enabled = false
+
+    ;Interval, in minutes, between exports
+
+    interval = 20
+
 
 [StandAlone]
     accounts_authenticate = true

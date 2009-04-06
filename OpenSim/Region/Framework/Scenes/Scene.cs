@@ -86,7 +86,8 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_clampPrimSize = false;
         public bool m_trustBinaries = false;
         public bool m_allowScriptCrossings = false;
-
+        public bool m_useFlySlow = false;
+        public bool m_usePreJump = false;
         public bool m_seeIntoRegionFromNeighbor;
         public int MaxUndoCount = 5;
         private int m_RestartTimerCounter;
@@ -342,6 +343,12 @@ namespace OpenSim.Region.Framework.Scenes
                 // Region config overrides global config
                 //
                 IConfig startupConfig = m_config.Configs["Startup"];
+
+                //Animation states
+                m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
+                // TODO: Change default to true once the feature is supported
+                m_usePreJump = startupConfig.GetBoolean("enableprejump", false);
+
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", m_maxNonphys);
                 if (RegionInfo.NonphysPrimMax > 0)
                     m_maxNonphys = RegionInfo.NonphysPrimMax;
