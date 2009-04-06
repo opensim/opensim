@@ -1962,7 +1962,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 //We're moving
                 m_allowFalling = true;
-                if (PhysicsActor.IsColliding)
+                if (PhysicsActor != null && PhysicsActor.IsColliding)
                 {
                     //And colliding. Can you guess what it is yet?
                     if ((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0)
@@ -1999,7 +1999,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     //We're not colliding. Colliding isn't cool these days.
-                    if (PhysicsActor.Flying)
+                    if (PhysicsActor != null && PhysicsActor.Flying)
                     {
                         //Are we moving forwards or backwards?
                         if ((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) != 0)
@@ -2072,7 +2072,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 //We're not moving.
-                if (PhysicsActor.IsColliding)
+                if (PhysicsActor != null && PhysicsActor.IsColliding)
                 {
                     //But we are colliding.
                     if (m_movementAnimation == "FALLDOWN")
@@ -2101,7 +2101,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         return "PREJUMP";
                     }
-                    else if (PhysicsActor.Flying)
+                    else if (PhysicsActor != null && PhysicsActor.Flying)
                     {
                         m_allowFalling = true;
                         if ((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
@@ -2126,7 +2126,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     //We're not colliding.
-                    if (PhysicsActor.Flying)
+                    if (PhysicsActor != null && PhysicsActor.Flying)
                     {
 
                         return "HOVER";
