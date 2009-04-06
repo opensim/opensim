@@ -61,7 +61,7 @@
   <animation name="EXPRESS_WINK_EMOTE" state="">da020525-4d94-59d6-23d7-81fdebf33148</animation>
   <animation name="EXPRESS_WORRY" state="">9f496bd2-589a-709f-16cc-69bf7df1d36c</animation>
   <animation name="EXPRESS_WORRY_EMOTE" state="">9c05e5c7-6f07-6ca4-ed5a-b230390c3950</animation>
-  <animation name="FALLDOWN" state="">666307d9-a860-572d-6fd4-c3ab8865c094</animation>
+  <animation name="FALLDOWN" state="Falling">666307d9-a860-572d-6fd4-c3ab8865c094</animation>
   <animation name="FEMALE_WALK" state="Walking">f5fc7433-043d-e819-8298-f519a119b688</animation>
   <animation name="FIST_PUMP" state="">7db00ccd-f380-f3ee-439d-61968ec69c8a</animation>
   <animation name="FLY" state="Flying">aec4610c-757f-bc4e-c092-c6e9caf18daf</animation>

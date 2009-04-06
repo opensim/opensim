@@ -117,6 +117,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_setAlwaysRun;
 
+        private string m_movementAnimation = "DEFAULT";
+        private long m_animPersistUntil;
+        private bool m_allowFalling = false;
+
+
         private Quaternion m_bodyRot= Quaternion.Identity;
 
         public bool IsRestrictedToRegion;
@@ -1943,66 +1948,191 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public string GetMovementAnimation()
         {
-            if (m_movementflag != 0)
+            if ((m_animPersistUntil > 0) && (m_animPersistUntil > DateTime.Now.Ticks))
             {
-                // We are moving
-                if (PhysicsActor != null && PhysicsActor.Flying)
+                //We don't want our existing state to end yet.
+                return m_movementAnimation;
+
+            }
+            else if (m_movementflag != 0)
+            {
+                //We're moving
+                m_allowFalling = true;
+                if (PhysicsActor.IsColliding)
                 {
-                    return "FLY";
-                }
-                else if (PhysicsActor != null && (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0 &&
-                         PhysicsActor.IsColliding)
-                {
-                    if ((m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 ||
-                        (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) != 0)
+                    //And colliding. Can you guess what it is yet?
+                    if ((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0)
                     {
-                        return "CROUCHWALK";
+                        //Down key is being pressed.
+                        if ((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) + (m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0)
+                        {
+                            return "CROUCHWALK";
+                        }
+                        else
+                        {
+                            return "CROUCH";
+                        }
+                    }
+                    else if (m_setAlwaysRun)
+                    {
+                        return "RUN";
                     }
                     else
                     {
-                        return "CROUCH";
+                        //If we're prejumping then inhibit this, it's a problem
+                        //caused by a false positive on IsColliding
+                        if (m_movementAnimation == "PREJUMP")
+                        {
+                            return "PREJUMP";
+                        }
+                        else
+                        {
+                            return "WALK";
+                        }
                     }
-                }
-                else if (PhysicsActor != null && !PhysicsActor.IsColliding && PhysicsActor.Velocity.Z < -2)
-                {
-                    return "FALLDOWN";
-                }
-                else if (PhysicsActor != null && !PhysicsActor.IsColliding && Velocity.Z > 1e-6 &&
-                         (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
-                {
-                    return "JUMP";
-                }
-                else if (m_setAlwaysRun)
-                {
-                    return "RUN";
+
                 }
                 else
                 {
-                    return "WALK";
+                    //We're not colliding. Colliding isn't cool these days.
+                    if (PhysicsActor.Flying)
+                    {
+                        //Are we moving forwards or backwards?
+                        if ((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) != 0)
+                        {
+                            //Then we really are flying
+                            if (m_setAlwaysRun)
+                            {
+                                return "FLY";
+                            }
+                            else
+                            {
+                                return "FLYSLOW";
+                            }
+                        }
+                        else
+                        {
+                            if ((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
+                            {
+                                return "HOVER_UP";
+                            }
+                            else
+                            {
+                                return "HOVER_DOWN";
+                            }
+                        }
+
+                    }
+                    else if (m_movementAnimation == "JUMP")
+                    {
+                        //If we were already jumping, continue to jump until we collide
+                        return "JUMP";
+
+                    }
+                    else if (m_movementAnimation == "PREJUMP" && (m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) == 0)
+                    {
+                        //If we were in a prejump, and the UP key is no longer being held down
+                        //then we're not going to fly, so we're jumping
+                        return "JUMP";
+
+                    }
+                    else if ((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
+                    {
+                        //They're pressing up, so we're either going to fly or jump
+                        return "PREJUMP";
+                    }
+                    else
+                    {
+                        //If we're moving and not flying and not jumping and not colliding..
+                        
+                        if (m_movementAnimation == "WALK" || m_movementAnimation == "RUN")
+                        {
+                            //Let's not enter a FALLDOWN state here, since we're probably
+                            //not colliding because we're going down hill.
+                            return m_movementAnimation;
+                        }
+                        //Record the time we enter this state so we know whether to "land" or not
+                        m_animPersistUntil = DateTime.Now.Ticks;
+                        return "FALLDOWN";
+                        
+                    }
                 }
             }
             else
             {
-                // We are not moving
-                if (PhysicsActor != null && !PhysicsActor.IsColliding && PhysicsActor.Velocity.Z < -2 && !PhysicsActor.Flying)
+                //We're not moving.
+                if (PhysicsActor.IsColliding)
                 {
-                    return "FALLDOWN";
-                }
-                else if (PhysicsActor != null && !PhysicsActor.IsColliding && Velocity.Z > 6 && !PhysicsActor.Flying)
-                {
-                    // HACK: We check if Velocity.Z > 6 for this animation in order to avoid false positives during normal movement.
-                    // TODO: set this animation only when on the ground and UP_POS is received?
+                    //But we are colliding.
+                    if (m_movementAnimation == "FALLDOWN")
+                    {
+                        //We're re-using the m_animPersistUntil value here to see how long we've been falling
+                        if ((DateTime.Now.Ticks - m_animPersistUntil) > TimeSpan.TicksPerSecond)
+                        {
+                            //Make sure we don't change state for a bit
+                            m_animPersistUntil = DateTime.Now.Ticks + TimeSpan.TicksPerSecond;
+                            return "LAND";
+                        }
+                        else
+                        {
+                            //We haven't been falling very long, we were probably just walking down hill
+                            return "STAND";
+                        }
+                    }
+                    else if (m_movementAnimation == "JUMP" || m_movementAnimation == "HOVER_DOWN")
+                    {
+                        //Make sure we don't change state for a bit
+                        m_animPersistUntil = DateTime.Now.Ticks + (1 * TimeSpan.TicksPerSecond);
+                        return "SOFT_LAND";
 
-                    // This is the standing jump
-                    return "JUMP";
-                }
-                else if (PhysicsActor != null && PhysicsActor.Flying)
-                {
-                    return "HOVER";
+                    }
+                    else if ((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
+                    {
+                        return "PREJUMP";
+                    }
+                    else if (PhysicsActor.Flying)
+                    {
+                        m_allowFalling = true;
+                        if ((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
+                        {
+                            return "HOVER_UP";
+                        }
+                        else if ((m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0)
+                        {
+                            return "HOVER_DOWN";
+                        }
+                        else
+                        {
+                            return "HOVER";
+                        }
+                    }
+                    else
+                    {
+                        return "STAND";
+                    }
+
                 }
                 else
                 {
-                    return "STAND";
+                    //We're not colliding.
+                    if (PhysicsActor.Flying)
+                    {
+
+                        return "HOVER";
+
+                    }
+                    else if ((m_movementAnimation == "JUMP" || m_movementAnimation == "PREJUMP") && (m_movementflag & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) == 0)
+                    {
+
+                        return "JUMP";
+
+                    }
+                    else
+                    {
+                        //Record the time we enter this state so we know whether to "land" or not
+                        m_animPersistUntil = DateTime.Now.Ticks;
+                        return "FALLDOWN";
+                    }
                 }
             }
         }
@@ -2012,8 +2142,18 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected void UpdateMovementAnimations()
         {
-            string animation = GetMovementAnimation();
-            TrySetMovementAnimation(animation);
+            string movementAnimation = GetMovementAnimation();
+        
+            if (movementAnimation == "FALLDOWN" && m_allowFalling == false)
+            {
+                movementAnimation = m_movementAnimation;
+            }
+            else
+            {
+                m_movementAnimation = movementAnimation; 
+            }
+            
+            TrySetMovementAnimation(movementAnimation);
         }
 
         /// <summary>
