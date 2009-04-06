@@ -5,7 +5,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    interface ISocialEntity
+    public interface ISocialEntity
     {
         UUID GlobalID { get; }
         string Name { get; }

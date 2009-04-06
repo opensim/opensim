@@ -86,6 +86,15 @@ namespace OpenSim.Region.CoreModules.World.Land
             return obj;
         }
 
+        public ILandObject GetLandObject(int localID)
+        {
+            if (m_landManagementModule != null)
+            {
+                return m_landManagementModule.GetLandObject(localID);
+            }
+            return null;
+        }
+
         public ILandObject GetLandObject(int x, int y)
         {
             if (m_landManagementModule != null)

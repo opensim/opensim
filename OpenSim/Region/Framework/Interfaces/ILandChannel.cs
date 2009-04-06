@@ -43,7 +43,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="y">Value between 0 - 256 on the y axis of the point</param>
         /// <returns>Land object at the point supplied</returns>           
         ILandObject GetLandObject(int x, int y);
-        
+
+        ILandObject GetLandObject(int localID);
+
         /// <summary>
         /// Get the land object at the specified point
         /// </summary>

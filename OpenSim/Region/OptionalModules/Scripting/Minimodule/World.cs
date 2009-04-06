@@ -26,6 +26,7 @@
  */
 
 using System.Collections.Generic;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
@@ -48,6 +49,23 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get { return m_objs; }
         }
+
+        public IParcel[] Parcels
+        {
+            get
+            {
+                List<ILandObject> m_los = m_internalScene.LandChannel.AllParcels();
+                List<IParcel> m_parcels = new List<IParcel>(m_los.Count);
+
+                foreach (ILandObject landObject in m_los)
+                {
+                    m_parcels.Add(new LOParcel(m_internalScene, landObject.landData.LocalID));
+                }
+
+                return m_parcels.ToArray();
+            }
+        }
+
 
         public IAvatar[] Avatars
         {
