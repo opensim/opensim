@@ -1,5 +1,7 @@
 NANT	= $(shell if test "$$EMACS" = "t" ; then echo "nant"; else echo "./nant-color"; fi)
 
+include $(wildcard Makefile.local)
+
 all: prebuild
 	# @export PATH=/usr/local/bin:$(PATH)
 	${NANT}
