@@ -507,25 +507,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         == World.LandChannel.GetLandObject(
                             presence.AbsolutePosition.X, presence.AbsolutePosition.Y).landData.OwnerID)                        
                     {
-						
-						// Check for hostname , attempt to make a hglink 
-						// and convert the regionName to the target region
-						if ( regionName.Contains(".") && regionName.Contains(":"))
-						{
-							// Try to link the region
-							RegionInfo regInfo = HGHyperlink.TryLinkRegion(World, 
-							                                   presence.ControllingClient, 							               
-							                                   regionName);
-							// Get the region name 
-							if (regInfo != null)
-							{
-								regionName = regInfo.RegionName;	
-							}
-							else
-							{
-								// Might need to ping the client here in case of failure??
-							}
-						}
+                        
+                        // Check for hostname , attempt to make a hglink 
+                        // and convert the regionName to the target region
+                        if ( regionName.Contains(".") && regionName.Contains(":"))
+                        {
+                            // Try to link the region
+                            RegionInfo regInfo = HGHyperlink.TryLinkRegion(World, 
+                                                               presence.ControllingClient,                                            
+                                                               regionName);
+                            // Get the region name 
+                            if (regInfo != null)
+                            {
+                                regionName = regInfo.RegionName;    
+                            }
+                            else
+                            {
+                                // Might need to ping the client here in case of failure??
+                            }
+                        }
                         presence.ControllingClient.SendTeleportLocationStart();
                         World.RequestTeleportLocation(presence.ControllingClient, regionName,
                             new Vector3((float)position.x, (float)position.y, (float)position.z),

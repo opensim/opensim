@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -44,13 +44,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// <example>
         /// IObject deleteMe = World.Objects[0];
         /// 
-        /// if(deleteMe.Exists) {
+        /// if (deleteMe.Exists) {
         ///     deleteMe.Say("Hello, I still exist!");
         /// }
         /// 
         /// World.Objects.Remove(deleteMe);
         /// 
-        /// if(!deleteMe.Exists) {
+        /// if (!deleteMe.Exists) {
         ///     Host.Console.Info("I was deleted");
         /// }
         /// </example>
