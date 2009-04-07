@@ -68,7 +68,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         public float geomDefaultDensity = 10.000006836f;
 
         private float avPIDD = 65f;
-        private float avPIDP = 28f;
+        private float avPIDP = 21f;
         private float avCapRadius = 0.37f;
         private float avStandupTensor = 2000000f;
         private float avDensity = 80f;

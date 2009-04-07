@@ -916,6 +916,11 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     // we're in mid air suspended
                     vec.X = ((m_target_velocity.X / movementdivisor) - vel.X) * (PID_D / 6);
                     vec.Y = ((m_target_velocity.Y / movementdivisor) - vel.Y) * (PID_D / 6);
+
+                    // We don't want linear velocity to cause our avatar to bounce, so we check target Z and actual velocity X, Y
+                    // rebound preventing
+                    if (m_target_velocity.Z < 0.025f && m_velocity.X < 0.25f && m_velocity.Y < 0.25f)
+                        m_zeroFlag = true;
                 }
 
                 if (m_iscolliding && !m_flying && m_target_velocity.Z > 0.0f)
@@ -957,7 +962,19 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             }
             if (m_flying)
             {
-                //vec.Z += ((-1 * m_parent_scene.gravityz) * m_mass);
+                // Slight PID correction
+                vec.Z += (((-1 * m_parent_scene.gravityz) * m_mass) * 0.035f);
+
+
+                //auto fly height. Kitto Flora
+                //d.Vector3 pos = d.BodyGetPosition(Body);
+                float target_altitude = m_parent_scene.GetTerrainHeightAtXY(m_position.X, m_position.Y) + 5.0f;
+
+                if (m_position.Z < target_altitude)
+                {
+                    vec.Z += (target_altitude - m_position.Z) * PID_P * 5.0f;
+                }
+
             }
             if (Body != null && (((m_target_velocity.X > 0.2f || m_target_velocity.X < -0.2f) || (m_target_velocity.Y > 0.2f || m_target_velocity.Y < -0.2f))))
             {
@@ -1036,7 +1053,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 m_velocity.Y = (vec.Y);
 
                 m_velocity.Z = (vec.Z);
-
+                //m_log.Debug(m_target_velocity);
                 if (m_velocity.Z < -6 && !m_hackSentFall)
                 {
                     m_hackSentFall = true;
