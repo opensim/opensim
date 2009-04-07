@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.CoreModules.Avatar.Currency.SampleMoney;
 using OpenSim.Region.CoreModules;
 using OpenSim.Region;
 using OpenSim.Region.Framework.Scenes;

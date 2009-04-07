@@ -40,7 +40,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.CoreModules.Avatar.Currency.SampleMoney;
 using OpenSim.Region.CoreModules.World.Land;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Scenes;
