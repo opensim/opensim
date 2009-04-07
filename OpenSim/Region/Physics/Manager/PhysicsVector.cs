@@ -153,6 +153,20 @@ namespace OpenSim.Region.Physics.Manager
             return v*f;
         }
 
+        public static bool isFinite(PhysicsVector v)
+        {
+            if (v == null)
+                return false;
+            if (Single.IsInfinity(v.X) || Single.IsNaN(v.X))
+                return false;
+            if (Single.IsInfinity(v.Y) || Single.IsNaN(v.Y))
+                return false;
+            if (Single.IsInfinity(v.Z) || Single.IsNaN(v.Z))
+                return false;
+
+            return true;
+        }
+
         public virtual bool IsIdentical(PhysicsVector v, float tolerance)
         {
             PhysicsVector diff = this - v;

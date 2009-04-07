@@ -2325,7 +2325,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsVector Size
         {
             get { return _size; }
-            set { _size = value; }
+            set
+            {
+                if (PhysicsVector.isFinite(value))
+                {
+                    _size = value;
+                }
+                else
+                {
+                    m_log.Warn("[PHYSICS]: Got NaN Size on object");
+                }
+            }
         }
 
         public override float Mass
@@ -2337,7 +2347,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             //get { return PhysicsVector.Zero; }
             get { return m_force; }
-            set { m_force = value; }
+            set
+            {
+                if (PhysicsVector.isFinite(value))
+                {
+                    m_force = value;
+                }
+                else
+                {
+                    m_log.Warn("[PHYSICS]: NaN in Force Applied to an Object");
+                }
+            }
         }
 
         public override int VehicleType
@@ -2402,10 +2422,18 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set
             {
-                _velocity = value;
+                if (PhysicsVector.isFinite(value))
+                {
+                    _velocity = value;
 
-                m_taintVelocity = value;
-                _parent_scene.AddPhysicsActorTaint(this);
+                    m_taintVelocity = value;
+                    _parent_scene.AddPhysicsActorTaint(this);
+                }
+                else
+                {
+                    m_log.Warn("[PHYSICS]: Got NaN Velocity in Object");
+                }
+
             }
         }
 
@@ -2421,8 +2449,15 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             set
             {
-                m_taintTorque = value;
-                _parent_scene.AddPhysicsActorTaint(this);
+                if (PhysicsVector.isFinite(value))
+                {
+                    m_taintTorque = value;
+                    _parent_scene.AddPhysicsActorTaint(this);
+                }
+                else
+                {
+                    m_log.Warn("[PHYSICS]: Got NaN Torque in Object");
+                }
             }
         }
 
@@ -2441,7 +2476,27 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override Quaternion Orientation
         {
             get { return _orientation; }
-            set { _orientation = value; }
+            set
+            {
+                if (QuaternionIsFinite(value))
+                    _orientation = value;
+                else
+                    m_log.Warn("[PHYSICS]: Got NaN quaternion Orientation from Scene in Object");
+
+            }
+        }
+
+        internal static bool QuaternionIsFinite(Quaternion q)
+        {
+            if (Single.IsNaN(q.X) || Single.IsInfinity(q.X))
+                return false;
+            if (Single.IsNaN(q.Y) || Single.IsInfinity(q.Y))
+                return false;
+            if (Single.IsNaN(q.Z) || Single.IsInfinity(q.Z))
+                return false;
+            if (Single.IsNaN(q.W) || Single.IsInfinity(q.W))
+                return false;
+            return true;
         }
 
         public override PhysicsVector Acceleration
@@ -2457,15 +2512,29 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void AddForce(PhysicsVector force, bool pushforce)
         {
-            m_forcelist.Add(force);
-            m_taintforce = true;
+            if (PhysicsVector.isFinite(force))
+            {
+                m_forcelist.Add(force);
+                m_taintforce = true;
+            }
+            else
+            {
+                m_log.Warn("[PHYSICS]: Got Invalid linear force vector from Scene in Object");
+            }
             //m_log.Info("[PHYSICS]: Added Force:" + force.ToString() +  " to prim at " + Position.ToString());
         }
 
         public override void AddAngularForce(PhysicsVector force, bool pushforce)
         {
-            m_angularforcelist.Add(force);
-            m_taintaddangularforce = true;
+            if (PhysicsVector.isFinite(force))
+            {
+                m_angularforcelist.Add(force);
+                m_taintaddangularforce = true;
+            }
+            else
+            {
+                m_log.Warn("[PHYSICS]: Got Invalid Angular force vector from Scene in Object");
+            }
         }
 
         public override PhysicsVector RotationalVelocity
@@ -2482,7 +2551,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 return m_rotationalVelocity;
             }
-            set { m_rotationalVelocity = value; }
+            set
+            {
+                if (PhysicsVector.isFinite(value))
+                {
+                    m_rotationalVelocity = value;
+                }
+                else
+                {
+                    m_log.Warn("[PHYSICS]: Got NaN RotationalVelocity in Object");
+                }
+            }
         }
 
         public override void CrossingFailure()
@@ -2518,12 +2597,18 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void LockAngularMotion(PhysicsVector axis)
         {
             // reverse the zero/non zero values for ODE.
-
-            axis.X = (axis.X > 0) ? 1f : 0f;
-            axis.Y = (axis.Y > 0) ? 1f : 0f;
-            axis.Z = (axis.Z > 0) ? 1f : 0f;
-            m_log.DebugFormat("[axislock]: <{0},{1},{2}>", axis.X, axis.Y, axis.Z);
-            m_taintAngularLock = new PhysicsVector(axis.X, axis.Y, axis.Z); ;
+            if (PhysicsVector.isFinite(axis))
+            {
+                axis.X = (axis.X > 0) ? 1f : 0f;
+                axis.Y = (axis.Y > 0) ? 1f : 0f;
+                axis.Z = (axis.Z > 0) ? 1f : 0f;
+                m_log.DebugFormat("[axislock]: <{0},{1},{2}>", axis.X, axis.Y, axis.Z);
+                m_taintAngularLock = new PhysicsVector(axis.X, axis.Y, axis.Z);
+            }
+            else
+            {
+                m_log.Warn("[PHYSICS]: Got NaN locking axis from Scene on Object");
+            }
         }
 
         public void UpdatePositionAndVelocity()
@@ -2734,7 +2819,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
         }
 
-        public override PhysicsVector PIDTarget { set { m_PIDTarget = value; ; } }
+        public override PhysicsVector PIDTarget 
+        { 
+            set
+            {
+                if (PhysicsVector.isFinite(value))
+                    m_PIDTarget = value; 
+                else 
+                    m_log.Warn("[PHYSICS]: Got NaN PIDTarget from Scene on Object");
+            } 
+        }
         public override bool PIDActive { set { m_usePID = value; } }
         public override float PIDTau { set { m_PIDTau = value; } }
 
