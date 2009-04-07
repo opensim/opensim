@@ -4048,10 +4048,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 cachedresp.WearableData[i].HostName = new byte[0];
             }
 
-            // Temporarily throw these packets on to the wind queue, so we can identify whether these
-            // are somehow the source of the packet bloat.
             cachedresp.Header.Zerocoded = true;
-            OutPacket(cachedresp, ThrottleOutPacketType.Wind);
+            OutPacket(cachedresp, ThrottleOutPacketType.Texture);
+            
             return true;
         }
 
