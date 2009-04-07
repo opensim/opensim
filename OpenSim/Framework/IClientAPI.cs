@@ -53,6 +53,9 @@ namespace OpenSim.Framework
 
     public delegate UUID RezSingleAttachmentFromInv(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
 
+    public delegate void RezMultipleAttachmentsFromInv(IClientAPI remoteClient, RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
+                                                       RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects);
+
     public delegate void ObjectAttach(
         IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, bool silent);
 
@@ -566,6 +569,7 @@ namespace OpenSim.Framework
         // [Obsolete("LLClientView Specific - Replace and rename OnAvatarUpdate. Difference from SetAppearance?")]
         event AvatarNowWearing OnAvatarNowWearing;
         event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
+        event RezMultipleAttachmentsFromInv OnRezMultipleAttachmentsFromInv;
         event UUIDNameRequest OnDetachAttachmentIntoInv;
         event ObjectAttach OnObjectAttach;
         event ObjectDeselect OnObjectDetach;

@@ -169,6 +169,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
         public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
+        public event RezMultipleAttachmentsFromInv OnRezMultipleAttachmentsFromInv;
         public event UUIDNameRequest OnDetachAttachmentIntoInv;
         public event ObjectAttach OnObjectAttach;
         public event ObjectDeselect OnObjectDetach;

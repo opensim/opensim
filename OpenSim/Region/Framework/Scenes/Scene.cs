@@ -1935,6 +1935,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnDeRezObject += DeRezObject;
             client.OnRezObject += RezObject;
             client.OnRezSingleAttachmentFromInv += RezSingleAttachment;
+            client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachments;
             client.OnDetachAttachmentIntoInv += DetachSingleAttachmentToInv;
             client.OnObjectAttach += m_sceneGraph.AttachObject;
             client.OnObjectDetach += m_sceneGraph.DetachObject;

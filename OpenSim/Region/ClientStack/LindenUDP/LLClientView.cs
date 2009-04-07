@@ -142,6 +142,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private SetAppearance handlerSetAppearance; //OnSetAppearance;
         private AvatarNowWearing handlerAvatarNowWearing; //OnAvatarNowWearing;
         private RezSingleAttachmentFromInv handlerRezSingleAttachment; //OnRezSingleAttachmentFromInv;
+        private RezMultipleAttachmentsFromInv handlerRezMultipleAttachments; //OnRezMultipleAttachmentsFromInv;
         private UUIDNameRequest handlerDetachAttachmentIntoInv; // Detach attachment!
         private ObjectAttach handlerObjectAttach; //OnObjectAttach;
         private SetAlwaysRun handlerSetAlwaysRun; //OnSetAlwaysRun;
@@ -916,6 +917,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
         public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
+        public event RezMultipleAttachmentsFromInv OnRezMultipleAttachmentsFromInv;
         public event UUIDNameRequest OnDetachAttachmentIntoInv;
         public event ObjectAttach OnObjectAttach;
         public event ObjectDeselect OnObjectDetach;
@@ -4713,6 +4715,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         RezSingleAttachmentFromInvPacket rez = (RezSingleAttachmentFromInvPacket)Pack;
                         handlerRezSingleAttachment(this, rez.ObjectData.ItemID,
                                                    rez.ObjectData.AttachmentPt);
+                    }
+
+                    break;
+
+                case PacketType.RezMultipleAttachmentsFromInv:
+                    handlerRezMultipleAttachments = OnRezMultipleAttachmentsFromInv;
+                    if (handlerRezMultipleAttachments != null)
+                    {
+                        RezMultipleAttachmentsFromInvPacket rez = (RezMultipleAttachmentsFromInvPacket)Pack;
+                        handlerRezMultipleAttachments(this, rez.HeaderData,
+                                                      rez.ObjectData);
                     }
 
                     break;

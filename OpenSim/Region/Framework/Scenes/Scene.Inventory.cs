@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Text;
 using System.Timers;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -2561,6 +2562,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             }
             return att.UUID;
+        }
+
+        public void RezMultipleAttachments(IClientAPI remoteClient, RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
+                                       RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects)
+        {
+            foreach (RezMultipleAttachmentsFromInvPacket.ObjectDataBlock obj in objects)
+            {
+                RezSingleAttachment(remoteClient, obj.ItemID, obj.AttachmentPt);
+            }
         }
 
         public void AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos, bool silent)
