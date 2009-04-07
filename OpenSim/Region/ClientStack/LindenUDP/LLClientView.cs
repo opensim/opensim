@@ -4049,7 +4049,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             cachedresp.Header.Zerocoded = true;
-            OutPacket(cachedresp, ThrottleOutPacketType.Texture);
+            OutPacket(cachedresp, ThrottleOutPacketType.Task);
             
             return true;
         }
