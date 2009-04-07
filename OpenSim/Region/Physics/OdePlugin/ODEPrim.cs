@@ -173,6 +173,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             //gc = GCHandle.Alloc(prim_geom, GCHandleType.Pinned);
             ode = dode;
             _velocity = new PhysicsVector();
+            if (!PhysicsVector.isFinite(pos))
+            {
+                pos = new PhysicsVector(128, 128, parent_scene.GetTerrainHeightAtXY(128, 128) + 0.5f);
+                m_log.Warn("[PHYSICS]: Got nonFinite Object create Position");
+            }
             _position = pos;
             m_taintposition = pos;
             PID_D = parent_scene.bodyPIDD;
@@ -185,6 +190,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             prim_geom = IntPtr.Zero;
             prev_geom = IntPtr.Zero;
 
+            if (!PhysicsVector.isFinite(pos))
+            {
+                size = new PhysicsVector(0.5f, 0.5f, 0.5f);
+                m_log.Warn("[PHYSICS]: Got nonFinite Object create Size");
+            }
+
             if (size.X <= 0) size.X = 0.01f;
             if (size.Y <= 0) size.Y = 0.01f;
             if (size.Z <= 0) size.Z = 0.01f;
@@ -193,6 +204,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintsize = _size;
             _acceleration = new PhysicsVector();
             m_rotationalVelocity = PhysicsVector.Zero;
+
+            if (!QuaternionIsFinite(rotation))
+            {
+                rotation = Quaternion.Identity;
+                m_log.Warn("[PHYSICS]: Got nonFinite Object create Rotation");
+            }
+
             _orientation = rotation;
             m_taintrot = _orientation;
             _mesh = mesh;

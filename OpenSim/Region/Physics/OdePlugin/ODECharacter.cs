@@ -133,11 +133,24 @@ namespace OpenSim.Region.Physics.OdePlugin
             // ode = dode;
             _velocity = new PhysicsVector();
             _target_velocity = new PhysicsVector();
-            _position = pos;
 
-            m_taintPosition.X = pos.X;
-            m_taintPosition.Y = pos.Y;
-            m_taintPosition.Z = pos.Z;
+
+            if (PhysicsVector.isFinite(pos))
+            {
+                _position = pos;
+                m_taintPosition.X = pos.X;
+                m_taintPosition.Y = pos.Y;
+                m_taintPosition.Z = pos.Z;
+            }
+            else
+            {
+                _position = new PhysicsVector(128,128,parent_scene.GetTerrainHeightAtXY(128,128) + 10);
+                m_taintPosition.X = _position.X;
+                m_taintPosition.Y = _position.Y;
+                m_taintPosition.Z = _position.Z;
+                m_log.Warn("[PHYSICS]: Got NaN Position on Character Create");
+            }
+
 
             _acceleration = new PhysicsVector();
             _parent_scene = parent_scene;
