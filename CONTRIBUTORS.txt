@@ -60,6 +60,7 @@ Patches
 * Grumly57
 * Fly-Man
 * Flyte Xevious
+* Intimidated
 * jhurliman
 * jimbo2120 (IBM)
 * John R Sohn (XenReborn)

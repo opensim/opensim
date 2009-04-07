@@ -82,14 +82,18 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
 
         public void WindUpdate(uint frame)
         {
-            for (int y = 0; y < 16; y++)
+            //Make sure our object is valid (we haven't been disposed of yet)
+            if (m_windSpeeds != null)
             {
-                for (int x = 0; x < 16; x++)
+                for (int y = 0; y < 16; y++)
                 {
-                    m_windSpeeds[y * 16 + x].X = (float)(m_rndnums.NextDouble() * 2d - 1d); // -1 to 1
-                    m_windSpeeds[y * 16 + x].Y = (float)(m_rndnums.NextDouble() * 2d - 1d); // -1 to 1
-                    m_windSpeeds[y * 16 + x].X *= m_strength;
-                    m_windSpeeds[y * 16 + x].Y *= m_strength;
+                    for (int x = 0; x < 16; x++)
+                    {
+                        m_windSpeeds[y * 16 + x].X = (float)(m_rndnums.NextDouble() * 2d - 1d); // -1 to 1
+                        m_windSpeeds[y * 16 + x].Y = (float)(m_rndnums.NextDouble() * 2d - 1d); // -1 to 1
+                        m_windSpeeds[y * 16 + x].X *= m_strength;
+                        m_windSpeeds[y * 16 + x].Y *= m_strength;
+                    }
                 }
             }            
         }
