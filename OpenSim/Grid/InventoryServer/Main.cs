@@ -44,7 +44,7 @@ namespace OpenSim.Grid.InventoryServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private GridInventoryService m_inventoryService;
-        private HGInventoryService m_directInventoryService;
+        //private HGInventoryService m_directInventoryService;
 
         public const string LogName = "INVENTORY";
 
@@ -83,7 +83,7 @@ namespace OpenSim.Grid.InventoryServer
 
             m_log.Info("[" + LogName + "]: Started HTTP server");
 
-            m_directInventoryService = new HGInventoryService(m_inventoryService, config.AssetServerURL, config.UserServerURL, m_httpServer, config.InventoryServerURL);
+            //m_directInventoryService = new HGInventoryService(m_inventoryService, config.AssetServerURL, config.UserServerURL, m_httpServer, config.InventoryServerURL);
 
             base.StartupSpecific();
 

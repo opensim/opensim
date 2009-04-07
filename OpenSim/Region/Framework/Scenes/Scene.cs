@@ -1744,8 +1744,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (sp != null)
             {
                 uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);
-                SceneObjectGroup sog = m_sceneGraph.RezSingleAttachment(sp.ControllingClient, itemID, attPt);
+                m_sceneGraph.RezSingleAttachment(sp.ControllingClient, itemID, attPt);
             }
+            
             return false;
         }
 

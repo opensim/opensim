@@ -654,7 +654,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             if (args["itemid"] != null)
                 itemID = args["itemid"].AsUUID();
 
-            UUID regionID = m_localBackend.GetRegionID(regionhandle);
+            //UUID regionID = m_localBackend.GetRegionID(regionhandle);
 
             // This is the meaning of PUT object
             bool result = m_localBackend.SendCreateObject(regionhandle, userID, itemID);

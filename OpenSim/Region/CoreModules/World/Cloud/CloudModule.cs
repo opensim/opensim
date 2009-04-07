@@ -37,8 +37,8 @@ namespace OpenSim.Region.CoreModules
 {
     public class CloudModule : ICloudModule
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly log4net.ILog m_log 
+//            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private Random m_rndnums = new Random(Environment.TickCount);
         private Scene m_scene = null;

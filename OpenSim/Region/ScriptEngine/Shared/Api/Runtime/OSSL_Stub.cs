@@ -91,18 +91,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osWindActiveModelPluginName();
         }
-
-        void osWindParamSet(string plugin, string param, float value)
-        {
-            m_OSSL_Functions.osWindParamSet(plugin, param, value);
-        }
-
-        float osWindParamGet(string plugin, string param)
-        {
-            return m_OSSL_Functions.osWindParamGet(plugin, param);
-        }
-
-
+       
+// Not yet plugged in as available OSSL functions, so commented out        
+//        void osWindParamSet(string plugin, string param, float value)
+//        {
+//            m_OSSL_Functions.osWindParamSet(plugin, param, value);
+//        }
+//
+//        float osWindParamGet(string plugin, string param)
+//        {
+//            return m_OSSL_Functions.osWindParamGet(plugin, param);
+//        }
 
         public double osList2Double(LSL_Types.list src, int index)
         {
