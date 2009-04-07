@@ -187,8 +187,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             
             newPrim = new BulletDotNETPrim(name, this, pos, siz, rot, mesh, pbs, isphysical);
 
-            lock (m_prims)
-                m_prims.Add(newPrim);
+            //lock (m_prims)
+            //    m_prims.Add(newPrim);
             
 
             return newPrim;
@@ -267,6 +267,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 foreach (BulletDotNETPrim prim in m_prims)
                 {
+                    if (prim != null)
                     prim.Move(timeStep);
                 }
             }
@@ -279,6 +280,10 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
             foreach (BulletDotNETPrim prm in m_activePrims)
             {
+                /*
+                if (prm != null)
+                    if (prm.Body != null)
+                */
                 prm.UpdatePositionAndVelocity();
             }
 
@@ -487,6 +492,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 {
                     m_world.removeRigidBody(body);
                 }
+                remActivePrim(prm);
                 m_prims.Remove(prm);
             }
 
@@ -662,6 +668,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 {
                     m_prims.Add(pPrim);
                     m_world.addRigidBody(pPrim.Body);
+                    m_log.Debug("ADDED");
                 }
             }
         }

@@ -178,6 +178,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private btTransform tempTransform3;
         private btTransform tempTransform4;
         private btTriangleIndexVertexArray btshapeArray;
+        private bool forceenable = false;
 
         public btRigidBody Body;
 
@@ -722,66 +723,103 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
             if (m_taintadd)
             {
+                m_log.Debug("[PHYSICS]: TaintAdd");
                 changeadd(timestep);
             }
 
             if (prim_geom.Handle == IntPtr.Zero)
             {
                 CreateGeom(IntPtr.Zero, primMesh);
-                
+
                 if (IsPhysical)
                     SetBody(Mass);
                 else
                     SetBody(0);
+                m_log.Debug("[PHYSICS]: GEOM_DOESNT_EXSIT");
 
             }
-            
-            if (!_position.IsIdentical(m_taintposition, 0f))
-                changemove(timestep);
 
+            if (!_position.IsIdentical(m_taintposition, 0f))
+            {
+                m_log.Debug("[PHYSICS]: TaintMove");
+                changemove(timestep);
+            }
             if (m_taintrot != _orientation)
+            {
+                m_log.Debug("[PHYSICS]: TaintRotate");
                 rotate(timestep);
-            //
+            } //
 
             if (m_taintPhysics != m_isphysical && !(m_taintparent != _parent))
+            {
+                m_log.Debug("[PHYSICS]: TaintPhysics");
                 changePhysicsStatus(timestep);
+            }
             //
 
             if (!_size.IsIdentical(m_taintsize, 0))
+            {
+                m_log.Debug("[PHYSICS]: TaintSize");
                 changesize(timestep);
-            //
+            }
+
+        //
 
             if (m_taintshape)
+            {
+                m_log.Debug("[PHYSICS]: TaintShape");
                 changeshape(timestep);
-            //
+            } //
 
             if (m_taintforce)
+            {
+                m_log.Debug("[PHYSICS]: TaintForce");
                 changeAddForce(timestep);
-
+            }
             if (m_taintaddangularforce)
+            {
+                m_log.Debug("[PHYSICS]: TaintAngularForce");
                 changeAddAngularForce(timestep);
-
+            }
             if (!m_taintTorque.IsIdentical(PhysicsVector.Zero, 0.001f))
+            {
+                m_log.Debug("[PHYSICS]: TaintTorque");
                 changeSetTorque(timestep);
-
+            }
             if (m_taintdisable)
+            {
+                m_log.Debug("[PHYSICS]: TaintDisable");
                 changedisable(timestep);
-
+            }
             if (m_taintselected != m_isSelected)
+            {
+                m_log.Debug("[PHYSICS]: TaintSelected");
                 changeSelectedStatus(timestep);
-
+            }
             if (!m_taintVelocity.IsIdentical(PhysicsVector.Zero, 0.001f))
+            {
+                m_log.Debug("[PHYSICS]: TaintVelocity");
                 changevelocity(timestep);
-
+            }
             if (m_taintparent != _parent)
+            {
+                m_log.Debug("[PHYSICS]: TaintLink");
                 changelink(timestep);
-
+            }
             if (m_taintCollidesWater != m_collidesWater)
+            {
                 changefloatonwater(timestep);
-
+            }
             if (!m_angularlock.IsIdentical(m_taintAngularLock, 0))
+            {
+                m_log.Debug("[PHYSICS]: TaintAngularLock");
                 changeAngularLock(timestep);
-            
+            }
+            if (m_taintremove)
+            {
+                DisposeOfBody();
+                Dispose();
+            }
 
         }
 
@@ -789,19 +827,41 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         private void changeadd(float timestep)
         {
-            if (_mesh == null)
+            //SetCollisionShape(null);
+            // Construction of new prim
+            if (Body != null)
             {
-                if (_parent_scene.needsMeshing(_pbs))
+                if (Body.Handle != IntPtr.Zero)
                 {
-                    // Don't need to re-enable body..   it's done in SetMesh
-                    _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
-                    // createmesh returns null when it's a shape that isn't a cube.
+                    _parent_scene.removeFromWorld(this, Body);
+                    //Body.Dispose();
                 }
+                //Body = null;
+                // TODO: dispose parts that make up body
             }
-            CreateGeom(IntPtr.Zero, primMesh);
+            if (_parent_scene.needsMeshing(_pbs))
+            {
+                // Don't need to re-enable body..   it's done in SetMesh
+                float meshlod = _parent_scene.meshSculptLOD;
 
-            enableBody();
-            changeSelectedStatus(timestep);
+                if (IsPhysical)
+                    meshlod = _parent_scene.MeshSculptphysicalLOD;
+
+                IMesh mesh = _parent_scene.mesher.CreateMesh(SOPName, _pbs, _size, meshlod, IsPhysical);
+                // createmesh returns null when it doesn't mesh.
+                CreateGeom(IntPtr.Zero, mesh);
+            }
+            else
+            {
+                _mesh = null;
+                CreateGeom(IntPtr.Zero, null);
+            }
+
+            if (IsPhysical)
+                SetBody(Mass);
+            else
+                SetBody(0);
+            //changeSelectedStatus(timestep);
             m_taintadd = false;
 
         }
@@ -809,7 +869,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private void changemove(float timestep)
         {
 
-
+            m_log.Debug("[PHYSICS]: _________ChangeMove");
             tempTransform2 = Body.getWorldTransform();
             btQuaternion quat = tempTransform2.getRotation();
             tempPosition2.setValue(_position.X, _position.Y, _position.Z);
@@ -825,7 +885,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         private void rotate(float timestep)
         {
-
+            m_log.Debug("[PHYSICS]: _________ChangeRotate");
             tempTransform2 = Body.getWorldTransform();
             tempOrientation2 = new btQuaternion(_orientation.X, _orientation.Y, _orientation.Z, _orientation.W);
             tempTransform2.setRotation(tempOrientation2);
@@ -837,54 +897,100 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         private void changePhysicsStatus(float timestep)
         {
-            SetCollisionShape(prim_geom);
-            SetBody(Mass);
-            changeSelectedStatus(timestep);
+            if (Body != null)
+            {
+                if (Body.Handle != IntPtr.Zero)
+                {
+                    _parent_scene.removeFromWorld(this, Body);
+                    //Body.Dispose();
+                }
+                //Body = null;
+                // TODO: dispose parts that make up body
+            }
+            m_log.Debug("[PHYSICS]: _________ChangePhysics");
+            if (_parent_scene.needsMeshing(_pbs))
+            {
+                // Don't need to re-enable body..   it's done in SetMesh
+                float meshlod = _parent_scene.meshSculptLOD;
 
+                if (IsPhysical)
+                    meshlod = _parent_scene.MeshSculptphysicalLOD;
+
+                IMesh mesh = _parent_scene.mesher.CreateMesh(SOPName, _pbs, _size, meshlod, IsPhysical);
+                // createmesh returns null when it doesn't mesh.
+                CreateGeom(IntPtr.Zero, mesh);
+            }
+            else
+            {
+                _mesh = null;
+                CreateGeom(IntPtr.Zero, null);
+            }
+            SetCollisionShape(prim_geom);
+            if (m_isphysical)
+                SetBody(Mass);
+            else
+                SetBody(0);
+            changeSelectedStatus(timestep);
+            
             resetCollisionAccounting();
             m_taintPhysics = m_isphysical;
         }
 
         private void changesize(float timestep)
         {
+            if (Body != null)
+            {
+                if (Body.Handle != IntPtr.Zero)
+                {
+                    _parent_scene.removeFromWorld(this, Body);
+                    //Body.Dispose();
+                }
+                //Body = null;
+                // TODO: dispose parts that make up body
+            }
+
+            m_log.Debug("[PHYSICS]: _________ChangeSize");
             SetCollisionShape(null);
             // Construction of new prim
             if (_parent_scene.needsMeshing(_pbs))
             {
+                // Don't need to re-enable body..   it's done in SetMesh
                 float meshlod = _parent_scene.meshSculptLOD;
 
                 if (IsPhysical)
                     meshlod = _parent_scene.MeshSculptphysicalLOD;
-                // Don't need to re-enable body..   it's done in SetMesh
 
-                IMesh mesh = null;
-
-                if (_parent_scene.needsMeshing(_pbs))
-                    mesh = _parent_scene.mesher.CreateMesh(SOPName, _pbs, _size, meshlod, IsPhysical);
-
-                //IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
-
+                IMesh mesh = _parent_scene.mesher.CreateMesh(SOPName, _pbs, _size, meshlod, IsPhysical);
+                // createmesh returns null when it doesn't mesh.
                 CreateGeom(IntPtr.Zero, mesh);
-
-
             }
             else
             {
                 _mesh = null;
-                CreateGeom(IntPtr.Zero, _mesh);
+                CreateGeom(IntPtr.Zero, null);
             }
             
             if (IsPhysical)
                 SetBody(Mass);
             else
                 SetBody(0);
-
+            
             m_taintsize = _size;
 
         }
 
         private void changeshape(float timestep)
         {
+            if (Body != null)
+            {
+                if (Body.Handle != IntPtr.Zero)
+                {
+                    _parent_scene.removeFromWorld(this, Body);
+                    //Body.Dispose();
+                }
+                //Body = null;
+                // TODO: dispose parts that make up body
+            }
             // Cleanup of old prim geometry and Bodies
             if (IsPhysical && Body != null && Body.Handle != IntPtr.Zero)
             {
@@ -898,12 +1004,12 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 }
                 else
                 {
-                    disableBody();
+                    //disableBody();
                 }
             }
             try
             {
-                SetCollisionShape(null);
+                //SetCollisionShape(null);
             }
             catch (System.AccessViolationException)
             {
@@ -968,6 +1074,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 }
             }
             resetCollisionAccounting();
+            
             m_taintshape = false;
         }
 
@@ -1004,6 +1111,16 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private void changeSelectedStatus(float timestep)
         {
             // TODO: throw new NotImplementedException();
+            if (m_taintselected)
+            {
+                disableBodySoft();
+            }
+            else
+            {
+                enableBodySoft();
+            }
+            m_isSelected = m_taintselected;
+            
         }
 
         private void changevelocity(float timestep)
@@ -1584,6 +1701,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         public void CreateGeom(IntPtr m_targetSpace, IMesh p_mesh)
         {
+            m_log.Debug("[PHYSICS]: _________CreateGeom");
             if (p_mesh != null)
             {
                 _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
@@ -1631,7 +1749,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             // TODO: Set Collision Body Mesh
             // This sleeper is there to moderate how long it takes between
             // setting up the mesh and pre-processing it when we get rapid fire mesh requests on a single object
-
+            m_log.Debug("_________SetMesh");
             Thread.Sleep(10);
 
             //Kill Body so that mesh can re-make the geom
@@ -1647,7 +1765,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 }
                 else
                 {
-                    disableBody();
+                    //disableBody();
                 }
             }
 
@@ -1683,11 +1801,12 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         private void SetCollisionShape(btCollisionShape shape)
         {
+            /*
             if (shape == null)
                 m_log.Debug("[PHYSICS]:SetShape!Null");
             else
                 m_log.Debug("[PHYSICS]:SetShape!");
-
+            
             if (Body != null)
             {
                 DisposeOfBody();
@@ -1698,6 +1817,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 prim_geom.Dispose();
                 prim_geom = null;
             }
+             */
             prim_geom = shape;
            
             //Body.set
@@ -1705,12 +1825,13 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         public void SetBody(float mass)
         {
-            m_log.DebugFormat("[PHYSICS]: SetBody! {0}",mass);
+            //m_log.DebugFormat("[PHYSICS]: SetBody! {0}",mass);
+            /*
             if (Body != null && Body.Handle != IntPtr.Zero)
             {
                 DisposeOfBody();
             }
-
+            */
             if (tempMotionState1 != null && tempMotionState1.Handle != IntPtr.Zero)
                 tempMotionState1.Dispose();
             if (tempTransform2 != null && tempTransform2.Handle != IntPtr.Zero)
@@ -1728,18 +1849,41 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             if (tempInertia1 != null && tempInertia1.Handle != IntPtr.Zero)
                 tempInertia1.Dispose();
             tempInertia1 = new btVector3(0, 0, 0);
+            /*
             if (prim_geom.Handle == IntPtr.Zero)
             {
                 m_log.Warn("[PHYSICS]:PrimGeom is Disposed!");
-                CreateGeom(IntPtr.Zero, primMesh);
+                if (_parent_scene.needsMeshing(_pbs))
+                {
+                    // Don't need to re-enable body..   it's done in SetMesh
+                    float meshlod = _parent_scene.meshSculptLOD;
+
+                    if (IsPhysical)
+                        meshlod = _parent_scene.MeshSculptphysicalLOD;
+
+                    IMesh mesh = _parent_scene.mesher.CreateMesh(SOPName, _pbs, _size, meshlod, IsPhysical);
+                    // createmesh returns null when it doesn't mesh.
+                    CreateGeom(IntPtr.Zero, mesh);
+                }
+                else
+                {
+                    _mesh = null;
+                    CreateGeom(IntPtr.Zero, null);
+                }
 
             }
+            */
+
             prim_geom.calculateLocalInertia(mass, tempInertia1);
 
-            if (mass == 0)
-                Body = new btRigidBody(mass, tempMotionState1, prim_geom);
+            if (mass != 0)
+                _parent_scene.addActivePrim(this);
             else
-                Body = new btRigidBody(mass, tempMotionState1, prim_geom, tempInertia1);
+                _parent_scene.remActivePrim(this);
+
+           //     Body = new btRigidBody(mass, tempMotionState1, prim_geom);
+            //else
+            Body = new btRigidBody(mass, tempMotionState1, prim_geom, tempInertia1);
 
             if (prim_geom is btGImpactMeshShape)
             {
@@ -1810,6 +1954,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         public void disableBody()
         {
             //this kills the body so things like 'mesh' can re-create it.
+            /*
             lock (this)
             {
                 if (!childPrim)
@@ -1861,6 +2006,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 }
                 
             }
+            */
             m_disabled = true;
             m_collisionscore = 0;
         }
@@ -1885,7 +2031,9 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 if (m_isphysical && Body.Handle != IntPtr.Zero)
                 {
                     Body.clearForces();
-                    Body.forceActivationState(1);
+                    Body.forceActivationState(4);
+                    forceenable = true;
+                    
                 }
                 m_disabled = false;
             }
@@ -1922,8 +2070,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 PhysicsVector pv = new PhysicsVector(0, 0, 0);
                 bool lastZeroFlag = _zeroFlag;
-                if (tempPosition2 != null && tempPosition2.Handle != IntPtr.Zero)
-                    tempPosition2.Dispose();
+                if (tempPosition3 != null && tempPosition3.Handle != IntPtr.Zero)
+                    tempPosition3.Dispose();
                 if (tempTransform3 != null && tempTransform3.Handle != IntPtr.Zero)
                     tempTransform3.Dispose();
 
@@ -1939,7 +2087,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
 
                 tempTransform3 = Body.getInterpolationWorldTransform();
-                tempPosition2 = tempTransform3.getOrigin(); // vec
+                tempPosition3 = tempTransform3.getOrigin(); // vec
                 tempOrientation2 = tempTransform3.getRotation(); // ori
                 tempAngularVelocity1 = Body.getInterpolationAngularVelocity(); //rotvel
                 tempLinearVelocity1 = Body.getInterpolationLinearVelocity(); // vel
@@ -1950,9 +2098,9 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 m_lastposition = _position;
                 m_lastorientation = _orientation;
 
-                l_position.X = tempPosition2.getX();
-                l_position.Y = tempPosition2.getY();
-                l_position.Z = tempPosition2.getZ();
+                l_position.X = tempPosition3.getX();
+                l_position.Y = tempPosition3.getY();
+                l_position.Z = tempPosition3.getZ();
                 l_orientation.X = tempOrientation2.getX();
                 l_orientation.Y = tempOrientation2.getY();
                 l_orientation.Z = tempOrientation2.getZ();
@@ -2103,6 +2251,11 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                    
                 }
                 m_lastposition = l_position;
+                if (forceenable)
+                {
+                    Body.forceActivationState(1);
+                    forceenable = false;
+                }
             }
             else
             {
