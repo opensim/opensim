@@ -73,22 +73,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestllAngleBetween(new Vector3(1, 0, 0), 0);
             TestllAngleBetween(new Vector3(1, 0, 0), 90);
             TestllAngleBetween(new Vector3(1, 0, 0), 180);
-            TestllAngleBetween(new Vector3(1, 0, 0), 270);
+            //TestllAngleBetween(new Vector3(1, 0, 0), 270); // angles cant be larger than 180
 
             TestllAngleBetween(new Vector3(0, 1, 0), 0);
             TestllAngleBetween(new Vector3(0, 1, 0), 90);
             TestllAngleBetween(new Vector3(0, 1, 0), 180);
-            TestllAngleBetween(new Vector3(0, 1, 0), 270);
+            //TestllAngleBetween(new Vector3(0, 1, 0), 270);
 
             TestllAngleBetween(new Vector3(0, 0, 1), 0);
             TestllAngleBetween(new Vector3(0, 0, 1), 90);
             TestllAngleBetween(new Vector3(0, 0, 1), 180);
-            TestllAngleBetween(new Vector3(0, 0, 1), 270);
+            //TestllAngleBetween(new Vector3(0, 0, 1), 270);
 
             TestllAngleBetween(new Vector3(1, 1, 1), 0);
             TestllAngleBetween(new Vector3(1, 1, 1), 90);
             TestllAngleBetween(new Vector3(1, 1, 1), 180);
-            TestllAngleBetween(new Vector3(1, 1, 1), 270);
+            //TestllAngleBetween(new Vector3(1, 1, 1), 270);
         }
 
         private void TestllAngleBetween(Vector3 axis,float originalAngle)
