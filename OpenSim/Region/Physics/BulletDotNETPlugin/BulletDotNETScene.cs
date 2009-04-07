@@ -118,12 +118,14 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
             mesher = meshmerizer;
             m_config = config;
+            /*
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 m_log.Fatal("[BulletDotNET]: This configuration is not supported on *nix currently");
                 Thread.Sleep(5000);
                 Environment.Exit(0);
             }
+            */
             m_broadphase = new btAxisSweep3(worldAabbMin, worldAabbMax, 16000);
             m_collisionConfiguration = new btDefaultCollisionConfiguration();
             m_solver = new btSequentialImpulseConstraintSolver();
