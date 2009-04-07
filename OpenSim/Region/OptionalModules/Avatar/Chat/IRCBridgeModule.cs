@@ -148,8 +148,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             if (!enabled)
                 return;
 
+            if (region == null)
+                return;
+
             region.Close();
-            lock (m_regions) m_regions.Remove(region);
+
+            if(m_regions.Contains(region))
+            {
+                lock (m_regions) m_regions.Remove(region);
+            }
+
         }
 
         #endregion
