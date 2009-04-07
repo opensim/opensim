@@ -4277,7 +4277,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            return (double) Math.Acos(a.x * b.x + a.y * b.y + a.z * b.z + a.s * b.s) * 2;
+            double angle = Math.Acos(a.x * b.x + a.y * b.y + a.z * b.z + a.s * b.s) * 2;
+            if (angle < 0) angle = -angle;
+            if (angle > Math.PI) return (Math.PI * 2 - angle);
+            return angle; 
         }
 
         public LSL_String llGetInventoryKey(string name)
