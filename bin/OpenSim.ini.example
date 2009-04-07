@@ -1070,6 +1070,10 @@
     ; up the system to malicious scripters
     ; NotecardLineReadCharsMax = 255
 
+    ; Sensor settings
+    SensorMaxRange = 96.0
+    SensorMaxResults = 16
+
     ; OS Functions enable/disable
     ; For each function, you can add one line, as shown
     ; The default for all functions allows them if below threat level

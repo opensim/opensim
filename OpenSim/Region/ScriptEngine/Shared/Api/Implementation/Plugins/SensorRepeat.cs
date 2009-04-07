@@ -43,6 +43,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         public SensorRepeat(AsyncCommandManager CmdManager)
         {
             m_CmdManager = CmdManager;
+            maximumRange = CmdManager.m_ScriptEngine.Config.GetDouble("SensorMaxRange", 96.0d);
+            maximumToReturn = CmdManager.m_ScriptEngine.Config.GetInt("SensorMaxResults", 16);
         }
 
         private Object SenseLock = new Object();
