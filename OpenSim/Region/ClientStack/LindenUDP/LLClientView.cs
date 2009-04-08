@@ -5269,6 +5269,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 case PacketType.ObjectLink:
                     ObjectLinkPacket link = (ObjectLinkPacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (link.AgentData.SessionID != SessionId ||
+                            link.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     uint parentprimid = 0;
                     List<uint> childrenprims = new List<uint>();
                     if (link.ObjectData.Length > 1)
@@ -5289,6 +5299,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 
                 case PacketType.ObjectDelink:
                     ObjectDelinkPacket delink = (ObjectDelinkPacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (delink.AgentData.SessionID != SessionId ||
+                            delink.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
 
                     // It appears the prim at index 0 is not always the root prim (for
                     // instance, when one prim of a link set has been edited independently
@@ -5311,6 +5330,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (OnAddPrim != null)
                     {
                         ObjectAddPacket addPacket = (ObjectAddPacket)Pack;
+
+                        #region Packet Session and User Check
+                        if (m_checkPackets)
+                        {
+                            if (addPacket.AgentData.SessionID != SessionId ||
+                                addPacket.AgentData.AgentID != AgentId)
+                                break;
+                        }
+                        #endregion
+
                         PrimitiveBaseShape shape = GetShapeFromAddPacket(addPacket);
                         // m_log.Info("[REZData]: " + addPacket.ToString());
                         //BypassRaycast: 1
@@ -5329,6 +5358,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 
                 case PacketType.ObjectShape:
                     ObjectShapePacket shapePacket = (ObjectShapePacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (shapePacket.AgentData.SessionID != SessionId ||
+                            shapePacket.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     handlerUpdatePrimShape = null;
                     for (int i = 0; i < shapePacket.ObjectData.Length; i++)
                     {
@@ -5365,6 +5404,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.ObjectExtraParams:
                     ObjectExtraParamsPacket extraPar = (ObjectExtraParamsPacket)Pack;
 
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (extraPar.AgentData.SessionID != SessionId ||
+                            extraPar.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     handlerUpdateExtraParams = OnUpdateExtraParams;
                     if (handlerUpdateExtraParams != null)
                     {
@@ -5375,6 +5423,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
                 case PacketType.ObjectDuplicate:
                     ObjectDuplicatePacket dupe = (ObjectDuplicatePacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (dupe.AgentData.SessionID != SessionId ||
+                            dupe.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     ObjectDuplicatePacket.AgentDataBlock AgentandGroupData = dupe.AgentData;
 
                     handlerObjectDuplicate = null;
@@ -5395,6 +5453,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.ObjectSelect:
                     ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
 
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (incomingselect.AgentData.SessionID != SessionId ||
+                            incomingselect.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     handlerObjectSelect = null;
 
                     for (int i = 0; i < incomingselect.ObjectData.Length; i++)
@@ -5408,6 +5475,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
                 case PacketType.ObjectDeselect:
                     ObjectDeselectPacket incomingdeselect = (ObjectDeselectPacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (incomingdeselect.AgentData.SessionID != SessionId ||
+                            incomingdeselect.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
 
                     handlerObjectDeselect = null;
 
@@ -5424,6 +5500,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // DEPRECATED: but till libsecondlife removes it, people will use it
                     ObjectPositionPacket position = (ObjectPositionPacket)Pack;
 
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (position.AgentData.SessionID != SessionId ||
+                            position.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
+
                     for (int i = 0; i < position.ObjectData.Length; i++)
                     {
                         handlerUpdateVector = OnUpdatePrimGroupPosition;
@@ -5435,6 +5521,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.ObjectScale:
                     // DEPRECATED: but till libsecondlife removes it, people will use it
                     ObjectScalePacket scale = (ObjectScalePacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (scale.AgentData.SessionID != SessionId ||
+                            scale.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
 
                     for (int i = 0; i < scale.ObjectData.Length; i++)
                     {
@@ -5448,6 +5543,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // DEPRECATED: but till libsecondlife removes it, people will use it
                     ObjectRotationPacket rotation = (ObjectRotationPacket)Pack;
 
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (rotation.AgentData.SessionID != SessionId ||
+                            rotation.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     for (int i = 0; i < rotation.ObjectData.Length; i++)
                     {
                         handlerUpdatePrimRotation = OnUpdatePrimGroupRotation;
@@ -5458,6 +5562,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
                 case PacketType.ObjectFlagUpdate:
                     ObjectFlagUpdatePacket flags = (ObjectFlagUpdatePacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (flags.AgentData.SessionID != SessionId ||
+                            flags.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
 
                     handlerUpdatePrimFlags = OnUpdatePrimFlags;
 
@@ -5490,6 +5603,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.ObjectGrab:
                     ObjectGrabPacket grab = (ObjectGrabPacket)Pack;
 
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (grab.AgentData.SessionID != SessionId ||
+                            grab.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     handlerGrabObject = OnGrabObject;
 
                     if (handlerGrabObject != null)
@@ -5514,6 +5636,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
                 case PacketType.ObjectGrabUpdate:
                     ObjectGrabUpdatePacket grabUpdate = (ObjectGrabUpdatePacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (grabUpdate.AgentData.SessionID != SessionId ||
+                            grabUpdate.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
 
                     handlerGrabUpdate = OnGrabUpdate;
 
@@ -5541,6 +5672,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.ObjectDeGrab:
                     ObjectDeGrabPacket deGrab = (ObjectDeGrabPacket)Pack;
 
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (deGrab.AgentData.SessionID != SessionId ||
+                            deGrab.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     handlerDeGrabObject = OnDeGrabObject;
                     if (handlerDeGrabObject != null)
                     {
@@ -5551,6 +5691,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //m_log.Warn("[CLIENT]: unhandled ObjectSpinStart packet");
                     ObjectSpinStartPacket spinStart = (ObjectSpinStartPacket)Pack;
 
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (spinStart.AgentData.SessionID != SessionId ||
+                            spinStart.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     handlerSpinStart = OnSpinStart;
                     if (handlerSpinStart != null)
                     {
@@ -5560,6 +5709,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.ObjectSpinUpdate:
                     //m_log.Warn("[CLIENT]: unhandled ObjectSpinUpdate packet");
                     ObjectSpinUpdatePacket spinUpdate = (ObjectSpinUpdatePacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (spinUpdate.AgentData.SessionID != SessionId ||
+                            spinUpdate.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     Vector3 axis;
                     float angle;
                     spinUpdate.ObjectData.Rotation.GetAxisAngle(out axis, out angle);
@@ -5575,6 +5734,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //m_log.Warn("[CLIENT]: unhandled ObjectSpinStop packet");
                     ObjectSpinStopPacket spinStop = (ObjectSpinStopPacket)Pack;
 
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (spinStop.AgentData.SessionID != SessionId ||
+                            spinStop.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     handlerSpinStop = OnSpinStop;
                     if (handlerSpinStop != null)
                     {
@@ -5584,6 +5752,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 case PacketType.ObjectDescription:
                     ObjectDescriptionPacket objDes = (ObjectDescriptionPacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (objDes.AgentData.SessionID != SessionId ||
+                            objDes.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
 
                     handlerObjectDescription = null;
 
@@ -5615,6 +5792,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (OnObjectPermissions != null)
                     {
                         ObjectPermissionsPacket newobjPerms = (ObjectPermissionsPacket)Pack;
+
+                        #region Packet Session and User Check
+                        if (m_checkPackets)
+                        {
+                            if (newobjPerms.AgentData.SessionID != SessionId ||
+                                newobjPerms.AgentData.AgentID != AgentId)
+                                break;
+                        }
+                        #endregion
 
                         UUID AgentID = newobjPerms.AgentData.AgentID;
                         UUID SessionID = newobjPerms.AgentData.SessionID;
@@ -5653,6 +5839,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 case PacketType.Undo:
                     UndoPacket undoitem = (UndoPacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (undoitem.AgentData.SessionID != SessionId ||
+                            undoitem.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     if (undoitem.ObjectData.Length > 0)
                     {
                         for (int i = 0; i < undoitem.ObjectData.Length; i++)
@@ -5669,6 +5865,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
                 case PacketType.ObjectDuplicateOnRay:
                     ObjectDuplicateOnRayPacket dupeOnRay = (ObjectDuplicateOnRayPacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (dupeOnRay.AgentData.SessionID != SessionId ||
+                            dupeOnRay.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
 
                     handlerObjectDuplicateOnRay = null;
 
@@ -5690,6 +5895,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //This powers the little tooltip that appears when you move your mouse over an object
                     RequestObjectPropertiesFamilyPacket packToolTip = (RequestObjectPropertiesFamilyPacket)Pack;
 
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (packToolTip.AgentData.SessionID != SessionId ||
+                            packToolTip.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     RequestObjectPropertiesFamilyPacket.ObjectDataBlock packObjBlock = packToolTip.ObjectData;
 
                     handlerRequestObjectPropertiesFamily = OnRequestObjectPropertiesFamily;
@@ -5705,6 +5919,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //This lets us set objects to appear in search (stuff like DataSnapshot, etc)
                     ObjectIncludeInSearchPacket packInSearch = (ObjectIncludeInSearchPacket)Pack;
                     handlerObjectIncludeInSearch = null;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (packInSearch.AgentData.SessionID != SessionId ||
+                            packInSearch.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
 
                     foreach (ObjectIncludeInSearchPacket.ObjectDataBlock objData in packInSearch.ObjectData)
                     {
@@ -5723,6 +5946,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.ScriptAnswerYes:
                     ScriptAnswerYesPacket scriptAnswer = (ScriptAnswerYesPacket)Pack;
 
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (scriptAnswer.AgentData.SessionID != SessionId ||
+                            scriptAnswer.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
                     handlerScriptAnswer = OnScriptAnswer;
                     if (handlerScriptAnswer != null)
                     {
@@ -5732,6 +5964,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 case PacketType.ObjectClickAction:
                     ObjectClickActionPacket ocpacket = (ObjectClickActionPacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (ocpacket.AgentData.SessionID != SessionId ||
+                            ocpacket.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
 
                     handlerObjectClickAction = OnObjectClickAction;
                     if (handlerObjectClickAction != null)
@@ -5747,6 +5988,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 case PacketType.ObjectMaterial:
                     ObjectMaterialPacket ompacket = (ObjectMaterialPacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (ompacket.AgentData.SessionID != SessionId ||
+                            ompacket.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
 
                     handlerObjectMaterial = OnObjectMaterial;
                     if (handlerObjectMaterial != null)
