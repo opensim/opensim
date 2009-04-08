@@ -181,7 +181,7 @@ namespace OpenSim.Data.MSSQL
                     }
                 }
             }
-            m_log.InfoFormat("[INVENTORY DB] : FOund no inventory folder with ID : {0}", folderID);
+            m_log.InfoFormat("[INVENTORY DB] : Found no inventory folder with ID : {0}", folderID);
             return null;
         }
 
@@ -244,7 +244,7 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[ASSET DB] Error : {0}", e.Message);
+                    m_log.ErrorFormat("[INVENTORY DB]: Error : {0}", e.Message);
                 }
             }
         }
@@ -277,7 +277,7 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[ASSET DB] Error : {0}", e.Message);
+                    m_log.ErrorFormat("[INVENTORY DB]: Error : {0}", e.Message);
                 }
             }
         }
@@ -300,7 +300,7 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[ASSET DB] Error : {0}", e.Message);
+                    m_log.ErrorFormat("[INVENTORY DB]: Error : {0}", e.Message);
                 }
             }
         }
@@ -385,7 +385,8 @@ namespace OpenSim.Data.MSSQL
                     }
                 }
             }
-            m_log.InfoFormat("[INVENTORY DB] : Found no inventory item with ID : {0}", itemID);
+            
+            m_log.InfoFormat("[INVENTORY DB]: Found no inventory item with ID : {0}", itemID);
             return null;
         }
 
@@ -424,7 +425,7 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(database.CreateParameter("inventoryNextPermissions", item.NextPermissions));
                 command.Parameters.Add(database.CreateParameter("inventoryCurrentPermissions", item.CurrentPermissions));
                 command.Parameters.Add(database.CreateParameter("invType", item.InvType));
-                command.Parameters.Add(database.CreateParameter("creatorID", item.Creator));
+                command.Parameters.Add(database.CreateParameter("creatorID", item.CreatorId));
                 command.Parameters.Add(database.CreateParameter("inventoryBasePermissions", item.BasePermissions));
                 command.Parameters.Add(database.CreateParameter("inventoryEveryOnePermissions", item.EveryOnePermissions));
                 command.Parameters.Add(database.CreateParameter("inventoryGroupPermissions", item.GroupPermissions));
@@ -441,7 +442,7 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[INVENTORY DB] Error inserting item :" + e.Message);
+                    m_log.Error("[INVENTORY DB]: Error inserting item :" + e.Message);
                 }
             }
 
@@ -498,7 +499,7 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(database.CreateParameter("inventoryNextPermissions", item.NextPermissions));
                 command.Parameters.Add(database.CreateParameter("inventoryCurrentPermissions", item.CurrentPermissions));
                 command.Parameters.Add(database.CreateParameter("invType", item.InvType));
-                command.Parameters.Add(database.CreateParameter("creatorID", item.Creator));
+                command.Parameters.Add(database.CreateParameter("creatorID", item.CreatorIdAsUuid));
                 command.Parameters.Add(database.CreateParameter("inventoryBasePermissions", item.BasePermissions));
                 command.Parameters.Add(database.CreateParameter("inventoryEveryOnePermissions", item.EveryOnePermissions));
                 command.Parameters.Add(database.CreateParameter("salePrice", item.SalePrice));
@@ -515,7 +516,7 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[INVENTORY DB] Error updating item :" + e.Message);
+                    m_log.Error("[INVENTORY DB]: Error updating item :" + e.Message);
                 }
             }
         }
@@ -538,7 +539,7 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[INVENTORY DB] Error deleting item :" + e.Message);
+                    m_log.Error("[INVENTORY DB]: Error deleting item :" + e.Message);
                 }
             }
         }
@@ -725,7 +726,7 @@ namespace OpenSim.Data.MSSQL
                 item.NextPermissions = Convert.ToUInt32(reader["inventoryNextPermissions"]);
                 item.CurrentPermissions = Convert.ToUInt32(reader["inventoryCurrentPermissions"]);
                 item.InvType = Convert.ToInt32(reader["invType"].ToString());
-                item.Creator = new UUID((Guid)reader["creatorID"]);
+                item.CreatorId = ((Guid)reader["creatorID"]).ToString();
                 item.BasePermissions = Convert.ToUInt32(reader["inventoryBasePermissions"]);
                 item.EveryOnePermissions = Convert.ToUInt32(reader["inventoryEveryOnePermissions"]);
                 item.GroupPermissions = Convert.ToUInt32(reader["inventoryGroupPermissions"]);
@@ -740,7 +741,7 @@ namespace OpenSim.Data.MSSQL
             }
             catch (SqlException e)
             {
-                m_log.Error("[INVENTORY DB] Error reading inventory item :" + e.Message);
+                m_log.Error("[INVENTORY DB]: Error reading inventory item :" + e.Message);
             }
 
             return null;
@@ -764,7 +765,7 @@ namespace OpenSim.Data.MSSQL
             }
             catch (SqlException e)
             {
-                m_log.Error("[INVENTORY DB] Error deleting folder :" + e.Message);
+                m_log.Error("[INVENTORY DB]: Error deleting folder :" + e.Message);
             }
         }
 

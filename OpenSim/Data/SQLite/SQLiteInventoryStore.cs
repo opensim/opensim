@@ -143,7 +143,7 @@ namespace OpenSim.Data.SQLite
             item.InvType = Convert.ToInt32(row["invType"]);
             item.Folder = new UUID((string) row["parentFolderID"]);
             item.Owner = new UUID((string) row["avatarID"]);
-            item.Creator = new UUID((string) row["creatorsID"]);
+            item.CreatorId = (string)row["creatorsID"];
             item.Name = (string) row["inventoryName"];
             item.Description = (string) row["inventoryDescription"];
 
@@ -176,7 +176,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        ///
+        /// Fill a database row with item data
         /// </summary>
         /// <param name="row"></param>
         /// <param name="item"></param>
@@ -188,7 +188,7 @@ namespace OpenSim.Data.SQLite
             row["invType"] = item.InvType;
             row["parentFolderID"] = Util.ToRawUuidString(item.Folder);
             row["avatarID"] = Util.ToRawUuidString(item.Owner);
-            row["creatorsID"] = Util.ToRawUuidString(item.Creator);
+            row["creatorsID"] = Util.ToRawUuidString(item.CreatorIdAsUuid);
             row["inventoryName"] = item.Name;
             row["inventoryDescription"] = item.Description;
 
@@ -281,7 +281,7 @@ namespace OpenSim.Data.SQLite
                 DataRow inventoryRow = inventoryItemTable.Rows.Find(Util.ToRawUuidString(item.ID));
                 if (inventoryRow == null)
                 {
-                    if (! add)
+                    if (!add)
                         m_log.ErrorFormat("[INVENTORY DB]: Interface Misuse: Attempting to Update non-existant inventory item: {0}", item.ID);
 
                     inventoryRow = inventoryItemTable.NewRow();

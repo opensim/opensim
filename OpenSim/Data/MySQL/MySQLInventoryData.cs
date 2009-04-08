@@ -306,22 +306,20 @@ namespace OpenSim.Data.MySQL
             try
             {
                 InventoryItemBase item = new InventoryItemBase();
+                item.CreatorId = (string)reader["creatorID"];
+                
                 // Be a bit safer in parsing these because the
                 // database doesn't enforce them to be not null, and
                 // the inventory still works if these are weird in the
                 // db
-
                 UUID Owner = UUID.Zero;
-                UUID Creator = UUID.Zero;
                 UUID GroupID = UUID.Zero;
                 UUID.TryParse((string)reader["avatarID"], out Owner);
-                UUID.TryParse((string)reader["creatorID"], out Creator);
                 UUID.TryParse((string)reader["groupID"], out GroupID);
-                item.Owner = Owner;
-                item.Creator = Creator;
+                item.Owner = Owner;                
                 item.GroupID = GroupID;
 
-                // Rest of the parsing.  If these UUID's fail, we're dead anyway
+                // Rest of the parsing.  If these UUID's fail, we're dead anyway                
                 item.ID = new UUID((string) reader["inventoryID"]);
                 item.AssetID = new UUID((string) reader["assetID"]);
                 item.AssetType = (int) reader["assetType"];
@@ -480,7 +478,7 @@ namespace OpenSim.Data.MySQL
                 result.Parameters.AddWithValue("?inventoryCurrentPermissions",
                                                item.CurrentPermissions.ToString());
                 result.Parameters.AddWithValue("?invType", item.InvType);
-                result.Parameters.AddWithValue("?creatorID", item.Creator.ToString());
+                result.Parameters.AddWithValue("?creatorID", item.CreatorId);
                 result.Parameters.AddWithValue("?inventoryBasePermissions", item.BasePermissions);
                 result.Parameters.AddWithValue("?inventoryEveryOnePermissions", item.EveryOnePermissions);
                 result.Parameters.AddWithValue("?inventoryGroupPermissions", item.GroupPermissions);

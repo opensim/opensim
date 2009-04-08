@@ -1729,7 +1729,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     descend.ItemData[i] = new InventoryDescendentsPacket.ItemDataBlock();
                     descend.ItemData[i].ItemID = item.ID;
                     descend.ItemData[i].AssetID = item.AssetID;
-                    descend.ItemData[i].CreatorID = item.Creator;
+                    descend.ItemData[i].CreatorID = item.CreatorIdAsUuid;
                     descend.ItemData[i].BaseMask = item.BasePermissions;
                     descend.ItemData[i].Description = LLUtil.StringToPacketBytes(item.Description);
                     descend.ItemData[i].EveryoneMask = item.EveryOnePermissions;
@@ -1928,7 +1928,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             inventoryReply.InventoryData[0] = new FetchInventoryReplyPacket.InventoryDataBlock();
             inventoryReply.InventoryData[0].ItemID = item.ID;
             inventoryReply.InventoryData[0].AssetID = item.AssetID;
-            inventoryReply.InventoryData[0].CreatorID = item.Creator;
+            inventoryReply.InventoryData[0].CreatorID = item.CreatorIdAsUuid;
             inventoryReply.InventoryData[0].BaseMask = item.BasePermissions;
             inventoryReply.InventoryData[0].CreationDate = item.CreationDate;
 
@@ -1950,13 +1950,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             inventoryReply.InventoryData[0].SaleType = item.SaleType;
 
             inventoryReply.InventoryData[0].CRC =
-                Helpers.InventoryCRC(1000, 0, inventoryReply.InventoryData[0].InvType,
-                                     inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID,
-                                     inventoryReply.InventoryData[0].GroupID, 100,
-                                     inventoryReply.InventoryData[0].OwnerID, inventoryReply.InventoryData[0].CreatorID,
-                                     inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID,
-                                     FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
-                                     FULL_MASK_PERMISSIONS);
+                Helpers.InventoryCRC(
+                    1000, 0, inventoryReply.InventoryData[0].InvType,
+                    inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID,
+                    inventoryReply.InventoryData[0].GroupID, 100,
+                    inventoryReply.InventoryData[0].OwnerID, inventoryReply.InventoryData[0].CreatorID,
+                    inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID,
+                    FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
+                    FULL_MASK_PERMISSIONS);
             inventoryReply.Header.Zerocoded = true;
             OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
         }
@@ -2075,7 +2076,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             itemBlock.ItemID = item.ID;
             itemBlock.AssetID = item.AssetID;
-            itemBlock.CreatorID = item.Creator;
+            itemBlock.CreatorID = item.CreatorIdAsUuid;
             itemBlock.BaseMask = item.BasePermissions;
             itemBlock.Description = LLUtil.StringToPacketBytes(item.Description);
             itemBlock.EveryoneMask = item.EveryOnePermissions;
@@ -2138,7 +2139,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bulkUpdate.ItemData[0] = new BulkUpdateInventoryPacket.ItemDataBlock();
             bulkUpdate.ItemData[0].ItemID = item.ID;
             bulkUpdate.ItemData[0].AssetID = item.AssetID;
-            bulkUpdate.ItemData[0].CreatorID = item.Creator;
+            bulkUpdate.ItemData[0].CreatorID = item.CreatorIdAsUuid;
             bulkUpdate.ItemData[0].BaseMask = item.BasePermissions;
             bulkUpdate.ItemData[0].CreationDate = item.CreationDate;
             bulkUpdate.ItemData[0].Description = LLUtil.StringToPacketBytes(item.Description);
@@ -2186,7 +2187,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             InventoryReply.InventoryData[0] = new UpdateCreateInventoryItemPacket.InventoryDataBlock();
             InventoryReply.InventoryData[0].ItemID = Item.ID;
             InventoryReply.InventoryData[0].AssetID = Item.AssetID;
-            InventoryReply.InventoryData[0].CreatorID = Item.Creator;
+            InventoryReply.InventoryData[0].CreatorID = Item.CreatorIdAsUuid;
             InventoryReply.InventoryData[0].BaseMask = Item.BasePermissions;
             InventoryReply.InventoryData[0].Description = LLUtil.StringToPacketBytes(Item.Description);
             InventoryReply.InventoryData[0].EveryoneMask = Item.EveryOnePermissions;
@@ -6746,7 +6747,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     InventoryItemBase item = new InventoryItemBase();
                     item.ID = rezScriptx.InventoryBlock.ItemID;
                     item.Folder = rezScriptx.InventoryBlock.FolderID;
-                    item.Creator = rezScriptx.InventoryBlock.CreatorID;
+                    item.CreatorId = rezScriptx.InventoryBlock.CreatorID.ToString();
                     item.Owner = rezScriptx.InventoryBlock.OwnerID;
                     item.BasePermissions = rezScriptx.InventoryBlock.BaseMask;
                     item.CurrentPermissions = rezScriptx.InventoryBlock.OwnerMask;

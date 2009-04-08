@@ -1293,7 +1293,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             rdata.writer.WriteAttributeString("uuid", String.Empty, i.ID.ToString());
             rdata.writer.WriteAttributeString("folder", String.Empty, i.Folder.ToString());
             rdata.writer.WriteAttributeString("owner", String.Empty, i.Owner.ToString());
-            rdata.writer.WriteAttributeString("creator", String.Empty, i.Creator.ToString());
+            rdata.writer.WriteAttributeString("creator", String.Empty, i.CreatorId);
             rdata.writer.WriteAttributeString("creationdate", String.Empty, i.CreationDate.ToString());
             rdata.writer.WriteAttributeString("invtype", String.Empty, i.InvType.ToString());
             rdata.writer.WriteAttributeString("assettype", String.Empty, i.AssetType.ToString());
@@ -1392,7 +1392,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     || newf.Folder      != oldf.Folder
                     || newf.Description != oldf.Description
                     || newf.Owner       != oldf.Owner
-                    || newf.Creator     != oldf.Creator
+                    || newf.CreatorId   != oldf.CreatorId
                     || newf.AssetID     != oldf.AssetID
                     || newf.GroupID     != oldf.GroupID
                     || newf.GroupOwned  != oldf.GroupOwned
@@ -1676,7 +1676,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             result.ID          = UUID.Zero;
             result.Folder      = UUID.Zero;
             result.Owner       = ic.UserID;
-            result.Creator     = ic.UserID;
+            result.CreatorId   = ic.UserID.ToString();
             result.AssetID     = UUID.Zero;
             result.GroupID     = UUID.Zero;
             result.GroupOwned  = false;
@@ -1710,7 +1710,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                             result.InvType      =     Int32.Parse(ic.xml.Value);
                             break;
                         case "creator":
-                            result.Creator      = new UUID(ic.xml.Value);
+                            result.CreatorId    =     ic.xml.Value;
                             break;
                         case "assettype":
                             result.AssetType    =     Int32.Parse(ic.xml.Value);

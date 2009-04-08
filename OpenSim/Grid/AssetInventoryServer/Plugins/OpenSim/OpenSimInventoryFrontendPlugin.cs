@@ -598,7 +598,6 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             InventoryItemBase item = new InventoryItemBase();
 
-
             try
             {
                 using (XmlReader reader = XmlReader.Create(stream))
@@ -624,9 +623,8 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
                     ReadUUID(reader, "Folder", out dummyUUID);
                     item.Folder = dummyUUID;
-                    ReadUUID(reader, "Creator", out dummyUUID);
-                    item.Creator = dummyUUID;
 
+                    item.CreatorId = reader.ReadElementContentAsString("Creator", String.Empty);
                     item.Description = reader.ReadElementContentAsString("Description", String.Empty);
 
                     uint dummyUInt;
@@ -757,7 +755,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                         writer.WriteElementString("InvType", XmlConvert.ToString(item.InvType));
                         WriteUUID(writer, "Folder", item.Folder);
                         WriteUUID(writer, "Owner", item.Owner);
-                        WriteUUID(writer, "Creator", item.Creator);
+                        writer.WriteElementString("Creator", item.CreatorId);
                         writer.WriteElementString("Name", item.Name);
                         writer.WriteElementString("Description", item.Description);
                         writer.WriteElementString("NextPermissions", XmlConvert.ToString(item.NextPermissions));

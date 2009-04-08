@@ -211,7 +211,6 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
         }
 
-
         private void DoCreateItem(uint callbackID)
         {
             m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
@@ -223,7 +222,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             {
                 InventoryItemBase item = new InventoryItemBase();
                 item.Owner = ourClient.AgentId;
-                item.Creator = ourClient.AgentId;
+                item.CreatorId = ourClient.AgentId.ToString();
                 item.ID = UUID.Random();
                 item.AssetID = m_asset.FullID;
                 item.Description = m_description;

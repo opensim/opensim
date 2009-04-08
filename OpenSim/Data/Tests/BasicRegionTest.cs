@@ -606,7 +606,7 @@ namespace OpenSim.Data.Tests
             UUID owner = UUID.Random();
             i.Owner = owner;
             UUID creator = UUID.Random();
-            i.Creator = creator;
+            i.CreatorId = creator.ToString();
             string name = RandomName();
             i.Name = name;
             i.Description = name;
@@ -982,7 +982,7 @@ namespace OpenSim.Data.Tests
             i.ID = id;
             i.Folder = parent;
             i.Owner = owner;
-            i.Creator = owner;
+            i.CreatorId = owner.ToString();
             i.Name = name;
             i.Description = name;
             i.AssetID = asset;

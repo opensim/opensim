@@ -53,8 +53,16 @@ namespace OpenSim.Framework
         /// <summary>
         /// The creator of this item
         /// </summary>
-        private UUID _creator;
+        private string m_creatorId = String.Empty;
+        
+        /// <summary>
+        /// The creator of this item expressed as a UUID
+        /// </summary>
+        private UUID m_creatorIdAsUuid = UUID.Zero;
 
+        /// <summary>
+        ///
+        /// </summary>        
         private uint _nextPermissions;
 
         /// <summary>
@@ -129,10 +137,27 @@ namespace OpenSim.Framework
             set { _folder = value; }
         }
 
-        public UUID Creator
+        /// <value>
+        /// The creator ID
+        /// </value>        
+        public string CreatorId
         {
-            get { return _creator; }
-            set { _creator = value; }
+            get { return m_creatorId; }
+            set 
+            { 
+                m_creatorId = value;
+                
+                // For now, all IDs are UUIDs
+                UUID.TryParse(m_creatorId, out m_creatorIdAsUuid);
+            }
+        }
+        
+        /// <value>
+        /// The creator ID expressed as a UUID
+        /// </value>
+        public UUID CreatorIdAsUuid
+        {
+            get { return m_creatorIdAsUuid; }
         }
 
         public string Description

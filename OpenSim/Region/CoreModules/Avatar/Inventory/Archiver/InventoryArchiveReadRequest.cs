@@ -97,7 +97,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             item.InvType = Convert.ToInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("CreatorUUID");
-            item.Creator = UUID.Parse(reader.ReadString());
+            item.CreatorId = reader.ReadString();
             reader.ReadEndElement();
             reader.ReadStartElement("CreationDate");
             item.CreationDate = Convert.ToInt32(reader.ReadString());
@@ -329,7 +329,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                             // Don't use the item ID that's in the file
                             item.ID = UUID.Random();
 
-                            item.Creator = m_userInfo.UserProfile.ID;
+                            item.CreatorId = m_userInfo.UserProfile.ID.ToString();
                             item.Owner = m_userInfo.UserProfile.ID;
 
                             // Reset folder ID to the one in which we want to load it

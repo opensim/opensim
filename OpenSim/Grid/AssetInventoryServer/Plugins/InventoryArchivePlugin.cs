@@ -216,7 +216,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
             writer.WriteString(item.InvType.ToString());
             writer.WriteEndElement();
             writer.WriteStartElement("CreatorUUID");
-            writer.WriteString(item.Creator.ToString());
+            writer.WriteString(item.CreatorId);
             writer.WriteEndElement();
             writer.WriteStartElement("CreationDate");
             writer.WriteString(item.CreationDate.ToString());

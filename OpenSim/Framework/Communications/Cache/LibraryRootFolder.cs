@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = libOwner;
-            item.Creator = libOwner;
+            item.CreatorId = libOwner.ToString();
             item.ID = inventoryID;
             item.AssetID = assetID;
             item.Description = description;
@@ -159,7 +159,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = libOwner;
-            item.Creator = libOwner;
+            item.CreatorId = libOwner.ToString();
             item.ID = new UUID(config.GetString("inventoryID", ID.ToString()));
             item.AssetID = new UUID(config.GetString("assetID", item.ID.ToString()));
             item.Folder = new UUID(config.GetString("folderID", ID.ToString()));

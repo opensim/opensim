@@ -515,7 +515,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                         else if (Reader.LocalName == "Creator" && Reader.NamespaceURI == "" && !b13)
                         {
                             b13 = true;
-                            ob.@Creator = ReadObject_UUID(false, true);
+                            ob.@CreatorId = Reader.ReadElementString();
                         }
                         else if (Reader.LocalName == "Owner" && Reader.NamespaceURI == "" && !b12)
                         {
@@ -876,7 +876,7 @@ namespace OpenSim.Grid.AssetInventoryServer
                 WriteElementString("InvType", "", ob.@InvType.ToString(CultureInfo.InvariantCulture));
                 WriteObject_UUID(ob.@Folder, "Folder", "", false, false, true);
                 WriteObject_UUID(ob.@Owner, "Owner", "", false, false, true);
-                WriteObject_UUID(ob.@Creator, "Creator", "", false, false, true);
+                WriteElementString("Creator", "", ob.@CreatorId);
                 WriteElementString("Name", "", ob.@Name);
                 WriteElementString("Description", "", ob.@Description);
                 WriteElementString("NextPermissions", "", ob.@NextPermissions.ToString(CultureInfo.InvariantCulture));

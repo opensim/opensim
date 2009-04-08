@@ -819,7 +819,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             item.AssetType = (int)AssetType.CallingCard;
             item.BasePermissions = (uint)PermissionMask.Copy;
             item.CreationDate = Util.UnixTimeSinceEpoch();
-            item.Creator = creator;
+            item.CreatorId = creator.ToString();
             item.CurrentPermissions = item.BasePermissions;
             item.Description = "";
             item.EveryOnePermissions = (uint)PermissionMask.None;

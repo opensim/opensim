@@ -151,7 +151,7 @@ namespace OpenSim.Region.Framework.Scenes
                 taskItem.Name = item.Name;
                 taskItem.Description = item.Description;
                 taskItem.OwnerID = part.OwnerID; // Transfer ownership
-                taskItem.CreatorID = item.Creator;
+                taskItem.CreatorID = item.CreatorIdAsUuid;
                 taskItem.Type = item.AssetType;
                 taskItem.InvType = item.InvType;
 

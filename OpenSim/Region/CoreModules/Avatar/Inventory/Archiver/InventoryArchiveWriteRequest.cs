@@ -140,7 +140,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             writer.WriteString(inventoryItem.InvType.ToString());
             writer.WriteEndElement();
             writer.WriteStartElement("CreatorUUID");
-            writer.WriteString(inventoryItem.Creator.ToString());
+            writer.WriteString(inventoryItem.CreatorId);
             writer.WriteEndElement();
             writer.WriteStartElement("CreationDate");
             writer.WriteString(inventoryItem.CreationDate.ToString());
@@ -189,7 +189,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             m_archive.WriteFile(filename, sw.ToString());
 
-            UUID creatorId = inventoryItem.Creator;
+            UUID creatorId = inventoryItem.CreatorIdAsUuid;
             
             // Record the creator of this item
             m_userUuids[creatorId] = 1;

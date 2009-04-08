@@ -271,7 +271,7 @@ namespace OpenSim.Data.Tests
             i.ID = id;
             i.Folder = parent;
             i.Owner = owner;
-            i.Creator = owner;
+            i.CreatorId = owner.ToString();
             i.Name = name;
             i.Description = name;
             i.AssetID = asset;

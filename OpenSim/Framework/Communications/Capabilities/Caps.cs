@@ -440,7 +440,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             llsdItem.type = Enum.GetName(typeof(AssetType), invItem.AssetType).ToLower();
             llsdItem.inv_type = Enum.GetName(typeof(InventoryType), invItem.InvType).ToLower();
             llsdItem.permissions = new LLSDPermissions();
-            llsdItem.permissions.creator_id = invItem.Creator;
+            llsdItem.permissions.creator_id = invItem.CreatorIdAsUuid;
             llsdItem.permissions.base_mask = (int)invItem.CurrentPermissions;
             llsdItem.permissions.everyone_mask = (int)invItem.EveryOnePermissions;
             llsdItem.permissions.group_id = UUID.Zero;
@@ -789,7 +789,7 @@ namespace OpenSim.Framework.Communications.Capabilities
 
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = m_agentID;
-            item.Creator = m_agentID;
+            item.CreatorId = m_agentID.ToString();
             item.ID = inventoryItem;
             item.AssetID = asset.FullID;
             item.Description = assetDescription;

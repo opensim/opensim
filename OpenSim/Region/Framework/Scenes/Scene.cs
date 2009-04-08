@@ -3368,7 +3368,7 @@ namespace OpenSim.Region.Framework.Scenes
                     CommsManager.AssetCache.AddAsset(asset);
 
                     InventoryItemBase item = new InventoryItemBase();
-                    item.Creator = part.CreatorID;
+                    item.CreatorId = part.CreatorID.ToString();
 
                     item.ID = UUID.Random();
                     item.Owner = remoteClient.AgentId;
