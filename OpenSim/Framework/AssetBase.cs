@@ -62,12 +62,12 @@ namespace OpenSim.Framework
         {
             get
             {
-                return 
-                    Type == (sbyte) AssetType.Animation ||
-                    Type == (sbyte) AssetType.Gesture || 
-                    Type == (sbyte) AssetType.ImageJPEG || 
-                    Type == (sbyte) AssetType.ImageTGA ||
-                    Type == (sbyte) AssetType.LSLBytecode ||;
+                return
+                    (Type == (sbyte) AssetType.Animation ||
+                     Type == (sbyte) AssetType.Gesture ||
+                     Type == (sbyte) AssetType.ImageJPEG ||
+                     Type == (sbyte) AssetType.ImageTGA ||
+                     Type == (sbyte) AssetType.LSLBytecode);
             }
         }
 
