@@ -40,6 +40,12 @@ namespace OpenSim.Data.SQLite.Tests
         [TestFixtureSetUp]
         public void Init()
         {
+            if (System.Environment.GetEnvironmentVariable("CPU") == "ppc64")
+            {
+                System.Console.WriteLine(System.Environment.GetEnvironmentVariable("CPU"));
+                Assert.Ignore();
+            }
+
             SuperInit();
             file = Path.GetTempFileName() + ".db";
             connect = "URI=file:" + file + ",version=3";
