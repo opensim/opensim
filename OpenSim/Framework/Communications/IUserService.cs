@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 
@@ -46,6 +47,8 @@ namespace OpenSim.Framework.Communications
         /// <param name="userId">The target UUID</param>
         /// <returns>A user profile.  Returns null if no user profile is found.</returns>
         UserProfileData GetUserProfile(UUID userId);
+        
+        UserProfileData GetUserProfile(Uri uri);
 
         UserAgentData GetAgentByUUID(UUID userId);
 

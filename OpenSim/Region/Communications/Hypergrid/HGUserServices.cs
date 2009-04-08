@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using OpenMetaverse;
@@ -55,6 +56,11 @@ namespace OpenSim.Region.Communications.Hypergrid
         public UserProfileData ConvertXMLRPCDataToUserProfile(Hashtable data)
         {
             return m_remoteUserServices.ConvertXMLRPCDataToUserProfile(data);
+        }
+
+        public UserProfileData GetUserProfile(Uri uri)
+        {
+            throw new System.NotImplementedException();
         }
 
         /// <summary>

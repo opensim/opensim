@@ -73,16 +73,27 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(
                 assetData, Is.EqualTo(m_assetReceived.Data), "Asset data stored differs from asset data received");
         }
-                                
+
         private void AssetRequestCallback(UUID assetId, AssetBase asset)
         {
             m_assetIdReceived = assetId;
             m_assetReceived = asset;
-            
+
             lock (this)
             {
                 Monitor.PulseAll(this);
-            }                  
+            }
+        }
+
+        [Test]
+        public void ProcessAssetDataTest()
+        {
+            string url = "http://host/dir/";
+            string data = " creator_url " + url + " ";
+
+            AssetCache assetCache = new AssetCache();
+
+            Assert.AreEqual(" creator_id "+Util.GetHashGuid( url, AssetCache.AssetInfo.Secret )+" ", assetCache.ProcessAssetDataString( data ));
         }
     }
 }

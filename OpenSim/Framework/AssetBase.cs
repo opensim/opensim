@@ -49,6 +49,28 @@ namespace OpenSim.Framework
             m_metadata.Name = name;
         }
 
+        public bool IsTextualAsset
+        {
+            get
+            {
+                return !IsBinaryAsset;
+            }
+
+        }
+
+        public bool IsBinaryAsset
+        {
+            get
+            {
+                return 
+                    Type == (sbyte) AssetType.Animation ||
+                    Type == (sbyte) AssetType.Gesture || 
+                    Type == (sbyte) AssetType.ImageJPEG || 
+                    Type == (sbyte) AssetType.ImageTGA ||
+                    Type == (sbyte) AssetType.LSLBytecode ||;
+            }
+        }
+
         public virtual byte[] Data
         {
             get { return m_data; }

@@ -122,6 +122,11 @@ namespace OpenSim.Framework.Communications
             }
         }
 
+        public UserProfileData GetUserProfile(Uri uri)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public UserAgentData GetAgentByUUID(UUID userId)
         {
             foreach (IUserDataPlugin plugin in _plugins)

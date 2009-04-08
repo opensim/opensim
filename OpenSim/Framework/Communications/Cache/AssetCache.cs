@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using GlynnTucker.Cache;
 using log4net;
@@ -547,8 +548,48 @@ namespace OpenSim.Framework.Communications.Cache
                 req.RequestUser.SendAsset(req2);
 
             }
-
         }
+
+        public byte[] ProcessAssetData(byte[] assetData)
+        {
+            string data = Encoding.ASCII.GetString(assetData);
+
+            data = ProcessAssetDataString(data);
+
+            return Encoding.ASCII.GetBytes( data );
+        }
+
+        public string ProcessAssetDataString(string data)
+        {
+            Regex regex = new Regex("(creator_url|owner_url)\\s+(\\S+)");
+
+            data = regex.Replace(data, delegate(Match m)
+            {
+                string result = String.Empty;
+
+                string key = m.Groups[1].Captures[0].Value;
+
+                string value = m.Groups[2].Captures[0].Value;
+
+                Guid id = Util.GetHashGuid(value, AssetInfo.Secret);
+
+                switch (key)
+                {
+                    case "creator_url":
+                        result = "creator_id " + id;
+                        break;
+
+                    case "owner_url":
+                        result = "owner_id " + id;
+                        break;
+                }
+
+                return result;
+            });
+
+            return data;
+        }
+
 
         public class AssetRequest
         {
@@ -578,6 +619,8 @@ namespace OpenSim.Framework.Communications.Cache
                 Name = aBase.Name;
                 Description = aBase.Description;
             }
+
+            public const string Secret = "secret";
         }
 
         public class TextureImage : AssetBase

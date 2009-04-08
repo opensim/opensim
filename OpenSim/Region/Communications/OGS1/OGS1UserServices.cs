@@ -108,6 +108,11 @@ namespace OpenSim.Region.Communications.OGS1
             return userData;
         }
 
+        public UserProfileData GetUserProfile(Uri uri)
+        {
+            throw new System.NotImplementedException();
+        }
+
         /// <summary>
         /// Get a user agent from the user server
         /// </summary>
