@@ -2844,6 +2844,7 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="MySql.Data.dll"/>
+      <Reference name="OpenSim.Tests.Common"/>
       <Reference name="OpenSim.Data.Tests"/>
       <Reference name="OpenSim.Data.MySQL"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -2878,6 +2879,7 @@
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Data.NHibernate"/>
       <Reference name="OpenSim.Data.Tests"/>
+      <Reference name="OpenSim.Tests.Common"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenMetaverseTypes.dll"/>
@@ -2914,6 +2916,7 @@
       <Reference name="System.Data.SQLite.dll"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Data.Tests"/>
+      <Reference name="OpenSim.Tests.Common"/>
       <Reference name="OpenSim.Data.SQLite" />
       <Reference name="System.Drawing"/>
       <Reference name="OpenSim.Framework"/>
@@ -2947,6 +2950,7 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Console"/>

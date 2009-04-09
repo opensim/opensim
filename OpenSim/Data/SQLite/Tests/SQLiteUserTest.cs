@@ -28,6 +28,7 @@
 using System.IO;
 using NUnit.Framework;
 using OpenSim.Data.Tests;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Data.SQLite.Tests
 {
