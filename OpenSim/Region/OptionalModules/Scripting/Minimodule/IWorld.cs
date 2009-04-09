@@ -29,6 +29,13 @@ using System;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
+    public class NewUserEventArgs : EventArgs
+    {
+        public IAvatar Avatar;
+    }
+
+    public delegate void OnNewUserDelegate(IWorld sender, NewUserEventArgs e);
+
     public class ChatEventArgs : EventArgs
     {
         public string Text;
@@ -45,5 +52,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         IHeightmap Terrain { get; }
 
         event OnChatDelegate OnChat;
+        event OnNewUserDelegate OnNewUser;
     }
 }

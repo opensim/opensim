@@ -51,6 +51,47 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         #region Events
 
+        #region OnNewUser
+
+        private event OnNewUserDelegate _OnNewUser;
+        private bool _OnNewUserActive;
+
+        public event OnNewUserDelegate OnNewUser
+        {
+            add
+            {
+                if (!_OnNewUserActive)
+                {
+                    _OnNewUserActive = true;
+                    m_internalScene.EventManager.OnNewPresence += EventManager_OnNewPresence;
+                }
+
+                _OnNewUser += value;
+            }
+            remove
+            {
+                _OnNewUser -= value;
+
+                if (_OnNewUser == null)
+                {
+                    _OnNewUserActive = false;
+                    m_internalScene.EventManager.OnNewPresence -= EventManager_OnNewPresence;
+                }
+            }
+        }
+
+        void EventManager_OnNewPresence(ScenePresence presence)
+        {
+            if (_OnNewUser != null)
+            {
+                NewUserEventArgs e = new NewUserEventArgs();
+                e.Avatar = new SPAvatar(m_internalScene, presence.UUID);
+                _OnNewUser(this, e);
+            }
+        }
+
+        #endregion
+
         #region OnChat
         private event OnChatDelegate _OnChat;
         private bool _OnChatActive;
@@ -81,7 +122,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             }
         }
 
-        void EventManager_OnChatFromWorld(object sender, OpenSim.Framework.OSChatMessage chat)
+        void EventManager_OnChatFromWorld(object sender, OSChatMessage chat)
         {
             if (_OnChat != null)
             {
