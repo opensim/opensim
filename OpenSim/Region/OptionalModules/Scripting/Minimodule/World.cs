@@ -26,7 +26,10 @@
  */
 
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenSim.Framework;
+using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -34,6 +37,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
     public class World : IWorld 
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly Scene m_internalScene;
         private readonly Heightmap m_heights;
 
@@ -100,7 +105,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 return;
             }
             // Avatar?
-            if (chat.SenderObject != null && chat.SenderObject == null)
+            if (chat.Sender != null && chat.SenderObject == null)
             {
                 ChatEventArgs e = new ChatEventArgs();
                 e.Sender = new SPAvatar(m_internalScene, chat.SenderUUID);

@@ -38,11 +38,14 @@ namespace OpenSim
 
         void World_OnChat(IWorld sender, ChatEventArgs e)
         {
-            e.Text.Replace("s", "sh");
-            e.Text.Replace("S", "Sh");
-            e.Text += " ...hic!";
+            if(!e.Text.Contains("hic!"))
+            {
+                e.Text = e.Text.Replace("s", "sh");
+                e.Text = e.Text.Replace("S", "Sh");
+                e.Text += " ...hic!";
 
-            Host.Object.Say(e.Text);
+                Host.Object.Say(e.Text);
+            }
         }
 
         public override void Stop()
