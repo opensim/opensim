@@ -25,7 +25,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             AssetBase asset = new AssetBase();
             asset.FullID = UUID.Random();
             asset.Data = OpenJPEG.EncodeFromImage(data, lossless);
-            asset.Name = "MRMDynamicImage" + Util.RandomClass.Next(1, 10000);
+            asset.Name = "MRMDynamicImage";
             asset.Type = 0;
             asset.Description = "MRM Image";
             asset.Local = false;

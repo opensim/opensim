@@ -167,7 +167,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
                 for (int i = 0; i < rets.Length;i++ )
                 {
-                    //rets[i] = new ObjectFace 
+                    rets[i] = new SOPObjectMaterial(i, sop);
                 }
 
                 return rets;
