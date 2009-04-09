@@ -37,8 +37,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
     public class World : IWorld 
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
         private readonly Scene m_internalScene;
         private readonly Heightmap m_heights;
 
@@ -94,6 +92,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         private void HandleChatPacket(OSChatMessage chat)
         {
+            if(string.IsNullOrEmpty(chat.Message))
+                return;
+
             // Object?
             if (chat.Sender == null && chat.SenderObject != null)
             {
