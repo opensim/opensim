@@ -393,22 +393,26 @@ namespace OpenSim.Framework.Communications.Cache
 
         protected void ProcessReceivedAsset(bool IsTexture, AssetInfo assetInf)
         {            
+            if(!IsTexture && assetInf.ContainsReferences && false )
+            {
+                assetInf.Data = ProcessAssetData(assetInf.Data);
+            }
         }
 
         // See IAssetReceiver
-        public virtual void AssetNotFound(UUID assetID, bool IsTexture)
+        public virtual void AssetNotFound(UUID assetId, bool isTexture)
         {
-//            m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
+//            m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetId);
 
             // Remember the fact that this asset could not be found to prevent delays from repeated requests
-            m_memcache.Add(assetID, null, TimeSpan.FromHours(24));
+            m_memcache.Add(assetId, null, TimeSpan.FromHours(24));
 
             // Notify requesters for this asset
             AssetRequestsList reqList;
             lock (RequestLists)
             {
-                if (RequestLists.TryGetValue(assetID, out reqList))
-                    RequestLists.Remove(assetID);
+                if (RequestLists.TryGetValue(assetId, out reqList))
+                    RequestLists.Remove(assetId);
             }
 
             if (reqList != null)
@@ -418,7 +422,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 foreach (NewAssetRequest req in reqList.Requests)
                 {
-                    req.Callback(assetID, null);
+                    req.Callback(assetId, null);
                 }
             }
         }
@@ -554,12 +558,12 @@ namespace OpenSim.Framework.Communications.Cache
         {
             string data = Encoding.ASCII.GetString(assetData);
 
-            data = ProcessAssetDataString(data);
+            data = ProcessAssetDataString(data, null);
 
             return Encoding.ASCII.GetBytes( data );
         }
 
-        public string ProcessAssetDataString(string data)
+        public string ProcessAssetDataString(string data, IUserService userService)
         {
             Regex regex = new Regex("(creator_url|owner_url)\\s+(\\S+)");
 
@@ -571,16 +575,18 @@ namespace OpenSim.Framework.Communications.Cache
 
                 string value = m.Groups[2].Captures[0].Value;
 
-                Guid id = Util.GetHashGuid(value, AssetInfo.Secret);
+                Uri userUri;
 
                 switch (key)
                 {
                     case "creator_url":
-                        result = "creator_id " + id;
+                        userUri = new Uri(value);
+                        result = "creator_id " + ResolveUserUri(userService, userUri);
                         break;
 
                     case "owner_url":
-                        result = "owner_id " + id;
+                        userUri = new Uri(value);
+                        result = "owner_id " + ResolveUserUri(userService, userUri);
                         break;
                 }
 
@@ -588,6 +594,21 @@ namespace OpenSim.Framework.Communications.Cache
             });
 
             return data;
+        }
+
+        private Guid ResolveUserUri(IUserService userService, Uri userUri)
+        {
+            Guid id;
+            UserProfileData userProfile = userService.GetUserProfile(userUri);
+            if( userProfile == null )
+            {
+                id = Guid.Empty;
+            }
+            else
+            {
+                id = userProfile.ID.Guid;
+            }
+            return id;
         }
 
 

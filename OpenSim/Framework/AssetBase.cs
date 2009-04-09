@@ -49,6 +49,19 @@ namespace OpenSim.Framework
             m_metadata.Name = name;
         }
 
+        public bool ContainsReferences
+        {
+            get
+            {
+                return 
+                    IsTextualAsset && (
+                    Type != (sbyte)AssetType.Notecard
+                    && Type != (sbyte)AssetType.CallingCard
+                    && Type != (sbyte)AssetType.LSLText
+                    && Type != (sbyte)AssetType.Landmark);
+            }
+        }
+
         public bool IsTextualAsset
         {
             get
@@ -62,10 +75,22 @@ namespace OpenSim.Framework
         {
             get
             {
-                return
+                return 
                     (Type == (sbyte) AssetType.Animation ||
-                     Type == (sbyte) AssetType.Gesture ||
-                     Type == (sbyte) AssetType.ImageJPEG ||
+                     Type == (sbyte)AssetType.Gesture ||
+                     Type == (sbyte)AssetType.Simstate ||
+                     Type == (sbyte)AssetType.Unknown ||
+                     Type == (sbyte)AssetType.Object ||
+                     Type == (sbyte)AssetType.Sound ||
+                     Type == (sbyte)AssetType.SoundWAV ||
+                     Type == (sbyte)AssetType.Texture ||
+                     Type == (sbyte)AssetType.TextureTGA ||
+                     Type == (sbyte)AssetType.Folder ||
+                     Type == (sbyte)AssetType.RootFolder ||
+                     Type == (sbyte)AssetType.LostAndFoundFolder ||
+                     Type == (sbyte)AssetType.SnapshotFolder ||
+                     Type == (sbyte)AssetType.TrashFolder ||
+                     Type == (sbyte)AssetType.ImageJPEG ||
                      Type == (sbyte) AssetType.ImageTGA ||
                      Type == (sbyte) AssetType.LSLBytecode);
             }

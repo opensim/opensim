@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -85,15 +87,105 @@ namespace OpenSim.Framework.Communications.Tests
             }
         }
 
+        private class FakeUserService : IUserService
+        {
+            public UserProfileData GetUserProfile(string firstName, string lastName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public UserProfileData GetUserProfile(UUID userId)
+            {
+                throw new NotImplementedException();
+            }
+
+            public UserProfileData GetUserProfile(Uri uri)
+            {
+                UserProfileData userProfile = new UserProfileData();
+
+                userProfile.ID = new UUID( Util.GetHashGuid( uri.ToString(), AssetCache.AssetInfo.Secret ));
+
+                return userProfile;
+            }
+
+            public UserAgentData GetAgentByUUID(UUID userId)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void ClearUserAgent(UUID avatarID)
+            {
+                throw new NotImplementedException();
+            }
+
+            public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID QueryID, string Query)
+            {
+                throw new NotImplementedException();
+            }
+
+            public UserProfileData SetupMasterUser(string firstName, string lastName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public UserProfileData SetupMasterUser(string firstName, string lastName, string password)
+            {
+                throw new NotImplementedException();
+            }
+
+            public UserProfileData SetupMasterUser(UUID userId)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool UpdateUserProfile(UserProfileData data)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void RemoveUserFriend(UUID friendlistowner, UUID friend)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
+            {
+                throw new NotImplementedException();
+            }
+
+            public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         [Test]
-        public void ProcessAssetDataTest()
+        public void TestProcessAssetData()
         {
             string url = "http://host/dir/";
-            string data = " creator_url " + url + " ";
+            string creatorData = " creator_url " + url + " ";
+            string ownerData = " owner_url " + url + " ";
 
             AssetCache assetCache = new AssetCache();
+            FakeUserService fakeUserService = new FakeUserService();
 
-            Assert.AreEqual(" creator_id "+Util.GetHashGuid( url, AssetCache.AssetInfo.Secret )+" ", assetCache.ProcessAssetDataString( data ));
+            Assert.AreEqual(" creator_id " + Util.GetHashGuid(url, AssetCache.AssetInfo.Secret) + " ", assetCache.ProcessAssetDataString(creatorData, fakeUserService));
+            Assert.AreEqual(" owner_id " + Util.GetHashGuid(url, AssetCache.AssetInfo.Secret) + " ", assetCache.ProcessAssetDataString(ownerData, fakeUserService));
         }
     }
 }
