@@ -162,7 +162,7 @@ namespace OpenSim.Data.SQLite
         {
             lock (ds)
             {
-                DataRow row = ds.Tables["users"].Rows.Find(Util.ToRawUuidString(uuid));
+                DataRow row = ds.Tables["users"].Rows.Find(uuid.ToString());
                 if (row != null)
                 {
                     UserProfileData user = buildUserProfile(row);
@@ -341,7 +341,7 @@ namespace OpenSim.Data.SQLite
             {
                 lock (ds)
                 {
-                    DataRow row = agents.Rows.Find(Util.ToRawUuidString(uuid));
+                    DataRow row = agents.Rows.Find(uuid.ToString());
                     if (row == null) infos[uuid] = null;
                     else
                     {
@@ -422,7 +422,7 @@ namespace OpenSim.Data.SQLite
         {
             lock (ds)
             {
-                DataRow row = ds.Tables["useragents"].Rows.Find(Util.ToRawUuidString(uuid));
+                DataRow row = ds.Tables["useragents"].Rows.Find(uuid.ToString());
                 if (row != null)
                 {
                     return buildUserAgent(row);
@@ -472,7 +472,7 @@ namespace OpenSim.Data.SQLite
             DataTable users = ds.Tables["users"];
             lock (ds)
             {
-                DataRow row = users.Rows.Find(Util.ToRawUuidString(AgentID));
+                DataRow row = users.Rows.Find(AgentID.ToString());
                 if (row == null)
                 {
                     m_log.Warn("[USER DB]: Unable to store new web login key for non-existant user");
@@ -531,7 +531,7 @@ namespace OpenSim.Data.SQLite
             
             lock (ds)
             {
-                DataRow row = users.Rows.Find(Util.ToRawUuidString(user.ID));
+                DataRow row = users.Rows.Find(user.ID.ToString());
                 if (row == null)
                 {
                     row = users.NewRow();
@@ -560,7 +560,7 @@ namespace OpenSim.Data.SQLite
             DataTable users = ds.Tables["users"];
             lock (ds)
             {
-                DataRow row = users.Rows.Find(Util.ToRawUuidString(user.ID));
+                DataRow row = users.Rows.Find(user.ID.ToString());
                 if (row == null)
                 {
                     return false;
@@ -589,7 +589,7 @@ namespace OpenSim.Data.SQLite
             DataTable agents = ds.Tables["useragents"];
             lock (ds)
             {
-                DataRow row = agents.Rows.Find(Util.ToRawUuidString(agent.ProfileID));
+                DataRow row = agents.Rows.Find(agent.ProfileID.ToString());
                 if (row == null)
                 {
                     row = agents.NewRow();
@@ -852,13 +852,13 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        ///
+        /// Persist user profile data
         /// </summary>
         /// <param name="row"></param>
         /// <param name="user"></param>
         private void fillUserRow(DataRow row, UserProfileData user)
         {
-            row["UUID"] = Util.ToRawUuidString(user.ID);
+            row["UUID"] = user.ID.ToString();
             row["username"] = user.FirstName;
             row["surname"] = user.SurName;
             row["email"] = user.Email;
@@ -944,7 +944,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="ua"></param>
         private static void fillUserAgentRow(DataRow row, UserAgentData ua)
         {
-            row["UUID"] = Util.ToRawUuidString(ua.ProfileID);
+            row["UUID"] = ua.ProfileID.ToString();
             row["agentIP"] = ua.AgentIP;
             row["agentPort"] = ua.AgentPort;
             row["agentOnline"] = ua.AgentOnline;

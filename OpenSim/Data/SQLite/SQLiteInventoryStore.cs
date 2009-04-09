@@ -877,7 +877,7 @@ namespace OpenSim.Data.SQLite
                 DataTable inventoryItemTable = ds.Tables["inventoryitems"];
                 string selectExp 
                     = "avatarID = '" + avatarID + "' AND assetType = " + (int)AssetType.Gesture + " AND flags = 1";
-                m_log.DebugFormat("[SQL]: sql = " + selectExp);
+                //m_log.DebugFormat("[SQL]: sql = " + selectExp);
                 DataRow[] rows = inventoryItemTable.Select(selectExp);
                 foreach (DataRow row in rows)
                 {
