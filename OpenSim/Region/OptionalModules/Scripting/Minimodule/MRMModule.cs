@@ -82,7 +82,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 {
                     m_log.Info("[MRM] Found C# MRM");
                     IWorld m_world = new World(m_scene);
-                    IHost m_host = new Host(new SOPObject(m_scene, localID));
+                    IHost m_host = new Host(new SOPObject(m_scene, localID), m_scene);
 
                     MRMBase mmb = (MRMBase)AppDomain.CurrentDomain.CreateInstanceFromAndUnwrap(
                                                 CompileFromDotNetText(script, itemID.ToString()),

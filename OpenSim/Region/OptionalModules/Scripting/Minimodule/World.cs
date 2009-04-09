@@ -26,10 +26,7 @@
  */
 
 using System.Collections.Generic;
-using System.Reflection;
-using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -159,7 +156,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             // Skip if other
         }
 
-        void EventManager_OnChatFromClient(object sender, OpenSim.Framework.OSChatMessage chat)
+        void EventManager_OnChatFromClient(object sender, OSChatMessage chat)
         {
             if (_OnChat != null)
             {

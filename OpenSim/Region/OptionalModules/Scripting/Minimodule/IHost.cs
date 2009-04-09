@@ -36,5 +36,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         IObject Object { get; }
         ILog Console { get; }
+        IGraphics Graphics { get; }
     }
 }
