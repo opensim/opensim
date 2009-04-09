@@ -117,6 +117,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osMessageObject(key objectUUID,string message);
 
         void osMakeNotecard(string notecardName, LSL_Types.list contents);
+        string osAvatarName2Key(string firstname, string lastname);
+        string osKey2Name(string id);
         
         // Grid Info Functions
         string osGetGridNick();

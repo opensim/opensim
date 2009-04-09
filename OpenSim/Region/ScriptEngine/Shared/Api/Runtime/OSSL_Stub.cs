@@ -300,6 +300,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osMakeNotecard(notecardName, contents);
         }
 
+        public string osAvatarName2Key(string firstname, string lastname)
+        {
+            return m_OSSL_Functions.osAvatarName2Key(firstname, lastname);
+        }
+
+        public string osKey2Name(string id)
+        {
+            return m_OSSL_Functions.osKey2Name(id);
+        }
+
         public string osGetGridNick()
         {
             return m_OSSL_Functions.osGetGridNick();

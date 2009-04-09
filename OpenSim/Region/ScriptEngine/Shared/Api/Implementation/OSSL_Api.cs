@@ -1344,6 +1344,47 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.Inventory.AddInventoryItem(taskItem, false);
         }
 
+        public string osAvatarName2Key(string firstname, string lastname)
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osAvatarName2Key");
+
+            UserProfileData UserProfile = World.CommsManager.UserService
+                .GetUserProfile(firstname, lastname);
+            if (UserProfile==null) 
+            {
+                return UUID.Zero.ToString();
+            } 
+            else 
+            {
+                return UserProfile.ID.ToString();
+            }
+        }
+
+        public string osKey2Name(string id)
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osKey2Name");
+            UUID key = new UUID();
+
+            if (UUID.TryParse(id, out key))
+            {
+                UserProfileData UserProfile = World.CommsManager.UserService
+                    .GetUserProfile(key);
+                if (UserProfile==null) 
+                {
+                    return "";
+                } 
+                else 
+                {
+                    return UserProfile.Name;
+                }
+            } 
+            else
+            {
+                return "";
+            }
+
+        }
+
         /// Threat level is Moderate because intentional abuse, for instance
         /// scripts that are written to be malicious only on one grid,
         /// for instance in a HG scenario, are a distinct possibility.
