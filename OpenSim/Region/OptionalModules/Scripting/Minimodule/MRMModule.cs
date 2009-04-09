@@ -217,12 +217,23 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             string rootPath =
                 Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
 
+            List<string> libraries = new List<string>();
+            string[] lines = Script.Split(new string[] {"\n"}, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string s in lines)
+            {
+                if(s.StartsWith("//@DEPENDS:"))
+                {
+                    libraries.Add(s.Replace("//@DEPENDS:", ""));
+                }
+            }
 
-            // TODO: Add Libraries
-            parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
-                                                             "OpenSim.Region.OptionalModules.dll"));
-            parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
-                                                             "log4net.dll"));
+            libraries.Add("OpenSim.Region.OptionalModules.dll");
+            libraries.Add("log4net.dll");
+
+            foreach (string library in libraries)
+            {
+                parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, library));
+            }
 
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;
