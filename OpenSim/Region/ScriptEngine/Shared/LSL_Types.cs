@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Text.RegularExpressions;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.ScriptEngine.Shared
 {
@@ -1787,7 +1788,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     else
                         if (v.EndsWith("."))
                             v = v + "0";
-                this.value = double.Parse(v, System.Globalization.NumberStyles.Float);
+                this.value = double.Parse(v, System.Globalization.NumberStyles.Float, Culture.FormatProvider);
             }
 
             #endregion

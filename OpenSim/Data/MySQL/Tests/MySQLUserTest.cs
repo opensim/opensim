@@ -33,7 +33,7 @@ using System.Reflection;
 
 namespace OpenSim.Data.MySQL.Tests
 {
-    [TestFixture]
+    [TestFixture, DatabaseTest]
     public class MySQLUserTest : BasicUserTest
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
