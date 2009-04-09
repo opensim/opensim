@@ -42,7 +42,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Vector2[] m_windSpeeds = new Vector2[16 * 16];
-        private Random m_rndnums = new Random(Environment.TickCount);
+        //private Random m_rndnums = new Random(Environment.TickCount);
 
         private float m_avgStrength = 5.0f; // Average magnitude of the wind vector
         private float m_avgDirection = 0.0f; // Average direction of the wind in degrees

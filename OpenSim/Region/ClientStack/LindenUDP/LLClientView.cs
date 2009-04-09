@@ -7600,7 +7600,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             m_log.Error("EstateOwnerMessage: Unknown method requested\n" + messagePacket);
                             break;
                     }
-                    break;
  
                     //int parcelID, uint reportType, uint requestflags, string filter
 
