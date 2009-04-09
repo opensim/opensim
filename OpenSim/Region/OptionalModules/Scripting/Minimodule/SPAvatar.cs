@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Scenes;
 
@@ -49,6 +50,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public string Name
         {
             get { return GetSP().Name; }
+            set { throw new InvalidOperationException("Avatar Names are a read-only property."); }
         }
 
         public UUID GlobalID
@@ -56,9 +58,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             get { return m_ID; }
         }
 
-        public Vector3 Position
+        public Vector3 WorldPosition
         {
             get { return GetSP().AbsolutePosition; }
+            set { GetSP().AbsolutePosition = value; }
         }
     }
 }

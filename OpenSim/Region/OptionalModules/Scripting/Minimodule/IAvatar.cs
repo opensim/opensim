@@ -32,10 +32,8 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public interface IAvatar
+    public interface IAvatar : IEntity
     {
-        string Name { get; }
-        UUID GlobalID { get; }
-        Vector3 Position { get; }
+        
     }
 }

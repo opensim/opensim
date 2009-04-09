@@ -48,7 +48,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
     public delegate void OnTouchDelegate(IObject sender, TouchEventArgs e);
 
-    public interface IObject
+    public interface IObject : IEntity
     {
         #region Events
 
@@ -92,17 +92,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         uint LocalID { get; }
 
         /// <summary>
-        /// The global 'world-unique' ID for this object. 
-        /// (Note, may not actually be world unique)
-        /// </summary>
-        UUID GlobalID { get; }
-
-        /// <summary>
-        /// The name of this Object.
-        /// </summary>
-        String Name { get; set; }
-
-        /// <summary>
         /// The description assigned to this object.
         /// </summary>
         String Description { get; set; }
@@ -139,11 +128,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// If root, works the same as WorldRotation
         /// </summary>
         Quaternion OffsetRotation { get; set; }
-
-        /// <summary>
-        /// The position of the object relative to the Scene
-        /// </summary>
-        Vector3 WorldPosition { get; set; }
 
         /// <summary>
         /// The position of the object relative to a parent object

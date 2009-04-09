@@ -26,6 +26,7 @@
  */
 
 using System.Collections.Generic;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -44,6 +45,84 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             m_heights = new Heightmap(m_internalScene);
             m_objs = new ObjectAccessor(m_internalScene);
         }
+
+        #region Events
+
+        #region OnChat
+        private event OnChatDelegate _OnChat;
+        private bool _OnChatActive;
+
+        public event OnChatDelegate OnChat
+        {
+            add
+            {
+                if (!_OnChatActive)
+                {
+                    _OnChatActive = true;
+                    m_internalScene.EventManager.OnChatFromClient += EventManager_OnChatFromClient;
+                    m_internalScene.EventManager.OnChatFromWorld += EventManager_OnChatFromWorld;
+                }
+
+                _OnChat += value;
+            }
+            remove
+            {
+                _OnChat -= value;
+
+                if (_OnChat == null)
+                {
+                    _OnChatActive = false;
+                    m_internalScene.EventManager.OnChatFromClient -= EventManager_OnChatFromClient;
+                    m_internalScene.EventManager.OnChatFromWorld -= EventManager_OnChatFromWorld;
+                }
+            }
+        }
+
+        void EventManager_OnChatFromWorld(object sender, OpenSim.Framework.OSChatMessage chat)
+        {
+            if (_OnChat != null)
+            {
+                HandleChatPacket(chat);
+                return;
+            }
+        }
+
+        private void HandleChatPacket(OSChatMessage chat)
+        {
+            // Object?
+            if (chat.Sender == null && chat.SenderObject != null)
+            {
+                ChatEventArgs e = new ChatEventArgs();
+                e.Sender = new SOPObject(m_internalScene, ((SceneObjectPart) chat.SenderObject).LocalId);
+                e.Text = chat.Message;
+
+                _OnChat(this, e);
+                return;
+            }
+            // Avatar?
+            if (chat.SenderObject != null && chat.SenderObject == null)
+            {
+                ChatEventArgs e = new ChatEventArgs();
+                e.Sender = new SPAvatar(m_internalScene, chat.SenderUUID);
+                e.Text = chat.Message;
+
+                _OnChat(this, e);
+                return;
+            }
+            // Skip if other
+        }
+
+        void EventManager_OnChatFromClient(object sender, OpenSim.Framework.OSChatMessage chat)
+        {
+            if (_OnChat != null)
+            {
+                HandleChatPacket(chat);
+                return;
+            }
+        }
+        #endregion
+
+        #endregion
 
         public IObjectAccessor Objects
         {

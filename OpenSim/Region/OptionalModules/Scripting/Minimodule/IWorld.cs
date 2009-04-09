@@ -25,13 +25,25 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
+    public class ChatEventArgs : EventArgs
+    {
+        public string Text;
+        public IEntity Sender;
+    }
+
+    public delegate void OnChatDelegate(IWorld sender, ChatEventArgs e);
+
     public interface IWorld
     {
         IObjectAccessor Objects { get; }
         IAvatar[] Avatars { get; }
         IParcel[] Parcels { get; }
         IHeightmap Terrain { get; }
+
+        event OnChatDelegate OnChat;
     }
 }
