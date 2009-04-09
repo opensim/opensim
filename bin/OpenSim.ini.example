@@ -238,8 +238,8 @@
 
     ; enableprejump = true
 
-[SMTP]
 
+[SMTP]
     enabled=false
 
     ;enabled=true
@@ -250,21 +250,10 @@
     ;SMTP_SERVER_LOGIN=foo
     ;SMTP_SERVER_PASSWORD=bar
 
-[Communications]
 
+[Communications]
     ;InterregionComms = "LocalComms"
     InterregionComms = "RESTComms"
-
-[AutoOAR]
-
-    ;Enable the AutoOAR module. 
-    ;OAR's are automatically exported to Regionname_x_y.oar.tar.gz
-
-    enabled = false
-
-    ;Interval, in minutes, between exports
-
-    interval = 20
 
 
 [StandAlone]
@@ -368,6 +357,7 @@
     ; http://wiki.secondlife.com/wiki/LlHTTPRequest for comments on adding
     ; " (Mozilla Compatible)" to the text where there are problems with a web server
     ;user_agent = "OpenSim LSL (Mozilla Compatible)"
+
 
 [ClientStack.LindenUDP]
     ; This is the multiplier applied to all client throttles for outgoing UDP network data
