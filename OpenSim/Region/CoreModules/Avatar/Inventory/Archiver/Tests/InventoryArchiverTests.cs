@@ -40,11 +40,12 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 {
-    [TestFixture]
+    [TestFixture, LongRunning]
     public class InventoryArchiverTests
     {
         private void SaveCompleted(

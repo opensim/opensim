@@ -10,7 +10,7 @@ namespace OpenSim.Tests.Common
         Inherited = true)]
     public class LongRunningAttribute :  CategoryAttribute 
     {
-        protected LongRunningAttribute() : this("Long Running Test")
+        public LongRunningAttribute() : this("Long Running Test")
         {
             
         }

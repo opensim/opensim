@@ -35,6 +35,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
 
@@ -49,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// <summary>
         /// Test adding an object to a scene.
         /// </summary>
-        [Test]
+        [Test, LongRunning]
         public void TestAddSceneObject()
         {              
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());

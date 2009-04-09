@@ -33,6 +33,7 @@ using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {
@@ -146,7 +147,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         /// <summary>
         /// Test adding a client to the stack
         /// </summary>
-        [Test]        
+        [Test, LongRunning]        
         public void TestAddClient()
         {            
             uint myCircuitCode = 123456;

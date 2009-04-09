@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.CoreModules.Communications.REST;
+using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
 
@@ -50,10 +51,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// Test a teleport between two regions that are not neighbours and do not share any neighbours in common.
         /// </summary>
         /// Does not yet do what is says on the tin.
-        [Test]        
+        [Test, LongRunning]        
         public void TestSimpleNotNeighboursTeleport()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            // Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
             
             log4net.Config.XmlConfigurator.Configure();
             

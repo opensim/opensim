@@ -41,12 +41,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     /// <summary>
     /// Tests for LSL_Api
     /// </summary>
-    [TestFixture]
+    [TestFixture, LongRunning]
     public class LSL_ApiTest
     {
 
         private const double ANGLE_ACCURACY_IN_RADIANS = 1E-6;
-        private LSL_Api lslApi;
+        private LSL_Api m_lslApi;
 
         [SetUp]
         public void SetUp()
@@ -62,8 +62,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             XEngine.XEngine engine = new XEngine.XEngine();
             engine.Initialise(scene, initConfigSource);
 
-            lslApi = new LSL_Api();
-            lslApi.Initialize(engine, part, part.LocalId, part.UUID);
+            m_lslApi = new LSL_Api();
+            m_lslApi.Initialize(engine, part, part.LocalId, part.UUID);
 
         }
 
@@ -92,7 +92,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             Quaternion rotation1 = Quaternion.CreateFromAxisAngle(axis, 0);
             Quaternion rotation2 = Quaternion.CreateFromAxisAngle(axis, ToRadians(originalAngle));
 
-            double deducedAngle = FromLslFloat(lslApi.llAngleBetween(ToLslQuaternion(rotation2), ToLslQuaternion(rotation1)));
+            double deducedAngle = FromLslFloat(m_lslApi.llAngleBetween(ToLslQuaternion(rotation2), ToLslQuaternion(rotation1)));
 
             Assert.Greater(deducedAngle, ToRadians(originalAngle) - ANGLE_ACCURACY_IN_RADIANS);
             Assert.Less(deducedAngle, ToRadians(originalAngle) + ANGLE_ACCURACY_IN_RADIANS);

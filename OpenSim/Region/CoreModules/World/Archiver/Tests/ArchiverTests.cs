@@ -38,11 +38,12 @@ using OpenSim.Framework.Serialization;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 {
-    [TestFixture]
+    [TestFixture, LongRunning]
     public class ArchiverTests
     {
         private void SaveCompleted(string errorMessage)
@@ -230,7 +231,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         /// <summary>
         /// Test merging a V0.2 OpenSim Region Archive into an existing scene
         /// </summary>
-        ///[Test]
+        
+        [Test]
         public void TestMergeOarV0p2()
         {
             //XmlConfigurator.Configure();

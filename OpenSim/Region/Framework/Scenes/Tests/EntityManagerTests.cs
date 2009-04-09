@@ -37,11 +37,12 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
-    [TestFixture]
+    [TestFixture, LongRunning]
     public class EntityManagerTests
     {        
         static public Random random;
@@ -51,7 +52,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T010_AddObjects()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            // Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
             
             random = new Random();
             SceneObjectGroup found;
@@ -86,7 +87,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T011_ThreadAddRemoveTest()
         {   
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            // Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
             
             // This test adds and removes with mutiple threads, attempting to break the 
             // uuid and localid dictionary coherence.
