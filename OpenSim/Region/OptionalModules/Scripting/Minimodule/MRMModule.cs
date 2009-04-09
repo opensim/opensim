@@ -73,8 +73,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         void EventManager_OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
         {
-            if (script.StartsWith("//MiniMod:C#"))
+            if (script.StartsWith("//MRM:C#"))
             {
+                if(m_scene.GetSceneObjectPart(localID).OwnerID != m_scene.RegionInfo.MasterAvatarAssignedUUID)
+                    return;
+
                 try
                 {
                     m_log.Info("[MRM] Found C# MRM");
