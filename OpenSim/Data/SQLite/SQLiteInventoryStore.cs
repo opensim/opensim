@@ -54,7 +54,7 @@ namespace OpenSim.Data.SQLite
         public void Initialise()
         {
             m_log.Info("[SQLiteInventoryData]: " + Name + " cannot be default-initialized!");
-            throw new PluginNotInitialisedException (Name);
+            throw new PluginNotInitialisedException(Name);
         }
 
         /// <summary>
@@ -182,13 +182,13 @@ namespace OpenSim.Data.SQLite
         /// <param name="item"></param>
         private static void fillItemRow(DataRow row, InventoryItemBase item)
         {
-            row["UUID"] = Util.ToRawUuidString(item.ID);
-            row["assetID"] = Util.ToRawUuidString(item.AssetID);
+            row["UUID"] = item.ID.ToString();
+            row["assetID"] = item.AssetID.ToString();
             row["assetType"] = item.AssetType;
             row["invType"] = item.InvType;
-            row["parentFolderID"] = Util.ToRawUuidString(item.Folder);
-            row["avatarID"] = Util.ToRawUuidString(item.Owner);
-            row["creatorsID"] = Util.ToRawUuidString(item.CreatorIdAsUuid);
+            row["parentFolderID"] = item.Folder.ToString();
+            row["avatarID"] = item.Owner.ToString();
+            row["creatorsID"] = item.CreatorId;
             row["inventoryName"] = item.Name;
             row["inventoryDescription"] = item.Description;
 
@@ -219,7 +219,7 @@ namespace OpenSim.Data.SQLite
             {
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
 
-                DataRow inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(folder.ID));
+                DataRow inventoryRow = inventoryFolderTable.Rows.Find(folder.ID.ToString());
                 if (inventoryRow == null)
                 {
                     if (! add)
@@ -251,7 +251,7 @@ namespace OpenSim.Data.SQLite
             {
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
 
-                DataRow inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(folder.ID));
+                DataRow inventoryRow = inventoryFolderTable.Rows.Find(folder.ID.ToString());
                 if (inventoryRow == null)
                 {
                     inventoryRow = inventoryFolderTable.NewRow();
@@ -278,7 +278,7 @@ namespace OpenSim.Data.SQLite
             {
                 DataTable inventoryItemTable = ds.Tables["inventoryitems"];
 
-                DataRow inventoryRow = inventoryItemTable.Rows.Find(Util.ToRawUuidString(item.ID));
+                DataRow inventoryRow = inventoryItemTable.Rows.Find(item.ID.ToString());
                 if (inventoryRow == null)
                 {
                     if (!add)
@@ -300,7 +300,7 @@ namespace OpenSim.Data.SQLite
 
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
 
-                inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(item.Folder));
+                inventoryRow = inventoryFolderTable.Rows.Find(item.Folder.ToString());
                 inventoryRow["version"] = (int)inventoryRow["version"] + 1;
 
                 invFoldersDa.Update(ds, "inventoryfolders");
@@ -354,7 +354,7 @@ namespace OpenSim.Data.SQLite
             {
                 List<InventoryItemBase> retval = new List<InventoryItemBase>();
                 DataTable inventoryItemTable = ds.Tables["inventoryitems"];
-                string selectExp = "parentFolderID = '" + Util.ToRawUuidString(folderID) + "'";
+                string selectExp = "parentFolderID = '" + folderID + "'";
                 DataRow[] rows = inventoryItemTable.Select(selectExp);
                 foreach (DataRow row in rows)
                 {
@@ -382,8 +382,7 @@ namespace OpenSim.Data.SQLite
             {
                 List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
-                string selectExp = "agentID = '" + Util.ToRawUuidString(user) + "' AND parentID = '" +
-                                   Util.ToRawUuidString(UUID.Zero) + "'";
+                string selectExp = "agentID = '" + user + "' AND parentID = '" + UUID.Zero + "'";
                 DataRow[] rows = inventoryFolderTable.Select(selectExp);
                 foreach (DataRow row in rows)
                 {
@@ -414,7 +413,7 @@ namespace OpenSim.Data.SQLite
             lock (ds)
             {
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
-                string selectExp = "parentID = '" + Util.ToRawUuidString(parentID) + "'";
+                string selectExp = "parentID = '" + parentID + "'";
                 DataRow[] rows = inventoryFolderTable.Select(selectExp);
                 foreach (DataRow row in rows)
                 {
@@ -467,13 +466,13 @@ namespace OpenSim.Data.SQLite
                  * Then fetch all inventory folders for that agent from the agent ID.
                  */
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
-                string selectExp = "UUID = '" + Util.ToRawUuidString(parentID) + "'";
+                string selectExp = "UUID = '" + parentID + "'";
                 parentRow = inventoryFolderTable.Select(selectExp); // Assume at most 1 result
                 if (parentRow.GetLength(0) >= 1)                    // No result means parent folder does not exist
                 {
                     parentFolder = buildFolder(parentRow[0]);
                     UUID agentID = parentFolder.Owner;
-                    selectExp = "agentID = '" + Util.ToRawUuidString(agentID) + "'";
+                    selectExp = "agentID = '" + agentID + "'";
                     folderRows = inventoryFolderTable.Select(selectExp);
                 }
 
@@ -550,7 +549,7 @@ namespace OpenSim.Data.SQLite
         {
             lock (ds)
             {
-                DataRow row = ds.Tables["inventoryitems"].Rows.Find(Util.ToRawUuidString(item));
+                DataRow row = ds.Tables["inventoryitems"].Rows.Find(item.ToString());
                 if (row != null)
                 {
                     return buildItem(row);
@@ -576,7 +575,7 @@ namespace OpenSim.Data.SQLite
             // clothes and the like. :(
             lock (ds)
             {
-                DataRow row = ds.Tables["inventoryfolders"].Rows.Find(Util.ToRawUuidString(folder));
+                DataRow row = ds.Tables["inventoryfolders"].Rows.Find(folder.ToString());
                 if (row != null)
                 {
                     return buildFolder(row);
@@ -616,7 +615,7 @@ namespace OpenSim.Data.SQLite
             {
                 DataTable inventoryItemTable = ds.Tables["inventoryitems"];
 
-                DataRow inventoryRow = inventoryItemTable.Rows.Find(Util.ToRawUuidString(itemID));
+                DataRow inventoryRow = inventoryItemTable.Rows.Find(itemID.ToString());
                 if (inventoryRow != null)
                 {
                     inventoryRow.Delete();
@@ -695,7 +694,7 @@ namespace OpenSim.Data.SQLite
                 //Delete all sub-folders
                 foreach (InventoryFolderBase f in subFolders)
                 {
-                    inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(f.ID));
+                    inventoryRow = inventoryFolderTable.Rows.Find(f.ID.ToString());
                     if (inventoryRow != null)
                     {
                         deleteItemsInFolder(f.ID);
@@ -704,7 +703,7 @@ namespace OpenSim.Data.SQLite
                 }
 
                 //Delete the actual row
-                inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(folderID));
+                inventoryRow = inventoryFolderTable.Rows.Find(folderID.ToString());
                 if (inventoryRow != null)
                 {
                     deleteItemsInFolder(folderID);
@@ -850,10 +849,10 @@ namespace OpenSim.Data.SQLite
         /// <param name="folder"></param>
         private static void fillFolderRow(DataRow row, InventoryFolderBase folder)
         {
-            row["UUID"] = Util.ToRawUuidString(folder.ID);
+            row["UUID"] = folder.ID.ToString();
             row["name"] = folder.Name;
-            row["agentID"] = Util.ToRawUuidString(folder.Owner);
-            row["parentID"] = Util.ToRawUuidString(folder.ParentID);
+            row["agentID"] = folder.Owner.ToString();
+            row["parentID"] = folder.ParentID.ToString();
             row["type"] = folder.Type;
             row["version"] = folder.Version;
         }
@@ -865,8 +864,8 @@ namespace OpenSim.Data.SQLite
         /// <param name="folder"></param>
         private static void moveFolderRow(DataRow row, InventoryFolderBase folder)
         {
-            row["UUID"] = Util.ToRawUuidString(folder.ID);
-            row["parentID"] = Util.ToRawUuidString(folder.ParentID);
+            row["UUID"] = folder.ID.ToString();
+            row["parentID"] = folder.ParentID.ToString();
         }
 
         public List<InventoryItemBase> fetchActiveGestures (UUID avatarID)
@@ -876,8 +875,8 @@ namespace OpenSim.Data.SQLite
                 List<InventoryItemBase> items = new List<InventoryItemBase>();
 
                 DataTable inventoryItemTable = ds.Tables["inventoryitems"];
-                string selectExp = "avatarID = '" + Util.ToRawUuidString(avatarID) + "' AND assetType = " +
-                    (int)AssetType.Gesture + " AND flags = 1";
+                string selectExp 
+                    = "avatarID = '" + avatarID + "' AND assetType = " + (int)AssetType.Gesture + " AND flags = 1";
                 m_log.DebugFormat("[SQL]: sql = " + selectExp);
                 DataRow[] rows = inventoryItemTable.Select(selectExp);
                 foreach (DataRow row in rows)
