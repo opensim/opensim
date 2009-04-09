@@ -33,7 +33,7 @@ using System.Reflection;
 
 namespace OpenSim.Data.NHibernate.Tests
 {
-    [TestFixture]
+    [TestFixture, DatabaseTest]
     public class NHibernatePostgreSQLEstateTest : BasicEstateTest
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

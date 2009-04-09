@@ -35,7 +35,7 @@ using System.Reflection;
 namespace OpenSim.Data.NHibernate.Tests
 {
 
-    [TestFixture]
+    [TestFixture, DatabaseTest]
     public class NHibernateSQLiteUserTest : BasicUserTest
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

@@ -31,7 +31,7 @@ using OpenSim.Data.Tests;
 
 namespace OpenSim.Data.SQLite.Tests
 {
-    [TestFixture]
+    [TestFixture, DatabaseTest]
     public class SQLiteAssetTest : BasicAssetTest
     {
         public string file;
