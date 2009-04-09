@@ -73,8 +73,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private float avStandupTensor = 2000000f;
         private float avDensity = 80f;
         private float avHeightFudgeFactor = 0.52f;
-        private float avMovementDivisorWalk = 1.0f;
-        private float avMovementDivisorRun = 0.75f;
+        private float avMovementDivisorWalk = 1.8f;
+        private float avMovementDivisorRun = 0.8f;
 
         private float minimumGroundFlightOffset = 3f;
 
@@ -99,8 +99,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private bool usingGImpactAlgorithm = false;
 
         private IConfigSource m_config;
-        private readonly btVector3 worldAabbMin = new btVector3(0, 0, 0);
-        private readonly btVector3 worldAabbMax = new btVector3(Constants.RegionSize, Constants.RegionSize , 9000);
+        private readonly btVector3 worldAabbMin = new btVector3(-10f, -10f, 0);
+        private readonly btVector3 worldAabbMax = new btVector3((int)Constants.RegionSize + 10f, (int)Constants.RegionSize + 10f, 9000);
 
         public IMesher mesher;
 
@@ -245,6 +245,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         public override float Simulate(float timeStep)
         {
+            
             lock (m_taintedActors)
             {
                 foreach (PhysicsActor act in m_taintedActors)
@@ -273,7 +274,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     prim.Move(timeStep);
                 }
             }
-            float steps = m_world.stepSimulation(WorldTimeStep, 5, WorldTimeComp);
+            float steps = m_world.stepSimulation(timeStep * 10, 10, WorldTimeComp);
 
             foreach (BulletDotNETCharacter chr in m_characters)
             {
@@ -513,8 +514,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             // Is there any reason that we don't do this in ScenePresence?   
             // The only physics engine that benefits from it in the physics plugin is this one
 
-            if ((int)x > Constants.RegionSize || (int)y > Constants.RegionSize ||
-                (int)x < 0.001f || (int)y < 0.001f)
+            if (x > (int)Constants.RegionSize || y > (int)Constants.RegionSize ||
+                x < 0.001f || y < 0.001f)
                 return 0;
 
             return _origheightmap[(int)y * Constants.RegionSize + (int)x];
