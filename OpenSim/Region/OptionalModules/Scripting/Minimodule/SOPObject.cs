@@ -53,10 +53,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// <returns></returns>
         private SceneObjectPart GetSOP()
         {
-            if (m_rootScene.Entities.ContainsKey(m_localID))
-                return ((SceneObjectGroup) m_rootScene.Entities[m_localID]).RootPart;
-
-            return null;
+            return m_rootScene.GetSceneObjectPart(m_localID);
         }
 
         #region OnTouch

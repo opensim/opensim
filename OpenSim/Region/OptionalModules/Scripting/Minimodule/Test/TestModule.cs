@@ -33,7 +33,18 @@ namespace OpenSim
     {
         public override void Start()
         {
-            Host.Console.Info("Hello World!");
+            // Say Hello
+            Host.Object.Say("Hello, Avatar!");
+
+            // Register ourselves to listen
+            // for touch events.
+            Host.Object.OnTouch += OnTouched;
+        }
+
+        // This is our touch event handler
+        void OnTouched(IObject sender, TouchEventArgs e)
+        {
+            Host.Object.Say("Touched.");
         }
 
         public override void Stop()
