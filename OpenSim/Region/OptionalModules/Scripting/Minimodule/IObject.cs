@@ -32,8 +32,30 @@ using OpenSim.Region.OptionalModules.Scripting.Minimodule.Object;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
+    public class TouchEventArgs : EventArgs
+    {
+        public IAvatar Avatar;
+
+        public Vector3 TouchBiNormal;
+        public Vector3 TouchNormal;
+        public Vector3 TouchPosition;
+
+        public Vector2 TouchUV;
+        public Vector2 TouchST;
+
+        public int TouchMaterialIndex;
+    }
+
+    public delegate void OnTouchDelegate(IObject sender, TouchEventArgs e);
+
     public interface IObject
     {
+        #region Events
+
+        event OnTouchDelegate OnTouch;
+
+        #endregion
+
         /// <summary>
         /// Returns whether or not this object is still in the world.
         /// Eg, if you store an IObject reference, however the object

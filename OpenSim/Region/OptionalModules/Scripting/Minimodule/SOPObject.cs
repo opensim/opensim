@@ -59,6 +59,57 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             return null;
         }
 
+        #region OnTouch
+
+        private event OnTouchDelegate _OnTouch;
+        private bool _OnTouchActive = false;
+
+        public event OnTouchDelegate OnTouch
+        {
+            add
+            {
+                if(!_OnTouchActive)
+                {
+                    _OnTouchActive = true;
+                    m_rootScene.EventManager.OnObjectGrab += EventManager_OnObjectGrab;
+                }
+
+                _OnTouch += value;
+            }
+            remove
+            {
+                _OnTouch -= value;
+
+                if (_OnTouch == null)
+                {
+                    _OnTouchActive = false;
+                    m_rootScene.EventManager.OnObjectGrab -= EventManager_OnObjectGrab;
+                }
+            }
+        }
+
+        void EventManager_OnObjectGrab(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
+        {
+            if (_OnTouchActive && m_localID == localID)
+            {
+                TouchEventArgs e = new TouchEventArgs();
+                e.Avatar = new SPAvatar(m_rootScene, remoteClient.AgentId);
+                e.TouchBiNormal = surfaceArgs.Binormal;
+                e.TouchMaterialIndex = surfaceArgs.FaceIndex;
+                e.TouchNormal = surfaceArgs.Normal;
+                e.TouchPosition = surfaceArgs.Position;
+                e.TouchST = new Vector2(surfaceArgs.STCoord.X, surfaceArgs.STCoord.Y);
+                e.TouchUV = new Vector2(surfaceArgs.UVCoord.X, surfaceArgs.UVCoord.Y);
+
+                IObject sender = this;
+
+                if (_OnTouch != null)
+                    _OnTouch(sender, e);
+            }
+        }
+
+        #endregion
+
         public bool Exists
         {
             get { return GetSOP() != null; }
