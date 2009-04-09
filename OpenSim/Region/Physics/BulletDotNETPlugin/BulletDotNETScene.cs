@@ -274,7 +274,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     prim.Move(timeStep);
                 }
             }
-            float steps = m_world.stepSimulation(timeStep * 10, 10, WorldTimeComp);
+            float steps = m_world.stepSimulation(timeStep * 1000, 10, WorldTimeComp);
 
             foreach (BulletDotNETCharacter chr in m_characters)
             {
