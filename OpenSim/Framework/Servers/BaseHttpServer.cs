@@ -1424,8 +1424,12 @@ namespace OpenSim.Framework.Servers
             }
             catch (Exception e)
             {
-                m_log.Warn("[HTTPD]: Error - " + e.Message);
-                m_log.Warn("Tip: Do you have permission to listen on port " + m_port + "," + m_sslport + "?");
+                m_log.Error("[HTTPD]: Error - " + e.Message);
+                m_log.Error("[HTTPD]: Tip: Do you have permission to listen on port " + m_port + ", " + m_sslport + "?");
+                
+                // We want this exception to halt the entire server since in current configurations we aren't too 
+                // useful without inbound HTTP.
+                throw e;
             }
         }
 
