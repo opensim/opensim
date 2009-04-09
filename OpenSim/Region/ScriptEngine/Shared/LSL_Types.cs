@@ -27,7 +27,9 @@
 
 using System;
 using System.Collections;
+using System.Globalization;
 using System.Text.RegularExpressions;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.ScriptEngine.Shared
 {
@@ -307,10 +309,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
                 }
                 bool res;
-                res = Double.TryParse(tmps[0], out x);
-                res = res & Double.TryParse(tmps[1], out y);
-                res = res & Double.TryParse(tmps[2], out z);
-                res = res & Double.TryParse(tmps[3], out s);
+                res = Double.TryParse(tmps[0], NumberStyles.Float, Culture.FormatProvider, out x);
+                res = res & Double.TryParse(tmps[1], NumberStyles.Float, Culture.FormatProvider, out y);
+                res = res & Double.TryParse(tmps[2], NumberStyles.Float, Culture.FormatProvider, out z);
+                res = res & Double.TryParse(tmps[3], NumberStyles.Float, Culture.FormatProvider, out s);
                 if (x == 0 && y == 0 && z == 0 && s == 0)
                     s = 1;
             }
@@ -335,7 +337,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override string ToString()
             {
-                string st=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", x, y, z, s);
+                string st=String.Format(Culture.FormatProvider, "<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", x, y, z, s);
                 return st;
             }
 
@@ -1319,13 +1321,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLString(double d)
             {
-                string s=String.Format("{0:0.000000}", d);
+                string s=String.Format(Culture.FormatProvider, "{0:0.000000}", d);
                 m_string=s;
             }
 
             public LSLString(LSLFloat f)
             {
-                string s=String.Format("{0:0.000000}", f.value);
+                string s = String.Format(Culture.FormatProvider, "{0:0.000000}", f.value);
                 m_string=s;
             }
 
@@ -1787,7 +1789,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     else
                         if (v.EndsWith("."))
                             v = v + "0";
-                this.value = double.Parse(v, System.Globalization.NumberStyles.Float);
+                this.value = double.Parse(v, System.Globalization.NumberStyles.Float, Culture.FormatProvider);
             }
 
             #endregion
@@ -1932,7 +1934,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override string ToString()
             {
-                return String.Format("{0:0.000000}", this.value);
+                return String.Format(Culture.FormatProvider, "{0:0.000000}", this.value);
             }
 
             public override bool Equals(Object o)
