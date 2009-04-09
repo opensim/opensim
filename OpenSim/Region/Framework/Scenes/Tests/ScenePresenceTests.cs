@@ -30,6 +30,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Timers;
+using Timer=System.Timers.Timer;
 using Nini.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -98,7 +100,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void T010_TestAddRootAgent()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-            
+
             string firstName = "testfirstname";
 
             AgentCircuitData agent = new AgentCircuitData();
@@ -131,7 +133,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void T011_TestRemoveRootAgent()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-            
+
             scene.RemoveClient(agent1);
 
             ScenePresence presence = scene.GetScenePresence(agent1);
@@ -143,7 +145,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void T012_TestAddNeighbourRegion()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-            
+
             scene.NewUserConnection(acd1);
             scene.AddNewClient(testclient);
 
@@ -164,7 +166,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void T013_TestRemoveNeighbourRegion()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-            
+
             ScenePresence presence = scene.GetScenePresence(agent1);
             presence.RemoveNeighbourRegion(region3);
 
@@ -181,7 +183,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void T020_TestMakeRootAgent()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-            
+
             ScenePresence presence = scene.GetScenePresence(agent1);
             Assert.That(presence.IsChildAgent, Is.False, "Starts out as a root agent");
 
@@ -195,11 +197,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(presence.AbsolutePosition, Is.EqualTo(pos), "Position is not the same one entered");
         }
 
-        //[Test]
+        [Test]
         public void T021_TestCrossToNewRegion()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-            
+
             // Adding child agent to region 1001
             scene2.NewUserConnection(acd1);
             scene2.AddNewClient(testclient);
@@ -225,15 +227,35 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             // Mimicking communication between client and server, by waiting OK from client
             // sent by TestClient.CrossRegion call. Originally, this is network comm.
-            wh.WaitOne();
+            if (!wh.WaitOne(5000,false))
+            {
+                presence.Update();
+                if (!wh.WaitOne(8000,false))
+                    throw new ArgumentException("1 - Timeout waiting for signal/variable.");
+            }
 
             // This is a TestClient specific method that fires OnCompleteMovementToRegion event, which
             // would normally be fired after receiving the reply packet from comm. done on the last line.
             testclient.CompleteMovement();
 
             // Crossings are asynchronous
-            while (presence.IsInTransit) {  };
+            int timer = 10;
 
+            // Make sure cross hasn't already finished
+            if (!presence.IsInTransit && !presence.IsChildAgent)
+            {
+                // If not and not in transit yet, give it some more time
+                Thread.Sleep(5000);
+            }
+
+            // Enough time, should at least be in transit by now.
+            while (presence.IsInTransit && timer > 0)
+            {
+                Thread.Sleep(1000);
+                timer-=1;
+            }
+
+            Assert.That(timer,Is.GreaterThan(0),"Timed out waiting to cross 2->1.");
             Assert.That(presence.IsChildAgent, Is.True, "Did not complete region cross as expected.");
             Assert.That(presence2.IsChildAgent, Is.False, "Did not receive root status after receiving agent.");
 
@@ -241,11 +263,28 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             presence2.AbsolutePosition = new Vector3(-10, 3, 100);
             presence2.Update();
 
-            wh.WaitOne();
+            if (!wh.WaitOne(5000,false))
+            {
+                presence2.Update();
+                if (!wh.WaitOne(8000,false))
+                    throw new ArgumentException("2 - Timeout waiting for signal/variable.");
+            }
             testclient.CompleteMovement();
 
-            while (presence2.IsInTransit) {  };
+            if (!presence2.IsInTransit && !presence2.IsChildAgent)
+            {
+                // If not and not in transit yet, give it some more time
+                Thread.Sleep(5000);
+            }
 
+            // Enough time, should at least be in transit by now.
+            while (presence2.IsInTransit && timer > 0)
+            {
+                Thread.Sleep(1000);
+                timer-=1;
+            }
+
+            Assert.That(timer,Is.GreaterThan(0),"Timed out waiting to cross 1->2.");
             Assert.That(presence2.IsChildAgent, Is.True, "Did not return from region as expected.");
             Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");
         }
@@ -254,7 +293,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void T030_TestAddAttachments()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-            
+
             ScenePresence presence = scene.GetScenePresence(agent1);
 
             presence.AddAttachment(sog1);
@@ -269,7 +308,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void T031_RemoveAttachments()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-            
+
             ScenePresence presence = scene.GetScenePresence(agent1);
             presence.RemoveAttachment(sog1);
             presence.RemoveAttachment(sog2);
@@ -277,11 +316,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(presence.HasAttachments(), Is.False);
         }
 
-        //[Test]
+        [Test]
         public void T032_CrossAttachments()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-            
+
             ScenePresence presence = scene.GetScenePresence(agent1);
             ScenePresence presence2 = scene2.GetScenePresence(agent1);
             presence2.AddAttachment(sog1);
@@ -301,7 +340,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public static string GetRandomCapsObjectPath()
         {
             Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-            
+
             UUID caps = UUID.Random();
             string capsPath = caps.ToString();
             capsPath = capsPath.Remove(capsPath.Length - 4, 4);
