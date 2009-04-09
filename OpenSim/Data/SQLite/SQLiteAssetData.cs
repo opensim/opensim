@@ -37,18 +37,12 @@ using OpenSim.Framework;
 namespace OpenSim.Data.SQLite
 {
     /// <summary>
-    /// A User storage interface for the DB4o database system
+    /// An asset storage interface for the SQLite database system
     /// </summary>
     public class SQLiteAssetData : AssetDataBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// The database manager
-        /// </summary>
-        /// <summary>
-        /// Artificial constructor called upon plugin load
-        /// </summary>
         private const string SelectAssetSQL = "select * from assets where UUID=:UUID";
         private const string SelectAssetMetadataSQL = "select Name, Description, Type, Temporary, UUID from assets limit :start, :count";
         private const string DeleteAssetSQL = "delete from assets where UUID=:UUID";
