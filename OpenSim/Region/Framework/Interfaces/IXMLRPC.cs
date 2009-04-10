@@ -59,5 +59,6 @@ namespace OpenSim.Region.Framework.Interfaces
         IServiceRequest GetNextCompletedSRDRequest();
         void RemoveCompletedSRDRequest(UUID id);
         void CancelSRDRequests(UUID itemID);
+        int Port { get; }
     }
 }

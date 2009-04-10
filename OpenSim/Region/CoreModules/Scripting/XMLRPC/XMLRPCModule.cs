@@ -151,6 +151,11 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             get { return true; }
         }
 
+        public int Port
+        {
+            get { return m_remoteDataPort; }
+        }
+
         #endregion
 
         #region IXMLRPC Members
