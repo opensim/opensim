@@ -2299,6 +2299,106 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// If object is physical, prepare for spinning torques (set flag to save old orientation)
+        /// </summary>
+        /// <param name="rotation">Rotation.  We do the math here to turn it into a torque</param>
+        /// <param name="remoteClient"></param>
+        public void SpinStart(IClientAPI remoteClient)
+        {
+            if (m_scene.EventManager.TriggerGroupSpinStart(UUID))
+            {
+                if (m_rootPart.PhysActor != null)
+                {
+                    if (m_rootPart.PhysActor.IsPhysical)
+                    {
+                        m_rootPart.IsWaitingForFirstSpinUpdatePacket = true;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// If object is physical, apply torque to spin it around
+        /// </summary>
+        /// <param name="rotation">Rotation.  We do the math here to turn it into a torque</param>
+        /// <param name="remoteClient"></param>
+        public void SpinMovement(Quaternion newOrientation, IClientAPI remoteClient)
+        {
+            // The incoming newOrientation, sent by the client, "seems" to be the 
+            // desired target orientation. This needs further verification; in particular, 
+            // one would expect that the initial incoming newOrientation should be
+            // fairly close to the original prim's physical orientation, 
+            // m_rootPart.PhysActor.Orientation. This however does not seem to be the
+            // case (might just be an issue with different quaternions representing the
+            // same rotation, or it might be a coordinate system issue).
+            //
+            // Since it's not clear what the relationship is between the PhysActor.Orientation
+            // and the incoming orientations sent by the client, we take an alternative approach
+            // of calculating the delta rotation between the orientations being sent by the 
+            // client. (Since a spin is invoked by ctrl+shift+drag in the client, we expect
+            // a steady stream of several new orientations coming in from the client.)
+            // This ensures that the delta rotations are being calculated from self-consistent
+            // pairs of old/new rotations. Given the delta rotation, we apply a torque around
+            // the delta rotation axis, scaled by the object mass times an arbitrary scaling
+            // factor (to ensure the resulting torque is not "too strong" or "too weak").
+            // 
+            // Ideally we need to calculate (probably iteratively) the exact torque or series
+            // of torques needed to arrive exactly at the destination orientation. However, since 
+            // it is not yet clear how to map the destination orientation (provided by the viewer)
+            // into PhysActor orientations (needed by the physics engine), we omit this step. 
+            // This means that the resulting torque will at least be in the correct direction, 
+            // but it will result in over-shoot or under-shoot of the target orientation.
+            // For the end user, this means that ctrl+shift+drag can be used for relative,
+            // but not absolute, adjustments of orientation for physical prims.
+          
+            if (m_scene.EventManager.TriggerGroupSpin(UUID, newOrientation))
+            {
+                if (m_rootPart.PhysActor != null)
+                {
+                    if (m_rootPart.PhysActor.IsPhysical)
+                    {
+                        if(m_rootPart.IsWaitingForFirstSpinUpdatePacket)
+                        {
+                            // first time initialization of "old" orientation for calculation of delta rotations
+                            m_rootPart.SpinOldOrientation = newOrientation;
+                            m_rootPart.IsWaitingForFirstSpinUpdatePacket = false;
+                        }
+                        else
+                        {
+                          // save and update old orientation
+                          Quaternion old = m_rootPart.SpinOldOrientation;
+                          m_rootPart.SpinOldOrientation = newOrientation;
+                          //m_log.Error("[SCENE OBJECT GROUP]: Old orientation is " + old);
+                          //m_log.Error("[SCENE OBJECT GROUP]: Incoming new orientation is " + newOrientation);
+
+                          // compute difference between previous old rotation and new incoming rotation
+                          Quaternion minimalRotationFromQ1ToQ2 = Quaternion.Inverse(old) * newOrientation;
+
+                          float rotationAngle;
+                          Vector3 rotationAxis;
+                          minimalRotationFromQ1ToQ2.GetAxisAngle(out rotationAxis, out rotationAngle);
+                          rotationAxis.Normalize();
+
+                          //m_log.Error("SCENE OBJECT GROUP]: rotation axis is " + rotationAxis);
+                          PhysicsVector spinforce = new PhysicsVector(rotationAxis.X, rotationAxis.Y, rotationAxis.Z);
+                          spinforce = (spinforce/8) * m_rootPart.PhysActor.Mass; // 8 is an arbitrary torque scaling factor
+                          m_rootPart.PhysActor.AddAngularForce(spinforce,true);
+                          m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+                        }
+                    }
+                    else
+                    {
+                        //NonPhysicalSpinMovement(pos);
+                    }
+                }
+                else
+                {
+                    //NonPhysicalSpinMovement(pos);
+                }
+            }
+        }
+
+        /// <summary>
         /// Return metadata about a prim (name, description, sale price, etc.)
         /// </summary>
         /// <param name="client"></param>

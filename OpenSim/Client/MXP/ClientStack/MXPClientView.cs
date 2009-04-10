@@ -607,6 +607,9 @@ namespace OpenSim.Client.MXP.ClientStack
         public event GrabObject OnGrabObject;
         public event ObjectSelect OnDeGrabObject;
         public event MoveObject OnGrabUpdate;
+        public event SpinStart OnSpinStart;
+        public event SpinObject OnSpinUpdate;
+        public event SpinStop OnSpinStop;
         public event UpdateShape OnUpdatePrimShape;
         public event ObjectExtraParams OnUpdateExtraParams;
         public event ObjectSelect OnObjectSelect;

@@ -172,7 +172,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private MoveObject handlerGrabUpdate; //OnGrabUpdate;
         private ObjectSelect handlerDeGrabObject; //OnDeGrabObject;
         private SpinStart handlerSpinStart; //OnSpinStart;
-        private SpinUpdate handlerSpinUpdate; //OnSpinUpdate;
+        private SpinObject handlerSpinUpdate; //OnSpinUpdate;
         private SpinStop handlerSpinStop; //OnSpinStop;
         private GenericCall7 handlerObjectDescription;
         private GenericCall7 handlerObjectName;
@@ -939,7 +939,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ObjectDuplicate OnObjectDuplicate;
         public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
         public event MoveObject OnGrabUpdate;
-        public event SpinUpdate OnSpinUpdate;
+        public event SpinObject OnSpinUpdate;
         public event AddNewPrim OnAddPrim;
         public event RequestGodlikePowers OnRequestGodlikePowers;
         public event GodKickUser OnGodKickUser;

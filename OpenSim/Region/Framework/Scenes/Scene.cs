@@ -1933,6 +1933,8 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectSelect += SelectPrim;
             client.OnObjectDeselect += DeselectPrim;
             client.OnGrabUpdate += m_sceneGraph.MoveObject;
+            client.OnSpinStart += m_sceneGraph.SpinStart;
+            client.OnSpinUpdate += m_sceneGraph.SpinObject;
             client.OnDeRezObject += DeRezObject;
             client.OnRezObject += RezObject;
             client.OnRezSingleAttachmentFromInv += RezSingleAttachment;

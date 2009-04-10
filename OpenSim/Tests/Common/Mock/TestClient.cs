@@ -107,6 +107,9 @@ namespace OpenSim.Tests.Common.Mock
         public event GrabObject OnGrabObject;
         public event ObjectSelect OnDeGrabObject;
         public event MoveObject OnGrabUpdate;
+        public event SpinStart OnSpinStart;
+        public event SpinObject OnSpinUpdate;
+        public event SpinStop OnSpinStop;
         public event ViewerEffectEventHandler OnViewerEffect;
 
         public event FetchInventory OnAgentDataUpdateRequest;

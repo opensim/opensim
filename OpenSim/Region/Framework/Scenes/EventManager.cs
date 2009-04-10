@@ -132,6 +132,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event SceneGroupGrabed OnSceneGroupGrab;
 
+        public delegate bool SceneGroupSpinStarted(UUID groupID);
+
+        public event SceneGroupSpinStarted OnSceneGroupSpinStart;
+
+        public delegate bool SceneGroupSpun(UUID groupID, Quaternion rotation);
+
+        public event SceneGroupSpun OnSceneGroupSpin;
+
         public delegate void LandObjectAdded(ILandObject newParcel);
 
         public event LandObjectAdded OnLandObjectAdded;
@@ -381,6 +389,8 @@ namespace OpenSim.Region.Framework.Scenes
         private StopScript handlerStopScript = null; //OnStopScript;
         private SceneGroupMoved handlerSceneGroupMove = null; //OnSceneGroupMove;
         private SceneGroupGrabed handlerSceneGroupGrab = null; //OnSceneGroupGrab;
+        private SceneGroupSpinStarted handlerSceneGroupSpinStarted = null; //OnSceneGroupSpinStart;
+        private SceneGroupSpun handlerSceneGroupSpin = null; //OnSceneGroupSpin;
         private LandObjectAdded handlerLandObjectAdded = null; //OnLandObjectAdded;
         private LandObjectRemoved handlerLandObjectRemoved = null; //OnLandObjectRemoved;
         private AvatarEnteringNewParcel handlerAvatarEnteringNewParcel = null; //OnAvatarEnteringNewParcel;
@@ -632,6 +642,28 @@ namespace OpenSim.Region.Framework.Scenes
             if (handlerSceneGroupMove != null)
             {
                 return handlerSceneGroupMove(groupID, delta);
+            }
+            return true;
+        }
+
+        public bool TriggerGroupSpinStart(UUID groupID)
+        {
+            handlerSceneGroupSpinStarted = OnSceneGroupSpinStart;
+
+            if (handlerSceneGroupSpinStarted != null)
+            {
+                return handlerSceneGroupSpinStarted(groupID);
+            }
+            return true;
+        }
+
+        public bool TriggerGroupSpin(UUID groupID, Quaternion rotation)
+        {
+            handlerSceneGroupSpin = OnSceneGroupSpin;
+
+            if (handlerSceneGroupSpin != null)
+            {
+                return handlerSceneGroupSpin(groupID, rotation);
             }
             return true;
         }

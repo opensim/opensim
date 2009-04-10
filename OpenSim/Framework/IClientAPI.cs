@@ -160,7 +160,7 @@ namespace OpenSim.Framework
         );
 
     public delegate void SpinStart(UUID objectID, IClientAPI remoteClient);
-    public delegate void SpinUpdate(UUID objectID, Quaternion rotation, IClientAPI remoteClient);
+    public delegate void SpinObject(UUID objectID, Quaternion rotation, IClientAPI remoteClient);
     public delegate void SpinStop(UUID objectID, IClientAPI remoteClient);
 
     public delegate void ParcelAccessListRequest(
@@ -607,6 +607,9 @@ namespace OpenSim.Framework
         event GrabObject OnGrabObject;
         event ObjectSelect OnDeGrabObject;
         event MoveObject OnGrabUpdate;
+        event SpinStart OnSpinStart;
+        event SpinObject OnSpinUpdate;
+        event SpinStop OnSpinStop;
 
         event UpdateShape OnUpdatePrimShape;
         event ObjectExtraParams OnUpdateExtraParams;

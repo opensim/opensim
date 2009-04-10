@@ -176,6 +176,11 @@ namespace OpenSim.Region.Framework.Scenes
         public bool VolumeDetectActive = false; // XmlIgnore set to avoid problems with persistance until I come to care for this
                                                 // Certainly this must be a persistant setting finally
 
+        [XmlIgnore]
+        public bool IsWaitingForFirstSpinUpdatePacket = false;
+        [XmlIgnore]
+        public Quaternion SpinOldOrientation = new Quaternion();
+
         /// <summary>
         /// This part's inventory
         /// </summary>
