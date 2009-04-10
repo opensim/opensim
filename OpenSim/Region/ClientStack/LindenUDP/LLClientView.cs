@@ -4430,7 +4430,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 // in the end, we dereference this, so we have to check if it's null
                 if (m_imageManager != null)
-                    m_imageManager.ProcessImageQueue(3);
+                    m_imageManager.ProcessImageQueue(5);
                 return;
             }
 
@@ -6041,7 +6041,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.RequestImage:
                     RequestImagePacket imageRequest = (RequestImagePacket)Pack;
                     //m_log.Debug("image request: " + Pack.ToString());
-
+                    
                     #region Packet Session and User Check
                     if (m_checkPackets)
                     {
@@ -6062,6 +6062,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             args.DiscardLevel = imageRequest.RequestImage[i].DiscardLevel;
                             args.PacketNumber = imageRequest.RequestImage[i].Packet;
                             args.Priority = imageRequest.RequestImage[i].DownloadPriority;
+                            args.requestSequence = imageRequest.Header.Sequence;
 
                             //handlerTextureRequest = OnRequestTexture;
 
@@ -9114,7 +9115,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // in the end, we dereference this, so we have to check if it's null
             if (m_imageManager != null )
-                m_imageManager.ProcessImageQueue(3);
+                m_imageManager.ProcessImageQueue(10);
             PacketPool.Instance.ReturnPacket(Pack);
         }
 

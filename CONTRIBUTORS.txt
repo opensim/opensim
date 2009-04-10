@@ -81,6 +81,7 @@ Patches
 * nornalbion
 * openlifegrid.com
 * ralphos
+* RemedyTomm
 * rtomita
 * Ruud Lathorp
 * SachaMagne

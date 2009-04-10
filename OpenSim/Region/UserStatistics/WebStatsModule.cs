@@ -676,7 +676,20 @@ namespace OpenSim.Region.UserStatistics
                 {
                     m_log.Debug("INSERT");
                     updatecmd.CommandText = SQL_STATS_TABLE_INSERT;
-                    updatecmd.ExecuteNonQuery();
+                    try
+                    {
+                        updatecmd.ExecuteNonQuery();
+                    }
+                    catch 
+                        (SqliteExecutionException)
+                    {
+                        m_log.Warn("[WEBSTATS]: failed to write stats to storage Execution Exception");
+                    }
+                    catch (SqliteSyntaxException)
+                    {
+                        m_log.Warn("[WEBSTATS]: failed to write stats to storage SQL Syntax Exception");
+                    }
+
                 }
             }
 

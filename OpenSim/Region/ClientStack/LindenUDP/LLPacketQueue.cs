@@ -82,6 +82,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         internal LLPacketThrottle AssetThrottle;
         internal LLPacketThrottle TextureThrottle;
         internal LLPacketThrottle TotalThrottle;
+        
+        /// <summary>
+        /// The number of packets in the OutgoingPacketQueue
+        /// 
+        /// </summary>
+        internal int TextureOutgoingPacketQueueCount
+        {
+            get 
+            { 
+                if (TextureOutgoingPacketQueue == null)
+                    return 0;
+                return TextureOutgoingPacketQueue.Count;
+            }
+        }
 
         // private long LastThrottle;
         // private long ThrottleInterval;
