@@ -67,6 +67,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             {
                 if(!_OnTouchActive)
                 {
+                    GetSOP().Flags |= PrimFlags.Touch;
                     _OnTouchActive = true;
                     m_rootScene.EventManager.OnObjectGrab += EventManager_OnObjectGrab;
                 }
@@ -79,6 +80,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
                 if (_OnTouch == null)
                 {
+                    GetSOP().Flags &= ~PrimFlags.Touch;
                     _OnTouchActive = false;
                     m_rootScene.EventManager.OnObjectGrab -= EventManager_OnObjectGrab;
                 }
