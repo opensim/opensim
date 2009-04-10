@@ -78,6 +78,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 #pragma warning disable 414
         private EventManager m_EventManager;
 #pragma warning restore 414
+        private IXmlRpcRouter m_XmlRpcRouter;
         private int m_EventLimit;
         private bool m_KillTimedOutScripts;
 
@@ -128,6 +129,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public static List<XEngine> ScriptEngines
         {
             get { return m_ScriptEngines; }
+        }
+
+        public IScriptModule ScriptModule
+        {
+            get { return this; }
         }
 
         // private struct RezScriptParms
@@ -222,6 +228,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         m_MaxScriptQueue, m_StackSize);
 
             m_Scene.StackModuleInterface<IScriptModule>(this);
+
+            m_XmlRpcRouter = m_Scene.RequestModuleInterface<IXmlRpcRouter>();
+            if (m_XmlRpcRouter != null)
+            {
+                OnScriptRemoved += m_XmlRpcRouter.ScriptRemoved;
+                OnObjectRemoved += m_XmlRpcRouter.ObjectRemoved;
+            }
         }
 
         public void PostInitialise()
@@ -915,6 +928,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return true;
             }
             return false;
+        }
+
+        public bool PostScriptEvent(UUID itemID, string name, Object[] p)
+        {
+            return PostScriptEvent(itemID, new EventParams(name, p, new DetectParams[0]));
         }
 
         public Assembly OnAssemblyResolve(object sender,

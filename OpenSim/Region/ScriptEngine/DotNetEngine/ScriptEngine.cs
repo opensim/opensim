@@ -96,6 +96,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             get { return "ScriptEngine.DotNetEngine"; }
         }
         
+        public IScriptModule ScriptModule
+        {
+            get { return this; }
+        }
+
         public event ScriptRemoved OnScriptRemoved;
         public event ObjectRemoved OnObjectRemoved;
 
@@ -210,6 +215,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             uint localID = m_ScriptManager.GetLocalID(itemID);
             return m_EventQueueManager.AddToScriptQueue(localID, itemID,
                     p.EventName, p.DetectParams, p.Params);
+        }
+
+        public bool PostScriptEvent(UUID itemID, string name, Object[] p)
+        {
+            return PostScriptEvent(itemID, new EventParams(name, p, new DetectParams[0]));
         }
 
         public DetectParams GetDetectParams(UUID itemID, int number)

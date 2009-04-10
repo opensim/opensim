@@ -6108,6 +6108,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (xmlrpcMod.IsEnabled())
             {
                 UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID, UUID.Zero);
+                IXmlRpcRouter xmlRpcRouter = m_ScriptEngine.World.RequestModuleInterface<IXmlRpcRouter>();
+                if (xmlRpcRouter != null)
+                    xmlRpcRouter.RegisterNewReceiver(m_ScriptEngine.ScriptModule, channelID, m_host.UUID, m_itemID, "http://"+System.Environment.MachineName+":"+xmlrpcMod.Port.ToString()+"/");
                 object[] resobj = new object[] { new LSL_Integer(1), new LSL_String(channelID.ToString()), new LSL_String(UUID.Zero.ToString()), new LSL_String(String.Empty), new LSL_Integer(0), new LSL_String(String.Empty) };
                 m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
                         "remote_data", resobj,

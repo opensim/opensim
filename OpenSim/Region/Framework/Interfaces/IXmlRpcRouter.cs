@@ -25,18 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IScriptModule : IRegionModule
+    public interface IXmlRpcRouter
     {
-        string ScriptEngineName { get; }
-
-        string GetAssemblyName(UUID itemID);
-        string GetXMLState(UUID itemID);
-
-        bool PostScriptEvent(UUID itemID, string name, Object[] args);
+        void RegisterNewReceiver(IScriptModule scriptEngine, UUID channelID, UUID objectID, UUID itemID, string url);
+        void ScriptRemoved(UUID itemID);
+        void ObjectRemoved(UUID objectID);
     }
 }
