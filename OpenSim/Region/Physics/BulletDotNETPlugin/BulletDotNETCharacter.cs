@@ -963,7 +963,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             if (m_flying)
             {
                 // Slight PID correction
-                vec.Z += (((-1 * m_parent_scene.gravityz) * m_mass) * 0.035f);
+                vec.Z += (((-1 * m_parent_scene.gravityz) * m_mass) * 0.06f);
 
 
                 //auto fly height. Kitto Flora

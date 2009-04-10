@@ -43,6 +43,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private PhysicsVector _position;
+        private PhysicsVector m_zeroPosition;
         private PhysicsVector _velocity;
         private PhysicsVector _torque = new PhysicsVector(0, 0, 0);
         private PhysicsVector m_lastVelocity = new PhysicsVector(0.0f, 0.0f, 0.0f);
@@ -168,6 +169,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private btVector3 tempAngularVelocity2;
         private btVector3 tempInertia1;
         private btVector3 tempInertia2;
+        private btVector3 tempAddForce;
         private btQuaternion tempOrientation1;
         private btQuaternion tempOrientation2;
         private btMotionState tempMotionState1;
@@ -870,16 +872,59 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
 
             m_log.Debug("[PHYSICS]: _________ChangeMove");
-            tempTransform2 = Body.getWorldTransform();
-            btQuaternion quat = tempTransform2.getRotation();
-            tempPosition2.setValue(_position.X, _position.Y, _position.Z);
-            tempTransform2.Dispose();
-            tempTransform2 = new btTransform(quat, tempPosition2);
-            Body.setWorldTransform(tempTransform2);
+            if (!m_isphysical)
+            {
+                tempTransform2 = Body.getWorldTransform();
+                btQuaternion quat = tempTransform2.getRotation();
+                tempPosition2.setValue(_position.X, _position.Y, _position.Z);
+                tempTransform2.Dispose();
+                tempTransform2 = new btTransform(quat, tempPosition2);
+                Body.setWorldTransform(tempTransform2);
 
-            changeSelectedStatus(timestep);
+                changeSelectedStatus(timestep);
 
-            resetCollisionAccounting();
+                resetCollisionAccounting();
+            }
+            else
+            {
+                if (Body != null)
+                {
+                    if (Body.Handle != IntPtr.Zero)
+                    {
+                        _parent_scene.removeFromWorld(this, Body);
+                        //Body.Dispose();
+                    }
+                    //Body = null;
+                    // TODO: dispose parts that make up body
+                }
+                /*
+                if (_parent_scene.needsMeshing(_pbs))
+                {
+                    // Don't need to re-enable body..   it's done in SetMesh
+                    float meshlod = _parent_scene.meshSculptLOD;
+
+                    if (IsPhysical)
+                        meshlod = _parent_scene.MeshSculptphysicalLOD;
+
+                    IMesh mesh = _parent_scene.mesher.CreateMesh(SOPName, _pbs, _size, meshlod, IsPhysical);
+                    // createmesh returns null when it doesn't mesh.
+                    CreateGeom(IntPtr.Zero, mesh);
+                }
+                else
+                {
+                    _mesh = null;
+                    CreateGeom(IntPtr.Zero, null);
+                }
+                SetCollisionShape(prim_geom);
+                */
+                if (m_isphysical)
+                    SetBody(Mass);
+                else
+                    SetBody(0);
+                changeSelectedStatus(timestep);
+
+                resetCollisionAccounting();
+            }
             m_taintposition = _position;
         }
 
@@ -1090,17 +1135,88 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         private void changeAddForce(float timestep)
         {
-            // TODO: throw new NotImplementedException();
+            if (!m_isSelected)
+            {
+                lock (m_forcelist)
+                {
+                    //m_log.Info("[PHYSICS]: dequeing forcelist");
+                    if (IsPhysical)
+                    {
+                        PhysicsVector iforce = new PhysicsVector();
+                        for (int i = 0; i < m_forcelist.Count; i++)
+                        {
+                            iforce = iforce + m_forcelist[i];
+                        }
+
+                        if (Body != null && Body.Handle != IntPtr.Zero)
+                        {
+                            if (tempAddForce != null && tempAddForce.Handle != IntPtr.Zero)
+                                tempAddForce.Dispose();
+                            enableBodySoft();
+                            tempAddForce = new btVector3(iforce.X, iforce.Y, iforce.Z);
+                            Body.applyCentralImpulse(tempAddForce);
+                        }
+                    }
+                    m_forcelist.Clear();
+                }
+
+                m_collisionscore = 0;
+                m_interpenetrationcount = 0;
+            }
+
+            m_taintforce = false;
+
         }
 
         private void changeAddAngularForce(float timestep)
         {
-            // TODO: throw new NotImplementedException();
+            if (!m_isSelected)
+            {
+                lock (m_angularforcelist)
+                {
+                    //m_log.Info("[PHYSICS]: dequeing forcelist");
+                    if (IsPhysical)
+                    {
+                        PhysicsVector iforce = new PhysicsVector();
+                        for (int i = 0; i < m_angularforcelist.Count; i++)
+                        {
+                            iforce = iforce + m_angularforcelist[i];
+                        }
+
+                        if (Body != null && Body.Handle != IntPtr.Zero)
+                        {
+                            if (tempAddForce != null && tempAddForce.Handle != IntPtr.Zero)
+                                tempAddForce.Dispose();
+                            enableBodySoft();
+                            tempAddForce = new btVector3(iforce.X, iforce.Y, iforce.Z);
+                            Body.applyTorqueImpulse(tempAddForce);
+                        }
+
+                    }
+                    m_angularforcelist.Clear();
+                }
+
+                m_collisionscore = 0;
+                m_interpenetrationcount = 0;
+            }
+
+            m_taintaddangularforce = false;
         }
 
         private void changeSetTorque(float timestep)
         {
-            // TODO: throw new NotImplementedException();
+            if (!m_isSelected)
+            {
+                if (IsPhysical)
+                {
+                    if (Body != null && Body.Handle != IntPtr.Zero)
+                    {
+                        tempAngularVelocity2.setValue(m_taintTorque.X, m_taintTorque.Y, m_taintTorque.Z);
+                        Body.applyTorque(tempAngularVelocity2);
+                    }
+                }
+            }
+            m_taintTorque = new PhysicsVector(0, 0, 0);
         }
 
         private void changedisable(float timestep)
@@ -1113,10 +1229,13 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             // TODO: throw new NotImplementedException();
             if (m_taintselected)
             {
+                Body.setCollisionFlags((int)ContactFlags.CF_NO_CONTACT_RESPONSE);
                 disableBodySoft();
+                
             }
             else
             {
+                Body.setCollisionFlags(0);
                 enableBodySoft();
             }
             m_isSelected = m_taintselected;
@@ -1125,7 +1244,20 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         private void changevelocity(float timestep)
         {
-            // TODO: throw new NotImplementedException();
+            if (!m_isSelected)
+            {
+                if (IsPhysical)
+                {
+                    if (Body != null && Body.Handle != IntPtr.Zero)
+                    {
+                        tempLinearVelocity2.setValue(m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
+                        Body.setLinearVelocity(tempLinearVelocity2);
+                    }
+                }
+
+                //resetCollisionAccounting();
+            }
+            m_taintVelocity = PhysicsVector.Zero;
         }
 
         private void changelink(float timestep)
@@ -1165,23 +1297,25 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 {
                     if (m_buoyancy > 0)
                     {
-                        fz = (((-1 * _parent_scene.gravityz) * m_buoyancy) * m_mass);
+                        fz = (((-1 * _parent_scene.gravityz) * m_buoyancy) * m_mass) * 0.035f;
 
                         //d.Vector3 l_velocity = d.BodyGetLinearVel(Body);
                         //m_log.Info("Using Buoyancy: " + buoyancy + " G: " + (_parent_scene.gravityz * m_buoyancy) + "mass:" + m_mass + "  Pos: " + Position.ToString());
                     }
                     else
                     {
-                        fz = (-1 * (((-1 * _parent_scene.gravityz) * (-1 * m_buoyancy)) * m_mass));
+                        fz = (-1 * (((-1 * _parent_scene.gravityz) * (-1 * m_buoyancy)) * m_mass) * 0.035f);
                     }
                 }
 
                 if (m_usePID)
                 {
+                    PID_D = 61f;
+                    PID_G = 65f;
                     //if (!d.BodyIsEnabled(Body))
                     //d.BodySetForce(Body, 0f, 0f, 0f);
                     // If we're using the PID controller, then we have no gravity
-                    fz = (-1 * _parent_scene.gravityz) * m_mass;
+                    fz = ((-1 * _parent_scene.gravityz) * m_mass) * 1.025f;
 
                     //  no lock; for now it's only called from within Simulate()
 
@@ -1202,8 +1336,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     // TODO: NEED btVector3 for Linear Velocity
                     // NEED btVector3 for Position
 
-                    PhysicsVector pos = new PhysicsVector(0, 0, 0); //TODO: Insert values gotten from bullet
-                    PhysicsVector vel = new PhysicsVector(0, 0, 0);
+                    PhysicsVector pos = new PhysicsVector(_position.X, _position.Y, _position.Z); //TODO: Insert values gotten from bullet
+                    PhysicsVector vel = new PhysicsVector(_velocity.X, _velocity.Y, _velocity.Z);
 
                     _target_velocity =
                         new PhysicsVector(
@@ -1301,6 +1435,11 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                         d.BodySetLinearVel(Body, vel.X, vel.Y, 0);
                         d.BodyAddForce(Body, 0, 0, fz);
                         */
+                        if (Body != null && Body.Handle != IntPtr.Zero)
+                        {
+                            Body.setLinearVelocity(_parent_scene.VectorZero);
+                            Body.clearForces();
+                        }
                         return;
                     }
                     else
@@ -1349,11 +1488,22 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
                     // TODO: Do Bullet Equiv
                     // d.BodyAddForce(Body, fx, fy, fz);
+                    if (Body != null && Body.Handle != IntPtr.Zero)
+                    {
+                        Body.activate(true);
+                        if (tempAddForce != null && tempAddForce.Handle != IntPtr.Zero)
+                            tempAddForce.Dispose();
+
+                        tempAddForce = new btVector3(fx * 0.01f, fy * 0.01f, fz * 0.01f);
+                        Body.applyCentralImpulse(tempAddForce);
+                    }
                 }
             }
             else
             {
-                // _zeroPosition = d.BodyGetPosition(Body);
+                if (m_zeroPosition == null)
+                    m_zeroPosition = new PhysicsVector(0, 0, 0);
+                 m_zeroPosition.setValues(_position.X,_position.Y,_position.Z);
                 return;
             }
         }
@@ -2066,212 +2216,219 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         public void UpdatePositionAndVelocity()
         {
-            if (_parent == null)
+            if (!m_isSelected)
             {
-                PhysicsVector pv = new PhysicsVector(0, 0, 0);
-                bool lastZeroFlag = _zeroFlag;
-                if (tempPosition3 != null && tempPosition3.Handle != IntPtr.Zero)
-                    tempPosition3.Dispose();
-                if (tempTransform3 != null && tempTransform3.Handle != IntPtr.Zero)
-                    tempTransform3.Dispose();
-
-                if (tempOrientation2 != null && tempOrientation2.Handle != IntPtr.Zero)
-                    tempOrientation2.Dispose();
-
-                if (tempAngularVelocity1 != null && tempAngularVelocity1.Handle != IntPtr.Zero)
-                    tempAngularVelocity1.Dispose();
-
-                if (tempLinearVelocity1 != null && tempLinearVelocity1.Handle != IntPtr.Zero)
-                    tempLinearVelocity1.Dispose();
-
-
-
-                tempTransform3 = Body.getInterpolationWorldTransform();
-                tempPosition3 = tempTransform3.getOrigin(); // vec
-                tempOrientation2 = tempTransform3.getRotation(); // ori
-                tempAngularVelocity1 = Body.getInterpolationAngularVelocity(); //rotvel
-                tempLinearVelocity1 = Body.getInterpolationLinearVelocity(); // vel
-
-                _torque.setValues(tempAngularVelocity1.getX(), tempAngularVelocity1.getX(), tempAngularVelocity1.getZ());
-                PhysicsVector l_position = new PhysicsVector();
-                Quaternion l_orientation = new Quaternion();
-                m_lastposition = _position;
-                m_lastorientation = _orientation;
-
-                l_position.X = tempPosition3.getX();
-                l_position.Y = tempPosition3.getY();
-                l_position.Z = tempPosition3.getZ();
-                l_orientation.X = tempOrientation2.getX();
-                l_orientation.Y = tempOrientation2.getY();
-                l_orientation.Z = tempOrientation2.getZ();
-                l_orientation.W = tempOrientation2.getW();
-
-                if (l_position.X > 255.95f || l_position.X < 0f || l_position.Y > 255.95f || l_position.Y < 0f)
+                if (_parent == null)
                 {
-                    //base.RaiseOutOfBounds(l_position);
+                    PhysicsVector pv = new PhysicsVector(0, 0, 0);
+                    bool lastZeroFlag = _zeroFlag;
+                    if (tempPosition3 != null && tempPosition3.Handle != IntPtr.Zero)
+                        tempPosition3.Dispose();
+                    if (tempTransform3 != null && tempTransform3.Handle != IntPtr.Zero)
+                        tempTransform3.Dispose();
 
-                    if (m_crossingfailures < _parent_scene.geomCrossingFailuresBeforeOutofbounds)
+                    if (tempOrientation2 != null && tempOrientation2.Handle != IntPtr.Zero)
+                        tempOrientation2.Dispose();
+
+                    if (tempAngularVelocity1 != null && tempAngularVelocity1.Handle != IntPtr.Zero)
+                        tempAngularVelocity1.Dispose();
+
+                    if (tempLinearVelocity1 != null && tempLinearVelocity1.Handle != IntPtr.Zero)
+                        tempLinearVelocity1.Dispose();
+
+
+
+                    tempTransform3 = Body.getInterpolationWorldTransform();
+                    tempPosition3 = tempTransform3.getOrigin(); // vec
+                    tempOrientation2 = tempTransform3.getRotation(); // ori
+                    tempAngularVelocity1 = Body.getInterpolationAngularVelocity(); //rotvel
+                    tempLinearVelocity1 = Body.getInterpolationLinearVelocity(); // vel
+
+                    _torque.setValues(tempAngularVelocity1.getX(), tempAngularVelocity1.getX(),
+                                      tempAngularVelocity1.getZ());
+                    PhysicsVector l_position = new PhysicsVector();
+                    Quaternion l_orientation = new Quaternion();
+                    m_lastposition = _position;
+                    m_lastorientation = _orientation;
+
+                    l_position.X = tempPosition3.getX();
+                    l_position.Y = tempPosition3.getY();
+                    l_position.Z = tempPosition3.getZ();
+                    l_orientation.X = tempOrientation2.getX();
+                    l_orientation.Y = tempOrientation2.getY();
+                    l_orientation.Z = tempOrientation2.getZ();
+                    l_orientation.W = tempOrientation2.getW();
+
+                    if (l_position.X > 255.95f || l_position.X < 0f || l_position.Y > 255.95f || l_position.Y < 0f)
                     {
-                        _position = l_position;
-                        //_parent_scene.remActivePrim(this);
+                        //base.RaiseOutOfBounds(l_position);
+
+                        if (m_crossingfailures < _parent_scene.geomCrossingFailuresBeforeOutofbounds)
+                        {
+                            _position = l_position;
+                            //_parent_scene.remActivePrim(this);
+                            if (_parent == null)
+                                base.RequestPhysicsterseUpdate();
+                            return;
+                        }
+                        else
+                        {
+                            if (_parent == null)
+                                base.RaiseOutOfBounds(l_position);
+                            return;
+                        }
+                    }
+
+                    if (l_position.Z < -200000f)
+                    {
+                        // This is so prim that get lost underground don't fall forever and suck up
+                        //
+                        // Sim resources and memory.
+                        // Disables the prim's movement physics....
+                        // It's a hack and will generate a console message if it fails.
+
+                        //IsPhysical = false;
+                        //if (_parent == null)
+                        //base.RaiseOutOfBounds(_position);
+
+                        _acceleration.X = 0;
+                        _acceleration.Y = 0;
+                        _acceleration.Z = 0;
+
+                        _velocity.X = 0;
+                        _velocity.Y = 0;
+                        _velocity.Z = 0;
+                        m_rotationalVelocity.X = 0;
+                        m_rotationalVelocity.Y = 0;
+                        m_rotationalVelocity.Z = 0;
+
                         if (_parent == null)
                             base.RequestPhysicsterseUpdate();
-                        return;
+
+                        m_throttleUpdates = false;
+                        throttleCounter = 0;
+                        _zeroFlag = true;
+                        //outofBounds = true;
+                    }
+
+                    if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
+                        && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
+                        && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02)
+                        && (1.0 - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation)) < 0.01))
+                    {
+                        _zeroFlag = true;
+                        m_throttleUpdates = false;
                     }
                     else
                     {
+                        //m_log.Debug(Math.Abs(m_lastposition.X - l_position.X).ToString());
+                        _zeroFlag = false;
+                    }
+
+                    if (_zeroFlag)
+                    {
+                        _velocity.X = 0.0f;
+                        _velocity.Y = 0.0f;
+                        _velocity.Z = 0.0f;
+
+                        _acceleration.X = 0;
+                        _acceleration.Y = 0;
+                        _acceleration.Z = 0;
+
+                        //_orientation.w = 0f;
+                        //_orientation.X = 0f;
+                        //_orientation.Y = 0f;
+                        //_orientation.Z = 0f;
+                        m_rotationalVelocity.X = 0;
+                        m_rotationalVelocity.Y = 0;
+                        m_rotationalVelocity.Z = 0;
+                        if (!m_lastUpdateSent)
+                        {
+                            m_throttleUpdates = false;
+                            throttleCounter = 0;
+                            m_rotationalVelocity = pv;
+
+                            if (_parent == null)
+                                base.RequestPhysicsterseUpdate();
+
+                            m_lastUpdateSent = true;
+                        }
+                    }
+                    else
+                    {
+                        if (lastZeroFlag != _zeroFlag)
+                        {
+                            if (_parent == null)
+                                base.RequestPhysicsterseUpdate();
+                        }
+
+                        m_lastVelocity = _velocity;
+
+                        _position = l_position;
+
+                        _velocity.X = tempLinearVelocity1.getX();
+                        _velocity.Y = tempLinearVelocity1.getY();
+                        _velocity.Z = tempLinearVelocity1.getZ();
+
+                        _acceleration = ((_velocity - m_lastVelocity)/0.1f);
+                        _acceleration = new PhysicsVector(_velocity.X - m_lastVelocity.X/0.1f,
+                                                          _velocity.Y - m_lastVelocity.Y/0.1f,
+                                                          _velocity.Z - m_lastVelocity.Z/0.1f);
+                        //m_log.Info("[PHYSICS]: V1: " + _velocity + " V2: " + m_lastVelocity + " Acceleration: " + _acceleration.ToString());
+
+                        if (_velocity.IsIdentical(pv, 0.5f))
+                        {
+                            m_rotationalVelocity = pv;
+                        }
+                        else
+                        {
+
+                            m_rotationalVelocity.setValues(tempAngularVelocity1.getX(), tempAngularVelocity1.getY(),
+                                                           tempAngularVelocity1.getZ());
+                        }
+
+                        //m_log.Debug("ODE: " + m_rotationalVelocity.ToString());
+
+                        _orientation.X = l_orientation.X;
+                        _orientation.Y = l_orientation.Y;
+                        _orientation.Z = l_orientation.Z;
+                        _orientation.W = l_orientation.W;
+                        m_lastUpdateSent = false;
+
+                        //if (!m_throttleUpdates || throttleCounter > _parent_scene.geomUpdatesPerThrottledUpdate)
+                        //{
                         if (_parent == null)
-                            base.RaiseOutOfBounds(l_position);
-                        return;
+                            base.RequestPhysicsterseUpdate();
+                        // }
+                        // else
+                        // {
+                        //     throttleCounter++;
+                        //}
+
+                    }
+                    m_lastposition = l_position;
+                    if (forceenable)
+                    {
+                        Body.forceActivationState(1);
+                        forceenable = false;
                     }
                 }
-
-                if (l_position.Z < -200000f)
+                else
                 {
-                    // This is so prim that get lost underground don't fall forever and suck up
-                    //
-                    // Sim resources and memory.
-                    // Disables the prim's movement physics....
-                    // It's a hack and will generate a console message if it fails.
-
-                    //IsPhysical = false;
-                    //if (_parent == null)
-                        //base.RaiseOutOfBounds(_position);
-
-                    _acceleration.X = 0;
-                    _acceleration.Y = 0;
-                    _acceleration.Z = 0;
-
+                    // Not a body..   so Make sure the client isn't interpolating
                     _velocity.X = 0;
                     _velocity.Y = 0;
                     _velocity.Z = 0;
-                    m_rotationalVelocity.X = 0;
-                    m_rotationalVelocity.Y = 0;
-                    m_rotationalVelocity.Z = 0;
-
-                    if (_parent == null)
-                        base.RequestPhysicsterseUpdate();
-
-                    m_throttleUpdates = false;
-                    throttleCounter = 0;
-                    _zeroFlag = true;
-                    //outofBounds = true;
-                }
-
-                if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
-                    && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
-                    && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02)
-                    && (1.0 - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation)) < 0.01 ))
-                {
-                    _zeroFlag = true;
-                    m_throttleUpdates = false;
-                }
-                else
-                {
-                    //m_log.Debug(Math.Abs(m_lastposition.X - l_position.X).ToString());
-                    _zeroFlag = false;
-                }
-
-                if (_zeroFlag)
-                {
-                    _velocity.X = 0.0f;
-                    _velocity.Y = 0.0f;
-                    _velocity.Z = 0.0f;
 
                     _acceleration.X = 0;
                     _acceleration.Y = 0;
                     _acceleration.Z = 0;
 
-                    //_orientation.w = 0f;
-                    //_orientation.X = 0f;
-                    //_orientation.Y = 0f;
-                    //_orientation.Z = 0f;
                     m_rotationalVelocity.X = 0;
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
-                    if (!m_lastUpdateSent)
-                    {
-                        m_throttleUpdates = false;
-                        throttleCounter = 0;
-                        m_rotationalVelocity = pv;
-
-                        if (_parent == null)
-                            base.RequestPhysicsterseUpdate();
-
-                        m_lastUpdateSent = true;
-                    }
+                    _zeroFlag = true;
                 }
-                else
-                {
-                    if (lastZeroFlag != _zeroFlag)
-                    {
-                        if (_parent == null)
-                            base.RequestPhysicsterseUpdate();
-                    }
-
-                    m_lastVelocity = _velocity;
-
-                    _position = l_position;
-
-                    _velocity.X = tempLinearVelocity1.getX();
-                    _velocity.Y = tempLinearVelocity1.getY();
-                    _velocity.Z = tempLinearVelocity1.getZ();
-
-                    _acceleration = ((_velocity - m_lastVelocity) / 0.1f);
-                    _acceleration = new PhysicsVector(_velocity.X - m_lastVelocity.X / 0.1f, _velocity.Y - m_lastVelocity.Y / 0.1f, _velocity.Z - m_lastVelocity.Z / 0.1f);
-                    //m_log.Info("[PHYSICS]: V1: " + _velocity + " V2: " + m_lastVelocity + " Acceleration: " + _acceleration.ToString());
-
-                    if (_velocity.IsIdentical(pv, 0.5f))
-                    {
-                        m_rotationalVelocity = pv;
-                    }
-                    else
-                    {
-                        
-                        m_rotationalVelocity.setValues(tempAngularVelocity1.getX(), tempAngularVelocity1.getY(), tempAngularVelocity1.getZ());
-                    }
-
-                    //m_log.Debug("ODE: " + m_rotationalVelocity.ToString());
-
-                    _orientation.X = l_orientation.X;
-                    _orientation.Y = l_orientation.Y;
-                    _orientation.Z = l_orientation.Z;
-                    _orientation.W = l_orientation.W;
-                    m_lastUpdateSent = false;
-                    
-                    //if (!m_throttleUpdates || throttleCounter > _parent_scene.geomUpdatesPerThrottledUpdate)
-                    //{
-                        if (_parent == null)
-                            base.RequestPhysicsterseUpdate();
-                   // }
-                   // else
-                   // {
-                   //     throttleCounter++;
-                    //}
-                   
-                }
-                m_lastposition = l_position;
-                if (forceenable)
-                {
-                    Body.forceActivationState(1);
-                    forceenable = false;
-                }
-            }
-            else
-            {
-                // Not a body..   so Make sure the client isn't interpolating
-                _velocity.X = 0;
-                _velocity.Y = 0;
-                _velocity.Z = 0;
-
-                _acceleration.X = 0;
-                _acceleration.Y = 0;
-                _acceleration.Z = 0;
-
-                m_rotationalVelocity.X = 0;
-                m_rotationalVelocity.Y = 0;
-                m_rotationalVelocity.Z = 0;
-                _zeroFlag = true;
             }
         }
 
