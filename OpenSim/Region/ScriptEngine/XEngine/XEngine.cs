@@ -353,6 +353,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
         {
+            if (script.StartsWith("//MRM:"))
+                return;
+
             List<IScriptModule> engines = new List<IScriptModule>(m_Scene.RequestModuleInterfaces<IScriptModule>());
 
             List<string> names = new List<string>();
