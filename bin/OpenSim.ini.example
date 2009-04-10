@@ -746,6 +746,9 @@
     ; Density of cloud cover 0.0 to 1.0
     density = 0.5
 
+    ; update interval for the cloud cover data returned by llCloud().  
+    ; default is 1000
+    cloud_update_rate = 1000
 
 [Trees]
     ; Enable this to allow the tree module to manage your sim trees, including growing, reproducing and dying
