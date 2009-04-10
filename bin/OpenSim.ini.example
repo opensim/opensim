@@ -203,6 +203,17 @@
     ;MapImageModule = "MapImageModule"
 
     ; ##
+    ; ## Scripting XMLRPC mapper
+    ; ##
+
+    ; If enabled, this will post an event, "xmlrpc_uri(string)" to the
+    ; script concurrently with the first remote_data event.
+    ; This will contain the fully qualified URI an external site needs
+    ; to use to send XMLRPC requests to that script
+
+    ;XmlRpcRouterModule = "XmlRpcRouterModule"
+
+    ; ##
     ; ## Customized Cache Implementation
     ; ##
     ;
