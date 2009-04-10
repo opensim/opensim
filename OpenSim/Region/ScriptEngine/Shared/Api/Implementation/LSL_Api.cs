@@ -5464,15 +5464,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Vector3 p0 = new Vector3(pos.X, pos.Y,
                                      (float)llGround(
-                                         new LSL_Vector(pos.X, pos.Y, pos.Z)
+                                         new LSL_Vector(offset.x, offset.y, offset.z)
                                          ));
             Vector3 p1 = new Vector3(pos.X + 1, pos.Y,
                                      (float)llGround(
-                                         new LSL_Vector(pos.X + 1, pos.Y, pos.Z)
+                                         new LSL_Vector(offset.x + 1, offset.y, offset.z)
                                          ));
             Vector3 p2 = new Vector3(pos.X, pos.Y + 1,
                                      (float)llGround(
-                                         new LSL_Vector(pos.X, pos.Y + 1, pos.Z)
+                                         new LSL_Vector(offset.x, offset.y + 1, offset.z)
                                          ));
 
             Vector3 v0 = new Vector3(p1.X - p0.X, p1.Y - p0.Y, p1.Z - p0.Z);
@@ -5485,6 +5485,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             tv.X = (v0.Y * v1.Z) - (v0.Z * v1.Y);
             tv.Y = (v0.Z * v1.X) - (v0.X * v1.Z);
             tv.Z = (v0.X * v1.Y) - (v0.Y * v1.X);
+            if ((tv.X == 0) && (tv.Y == 0))
+                tv.Z = 0;
 
             return new LSL_Vector(tv.X, tv.Y, tv.Z);
         }
