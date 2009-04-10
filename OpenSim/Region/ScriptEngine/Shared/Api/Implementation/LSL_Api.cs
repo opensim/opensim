@@ -454,11 +454,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         // Utility function for llRot2Euler
 
-        // normalize an angle between 0 - 2*PI (0 and 360 degrees)
+        // normalize an angle between -PI and PI (-180 to +180 degrees)
         private double NormalizeAngle(double angle)
         {
             angle = angle % (Math.PI * 2);
-            if (angle < 0) angle = angle + Math.PI * 2;
+            // if (angle < 0) angle = angle + Math.PI * 2;
             return angle;
         }
 
