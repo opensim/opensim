@@ -527,8 +527,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     break;
                 case enumCompileType.cs:
                 case enumCompileType.lsl:
-                    results = CScodeProvider.CompileAssemblyFromSource(
-                            parameters, Script);
+                    lock (CScodeProvider)
+                    {
+                        results = CScodeProvider.CompileAssemblyFromSource(
+                                parameters, Script);
+                    }
                     break;
                 case enumCompileType.js:
                     results = JScodeProvider.CompileAssemblyFromSource(

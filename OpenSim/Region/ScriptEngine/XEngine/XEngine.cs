@@ -142,6 +142,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return m_ScriptConfig; }
         }
 
+        public event ScriptRemoved OnScriptRemoved;
+        public event ObjectRemoved OnObjectRemoved;
+
         //
         // IRegionModule functions
         //
@@ -702,6 +705,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (part != null)
                     part.RemoveScriptEvents(itemID);
 
+                bool objectRemoved = false;
+
                 lock (m_PrimObjects)
                 {
                     // Remove the script from it's prim
@@ -715,6 +720,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         if (m_PrimObjects[localID].Count == 0)
                         {
                             m_PrimObjects.Remove(localID);
+                            objectRemoved = true;
                         }
                     }
                 }
@@ -731,8 +737,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 instance = null;
 
+                ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
+                if (handlerObjectRemoved != null)
+                    handlerObjectRemoved(part.UUID);
+
                 CleanAssemblies();
             }
+
+            ScriptRemoved handlerScriptRemoved = OnScriptRemoved;
+            if (handlerScriptRemoved != null)
+                handlerScriptRemoved(itemID);
         }
 
         public void OnScriptReset(uint localID, UUID itemID)

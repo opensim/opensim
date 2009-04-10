@@ -96,6 +96,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             get { return "ScriptEngine.DotNetEngine"; }
         }
         
+        public event ScriptRemoved OnScriptRemoved;
+        public event ObjectRemoved OnObjectRemoved;
+
         public ScriptEngine()
         {
             // For logging, just need any instance, doesn't matter
