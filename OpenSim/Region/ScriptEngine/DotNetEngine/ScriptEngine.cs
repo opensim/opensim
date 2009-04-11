@@ -222,6 +222,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             return PostScriptEvent(itemID, new EventParams(name, p, new DetectParams[0]));
         }
 
+        public bool PostObjectEvent(UUID itemID, string name, Object[] p)
+        {
+            SceneObjectPart part = m_Scene.GetSceneObjectPart(itemID);
+            if (part == null)
+                return false;
+
+            return PostObjectEvent(part.LocalId, new EventParams(name, p, new DetectParams[0]));
+        }
+
         public DetectParams GetDetectParams(UUID itemID, int number)
         {
             uint localID = m_ScriptManager.GetLocalID(itemID);

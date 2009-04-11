@@ -223,6 +223,8 @@ namespace OpenSim.Region.Framework.Scenes
         string m_callbackURI;
         ulong m_rootRegionHandle;
 
+        private IScriptModule[] m_scriptEngines;
+
         #region Properties
 
         /// <summary>
@@ -584,6 +586,8 @@ namespace OpenSim.Region.Framework.Scenes
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
                 m_grouptitle = gm.GetGroupTitle(m_uuid);
+
+            m_scriptEngines = m_scene.RequestModuleInterfaces<IScriptModule>();
 
             AbsolutePosition = m_controllingClient.StartPos;
             AdjustKnownSeeds();
@@ -1943,7 +1947,24 @@ namespace OpenSim.Region.Framework.Scenes
             
             if (m_animations.TrySetDefaultAnimation(anim, m_controllingClient.NextAnimationSequenceNumber, UUID.Zero))
             {
-                SendAnimPack();
+                if (m_scriptEngines != null)
+                {
+                    lock (m_attachments)
+                    {
+                        foreach (SceneObjectGroup grp in m_attachments)
+                        {
+                            // 16384 is CHANGED_ANIMATION
+                            //
+                            // Send this to all attachment root prims
+                            //
+                            foreach (IScriptModule m in m_scriptEngines)
+                            {
+                                m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] {16384});
+                            }
+                            SendAnimPack();
+                        }
+                    }
+                }
             }
         }
 

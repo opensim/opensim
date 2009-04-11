@@ -38,5 +38,6 @@ namespace OpenSim.Region.Framework.Interfaces
         string GetXMLState(UUID itemID);
 
         bool PostScriptEvent(UUID itemID, string name, Object[] args);
+        bool PostObjectEvent(UUID itemID, string name, Object[] args);
     }
 }

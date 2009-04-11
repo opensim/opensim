@@ -938,6 +938,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return PostScriptEvent(itemID, new EventParams(name, p, new DetectParams[0]));
         }
 
+        public bool PostObjectEvent(UUID itemID, string name, Object[] p)
+        {
+            SceneObjectPart part = m_Scene.GetSceneObjectPart(itemID);
+            if (part == null)
+                return false;
+
+            return PostObjectEvent(part.LocalId, new EventParams(name, p, new DetectParams[0]));
+        }
+
         public Assembly OnAssemblyResolve(object sender,
                                           ResolveEventArgs args)
         {
