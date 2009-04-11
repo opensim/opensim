@@ -927,10 +927,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     throw;
                 }
-                //catch (AccessViolationException e)
-                //{
-                //    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-                //}
+                catch (AccessViolationException e)
+                {
+                    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                }
                 //catch (NullReferenceException e)
                 //{
                 //   m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
@@ -939,10 +939,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
                 }
-                //catch (Exception e)
-                //{
-                //    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-                //}
+                catch (Exception e)
+                {
+                    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                }
                 finally
                 {
                     //updateLock.ReleaseMutex();
