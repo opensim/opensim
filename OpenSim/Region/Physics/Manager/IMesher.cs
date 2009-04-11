@@ -49,5 +49,7 @@ namespace OpenSim.Region.Physics.Manager
         float[] getVertexListAsFloatLocked();
         void releaseSourceMeshData();
         void releasePinned();
+        void Append(IMesh newMesh);
+        void TransformLinear(float[,] matrix, float[] offset);
     }
 }

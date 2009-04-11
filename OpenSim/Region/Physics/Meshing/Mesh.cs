@@ -296,12 +296,22 @@ namespace OpenSim.Region.Physics.Meshing
             primMesh = null;
         }
 
-        public void Append(Mesh newMesh)
+        public void Append(IMesh newMesh)
         {
-            foreach (Vertex v in newMesh.vertices)
+            Mesh newMesh2;
+            if (newMesh is Mesh)
+            {
+                newMesh2 = (Mesh)newMesh;
+            }
+            else
+            {
+                return;
+            }
+
+            foreach (Vertex v in newMesh2.vertices)
                 vertices.Add(v);
 
-            foreach (Triangle t in newMesh.triangles)
+            foreach (Triangle t in newMesh2.triangles)
                 Add(t);
         }
 

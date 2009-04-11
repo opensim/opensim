@@ -556,7 +556,6 @@
       <Reference name="BulletDotNET.dll" />
       <Reference name="nunit.framework.dll" />
       <Reference name="log4net.dll"/>
-      <Reference name="./Physics/OpenSim.Region.Physics.Meshing"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

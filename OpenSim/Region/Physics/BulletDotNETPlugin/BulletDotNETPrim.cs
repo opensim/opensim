@@ -35,7 +35,7 @@ using OpenMetaverse;
 using BulletDotNET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Physics.Meshing;
+
 
 namespace OpenSim.Region.Physics.BulletDotNETPlugin
 {
@@ -1012,8 +1012,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             IMesh mesh = _parent_scene.mesher.CreateMesh(SOPName, _pbs, _size, meshlod, IsPhysical);
             if (!positionOffset.IsIdentical(PhysicsVector.Zero,0.001f) || orientation != Quaternion.Identity)
             {
-                if (mesh is Mesh)
-                {
+                
                     float[] xyz = new float[3];
                     xyz[0] = positionOffset.X;
                     xyz[1] = positionOffset.Y;
@@ -1033,10 +1032,10 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     matrix[2, 1] = m4.M32;
                     matrix[2, 2] = m4.M33;
 
-                    Mesh mesh2 = (Mesh) mesh;
-                    mesh2.TransformLinear(matrix, xyz);
-                    mesh = (IMesh)mesh2;
-                }
+                    
+                    mesh.TransformLinear(matrix, xyz);
+                    
+                
 
             }
 
@@ -2120,7 +2119,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     ProcessGeomCreationAsTriMesh(PhysicsVector.Zero, Quaternion.Identity);
                     // createmesh returns null when it doesn't mesh.
                     
-
+                    /*
                     if (_mesh is Mesh)
                     {
                     }
@@ -2129,7 +2128,9 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                         m_log.Warn("[PHYSICS]: Can't link a OpenSim.Region.Physics.Meshing.Mesh object");
                         return;
                     }
-                    Mesh pMesh = (Mesh) _mesh;
+                    */
+
+                    
                     
                     foreach (BulletDotNETPrim chld in childrenPrim)
                     {
@@ -2141,13 +2142,12 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                         //pos *= Orientation;
                         offset.setValues(pos.X, pos.Y, pos.Z);
                         chld.ProcessGeomCreationAsTriMesh(offset, chld.Orientation);
-                        if (chld._mesh is Mesh)
-                        {
-                            pMesh.Append((Mesh)chld._mesh);
-                        }
+                        
+                            _mesh.Append(chld._mesh);
+                        
 
                     }
-                    setMesh(_parent_scene, pMesh);
+                    setMesh(_parent_scene, _mesh);
                 
             //}
 
