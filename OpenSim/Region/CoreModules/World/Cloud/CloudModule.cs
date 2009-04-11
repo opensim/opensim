@@ -48,8 +48,6 @@ namespace OpenSim.Region.CoreModules
         private float m_cloudDensity = 1.0F;
         private float[] cloudCover = new float[16 * 16];
 
-        private Dictionary<UUID, ulong> m_rootAgents = new Dictionary<UUID, ulong>();
-     
         public void Initialise(Scene scene, IConfigSource config)
         {
             IConfig cloudConfig = config.Configs["Cloud"];
@@ -66,9 +64,7 @@ namespace OpenSim.Region.CoreModules
 
                 m_scene = scene;
 
-                scene.EventManager.OnMakeChildAgent += MakeChildAgent;
-                scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
-                scene.EventManager.OnClientClosed += ClientLoggedOut;
+                scene.EventManager.OnNewClient += CloudsToClient;
                 scene.RegisterModuleInterface<ICloudModule>(this);
                 scene.EventManager.OnFrame += CloudUpdate;
 
@@ -90,9 +86,7 @@ namespace OpenSim.Region.CoreModules
             {
                 m_ready = false;
                 //  Remove our hooks
-                m_scene.EventManager.OnMakeChildAgent -= MakeChildAgent;
-                m_scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
-                m_scene.EventManager.OnClientClosed -= ClientLoggedOut;
+                m_scene.EventManager.OnNewClient -= CloudsToClient;
                 m_scene.EventManager.OnFrame -= CloudUpdate;
             }
         }
@@ -212,47 +206,6 @@ namespace OpenSim.Region.CoreModules
                 {
                     cloudCover[y * 16 + x] = (float)(m_rndnums.NextDouble()); // 0 to 1
                     cloudCover[y * 16 + x] *= m_cloudDensity;
-                }
-            }
-        }
-
-        private void ClientLoggedOut(UUID AgentId)
-        {
-            lock (m_rootAgents)
-            {
-                if (m_rootAgents.ContainsKey(AgentId))
-                {
-                    m_rootAgents.Remove(AgentId);
-                }
-            }
-        }
-
-        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
-        {
-            lock (m_rootAgents)
-            {
-                if (m_rootAgents.ContainsKey(avatar.UUID))
-                {
-                    m_rootAgents[avatar.UUID] = avatar.RegionHandle;
-                }
-                else
-                {
-                    m_rootAgents.Add(avatar.UUID, avatar.RegionHandle);
-                    CloudsToClient(avatar.ControllingClient);
-                }
-            }
-        }
-
-        private void MakeChildAgent(ScenePresence avatar)
-        {
-            lock (m_rootAgents)
-            {
-                if (m_rootAgents.ContainsKey(avatar.UUID))
-                {
-                    if (m_rootAgents[avatar.UUID] == avatar.RegionHandle)
-                    {
-                        m_rootAgents.Remove(avatar.UUID);
-                    }
                 }
             }
         }
