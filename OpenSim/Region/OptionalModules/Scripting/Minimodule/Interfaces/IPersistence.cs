@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,40 +25,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.OptionalModules.Scripting.Minimodule;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace OpenSim
+namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class DrunkenTextAppreciationModule : MRMBase
+    interface IPersistence
     {
-        public override void Start()
-        {
-            World.OnChat += World_OnChat;
-        }
+        T Get<T>(Guid storageID);
+        T Get<T>();
 
-        void World_OnChat(IWorld sender, ChatEventArgs e)
-        {
-            if (e.Sender is IAvatar)
-            {
-                if (!e.Text.Contains("hic!"))
-                {
-                    e.Text = e.Text.Replace("s", "sh");
-                    e.Text = e.Text.Replace("S", "Sh");
-                    e.Text += " ...hic!";
+        /// <summary>
+        /// Stores 'data' into the persistence system
+        /// associated with this object, however saved
+        /// under the ID 'storageID'. This data may
+        /// be accessed by other scripts however.
+        /// </summary>
+        /// <param name="storageID"></param>
+        /// <param name="data"></param>
+        void Put<T>(Guid storageID, T data);
 
-                    Host.Object.Say(e.Text);
-                }
-            }
-
-            if(e.Sender is IObject)
-            {
-                // Ignore
-            }
-        }
-
-        public override void Stop()
-        {
-
-        }
+        /// <summary>
+        /// Stores 'data' into the persistence system
+        /// using the default ID for this script.
+        /// </summary>
+        /// <param name="data"></param>
+        void Put<T>(T data);
     }
 }

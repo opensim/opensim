@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,40 +25,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.OptionalModules.Scripting.Minimodule;
+using System.Collections.Generic;
+using OpenMetaverse;
 
-namespace OpenSim
+namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class DrunkenTextAppreciationModule : MRMBase
+    public interface IObjectAccessor : ICollection<IObject>
     {
-        public override void Start()
-        {
-            World.OnChat += World_OnChat;
-        }
-
-        void World_OnChat(IWorld sender, ChatEventArgs e)
-        {
-            if (e.Sender is IAvatar)
-            {
-                if (!e.Text.Contains("hic!"))
-                {
-                    e.Text = e.Text.Replace("s", "sh");
-                    e.Text = e.Text.Replace("S", "Sh");
-                    e.Text += " ...hic!";
-
-                    Host.Object.Say(e.Text);
-                }
-            }
-
-            if(e.Sender is IObject)
-            {
-                // Ignore
-            }
-        }
-
-        public override void Stop()
-        {
-
-        }
+        IObject this[int index] { get; }
+        IObject this[uint index] { get; }
+        IObject this[UUID index] { get; }
     }
 }

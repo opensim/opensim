@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,40 +25,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.OptionalModules.Scripting.Minimodule;
+using System;
 
-namespace OpenSim
+namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class DrunkenTextAppreciationModule : MRMBase
+    public class NewUserEventArgs : EventArgs
     {
-        public override void Start()
-        {
-            World.OnChat += World_OnChat;
-        }
+        public IAvatar Avatar;
+    }
 
-        void World_OnChat(IWorld sender, ChatEventArgs e)
-        {
-            if (e.Sender is IAvatar)
-            {
-                if (!e.Text.Contains("hic!"))
-                {
-                    e.Text = e.Text.Replace("s", "sh");
-                    e.Text = e.Text.Replace("S", "Sh");
-                    e.Text += " ...hic!";
+    public delegate void OnNewUserDelegate(IWorld sender, NewUserEventArgs e);
 
-                    Host.Object.Say(e.Text);
-                }
-            }
+    public class ChatEventArgs : EventArgs
+    {
+        public string Text;
+        public IEntity Sender;
+    }
 
-            if(e.Sender is IObject)
-            {
-                // Ignore
-            }
-        }
+    public delegate void OnChatDelegate(IWorld sender, ChatEventArgs e);
 
-        public override void Stop()
-        {
+    public interface IWorld
+    {
+        IObjectAccessor Objects { get; }
+        IAvatar[] Avatars { get; }
+        IParcel[] Parcels { get; }
+        IHeightmap Terrain { get; }
 
-        }
+        event OnChatDelegate OnChat;
+        event OnNewUserDelegate OnNewUser;
     }
 }

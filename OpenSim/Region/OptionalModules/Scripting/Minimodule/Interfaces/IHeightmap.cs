@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,40 +25,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.OptionalModules.Scripting.Minimodule;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace OpenSim
+namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class DrunkenTextAppreciationModule : MRMBase
+    public interface IHeightmap
     {
-        public override void Start()
+        /// <summary>
+        /// Returns [or sets] the heightmap value at specified coordinates.
+        /// </summary>
+        /// <param name="x">X Coordinate</param>
+        /// <param name="y">Y Coordinate</param>
+        /// <returns>A value in meters representing height. Can be negative. Value correlates with Z parameter in world coordinates</returns>
+        /// <example>
+        /// double heightVal = World.Heightmap[128,128];
+        /// World.Heightmap[128,128] *= 5.0;
+        /// World.Heightmap[128,128] = 25;
+        /// </example>
+        double this[int x, int y]
         {
-            World.OnChat += World_OnChat;
+            get;
+            set;
         }
 
-        void World_OnChat(IWorld sender, ChatEventArgs e)
-        {
-            if (e.Sender is IAvatar)
-            {
-                if (!e.Text.Contains("hic!"))
-                {
-                    e.Text = e.Text.Replace("s", "sh");
-                    e.Text = e.Text.Replace("S", "Sh");
-                    e.Text += " ...hic!";
+        /// <summary>
+        /// The maximum length of the region (Y axis), exclusive. (eg Height = 256, max Y = 255). Minimum is always 0 inclusive.
+        /// </summary>
+        /// <example>
+        /// Host.Console.Info("The terrain length of this region is " + World.Heightmap.Length);
+        /// </example>
+        int Length { get; }
 
-                    Host.Object.Say(e.Text);
-                }
-            }
-
-            if(e.Sender is IObject)
-            {
-                // Ignore
-            }
-        }
-
-        public override void Stop()
-        {
-
-        }
+        /// <summary>
+        /// The maximum width of the region (X axis), exclusive. (eg Width = 256, max X = 255). Minimum is always 0 inclusive.
+        /// </summary>
+        /// <example>
+        /// Host.Console.Info("The terrain width of this region is " + World.Heightmap.Width);
+        /// </example>
+        int Width { get; }
     }
 }
