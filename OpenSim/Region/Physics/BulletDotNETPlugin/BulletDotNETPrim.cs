@@ -181,7 +181,12 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private btTransform tempTransform3;
         private btTransform tempTransform4;
         private btTriangleIndexVertexArray btshapeArray;
+        private btVector3 AxisLockAngleHigh;
+        private btVector3 AxisLockLinearLow;
+        private btVector3 AxisLockLinearHigh;
         private bool forceenable = false;
+
+        private btGeneric6DofConstraint m_aMotor;
 
         public btRigidBody Body;
 
@@ -210,6 +215,9 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             tempMotionState1 = new btDefaultMotionState(_parent_scene.TransZero);
             tempMotionState2 = new btDefaultMotionState(_parent_scene.TransZero);
             tempMotionState3 = new btDefaultMotionState(_parent_scene.TransZero);
+
+            AxisLockLinearLow = new btVector3(-256,-256,-256);
+            AxisLockLinearHigh = new btVector3(512, 512, 512);
 
             _target_velocity = new PhysicsVector(0, 0, 0);
             _velocity = new PhysicsVector();
@@ -594,9 +602,10 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         internal void Dispose()
         {
             //TODO:
+            DisableAxisMotor();
             DisposeOfBody();
             SetCollisionShape(null);
-
+           
             if (tempMotionState3 != null && tempMotionState3.Handle != IntPtr.Zero)
             {
                 tempMotionState3.Dispose();
@@ -716,6 +725,16 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 tempPosition1.Dispose();
                 tempPosition1 = null;
+            }
+            if (AxisLockLinearLow != null && AxisLockLinearLow.Handle != IntPtr.Zero)
+            {
+                AxisLockLinearLow.Dispose();
+                AxisLockLinearLow = null;
+            }
+            if (AxisLockLinearHigh != null && AxisLockLinearHigh.Handle != IntPtr.Zero)
+            {
+                AxisLockLinearHigh.Dispose();
+                AxisLockLinearHigh = null;
             }
 
         }
@@ -847,6 +866,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 if (Body.Handle != IntPtr.Zero)
                 {
+                    DisableAxisMotor();
                     _parent_scene.removeFromWorld(this, Body);
                     //Body.Dispose();
                 }
@@ -903,6 +923,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 {
                     if (Body.Handle != IntPtr.Zero)
                     {
+                        DisableAxisMotor();
                         _parent_scene.removeFromWorld(this, Body);
                         //Body.Dispose();
                     }
@@ -958,6 +979,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 if (Body.Handle != IntPtr.Zero)
                 {
+                    DisableAxisMotor();
                     _parent_scene.removeFromWorld(this, Body);
                     //Body.Dispose();
                 }
@@ -1048,6 +1070,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 if (Body.Handle != IntPtr.Zero)
                 {
+                    DisableAxisMotor();
                     _parent_scene.removeFromWorld(this, Body);
                     //Body.Dispose();
                 }
@@ -1075,6 +1098,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 if (Body.Handle != IntPtr.Zero)
                 {
+                    DisableAxisMotor();
                     _parent_scene.removeFromWorld(this, Body);
                     //Body.Dispose();
                 }
@@ -1299,6 +1323,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 {
                     if (Body.Handle != IntPtr.Zero)
                     {
+                        DisableAxisMotor();
                         _parent_scene.removeFromWorld(this, Body);
                         //Body.Dispose();
                     }
@@ -1347,7 +1372,25 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         private void changeAngularLock(float timestep)
         {
-            // TODO: throw new NotImplementedException();
+            if (IsPhysical && Body != null && Body.Handle != IntPtr.Zero)
+            {
+                if (_parent == null)
+                {
+                    if (!m_taintAngularLock.IsIdentical(new PhysicsVector(1f, 1f, 1f), 0))
+                    {
+                        //d.BodySetFiniteRotationMode(Body, 0);
+                        //d.BodySetFiniteRotationAxis(Body,m_taintAngularLock.X,m_taintAngularLock.Y,m_taintAngularLock.Z);
+                        EnableAxisMotor(m_taintAngularLock);
+                    }
+                    else
+                    {
+                        DisableAxisMotor();
+                    }
+                }
+
+            }
+            m_angularlock = new PhysicsVector(m_taintAngularLock.X, m_taintAngularLock.Y, m_taintAngularLock.Z);
+
         }
         #endregion
 
@@ -2187,7 +2230,11 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     ((btGImpactMeshShape)prim_geom).updateBound();
                 }
                 _parent_scene.AddPrimToScene(this);
+                
             }
+
+            if (IsPhysical)
+                changeAngularLock(0);
         }
 
         private void DisposeOfBody()
@@ -2196,6 +2243,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 if (Body.Handle != IntPtr.Zero)
                 {
+                    DisableAxisMotor();
                     _parent_scene.removeFromWorld(this,Body);
                     Body.Dispose();
                 }
@@ -2317,6 +2365,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 
             }
             */
+            DisableAxisMotor();
             m_disabled = true;
             m_collisionscore = 0;
         }
@@ -2597,6 +2646,48 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
             m_taintremove = true;
         }
+
+        internal void EnableAxisMotor(PhysicsVector axislock)
+        {
+            if (m_aMotor != null)
+                DisableAxisMotor();
+
+            if (Body == null)
+                return;
+
+            if (Body.Handle == IntPtr.Zero)
+                return;
+
+            if (AxisLockAngleHigh != null && AxisLockAngleHigh.Handle != IntPtr.Zero)
+                AxisLockAngleHigh.Dispose();
+
+           
+
+            m_aMotor = new btGeneric6DofConstraint(Body, _parent_scene.TerrainBody, _parent_scene.TransZero,
+                                                   _parent_scene.TransZero, false);
+
+            float endNoLock = (360 * Utils.DEG_TO_RAD);
+            AxisLockAngleHigh = new btVector3((axislock.X == 0) ? 0 : endNoLock, (axislock.Y == 0) ? 0 : endNoLock, (axislock.Z == 0) ? 0 : endNoLock);
+
+            m_aMotor.setAngularLowerLimit(_parent_scene.VectorZero);
+            m_aMotor.setAngularUpperLimit(AxisLockAngleHigh);
+            m_aMotor.setLinearLowerLimit(AxisLockLinearLow);
+            m_aMotor.setLinearUpperLimit(AxisLockLinearHigh);
+            _parent_scene.getBulletWorld().addConstraint((btTypedConstraint)m_aMotor);
+            //m_aMotor.
+            
+
+        }
+        internal void DisableAxisMotor()
+        {
+            if (m_aMotor != null && m_aMotor.Handle != IntPtr.Zero)
+            {
+                _parent_scene.getBulletWorld().removeConstraint(m_aMotor);
+                m_aMotor.Dispose();
+                m_aMotor = null;
+            }
+        }
+
     }
 }
                     
