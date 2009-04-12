@@ -707,11 +707,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         }
                         catch (Exception e)
                         {
-                            m_log.DebugFormat("[Script] Exception: {0}", e.Message);
+                            // m_log.DebugFormat("[SCRIPT] Exception: {0}", e.Message);
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
 
-                            if ((!(e is TargetInvocationException) || !(e.InnerException is SelfDeleteException)) && (!(e is ThreadAbortException)))
+                            if ((!(e is TargetInvocationException) || (!(e.InnerException is SelfDeleteException) && !(e.InnerException is ScriptDeleteException))) && !(e is ThreadAbortException))
                             {
                                 try
                                 {
@@ -727,10 +727,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                 }
                                 catch (Exception e2) // LEGIT: User Scripting
                                 {
-                                    m_log.Error("[Script]: "+
+                                    m_log.Error("[SCRIPT]: "+
                                                 "Error displaying error in-world: " +
                                                 e2.ToString());
-                                    m_log.Error("[Script]: " +
+                                    m_log.Error("[SCRIPT]: " +
                                                 "Errormessage: Error compiling script:\r\n" +
                                                 e.ToString());
                                 }
@@ -740,6 +740,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                 m_InSelfDelete = true;
                                 if (part != null && part.ParentGroup != null)
                                     m_Engine.World.DeleteSceneObject(part.ParentGroup, false);
+                            }
+                            else if ((e is TargetInvocationException) && (e.InnerException is ScriptDeleteException))
+                            {
+                                m_InSelfDelete = true;
+                                if (part != null && part.ParentGroup != null)
+                                    part.Inventory.RemoveInventoryItem(m_ItemID);
                             }
                         }
                     }

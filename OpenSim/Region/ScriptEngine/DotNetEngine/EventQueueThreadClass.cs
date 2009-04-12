@@ -168,6 +168,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         private ScriptEngine lastScriptEngine;
         private uint lastLocalID;
+        private UUID lastItemID;
 
         // Queue processing thread loop
         private void EventQueueThreadLoop()
@@ -200,6 +201,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         if (part != null && part.ParentGroup != null)
                             lastScriptEngine.World.DeleteSceneObject(
                                 part.ParentGroup, false);
+                    }
+                    catch (ScriptDeleteException) // Must delete item
+                    {
+                        SceneObjectPart part =
+                            lastScriptEngine.World.GetSceneObjectPart(
+                                lastLocalID);
+                        if (part != null && part.ParentGroup != null)
+                            part.Inventory.RemoveInventoryItem(lastItemID);
                     }
                     catch (Exception e)
                     {
@@ -284,6 +293,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                     QIS.localID))
                             {
                                 lastLocalID = QIS.localID;
+                                lastItemID = QIS.itemID;
                                 LastExecutionStarted = DateTime.Now.Ticks;
                                 KillCurrentScript = false;
                                 InExecution = true;

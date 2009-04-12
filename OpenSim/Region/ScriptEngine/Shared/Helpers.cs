@@ -66,6 +66,20 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
     }
 
+    [Serializable]
+    public class ScriptDeleteException : Exception
+    {
+        public ScriptDeleteException()
+        {
+        }
+
+        protected ScriptDeleteException(
+                SerializationInfo info, 
+                StreamingContext context)
+        {
+        }
+    }
+
     public class DetectParams
     {
         public DetectParams()
