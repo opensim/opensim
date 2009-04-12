@@ -129,6 +129,17 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         {
         }
 
+        private Scene FindScene(UUID agentID)
+        {
+            foreach (Scene s in m_SceneList)
+            {
+                ScenePresence presence = s.GetScenePresence(agentID);
+                if (presence != null && !presence.IsChildAgent)
+                    return s;
+            }
+            return null;
+        }
+
         private IClientAPI FindClient(UUID agentID)
         {
             foreach (Scene s in m_SceneList)
@@ -143,9 +154,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private void OnNewClient(IClientAPI client)
         {
             client.OnRetrieveInstantMessages += RetrieveInstantMessages;
-            // TODO:: Remove when mute lists are supported
-            //
-            //client.OnEconomyDataRequest += OnEconomyDataRequest;
         }
 
         private void RetrieveInstantMessages(IClientAPI client)
@@ -169,7 +177,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 // Needed for proper state management for stored group
                 // invitations
                 //
-                client.Scene.EventManager.TriggerIncomingInstantMessage(im);
+                Scene s = FindScene(client.AgentId);
+                if (s != null)
+                    s.EventManager.TriggerIncomingInstantMessage(im);
             }
         }
 
