@@ -148,19 +148,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             //client.OnEconomyDataRequest += OnEconomyDataRequest;
         }
 
-        // TODO: Remove method when mute lists are supported
-        //
-        //private void OnEconomyDataRequest(UUID agentID)
-        //{
-        //    IClientAPI client = FindClient(agentID);
-        //    if (client == null)
-        //    {
-        //        m_log.ErrorFormat("[OFFLINE MESSAGING] Can't find client {0}", agentID.ToString());
-        //        return;
-        //    }
-        //    RetrieveInstantMessages(client);
-        //}
-
         private void RetrieveInstantMessages(IClientAPI client)
         {
             m_log.DebugFormat("[OFFLINE MESSAGING] Retrieving stored messages for {0}", client.AgentId);
@@ -173,7 +160,16 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 DateTime saved = Util.ToDateTime((uint)im.timestamp);
 
                 im.message = "(saved " + saved.ToString() + ") " + im.message;
-                client.SendInstantMessage(im);
+
+                // client.SendInstantMessage(im);
+
+                // Send through scene event manager so all modules get a chance
+                // to look at this message before it gets delivered.
+                //
+                // Needed for proper state management for stored group
+                // invitations
+                //
+                client.Scene.EventManager.TriggerIncomingInstantMessage(im);
             }
         }
 
