@@ -219,7 +219,24 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public bool PostScriptEvent(UUID itemID, string name, Object[] p)
         {
-            return PostScriptEvent(itemID, new EventParams(name, p, new DetectParams[0]));
+            Object[] lsl_p = new Object[p.Length];
+            for (int i = 0; i < p.Length ; i++)
+            {
+                if (p[i] is int)
+                    lsl_p[i] = new LSL_Types.LSLInteger((int)p[i]);
+                else if (p[i] is string)
+                    lsl_p[i] = new LSL_Types.LSLString((string)p[i]);
+                else if (p[i] is Vector3)
+                    lsl_p[i] = new LSL_Types.Vector3(((Vector3)p[i]).X, ((Vector3)p[i]).Y, ((Vector3)p[i]).Z);
+                else if (p[i] is Quaternion)
+                    lsl_p[i] = new LSL_Types.Quaternion(((Quaternion)p[i]).X, ((Quaternion)p[i]).Y, ((Quaternion)p[i]).Z, ((Quaternion)p[i]).W);
+                else if (p[i] is float)
+                    lsl_p[i] = new LSL_Types.LSLFloat((float)p[i]);
+                else
+                    lsl_p[i] = p[i];
+            }
+
+            return PostScriptEvent(itemID, new EventParams(name, lsl_p, new DetectParams[0]));
         }
 
         public bool PostObjectEvent(UUID itemID, string name, Object[] p)
@@ -228,7 +245,24 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (part == null)
                 return false;
 
-            return PostObjectEvent(part.LocalId, new EventParams(name, p, new DetectParams[0]));
+            Object[] lsl_p = new Object[p.Length];
+            for (int i = 0; i < p.Length ; i++)
+            {
+                if (p[i] is int)
+                    lsl_p[i] = new LSL_Types.LSLInteger((int)p[i]);
+                else if (p[i] is string)
+                    lsl_p[i] = new LSL_Types.LSLString((string)p[i]);
+                else if (p[i] is Vector3)
+                    lsl_p[i] = new LSL_Types.Vector3(((Vector3)p[i]).X, ((Vector3)p[i]).Y, ((Vector3)p[i]).Z);
+                else if (p[i] is Quaternion)
+                    lsl_p[i] = new LSL_Types.Quaternion(((Quaternion)p[i]).X, ((Quaternion)p[i]).Y, ((Quaternion)p[i]).Z, ((Quaternion)p[i]).W);
+                else if (p[i] is float)
+                    lsl_p[i] = new LSL_Types.LSLFloat((float)p[i]);
+                else
+                    lsl_p[i] = p[i];
+            }
+
+            return PostObjectEvent(part.LocalId, new EventParams(name, lsl_p, new DetectParams[0]));
         }
 
         public DetectParams GetDetectParams(UUID itemID, int number)

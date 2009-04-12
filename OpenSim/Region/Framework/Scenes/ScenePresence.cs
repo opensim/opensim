@@ -1961,10 +1961,10 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] {16384});
                             }
-                            SendAnimPack();
                         }
                     }
                 }
+                SendAnimPack();
             }
         }
 
