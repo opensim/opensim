@@ -233,24 +233,12 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_defaultScriptEngine; }
         }
 
-        // Local reference to the objects in the scene (which are held in the scenegraph)
-        //        public Dictionary<UUID, SceneObjectGroup> Objects
-        //        {
-        //            get { return m_sceneGraph.SceneObjects; }
-        //        }
-
         // Reference to all of the agents in the scene (root and child)
         protected Dictionary<UUID, ScenePresence> m_scenePresences
         {
             get { return m_sceneGraph.ScenePresences; }
             set { m_sceneGraph.ScenePresences = value; }
         }
-
-        //        protected Dictionary<UUID, SceneObjectGroup> m_sceneObjects
-        //        {
-        //            get { return m_sceneGraph.SceneObjects; }
-        //            set { m_sceneGraph.SceneObjects = value; }
-        //        }
 
         public EntityManager Entities
         {
@@ -3492,7 +3480,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void jointMoved(PhysicsJoint joint)
         {
             // m_parentScene.PhysicsScene.DumpJointInfo(); // non-thread-locked version; we should already be in a lock (OdeLock) when this callback is invoked
-            // FIXME: this causes a sequential lookup of all objects in the scene; use a dictionary
             SceneObjectPart jointProxyObject = GetSceneObjectPart(joint.ObjectNameInScene);
             if (jointProxyObject == null)
             {
@@ -3555,7 +3542,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void jointDeactivated(PhysicsJoint joint)
         {
             //m_log.Debug("[NINJA] SceneGraph.jointDeactivated, joint:" + joint.ObjectNameInScene);
-            // FIXME: this causes a sequential lookup of all objects in the scene; use a dictionary
             SceneObjectPart jointProxyObject = GetSceneObjectPart(joint.ObjectNameInScene);
             if (jointProxyObject == null)
             {
@@ -3580,7 +3566,6 @@ namespace OpenSim.Region.Framework.Scenes
         // from within the OdePhysicsScene.
         public void jointErrorMessage(PhysicsJoint joint, string message)
         {
-            // FIXME: this causes a sequential lookup of all objects in the scene; use a dictionary
             if (joint != null)
             {
                 if (joint.ErrorMessageCount > PhysicsJoint.maxErrorMessages)
