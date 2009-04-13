@@ -85,7 +85,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public byte[] Data
         {
-            get { return m_asset.Data; }
+            get 
+            { 
+                if (m_asset != null) 
+                    return m_asset.Data; 
+                else
+                    return null;
+            }
         }
 
         public ushort TexturePacketCount()
