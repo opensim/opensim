@@ -78,11 +78,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();
         
         /// <value>
-        /// The module commands available for this scene
-        /// </value>
-        protected Dictionary<string, ICommand> m_moduleCommands = new Dictionary<string, ICommand>();        
-        
-        /// <value>
         /// Registered classes that are capable of creating entities.
         /// </value>
         protected Dictionary<PCode, IEntityCreator> m_entityCreators = new Dictionary<PCode, IEntityCreator>();                
@@ -311,38 +306,20 @@ namespace OpenSim.Region.Framework.Scenes
             lock (m_moduleCommanders)
             {
                 m_moduleCommanders.Add(commander.Name, commander);
-                
-                lock (m_moduleCommands)
-                {
-                    foreach (ICommand command in commander.Commands.Values)
-                    {
-                        if (m_moduleCommands.ContainsKey(command.Name))
-                        {
-                            m_log.ErrorFormat(
-                                "[MODULES]: Module commander {0} tried to register the command {1} which has already been registered",
-                                commander.Name, command.Name);
-                            continue;
-                        }
-                            
-                        m_moduleCommands[command.Name] = command;
-                    }                    
-                }
             }
         }
-        
+
         /// <summary>
-        /// Get an available module command
+        /// Unregister a module commander and all its commands
         /// </summary>
-        /// <param name="commandName"></param>
-        /// <returns>The command if it was found, null if no command is available with that name</returns>
-        public ICommand GetCommand(string commandName)
+        /// <param name="name"></param>
+        public void UnregisterModuleCommander(string name)
         {
-            lock (m_moduleCommands)
+            lock (m_moduleCommanders)
             {
-                if (m_moduleCommands.ContainsKey(commandName))
-                    return m_moduleCommands[commandName];
-                else
-                    return null;
+                ICommander commander;
+                if (m_moduleCommanders.TryGetValue(name, out commander))
+                    m_moduleCommanders.Remove(name);
             }
         }
 
