@@ -90,7 +90,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="uuid">UUID of ... ?</param>
         /// <returns>Asset base</returns>
-        override public AssetBase FetchAsset(UUID uuid)
+        override protected AssetBase FetchStoredAsset(UUID uuid)
         {
             lock (this)
             {

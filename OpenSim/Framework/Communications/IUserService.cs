@@ -50,6 +50,8 @@ namespace OpenSim.Framework.Communications
         
         UserProfileData GetUserProfile(Uri uri);
 
+        Uri GetUserUri(UserProfileData userProfile);
+
         UserAgentData GetAgentByUUID(UUID userId);
 
         void ClearUserAgent(UUID avatarID);

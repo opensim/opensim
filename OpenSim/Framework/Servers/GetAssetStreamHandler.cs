@@ -29,6 +29,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 using log4net;
@@ -64,9 +65,9 @@ namespace OpenSim.Framework.Servers
                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             string param = GetParam(path);
-            byte[] result = new byte[] {};
+            byte[] result = new byte[] { };
 
-            string[] p = param.Split(new char[] {'/', '?', '&'}, StringSplitOptions.RemoveEmptyEntries);
+            string[] p = param.Split(new char[] { '/', '?', '&' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (p.Length > 0)
             {
@@ -85,7 +86,12 @@ namespace OpenSim.Framework.Servers
                 AssetBase asset = m_assetProvider.FetchAsset(assetID);
                 if (asset != null)
                 {
-                    XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
+                    if (asset.ContainsReferences && false)
+                    {                       
+                        asset.Data = ProcessOutgoingAssetData(asset.Data);
+                    }
+
+                    XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
                     MemoryStream ms = new MemoryStream();
                     XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
                     xw.Formatting = Formatting.Indented;
@@ -97,15 +103,7 @@ namespace OpenSim.Framework.Servers
 
                     result = ms.GetBuffer();
 
-//Ckrinke 1/11/09 Commenting out the succesful REST message as under heavy use there
-//are multiple messages in a second and that is usually (in my experience) meaning
-//the logging itself is slowing down the program. Leaving the unsuccesful message
-//as we need to know about that path.
-//                    m_log.InfoFormat(
-//                        "[REST]: GET:/asset found {0} with name {1}, size {2} bytes",
-//                        assetID, asset.Name, result.Length);
-
-                    Array.Resize<byte>(ref result, (int) ms.Length);
+                    Array.Resize<byte>(ref result, (int)ms.Length);
                 }
                 else
                 {
@@ -118,5 +116,50 @@ namespace OpenSim.Framework.Servers
 
             return result;
         }
+
+        private byte[] ProcessOutgoingAssetData(byte[] assetData)
+        {
+            string data = Encoding.ASCII.GetString(assetData);
+
+            data = ProcessAssetDataString(data);
+
+            return Encoding.ASCII.GetBytes(data);
+        }
+
+        public string ProcessAssetDataString(string data)
+        {
+            Regex regex = new Regex("(creator_id|owner_id)\\s+(\\S+)");
+
+            // IUserService userService = null;
+
+            data = regex.Replace(data, delegate(Match m)
+            {
+                string result = String.Empty;
+
+                string key = m.Groups[1].Captures[0].Value;
+
+                string value = m.Groups[2].Captures[0].Value;
+
+                Guid userUri;
+
+                switch (key)
+                {
+                    case "creator_id":
+                        userUri = new Guid(value);
+                        //         result = "creator_url " + userService(userService, userUri);
+                        break;
+
+                    case "owner_id":
+                        userUri = new Guid(value);
+                        //       result = "owner_url " + ResolveUserUri(userService, userUri);
+                        break;
+                }
+
+                return result;
+            });
+
+            return data;
+        }
+    
     }
 }

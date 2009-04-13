@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Xml.Serialization;
 using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse;
@@ -62,46 +63,46 @@ namespace OpenSim.Region.Communications.OGS1
             }
 
             UserProfileData userData = new UserProfileData();
-            userData.FirstName = (string) data["firstname"];
-            userData.SurName = (string) data["lastname"];
-            userData.ID = new UUID((string) data["uuid"]);
+            userData.FirstName = (string)data["firstname"];
+            userData.SurName = (string)data["lastname"];
+            userData.ID = new UUID((string)data["uuid"]);
             userData.Created = Convert.ToInt32(data["profile_created"]);
-            userData.UserInventoryURI = (string) data["server_inventory"];
-            userData.UserAssetURI = (string) data["server_asset"];
-            userData.FirstLifeAboutText = (string) data["profile_firstlife_about"];
-            userData.FirstLifeImage = new UUID((string) data["profile_firstlife_image"]);
-            userData.CanDoMask = Convert.ToUInt32((string) data["profile_can_do"]);
+            userData.UserInventoryURI = (string)data["server_inventory"];
+            userData.UserAssetURI = (string)data["server_asset"];
+            userData.FirstLifeAboutText = (string)data["profile_firstlife_about"];
+            userData.FirstLifeImage = new UUID((string)data["profile_firstlife_image"]);
+            userData.CanDoMask = Convert.ToUInt32((string)data["profile_can_do"]);
             userData.WantDoMask = Convert.ToUInt32(data["profile_want_do"]);
             userData.AboutText = (string)data["profile_about"];
-            userData.Image = new UUID((string) data["profile_image"]);
-            userData.LastLogin = Convert.ToInt32((string) data["profile_lastlogin"]);
-            userData.HomeRegion = Convert.ToUInt64((string) data["home_region"]);
+            userData.Image = new UUID((string)data["profile_image"]);
+            userData.LastLogin = Convert.ToInt32((string)data["profile_lastlogin"]);
+            userData.HomeRegion = Convert.ToUInt64((string)data["home_region"]);
             if (data.Contains("home_region_id"))
                 userData.HomeRegionID = new UUID((string)data["home_region_id"]);
             else
                 userData.HomeRegionID = UUID.Zero;
             userData.HomeLocation =
-                new Vector3((float) Convert.ToDecimal((string) data["home_coordinates_x"]),
-                              (float) Convert.ToDecimal((string) data["home_coordinates_y"]),
-                              (float) Convert.ToDecimal((string) data["home_coordinates_z"]));
+                new Vector3((float)Convert.ToDecimal((string)data["home_coordinates_x"]),
+                              (float)Convert.ToDecimal((string)data["home_coordinates_y"]),
+                              (float)Convert.ToDecimal((string)data["home_coordinates_z"]));
             userData.HomeLookAt =
-                new Vector3((float) Convert.ToDecimal((string) data["home_look_x"]),
-                              (float) Convert.ToDecimal((string) data["home_look_y"]),
-                              (float) Convert.ToDecimal((string) data["home_look_z"]));
+                new Vector3((float)Convert.ToDecimal((string)data["home_look_x"]),
+                              (float)Convert.ToDecimal((string)data["home_look_y"]),
+                              (float)Convert.ToDecimal((string)data["home_look_z"]));
             if (data.Contains("user_flags"))
-                userData.UserFlags = Convert.ToInt32((string) data["user_flags"]);
+                userData.UserFlags = Convert.ToInt32((string)data["user_flags"]);
             if (data.Contains("god_level"))
-                userData.GodLevel = Convert.ToInt32((string) data["god_level"]);
+                userData.GodLevel = Convert.ToInt32((string)data["god_level"]);
 
             if (data.Contains("custom_type"))
-                userData.CustomType = (string) data["custom_type"];
+                userData.CustomType = (string)data["custom_type"];
             else
                 userData.CustomType = "";
             if (userData.CustomType == null)
                 userData.CustomType = "";
 
             if (data.Contains("partner"))
-                userData.Partner = new UUID((string) data["partner"]);
+                userData.Partner = new UUID((string)data["partner"]);
             else
                 userData.Partner = UUID.Zero;
 
@@ -110,7 +111,21 @@ namespace OpenSim.Region.Communications.OGS1
 
         public UserProfileData GetUserProfile(Uri uri)
         {
-            throw new System.NotImplementedException();
+            WebRequest request = WebRequest.Create(uri);
+
+            WebResponse webResponse = request.GetResponse();
+
+            XmlSerializer deserializer = new XmlSerializer(typeof(XmlRpcResponse));
+            XmlRpcResponse xmlRpcResponse = (XmlRpcResponse)deserializer.Deserialize(webResponse.GetResponseStream());
+
+            Hashtable respData = (Hashtable)xmlRpcResponse.Value;
+
+            return ConvertXMLRPCDataToUserProfile(respData);
+        }
+
+        public Uri GetUserUri(UserProfileData userProfile)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -120,40 +135,42 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns>null if the request fails</returns>
         public UserAgentData GetAgentByUUID(UUID userId)
         {
-           try
-           {
-               Hashtable param = new Hashtable();
-               param["avatar_uuid"] = userId.ToString();
-               IList parameters = new ArrayList();
-               parameters.Add(param);
-               XmlRpcRequest req = new XmlRpcRequest("get_agent_by_uuid", parameters);
-               XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 6000);
-               Hashtable respData = (Hashtable) resp.Value;
-               if (respData.Contains("error_type"))
-               {
-                   //m_log.Warn("[GRID]: " +
-                   //           "Error sent by user server when trying to get agent: (" +
-                   //           (string) respData["error_type"] +
-                   //           "): " + (string)respData["error_desc"]);
-                   return null;
-               }
-               UUID sessionid = UUID.Zero;
+            try
+            {
+                Hashtable param = new Hashtable();
+                param["avatar_uuid"] = userId.ToString();
+                IList parameters = new ArrayList();
+                parameters.Add(param);
+                XmlRpcRequest req = new XmlRpcRequest("get_agent_by_uuid", parameters);
+                string url = m_commsManager.NetworkServersInfo.UserURL;
 
-               UserAgentData userAgent = new UserAgentData();
-               userAgent.Handle = Convert.ToUInt64((string)respData["handle"]);
-               UUID.TryParse((string)respData["sessionid"], out sessionid);
-               userAgent.SessionID = sessionid;
+                XmlRpcResponse resp = req.Send(url, 6000);
+                Hashtable respData = (Hashtable)resp.Value;
+                if (respData.Contains("error_type"))
+                {
+                    //m_log.Warn("[GRID]: " +
+                    //           "Error sent by user server when trying to get agent: (" +
+                    //           (string) respData["error_type"] +
+                    //           "): " + (string)respData["error_desc"]);
+                    return null;
+                }
+                UUID sessionid = UUID.Zero;
 
-               if ((string)respData["agent_online"] == "TRUE")
-               {
-                   userAgent.AgentOnline = true;
-               }
-               else
-               {
-                   userAgent.AgentOnline = false;
-               }
+                UserAgentData userAgent = new UserAgentData();
+                userAgent.Handle = Convert.ToUInt64((string)respData["handle"]);
+                UUID.TryParse((string)respData["sessionid"], out sessionid);
+                userAgent.SessionID = sessionid;
 
-               return userAgent;
+                if ((string)respData["agent_online"] == "TRUE")
+                {
+                    userAgent.AgentOnline = true;
+                }
+                else
+                {
+                    userAgent.AgentOnline = false;
+                }
+
+                return userAgent;
             }
             catch (Exception e)
             {
@@ -192,16 +209,16 @@ namespace OpenSim.Region.Communications.OGS1
         public List<AvatarPickerAvatar> ConvertXMLRPCDataToAvatarPickerList(UUID queryID, Hashtable data)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
-            int pickercount = Convert.ToInt32((string) data["avcount"]);
-            UUID respqueryID = new UUID((string) data["queryid"]);
+            int pickercount = Convert.ToInt32((string)data["avcount"]);
+            UUID respqueryID = new UUID((string)data["queryid"]);
             if (queryID == respqueryID)
             {
                 for (int i = 0; i < pickercount; i++)
                 {
                     AvatarPickerAvatar apicker = new AvatarPickerAvatar();
-                    UUID avatarID = new UUID((string) data["avatarid" + i.ToString()]);
-                    string firstname = (string) data["firstname" + i.ToString()];
-                    string lastname = (string) data["lastname" + i.ToString()];
+                    UUID avatarID = new UUID((string)data["avatarid" + i.ToString()]);
+                    string firstname = (string)data["firstname" + i.ToString()];
+                    string lastname = (string)data["lastname" + i.ToString()];
                     apicker.AvatarID = avatarID;
                     apicker.firstName = firstname;
                     apicker.lastName = lastname;
@@ -298,13 +315,13 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 Hashtable param = new Hashtable();
-                param["queryid"] = (string) queryID.ToString();
+                param["queryid"] = (string)queryID.ToString();
                 param["avquery"] = objAlphaNumericPattern.Replace(query, String.Empty);
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_avatar_picker_avatar", parameters);
                 XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 3000);
-                Hashtable respData = (Hashtable) resp.Value;
+                Hashtable respData = (Hashtable)resp.Value;
                 pickerlist = ConvertXMLRPCDataToAvatarPickerList(queryID, respData);
             }
             catch (WebException e)
@@ -331,7 +348,7 @@ namespace OpenSim.Region.Communications.OGS1
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_by_name", parameters);
                 XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);
-                Hashtable respData = (Hashtable) resp.Value;
+                Hashtable respData = (Hashtable)resp.Value;
 
                 return ConvertXMLRPCDataToUserProfile(respData);
             }
@@ -360,7 +377,7 @@ namespace OpenSim.Region.Communications.OGS1
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_by_uuid", parameters);
                 XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);
-                Hashtable respData = (Hashtable) resp.Value;
+                Hashtable respData = (Hashtable)resp.Value;
 
                 return ConvertXMLRPCDataToUserProfile(respData);
             }
@@ -423,11 +440,11 @@ namespace OpenSim.Region.Communications.OGS1
         {
             throw new Exception("The method or operation is not implemented.");
         }
-        
+
         public bool ResetUserPassword(string firstName, string lastName, string newPassword)
         {
             throw new Exception("The method or operation is not implemented.");
-        }        
+        }
 
         public bool UpdateUserProfile(UserProfileData userProfile)
         {
@@ -483,7 +500,7 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.Warn("[GRID]: Unable to update user profile, UserServer didn't understand me!");
                 return false;
             }
-            
+
             return true;
         }
 
@@ -659,7 +676,7 @@ namespace OpenSim.Region.Communications.OGS1
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_friend_list", parameters);
                 XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 8000);
-                Hashtable respData = (Hashtable) resp.Value;
+                Hashtable respData = (Hashtable)resp.Value;
 
                 if (respData != null && respData.Contains("avcount"))
                 {
@@ -676,7 +693,7 @@ namespace OpenSim.Region.Communications.OGS1
             return buddylist;
         }
 
-        public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> uuids)
+        public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos(List<UUID> uuids)
         {
             Dictionary<UUID, FriendRegionInfo> result = new Dictionary<UUID, FriendRegionInfo>();
 
@@ -697,10 +714,11 @@ namespace OpenSim.Region.Communications.OGS1
 
             parameters.Add(map);
 
-            try {
+            try
+            {
                 XmlRpcRequest req = new XmlRpcRequest("get_presence_info_bulk", parameters);
                 XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.MessagingURL, 8000);
-                Hashtable respData = resp != null ? (Hashtable) resp.Value : null;
+                Hashtable respData = resp != null ? (Hashtable)resp.Value : null;
 
                 if (respData == null || respData.ContainsKey("faultMessage"))
                 {
@@ -748,7 +766,7 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 m_log.ErrorFormat("[OGS1 USER SERVICES]: Network problems when trying to fetch friend infos: {0}", e.Message);
             }
-            
+
             m_log.DebugFormat("[OGS1 USER SERVICES]: Returning {0} entries", result.Count);
             return result;
         }
@@ -769,7 +787,7 @@ namespace OpenSim.Region.Communications.OGS1
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_avatar_appearance", parameters);
                 XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 8000);
-                Hashtable respData = (Hashtable) resp.Value;
+                Hashtable respData = (Hashtable)resp.Value;
 
                 return ConvertXMLRPCDataToAvatarAppearance(respData);
             }
@@ -792,7 +810,7 @@ namespace OpenSim.Region.Communications.OGS1
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("update_avatar_appearance", parameters);
                 XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 8000);
-                Hashtable respData = (Hashtable) resp.Value;
+                Hashtable respData = (Hashtable)resp.Value;
 
                 if (respData != null)
                 {

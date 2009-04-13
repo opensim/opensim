@@ -63,6 +63,11 @@ namespace OpenSim.Region.Communications.Hypergrid
             throw new System.NotImplementedException();
         }
 
+        public Uri GetUserUri(UserProfileData userProfile)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Get a user agent from the user server
         /// </summary>

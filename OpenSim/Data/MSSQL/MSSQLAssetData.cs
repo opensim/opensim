@@ -43,11 +43,11 @@ namespace OpenSim.Data.MSSQL
         private const string _migrationStore = "AssetStore";
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private long TicksToEpoch;
+        private long m_ticksToEpoch;
         /// <summary>
         /// Database manager
         /// </summary>
-        private MSSQLManager database;
+        private MSSQLManager m_database;
 
         #region IPlugin Members
 
@@ -72,11 +72,11 @@ namespace OpenSim.Data.MSSQL
         /// <param name="connectionString">connect string</param>
         override public void Initialise(string connectionString)
         {
-            TicksToEpoch = new System.DateTime(1970, 1, 1).Ticks;
+            m_ticksToEpoch = new System.DateTime(1970, 1, 1).Ticks;
 
             if (!string.IsNullOrEmpty(connectionString))
             {
-                database = new MSSQLManager(connectionString);
+                m_database = new MSSQLManager(connectionString);
             }
             else
             {
@@ -88,13 +88,13 @@ namespace OpenSim.Data.MSSQL
                 string settingUserId = gridDataMSSqlFile.ParseFileReadValue("user_id");
                 string settingPassword = gridDataMSSqlFile.ParseFileReadValue("password");
 
-                database =
+                m_database =
                     new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
                                      settingPassword);
             }
 
             //New migration to check for DB changes
-            database.CheckMigration(_migrationStore);
+            m_database.CheckMigration(_migrationStore);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         override public string Version
         {
-            get { return database.getVersion(); }
+            get { return m_database.getVersion(); }
         }
 
         /// <summary>
@@ -118,15 +118,15 @@ namespace OpenSim.Data.MSSQL
         #region IAssetDataPlugin Members
 
         /// <summary>
-        /// Fetch Asset from database
+        /// Fetch Asset from m_database
         /// </summary>
         /// <param name="assetID">the asset UUID</param>
         /// <returns></returns>
-        override public AssetBase FetchAsset(UUID assetID)
+        override protected AssetBase FetchStoredAsset(UUID assetID)
         {
-            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM assets WHERE id = @id"))
+            using (AutoClosingSqlCommand command = m_database.Query("SELECT * FROM assets WHERE id = @id"))
             {
-                command.Parameters.Add(database.CreateParameter("id", assetID));
+                command.Parameters.Add(m_database.CreateParameter("id", assetID));
                 using (IDataReader reader = command.ExecuteReader())
                 {
                     if (reader.Read())
@@ -148,7 +148,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// Create asset in database
+        /// Create asset in m_database
         /// </summary>
         /// <param name="asset">the asset</param>
         override public void CreateAsset(AssetBase asset)
@@ -158,33 +158,33 @@ namespace OpenSim.Data.MSSQL
                 return;
             }
 
-            using (AutoClosingSqlCommand command = database.Query(
+            using (AutoClosingSqlCommand command = m_database.Query(
                     "INSERT INTO assets ([id], [name], [description], [assetType], [local], [temporary], [create_time], [access_time], [data])" +
                     " VALUES " +
                     "(@id, @name, @description, @assetType, @local, @temporary, @create_time, @access_time, @data)"))
             {
-                int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
-                command.Parameters.Add(database.CreateParameter("id", asset.FullID));
-                command.Parameters.Add(database.CreateParameter("name", asset.Name));
-                command.Parameters.Add(database.CreateParameter("description", asset.Description));
-                command.Parameters.Add(database.CreateParameter("assetType", asset.Type));
-                command.Parameters.Add(database.CreateParameter("local", asset.Local));
-                command.Parameters.Add(database.CreateParameter("temporary", asset.Temporary));
-                command.Parameters.Add(database.CreateParameter("access_time", now));
-                command.Parameters.Add(database.CreateParameter("create_time", now));
-                command.Parameters.Add(database.CreateParameter("data", asset.Data));
+                int now = (int)((System.DateTime.Now.Ticks - m_ticksToEpoch) / 10000000);
+                command.Parameters.Add(m_database.CreateParameter("id", asset.FullID));
+                command.Parameters.Add(m_database.CreateParameter("name", asset.Name));
+                command.Parameters.Add(m_database.CreateParameter("description", asset.Description));
+                command.Parameters.Add(m_database.CreateParameter("assetType", asset.Type));
+                command.Parameters.Add(m_database.CreateParameter("local", asset.Local));
+                command.Parameters.Add(m_database.CreateParameter("temporary", asset.Temporary));
+                command.Parameters.Add(m_database.CreateParameter("access_time", now));
+                command.Parameters.Add(m_database.CreateParameter("create_time", now));
+                command.Parameters.Add(m_database.CreateParameter("data", asset.Data));
 
                 command.ExecuteNonQuery();
             }
         }
 
         /// <summary>
-        /// Update asset in database
+        /// Update asset in m_database
         /// </summary>
         /// <param name="asset">the asset</param>
         override public void UpdateAsset(AssetBase asset)
         {
-            using (AutoClosingSqlCommand command = database.Query("UPDATE assets set id = @id, " +
+            using (AutoClosingSqlCommand command = m_database.Query("UPDATE assets set id = @id, " +
                                                 "name = @name, " +
                                                 "description = @description," +
                                                 "assetType = @assetType," +
@@ -193,14 +193,14 @@ namespace OpenSim.Data.MSSQL
                                                 "data = @data where " +
                                                 "id = @keyId;"))
             {
-                command.Parameters.Add(database.CreateParameter("id", asset.FullID));
-                command.Parameters.Add(database.CreateParameter("name", asset.Name));
-                command.Parameters.Add(database.CreateParameter("description", asset.Description));
-                command.Parameters.Add(database.CreateParameter("assetType", asset.Type));
-                command.Parameters.Add(database.CreateParameter("local", asset.Local));
-                command.Parameters.Add(database.CreateParameter("temporary", asset.Temporary));
-                command.Parameters.Add(database.CreateParameter("data", asset.Data));
-                command.Parameters.Add(database.CreateParameter("@keyId", asset.FullID));
+                command.Parameters.Add(m_database.CreateParameter("id", asset.FullID));
+                command.Parameters.Add(m_database.CreateParameter("name", asset.Name));
+                command.Parameters.Add(m_database.CreateParameter("description", asset.Description));
+                command.Parameters.Add(m_database.CreateParameter("assetType", asset.Type));
+                command.Parameters.Add(m_database.CreateParameter("local", asset.Local));
+                command.Parameters.Add(m_database.CreateParameter("temporary", asset.Temporary));
+                command.Parameters.Add(m_database.CreateParameter("data", asset.Data));
+                command.Parameters.Add(m_database.CreateParameter("@keyId", asset.FullID));
 
                 try
                 {
@@ -216,9 +216,9 @@ namespace OpenSim.Data.MSSQL
 // Commented out since currently unused - this probably should be called in FetchAsset()
 //        private void UpdateAccessTime(AssetBase asset)
 //        {
-//            using (AutoClosingSqlCommand cmd = database.Query("UPDATE assets SET access_time = @access_time WHERE id=@id"))
+//            using (AutoClosingSqlCommand cmd = m_database.Query("UPDATE assets SET access_time = @access_time WHERE id=@id"))
 //            {
-//                int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
+//                int now = (int)((System.DateTime.Now.Ticks - m_ticksToEpoch) / 10000000);
 //                cmd.Parameters.AddWithValue("@id", asset.FullID.ToString());
 //                cmd.Parameters.AddWithValue("@access_time", now);
 //                try
@@ -233,7 +233,7 @@ namespace OpenSim.Data.MSSQL
 //        }
 
         /// <summary>
-        /// Check if asset exist in database
+        /// Check if asset exist in m_database
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns>true if exist.</returns>
@@ -258,10 +258,10 @@ namespace OpenSim.Data.MSSQL
         {
             List<AssetMetadata> retList = new List<AssetMetadata>(count);
 
-            using (AutoClosingSqlCommand command = database.Query("SELECT (name,description,assetType,temporary,id), Row = ROW_NUMBER() OVER (ORDER BY (some column to order by)) WHERE Row >= @Start AND Row < @Start + @Count"))
+            using (AutoClosingSqlCommand command = m_database.Query("SELECT (name,description,assetType,temporary,id), Row = ROW_NUMBER() OVER (ORDER BY (some column to order by)) WHERE Row >= @Start AND Row < @Start + @Count"))
             {
-                command.Parameters.Add(database.CreateParameter("start", start));
-                command.Parameters.Add(database.CreateParameter("count", count));
+                command.Parameters.Add(m_database.CreateParameter("start", start));
+                command.Parameters.Add(m_database.CreateParameter("count", count));
 
                 using (IDataReader reader = command.ExecuteReader())
                 {

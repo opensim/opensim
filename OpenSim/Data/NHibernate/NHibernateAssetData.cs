@@ -65,7 +65,7 @@ namespace OpenSim.Data.NHibernate
 
         }
 
-        override public AssetBase FetchAsset(UUID uuid)
+        override protected AssetBase FetchStoredAsset(UUID uuid)
         {
             return (AssetBase)manager.Get(typeof(AssetBase), uuid);
         }

@@ -25,7 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
 using OpenMetaverse;
 using OpenSim.Framework;
 
@@ -33,7 +36,13 @@ namespace OpenSim.Data
 {
     public abstract class AssetDataBase : IAssetDataPlugin
     {
-        public abstract AssetBase FetchAsset(UUID uuid);
+        public virtual AssetBase FetchAsset(UUID uuid)
+        {
+            return FetchStoredAsset(uuid);
+        }
+
+        protected abstract AssetBase FetchStoredAsset(UUID uuid);
+        
         public abstract void CreateAsset(AssetBase asset);
         public abstract void UpdateAsset(AssetBase asset);
         public abstract bool ExistsAsset(UUID uuid);

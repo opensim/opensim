@@ -108,6 +108,11 @@ namespace OpenSim.Framework.Communications.Tests
                 return userProfile;
             }
 
+            public Uri GetUserUri(UserProfileData userProfile)
+            {
+                throw new NotImplementedException();
+            }
+
             public UserAgentData GetAgentByUUID(UUID userId)
             {
                 throw new NotImplementedException();
