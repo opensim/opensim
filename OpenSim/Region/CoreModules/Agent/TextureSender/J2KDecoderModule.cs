@@ -223,8 +223,20 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                             // Try to do some heuristics error correction!  Yeah.
                             bool sane2Heuristics = true;
 
-                            if (texture.LayerInfo.Length == 0)
+
+                            if (texture.Image == null)
                                 sane2Heuristics = false;
+
+                            if (texture.LayerInfo == null)
+                                sane2Heuristics = false;
+
+                            if (sane2Heuristics)
+                            {
+
+
+                                if (texture.LayerInfo.Length == 0)
+                                    sane2Heuristics = false;
+                            }
 
                             if (sane2Heuristics)
                             {
@@ -292,7 +304,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                             }
                             else
                             {
-                                m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding failed for {0}", AssetId);
+                                m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding failed for {0}.   Is this a texture?  is it J2K?", AssetId);
                             }
                         }
                         texture = null; // dereference and dispose of ManagedImage
