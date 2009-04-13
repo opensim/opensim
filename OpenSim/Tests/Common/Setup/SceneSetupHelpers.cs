@@ -27,6 +27,7 @@
 
 using System;
 using System.Net;
+using System.Collections.Generic;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -109,7 +110,7 @@ namespace OpenSim.Tests.Common.Setup
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="modules"></param>
-        public static void SetupSceneModules(Scene scene, params IRegionModule[] modules)
+        public static void SetupSceneModules(Scene scene, params object[] modules)
         {
             SetupSceneModules(scene, null, modules);
         }
@@ -120,12 +121,36 @@ namespace OpenSim.Tests.Common.Setup
         /// <param name="scene"></param>
         /// <param name="config"></param>
         /// <param name="modules"></param>
-        public static void SetupSceneModules(Scene scene, IConfigSource config, params IRegionModule[] modules)
+        public static void SetupSceneModules(Scene scene, IConfigSource config, params object[] modules)
         {
-            foreach (IRegionModule module in modules)
+            List<IRegionModuleBase> newModules = new List<IRegionModuleBase>();
+            foreach (object module in modules)
             {
-                module.Initialise(scene, config);
-                scene.AddModule(module.Name, module);
+                if (module is IRegionModule)
+                {
+                    IRegionModule m = (IRegionModule)module;
+                    m.Initialise(scene, config);
+                    scene.AddModule(m.Name, m);
+                }
+                else if(module is IRegionModuleBase)
+                {
+                    // for the new system, everything has to be initialised first,
+                    // shared modules have to be post-initialised, then all get an AddRegion with the scene
+                    IRegionModuleBase m = (IRegionModuleBase)module;
+                    m.Initialise(config);
+                    newModules.Add(m);
+                }
+            }
+
+            foreach (IRegionModuleBase module in newModules)
+            {
+                if (module is ISharedRegionModule) ((ISharedRegionModule)module).PostInitialise();
+            }
+
+            foreach (IRegionModuleBase module in newModules)
+            {
+                module.AddRegion(scene);
+                scene.AddRegionModule(module.Name, module);
             }
 
             scene.SetModuleInterfaces();

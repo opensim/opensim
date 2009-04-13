@@ -42,7 +42,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Terrain
 {
-    public class TerrainModule : IRegionModule, ICommandableModule, ITerrainModule
+    public class TerrainModule : INonSharedRegionModule, ICommandableModule, ITerrainModule
     {
         #region StandardTerrainEffects enum
 
@@ -93,49 +93,62 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         #endregion
 
-        #region IRegionModule Members
+        #region INonSharedRegionModule Members
 
         /// <summary>
         /// Creates and initialises a terrain module for a region
         /// </summary>
         /// <param name="scene">Region initialising</param>
         /// <param name="config">Config for the region</param>
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
 
             // Install terrain module in the simulator
-            if (m_scene.Heightmap == null)
+            lock (m_scene)
             {
-                lock (m_scene)
+                if (m_scene.Heightmap == null)
                 {
                     m_channel = new TerrainChannel();
                     m_scene.Heightmap = m_channel;
                     m_revert = new TerrainChannel();
                     UpdateRevertMap();
                 }
-            }
-            else
-            {
-                m_channel = m_scene.Heightmap;
-                m_revert = new TerrainChannel();
-                UpdateRevertMap();
+                else
+                {
+                    m_channel = m_scene.Heightmap;
+                    m_revert = new TerrainChannel();
+                    UpdateRevertMap();
+                }
+
+                m_scene.RegisterModuleInterface<ITerrainModule>(this);
+                m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
+                m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
+                m_scene.EventManager.OnTerrainTick += EventManager_OnTerrainTick;
+                InstallInterfaces();
             }
 
-            m_scene.RegisterModuleInterface<ITerrainModule>(this);
-            m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
-            m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
-            m_scene.EventManager.OnTerrainTick += EventManager_OnTerrainTick;
+            InstallDefaultEffects();
+            LoadPlugins();
         }
 
-        /// <summary>
-        /// Enables terrain module when called
-        /// </summary>
-        public void PostInitialise()
+        public void RemoveRegion(Scene scene)
         {
-            InstallDefaultEffects();
-            InstallInterfaces();
-            LoadPlugins();
+            lock (m_scene)
+            {
+                // remove the commands
+                m_scene.UnregisterModuleCommander(m_commander.Name);
+                // remove the event-handlers
+                m_scene.EventManager.OnTerrainTick -= EventManager_OnTerrainTick;
+                m_scene.EventManager.OnPluginConsole -= EventManager_OnPluginConsole;
+                m_scene.EventManager.OnNewClient -= EventManager_OnNewClient;
+                // remove the interface
+                m_scene.UnregisterModuleInterface<ITerrainModule>(this);
+            }
         }
 
         public void Close()
@@ -145,11 +158,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         public string Name
         {
             get { return "TerrainModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         #endregion
@@ -207,7 +215,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     return;
                 }
             }
-            
+
             m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader available for that format.");
             throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
         }
@@ -268,7 +276,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             throw new TerrainException(String.Format("unable to load heightmap: parser {0} does not support loading", loader.Value));
                         }
                     }
-                    
+
                     CheckForTerrainUpdates();
                     m_log.Info("[TERRAIN]: File (" + filename + ") loaded successfully");
                     return;
@@ -288,7 +296,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         public void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action, UUID agentId)
         {
             client_OnModifyTerrain(user, (float)pos.Z, (float)0.25, size, action, pos.Y, pos.X, pos.Y, pos.X, agentId);
-        }        
+        }
 
         /// <summary>
         /// Saves the current heightmap to a specified stream.
@@ -501,7 +509,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     m_commander.ProcessConsoleCommand("help", new string[0]);
                     return;
                 }
-                
+
                 string[] tmpArgs = new string[args.Length - 2];
                 int i;
                 for (i = 2; i < args.Length; i++)
