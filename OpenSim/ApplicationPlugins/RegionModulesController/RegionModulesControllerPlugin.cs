@@ -159,12 +159,18 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 scene.AddRegionModule(module.Name, module);
             }
 
+            List<INonSharedRegionModule> list = new List<INonSharedRegionModule>();
             foreach (Type type in m_nonSharedModules)
             {
                 INonSharedRegionModule module = (INonSharedRegionModule)Activator.CreateInstance(type);
                 m_log.DebugFormat("[REGIONMODULE]: Adding scene {0} to non-shared module {1}",
                                   scene.RegionInfo.RegionName, module.Name);
                 module.Initialise(m_openSim.ConfigSource.Source);
+                list.Add(module);
+            }
+
+            foreach (INonSharedRegionModule module in list)
+            {
                 module.AddRegion(scene);
                 scene.AddRegionModule(module.Name, module);
             }
