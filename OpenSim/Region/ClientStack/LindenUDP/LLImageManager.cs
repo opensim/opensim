@@ -69,6 +69,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_assetCache = pAssetCache;
             if (pAssetCache != null)
                 m_missingsubstitute = pAssetCache.GetAsset(UUID.Parse("5748decc-f629-461c-9a36-a35a221fe21f"), true);
+            else
+                m_log.Error("[ClientView] - couldn't set missing image, all manner of things will probably break");
             m_j2kDecodeModule = pJ2kDecodeModule;
         }
 
