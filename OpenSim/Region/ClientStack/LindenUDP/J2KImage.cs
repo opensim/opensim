@@ -147,11 +147,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             return result;
         }
+
         public bool SendFirstPacket(LLClientView client)
         {
-
+            // this means we don't have 
+            if (Data == null) 
+            {
+                client.SendImageNotFound(m_requestedUUID);
+                m_log.WarnFormat("[TEXTURE]: Got null Data element on a asset {0}..  and the missing image Data property is al", m_requestedUUID);
+                return true;
+            }
             // Do we have less then 1 packet's worth of data?
-            if (m_asset.Data.Length <= cFirstPacketSize)
+            else if (m_asset.Data.Length <= cFirstPacketSize)
             {
                 // Send only 1 packet
                 client.SendImageFirstPart(1, m_requestedUUID, (uint)m_asset.Data.Length, m_asset.Data, 2);
@@ -173,8 +180,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
             return false;
-
         }
+
         private bool SendPacket(LLClientView client)
         {
             bool complete = false;
