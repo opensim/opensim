@@ -45,7 +45,7 @@
           <include name="../bin/OpenSim.Region.Framework.Tests.dll"/>
           <include name="../bin/OpenSim.Data.SQLite.Tests.dll"/>
           <include name="../bin/OpenSim.Data.MySQL.Tests.dll"/>  
-          <include name="../bin/OpenSim.Region.Physics.OdePlugin.dll"/>  
+          <!-- <include name="../bin/OpenSim.Region.Physics.OdePlugin.dll"/> -->
   
 
         </assemblies>
