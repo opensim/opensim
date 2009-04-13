@@ -120,9 +120,9 @@ namespace OpenSim.Data.Tests
             List<SceneObjectGroup> objs3 = db.LoadObjects(region3);
             List<LandData> land = db.LoadLandObjects(region1);
 
-            Assert.That(objs.Count, Is.EqualTo(0));
-            Assert.That(objs3.Count, Is.EqualTo(0));
-            Assert.That(land.Count, Is.EqualTo(0));
+            Assert.That(objs.Count, Is.EqualTo(0), "Assert.That(objs.Count, Is.EqualTo(0))");
+            Assert.That(objs3.Count, Is.EqualTo(0), "Assert.That(objs3.Count, Is.EqualTo(0))");
+            Assert.That(land.Count, Is.EqualTo(0), "Assert.That(land.Count, Is.EqualTo(0))");
         }
         
         // SOG round trips
@@ -159,7 +159,7 @@ namespace OpenSim.Data.Tests
             // This tests the ADO.NET driver
             List<SceneObjectGroup> objs = db.LoadObjects(region1);
             
-            Assert.That(objs.Count, Is.EqualTo(2));
+            Assert.That(objs.Count, Is.EqualTo(2), "Assert.That(objs.Count, Is.EqualTo(2))");
         }
         
         [Test]
@@ -169,8 +169,8 @@ namespace OpenSim.Data.Tests
             foreach (SceneObjectGroup sog in objs)
             {
                 SceneObjectPart p = sog.RootPart;
-                Assert.That("", Is.Not.EqualTo(p.Name));
-                Assert.That(p.Name, Is.EqualTo(p.Description));
+                Assert.That("", Is.Not.EqualTo(p.Name), "Assert.That(\"\", Is.Not.EqualTo(p.Name))");
+                Assert.That(p.Name, Is.EqualTo(p.Description), "Assert.That(p.Name, Is.EqualTo(p.Description))");
             }
         }
         
@@ -191,20 +191,20 @@ namespace OpenSim.Data.Tests
             sog.AddPart(p3);
             
             SceneObjectPart[] parts = sog.GetParts();
-            Assert.That(parts.Length,Is.EqualTo(4));
+            Assert.That(parts.Length,Is.EqualTo(4), "Assert.That(parts.Length,Is.EqualTo(4))");
             
             db.StoreObject(sog, newregion);
             List<SceneObjectGroup> sogs = db.LoadObjects(newregion);
-            Assert.That(sogs.Count,Is.EqualTo(1));
+            Assert.That(sogs.Count,Is.EqualTo(1), "Assert.That(sogs.Count,Is.EqualTo(1))");
             SceneObjectGroup newsog = sogs[0];
                         
             SceneObjectPart[] newparts = newsog.GetParts();
-            Assert.That(newparts.Length,Is.EqualTo(4));
+            Assert.That(newparts.Length,Is.EqualTo(4), "Assert.That(newparts.Length,Is.EqualTo(4))");
             
-            Assert.That(newsog.HasChildPrim(tmp0));
-            Assert.That(newsog.HasChildPrim(tmp1));
-            Assert.That(newsog.HasChildPrim(tmp2));
-            Assert.That(newsog.HasChildPrim(tmp3));
+            Assert.That(newsog.HasChildPrim(tmp0), "Assert.That(newsog.HasChildPrim(tmp0))");
+            Assert.That(newsog.HasChildPrim(tmp1), "Assert.That(newsog.HasChildPrim(tmp1))");
+            Assert.That(newsog.HasChildPrim(tmp2), "Assert.That(newsog.HasChildPrim(tmp2))");
+            Assert.That(newsog.HasChildPrim(tmp3), "Assert.That(newsog.HasChildPrim(tmp3))");
         }
         
         [Test]
@@ -294,37 +294,37 @@ namespace OpenSim.Data.Tests
             sop.UpdateFlag = updatef;
 
             //Tests if local part accepted the parameters:
-            Assert.That(regionh,Is.EqualTo(sop.RegionHandle));
-            Assert.That(localid,Is.EqualTo(sop.LocalId));
-            Assert.That(groupos,Is.EqualTo(sop.GroupPosition));
-            Assert.That(name,Is.EqualTo(sop.Name));
-            Assert.That(rotoff,Is.EqualTo(sop.RotationOffset));
-            Assert.That(uuid,Is.EqualTo(sop.UUID));
-            Assert.That(creator,Is.EqualTo(sop.CreatorID));
+            Assert.That(regionh,Is.EqualTo(sop.RegionHandle), "Assert.That(regionh,Is.EqualTo(sop.RegionHandle))");
+            Assert.That(localid,Is.EqualTo(sop.LocalId), "Assert.That(localid,Is.EqualTo(sop.LocalId))");
+            Assert.That(groupos,Is.EqualTo(sop.GroupPosition), "Assert.That(groupos,Is.EqualTo(sop.GroupPosition))");
+            Assert.That(name,Is.EqualTo(sop.Name), "Assert.That(name,Is.EqualTo(sop.Name))");
+            Assert.That(rotoff,Is.EqualTo(sop.RotationOffset), "Assert.That(rotoff,Is.EqualTo(sop.RotationOffset))");
+            Assert.That(uuid,Is.EqualTo(sop.UUID), "Assert.That(uuid,Is.EqualTo(sop.UUID))");
+            Assert.That(creator,Is.EqualTo(sop.CreatorID), "Assert.That(creator,Is.EqualTo(sop.CreatorID))");
             // Modified in-class
-            // Assert.That(iserial,Is.EqualTo(sop.InventorySerial));
-            Assert.That(dic,Is.EqualTo(sop.TaskInventory));
-            Assert.That(objf,Is.EqualTo(sop.ObjectFlags));
-            Assert.That(name,Is.EqualTo(sop.Name));
-            Assert.That(material,Is.EqualTo(sop.Material));
-            Assert.That(pin,Is.EqualTo(sop.ScriptAccessPin));
-            Assert.That(textani,Is.EqualTo(sop.TextureAnimation));
-            Assert.That(partsys,Is.EqualTo(sop.ParticleSystem));
-            Assert.That(expires,Is.EqualTo(sop.Expires));
-            Assert.That(rezzed,Is.EqualTo(sop.Rezzed));
-            Assert.That(offset,Is.EqualTo(sop.OffsetPosition));
-            Assert.That(velocity,Is.EqualTo(sop.Velocity));                       
-            Assert.That(angvelo,Is.EqualTo(sop.AngularVelocity));
-            Assert.That(accel,Is.EqualTo(sop.Acceleration));
-            Assert.That(description,Is.EqualTo(sop.Description));
-            Assert.That(color,Is.EqualTo(sop.Color));
-            Assert.That(text,Is.EqualTo(sop.Text));
-            Assert.That(sitname,Is.EqualTo(sop.SitName));
-            Assert.That(touchname,Is.EqualTo(sop.TouchName));
-            Assert.That(linknum,Is.EqualTo(sop.LinkNum));
-            Assert.That(clickaction,Is.EqualTo(sop.ClickAction));
-            Assert.That(scale,Is.EqualTo(sop.Scale));
-            Assert.That(updatef,Is.EqualTo(sop.UpdateFlag));
+            // Assert.That(iserial,Is.EqualTo(sop.InventorySerial), "Assert.That(iserial,Is.EqualTo(sop.InventorySerial))");
+            Assert.That(dic,Is.EqualTo(sop.TaskInventory), "Assert.That(dic,Is.EqualTo(sop.TaskInventory))");
+            Assert.That(objf,Is.EqualTo(sop.ObjectFlags), "Assert.That(objf,Is.EqualTo(sop.ObjectFlags))");
+            Assert.That(name,Is.EqualTo(sop.Name), "Assert.That(name,Is.EqualTo(sop.Name))");
+            Assert.That(material,Is.EqualTo(sop.Material), "Assert.That(material,Is.EqualTo(sop.Material))");
+            Assert.That(pin,Is.EqualTo(sop.ScriptAccessPin), "Assert.That(pin,Is.EqualTo(sop.ScriptAccessPin))");
+            Assert.That(textani,Is.EqualTo(sop.TextureAnimation), "Assert.That(textani,Is.EqualTo(sop.TextureAnimation))");
+            Assert.That(partsys,Is.EqualTo(sop.ParticleSystem), "Assert.That(partsys,Is.EqualTo(sop.ParticleSystem))");
+            Assert.That(expires,Is.EqualTo(sop.Expires), "Assert.That(expires,Is.EqualTo(sop.Expires))");
+            Assert.That(rezzed,Is.EqualTo(sop.Rezzed), "Assert.That(rezzed,Is.EqualTo(sop.Rezzed))");
+            Assert.That(offset,Is.EqualTo(sop.OffsetPosition), "Assert.That(offset,Is.EqualTo(sop.OffsetPosition))");
+            Assert.That(velocity,Is.EqualTo(sop.Velocity), "Assert.That(velocity,Is.EqualTo(sop.Velocity))");                       
+            Assert.That(angvelo,Is.EqualTo(sop.AngularVelocity), "Assert.That(angvelo,Is.EqualTo(sop.AngularVelocity))");
+            Assert.That(accel,Is.EqualTo(sop.Acceleration), "Assert.That(accel,Is.EqualTo(sop.Acceleration))");
+            Assert.That(description,Is.EqualTo(sop.Description), "Assert.That(description,Is.EqualTo(sop.Description))");
+            Assert.That(color,Is.EqualTo(sop.Color), "Assert.That(color,Is.EqualTo(sop.Color))");
+            Assert.That(text,Is.EqualTo(sop.Text), "Assert.That(text,Is.EqualTo(sop.Text))");
+            Assert.That(sitname,Is.EqualTo(sop.SitName), "Assert.That(sitname,Is.EqualTo(sop.SitName))");
+            Assert.That(touchname,Is.EqualTo(sop.TouchName), "Assert.That(touchname,Is.EqualTo(sop.TouchName))");
+            Assert.That(linknum,Is.EqualTo(sop.LinkNum), "Assert.That(linknum,Is.EqualTo(sop.LinkNum))");
+            Assert.That(clickaction,Is.EqualTo(sop.ClickAction), "Assert.That(clickaction,Is.EqualTo(sop.ClickAction))");
+            Assert.That(scale,Is.EqualTo(sop.Scale), "Assert.That(scale,Is.EqualTo(sop.Scale))");
+            Assert.That(updatef,Is.EqualTo(sop.UpdateFlag), "Assert.That(updatef,Is.EqualTo(sop.UpdateFlag))");
             
             // This is necessary or object will not be inserted in DB            
             sop.ObjectFlags = 0;
@@ -336,52 +336,52 @@ namespace OpenSim.Data.Tests
             // Inserts group in DB
             db.StoreObject(sog,region3);
             List<SceneObjectGroup> sogs = db.LoadObjects(region3);
-            Assert.That(sogs.Count, Is.EqualTo(1));
+            Assert.That(sogs.Count, Is.EqualTo(1), "Assert.That(sogs.Count, Is.EqualTo(1))");
             // Makes sure there are no double insertions:
             db.StoreObject(sog,region3);
             sogs = db.LoadObjects(region3);
-            Assert.That(sogs.Count, Is.EqualTo(1));            
+            Assert.That(sogs.Count, Is.EqualTo(1), "Assert.That(sogs.Count, Is.EqualTo(1))");            
                 
 
             // Tests if the parameters were inserted correctly
             SceneObjectPart p = sogs[0].RootPart;               
-            Assert.That(regionh,Is.EqualTo(p.RegionHandle));
-            //Assert.That(localid,Is.EqualTo(p.LocalId));
-            Assert.That(groupos,Is.EqualTo(p.GroupPosition));
-            Assert.That(name,Is.EqualTo(p.Name));
-            Assert.That(rotoff,Is.EqualTo(p.RotationOffset));
-            Assert.That(uuid,Is.EqualTo(p.UUID));
-            Assert.That(creator,Is.EqualTo(p.CreatorID));
-            //Assert.That(iserial,Is.EqualTo(p.InventorySerial));
-            Assert.That(dic,Is.EqualTo(p.TaskInventory));
-            //Assert.That(objf,Is.EqualTo(p.ObjectFlags));
-            Assert.That(name,Is.EqualTo(p.Name));
-            Assert.That(material,Is.EqualTo(p.Material));
-            Assert.That(pin,Is.EqualTo(p.ScriptAccessPin));
-            Assert.That(textani,Is.EqualTo(p.TextureAnimation));
-            Assert.That(partsys,Is.EqualTo(p.ParticleSystem));
-            //Assert.That(expires,Is.EqualTo(p.Expires));
-            //Assert.That(rezzed,Is.EqualTo(p.Rezzed));
-            Assert.That(offset,Is.EqualTo(p.OffsetPosition));
-            Assert.That(velocity,Is.EqualTo(p.Velocity));
-            Assert.That(angvelo,Is.EqualTo(p.AngularVelocity));
-            Assert.That(accel,Is.EqualTo(p.Acceleration));
-            Assert.That(description,Is.EqualTo(p.Description));
-            Assert.That(color,Is.EqualTo(p.Color));
-            Assert.That(text,Is.EqualTo(p.Text));
-            Assert.That(sitname,Is.EqualTo(p.SitName));
-            Assert.That(touchname,Is.EqualTo(p.TouchName));
-            //Assert.That(linknum,Is.EqualTo(p.LinkNum));
-            Assert.That(clickaction,Is.EqualTo(p.ClickAction));
-            Assert.That(scale,Is.EqualTo(p.Scale));
+            Assert.That(regionh,Is.EqualTo(p.RegionHandle), "Assert.That(regionh,Is.EqualTo(p.RegionHandle))");
+            //Assert.That(localid,Is.EqualTo(p.LocalId), "Assert.That(localid,Is.EqualTo(p.LocalId))");
+            Assert.That(groupos,Is.EqualTo(p.GroupPosition), "Assert.That(groupos,Is.EqualTo(p.GroupPosition))");
+            Assert.That(name,Is.EqualTo(p.Name), "Assert.That(name,Is.EqualTo(p.Name))");
+            Assert.That(rotoff,Is.EqualTo(p.RotationOffset), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
+            Assert.That(uuid,Is.EqualTo(p.UUID), "Assert.That(uuid,Is.EqualTo(p.UUID))");
+            Assert.That(creator,Is.EqualTo(p.CreatorID), "Assert.That(creator,Is.EqualTo(p.CreatorID))");
+            //Assert.That(iserial,Is.EqualTo(p.InventorySerial), "Assert.That(iserial,Is.EqualTo(p.InventorySerial))");
+            Assert.That(dic,Is.EqualTo(p.TaskInventory), "Assert.That(dic,Is.EqualTo(p.TaskInventory))");
+            //Assert.That(objf,Is.EqualTo(p.ObjectFlags), "Assert.That(objf,Is.EqualTo(p.ObjectFlags))");
+            Assert.That(name,Is.EqualTo(p.Name), "Assert.That(name,Is.EqualTo(p.Name))");
+            Assert.That(material,Is.EqualTo(p.Material), "Assert.That(material,Is.EqualTo(p.Material))");
+            Assert.That(pin,Is.EqualTo(p.ScriptAccessPin), "Assert.That(pin,Is.EqualTo(p.ScriptAccessPin))");
+            Assert.That(textani,Is.EqualTo(p.TextureAnimation), "Assert.That(textani,Is.EqualTo(p.TextureAnimation))");
+            Assert.That(partsys,Is.EqualTo(p.ParticleSystem), "Assert.That(partsys,Is.EqualTo(p.ParticleSystem))");
+            //Assert.That(expires,Is.EqualTo(p.Expires), "Assert.That(expires,Is.EqualTo(p.Expires))");
+            //Assert.That(rezzed,Is.EqualTo(p.Rezzed), "Assert.That(rezzed,Is.EqualTo(p.Rezzed))");
+            Assert.That(offset,Is.EqualTo(p.OffsetPosition), "Assert.That(offset,Is.EqualTo(p.OffsetPosition))");
+            Assert.That(velocity,Is.EqualTo(p.Velocity), "Assert.That(velocity,Is.EqualTo(p.Velocity))");
+            Assert.That(angvelo,Is.EqualTo(p.AngularVelocity), "Assert.That(angvelo,Is.EqualTo(p.AngularVelocity))");
+            Assert.That(accel,Is.EqualTo(p.Acceleration), "Assert.That(accel,Is.EqualTo(p.Acceleration))");
+            Assert.That(description,Is.EqualTo(p.Description), "Assert.That(description,Is.EqualTo(p.Description))");
+            Assert.That(color,Is.EqualTo(p.Color), "Assert.That(color,Is.EqualTo(p.Color))");
+            Assert.That(text,Is.EqualTo(p.Text), "Assert.That(text,Is.EqualTo(p.Text))");
+            Assert.That(sitname,Is.EqualTo(p.SitName), "Assert.That(sitname,Is.EqualTo(p.SitName))");
+            Assert.That(touchname,Is.EqualTo(p.TouchName), "Assert.That(touchname,Is.EqualTo(p.TouchName))");
+            //Assert.That(linknum,Is.EqualTo(p.LinkNum), "Assert.That(linknum,Is.EqualTo(p.LinkNum))");
+            Assert.That(clickaction,Is.EqualTo(p.ClickAction), "Assert.That(clickaction,Is.EqualTo(p.ClickAction))");
+            Assert.That(scale,Is.EqualTo(p.Scale), "Assert.That(scale,Is.EqualTo(p.Scale))");
 
-            //Assert.That(updatef,Is.EqualTo(p.UpdateFlag));
+            //Assert.That(updatef,Is.EqualTo(p.UpdateFlag), "Assert.That(updatef,Is.EqualTo(p.UpdateFlag))");
 
-            Assert.That(pbshap.PathBegin, Is.EqualTo(p.Shape.PathBegin));
-            Assert.That(pbshap.PathEnd, Is.EqualTo(p.Shape.PathEnd));
-            Assert.That(pbshap.ProfileBegin, Is.EqualTo(p.Shape.ProfileBegin));
-            Assert.That(pbshap.ProfileEnd, Is.EqualTo(p.Shape.ProfileEnd));
-            Assert.That(pbshap.ProfileHollow, Is.EqualTo(p.Shape.ProfileHollow));
+            Assert.That(pbshap.PathBegin, Is.EqualTo(p.Shape.PathBegin), "Assert.That(pbshap.PathBegin, Is.EqualTo(p.Shape.PathBegin))");
+            Assert.That(pbshap.PathEnd, Is.EqualTo(p.Shape.PathEnd), "Assert.That(pbshap.PathEnd, Is.EqualTo(p.Shape.PathEnd))");
+            Assert.That(pbshap.ProfileBegin, Is.EqualTo(p.Shape.ProfileBegin), "Assert.That(pbshap.ProfileBegin, Is.EqualTo(p.Shape.ProfileBegin))");
+            Assert.That(pbshap.ProfileEnd, Is.EqualTo(p.Shape.ProfileEnd), "Assert.That(pbshap.ProfileEnd, Is.EqualTo(p.Shape.ProfileEnd))");
+            Assert.That(pbshap.ProfileHollow, Is.EqualTo(p.Shape.ProfileHollow), "Assert.That(pbshap.ProfileHollow, Is.EqualTo(p.Shape.ProfileHollow))");
         }
         
         [Test]
@@ -393,7 +393,7 @@ namespace OpenSim.Data.Tests
             db.StoreObject(sog, region1);
 
             sog = FindSOG("object1", region1);
-            Assert.That(text1, Is.EqualTo(sog.RootPart.Text));
+            Assert.That(text1, Is.EqualTo(sog.RootPart.Text), "Assert.That(text1, Is.EqualTo(sog.RootPart.Text))");
 
             // Creates random values
             UUID creator = new UUID();
@@ -460,33 +460,33 @@ namespace OpenSim.Data.Tests
             
             db.StoreObject(sog2, region3);
             List<SceneObjectGroup> sogs = db.LoadObjects(region3);
-            Assert.That(sogs.Count, Is.EqualTo(1));
+            Assert.That(sogs.Count, Is.EqualTo(1), "Assert.That(sogs.Count, Is.EqualTo(1))");
             
             SceneObjectGroup retsog = FindSOG("West  Adam", region3);
             Assert.That(retsog,Is.Not.Null);
             SceneObjectPart p = retsog.RootPart;
-            Assert.That(regionh,Is.EqualTo(p.RegionHandle));
-            Assert.That(groupos,Is.EqualTo(p.GroupPosition));
-            Assert.That(name,Is.EqualTo(p.Name));
-            Assert.That(rotoff,Is.EqualTo(p.RotationOffset));
-            Assert.That(creator,Is.EqualTo(p.CreatorID));
-            Assert.That(dic,Is.EqualTo(p.TaskInventory));
-            Assert.That(name,Is.EqualTo(p.Name));
-            Assert.That(material,Is.EqualTo(p.Material));
-            Assert.That(pin,Is.EqualTo(p.ScriptAccessPin));
-            Assert.That(textani,Is.EqualTo(p.TextureAnimation));
-            Assert.That(partsys,Is.EqualTo(p.ParticleSystem));
-            Assert.That(offset,Is.EqualTo(p.OffsetPosition));
-            Assert.That(velocity,Is.EqualTo(p.Velocity));
-            Assert.That(angvelo,Is.EqualTo(p.AngularVelocity));
-            Assert.That(accel,Is.EqualTo(p.Acceleration));
-            Assert.That(description,Is.EqualTo(p.Description));
-            Assert.That(color,Is.EqualTo(p.Color));
-            Assert.That(text,Is.EqualTo(p.Text));
-            Assert.That(sitname,Is.EqualTo(p.SitName));
-            Assert.That(touchname,Is.EqualTo(p.TouchName));
-            Assert.That(clickaction,Is.EqualTo(p.ClickAction));
-            Assert.That(scale,Is.EqualTo(p.Scale));
+            Assert.That(regionh,Is.EqualTo(p.RegionHandle), "Assert.That(regionh,Is.EqualTo(p.RegionHandle))");
+            Assert.That(groupos,Is.EqualTo(p.GroupPosition), "Assert.That(groupos,Is.EqualTo(p.GroupPosition))");
+            Assert.That(name,Is.EqualTo(p.Name), "Assert.That(name,Is.EqualTo(p.Name))");
+            Assert.That(rotoff,Is.EqualTo(p.RotationOffset), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
+            Assert.That(creator,Is.EqualTo(p.CreatorID), "Assert.That(creator,Is.EqualTo(p.CreatorID))");
+            Assert.That(dic,Is.EqualTo(p.TaskInventory), "Assert.That(dic,Is.EqualTo(p.TaskInventory))");
+            Assert.That(name,Is.EqualTo(p.Name), "Assert.That(name,Is.EqualTo(p.Name))");
+            Assert.That(material,Is.EqualTo(p.Material), "Assert.That(material,Is.EqualTo(p.Material))");
+            Assert.That(pin,Is.EqualTo(p.ScriptAccessPin), "Assert.That(pin,Is.EqualTo(p.ScriptAccessPin))");
+            Assert.That(textani,Is.EqualTo(p.TextureAnimation), "Assert.That(textani,Is.EqualTo(p.TextureAnimation))");
+            Assert.That(partsys,Is.EqualTo(p.ParticleSystem), "Assert.That(partsys,Is.EqualTo(p.ParticleSystem))");
+            Assert.That(offset,Is.EqualTo(p.OffsetPosition), "Assert.That(offset,Is.EqualTo(p.OffsetPosition))");
+            Assert.That(velocity,Is.EqualTo(p.Velocity), "Assert.That(velocity,Is.EqualTo(p.Velocity))");
+            Assert.That(angvelo,Is.EqualTo(p.AngularVelocity), "Assert.That(angvelo,Is.EqualTo(p.AngularVelocity))");
+            Assert.That(accel,Is.EqualTo(p.Acceleration), "Assert.That(accel,Is.EqualTo(p.Acceleration))");
+            Assert.That(description,Is.EqualTo(p.Description), "Assert.That(description,Is.EqualTo(p.Description))");
+            Assert.That(color,Is.EqualTo(p.Color), "Assert.That(color,Is.EqualTo(p.Color))");
+            Assert.That(text,Is.EqualTo(p.Text), "Assert.That(text,Is.EqualTo(p.Text))");
+            Assert.That(sitname,Is.EqualTo(p.SitName), "Assert.That(sitname,Is.EqualTo(p.SitName))");
+            Assert.That(touchname,Is.EqualTo(p.TouchName), "Assert.That(touchname,Is.EqualTo(p.TouchName))");
+            Assert.That(clickaction,Is.EqualTo(p.ClickAction), "Assert.That(clickaction,Is.EqualTo(p.ClickAction))");
+            Assert.That(scale,Is.EqualTo(p.Scale), "Assert.That(scale,Is.EqualTo(p.Scale))");
         }
         
         [Test]
@@ -524,12 +524,12 @@ namespace OpenSim.Data.Tests
             for (int i=0;i<30;i++)
             {
                 SceneObjectPart cursop = mydic[parts[i].UUID];
-                Assert.That(cursop.GroupPosition,Is.EqualTo(parts[i].GroupPosition));
-                Assert.That(cursop.RotationOffset,Is.EqualTo(parts[i].RotationOffset));
-                Assert.That(cursop.OffsetPosition,Is.EqualTo(parts[i].OffsetPosition));
-                Assert.That(cursop.Velocity,Is.EqualTo(parts[i].Velocity));
-                Assert.That(cursop.AngularVelocity,Is.EqualTo(parts[i].AngularVelocity));
-                Assert.That(cursop.Acceleration,Is.EqualTo(parts[i].Acceleration));
+                Assert.That(cursop.GroupPosition,Is.EqualTo(parts[i].GroupPosition), "Assert.That(cursop.GroupPosition,Is.EqualTo(parts[i].GroupPosition))");
+                Assert.That(cursop.RotationOffset,Is.EqualTo(parts[i].RotationOffset), "Assert.That(cursop.RotationOffset,Is.EqualTo(parts[i].RotationOffset))");
+                Assert.That(cursop.OffsetPosition,Is.EqualTo(parts[i].OffsetPosition), "Assert.That(cursop.OffsetPosition,Is.EqualTo(parts[i].OffsetPosition))");
+                Assert.That(cursop.Velocity,Is.EqualTo(parts[i].Velocity), "Assert.That(cursop.Velocity,Is.EqualTo(parts[i].Velocity))");
+                Assert.That(cursop.AngularVelocity,Is.EqualTo(parts[i].AngularVelocity), "Assert.That(cursop.AngularVelocity,Is.EqualTo(parts[i].AngularVelocity))");
+                Assert.That(cursop.Acceleration,Is.EqualTo(parts[i].Acceleration), "Assert.That(cursop.Acceleration,Is.EqualTo(parts[i].Acceleration))");
             }
         }
         
@@ -549,7 +549,7 @@ namespace OpenSim.Data.Tests
 
             Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, zero), Is.True);
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
-            Assert.That(t.Name, Is.EqualTo(itemname1));
+            Assert.That(t.Name, Is.EqualTo(itemname1), "Assert.That(t.Name, Is.EqualTo(itemname1))");
             
             // TODO: seriously??? this is the way we need to loop to get this?
 
@@ -568,7 +568,7 @@ namespace OpenSim.Data.Tests
             SceneObjectGroup sog = FindSOG("object1", region1);
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
 
-            Assert.That(t.Name, Is.EqualTo(itemname1));
+            Assert.That(t.Name, Is.EqualTo(itemname1), "Assert.That(t.Name, Is.EqualTo(itemname1))");
         }
         
         [Test]
@@ -580,7 +580,7 @@ namespace OpenSim.Data.Tests
             t.Name = "My New Name";
             sog.UpdateInventoryItem(t);
 
-            Assert.That(t.Name, Is.EqualTo("My New Name"));
+            Assert.That(t.Name, Is.EqualTo("My New Name"), "Assert.That(t.Name, Is.EqualTo(\"My New Name\"))");
 
         }
 
@@ -641,28 +641,28 @@ namespace OpenSim.Data.Tests
             Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, zero), Is.True);
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, id);
             
-            Assert.That(t.Name, Is.EqualTo(name));
-            Assert.That(t.AssetID,Is.EqualTo(assetid));
-            Assert.That(t.BasePermissions,Is.EqualTo(baseperm));
-            Assert.That(t.CreationDate,Is.EqualTo(creationd));
-            Assert.That(t.CreatorID,Is.EqualTo(creator));
-            Assert.That(t.Description,Is.EqualTo(name));
-            Assert.That(t.EveryonePermissions,Is.EqualTo(eoperm));
-            Assert.That(t.Flags,Is.EqualTo(flags));
-            Assert.That(t.GroupID,Is.EqualTo(sog.RootPart.GroupID));
+            Assert.That(t.Name, Is.EqualTo(name), "Assert.That(t.Name, Is.EqualTo(name))");
+            Assert.That(t.AssetID,Is.EqualTo(assetid), "Assert.That(t.AssetID,Is.EqualTo(assetid))");
+            Assert.That(t.BasePermissions,Is.EqualTo(baseperm), "Assert.That(t.BasePermissions,Is.EqualTo(baseperm))");
+            Assert.That(t.CreationDate,Is.EqualTo(creationd), "Assert.That(t.CreationDate,Is.EqualTo(creationd))");
+            Assert.That(t.CreatorID,Is.EqualTo(creator), "Assert.That(t.CreatorID,Is.EqualTo(creator))");
+            Assert.That(t.Description,Is.EqualTo(name), "Assert.That(t.Description,Is.EqualTo(name))");
+            Assert.That(t.EveryonePermissions,Is.EqualTo(eoperm), "Assert.That(t.EveryonePermissions,Is.EqualTo(eoperm))");
+            Assert.That(t.Flags,Is.EqualTo(flags), "Assert.That(t.Flags,Is.EqualTo(flags))");
+            Assert.That(t.GroupID,Is.EqualTo(sog.RootPart.GroupID), "Assert.That(t.GroupID,Is.EqualTo(sog.RootPart.GroupID))");
             // Where is this group permissions??
-            // Assert.That(t.GroupPermissions,Is.EqualTo());
-            Assert.That(t.Type,Is.EqualTo(assettype));
-            Assert.That(t.InvType, Is.EqualTo(invtype));
-            Assert.That(t.ItemID, Is.EqualTo(id));
-            Assert.That(t.LastOwnerID, Is.EqualTo(sog.RootPart.LastOwnerID));
-            Assert.That(t.NextPermissions, Is.EqualTo(nextperm));
+            // Assert.That(t.GroupPermissions,Is.EqualTo(), "Assert.That(t.GroupPermissions,Is.EqualTo())");
+            Assert.That(t.Type,Is.EqualTo(assettype), "Assert.That(t.Type,Is.EqualTo(assettype))");
+            Assert.That(t.InvType, Is.EqualTo(invtype), "Assert.That(t.InvType, Is.EqualTo(invtype))");
+            Assert.That(t.ItemID, Is.EqualTo(id), "Assert.That(t.ItemID, Is.EqualTo(id))");
+            Assert.That(t.LastOwnerID, Is.EqualTo(sog.RootPart.LastOwnerID), "Assert.That(t.LastOwnerID, Is.EqualTo(sog.RootPart.LastOwnerID))");
+            Assert.That(t.NextPermissions, Is.EqualTo(nextperm), "Assert.That(t.NextPermissions, Is.EqualTo(nextperm))");
             // Ownership changes when you drop an object into an object
             // owned by someone else
-            Assert.That(t.OwnerID,Is.EqualTo(sog.RootPart.OwnerID));
-            Assert.That(t.CurrentPermissions, Is.EqualTo(curperm | 8));
-            Assert.That(t.ParentID,Is.EqualTo(sog.RootPart.FolderID));
-            Assert.That(t.ParentPartID,Is.EqualTo(sog.RootPart.UUID));
+            Assert.That(t.OwnerID,Is.EqualTo(sog.RootPart.OwnerID), "Assert.That(t.OwnerID,Is.EqualTo(sog.RootPart.OwnerID))");
+            Assert.That(t.CurrentPermissions, Is.EqualTo(curperm | 8), "Assert.That(t.CurrentPermissions, Is.EqualTo(curperm | 8))");
+            Assert.That(t.ParentID,Is.EqualTo(sog.RootPart.FolderID), "Assert.That(t.ParentID,Is.EqualTo(sog.RootPart.FolderID))");
+            Assert.That(t.ParentPartID,Is.EqualTo(sog.RootPart.UUID), "Assert.That(t.ParentPartID,Is.EqualTo(sog.RootPart.UUID))");
         }
         
         [Test]
@@ -687,11 +687,11 @@ namespace OpenSim.Data.Tests
             Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib4, zero), Is.True);
             
             TaskInventoryItem t1 = sog.GetInventoryItem(sog.RootPart.LocalId, i1);
-            Assert.That(t1.Name, Is.EqualTo(ib1.Name));
+            Assert.That(t1.Name, Is.EqualTo(ib1.Name), "Assert.That(t1.Name, Is.EqualTo(ib1.Name))");
             TaskInventoryItem t2 = sog.GetInventoryItem(sog.RootPart.LocalId, i2);
-            Assert.That(t2.Name, Is.EqualTo(ib2.Name));
+            Assert.That(t2.Name, Is.EqualTo(ib2.Name), "Assert.That(t2.Name, Is.EqualTo(ib2.Name))");
             TaskInventoryItem t3 = sog.GetInventoryItem(sog.RootPart.LocalId, i3);
-            Assert.That(t3.Name, Is.EqualTo(ib3.Name));
+            Assert.That(t3.Name, Is.EqualTo(ib3.Name), "Assert.That(t3.Name, Is.EqualTo(ib3.Name))");
             TaskInventoryItem t4 = sog.GetInventoryItem(sog.RootPart.LocalId, i4);
             Assert.That(t4, Is.Null);
         }
@@ -709,10 +709,10 @@ namespace OpenSim.Data.Tests
         public void T100_DefaultRegionInfo()
         {
             RegionSettings r1 = db.LoadRegionSettings(region1);
-            Assert.That(r1.RegionUUID, Is.EqualTo(region1));
+            Assert.That(r1.RegionUUID, Is.EqualTo(region1), "Assert.That(r1.RegionUUID, Is.EqualTo(region1))");
 
             RegionSettings r2 = db.LoadRegionSettings(region2);
-            Assert.That(r2.RegionUUID, Is.EqualTo(region2));
+            Assert.That(r2.RegionUUID, Is.EqualTo(region2), "Assert.That(r2.RegionUUID, Is.EqualTo(region2))");
         }
 
         [Test]
@@ -781,7 +781,7 @@ namespace OpenSim.Data.Tests
             db.StoreRegionSettings(r1);
             
             RegionSettings r1a = db.LoadRegionSettings(region1);
-            Assert.That(r1a.RegionUUID, Is.EqualTo(region1));
+            Assert.That(r1a.RegionUUID, Is.EqualTo(region1), "Assert.That(r1a.RegionUUID, Is.EqualTo(region1))");
             Assert.That(r1a.BlockTerraform,Is.True);
             Assert.That(r1a.BlockFly,Is.True);
             Assert.That(r1a.AllowDamage,Is.True);
@@ -789,34 +789,34 @@ namespace OpenSim.Data.Tests
             Assert.That(r1a.AllowLandResell,Is.False);
             Assert.That(r1a.AllowLandJoinDivide,Is.False);
             Assert.That(r1a.BlockShowInSearch,Is.True);
-            Assert.That(r1a.AgentLimit,Is.EqualTo(agentlimit));
-            Assert.That(r1a.ObjectBonus,Is.EqualTo(objectbonus));
-            Assert.That(r1a.Maturity,Is.EqualTo(maturity));
+            Assert.That(r1a.AgentLimit,Is.EqualTo(agentlimit), "Assert.That(r1a.AgentLimit,Is.EqualTo(agentlimit))");
+            Assert.That(r1a.ObjectBonus,Is.EqualTo(objectbonus), "Assert.That(r1a.ObjectBonus,Is.EqualTo(objectbonus))");
+            Assert.That(r1a.Maturity,Is.EqualTo(maturity), "Assert.That(r1a.Maturity,Is.EqualTo(maturity))");
             Assert.That(r1a.DisableScripts,Is.True);
             Assert.That(r1a.DisableCollisions,Is.True);
             Assert.That(r1a.DisablePhysics,Is.True);
-            Assert.That(r1a.TerrainTexture1,Is.EqualTo(tertex1));
-            Assert.That(r1a.TerrainTexture2,Is.EqualTo(tertex2));
-            Assert.That(r1a.TerrainTexture3,Is.EqualTo(tertex3));
-            Assert.That(r1a.TerrainTexture4,Is.EqualTo(tertex4));
-            Assert.That(r1a.Elevation1NW,Is.EqualTo(elev1nw));
-            Assert.That(r1a.Elevation2NW,Is.EqualTo(elev2nw));
-            Assert.That(r1a.Elevation1NE,Is.EqualTo(elev1ne));
-            Assert.That(r1a.Elevation2NE,Is.EqualTo(elev2ne));
-            Assert.That(r1a.Elevation1SE,Is.EqualTo(elev1se));
-            Assert.That(r1a.Elevation2SE,Is.EqualTo(elev2se));
-            Assert.That(r1a.Elevation1SW,Is.EqualTo(elev1sw));
-            Assert.That(r1a.Elevation2SW,Is.EqualTo(elev2sw));
-            Assert.That(r1a.WaterHeight,Is.EqualTo(waterh));
-            Assert.That(r1a.TerrainRaiseLimit,Is.EqualTo(terrainraise));
-            Assert.That(r1a.TerrainLowerLimit,Is.EqualTo(terrainlower));
+            Assert.That(r1a.TerrainTexture1,Is.EqualTo(tertex1), "Assert.That(r1a.TerrainTexture1,Is.EqualTo(tertex1))");
+            Assert.That(r1a.TerrainTexture2,Is.EqualTo(tertex2), "Assert.That(r1a.TerrainTexture2,Is.EqualTo(tertex2))");
+            Assert.That(r1a.TerrainTexture3,Is.EqualTo(tertex3), "Assert.That(r1a.TerrainTexture3,Is.EqualTo(tertex3))");
+            Assert.That(r1a.TerrainTexture4,Is.EqualTo(tertex4), "Assert.That(r1a.TerrainTexture4,Is.EqualTo(tertex4))");
+            Assert.That(r1a.Elevation1NW,Is.EqualTo(elev1nw), "Assert.That(r1a.Elevation1NW,Is.EqualTo(elev1nw))");
+            Assert.That(r1a.Elevation2NW,Is.EqualTo(elev2nw), "Assert.That(r1a.Elevation2NW,Is.EqualTo(elev2nw))");
+            Assert.That(r1a.Elevation1NE,Is.EqualTo(elev1ne), "Assert.That(r1a.Elevation1NE,Is.EqualTo(elev1ne))");
+            Assert.That(r1a.Elevation2NE,Is.EqualTo(elev2ne), "Assert.That(r1a.Elevation2NE,Is.EqualTo(elev2ne))");
+            Assert.That(r1a.Elevation1SE,Is.EqualTo(elev1se), "Assert.That(r1a.Elevation1SE,Is.EqualTo(elev1se))");
+            Assert.That(r1a.Elevation2SE,Is.EqualTo(elev2se), "Assert.That(r1a.Elevation2SE,Is.EqualTo(elev2se))");
+            Assert.That(r1a.Elevation1SW,Is.EqualTo(elev1sw), "Assert.That(r1a.Elevation1SW,Is.EqualTo(elev1sw))");
+            Assert.That(r1a.Elevation2SW,Is.EqualTo(elev2sw), "Assert.That(r1a.Elevation2SW,Is.EqualTo(elev2sw))");
+            Assert.That(r1a.WaterHeight,Is.EqualTo(waterh), "Assert.That(r1a.WaterHeight,Is.EqualTo(waterh))");
+            Assert.That(r1a.TerrainRaiseLimit,Is.EqualTo(terrainraise), "Assert.That(r1a.TerrainRaiseLimit,Is.EqualTo(terrainraise))");
+            Assert.That(r1a.TerrainLowerLimit,Is.EqualTo(terrainlower), "Assert.That(r1a.TerrainLowerLimit,Is.EqualTo(terrainlower))");
             Assert.That(r1a.UseEstateSun,Is.False);
             Assert.That(r1a.Sandbox,Is.True);
-            Assert.That(r1a.SunVector,Is.EqualTo(sunvector));
-            //Assert.That(r1a.TerrainImageID,Is.EqualTo(terimgid));
+            Assert.That(r1a.SunVector,Is.EqualTo(sunvector), "Assert.That(r1a.SunVector,Is.EqualTo(sunvector))");
+            //Assert.That(r1a.TerrainImageID,Is.EqualTo(terimgid), "Assert.That(r1a.TerrainImageID,Is.EqualTo(terimgid))");
             Assert.That(r1a.FixedSun,Is.True);
-            Assert.That(r1a.SunPosition, Is.EqualTo(sunpos));
-            Assert.That(r1a.Covenant, Is.EqualTo(cov));
+            Assert.That(r1a.SunPosition, Is.EqualTo(sunpos), "Assert.That(r1a.SunPosition, Is.EqualTo(sunpos))");
+            Assert.That(r1a.Covenant, Is.EqualTo(cov), "Assert.That(r1a.Covenant, Is.EqualTo(cov))");
             
         }
 
@@ -866,10 +866,10 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T400_EmptyLand()
         {
-            Assert.That(db.LoadLandObjects(zero).Count, Is.EqualTo(0));
-            Assert.That(db.LoadLandObjects(region1).Count, Is.EqualTo(0));
-            Assert.That(db.LoadLandObjects(region2).Count, Is.EqualTo(0));
-            Assert.That(db.LoadLandObjects(UUID.Random()).Count, Is.EqualTo(0));
+            Assert.That(db.LoadLandObjects(zero).Count, Is.EqualTo(0), "Assert.That(db.LoadLandObjects(zero).Count, Is.EqualTo(0))");
+            Assert.That(db.LoadLandObjects(region1).Count, Is.EqualTo(0), "Assert.That(db.LoadLandObjects(region1).Count, Is.EqualTo(0))");
+            Assert.That(db.LoadLandObjects(region2).Count, Is.EqualTo(0), "Assert.That(db.LoadLandObjects(region2).Count, Is.EqualTo(0))");
+            Assert.That(db.LoadLandObjects(UUID.Random()).Count, Is.EqualTo(0), "Assert.That(db.LoadLandObjects(UUID.Random()).Count, Is.EqualTo(0))");
         }
 
         // TODO: we should have real land tests, but Land is so

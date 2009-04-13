@@ -130,45 +130,45 @@ namespace OpenSim.Data.Tests
             RegionProfileData newreg = createRegion(region2, "|<Goth@m Ci1y>|");
             RegionProfileData retreg = db.GetProfileByUUID(region2);
 
-            Assert.That(retreg.RegionName, Is.EqualTo(newreg.RegionName));
-            Assert.That(retreg.Uuid, Is.EqualTo(region2));
-            Assert.That(retreg.RegionHandle, Is.EqualTo(newreg.RegionHandle));
-            Assert.That(retreg.RegionLocX, Is.EqualTo(newreg.RegionLocX));
-            Assert.That(retreg.RegionLocY, Is.EqualTo(newreg.RegionLocY));
-            Assert.That(retreg.RegionLocZ, Is.EqualTo(newreg.RegionLocZ));
-            Assert.That(retreg.RegionSendKey, Is.EqualTo(newreg.RegionSendKey));
-            Assert.That(retreg.RegionRecvKey, Is.EqualTo(newreg.RegionRecvKey));
-            Assert.That(retreg.RegionSecret, Is.EqualTo(newreg.RegionSecret));
-            Assert.That(retreg.RegionOnline, Is.EqualTo(newreg.RegionOnline));
-            Assert.That(retreg.OriginUUID, Is.EqualTo(newreg.OriginUUID));
-            Assert.That(retreg.ServerIP, Is.EqualTo(newreg.ServerIP));
-            Assert.That(retreg.ServerPort, Is.EqualTo(newreg.ServerPort));
-            Assert.That(retreg.ServerURI, Is.EqualTo(newreg.ServerURI));
-            Assert.That(retreg.ServerHttpPort, Is.EqualTo(newreg.ServerHttpPort));
-            Assert.That(retreg.ServerRemotingPort, Is.EqualTo(newreg.ServerRemotingPort));
-            Assert.That(retreg.NorthOverrideHandle, Is.EqualTo(newreg.NorthOverrideHandle));
-            Assert.That(retreg.SouthOverrideHandle, Is.EqualTo(newreg.SouthOverrideHandle));
-            Assert.That(retreg.EastOverrideHandle, Is.EqualTo(newreg.EastOverrideHandle));
-            Assert.That(retreg.WestOverrideHandle, Is.EqualTo(newreg.WestOverrideHandle));
-            Assert.That(retreg.RegionDataURI, Is.EqualTo(newreg.RegionDataURI));
-            Assert.That(retreg.RegionAssetURI, Is.EqualTo(newreg.RegionAssetURI));
-            Assert.That(retreg.RegionAssetSendKey, Is.EqualTo(newreg.RegionAssetSendKey));
-            Assert.That(retreg.RegionAssetRecvKey, Is.EqualTo(newreg.RegionAssetRecvKey));
-            Assert.That(retreg.RegionUserURI, Is.EqualTo(newreg.RegionUserURI));
-            Assert.That(retreg.RegionUserSendKey, Is.EqualTo(newreg.RegionUserSendKey));
-            Assert.That(retreg.RegionUserRecvKey, Is.EqualTo(newreg.RegionUserRecvKey));
-            Assert.That(retreg.RegionMapTextureID, Is.EqualTo(newreg.RegionMapTextureID));
-            Assert.That(retreg.Owner_uuid, Is.EqualTo(newreg.Owner_uuid));
-            Assert.That(retreg.OriginUUID, Is.EqualTo(newreg.OriginUUID));
+            Assert.That(retreg.RegionName, Is.EqualTo(newreg.RegionName), "Assert.That(retreg.RegionName, Is.EqualTo(newreg.RegionName))");
+            Assert.That(retreg.Uuid, Is.EqualTo(region2), "Assert.That(retreg.Uuid, Is.EqualTo(region2))");
+            Assert.That(retreg.RegionHandle, Is.EqualTo(newreg.RegionHandle), "Assert.That(retreg.RegionHandle, Is.EqualTo(newreg.RegionHandle))");
+            Assert.That(retreg.RegionLocX, Is.EqualTo(newreg.RegionLocX), "Assert.That(retreg.RegionLocX, Is.EqualTo(newreg.RegionLocX))");
+            Assert.That(retreg.RegionLocY, Is.EqualTo(newreg.RegionLocY), "Assert.That(retreg.RegionLocY, Is.EqualTo(newreg.RegionLocY))");
+            Assert.That(retreg.RegionLocZ, Is.EqualTo(newreg.RegionLocZ), "Assert.That(retreg.RegionLocZ, Is.EqualTo(newreg.RegionLocZ))");
+            Assert.That(retreg.RegionSendKey, Is.EqualTo(newreg.RegionSendKey), "Assert.That(retreg.RegionSendKey, Is.EqualTo(newreg.RegionSendKey))");
+            Assert.That(retreg.RegionRecvKey, Is.EqualTo(newreg.RegionRecvKey), "Assert.That(retreg.RegionRecvKey, Is.EqualTo(newreg.RegionRecvKey))");
+            Assert.That(retreg.RegionSecret, Is.EqualTo(newreg.RegionSecret), "Assert.That(retreg.RegionSecret, Is.EqualTo(newreg.RegionSecret))");
+            Assert.That(retreg.RegionOnline, Is.EqualTo(newreg.RegionOnline), "Assert.That(retreg.RegionOnline, Is.EqualTo(newreg.RegionOnline))");
+            Assert.That(retreg.OriginUUID, Is.EqualTo(newreg.OriginUUID), "Assert.That(retreg.OriginUUID, Is.EqualTo(newreg.OriginUUID))");
+            Assert.That(retreg.ServerIP, Is.EqualTo(newreg.ServerIP), "Assert.That(retreg.ServerIP, Is.EqualTo(newreg.ServerIP))");
+            Assert.That(retreg.ServerPort, Is.EqualTo(newreg.ServerPort), "Assert.That(retreg.ServerPort, Is.EqualTo(newreg.ServerPort))");
+            Assert.That(retreg.ServerURI, Is.EqualTo(newreg.ServerURI), "Assert.That(retreg.ServerURI, Is.EqualTo(newreg.ServerURI))");
+            Assert.That(retreg.ServerHttpPort, Is.EqualTo(newreg.ServerHttpPort), "Assert.That(retreg.ServerHttpPort, Is.EqualTo(newreg.ServerHttpPort))");
+            Assert.That(retreg.ServerRemotingPort, Is.EqualTo(newreg.ServerRemotingPort), "Assert.That(retreg.ServerRemotingPort, Is.EqualTo(newreg.ServerRemotingPort))");
+            Assert.That(retreg.NorthOverrideHandle, Is.EqualTo(newreg.NorthOverrideHandle), "Assert.That(retreg.NorthOverrideHandle, Is.EqualTo(newreg.NorthOverrideHandle))");
+            Assert.That(retreg.SouthOverrideHandle, Is.EqualTo(newreg.SouthOverrideHandle), "Assert.That(retreg.SouthOverrideHandle, Is.EqualTo(newreg.SouthOverrideHandle))");
+            Assert.That(retreg.EastOverrideHandle, Is.EqualTo(newreg.EastOverrideHandle), "Assert.That(retreg.EastOverrideHandle, Is.EqualTo(newreg.EastOverrideHandle))");
+            Assert.That(retreg.WestOverrideHandle, Is.EqualTo(newreg.WestOverrideHandle), "Assert.That(retreg.WestOverrideHandle, Is.EqualTo(newreg.WestOverrideHandle))");
+            Assert.That(retreg.RegionDataURI, Is.EqualTo(newreg.RegionDataURI), "Assert.That(retreg.RegionDataURI, Is.EqualTo(newreg.RegionDataURI))");
+            Assert.That(retreg.RegionAssetURI, Is.EqualTo(newreg.RegionAssetURI), "Assert.That(retreg.RegionAssetURI, Is.EqualTo(newreg.RegionAssetURI))");
+            Assert.That(retreg.RegionAssetSendKey, Is.EqualTo(newreg.RegionAssetSendKey), "Assert.That(retreg.RegionAssetSendKey, Is.EqualTo(newreg.RegionAssetSendKey))");
+            Assert.That(retreg.RegionAssetRecvKey, Is.EqualTo(newreg.RegionAssetRecvKey), "Assert.That(retreg.RegionAssetRecvKey, Is.EqualTo(newreg.RegionAssetRecvKey))");
+            Assert.That(retreg.RegionUserURI, Is.EqualTo(newreg.RegionUserURI), "Assert.That(retreg.RegionUserURI, Is.EqualTo(newreg.RegionUserURI))");
+            Assert.That(retreg.RegionUserSendKey, Is.EqualTo(newreg.RegionUserSendKey), "Assert.That(retreg.RegionUserSendKey, Is.EqualTo(newreg.RegionUserSendKey))");
+            Assert.That(retreg.RegionUserRecvKey, Is.EqualTo(newreg.RegionUserRecvKey), "Assert.That(retreg.RegionUserRecvKey, Is.EqualTo(newreg.RegionUserRecvKey))");
+            Assert.That(retreg.RegionMapTextureID, Is.EqualTo(newreg.RegionMapTextureID), "Assert.That(retreg.RegionMapTextureID, Is.EqualTo(newreg.RegionMapTextureID))");
+            Assert.That(retreg.Owner_uuid, Is.EqualTo(newreg.Owner_uuid), "Assert.That(retreg.Owner_uuid, Is.EqualTo(newreg.Owner_uuid))");
+            Assert.That(retreg.OriginUUID, Is.EqualTo(newreg.OriginUUID), "Assert.That(retreg.OriginUUID, Is.EqualTo(newreg.OriginUUID))");
 
             retreg = db.GetProfileByHandle(newreg.RegionHandle);
-            Assert.That(retreg.Uuid, Is.EqualTo(region2));
+            Assert.That(retreg.Uuid, Is.EqualTo(region2), "Assert.That(retreg.Uuid, Is.EqualTo(region2))");
 
             retreg = db.GetProfileByString(newreg.RegionName);
-            Assert.That(retreg.Uuid, Is.EqualTo(region2));
+            Assert.That(retreg.Uuid, Is.EqualTo(region2), "Assert.That(retreg.Uuid, Is.EqualTo(region2))");
 
             RegionProfileData[] retregs = db.GetProfilesInRange(newreg.RegionLocX,newreg.RegionLocY,newreg.RegionLocX,newreg.RegionLocY);
-            Assert.That(retregs[0].Uuid, Is.EqualTo(region2));
+            Assert.That(retregs[0].Uuid, Is.EqualTo(region2), "Assert.That(retregs[0].Uuid, Is.EqualTo(region2))");
         }
 
         [Test]
@@ -192,7 +192,7 @@ namespace OpenSim.Data.Tests
             db.UpdateProfile(retreg);
 
             retreg = db.GetProfileByUUID(region2);
-            Assert.That(retreg.RegionName, Is.EqualTo("Gotham City"));
+            Assert.That(retreg.RegionName, Is.EqualTo("Gotham City"), "Assert.That(retreg.RegionName, Is.EqualTo(\"Gotham City\"))");
         }
 
         [Test]
@@ -214,10 +214,10 @@ namespace OpenSim.Data.Tests
 
             List<RegionProfileData> listreg = db.GetRegionsByName("Gotham",10);
 
-            Assert.That(listreg.Count,Is.EqualTo(2));
-            Assert.That(listreg[0].Uuid,Is.Not.EqualTo(listreg[1].Uuid));
-            Assert.That(listreg[0].Uuid, Is.EqualTo(region1) | Is.EqualTo(region2));
-            Assert.That(listreg[1].Uuid, Is.EqualTo(region1) | Is.EqualTo(region2));
+            Assert.That(listreg.Count,Is.EqualTo(2), "Assert.That(listreg.Count,Is.EqualTo(2))");
+            Assert.That(listreg[0].Uuid,Is.Not.EqualTo(listreg[1].Uuid), "Assert.That(listreg[0].Uuid,Is.Not.EqualTo(listreg[1].Uuid))");
+            Assert.That(listreg[0].Uuid, Is.EqualTo(region1) | Is.EqualTo(region2), "Assert.That(listreg[0].Uuid, Is.EqualTo(region1) | Is.EqualTo(region2))");
+            Assert.That(listreg[1].Uuid, Is.EqualTo(region1) | Is.EqualTo(region2), "Assert.That(listreg[1].Uuid, Is.EqualTo(region1) | Is.EqualTo(region2))");
         }
 
         protected static string RandomName()

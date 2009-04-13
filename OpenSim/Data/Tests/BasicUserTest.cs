@@ -139,9 +139,9 @@ namespace OpenSim.Data.Tests
             UserProfileData u1a = db.GetUserByUUID(user1);
             UserProfileData u2a = db.GetUserByUUID(user2);
             UserProfileData u3a = db.GetUserByUUID(user3);
-            Assert.That(user1,Is.EqualTo(u1a.ID));
-            Assert.That(user2,Is.EqualTo(u2a.ID));
-            Assert.That(user3,Is.EqualTo(u3a.ID));
+            Assert.That(user1,Is.EqualTo(u1a.ID), "Assert.That(user1,Is.EqualTo(u1a.ID))");
+            Assert.That(user2,Is.EqualTo(u2a.ID), "Assert.That(user2,Is.EqualTo(u2a.ID))");
+            Assert.That(user3,Is.EqualTo(u3a.ID), "Assert.That(user3,Is.EqualTo(u3a.ID))");
 
             // and one email test
             Assert.That(u3.Email, Is.Null);
@@ -153,30 +153,30 @@ namespace OpenSim.Data.Tests
             UserProfileData u1 = db.GetUserByName(fname1,lname1);
             UserProfileData u2 = db.GetUserByName(fname2,lname2);
             UserProfileData u3 = db.GetUserByName(fname3,lname3);
-            Assert.That(user1,Is.EqualTo(u1.ID));
-            Assert.That(user2,Is.EqualTo(u2.ID));
-            Assert.That(user3,Is.EqualTo(u3.ID));
+            Assert.That(user1,Is.EqualTo(u1.ID), "Assert.That(user1,Is.EqualTo(u1.ID))");
+            Assert.That(user2,Is.EqualTo(u2.ID), "Assert.That(user2,Is.EqualTo(u2.ID))");
+            Assert.That(user3,Is.EqualTo(u3.ID), "Assert.That(user3,Is.EqualTo(u3.ID))");
         }
 
         [Test]
         public void T012_UpdateUserProfile()
         {
             UserProfileData u1 = db.GetUserByUUID(user1);
-            Assert.That(fname1,Is.EqualTo(u1.FirstName));
+            Assert.That(fname1,Is.EqualTo(u1.FirstName), "Assert.That(fname1,Is.EqualTo(u1.FirstName))");
             u1.FirstName = "Ugly";
             
             db.UpdateUserProfile(u1);
-            Assert.That("Ugly",Is.EqualTo(u1.FirstName));                   
+            Assert.That("Ugly",Is.EqualTo(u1.FirstName), "Assert.That(\"Ugly\",Is.EqualTo(u1.FirstName))");                   
         }
 
         [Test]
         public void T013_StoreUserWebKey()
         {
             UserProfileData u1 = db.GetUserByUUID(user1);
-            Assert.That(u1.WebLoginKey,Is.EqualTo(zero));
+            Assert.That(u1.WebLoginKey,Is.EqualTo(zero), "Assert.That(u1.WebLoginKey,Is.EqualTo(zero))");
             db.StoreWebLoginKey(user1, webkey);
             u1 = db.GetUserByUUID(user1);
-            Assert.That(u1.WebLoginKey,Is.EqualTo(webkey));
+            Assert.That(u1.WebLoginKey,Is.EqualTo(webkey), "Assert.That(u1.WebLoginKey,Is.EqualTo(webkey))");
         }
         
         [Test]
@@ -258,36 +258,36 @@ namespace OpenSim.Data.Tests
             db.AddNewUserProfile(u);
             UserProfileData u1a = db.GetUserByUUID(id);
             Assert.That(u1a,Is.Not.Null);
-            Assert.That(id,Is.EqualTo(u1a.ID));
-            Assert.That(homeregion,Is.EqualTo(u1a.HomeRegionID));
-            Assert.That(webloginkey,Is.EqualTo(u1a.WebLoginKey));
-            Assert.That(fname,Is.EqualTo(u1a.FirstName));
-            Assert.That(lname,Is.EqualTo(u1a.SurName));
-            Assert.That(email,Is.EqualTo(u1a.Email));
-            Assert.That(passhash,Is.EqualTo(u1a.PasswordHash));
-            Assert.That(passsalt,Is.EqualTo(u1a.PasswordSalt));
-            Assert.That(homeregx,Is.EqualTo(u1a.HomeRegionX));
-            Assert.That(homeregy,Is.EqualTo(u1a.HomeRegionY));
-            Assert.That(homereg,Is.EqualTo(u1a.HomeRegion));
-            Assert.That(homeloc,Is.EqualTo(u1a.HomeLocation));
-            Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt));
-            Assert.That(created,Is.EqualTo(u1a.Created));
-            Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin));
+            Assert.That(id,Is.EqualTo(u1a.ID), "Assert.That(id,Is.EqualTo(u1a.ID))");
+            Assert.That(homeregion,Is.EqualTo(u1a.HomeRegionID), "Assert.That(homeregion,Is.EqualTo(u1a.HomeRegionID))");
+            Assert.That(webloginkey,Is.EqualTo(u1a.WebLoginKey), "Assert.That(webloginkey,Is.EqualTo(u1a.WebLoginKey))");
+            Assert.That(fname,Is.EqualTo(u1a.FirstName), "Assert.That(fname,Is.EqualTo(u1a.FirstName))");
+            Assert.That(lname,Is.EqualTo(u1a.SurName), "Assert.That(lname,Is.EqualTo(u1a.SurName))");
+            Assert.That(email,Is.EqualTo(u1a.Email), "Assert.That(email,Is.EqualTo(u1a.Email))");
+            Assert.That(passhash,Is.EqualTo(u1a.PasswordHash), "Assert.That(passhash,Is.EqualTo(u1a.PasswordHash))");
+            Assert.That(passsalt,Is.EqualTo(u1a.PasswordSalt), "Assert.That(passsalt,Is.EqualTo(u1a.PasswordSalt))");
+            Assert.That(homeregx,Is.EqualTo(u1a.HomeRegionX), "Assert.That(homeregx,Is.EqualTo(u1a.HomeRegionX))");
+            Assert.That(homeregy,Is.EqualTo(u1a.HomeRegionY), "Assert.That(homeregy,Is.EqualTo(u1a.HomeRegionY))");
+            Assert.That(homereg,Is.EqualTo(u1a.HomeRegion), "Assert.That(homereg,Is.EqualTo(u1a.HomeRegion))");
+            Assert.That(homeloc,Is.EqualTo(u1a.HomeLocation), "Assert.That(homeloc,Is.EqualTo(u1a.HomeLocation))");
+            Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt), "Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt))");
+            Assert.That(created,Is.EqualTo(u1a.Created), "Assert.That(created,Is.EqualTo(u1a.Created))");
+            Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin), "Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin))");
             // RootInventoryFolderID is not tested because it is saved in SQLite,
             // but not in MySQL
-            Assert.That(userinvuri,Is.EqualTo(u1a.UserInventoryURI));
-            Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI));
-            Assert.That(candomask,Is.EqualTo(u1a.CanDoMask));
-            Assert.That(wantdomask,Is.EqualTo(u1a.WantDoMask));
-            Assert.That(abouttext,Is.EqualTo(u1a.AboutText));
-            Assert.That(flabouttext,Is.EqualTo(u1a.FirstLifeAboutText));
-            Assert.That(image,Is.EqualTo(u1a.Image));
-            Assert.That(firstimage,Is.EqualTo(u1a.FirstLifeImage));
+            Assert.That(userinvuri,Is.EqualTo(u1a.UserInventoryURI), "Assert.That(userinvuri,Is.EqualTo(u1a.UserInventoryURI))");
+            Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI), "Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI))");
+            Assert.That(candomask,Is.EqualTo(u1a.CanDoMask), "Assert.That(candomask,Is.EqualTo(u1a.CanDoMask))");
+            Assert.That(wantdomask,Is.EqualTo(u1a.WantDoMask), "Assert.That(wantdomask,Is.EqualTo(u1a.WantDoMask))");
+            Assert.That(abouttext,Is.EqualTo(u1a.AboutText), "Assert.That(abouttext,Is.EqualTo(u1a.AboutText))");
+            Assert.That(flabouttext,Is.EqualTo(u1a.FirstLifeAboutText), "Assert.That(flabouttext,Is.EqualTo(u1a.FirstLifeAboutText))");
+            Assert.That(image,Is.EqualTo(u1a.Image), "Assert.That(image,Is.EqualTo(u1a.Image))");
+            Assert.That(firstimage,Is.EqualTo(u1a.FirstLifeImage), "Assert.That(firstimage,Is.EqualTo(u1a.FirstLifeImage))");
             Assert.That(u1a.CurrentAgent,Is.Null);
-            Assert.That(userflags,Is.EqualTo(u1a.UserFlags));
-            Assert.That(godlevel,Is.EqualTo(u1a.GodLevel));
-            Assert.That(customtype,Is.EqualTo(u1a.CustomType));
-            Assert.That(partner,Is.EqualTo(u1a.Partner));
+            Assert.That(userflags,Is.EqualTo(u1a.UserFlags), "Assert.That(userflags,Is.EqualTo(u1a.UserFlags))");
+            Assert.That(godlevel,Is.EqualTo(u1a.GodLevel), "Assert.That(godlevel,Is.EqualTo(u1a.GodLevel))");
+            Assert.That(customtype,Is.EqualTo(u1a.CustomType), "Assert.That(customtype,Is.EqualTo(u1a.CustomType))");
+            Assert.That(partner,Is.EqualTo(u1a.Partner), "Assert.That(partner,Is.EqualTo(u1a.Partner))");
         }
 
         [Test]
@@ -357,36 +357,36 @@ namespace OpenSim.Data.Tests
             db.UpdateUserProfile(u);
             UserProfileData u1a = db.GetUserByUUID(id);
             Assert.That(u1a,Is.Not.Null);
-            Assert.That(id,Is.EqualTo(u1a.ID));
-            Assert.That(homeregionid,Is.EqualTo(u1a.HomeRegionID));
-            Assert.That(webloginkey,Is.EqualTo(u1a.WebLoginKey));
-            Assert.That(fname,Is.EqualTo(u1a.FirstName));
-            Assert.That(lname,Is.EqualTo(u1a.SurName));
-            Assert.That(email,Is.EqualTo(u1a.Email));
-            Assert.That(passhash,Is.EqualTo(u1a.PasswordHash));
-            Assert.That(passsalt,Is.EqualTo(u1a.PasswordSalt));
-            Assert.That(homereg,Is.EqualTo(u1a.HomeRegion));            
-            Assert.That(homeregx,Is.EqualTo(u1a.HomeRegionX));
-            Assert.That(homeregy,Is.EqualTo(u1a.HomeRegionY));
-            Assert.That(homereg,Is.EqualTo(u1a.HomeRegion));
-            Assert.That(homeloc,Is.EqualTo(u1a.HomeLocation));
-            Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt));
-            Assert.That(created,Is.EqualTo(u1a.Created));
-            Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin));
+            Assert.That(id,Is.EqualTo(u1a.ID), "Assert.That(id,Is.EqualTo(u1a.ID))");
+            Assert.That(homeregionid,Is.EqualTo(u1a.HomeRegionID), "Assert.That(homeregionid,Is.EqualTo(u1a.HomeRegionID))");
+            Assert.That(webloginkey,Is.EqualTo(u1a.WebLoginKey), "Assert.That(webloginkey,Is.EqualTo(u1a.WebLoginKey))");
+            Assert.That(fname,Is.EqualTo(u1a.FirstName), "Assert.That(fname,Is.EqualTo(u1a.FirstName))");
+            Assert.That(lname,Is.EqualTo(u1a.SurName), "Assert.That(lname,Is.EqualTo(u1a.SurName))");
+            Assert.That(email,Is.EqualTo(u1a.Email), "Assert.That(email,Is.EqualTo(u1a.Email))");
+            Assert.That(passhash,Is.EqualTo(u1a.PasswordHash), "Assert.That(passhash,Is.EqualTo(u1a.PasswordHash))");
+            Assert.That(passsalt,Is.EqualTo(u1a.PasswordSalt), "Assert.That(passsalt,Is.EqualTo(u1a.PasswordSalt))");
+            Assert.That(homereg,Is.EqualTo(u1a.HomeRegion), "Assert.That(homereg,Is.EqualTo(u1a.HomeRegion))");            
+            Assert.That(homeregx,Is.EqualTo(u1a.HomeRegionX), "Assert.That(homeregx,Is.EqualTo(u1a.HomeRegionX))");
+            Assert.That(homeregy,Is.EqualTo(u1a.HomeRegionY), "Assert.That(homeregy,Is.EqualTo(u1a.HomeRegionY))");
+            Assert.That(homereg,Is.EqualTo(u1a.HomeRegion), "Assert.That(homereg,Is.EqualTo(u1a.HomeRegion))");
+            Assert.That(homeloc,Is.EqualTo(u1a.HomeLocation), "Assert.That(homeloc,Is.EqualTo(u1a.HomeLocation))");
+            Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt), "Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt))");
+            Assert.That(created,Is.EqualTo(u1a.Created), "Assert.That(created,Is.EqualTo(u1a.Created))");
+            Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin), "Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin))");
             // RootInventoryFolderID is not tested because it is saved in SQLite,
             // but not in MySQL
-            Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI));
-            Assert.That(candomask,Is.EqualTo(u1a.CanDoMask));
-            Assert.That(wantdomask,Is.EqualTo(u1a.WantDoMask));
-            Assert.That(abouttext,Is.EqualTo(u1a.AboutText));
-            Assert.That(flabouttext,Is.EqualTo(u1a.FirstLifeAboutText));
-            Assert.That(image,Is.EqualTo(u1a.Image));
-            Assert.That(firstimage,Is.EqualTo(u1a.FirstLifeImage));
+            Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI), "Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI))");
+            Assert.That(candomask,Is.EqualTo(u1a.CanDoMask), "Assert.That(candomask,Is.EqualTo(u1a.CanDoMask))");
+            Assert.That(wantdomask,Is.EqualTo(u1a.WantDoMask), "Assert.That(wantdomask,Is.EqualTo(u1a.WantDoMask))");
+            Assert.That(abouttext,Is.EqualTo(u1a.AboutText), "Assert.That(abouttext,Is.EqualTo(u1a.AboutText))");
+            Assert.That(flabouttext,Is.EqualTo(u1a.FirstLifeAboutText), "Assert.That(flabouttext,Is.EqualTo(u1a.FirstLifeAboutText))");
+            Assert.That(image,Is.EqualTo(u1a.Image), "Assert.That(image,Is.EqualTo(u1a.Image))");
+            Assert.That(firstimage,Is.EqualTo(u1a.FirstLifeImage), "Assert.That(firstimage,Is.EqualTo(u1a.FirstLifeImage))");
             Assert.That(u1a.CurrentAgent,Is.Null);
-            Assert.That(userflags,Is.EqualTo(u1a.UserFlags));
-            Assert.That(godlevel,Is.EqualTo(u1a.GodLevel));
-            Assert.That(customtype,Is.EqualTo(u1a.CustomType));
-            Assert.That(partner,Is.EqualTo(u1a.Partner));
+            Assert.That(userflags,Is.EqualTo(u1a.UserFlags), "Assert.That(userflags,Is.EqualTo(u1a.UserFlags))");
+            Assert.That(godlevel,Is.EqualTo(u1a.GodLevel), "Assert.That(godlevel,Is.EqualTo(u1a.GodLevel))");
+            Assert.That(customtype,Is.EqualTo(u1a.CustomType), "Assert.That(customtype,Is.EqualTo(u1a.CustomType))");
+            Assert.That(partner,Is.EqualTo(u1a.Partner), "Assert.That(partner,Is.EqualTo(u1a.Partner))");
         }
         
         [Test]
@@ -401,12 +401,12 @@ namespace OpenSim.Data.Tests
             UserAgentData a1a = db.GetAgentByUUID(user1);
             UserAgentData a2a = db.GetAgentByUUID(user2);
             UserAgentData a3a = db.GetAgentByUUID(user3);
-            Assert.That(agent1,Is.EqualTo(a1a.SessionID));
-            Assert.That(user1,Is.EqualTo(a1a.ProfileID));
-            Assert.That(agent2,Is.EqualTo(a2a.SessionID));
-            Assert.That(user2,Is.EqualTo(a2a.ProfileID));
-            Assert.That(agent3,Is.EqualTo(a3a.SessionID));
-            Assert.That(user3,Is.EqualTo(a3a.ProfileID));
+            Assert.That(agent1,Is.EqualTo(a1a.SessionID), "Assert.That(agent1,Is.EqualTo(a1a.SessionID))");
+            Assert.That(user1,Is.EqualTo(a1a.ProfileID), "Assert.That(user1,Is.EqualTo(a1a.ProfileID))");
+            Assert.That(agent2,Is.EqualTo(a2a.SessionID), "Assert.That(agent2,Is.EqualTo(a2a.SessionID))");
+            Assert.That(user2,Is.EqualTo(a2a.ProfileID), "Assert.That(user2,Is.EqualTo(a2a.ProfileID))");
+            Assert.That(agent3,Is.EqualTo(a3a.SessionID), "Assert.That(agent3,Is.EqualTo(a3a.SessionID))");
+            Assert.That(user3,Is.EqualTo(a3a.ProfileID), "Assert.That(user3,Is.EqualTo(a3a.ProfileID))");
         }
         
         [Test]
@@ -415,8 +415,8 @@ namespace OpenSim.Data.Tests
             String name3 = fname3 + " " + lname3;
             UserAgentData a2 = db.GetAgentByName(fname2,lname2);
             UserAgentData a3 = db.GetAgentByName(name3);
-            Assert.That(user2,Is.EqualTo(a2.ProfileID));
-            Assert.That(user3,Is.EqualTo(a3.ProfileID));                    
+            Assert.That(user2,Is.EqualTo(a2.ProfileID), "Assert.That(user2,Is.EqualTo(a2.ProfileID))");
+            Assert.That(user3,Is.EqualTo(a3.ProfileID), "Assert.That(user3,Is.EqualTo(a3.ProfileID))");                    
         }
         
         [Test]
@@ -466,18 +466,18 @@ namespace OpenSim.Data.Tests
             db.AddNewUserAgent(a);
 
             UserAgentData a1 = db.GetAgentByUUID(user4);
-            Assert.That(user,Is.EqualTo(a1.ProfileID));
-            Assert.That(agent,Is.EqualTo(a1.SessionID));
-            Assert.That(secureagent,Is.EqualTo(a1.SecureSessionID));
-            Assert.That(agentip,Is.EqualTo(a1.AgentIP));
-            Assert.That(agentport,Is.EqualTo(a1.AgentPort));
-            Assert.That(agentonline,Is.EqualTo(a1.AgentOnline));
-            Assert.That(logintime,Is.EqualTo(a1.LoginTime));
-            Assert.That(logouttime,Is.EqualTo(a1.LogoutTime));
-            Assert.That(regionid,Is.EqualTo(a1.Region));
-            Assert.That(regionhandle,Is.EqualTo(a1.Handle));
-            Assert.That(currentpos,Is.EqualTo(a1.Position));
-            Assert.That(currentlookat,Is.EqualTo(a1.LookAt));
+            Assert.That(user,Is.EqualTo(a1.ProfileID), "Assert.That(user,Is.EqualTo(a1.ProfileID))");
+            Assert.That(agent,Is.EqualTo(a1.SessionID), "Assert.That(agent,Is.EqualTo(a1.SessionID))");
+            Assert.That(secureagent,Is.EqualTo(a1.SecureSessionID), "Assert.That(secureagent,Is.EqualTo(a1.SecureSessionID))");
+            Assert.That(agentip,Is.EqualTo(a1.AgentIP), "Assert.That(agentip,Is.EqualTo(a1.AgentIP))");
+            Assert.That(agentport,Is.EqualTo(a1.AgentPort), "Assert.That(agentport,Is.EqualTo(a1.AgentPort))");
+            Assert.That(agentonline,Is.EqualTo(a1.AgentOnline), "Assert.That(agentonline,Is.EqualTo(a1.AgentOnline))");
+            Assert.That(logintime,Is.EqualTo(a1.LoginTime), "Assert.That(logintime,Is.EqualTo(a1.LoginTime))");
+            Assert.That(logouttime,Is.EqualTo(a1.LogoutTime), "Assert.That(logouttime,Is.EqualTo(a1.LogoutTime))");
+            Assert.That(regionid,Is.EqualTo(a1.Region), "Assert.That(regionid,Is.EqualTo(a1.Region))");
+            Assert.That(regionhandle,Is.EqualTo(a1.Handle), "Assert.That(regionhandle,Is.EqualTo(a1.Handle))");
+            Assert.That(currentpos,Is.EqualTo(a1.Position), "Assert.That(currentpos,Is.EqualTo(a1.Position))");
+            Assert.That(currentlookat,Is.EqualTo(a1.LookAt), "Assert.That(currentlookat,Is.EqualTo(a1.LookAt))");
         }
 
         [Test]
@@ -491,19 +491,19 @@ namespace OpenSim.Data.Tests
             db.AddNewUserFriend(user1,user3, 2);
             db.AddNewUserFriend(user1,user2, 4); 
             List<FriendListItem> fl1 = db.GetUserFriendList(user1);
-            Assert.That(fl1.Count,Is.EqualTo(2));                   
+            Assert.That(fl1.Count,Is.EqualTo(2), "Assert.That(fl1.Count,Is.EqualTo(2))");                   
             perms.Add(user2,1);
             perms.Add(user3,2);
             for (int i = 0; i < fl1.Count; i++)
             {   
-                Assert.That(user1,Is.EqualTo(fl1[i].FriendListOwner));
+                Assert.That(user1,Is.EqualTo(fl1[i].FriendListOwner), "Assert.That(user1,Is.EqualTo(fl1[i].FriendListOwner))");
                 friends.Add(fl1[i].Friend,1);
                 temp = perms[fl1[i].Friend];
-                Assert.That(temp,Is.EqualTo(fl1[i].FriendPerms));
+                Assert.That(temp,Is.EqualTo(fl1[i].FriendPerms), "Assert.That(temp,Is.EqualTo(fl1[i].FriendPerms))");
             }
             tempu1 = friends[user2];
             tempu2 = friends[user3];
-            Assert.That(1,Is.EqualTo(tempu1) & Is.EqualTo(tempu2));
+            Assert.That(1,Is.EqualTo(tempu1) & Is.EqualTo(tempu2), "Assert.That(1,Is.EqualTo(tempu1) & Is.EqualTo(tempu2))");
         }
         
         [Test]
@@ -513,15 +513,15 @@ namespace OpenSim.Data.Tests
             List<FriendListItem> fl1 = db.GetUserFriendList(user1);
             List<FriendListItem> fl2 = db.GetUserFriendList(user2);
 
-            Assert.That(fl1.Count,Is.EqualTo(2));
-            Assert.That(fl1[0].Friend,Is.EqualTo(user2) | Is.EqualTo(user3));
-            Assert.That(fl2[0].Friend,Is.EqualTo(user1));
+            Assert.That(fl1.Count,Is.EqualTo(2), "Assert.That(fl1.Count,Is.EqualTo(2))");
+            Assert.That(fl1[0].Friend,Is.EqualTo(user2) | Is.EqualTo(user3), "Assert.That(fl1[0].Friend,Is.EqualTo(user2) | Is.EqualTo(user3))");
+            Assert.That(fl2[0].Friend,Is.EqualTo(user1), "Assert.That(fl2[0].Friend,Is.EqualTo(user1))");
             db.RemoveUserFriend(user2, user1);
             
             fl1 = db.GetUserFriendList(user1);
             fl2 = db.GetUserFriendList(user2);
-            Assert.That(fl1.Count,Is.EqualTo(1));
-            Assert.That(fl1[0].Friend, Is.EqualTo(user3));
+            Assert.That(fl1.Count,Is.EqualTo(1), "Assert.That(fl1.Count,Is.EqualTo(1))");
+            Assert.That(fl1[0].Friend, Is.EqualTo(user3), "Assert.That(fl1[0].Friend, Is.EqualTo(user3))");
             Assert.That(fl2, Is.Empty);
         }
         
@@ -530,11 +530,11 @@ namespace OpenSim.Data.Tests
         // user1 has 1 friend, user3, who has permission 2 in T030.
         {
             List<FriendListItem> fl1 = db.GetUserFriendList(user1);
-            Assert.That(fl1[0].FriendPerms,Is.EqualTo(2));
+            Assert.That(fl1[0].FriendPerms,Is.EqualTo(2), "Assert.That(fl1[0].FriendPerms,Is.EqualTo(2))");
             db.UpdateUserFriendPerms(user1, user3, 4);
             
             fl1 = db.GetUserFriendList(user1);
-            Assert.That(fl1[0].FriendPerms,Is.EqualTo(4));                  
+            Assert.That(fl1[0].FriendPerms,Is.EqualTo(4), "Assert.That(fl1[0].FriendPerms,Is.EqualTo(4))");                  
         }
         
         [Test]
@@ -544,7 +544,7 @@ namespace OpenSim.Data.Tests
             appear.Owner = user1;
             db.UpdateUserAppearance(user1, appear);
             AvatarAppearance user1app = db.GetUserAppearance(user1);
-            Assert.That(user1,Is.EqualTo(user1app.Owner));
+            Assert.That(user1,Is.EqualTo(user1app.Owner), "Assert.That(user1,Is.EqualTo(user1app.Owner))");
         }
         
         [Test]
@@ -619,37 +619,37 @@ namespace OpenSim.Data.Tests
             db.UpdateUserAppearance(owner, appear);
             AvatarAppearance app = db.GetUserAppearance(owner);
 
-            Assert.That(owner,Is.EqualTo(app.Owner));
-            Assert.That(serial,Is.EqualTo(app.Serial));
-            Assert.That(visualp,Is.EqualTo(app.VisualParams));
-            Assert.That(bodyitem,Is.EqualTo(app.BodyItem));
-            Assert.That(bodyasset,Is.EqualTo(app.BodyAsset));
-            Assert.That(skinitem,Is.EqualTo(app.SkinItem));
-            Assert.That(skinasset,Is.EqualTo(app.SkinAsset));
-            Assert.That(hairitem,Is.EqualTo(app.HairItem));
-            Assert.That(hairasset,Is.EqualTo(app.HairAsset));
-            Assert.That(eyesitem,Is.EqualTo(app.EyesItem));
-            Assert.That(eyesasset,Is.EqualTo(app.EyesAsset));
-            Assert.That(shirtitem,Is.EqualTo(app.ShirtItem));
-            Assert.That(shirtasset,Is.EqualTo(app.ShirtAsset));
-            Assert.That(pantsitem,Is.EqualTo(app.PantsItem));
-            Assert.That(pantsasset,Is.EqualTo(app.PantsAsset));
-            Assert.That(shoesitem,Is.EqualTo(app.ShoesItem));
-            Assert.That(shoesasset,Is.EqualTo(app.ShoesAsset));
-            Assert.That(socksitem,Is.EqualTo(app.SocksItem));
-            Assert.That(socksasset,Is.EqualTo(app.SocksAsset));
-            Assert.That(jacketitem,Is.EqualTo(app.JacketItem));
-            Assert.That(jacketasset,Is.EqualTo(app.JacketAsset));
-            Assert.That(glovesitem,Is.EqualTo(app.GlovesItem));
-            Assert.That(glovesasset,Is.EqualTo(app.GlovesAsset));
-            Assert.That(ushirtitem,Is.EqualTo(app.UnderShirtItem));
-            Assert.That(ushirtasset,Is.EqualTo(app.UnderShirtAsset));
-            Assert.That(upantsitem,Is.EqualTo(app.UnderPantsItem));
-            Assert.That(upantsasset,Is.EqualTo(app.UnderPantsAsset));
-            Assert.That(skirtitem,Is.EqualTo(app.SkirtItem));
-            Assert.That(skirtasset,Is.EqualTo(app.SkirtAsset));
-            Assert.That(texture.ToString(),Is.EqualTo(app.Texture.ToString()));
-            Assert.That(avatarheight,Is.EqualTo(app.AvatarHeight));
+            Assert.That(owner,Is.EqualTo(app.Owner), "Assert.That(owner,Is.EqualTo(app.Owner))");
+            Assert.That(serial,Is.EqualTo(app.Serial), "Assert.That(serial,Is.EqualTo(app.Serial))");
+            Assert.That(visualp,Is.EqualTo(app.VisualParams), "Assert.That(visualp,Is.EqualTo(app.VisualParams))");
+            Assert.That(bodyitem,Is.EqualTo(app.BodyItem), "Assert.That(bodyitem,Is.EqualTo(app.BodyItem))");
+            Assert.That(bodyasset,Is.EqualTo(app.BodyAsset), "Assert.That(bodyasset,Is.EqualTo(app.BodyAsset))");
+            Assert.That(skinitem,Is.EqualTo(app.SkinItem), "Assert.That(skinitem,Is.EqualTo(app.SkinItem))");
+            Assert.That(skinasset,Is.EqualTo(app.SkinAsset), "Assert.That(skinasset,Is.EqualTo(app.SkinAsset))");
+            Assert.That(hairitem,Is.EqualTo(app.HairItem), "Assert.That(hairitem,Is.EqualTo(app.HairItem))");
+            Assert.That(hairasset,Is.EqualTo(app.HairAsset), "Assert.That(hairasset,Is.EqualTo(app.HairAsset))");
+            Assert.That(eyesitem,Is.EqualTo(app.EyesItem), "Assert.That(eyesitem,Is.EqualTo(app.EyesItem))");
+            Assert.That(eyesasset,Is.EqualTo(app.EyesAsset), "Assert.That(eyesasset,Is.EqualTo(app.EyesAsset))");
+            Assert.That(shirtitem,Is.EqualTo(app.ShirtItem), "Assert.That(shirtitem,Is.EqualTo(app.ShirtItem))");
+            Assert.That(shirtasset,Is.EqualTo(app.ShirtAsset), "Assert.That(shirtasset,Is.EqualTo(app.ShirtAsset))");
+            Assert.That(pantsitem,Is.EqualTo(app.PantsItem), "Assert.That(pantsitem,Is.EqualTo(app.PantsItem))");
+            Assert.That(pantsasset,Is.EqualTo(app.PantsAsset), "Assert.That(pantsasset,Is.EqualTo(app.PantsAsset))");
+            Assert.That(shoesitem,Is.EqualTo(app.ShoesItem), "Assert.That(shoesitem,Is.EqualTo(app.ShoesItem))");
+            Assert.That(shoesasset,Is.EqualTo(app.ShoesAsset), "Assert.That(shoesasset,Is.EqualTo(app.ShoesAsset))");
+            Assert.That(socksitem,Is.EqualTo(app.SocksItem), "Assert.That(socksitem,Is.EqualTo(app.SocksItem))");
+            Assert.That(socksasset,Is.EqualTo(app.SocksAsset), "Assert.That(socksasset,Is.EqualTo(app.SocksAsset))");
+            Assert.That(jacketitem,Is.EqualTo(app.JacketItem), "Assert.That(jacketitem,Is.EqualTo(app.JacketItem))");
+            Assert.That(jacketasset,Is.EqualTo(app.JacketAsset), "Assert.That(jacketasset,Is.EqualTo(app.JacketAsset))");
+            Assert.That(glovesitem,Is.EqualTo(app.GlovesItem), "Assert.That(glovesitem,Is.EqualTo(app.GlovesItem))");
+            Assert.That(glovesasset,Is.EqualTo(app.GlovesAsset), "Assert.That(glovesasset,Is.EqualTo(app.GlovesAsset))");
+            Assert.That(ushirtitem,Is.EqualTo(app.UnderShirtItem), "Assert.That(ushirtitem,Is.EqualTo(app.UnderShirtItem))");
+            Assert.That(ushirtasset,Is.EqualTo(app.UnderShirtAsset), "Assert.That(ushirtasset,Is.EqualTo(app.UnderShirtAsset))");
+            Assert.That(upantsitem,Is.EqualTo(app.UnderPantsItem), "Assert.That(upantsitem,Is.EqualTo(app.UnderPantsItem))");
+            Assert.That(upantsasset,Is.EqualTo(app.UnderPantsAsset), "Assert.That(upantsasset,Is.EqualTo(app.UnderPantsAsset))");
+            Assert.That(skirtitem,Is.EqualTo(app.SkirtItem), "Assert.That(skirtitem,Is.EqualTo(app.SkirtItem))");
+            Assert.That(skirtasset,Is.EqualTo(app.SkirtAsset), "Assert.That(skirtasset,Is.EqualTo(app.SkirtAsset))");
+            Assert.That(texture.ToString(),Is.EqualTo(app.Texture.ToString()), "Assert.That(texture.ToString(),Is.EqualTo(app.Texture.ToString()))");
+            Assert.That(avatarheight,Is.EqualTo(app.AvatarHeight), "Assert.That(avatarheight,Is.EqualTo(app.AvatarHeight))");
         }
 
         public UserProfileData NewUser(UUID id,string fname,string lname)
