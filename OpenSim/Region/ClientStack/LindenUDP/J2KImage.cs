@@ -304,6 +304,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // Do we have a jpeg decoder?
                         if (m_j2kDecodeModule != null)
                         {
+                            if (Data == null)
+                            {
+                                J2KDecodedCallback(m_requestedUUID, new OpenJPEG.J2KLayerInfo[0]);
+                            }
                             // Send it off to the jpeg decoder
                             m_j2kDecodeModule.decode(m_requestedUUID, Data, J2KDecodedCallback);
 
