@@ -38,116 +38,116 @@ namespace OpenSim.Framework
         /// <summary>
         /// A UNIX Timestamp (seconds since epoch) for the users creation
         /// </summary>
-        private int _created;
+        private int m_created;
 
         /// <summary>
         /// The users last registered agent (filled in on the user server)
         /// </summary>
-        private UserAgentData _currentAgent;
+        private UserAgentData m_currentAgent;
 
         /// <summary>
         /// The first component of a users account name
         /// </summary>
-        private string _firstname;
+        private string m_firstname;
 
         /// <summary>
         /// The coordinates inside the region of the home location
         /// </summary>
-        private Vector3 _homeLocation;
+        private Vector3 m_homeLocation;
 
         /// <summary>
         /// Where the user will be looking when they rez.
         /// </summary>
-        private Vector3 _homeLookAt;
+        private Vector3 m_homeLookAt;
 
-        private uint _homeRegionX;
-        private uint _homeRegionY;
+        private uint m_homeRegionX;
+        private uint m_homeRegionY;
 
         /// <summary>
         /// The ID value for this user
         /// </summary>
-        private UUID _id;
+        private UUID m_id;
 
         /// <summary>
         /// A UNIX Timestamp for the users last login date / time
         /// </summary>
-        private int _lastLogin;
+        private int m_lastLogin;
 
         /// <summary>
         /// A salted hash containing the users password, in the format md5(md5(password) + ":" + salt)
         /// </summary>
         /// <remarks>This is double MD5'd because the client sends an unsalted MD5 to the loginserver</remarks>
-        private string _passwordHash;
+        private string m_passwordHash;
 
         /// <summary>
         /// The salt used for the users hash, should be 32 bytes or longer
         /// </summary>
-        private string _passwordSalt;
+        private string m_passwordSalt;
 
         /// <summary>
         /// The about text listed in a users profile.
         /// </summary>
-        private string _profileAboutText = String.Empty;
+        private string m_profileAboutText = String.Empty;
 
         /// <summary>
         /// A uint mask containing the "I can do" fields of the users profile
         /// </summary>
-        private uint _profileCanDoMask;
+        private uint m_profileCanDoMask;
 
         /// <summary>
         /// The profile image for the users first life tab
         /// </summary>
-        private UUID _profileFirstImage;
+        private UUID m_profileFirstImage;
 
         /// <summary>
         /// The first life about text listed in a users profile
         /// </summary>
-        private string _profileFirstText = String.Empty;
+        private string m_profileFirstText = String.Empty;
 
         /// <summary>
         /// The profile image for an avatar stored on the asset server
         /// </summary>
-        private UUID _profileImage;
+        private UUID m_profileImage;
 
         /// <summary>
         /// A uint mask containing the "I want to do" part of the users profile
         /// </summary>
-        private uint _profileWantDoMask; // Profile window "I want to" mask
+        private uint m_profileWantDoMask; // Profile window "I want to" mask
 
-        private UUID _rootInventoryFolderID;
+        private UUID m_rootInventoryFolderId;
 
         /// <summary>
         /// The second component of a users account name
         /// </summary>
-        private string _surname;
+        private string m_surname;
 
         /// <summary>
         /// A valid email address for the account.  Useful for password reset requests.
         /// </summary>
-        private string _email = String.Empty;
+        private string m_email = String.Empty;
 
         /// <summary>
         /// A URI to the users asset server, used for foreigners and large grids.
         /// </summary>
-        private string _userAssetURI = String.Empty;
+        private string m_userAssetUri = String.Empty;
 
         /// <summary>
         /// A URI to the users inventory server, used for foreigners and large grids
         /// </summary>
-        private string _userInventoryURI = String.Empty;
+        private string m_userInventoryUri = String.Empty;
 
         /// <summary>
         /// The last used Web_login_key
         /// </summary>
-        private UUID _webLoginKey;
+        private UUID m_webLoginKey;
 
         // Data for estates and other goodies
         // to get away from per-machine configs a little
         //
-        private int _userFlags;
-        private int _godLevel;
-        private string _customType;
-        private UUID _partner;
+        private int m_userFlags;
+        private int m_godLevel;
+        private string m_customType;
+        private UUID m_partner;
 
         /// <summary>
         /// The regionhandle of the users preferred home region. If
@@ -156,15 +156,15 @@ namespace OpenSim.Framework
         /// </summary>
         public virtual ulong HomeRegion
         {
-            get { return Utils.UIntsToLong((_homeRegionX * (uint)Constants.RegionSize), (_homeRegionY * (uint)Constants.RegionSize)); }
+            get { return Utils.UIntsToLong((m_homeRegionX * (uint)Constants.RegionSize), (m_homeRegionY * (uint)Constants.RegionSize)); }
             set
             {
-                _homeRegionX = (uint) (value >> 40);
-                _homeRegionY = (((uint) (value)) >> 8);
+                m_homeRegionX = (uint) (value >> 40);
+                m_homeRegionY = (((uint) (value)) >> 8);
             }
         }
 
-        private UUID _homeRegionID;
+        private UUID m_homeRegionId;
         /// <summary>
         /// The regionID of the users home region. This is unique;
         /// even if the position of the region changes within the
@@ -172,33 +172,33 @@ namespace OpenSim.Framework
         /// </summary>
         public UUID HomeRegionID
         {
-            get { return _homeRegionID; }
-            set { _homeRegionID = value; }
+            get { return m_homeRegionId; }
+            set { m_homeRegionId = value; }
         }
 
         // Property wrappers
         public UUID ID
         {
-            get { return _id; }
-            set { _id = value; }
+            get { return m_id; }
+            set { m_id = value; }
         }
 
         public UUID WebLoginKey
         {
-            get { return _webLoginKey; }
-            set { _webLoginKey = value; }
+            get { return m_webLoginKey; }
+            set { m_webLoginKey = value; }
         }
 
         public string FirstName
         {
-            get { return _firstname; }
-            set { _firstname = value; }
+            get { return m_firstname; }
+            set { m_firstname = value; }
         }
 
         public string SurName
         {
-            get { return _surname; }
-            set { _surname = value; }
+            get { return m_surname; }
+            set { m_surname = value; }
         }
         
         /// <value>
@@ -206,184 +206,184 @@ namespace OpenSim.Framework
         /// </value>
         public string Name
         {
-            get { return String.Format("{0} {1}", _firstname, _surname); }
+            get { return String.Format("{0} {1}", m_firstname, m_surname); }
         }        
 
         public string Email
         {
-            get { return _email; }
-            set { _email = value; }
+            get { return m_email; }
+            set { m_email = value; }
         }
 
         public string PasswordHash
         {
-            get { return _passwordHash; }
-            set { _passwordHash = value; }
+            get { return m_passwordHash; }
+            set { m_passwordHash = value; }
         }
 
         public string PasswordSalt
         {
-            get { return _passwordSalt; }
-            set { _passwordSalt = value; }
+            get { return m_passwordSalt; }
+            set { m_passwordSalt = value; }
         }
 
         public uint HomeRegionX
         {
-            get { return _homeRegionX; }
-            set { _homeRegionX = value; }
+            get { return m_homeRegionX; }
+            set { m_homeRegionX = value; }
         }
 
         public uint HomeRegionY
         {
-            get { return _homeRegionY; }
-            set { _homeRegionY = value; }
+            get { return m_homeRegionY; }
+            set { m_homeRegionY = value; }
         }
 
         public Vector3 HomeLocation
         {
-            get { return _homeLocation; }
-            set { _homeLocation = value; }
+            get { return m_homeLocation; }
+            set { m_homeLocation = value; }
         }
 
         // for handy serialization
         public float HomeLocationX
         {
-            get { return _homeLocation.X; }
-            set { _homeLocation.X = value; }
+            get { return m_homeLocation.X; }
+            set { m_homeLocation.X = value; }
         }
 
         public float HomeLocationY
         {
-            get { return _homeLocation.Y; }
-            set { _homeLocation.Y = value; }
+            get { return m_homeLocation.Y; }
+            set { m_homeLocation.Y = value; }
         }
 
         public float HomeLocationZ
         {
-            get { return _homeLocation.Z; }
-            set { _homeLocation.Z = value; }
+            get { return m_homeLocation.Z; }
+            set { m_homeLocation.Z = value; }
         }
 
 
         public Vector3 HomeLookAt
         {
-            get { return _homeLookAt; }
-            set { _homeLookAt = value; }
+            get { return m_homeLookAt; }
+            set { m_homeLookAt = value; }
         }
 
         // for handy serialization
         public float HomeLookAtX
         {
-            get { return _homeLookAt.X; }
-            set { _homeLookAt.X = value; }
+            get { return m_homeLookAt.X; }
+            set { m_homeLookAt.X = value; }
         }
 
         public float HomeLookAtY
         {
-            get { return _homeLookAt.Y; }
-            set { _homeLookAt.Y = value; }
+            get { return m_homeLookAt.Y; }
+            set { m_homeLookAt.Y = value; }
         }
 
         public float HomeLookAtZ
         {
-            get { return _homeLookAt.Z; }
-            set { _homeLookAt.Z = value; }
+            get { return m_homeLookAt.Z; }
+            set { m_homeLookAt.Z = value; }
         }
 
         public int Created
         {
-            get { return _created; }
-            set { _created = value; }
+            get { return m_created; }
+            set { m_created = value; }
         }
 
         public int LastLogin
         {
-            get { return _lastLogin; }
-            set { _lastLogin = value; }
+            get { return m_lastLogin; }
+            set { m_lastLogin = value; }
         }
 
         public UUID RootInventoryFolderID
         {
-            get { return _rootInventoryFolderID; }
-            set { _rootInventoryFolderID = value; }
+            get { return m_rootInventoryFolderId; }
+            set { m_rootInventoryFolderId = value; }
         }
 
         public string UserInventoryURI
         {
-            get { return _userInventoryURI; }
-            set { _userInventoryURI = value; }
+            get { return m_userInventoryUri; }
+            set { m_userInventoryUri = value; }
         }
 
         public string UserAssetURI
         {
-            get { return _userAssetURI; }
-            set { _userAssetURI = value; }
+            get { return m_userAssetUri; }
+            set { m_userAssetUri = value; }
         }
 
         public uint CanDoMask
         {
-            get { return _profileCanDoMask; }
-            set { _profileCanDoMask = value; }
+            get { return m_profileCanDoMask; }
+            set { m_profileCanDoMask = value; }
         }
 
         public uint WantDoMask
         {
-            get { return _profileWantDoMask; }
-            set { _profileWantDoMask = value; }
+            get { return m_profileWantDoMask; }
+            set { m_profileWantDoMask = value; }
         }
 
         public string AboutText
         {
-            get { return _profileAboutText; }
-            set { _profileAboutText = value; }
+            get { return m_profileAboutText; }
+            set { m_profileAboutText = value; }
         }
 
         public string FirstLifeAboutText
         {
-            get { return _profileFirstText; }
-            set { _profileFirstText = value; }
+            get { return m_profileFirstText; }
+            set { m_profileFirstText = value; }
         }
 
         public UUID Image
         {
-            get { return _profileImage; }
-            set { _profileImage = value; }
+            get { return m_profileImage; }
+            set { m_profileImage = value; }
         }
 
         public UUID FirstLifeImage
         {
-            get { return _profileFirstImage; }
-            set { _profileFirstImage = value; }
+            get { return m_profileFirstImage; }
+            set { m_profileFirstImage = value; }
         }
 
         public UserAgentData CurrentAgent
         {
-            get { return _currentAgent; }
-            set { _currentAgent = value; }
+            get { return m_currentAgent; }
+            set { m_currentAgent = value; }
         }
 
         public int UserFlags
         {
-            get { return _userFlags; }
-            set { _userFlags = value; }
+            get { return m_userFlags; }
+            set { m_userFlags = value; }
         }
 
         public int GodLevel
         {
-            get { return _godLevel; }
-            set { _godLevel = value; }
+            get { return m_godLevel; }
+            set { m_godLevel = value; }
         }
 
         public string CustomType
         {
-            get { return _customType; }
-            set { _customType = value; }
+            get { return m_customType; }
+            set { m_customType = value; }
         }
 
         public UUID Partner
         {
-            get { return _partner; }
-            set { _partner = value; }
+            get { return m_partner; }
+            set { m_partner = value; }
         }
     }
 }
