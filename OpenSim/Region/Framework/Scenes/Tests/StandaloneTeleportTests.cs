@@ -60,7 +60,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
             UUID sceneAId = UUID.Parse("00000000-0000-0000-0000-000000000100");
             UUID sceneBId = UUID.Parse("00000000-0000-0000-0000-000000000200");
-            CommunicationsManager cm = new TestCommunicationsManager();
+            TestCommunicationsManager cm = new TestCommunicationsManager();
 
             // shared module
             IRegionModule interregionComms = new RESTInterregionComms();

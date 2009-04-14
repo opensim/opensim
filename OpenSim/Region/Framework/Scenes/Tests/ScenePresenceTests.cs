@@ -57,7 +57,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public UUID agent1, agent2, agent3;
         public static Random random;
         public ulong region1,region2,region3;
-        public CommunicationsManager cm;
+        public TestCommunicationsManager cm;
         public AgentCircuitData acd1;
         public SceneObjectGroup sog1, sog2, sog3;
         public TestClient testclient;

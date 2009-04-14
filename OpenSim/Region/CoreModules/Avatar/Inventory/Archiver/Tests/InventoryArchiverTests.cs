@@ -67,7 +67,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
 
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneSetupHelpers.SetupScene(false);
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
             CommunicationsManager cm = scene.CommsManager;
 
@@ -119,6 +119,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             lock (this)
             {
                 archiverModule.ArchiveInventory(userFirstName, userLastName, "Objects", archiveWriteStream);
+                AssetServerBase assetServer = (AssetServerBase)scene.CommsManager.AssetCache.AssetServer;
+                while (assetServer.HasWaitingRequests())
+                    assetServer.ProcessNextRequest();
+                
                 Monitor.Wait(this, 60000);
             }
 

@@ -34,6 +34,7 @@ using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Serialization;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.World.Terrain;
@@ -67,7 +68,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             SerialiserModule serialiserModule = new SerialiserModule();
             TerrainModule terrainModule = new TerrainModule();
 
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneSetupHelpers.SetupScene(false);
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
 
             SceneObjectPart part1;
@@ -114,6 +115,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             lock (this)
             {
                 archiverModule.ArchiveRegion(archiveWriteStream);
+                AssetServerBase assetServer = (AssetServerBase)scene.CommsManager.AssetCache.AssetServer;
+                while (assetServer.HasWaitingRequests())
+                    assetServer.ProcessNextRequest();     
+                
                 Monitor.Wait(this, 60000);
             }
 

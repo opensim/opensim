@@ -52,10 +52,39 @@ namespace OpenSim.Tests.Common.Setup
         /// <summary>
         /// Set up a test scene
         /// </summary>
+        /// 
+        /// Automatically starts service threads, as would the normal runtime.
+        /// 
         /// <returns></returns>
         public static TestScene SetupScene()
         {
-            return SetupScene("Unit test region", UUID.Random(), 1000, 1000, new TestCommunicationsManager());
+            return SetupScene(true);
+        }
+        
+        /// <summary>
+        /// Set up a test scene
+        /// </summary>
+        /// 
+        /// <param name="startServices">Start associated service threads for the scene</param>
+        /// <returns></returns>
+        public static TestScene SetupScene(bool startServices)
+        {
+            return SetupScene(
+                "Unit test region", UUID.Random(), 1000, 1000, new TestCommunicationsManager(), startServices);
+        }
+        
+        /// <summary>
+        /// Set up a test scene
+        /// </summary>
+        /// <param name="name">Name of the region</param>
+        /// <param name="id">ID of the region</param>
+        /// <param name="x">X co-ordinate of the region</param>
+        /// <param name="y">Y co-ordinate of the region</param>
+        /// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
+        /// <returns></returns>
+        public static TestScene SetupScene(string name, UUID id, uint x, uint y, TestCommunicationsManager cm)
+        {
+            return SetupScene(name, id, x, y, cm, true);
         }
 
         /// <summary>
@@ -66,8 +95,10 @@ namespace OpenSim.Tests.Common.Setup
         /// <param name="x">X co-ordinate of the region</param>
         /// <param name="y">Y co-ordinate of the region</param>
         /// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
+        /// <param name="startServices">Start associated threads for the services used by the scene</param>
         /// <returns></returns>
-        public static TestScene SetupScene(string name, UUID id, uint x, uint y, CommunicationsManager cm)
+        public static TestScene SetupScene(
+            string name, UUID id, uint x, uint y, TestCommunicationsManager cm, bool startServices)
         {
             Console.WriteLine("Setting up test scene {0}", name);
             
@@ -102,6 +133,9 @@ namespace OpenSim.Tests.Common.Setup
             testScene.PhysicsScene
                 = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", configSource, "test");
 
+            if (startServices)
+                cm.StartServices();
+            
             return testScene;
         }
 
