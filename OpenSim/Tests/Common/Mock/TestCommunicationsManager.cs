@@ -61,6 +61,7 @@ namespace OpenSim.Tests.Common.Mock
 
             SQLAssetServer assetService = new SQLAssetServer(new TestAssetDataPlugin());  
             m_assetCache = new AssetCache(assetService);
+            m_assetCache.AssetServer.Start();
             
             LocalInventoryService lis = new LocalInventoryService();
             lis.AddPlugin(m_inventoryDataPlugin);

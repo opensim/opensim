@@ -37,11 +37,21 @@ namespace OpenSim.Framework
         void Initialise(ConfigSettings settings);
         void Initialise(ConfigSettings settings, string url, string dir, bool test);
         void Initialise(ConfigSettings settings, string url);
+        
+        /// <summary>
+        /// Start the asset server
+        /// </summary>
+        void Start();
+        
+        /// <summary>
+        /// Stop the asset server
+        /// </summary>
+        void Stop();
+        
         void SetReceiver(IAssetReceiver receiver);
         void RequestAsset(UUID assetID, bool isTexture);
         void StoreAsset(AssetBase asset);
         void UpdateAsset(AssetBase asset);
-        void Close();
     }
 
     /// <summary>

@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Communications.Cache
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IAssetReceiver m_receiver;
-        protected BlockingQueue<AssetRequest> m_assetRequests;
+        protected BlockingQueue<AssetRequest> m_assetRequests = new BlockingQueue<AssetRequest>();
         protected Thread m_localAssetServerThread;
         protected IAssetDataPlugin m_assetProvider;
 
@@ -109,6 +109,22 @@ namespace OpenSim.Framework.Communications.Cache
         // Temporarily hardcoded - should be a plugin
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();
 
+        public virtual void Start()
+        {
+            m_log.Debug("[ASSET SERVER]: Starting asset server");
+
+            m_localAssetServerThread = new Thread(RunRequests);
+            m_localAssetServerThread.Name = "LocalAssetServerThread";
+            m_localAssetServerThread.IsBackground = true;
+            m_localAssetServerThread.Start();
+            ThreadTracker.Add(m_localAssetServerThread);            
+        }
+        
+        public virtual void Stop()
+        {
+            m_localAssetServerThread.Abort();
+        }        
+        
         public abstract void StoreAsset(AssetBase asset);
 
         /// <summary>
@@ -121,8 +137,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// Thrown if the request failed for some other reason than that the
         /// asset cannot be found.
         /// </exception>
-        protected abstract AssetBase GetAsset(AssetRequest req);
-
+        protected abstract AssetBase GetAsset(AssetRequest req);        
+                
         /// <summary>
         /// Process an asset request.  This method will call GetAsset(AssetRequest req)
         /// on the subclass.
@@ -169,18 +185,6 @@ namespace OpenSim.Framework.Communications.Cache
             assetLoader.ForEachDefaultXmlAsset(pAssetSetsXml, StoreAsset);
         }
 
-        public AssetServerBase()
-        {
-            m_log.Info("[ASSET SERVER]: Starting asset storage system");
-            m_assetRequests = new BlockingQueue<AssetRequest>();
-
-            m_localAssetServerThread = new Thread(RunRequests);
-            m_localAssetServerThread.Name = "LocalAssetServerThread";
-            m_localAssetServerThread.IsBackground = true;
-            m_localAssetServerThread.Start();
-            ThreadTracker.Add(m_localAssetServerThread);
-        }
-
         private void RunRequests()
         {
             while (true) // Since it's a 'blocking queue'
@@ -220,11 +224,6 @@ namespace OpenSim.Framework.Communications.Cache
         public virtual void UpdateAsset(AssetBase asset)
         {
             m_assetProvider.UpdateAsset(asset);
-        }
-
-        public virtual void Close()
-        {
-            m_localAssetServerThread.Abort();
         }
 
         public void SetServerInfo(string ServerUrl, string ServerKey)

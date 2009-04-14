@@ -554,11 +554,6 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        public override void Close()
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
         #endregion
     }
 }

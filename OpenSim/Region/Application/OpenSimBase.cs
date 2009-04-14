@@ -381,6 +381,8 @@ namespace OpenSim
             // Initialize the asset cache, passing a reference to the selected
             // asset server interface.
             m_assetCache = ResolveAssetCache(assetServer);
+            
+            assetServer.Start();
         }
 
         // This method loads the identified asset server, passing an approrpiately

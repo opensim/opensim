@@ -100,11 +100,6 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        public override void Close()
-        {
-            base.Close();
-        }
-
         protected override AssetBase GetAsset(AssetRequest req)
         {
             return m_assetProvider.FetchAsset(req.AssetID);

@@ -62,7 +62,9 @@ namespace OpenSim.Framework.Communications.Tests
             TestAssetDataPlugin assetPlugin = new TestAssetDataPlugin();
             assetPlugin.CreateAsset(asset);
             
-            IAssetCache assetCache = new AssetCache(new SQLAssetServer(assetPlugin));
+            IAssetServer assetServer = new SQLAssetServer(assetPlugin);
+            IAssetCache assetCache = new AssetCache(assetServer);
+            assetServer.Start();
                         
             lock (this)
             {
