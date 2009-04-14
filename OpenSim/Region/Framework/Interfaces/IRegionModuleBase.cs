@@ -71,6 +71,19 @@ namespace OpenSim.Region.Framework.Interfaces
         /// A <see cref="Scene"/>
         /// </param>
         void RemoveRegion(Scene scene);
+
+        /// <summary>
+        /// This will be called once for every scene loaded. In a shared module
+        /// this will be multiple times in one instance, while a nonshared
+        /// module instance will only be called once.
+        /// This method is called after AddRegion has been called in all
+        /// modules for that scene, providing an opportunity to request 
+        /// another module's interface, or hook an event from another module.
+        /// </summary>
+        /// <param name="scene">
+        /// A <see cref="Scene"/>
+        /// </param>
+        void RegionLoaded(Scene scene);
     }
 
 }

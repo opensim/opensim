@@ -136,6 +136,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             LoadPlugins();
         }
 
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
         public void RemoveRegion(Scene scene)
         {
             lock (m_scene)
