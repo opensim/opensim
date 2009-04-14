@@ -49,6 +49,26 @@ namespace OpenSim.Framework.Communications.Cache
     /// AssetNotFound(), which means they do share the same asset and texture caches.
     public class AssetCache : IAssetCache
     {
+        private static readonly ILog m_log
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        protected ICache m_memcache = new SimpleMemoryCache();
+
+        /// <value>
+        /// Assets requests which are waiting for asset server data.  This includes texture requests
+        /// </value>
+        private Dictionary<UUID, AssetRequest> RequestedAssets;
+
+        /// <value>
+        /// Asset requests with data which are ready to be sent back to requesters.  This includes textures.
+        /// </value>
+        private List<AssetRequest> AssetRequests;
+
+        /// <value>
+        /// Until the asset request is fulfilled, each asset request is associated with a list of requesters
+        /// </value>
+        private Dictionary<UUID, AssetRequestsList> RequestLists;   
+        
         #region IPlugin
 
         /// <summary>
@@ -77,7 +97,7 @@ namespace OpenSim.Framework.Communications.Cache
             m_log.Debug("[ASSET CACHE]: Asset cache server-specified initialisation");
             m_log.InfoFormat("[ASSET CACHE]: Asset cache initialisation [{0}/{1}]", Name, Version);
 
-            Initialize();
+            Reset();
 
             m_assetServer = assetServer;
             m_assetServer.SetReceiver(this);
@@ -95,42 +115,31 @@ namespace OpenSim.Framework.Communications.Cache
             Initialise(assetServer);
         }
 
-        public AssetCache()
-        {
-            m_log.Debug("[ASSET CACHE]: Asset cache (plugin constructor)");
-        }
-
         public void Dispose()
         {
         }
 
-        #endregion
-
-        protected ICache m_memcache = new SimpleMemoryCache();
-
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        /// <value>
-        /// Assets requests which are waiting for asset server data.  This includes texture requests
-        /// </value>
-        private Dictionary<UUID, AssetRequest> RequestedAssets;
-
-        /// <value>
-        /// Asset requests with data which are ready to be sent back to requesters.  This includes textures.
-        /// </value>
-        private List<AssetRequest> AssetRequests;
-
-        /// <value>
-        /// Until the asset request is fulfilled, each asset request is associated with a list of requesters
-        /// </value>
-        private Dictionary<UUID, AssetRequestsList> RequestLists;        
+        #endregion     
 
         public IAssetServer AssetServer
         {
             get { return m_assetServer; }
         }
-        private IAssetServer m_assetServer;        
+        private IAssetServer m_assetServer;
+        
+        public AssetCache()
+        {
+            m_log.Debug("[ASSET CACHE]: Asset cache (plugin constructor)");
+        }        
+        
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="assetServer"></param>
+        public AssetCache(IAssetServer assetServer)
+        {
+            Initialise(assetServer);
+        }        
 
         public void ShowState()
         {
@@ -148,28 +157,17 @@ namespace OpenSim.Framework.Communications.Cache
             if (StatsManager.SimExtraStats != null)
                 StatsManager.SimExtraStats.ClearAssetCacheStatistics();
 
-            Initialize();
+            Reset();
         }
 
         /// <summary>
-        /// Initialize the cache.
+        /// Reset the cache.
         /// </summary>
-        private void Initialize()
+        private void Reset()
         {
             AssetRequests = new List<AssetRequest>();
-
             RequestedAssets = new Dictionary<UUID, AssetRequest>();
             RequestLists = new Dictionary<UUID, AssetRequestsList>();
-        }
-
-        /// <summary>
-        /// Constructor.  Initialize will need to be called separately.
-        /// </summary>
-        /// <param name="assetServer"></param>
-        public AssetCache(IAssetServer assetServer)
-        {
-            m_log.Info("[ASSET CACHE]: Asset cache direct constructor");
-            Initialise(assetServer);
         }
 
         /// <summary>
@@ -550,7 +548,6 @@ namespace OpenSim.Framework.Communications.Cache
                 req2.RequestAssetID = req.RequestAssetID;
                 req2.TransferRequestID = req.TransferRequestID;
                 req.RequestUser.SendAsset(req2);
-
             }
         }
 

@@ -365,7 +365,7 @@ namespace OpenSim
                     catch
                     {
                     }
-                    m_log.Info("[OPENSIMBASE] Default assetserver will be used");
+                    m_log.Info("[OPENSIMBASE]: Default assetserver will be used");                
                     break;
             }
 
@@ -428,6 +428,7 @@ namespace OpenSim
             if (m_configSettings.AssetCache != null && m_configSettings.AssetCache != String.Empty)
             {
                 m_log.DebugFormat("[OPENSIMBASE]: Attempting to load asset cache id = {0}", m_configSettings.AssetCache);
+                
                 try
                 {
                     PluginInitialiserBase init = new AssetCachePluginInitialiser(m_configSettings, assetServer);
@@ -440,8 +441,8 @@ namespace OpenSim
                 }
                 catch (Exception e)
                 {
-                    m_log.Debug("[OPENSIMBASE]: ResolveAssetCache completed");
-                    m_log.Debug(e);
+                    m_log.Error("[OPENSIMBASE]: ResolveAssetCache failed");
+                    m_log.Error(e);
                 }
             }
 
@@ -453,12 +454,12 @@ namespace OpenSim
         {
             if (LoginEnabled)
             {
-                m_log.Info("[Login]: Login is now enabled ");
+                m_log.Info("[LOGIN]: Login is now enabled.");
                 m_commsManager.GridService.RegionLoginsEnabled = true;
             }
             else
             {
-                m_log.Info("[Login]: Login is now disabled ");
+                m_log.Info("[LOGIN]: Login is now disabled.");
                 m_commsManager.GridService.RegionLoginsEnabled = false;
             }
         }
