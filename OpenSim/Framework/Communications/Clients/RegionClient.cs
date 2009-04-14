@@ -43,7 +43,7 @@ namespace OpenSim.Framework.Communications.Clients
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public bool DoCreateChildAgentCall(RegionInfo region, AgentCircuitData aCircuit)
+        public bool DoCreateChildAgentCall(RegionInfo region, AgentCircuitData aCircuit, string authKey)
         {
             // Eventually, we want to use a caps url instead of the agentID
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + aCircuit.AgentID + "/";
@@ -54,6 +54,7 @@ namespace OpenSim.Framework.Communications.Clients
             AgentCreateRequest.ContentType = "application/json";
             AgentCreateRequest.Timeout = 10000;
             //AgentCreateRequest.KeepAlive = false;
+            AgentCreateRequest.Headers.Add("Authorization", authKey);
 
             // Fill it in
             OSDMap args = null;
@@ -80,7 +81,7 @@ namespace OpenSim.Framework.Communications.Clients
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[OSG2]: Exception thrown on serialization of ChildCreate: {0}", e.Message);
+                m_log.WarnFormat("[REST COMMS]: Exception thrown on serialization of ChildCreate: {0}", e.Message);
                 // ignore. buffer will be empty, caller should check.
             }
 
@@ -91,7 +92,7 @@ namespace OpenSim.Framework.Communications.Clients
                 os = AgentCreateRequest.GetRequestStream();
                 os.Write(buffer, 0, strBuffer.Length);         //Send it
                 os.Close();
-                //m_log.InfoFormat("[REST COMMS]: Posted ChildAgentUpdate request to remote sim {0}", uri);
+                //m_log.InfoFormat("[REST COMMS]: Posted CreateChildAgent request to remote sim {0}", uri);
             }
             //catch (WebException ex)
             catch

@@ -62,7 +62,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         {
             _inventoryServerUrl = HGNetworkServersInfo.ServerURI(inventoryServerUrl);
             //m_Uri = new Uri(_inventoryServerUrl);
-            m_userProfileCache = userProfileCacheService;
+            //m_userProfileCache = userProfileCacheService;
             m_gridmode = gridmode;
         }
 
@@ -506,6 +506,9 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         private bool IsLocalStandaloneUser(UUID userID)
         {
+            if (m_userProfileCache == null)
+                return false;
+
             CachedUserInfo uinfo = m_userProfileCache.GetUserDetails(userID);
             if (uinfo == null)
                 return true;
@@ -522,6 +525,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         private string GetUserInventoryURI(UUID userID)
         {
             string invURI = _inventoryServerUrl;
+
             CachedUserInfo uinfo = m_userProfileCache.GetUserDetails(userID);
             if ((uinfo == null) || (uinfo.UserProfile == null))
                 return invURI;

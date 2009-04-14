@@ -119,5 +119,9 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
         List<FriendListItem> GetUserFriendList(UUID friendlistowner);
+
+        // This probably shouldn't be here, it belongs to IAuthentication
+        // But since Scenes only have IUserService references, I'm placing it here for now.
+        bool VerifySession(UUID userID, UUID sessionID);
     }
 }

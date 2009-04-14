@@ -59,6 +59,9 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected RegionToRegionClient m_regionClient;
 
+        protected bool m_safemode;
+        protected IPAddress m_thisIP;
+
         #region IRegionModule
 
         public virtual void Initialise(Scene scene, IConfigSource config)
@@ -74,6 +77,9 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 {
                     m_log.Info("[REST COMMS]: Enabling InterregionComms RESTComms module");
                     m_enabled = true;
+                    if (config.Configs["Hypergrid"] != null)
+                        m_safemode = config.Configs["Hypergrid"].GetBoolean("safemode", false);
+
                     InitOnce(scene);
                 }
             }
@@ -117,6 +123,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             m_commsManager = scene.CommsManager;
             m_aScene = scene;
             m_regionClient = new RegionToRegionClient(m_aScene);
+            m_thisIP = Util.GetHostFromDNS(scene.RegionInfo.ExternalHostName);
         }
 
         protected virtual void AddHTTPHandlers()
@@ -148,7 +155,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 {
                     m_regionClient.SendUserInformation(regInfo, aCircuit);
 
-                    return m_regionClient.DoCreateChildAgentCall(regInfo, aCircuit);
+                    return m_regionClient.DoCreateChildAgentCall(regInfo, aCircuit, "None");
                 }
                 //else
                 //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
@@ -331,6 +338,7 @@ namespace OpenSim.Region.CoreModules.Communications.REST
             responsedata["content_type"] = "text/html";
             responsedata["keepalive"] = false;
 
+
             UUID agentID;
             string action;
             ulong regionHandle;
@@ -378,6 +386,28 @@ namespace OpenSim.Region.CoreModules.Communications.REST
 
         protected virtual void DoAgentPost(Hashtable request, Hashtable responsedata, UUID id)
         {
+            if (m_safemode)
+            {
+                // Authentication
+                string authority = string.Empty;
+                string authToken = string.Empty;
+                if (!GetAuthentication(request, out authority, out authToken))
+                {
+                    m_log.InfoFormat("[REST COMMS]: Authentication failed for agent message {0}", request["uri"]);
+                    responsedata["int_response_code"] = 403;
+                    responsedata["str_response_string"] = "Forbidden";
+                    return ;
+                }
+                if (!VerifyKey(id, authority, authToken))
+                {
+                    m_log.InfoFormat("[REST COMMS]: Authentication failed for agent message {0}", request["uri"]);
+                    responsedata["int_response_code"] = 403;
+                    responsedata["str_response_string"] = "Forbidden";
+                    return ;
+                }
+                m_log.DebugFormat("[REST COMMS]: Authentication succeeded for {0}", id);
+            }
+
             OSDMap args = RegionClient.GetOSDMap((string)request["body"]);
             if (args == null)
             {
@@ -792,6 +822,53 @@ namespace OpenSim.Region.CoreModules.Communications.REST
                 return true;
             }
         }
+
+        public static bool GetAuthentication(Hashtable request, out string authority, out string authKey)
+        {
+            authority = string.Empty;
+            authKey = string.Empty;
+
+            Uri authUri;
+            Hashtable headers = (Hashtable)request["headers"];
+
+            // Authorization keys look like this:
+            // http://orgrid.org:8002/<uuid>
+            if (headers.ContainsKey("authorization") && (string)headers["authorization"] != "None")
+            {
+                if (Uri.TryCreate((string)headers["authorization"], UriKind.Absolute, out authUri))
+                {
+                    authority = authUri.Authority;
+                    authKey = authUri.PathAndQuery.Trim('/');
+                    m_log.DebugFormat("[REST COMMS]: Got authority {0} and key {1}", authority, authKey);
+                    return true;
+                }
+                else
+                    m_log.Debug("[REST COMMS]: Wrong format for Authorization header: " + (string)headers["authorization"]);
+            }
+            else
+                m_log.Debug("[REST COMMS]: Authorization header not found");
+
+            return false;
+        }
+
+        bool VerifyKey(UUID userID, string authority, string key)
+        {
+            string[] parts = authority.Split(':');
+            IPAddress ipaddr = IPAddress.None;
+            uint port = 0;
+            if (parts.Length <= 2)
+                ipaddr = Util.GetHostFromDNS(parts[0]);
+            if (parts.Length == 2)
+                UInt32.TryParse(parts[1], out port);
+
+            // local authority (standalone), local call
+            if (m_thisIP.Equals(ipaddr) && (m_aScene.RegionInfo.HttpPort == port))
+                return ((IAuthentication)m_aScene.CommsManager.UserAdminService).VerifyKey(userID, key);
+            // remote call
+            else
+                return AuthClient.VerifyKey("http://" + authority, userID, key);
+        }
+
 
         #endregion Misc 
 

@@ -93,7 +93,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
                 m_inventoryService = new HGInventoryService(m_inventoryBase,
                     ((AssetServerBase)m_scene.CommsManager.AssetCache.AssetServer).AssetProviderPlugin,
-                    (UserManagerBase)m_scene.CommsManager.UserService, m_scene.CommsManager.HttpServer, 
+                    (UserManagerBase)m_scene.CommsManager.UserAdminService, m_scene.CommsManager.HttpServer, 
                     m_scene.CommsManager.NetworkServersInfo.InventoryURL);
 
                 AddHttpHandlers(m_scene.CommsManager.HttpServer);

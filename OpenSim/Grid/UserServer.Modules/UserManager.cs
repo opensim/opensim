@@ -109,7 +109,6 @@ namespace OpenSim.Grid.UserServer.Modules
             m_httpServer.AddXmlRPCHandler("update_user_current_region", XmlRPCAtRegion);
             m_httpServer.AddXmlRPCHandler("logout_of_simulator", XmlRPCLogOffUserMethodUUID);
             m_httpServer.AddXmlRPCHandler("get_agent_by_uuid", XmlRPCGetAgentMethodUUID);
-            m_httpServer.AddXmlRPCHandler("check_auth_session", XmlRPCCheckAuthSession);
 
             m_httpServer.AddXmlRPCHandler("update_user_profile", XmlRpcResponseXmlRPCUpdateUserProfile);
 
@@ -131,21 +130,6 @@ namespace OpenSim.Grid.UserServer.Modules
             // TODO! Important!
 
             return "OK";
-        }
-
-        /// <summary>
-        /// Returns an error message that the user could not be found in the database
-        /// </summary>
-        /// <returns>XML string consisting of a error element containing individual error(s)</returns>
-        public XmlRpcResponse CreateUnknownUserErrorResponse()
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable responseData = new Hashtable();
-            responseData["error_type"] = "unknown_user";
-            responseData["error_desc"] = "The user requested is not in the database";
-
-            response.Value = responseData;
-            return response;
         }
 
         public XmlRpcResponse AvatarPickerListtoXmlRPCResponse(UUID queryID, List<AvatarPickerAvatar> returnUsers)
@@ -278,7 +262,7 @@ namespace OpenSim.Grid.UserServer.Modules
                 string query = (string)requestData["avatar_name"];
 
                 if (null == query)
-                    return CreateUnknownUserErrorResponse();
+                    return Util.CreateUnknownUserErrorResponse();
 
                 // Regex objAlphaNumericPattern = new Regex("[^a-zA-Z0-9]");
 
@@ -289,17 +273,17 @@ namespace OpenSim.Grid.UserServer.Modules
                     userProfile = m_userDataBaseService.GetUserProfile(querysplit[0], querysplit[1]);
                     if (userProfile == null)
                     {
-                        return CreateUnknownUserErrorResponse();
+                        return Util.CreateUnknownUserErrorResponse();
                     }
                 }
                 else
                 {
-                    return CreateUnknownUserErrorResponse();
+                    return Util.CreateUnknownUserErrorResponse();
                 }
             }
             else
             {
-                return CreateUnknownUserErrorResponse();
+                return Util.CreateUnknownUserErrorResponse();
             }
 
             return ProfileToXmlRPCResponse(userProfile);
@@ -322,17 +306,17 @@ namespace OpenSim.Grid.UserServer.Modules
                 }
                 catch (FormatException)
                 {
-                    return CreateUnknownUserErrorResponse();
+                    return Util.CreateUnknownUserErrorResponse();
                 }
 
                 if (userProfile == null)
                 {
-                    return CreateUnknownUserErrorResponse();
+                    return Util.CreateUnknownUserErrorResponse();
                 }
             }
             else
             {
-                return CreateUnknownUserErrorResponse();
+                return Util.CreateUnknownUserErrorResponse();
             }
 
             return ProfileToXmlRPCResponse(userProfile);
@@ -353,20 +337,20 @@ namespace OpenSim.Grid.UserServer.Modules
 
                 if (guess == UUID.Zero)
                 {
-                    return CreateUnknownUserErrorResponse();
+                    return Util.CreateUnknownUserErrorResponse();
                 }
 
                 userProfile = m_userDataBaseService.GetUserProfile(guess);
 
                 if (userProfile == null)
                 {
-                    return CreateUnknownUserErrorResponse();
+                    return Util.CreateUnknownUserErrorResponse();
                 }
 
                 // no agent???
                 if (userProfile.CurrentAgent == null)
                 {
-                    return CreateUnknownUserErrorResponse();
+                    return Util.CreateUnknownUserErrorResponse();
                 }
                 Hashtable responseData = new Hashtable();
 
@@ -381,50 +365,9 @@ namespace OpenSim.Grid.UserServer.Modules
             }
             else
             {
-                return CreateUnknownUserErrorResponse();
+                return Util.CreateUnknownUserErrorResponse();
             }
 
-            return response;
-        }
-
-        public XmlRpcResponse XmlRPCCheckAuthSession(XmlRpcRequest request)
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
-            UserProfileData userProfile;
-
-            string authed = "FALSE";
-            if (requestData.Contains("avatar_uuid") && requestData.Contains("session_id"))
-            {
-                UUID guess_aid;
-                UUID guess_sid;
-
-                UUID.TryParse((string)requestData["avatar_uuid"], out guess_aid);
-                if (guess_aid == UUID.Zero)
-                {
-                    return CreateUnknownUserErrorResponse();
-                }
-                UUID.TryParse((string)requestData["session_id"], out guess_sid);
-                if (guess_sid == UUID.Zero)
-                {
-                    return CreateUnknownUserErrorResponse();
-                }
-                userProfile = m_userDataBaseService.GetUserProfile(guess_aid);
-                if (userProfile != null && userProfile.CurrentAgent != null &&
-                    userProfile.CurrentAgent.SessionID == guess_sid)
-                {
-                    authed = "TRUE";
-                }
-                m_log.InfoFormat("[UserManager]: CheckAuthSession TRUE for user {0}", guess_aid);
-            }
-            else
-            {
-                m_log.InfoFormat("[UserManager]: CheckAuthSession FALSE");
-                return CreateUnknownUserErrorResponse();
-            }
-            Hashtable responseData = new Hashtable();
-            responseData["auth_session"] = authed;
-            response.Value = responseData;
             return response;
         }
 
@@ -437,14 +380,14 @@ namespace OpenSim.Grid.UserServer.Modules
 
             if (!requestData.Contains("avatar_uuid"))
             {
-                return CreateUnknownUserErrorResponse();
+                return Util.CreateUnknownUserErrorResponse();
             }
 
             UUID UserUUID = new UUID((string)requestData["avatar_uuid"]);
             UserProfileData userProfile = m_userDataBaseService.GetUserProfile(UserUUID);
             if (null == userProfile)
             {
-                return CreateUnknownUserErrorResponse();
+                return Util.CreateUnknownUserErrorResponse();
             }
             // don't know how yet.
             if (requestData.Contains("AllowPublish"))
@@ -656,7 +599,7 @@ namespace OpenSim.Grid.UserServer.Modules
             }
             else
             {
-                return CreateUnknownUserErrorResponse();
+                return Util.CreateUnknownUserErrorResponse();
             }
 
             return response;

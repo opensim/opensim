@@ -178,6 +178,11 @@ namespace OpenSim.Framework.Communications.Tests
             {
                 throw new NotImplementedException();
             }
+
+            public bool VerifySession(UUID userID, UUID sessionID)
+            {
+                return true;
+            }
         }
 
         [Test]

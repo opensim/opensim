@@ -31,7 +31,10 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Communications.Clients;
 using OpenSim.Region.Communications.OGS1;
+using OpenSim.Region.Communications.Local;
 
 namespace OpenSim.Region.Communications.Hypergrid
 {
@@ -40,32 +43,30 @@ namespace OpenSim.Region.Communications.Hypergrid
     /// so it always fails for foreign users.
     /// Later it needs to talk with the foreign users' user servers.
     /// </summary>
-    public class HGUserServices : IUserService, IAvatarService, IMessagingService
+    public class HGUserServices : OGS1UserServices
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        //private HGCommunicationsGridMode m_parent;
-        private OGS1UserServices m_remoteUserServices;
+        //private CommunicationsManager m_parent;
+        //private OGS1UserServices m_remoteUserServices;
+        private LocalUserServices m_localUserServices;
 
-        public HGUserServices(HGCommunicationsGridMode parent)
+        // Constructor called when running in grid mode
+        public HGUserServices(CommunicationsManager parent)
+            : base(parent)
         {
-            //m_parent = parent;
-            m_remoteUserServices = new OGS1UserServices(parent);
         }
 
-        public UserProfileData ConvertXMLRPCDataToUserProfile(Hashtable data)
+        // Constructor called when running in standalone
+        public HGUserServices(LocalUserServices local)
         {
-            return m_remoteUserServices.ConvertXMLRPCDataToUserProfile(data);
+            m_localUserServices = local;
         }
 
-        public UserProfileData GetUserProfile(Uri uri)
+        // Called for standalone mode only, to set up the communications manager
+        public void SetCommunicationsManager(CommunicationsManager parent)
         {
-            throw new System.NotImplementedException();
-        }
-
-        public Uri GetUserUri(UserProfileData userProfile)
-        {
-            throw new NotImplementedException();
+            m_commsManager = parent;
         }
 
         /// <summary>
@@ -73,25 +74,15 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns>null if the request fails</returns>
-        public UserAgentData GetAgentByUUID(UUID userId)
+        public override UserAgentData GetAgentByUUID(UUID userId)
         {
-            return m_remoteUserServices.GetAgentByUUID(userId);
+            string url = string.Empty;
+            if ((m_localUserServices != null) && !IsForeignUser(userId, out url))
+                return m_localUserServices.GetAgentByUUID(userId);
+
+            return base.GetAgentByUUID(userId);
         }
 
-        public AvatarAppearance ConvertXMLRPCDataToAvatarAppearance(Hashtable data)
-        {
-            return m_remoteUserServices.ConvertXMLRPCDataToAvatarAppearance(data);
-        }
-
-        public List<AvatarPickerAvatar> ConvertXMLRPCDataToAvatarPickerList(UUID queryID, Hashtable data)
-        {
-            return m_remoteUserServices.ConvertXMLRPCDataToAvatarPickerList(queryID, data);
-        }
-
-        public List<FriendListItem> ConvertXMLRPCDataToFriendListItemList(Hashtable data)
-        {
-            return m_remoteUserServices.ConvertXMLRPCDataToFriendListItemList(data);
-        }
 
         /// <summary>
         /// Logs off a user on the user server
@@ -101,9 +92,13 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// <param name="regionhandle">regionhandle</param>
         /// <param name="position">final position</param>
         /// <param name="lookat">final lookat</param>
-        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
+        public override void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
         {
-            m_remoteUserServices.LogOffUser(userid, regionid, regionhandle, position, lookat);
+            string url = string.Empty;
+            if ((m_localUserServices != null) && !IsForeignUser(userid, out url))
+                m_localUserServices.LogOffUser(userid, regionid, regionhandle, position, lookat);
+            else
+                base.LogOffUser(userid, regionid, regionhandle, position, lookat);
         }
 
         /// <summary>
@@ -115,19 +110,29 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// <param name="posx">final position x</param>
         /// <param name="posy">final position y</param>
         /// <param name="posz">final position z</param>
-        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        public override void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
-            m_remoteUserServices.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
+            string url = string.Empty;
+            if ((m_localUserServices != null) && !IsForeignUser(userid, out url))
+                m_localUserServices.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
+            else
+                base.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
         }
 
-        public UserProfileData GetUserProfile(string firstName, string lastName)
+        public override UserProfileData GetUserProfile(string firstName, string lastName)
         {
+            if (m_localUserServices != null)
+                return m_localUserServices.GetUserProfile(firstName, lastName);
+
             return GetUserProfile(firstName + " " + lastName);
         }
 
-        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
+        public override List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {
-            return m_remoteUserServices.GenerateAgentPickerRequestResponse(queryID, query);
+            if (m_localUserServices != null)
+                return m_localUserServices.GenerateAgentPickerRequestResponse(queryID, query);
+
+            return base.GenerateAgentPickerRequestResponse(queryID, query);
         }
 
         /// <summary>
@@ -135,9 +140,11 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns>null if the request fails</returns>
-        public UserProfileData GetUserProfile(string name)
+        public override UserProfileData GetUserProfile(string name)
         {
-            return m_remoteUserServices.GetUserProfile(name);
+            // This doesn't exist in LocalUserServices
+
+            return base.GetUserProfile(name);
         }
 
         /// <summary>
@@ -145,34 +152,24 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns>null if the request fails</returns>
-        public UserProfileData GetUserProfile(UUID avatarID)
+        public override UserProfileData GetUserProfile(UUID avatarID)
         {
-            return m_remoteUserServices.GetUserProfile(avatarID);
+            string url = string.Empty;
+            // Unfortunately we can't query for foreigners here,
+            // because we'll end up in an infinite loop...
+            //if ((m_localUserServices != null) && (!IsForeignUser(avatarID, out url)))
+            if (m_localUserServices != null)
+                return m_localUserServices.GetUserProfile(avatarID);
+
+            return base.GetUserProfile(avatarID);
         }
 
-        public void ClearUserAgent(UUID avatarID)
+        public override void ClearUserAgent(UUID avatarID)
         {
-            m_remoteUserServices.ClearUserAgent(avatarID);
-        }
-
-        /// <summary>
-        /// Retrieve the user information for the given master uuid.
-        /// </summary>
-        /// <param name="uuid"></param>
-        /// <returns></returns>
-        public UserProfileData SetupMasterUser(string firstName, string lastName)
-        {
-            return m_remoteUserServices.SetupMasterUser(firstName, lastName);
-        }
-
-        /// <summary>
-        /// Retrieve the user information for the given master uuid.
-        /// </summary>
-        /// <param name="uuid"></param>
-        /// <returns></returns>
-        public UserProfileData SetupMasterUser(string firstName, string lastName, string password)
-        {
-            return m_remoteUserServices.SetupMasterUser(firstName, lastName, password);
+            if (m_localUserServices != null)
+                m_localUserServices.ClearUserAgent(avatarID);
+            else
+                base.ClearUserAgent(avatarID);
         }
 
         /// <summary>
@@ -180,36 +177,73 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns></returns>
-        public UserProfileData SetupMasterUser(UUID uuid)
+        public override UserProfileData SetupMasterUser(string firstName, string lastName)
         {
-            return m_remoteUserServices.SetupMasterUser(uuid);
+            if (m_localUserServices != null)
+                return m_localUserServices.SetupMasterUser(firstName, lastName);
+
+            return base.SetupMasterUser(firstName, lastName);
         }
 
-        public UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
+        /// <summary>
+        /// Retrieve the user information for the given master uuid.
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>
+        public override UserProfileData SetupMasterUser(string firstName, string lastName, string password)
         {
-            return m_remoteUserServices.AddUserProfile(firstName, lastName, pass, regX, regY);
-        }
-        
-        public bool ResetUserPassword(string firstName, string lastName, string newPassword)
-        {
-            return m_remoteUserServices.ResetUserPassword(firstName, lastName, newPassword);
-        }        
+            if (m_localUserServices != null)
+                return m_localUserServices.SetupMasterUser(firstName, lastName, password);
 
-        public bool UpdateUserProfile(UserProfileData userProfile)
+            return base.SetupMasterUser(firstName, lastName, password);
+        }
+
+        /// <summary>
+        /// Retrieve the user information for the given master uuid.
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>
+        public override UserProfileData SetupMasterUser(UUID uuid)
         {
-            return m_remoteUserServices.UpdateUserProfile(userProfile);
+            if (m_localUserServices != null)
+                return m_localUserServices.SetupMasterUser(uuid);
+
+            return base.SetupMasterUser(uuid);
+        }
+
+        public override bool ResetUserPassword(string firstName, string lastName, string newPassword)
+        {
+            if (m_localUserServices != null)
+                return m_localUserServices.ResetUserPassword(firstName, lastName, newPassword);
+            else
+                return base.ResetUserPassword(firstName, lastName, newPassword);
+        }
+
+        public override bool UpdateUserProfile(UserProfileData userProfile)
+        {
+            string url = string.Empty;
+            if ((m_localUserServices != null) && (!IsForeignUser(userProfile.ID, out url)))
+                return m_localUserServices.UpdateUserProfile(userProfile);
+
+            return base.UpdateUserProfile(userProfile);
         }
 
         #region IUserServices Friend Methods
+
+        // NOTE: We're still not dealing with foreign user friends
+
         /// <summary>
         /// Adds a new friend to the database for XUser
         /// </summary>
         /// <param name="friendlistowner">The agent that who's friends list is being added to</param>
         /// <param name="friend">The agent that being added to the friends list of the friends list owner</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
+        public override void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
-            m_remoteUserServices.AddNewUserFriend(friendlistowner, friend, perms);
+            if (m_localUserServices != null)
+                m_localUserServices.AddNewUserFriend(friendlistowner, friend, perms);
+            else
+                base.AddNewUserFriend(friendlistowner, friend, perms);
         }
 
         /// <summary>
@@ -217,9 +251,12 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The Ex-friend agent</param>
-        public void RemoveUserFriend(UUID friendlistowner, UUID friend)
+        public override void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
-            m_remoteUserServices.RemoveUserFriend(friend, friend);
+            if (m_localUserServices != null)
+                m_localUserServices.RemoveUserFriend(friendlistowner, friend);
+            else
+                base.RemoveUserFriend(friend, friend);
         }
 
         /// <summary>
@@ -228,39 +265,79 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The agent that is getting or loosing permissions</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
+        public override void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
-            m_remoteUserServices.UpdateUserFriendPerms(friendlistowner, friend, perms);
+            if (m_localUserServices != null)
+                m_localUserServices.UpdateUserFriendPerms(friendlistowner, friend, perms);
+            else
+                base.UpdateUserFriendPerms(friendlistowner, friend, perms);
         }
         /// <summary>
         /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for UUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
-        public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
+        public override List<FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
-            return m_remoteUserServices.GetUserFriendList(friendlistowner);
+            if (m_localUserServices != null)
+                return m_localUserServices.GetUserFriendList(friendlistowner);
+
+            return base.GetUserFriendList(friendlistowner);
         }
 
         #endregion
 
         /// Appearance
-        public AvatarAppearance GetUserAppearance(UUID user)
+        public override AvatarAppearance GetUserAppearance(UUID user)
         {
-            return m_remoteUserServices.GetUserAppearance(user);
+            string url = string.Empty;
+            if ((m_localUserServices != null) && (!IsForeignUser(user, out url)))
+                return m_localUserServices.GetUserAppearance(user);
+            else
+                return base.GetUserAppearance(user);
         }
 
-        public void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
+        public override void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
-            m_remoteUserServices.UpdateUserAppearance(user, appearance);
+            string url = string.Empty;
+            if ((m_localUserServices != null) && (!IsForeignUser(user, out url)))
+                m_localUserServices.UpdateUserAppearance(user, appearance);
+            else
+                base.UpdateUserAppearance(user, appearance);
         }
 
         #region IMessagingService
 
-        public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos(List<UUID> uuids)
+        public override Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos(List<UUID> uuids)
         {
-            return m_remoteUserServices.GetFriendRegionInfos(uuids);
+            if (m_localUserServices != null)
+                return m_localUserServices.GetFriendRegionInfos(uuids);
+
+            return base.GetFriendRegionInfos(uuids);
         }
         #endregion
 
+        protected override string GetUserServerURL(UUID userID)
+        {
+            string serverURL = string.Empty;
+            if (IsForeignUser(userID, out serverURL))
+                return serverURL;
+
+            return m_commsManager.NetworkServersInfo.UserURL;
+        }
+
+        private bool IsForeignUser(UUID userID, out string userServerURL)
+        {
+            userServerURL = string.Empty;
+            CachedUserInfo uinfo = m_commsManager.UserProfileCacheService.GetUserDetails(userID);
+            if (uinfo != null)
+            {
+                if (!HGNetworkServersInfo.Singleton.IsLocalUser(uinfo.UserProfile))
+                {
+                    userServerURL = ((ForeignUserProfileData)(uinfo.UserProfile)).UserServerURI;
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

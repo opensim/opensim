@@ -34,5 +34,6 @@ namespace OpenSim.Framework.Communications
     {
         string GetNewKey(string url, UUID userID, UUID authToken);
         bool VerifyKey(UUID userID, string key);
+        bool VerifySession(UUID iserID, UUID sessionID);
     }
 }

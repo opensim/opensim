@@ -83,6 +83,7 @@ namespace OpenSim.Grid.UserServer.Modules
             m_httpServer.AddXmlRPCHandler("login_to_simulator", XmlRpcLoginMethod);
             m_httpServer.AddHTTPHandler("login", ProcessHTMLLogin);
             m_httpServer.AddXmlRPCHandler("set_login_params", XmlRPCSetLoginParams);
+            m_httpServer.AddXmlRPCHandler("check_auth_session", XmlRPCCheckAuthSession);
 
             if (registerLLSDHandler)
             {

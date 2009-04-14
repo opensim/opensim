@@ -839,6 +839,21 @@ namespace OpenSim.Framework.Communications
             }
         }
 
+        public bool VerifySession(UUID userID, UUID sessionID)
+        {
+            UserProfileData userProfile = GetUserProfile(userID);
+
+            if (userProfile != null && userProfile.CurrentAgent != null)
+            {
+                m_log.DebugFormat("[USERAUTH]: Verifying session {0} for {1}; current  session {2}", sessionID, userID, userProfile.CurrentAgent.SessionID);
+                if (userProfile.CurrentAgent.SessionID == sessionID)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         #endregion
     }
 }

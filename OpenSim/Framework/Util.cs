@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -817,6 +818,21 @@ namespace OpenSim.Framework
         {
             XmlRpcRequest client = new XmlRpcRequest(methodName, args);
             return client.Send(url, 6000);
+        }
+
+        /// <summary>
+        /// Returns an error message that the user could not be found in the database
+        /// </summary>
+        /// <returns>XML string consisting of a error element containing individual error(s)</returns>
+        public static XmlRpcResponse CreateUnknownUserErrorResponse()
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+            responseData["error_type"] = "unknown_user";
+            responseData["error_desc"] = "The user requested is not in the database";
+
+            response.Value = responseData;
+            return response;
         }
 
         /// <summary>

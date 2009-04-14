@@ -37,6 +37,7 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 
@@ -193,6 +194,12 @@ namespace OpenSim.Framework.Communications.Services
                     m_userManager.ResetAttachments(userProfile.ID);
 
                     CreateAgent(userProfile, request);
+
+                    // We need to commit the agent right here, even though the userProfile info is not complete
+                    // at this point. There is another commit further down.
+                    // This is for the new sessionID to be stored so that the region can check it for session authentication. 
+                    // CustomiseResponse->PrepareLoginToRegion
+                    CommitAgent(ref userProfile);
 
                     try
                     {
@@ -1108,5 +1115,44 @@ namespace OpenSim.Framework.Communications.Services
         {
             return false;
         }
+
+        public XmlRpcResponse XmlRPCCheckAuthSession(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            string authed = "FALSE";
+            if (requestData.Contains("avatar_uuid") && requestData.Contains("session_id"))
+            {
+                UUID guess_aid;
+                UUID guess_sid;
+
+                UUID.TryParse((string)requestData["avatar_uuid"], out guess_aid);
+                if (guess_aid == UUID.Zero)
+                {
+                    return Util.CreateUnknownUserErrorResponse();
+                }
+                UUID.TryParse((string)requestData["session_id"], out guess_sid);
+                if (guess_sid == UUID.Zero)
+                {
+                    return Util.CreateUnknownUserErrorResponse();
+                }
+                if (m_userManager.VerifySession(guess_aid, guess_sid))
+                {
+                    authed = "TRUE";
+                }
+                m_log.InfoFormat("[UserManager]: CheckAuthSession TRUE for user {0}", guess_aid);
+            }
+            else
+            {
+                m_log.InfoFormat("[UserManager]: CheckAuthSession FALSE");
+                return Util.CreateUnknownUserErrorResponse();
+            }
+            Hashtable responseData = new Hashtable();
+            responseData["auth_session"] = authed;
+            response.Value = responseData;
+            return response;
+        }
+
     }
 }
