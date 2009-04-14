@@ -745,8 +745,20 @@ namespace OpenSim.Region.Communications.Hypergrid
             m_log.Debug("[HGrid]: home_address: " + userData.UserHomeAddress +
                        "; home_port: " + userData.UserHomePort + "; remoting: " + userData.UserHomeRemotingPort);
 
-
             XmlRpcResponse resp = new XmlRpcResponse();
+
+            // Let's check if someone is trying to get in with a stolen local identity.
+            // The need for this test is a consequence of not having truly global names :-/
+            CachedUserInfo uinfo = m_userProfileCache.GetUserDetails(userData.ID);
+            if ((uinfo != null) && !(uinfo.UserProfile is ForeignUserProfileData))
+            {
+                m_log.WarnFormat("[HGrid]: Foreign user trying to get in with local identity. Access denied.");
+                Hashtable respdata = new Hashtable();
+                respdata["success"] = "FALSE";
+                respdata["reason"] = "Foreign user has the same ID as a local user.";
+                resp.Value = respdata;
+                return resp;
+            }
 
             if (!RegionLoginsEnabled)
             {
