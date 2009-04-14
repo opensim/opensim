@@ -378,6 +378,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     case SocketError.NetworkReset:
                     case SocketError.ConnectionReset:
+                    case SocketError.OperationAborted:
                         break;
 
                     default:

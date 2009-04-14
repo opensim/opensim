@@ -939,11 +939,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (PhysicsActor != null)
             {
-                m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
-                m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
-                m_physicsActor.UnSubscribeEvents();
-                m_physicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
-                PhysicsActor = null;
+                lock (m_scene.SyncRoot)
+                {
+                    m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
+                    m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
+                    m_physicsActor.UnSubscribeEvents();
+                    m_physicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
+                    PhysicsActor = null;
+                }
             }
         }
 
@@ -3192,25 +3195,30 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void AddToPhysicalScene(bool isFlying)
         {
-            PhysicsScene scene = m_scene.PhysicsScene;
+            lock (m_scene.SyncRoot)
+            {
+                PhysicsScene scene = m_scene.PhysicsScene;
 
-            PhysicsVector pVec =
-                new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
-                                  AbsolutePosition.Z);
-            
-            if (m_avHeight == 127.0f)
-            {
-                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, 1.56f), isFlying);
+                PhysicsVector pVec =
+                    new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
+                                      AbsolutePosition.Z);
+
+                if (m_avHeight == 127.0f)
+                {
+                    m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, 1.56f),
+                                                     isFlying);
+                }
+                else
+                {
+                    m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec,
+                                                     new PhysicsVector(0, 0, m_avHeight), isFlying);
+                }
+                scene.AddPhysicsActorTaint(m_physicsActor);
+                //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
+                m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
+                m_physicsActor.SubscribeEvents(1000);
+                m_physicsActor.LocalID = LocalId;
             }
-            else
-            {
-                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, m_avHeight), isFlying);
-            }
-            scene.AddPhysicsActorTaint(m_physicsActor);
-            //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
-            m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
-            m_physicsActor.SubscribeEvents(1000);
-            m_physicsActor.LocalID = LocalId;
         }
 
         // Event called by the physics plugin to tell the avatar about a collision.

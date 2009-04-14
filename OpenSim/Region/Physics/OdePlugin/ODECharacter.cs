@@ -137,6 +137,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (PhysicsVector.isFinite(pos))
             {
+                if (pos.Z > 9999999)
+                {
+                    pos.Z = parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
+                }
+                if (pos.Z < -90000)
+                {
+                    pos.Z = parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
+                }
                 _position = pos;
                 m_taintPosition.X = pos.X;
                 m_taintPosition.Y = pos.Y;
@@ -396,6 +404,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (PhysicsVector.isFinite(value))
                     {
+                        if (value.Z > 9999999)
+                        {
+                            value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
+                        }
+                        if (value.Z < -90000)
+                        {
+                            value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
+                        }
+
                         _position.X = value.X;
                         _position.Y = value.Y;
                         _position.Z = value.Z;
@@ -780,6 +797,41 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             //PidStatus = true;
 
+            d.Vector3 localpos = d.BodyGetPosition(Body);
+            PhysicsVector localPos = new PhysicsVector(localpos.X, localpos.Y, localpos.Z);
+            if (!PhysicsVector.isFinite(localPos))
+            {
+
+                m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
+                _parent_scene.RemoveCharacter(this);
+                // destroy avatar capsule and related ODE data
+                if (Amotor != IntPtr.Zero)
+                {
+                    // Kill the Amotor
+                    d.JointDestroy(Amotor);
+                    Amotor = IntPtr.Zero;
+                }
+                //kill the Geometry
+                _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+
+                if (Body != IntPtr.Zero)
+                {
+                    //kill the body
+                    d.BodyDestroy(Body);
+
+                    Body = IntPtr.Zero;
+                }
+
+                if (Shell != IntPtr.Zero)
+                {
+                    d.GeomDestroy(Shell);
+                    _parent_scene.geom_name_map.Remove(Shell);
+                    Shell = IntPtr.Zero;
+                }
+
+                return;
+            }
+
             PhysicsVector vec = new PhysicsVector();
             d.Vector3 vel = d.BodyGetLinearVel(Body);
             float movementdivisor = 1f;
@@ -901,6 +953,34 @@ namespace OpenSim.Region.Physics.OdePlugin
             else
             {
                 m_log.Warn("[PHYSICS]: Got a NaN force vector in Move()");
+                m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
+                _parent_scene.RemoveCharacter(this);
+                // destroy avatar capsule and related ODE data
+                if (Amotor != IntPtr.Zero)
+                {
+                    // Kill the Amotor
+                    d.JointDestroy(Amotor);
+                    Amotor = IntPtr.Zero;
+                }
+                //kill the Geometry
+                _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+
+                if (Body != IntPtr.Zero)
+                {
+                    //kill the body
+                    d.BodyDestroy(Body);
+
+                    Body = IntPtr.Zero;
+                }
+
+                if (Shell != IntPtr.Zero)
+                {
+                    d.GeomDestroy(Shell);
+                    _parent_scene.geom_name_map.Remove(Shell);
+                    Shell = IntPtr.Zero;
+                }
+
+                return;
             }
         }
 
@@ -1044,21 +1124,30 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     _parent_scene.RemoveCharacter(this);
                     // destroy avatar capsule and related ODE data
-
-                    // Kill the Amotor
-                    d.JointDestroy(Amotor);
-                    Amotor = IntPtr.Zero;
-
+                    if (Amotor != IntPtr.Zero)
+                    {
+                        // Kill the Amotor
+                        d.JointDestroy(Amotor);
+                        Amotor = IntPtr.Zero;
+                    }
                     //kill the Geometry
                     _parent_scene.waitForSpaceUnlock(_parent_scene.space);
 
-                    d.GeomDestroy(Shell);
-                    _parent_scene.geom_name_map.Remove(Shell);
-                    Shell = IntPtr.Zero;
+                    if (Body != IntPtr.Zero)
+                    {
+                        //kill the body
+                        d.BodyDestroy(Body);
 
-                    //kill the body
-                    d.BodyDestroy(Body);
-                    Body=IntPtr.Zero;
+                        Body = IntPtr.Zero;
+                    }
+
+                    if (Shell != IntPtr.Zero)
+                    {
+                        d.GeomDestroy(Shell);
+                        _parent_scene.geom_name_map.Remove(Shell);
+                        Shell = IntPtr.Zero;
+                    }
+
                 }
 
                 m_isPhysical = m_tainted_isPhysical;

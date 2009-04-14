@@ -199,6 +199,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             int numCollected = 0;
             //First of all make sure our packet queue isn't above our threshold 
+            if (m_client == null)
+                return;
+
+            if (m_client.PacketHandler == null)
+                return;
+
+            if (m_client.PacketHandler.PacketQueue == null)
+                return;
+
+
             if (m_client.PacketHandler.PacketQueue.TextureOutgoingPacketQueueCount < 200)
             {
                 

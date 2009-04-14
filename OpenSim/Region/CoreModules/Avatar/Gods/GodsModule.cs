@@ -80,7 +80,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                 }
                 else
                 {
-                    m_dialogModule.SendAlertToUser(agentID, "Request for god powers denied");
+                    if (m_dialogModule != null)
+                        m_dialogModule.SendAlertToUser(agentID, "Request for god powers denied");
                 }
             }
         }        

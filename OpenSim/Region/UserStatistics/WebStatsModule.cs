@@ -131,6 +131,9 @@ namespace OpenSim.Region.UserStatistics
                 }
                 
                 m_scene.Add(scene);
+                if (m_simstatsCounters.ContainsKey(scene.RegionInfo.RegionID))
+                    m_simstatsCounters.Remove(scene.RegionInfo.RegionID);
+
                 m_simstatsCounters.Add(scene.RegionInfo.RegionID, new USimStatsData(scene.RegionInfo.RegionID));
                 scene.StatsReporter.OnSendStatsResult += ReceiveClassicSimStatsPacket;
             }            
@@ -293,6 +296,10 @@ namespace OpenSim.Region.UserStatistics
             }
             dbConn.Close();
             dbConn.Dispose();
+            m_sessions.Clear();
+            m_scene.Clear();
+            reports.Clear();
+            m_simstatsCounters.Clear(); 
         }
 
         public virtual string Name
