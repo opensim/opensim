@@ -111,7 +111,7 @@ namespace OpenSim.Framework.Communications.Tests
             Regex capsSeedPattern
                 = new Regex("^http://"
                     + m_regionExternalName
-                    + ":9000/CAPS/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{8}0000/$");
+                    + ":9000/CAPS/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}0000/$");
 
             Assert.That(capsSeedPattern.IsMatch((string)responseData["seed_capability"]), Is.True);
         }
@@ -160,7 +160,7 @@ namespace OpenSim.Framework.Communications.Tests
             Regex capsSeedPattern
                 = new Regex("^http://"
                     + m_regionExternalName
-                    + ":9000/CAPS/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{8}0000/$");
+                    + ":9000/CAPS/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}0000/$");
 
             Assert.That(capsSeedPattern.IsMatch((string)responseData["seed_capability"]), Is.True);
         }
