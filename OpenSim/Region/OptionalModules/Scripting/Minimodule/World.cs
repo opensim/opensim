@@ -130,7 +130,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         private void HandleChatPacket(OSChatMessage chat)
         {
-            if(string.IsNullOrEmpty(chat.Message))
+            if (string.IsNullOrEmpty(chat.Message))
                 return;
 
             // Object?

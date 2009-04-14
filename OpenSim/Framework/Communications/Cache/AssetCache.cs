@@ -393,9 +393,9 @@ namespace OpenSim.Framework.Communications.Cache
 
         protected void ProcessReceivedAsset(bool IsTexture, AssetInfo assetInf, IUserService userService)
         {            
-            if(!IsTexture && assetInf.ContainsReferences && false )
+            if (!IsTexture && assetInf.ContainsReferences && false)
             {
-                assetInf.Data = ProcessAssetData(assetInf.Data, userService );
+                assetInf.Data = ProcessAssetData(assetInf.Data, userService);
             }
         }
 
@@ -558,9 +558,9 @@ namespace OpenSim.Framework.Communications.Cache
         {
             string data = Encoding.ASCII.GetString(assetData);
 
-            data = ProcessAssetDataString(data, userService );
+            data = ProcessAssetDataString(data, userService);
 
-            return Encoding.ASCII.GetBytes( data );
+            return Encoding.ASCII.GetBytes(data);
         }
 
         public string ProcessAssetDataString(string data, IUserService userService)
@@ -600,7 +600,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             Guid id;
             UserProfileData userProfile = userService.GetUserProfile(userUri);
-            if( userProfile == null )
+            if (userProfile == null)
             {
                 id = Guid.Empty;
             }

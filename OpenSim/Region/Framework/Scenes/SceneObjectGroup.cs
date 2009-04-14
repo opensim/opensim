@@ -2357,7 +2357,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (m_rootPart.PhysActor.IsPhysical)
                     {
-                        if(m_rootPart.IsWaitingForFirstSpinUpdatePacket)
+                        if (m_rootPart.IsWaitingForFirstSpinUpdatePacket)
                         {
                             // first time initialization of "old" orientation for calculation of delta rotations
                             m_rootPart.SpinOldOrientation = newOrientation;

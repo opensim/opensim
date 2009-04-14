@@ -50,7 +50,7 @@ namespace OpenSim
                 }
             }
 
-            if(e.Sender is IObject)
+            if (e.Sender is IObject)
             {
                 // Ignore
             }

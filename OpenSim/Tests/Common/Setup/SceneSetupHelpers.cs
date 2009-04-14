@@ -132,7 +132,7 @@ namespace OpenSim.Tests.Common.Setup
                     m.Initialise(scene, config);
                     scene.AddModule(m.Name, m);
                 }
-                else if(module is IRegionModuleBase)
+                else if (module is IRegionModuleBase)
                 {
                     // for the new system, everything has to be initialised first,
                     // shared modules have to be post-initialised, then all get an AddRegion with the scene

@@ -439,10 +439,10 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void DetachObject(uint objectLocalID, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(objectLocalID);
-            if( group != null )
+            if (group != null)
             {
                 //group.DetachToGround();
-                m_parentScene.DetachSingleAttachmentToInv(group.GetFromAssetID(),remoteClient);
+                m_parentScene.DetachSingleAttachmentToInv(group.GetFromAssetID(), remoteClient);
             }
         }
 
@@ -460,7 +460,7 @@ namespace OpenSim.Region.Framework.Scenes
             IClientAPI remoteClient, UUID GroupID, uint objectLocalID, UUID Garbage)
         {
             SceneObjectGroup group = GetGroupByPrim(objectLocalID);
-            if( group != null )
+            if (group != null)
             {
                 if (group.OwnerID == remoteClient.AgentId)
                     group.SetGroup(GroupID, remoteClient);
@@ -553,7 +553,7 @@ namespace OpenSim.Region.Framework.Scenes
             IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent)
         {
             SceneObjectGroup group = GetGroupByPrim(objectLocalID);
-            if( group != null )
+            if (group != null)
             {
                 if (m_parentScene.Permissions.CanTakeObject(group.UUID, remoteClient.AgentId))
                 {
@@ -1534,7 +1534,7 @@ namespace OpenSim.Region.Framework.Scenes
                 for (int i = childPrimIds.Count - 1; i >= 0; i--)
                 {
                     SceneObjectGroup child = GetGroupByPrim(childPrimIds[i]);
-                    if( child != null )
+                    if (child != null)
                     {
                         // Make sure no child prim is set for sale
                         // So that, on delink, no prims are unwittingly

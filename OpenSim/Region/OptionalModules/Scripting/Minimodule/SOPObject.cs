@@ -65,7 +65,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             add
             {
-                if(!_OnTouchActive)
+                if (!_OnTouchActive)
                 {
                     GetSOP().Flags |= PrimFlags.Touch;
                     _OnTouchActive = true;

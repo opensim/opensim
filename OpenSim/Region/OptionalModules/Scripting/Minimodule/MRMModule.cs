@@ -75,7 +75,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             if (script.StartsWith("//MRM:C#"))
             {
-                if(m_scene.GetSceneObjectPart(localID).OwnerID != m_scene.RegionInfo.MasterAvatarAssignedUUID)
+                if (m_scene.GetSceneObjectPart(localID).OwnerID != m_scene.RegionInfo.MasterAvatarAssignedUUID)
                     return;
 
                 try
@@ -221,7 +221,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             string[] lines = Script.Split(new string[] {"\n"}, StringSplitOptions.RemoveEmptyEntries);
             foreach (string s in lines)
             {
-                if(s.StartsWith("//@DEPENDS:"))
+                if (s.StartsWith("//@DEPENDS:"))
                 {
                     libraries.Add(s.Replace("//@DEPENDS:", ""));
                 }

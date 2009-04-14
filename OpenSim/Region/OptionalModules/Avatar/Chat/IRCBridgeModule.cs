@@ -153,7 +153,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
             region.Close();
 
-            if(m_regions.Contains(region))
+            if (m_regions.Contains(region))
             {
                 lock (m_regions) m_regions.Remove(region);
             }
