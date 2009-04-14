@@ -37,6 +37,7 @@ using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Clients;
 
 namespace OpenSim.Region.Communications.OGS1
 {
@@ -44,11 +45,15 @@ namespace OpenSim.Region.Communications.OGS1
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private CommunicationsManager m_commsManager;
+        protected CommunicationsManager m_commsManager;
 
         public OGS1UserServices(CommunicationsManager commsManager)
         {
             m_commsManager = commsManager;
+        }
+
+        public OGS1UserServices()
+        {
         }
 
         public UserProfileData ConvertXMLRPCDataToUserProfile(Hashtable data)
@@ -133,7 +138,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns>null if the request fails</returns>
-        public UserAgentData GetAgentByUUID(UUID userId)
+        public virtual UserAgentData GetAgentByUUID(UUID userId)
         {
             try
             {
@@ -142,9 +147,8 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_agent_by_uuid", parameters);
-                string url = m_commsManager.NetworkServersInfo.UserURL;
 
-                XmlRpcResponse resp = req.Send(url, 6000);
+                XmlRpcResponse resp = req.Send(GetUserServerURL(userId), 6000);
                 Hashtable respData = (Hashtable)resp.Value;
                 if (respData.Contains("error_type"))
                 {
@@ -262,7 +266,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="regionhandle">regionhandle</param>
         /// <param name="position">final position</param>
         /// <param name="lookat">final lookat</param>
-        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
+        public virtual void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
         {
             Hashtable param = new Hashtable();
             param["avatar_uuid"] = userid.Guid.ToString();
@@ -281,7 +285,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             try
             {
-                req.Send(m_commsManager.NetworkServersInfo.UserURL, 3000);
+                req.Send(GetUserServerURL(userid), 3000);
             }
             catch (WebException)
             {
@@ -298,17 +302,17 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="posx">final position x</param>
         /// <param name="posy">final position y</param>
         /// <param name="posz">final position z</param>
-        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        public virtual void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
             LogOffUser(userid, regionid, regionhandle, new Vector3(posx, posy, posz), new Vector3());
         }
 
-        public UserProfileData GetUserProfile(string firstName, string lastName)
+        public virtual UserProfileData GetUserProfile(string firstName, string lastName)
         {
             return GetUserProfile(firstName + " " + lastName);
         }
 
-        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
+        public virtual List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
             Regex objAlphaNumericPattern = new Regex("[^a-zA-Z0-9 ]");
@@ -338,7 +342,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns>null if the request fails</returns>
-        public UserProfileData GetUserProfile(string name)
+        public virtual UserProfileData GetUserProfile(string name)
         {
             try
             {
@@ -367,7 +371,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns>null if the request fails</returns>
-        public UserProfileData GetUserProfile(UUID avatarID)
+        public virtual UserProfileData GetUserProfile(UUID avatarID)
         {
             try
             {
@@ -376,7 +380,7 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_by_uuid", parameters);
-                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);
+                XmlRpcResponse resp = req.Send(GetUserServerURL(avatarID), 30000);
                 Hashtable respData = (Hashtable)resp.Value;
 
                 return ConvertXMLRPCDataToUserProfile(respData);
@@ -392,7 +396,7 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
 
-        public void ClearUserAgent(UUID avatarID)
+        public virtual void ClearUserAgent(UUID avatarID)
         {
             // TODO: implement
         }
@@ -402,7 +406,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns></returns>
-        public UserProfileData SetupMasterUser(string firstName, string lastName)
+        public virtual UserProfileData SetupMasterUser(string firstName, string lastName)
         {
             return SetupMasterUser(firstName, lastName, String.Empty);
         }
@@ -412,7 +416,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns></returns>
-        public UserProfileData SetupMasterUser(string firstName, string lastName, string password)
+        public virtual UserProfileData SetupMasterUser(string firstName, string lastName, string password)
         {
             UserProfileData profile = GetUserProfile(firstName, lastName);
             return profile;
@@ -423,7 +427,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns></returns>
-        public UserProfileData SetupMasterUser(UUID uuid)
+        public virtual UserProfileData SetupMasterUser(UUID uuid)
         {
             UserProfileData data = GetUserProfile(uuid);
 
@@ -436,17 +440,17 @@ namespace OpenSim.Region.Communications.OGS1
             return data;
         }
 
-        public UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
+        public virtual UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
-        public bool ResetUserPassword(string firstName, string lastName, string newPassword)
+        public virtual bool ResetUserPassword(string firstName, string lastName, string newPassword)
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
-        public bool UpdateUserProfile(UserProfileData userProfile)
+        public virtual bool UpdateUserProfile(UserProfileData userProfile)
         {
             m_log.Debug("[OGS1 USER SERVICES]: Asking UserServer to update profile.");
             Hashtable param = new Hashtable();
@@ -477,7 +481,7 @@ namespace OpenSim.Region.Communications.OGS1
             parameters.Add(param);
 
             XmlRpcRequest req = new XmlRpcRequest("update_user_profile", parameters);
-            XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 3000);
+            XmlRpcResponse resp = req.Send(GetUserServerURL(userProfile.ID), 3000);
             Hashtable respData = (Hashtable)resp.Value;
             if (respData != null)
             {
@@ -511,7 +515,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="friendlistowner">The agent that who's friends list is being added to</param>
         /// <param name="friend">The agent that being added to the friends list of the friends list owner</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
+        public virtual void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
             try
             {
@@ -563,7 +567,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The Ex-friend agent</param>
-        public void RemoveUserFriend(UUID friendlistowner, UUID friend)
+        public virtual void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
             try
             {
@@ -615,7 +619,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The agent that is getting or loosing permissions</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
+        public virtual void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
             try
             {
@@ -663,7 +667,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for UUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
-        public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
+        public virtual List<FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
             List<FriendListItem> buddylist = new List<FriendListItem>();
 
@@ -693,7 +697,7 @@ namespace OpenSim.Region.Communications.OGS1
             return buddylist;
         }
 
-        public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos(List<UUID> uuids)
+        public virtual Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos(List<UUID> uuids)
         {
             Dictionary<UUID, FriendRegionInfo> result = new Dictionary<UUID, FriendRegionInfo>();
 
@@ -774,7 +778,7 @@ namespace OpenSim.Region.Communications.OGS1
         #endregion
 
         /// Appearance
-        public AvatarAppearance GetUserAppearance(UUID user)
+        public virtual AvatarAppearance GetUserAppearance(UUID user)
         {
             AvatarAppearance appearance = null;
 
@@ -786,7 +790,7 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_avatar_appearance", parameters);
-                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 8000);
+                XmlRpcResponse resp = req.Send(GetUserServerURL(user), 8000);
                 Hashtable respData = (Hashtable)resp.Value;
 
                 return ConvertXMLRPCDataToAvatarAppearance(respData);
@@ -799,7 +803,7 @@ namespace OpenSim.Region.Communications.OGS1
             return appearance;
         }
 
-        public void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
+        public virtual void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
             try
             {
@@ -809,7 +813,7 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("update_avatar_appearance", parameters);
-                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 8000);
+                XmlRpcResponse resp = req.Send(GetUserServerURL(user), 8000);
                 Hashtable respData = (Hashtable)resp.Value;
 
                 if (respData != null)
@@ -842,5 +846,17 @@ namespace OpenSim.Region.Communications.OGS1
                 // Return Empty list (no friends)
             }
         }
+
+        public bool VerifySession(UUID userID, UUID sessionID)
+        {
+            m_log.DebugFormat("[OGS1 USER SERVICES]: Verifying user session for " + userID);
+            return AuthClient.VerifySession(GetUserServerURL(userID), userID, sessionID);
+        }
+
+        protected virtual string GetUserServerURL(UUID userID)
+        {
+            return m_commsManager.NetworkServersInfo.UserURL;
+        }
+
     }
 }
