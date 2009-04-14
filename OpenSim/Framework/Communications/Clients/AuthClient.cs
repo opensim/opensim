@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Nwc.XmlRpc;
 using OpenMetaverse;
@@ -111,6 +112,29 @@ namespace OpenSim.Framework.Communications.Clients
             else
             {
                 System.Console.WriteLine("[HGrid]: XmlRpc request to verify key returned null reply");
+                return false;
+            }
+        }
+
+        public static bool VerifySession(string authurl, UUID userID, UUID sessionID)
+        {
+            Hashtable requestData = new Hashtable();
+            requestData["avatar_uuid"] = userID.ToString();
+            requestData["session_id"] = sessionID.ToString();
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(requestData);
+            XmlRpcRequest UserReq = new XmlRpcRequest("check_auth_session", SendParams);
+            XmlRpcResponse UserResp = UserReq.Send(authurl, 3000);
+
+            Hashtable responseData = (Hashtable)UserResp.Value;
+            if (responseData.ContainsKey("auth_session") && responseData["auth_session"].ToString() == "TRUE")
+            {
+                System.Console.WriteLine("[Authorization]: userserver reported authorized session for user " + userID);
+                return true;
+            }
+            else
+            {
+                System.Console.WriteLine("[Authorization]: userserver reported unauthorized session for user " + userID);
                 return false;
             }
         }
