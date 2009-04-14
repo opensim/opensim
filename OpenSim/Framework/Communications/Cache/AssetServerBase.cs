@@ -138,14 +138,29 @@ namespace OpenSim.Framework.Communications.Cache
         /// asset cannot be found.
         /// </exception>
         protected abstract AssetBase GetAsset(AssetRequest req);        
-                
+              
+        /// <summary>
+        /// Does the asset server have any waiting requests?
+        /// </summary>
+        /// 
+        /// This does include any request that is currently being handled.  This information is not reliable where
+        /// another thread may be processing requests.
+        ///  
+        /// <returns>
+        /// True if there are waiting requests.  False if there are no waiting requests.
+        /// </returns>
+        public virtual bool HasWaitingRequests()
+        {
+            return m_assetRequests.Count() != 0;
+        }
+        
         /// <summary>
         /// Process an asset request.  This method will call GetAsset(AssetRequest req)
         /// on the subclass.
         /// </summary>
-        /// <param name="req"></param>
-        protected virtual void ProcessRequest(AssetRequest req)
+        public virtual void ProcessNextRequest()
         {
+            AssetRequest req = m_assetRequests.Dequeue();            
             AssetBase asset;
 
             try
@@ -160,7 +175,7 @@ namespace OpenSim.Framework.Communications.Cache
                     StatsManager.SimExtraStats.AddAssetServiceRequestFailure();
 
                 m_receiver.AssetNotFound(req.AssetID, req.IsTexture);
-
+                
                 return;
             }
 
@@ -190,10 +205,8 @@ namespace OpenSim.Framework.Communications.Cache
             while (true) // Since it's a 'blocking queue'
             {
                 try
-                {
-                    AssetRequest req = m_assetRequests.Dequeue();
-
-                    ProcessRequest(req);
+                {                    
+                    ProcessNextRequest();
                 }
                 catch (Exception e)
                 {
