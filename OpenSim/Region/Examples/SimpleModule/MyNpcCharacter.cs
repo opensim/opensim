@@ -266,6 +266,8 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public event MuteListRequest OnMuteListRequest;
 
+        public event AvatarInterestUpdate OnAvatarInterestUpdate;
+
 #pragma warning restore 67
 
         private UUID myID = UUID.Random();

@@ -372,6 +372,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public event MuteListRequest OnMuteListRequest;
 
+        public event AvatarInterestUpdate OnAvatarInterestUpdate;
+
 #pragma warning restore 67
 
         #endregion

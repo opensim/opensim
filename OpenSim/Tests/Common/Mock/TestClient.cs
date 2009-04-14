@@ -279,6 +279,8 @@ namespace OpenSim.Tests.Common.Mock
 
         public event MuteListRequest OnMuteListRequest;
 
+        public event AvatarInterestUpdate OnAvatarInterestUpdate;
+
 #pragma warning restore 67
 
         /// <value>

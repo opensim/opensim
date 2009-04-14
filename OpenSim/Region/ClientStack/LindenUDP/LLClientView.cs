@@ -309,6 +309,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private MuteListRequest handlerMuteListRequest;
 
+        private AvatarInterestUpdate handlerAvatarInterestUpdate;
+
         private readonly IGroupsModule m_GroupsModule;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
@@ -1104,6 +1106,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event AvatarNotesUpdate OnAvatarNotesUpdate;
 
         public event MuteListRequest OnMuteListRequest;
+
+        public event AvatarInterestUpdate OnAvatarInterestUpdate;
 
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
@@ -9106,6 +9110,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 avatarNotesUpdate.Data.TargetID,
                                 Utils.BytesToString(avatarNotesUpdate.Data.Notes));
                     break;
+
+                case PacketType.AvatarInterestsUpdate:
+                    AvatarInterestsUpdatePacket avatarInterestUpdate =
+                            (AvatarInterestsUpdatePacket)Pack;
+
+                    break;
+
                 default:
                     m_log.Warn("[CLIENT]: unhandled packet " + Pack);
                     break;
