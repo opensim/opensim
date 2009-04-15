@@ -56,7 +56,14 @@ namespace OpenSim.Region.Framework.Scenes
     {
         public delegate void SynchronizeSceneHandler(Scene scene);
         public SynchronizeSceneHandler SynchronizeScene = null;
-        public int splitID = 0;
+
+        /* Used by the loadbalancer plugin on GForge */
+        protected int m_splitRegionID = 0;
+        public int SplitRegionID
+        {
+            get { return m_splitRegionID; }
+            set { m_splitRegionID = value; }
+        }
 
         private const long DEFAULT_MIN_TIME_FOR_PERSISTENCE = 60L;
         private const long DEFAULT_MAX_TIME_FOR_PERSISTENCE = 600L;
