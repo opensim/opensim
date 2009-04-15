@@ -36,7 +36,9 @@ using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
+using OpenSim;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
@@ -115,6 +117,13 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     // Either enable full remote functionality or just selected features                    
                     string enabledMethods = m_config.GetString("enabled_methods", "all");
+
+                    // To get this, you must explicitly specify "all" or
+                    // mention it in a whitelist. It won't be available
+                    // If you just leave the option out!
+                    //
+                    if (!String.IsNullOrEmpty(enabledMethods))
+                        availableMethods["admin_console_command"] = XmlRpcConsoleCommandMethod;
 
                     // The assumption here is that simply enabling Remote Admin as before will produce the same
                     // behavior - enable all methods unless the whitelist is in place for backward-compatibility.
@@ -1438,6 +1447,44 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
 
             m_log.Info("[RADMIN]: Query XML Administrator Request complete");
+            return response;
+        }
+
+        public XmlRpcResponse XmlRpcConsoleCommandMethod(XmlRpcRequest request)
+        {
+            m_log.Info("[RADMIN]: Received Command XML Administrator Request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                responseData["success"] = "true";
+
+                Hashtable requestData = (Hashtable) request.Params[0];
+
+                // check completeness
+                if (!requestData.Contains("password"))
+                    throw new Exception(String.Format("missing required parameter"));
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string) requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                if (!requestData.Contains("command"))
+                    throw new Exception(String.Format("missing required parameter"));
+                MainConsole.Instance.RunCommand(requestData["command"].ToString());
+
+                response.Value = responseData;
+            }
+            catch (Exception e)
+            {
+                m_log.InfoFormat("[RADMIN] ConsoleCommand: {0}", e.Message);
+
+                responseData["success"] = "false";
+                responseData["error"] = e.Message;
+
+                response.Value = responseData;
+            }
+
+            m_log.Info("[RADMIN]: Command XML Administrator Request complete");
             return response;
         }
 
