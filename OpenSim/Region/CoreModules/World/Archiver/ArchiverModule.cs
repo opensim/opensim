@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.IO;
 using System.Reflection;
 using log4net;
@@ -63,38 +64,48 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void ArchiveRegion(string savePath)
         {
+            ArchiveRegion(savePath, Guid.Empty);
+        }
+        
+        public void ArchiveRegion(string savePath, Guid requestId)
+        {
             m_log.InfoFormat(
                 "[ARCHIVER]: Writing archive for region {0} to {1}", m_scene.RegionInfo.RegionName, savePath);
             
-            new ArchiveWriteRequestPreparation(m_scene, savePath).ArchiveRegion();
+            new ArchiveWriteRequestPreparation(m_scene, savePath, requestId).ArchiveRegion();            
         }
         
         public void ArchiveRegion(Stream saveStream)
         {
-            new ArchiveWriteRequestPreparation(m_scene, saveStream).ArchiveRegion();
+            ArchiveRegion(saveStream, Guid.Empty);
         }
+        
+        public void ArchiveRegion(Stream saveStream, Guid requestId)
+        {
+            new ArchiveWriteRequestPreparation(m_scene, saveStream, requestId).ArchiveRegion();
+        }        
 
         public void DearchiveRegion(string loadPath)
         {
-            DearchiveRegion(loadPath, false);
+            DearchiveRegion(loadPath, false, Guid.Empty);
         }
         
-        public void DearchiveRegion(string loadPath, bool merge)
+        public void DearchiveRegion(string loadPath, bool merge, Guid requestId)
         {
             m_log.InfoFormat(
                 "[ARCHIVER]: Loading archive to region {0} from {1}", m_scene.RegionInfo.RegionName, loadPath);
             
-            new ArchiveReadRequest(m_scene, loadPath, merge).DearchiveRegion();
+            new ArchiveReadRequest(m_scene, loadPath, merge, requestId).DearchiveRegion();
         }        
         
         public void DearchiveRegion(Stream loadStream)
         {
-            DearchiveRegion(loadStream, false);
+            DearchiveRegion(loadStream, false, Guid.Empty);
         }
         
-        public void DearchiveRegion(Stream loadStream, bool merge)
+        public void DearchiveRegion(Stream loadStream, bool merge, Guid requestId)
         {
-            new ArchiveReadRequest(m_scene, loadStream, merge).DearchiveRegion();
+            new ArchiveReadRequest(m_scene, loadStream, merge, requestId).DearchiveRegion();
         }        
     }
 }

@@ -76,13 +76,13 @@ namespace OpenSim.Region.CoreModules.Scripting.RegionReady
         {
             if (m_enabled) 
             {
-                m_log.Info("[RegionReady] Enabled");
+                m_log.Info("[RegionReady]: Enabled");
                 m_scene.EventManager.OnEmptyScriptCompileQueue += new EventManager.EmptyScriptCompileQueue(OnEmptyScriptCompileQueue);
                 m_scene.EventManager.OnOarFileLoaded += new EventManager.OarFileLoaded(OnOarFileLoaded);
             }
             else
             {
-                m_log.Info("[RegionReady] Disabled");
+                m_log.Info("[RegionReady]: Disabled");
             }
         }
 
@@ -129,20 +129,20 @@ namespace OpenSim.Region.CoreModules.Scripting.RegionReady
                 c.Sender = null;
                 c.SenderUUID = UUID.Zero;
 
-                m_log.InfoFormat("[RegionReady] Region \"{0}\" is ready: \"{1}\" on channel {2}",
+                m_log.InfoFormat("[RegionReady]: Region \"{0}\" is ready: \"{1}\" on channel {2}",
                                  m_scene.RegionInfo.RegionName, c.Message, m_channelNotify);
                 m_scene.EventManager.TriggerOnChatBroadcast(this, c); 
             }
         }
 
-        void OnOarFileLoaded(string message)
+        void OnOarFileLoaded(Guid requestId, string message)
         {
             m_oarFileLoading = true;
             if (message==String.Empty) 
             {
                 m_lastOarLoadedOk = true;
             } else {
-                m_log.InfoFormat("[RegionReady] Oar file load errors: {0}", message);
+                m_log.InfoFormat("[RegionReady]: Oar file load errors: {0}", message);
                 m_lastOarLoadedOk = false;
             }
         }

@@ -47,10 +47,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
     [TestFixture, LongRunning]
     public class ArchiverTests
     {
-        private void SaveCompleted(string errorMessage)
+        private Guid m_lastRequestId;
+        
+        private void SaveCompleted(Guid requestId, string errorMessage)
         {
             lock (this)
             {
+                m_lastRequestId = requestId;
                 System.Console.WriteLine("About to pulse ArchiverTests");
                 Monitor.PulseAll(this);
             }
@@ -112,15 +115,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             MemoryStream archiveWriteStream = new MemoryStream();
             scene.EventManager.OnOarFileSaved += SaveCompleted;
 
+            Guid requestId = new Guid("00000000-0000-0000-0000-808080808080");
+            
             lock (this)
             {
-                archiverModule.ArchiveRegion(archiveWriteStream);
+                archiverModule.ArchiveRegion(archiveWriteStream, requestId);
                 AssetServerBase assetServer = (AssetServerBase)scene.CommsManager.AssetCache.AssetServer;
                 while (assetServer.HasWaitingRequests())
                     assetServer.ProcessNextRequest();     
                 
                 Monitor.Wait(this, 60000);
             }
+            
+            Assert.That(m_lastRequestId, Is.EqualTo(requestId));
 
             byte[] archive = archiveWriteStream.ToArray();
             MemoryStream archiveReadStream = new MemoryStream(archive);
@@ -303,7 +310,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 byte[] archive = archiveWriteStream.ToArray();
                 MemoryStream archiveReadStream = new MemoryStream(archive);
 
-                archiverModule.DearchiveRegion(archiveReadStream, true);
+                archiverModule.DearchiveRegion(archiveReadStream, true, Guid.Empty);
 
                 SceneObjectPart object1Existing = scene.GetSceneObjectPart(part1Name);
                 Assert.That(object1Existing, Is.Not.Null, "object1 was not present after merge");

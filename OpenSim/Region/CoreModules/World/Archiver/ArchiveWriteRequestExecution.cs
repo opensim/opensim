@@ -58,19 +58,22 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected List<SceneObjectGroup> m_sceneObjects;
         protected Scene m_scene;
         protected Stream m_saveStream;
+        protected Guid m_requestId;
 
         public ArchiveWriteRequestExecution(
              List<SceneObjectGroup> sceneObjects,
              ITerrainModule terrainModule,
              IRegionSerialiserModule serialiser,
              Scene scene,
-             Stream saveStream)
+             Stream saveStream,
+             Guid requestId)
         {
             m_sceneObjects = sceneObjects;
             m_terrainModule = terrainModule;
             m_serialiser = serialiser;
             m_scene = scene;
             m_saveStream = saveStream;
+            m_requestId = requestId;
         }
 
         protected internal void ReceivedAllAssets(
@@ -140,7 +143,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive for {0}", m_scene.RegionInfo.RegionName);
 
-            m_scene.EventManager.TriggerOarFileSaved(String.Empty);
+            m_scene.EventManager.TriggerOarFileSaved(m_requestId, String.Empty);
         }
 
         /// <summary>

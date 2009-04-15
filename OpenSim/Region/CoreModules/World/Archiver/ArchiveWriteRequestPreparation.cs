@@ -50,14 +50,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         protected Scene m_scene;
         protected Stream m_saveStream;
+        protected Guid m_requestId;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public ArchiveWriteRequestPreparation(Scene scene, string savePath)
+        public ArchiveWriteRequestPreparation(Scene scene, string savePath, Guid requestId)
         {
             m_scene = scene;
-            m_saveStream = new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress);            
+            m_saveStream = new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress);
+            m_requestId = requestId;
         }
         
         /// <summary>
@@ -65,10 +67,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="saveStream">The stream to which to save data.</param>
-        public ArchiveWriteRequestPreparation(Scene scene, Stream saveStream)
+        /// <param name="requestId">The id associated with this request</param>
+        public ArchiveWriteRequestPreparation(Scene scene, Stream saveStream, Guid requestId)
         {
             m_scene = scene;
             m_saveStream = saveStream;
+            m_requestId = requestId;
         }        
 
         /// <summary>
@@ -129,7 +133,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     m_scene.RequestModuleInterface<ITerrainModule>(),
                     m_scene.RequestModuleInterface<IRegionSerialiserModule>(),
                     m_scene,
-                    m_saveStream);
+                    m_saveStream,
+                    m_requestId);
             
             new AssetsRequest(assetUuids.Keys, m_scene.CommsManager.AssetCache, awre.ReceivedAllAssets).Execute();
         }

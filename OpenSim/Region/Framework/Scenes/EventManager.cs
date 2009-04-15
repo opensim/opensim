@@ -279,14 +279,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// the scripts may not have started yet
         /// Message is non empty string if there were problems loading the oar file
         /// </summary>
-        public delegate void OarFileLoaded(string message);
+        public delegate void OarFileLoaded(Guid guid, string message);
         public event OarFileLoaded OnOarFileLoaded;
         
         /// <summary>
         /// Called when an oar file has finished saving
         /// Message is non empty string if there were problems saving the oar file
+        /// If a guid was supplied on the original call to identify, the request, this is returned.  Otherwise 
+        /// Guid.Empty is returned.
         /// </summary>
-        public delegate void OarFileSaved(string message);
+        public delegate void OarFileSaved(Guid guid, string message);
         public event OarFileSaved OnOarFileSaved;        
 
         /// <summary>
@@ -968,18 +970,18 @@ namespace OpenSim.Region.Framework.Scenes
             return 6;
         }
 
-        public void TriggerOarFileLoaded(string message)
+        public void TriggerOarFileLoaded(Guid requestId, string message)
         {
             handlerOarFileLoaded = OnOarFileLoaded;
             if (handlerOarFileLoaded != null)
-                handlerOarFileLoaded(message);
+                handlerOarFileLoaded(requestId, message);
         }
         
-        public void TriggerOarFileSaved(string message)
+        public void TriggerOarFileSaved(Guid requestId, string message)
         {
             handlerOarFileSaved = OnOarFileSaved;
             if (handlerOarFileSaved != null)
-                handlerOarFileSaved(message);
+                handlerOarFileSaved(requestId, message);
         }        
 
         public void TriggerEmptyScriptCompileQueue(int numScriptsFailed, string message)

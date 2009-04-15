@@ -55,6 +55,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         private Scene m_scene;
         private Stream m_loadStream;
+        private Guid m_requestId;
         private string m_errorMessage;
 
         /// <value>
@@ -67,19 +68,21 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         private IDictionary<UUID, bool> m_validUserUuids = new Dictionary<UUID, bool>();
 
-        public ArchiveReadRequest(Scene scene, string loadPath, bool merge)
+        public ArchiveReadRequest(Scene scene, string loadPath, bool merge, Guid requestId)
         {
             m_scene = scene;
             m_loadStream = new GZipStream(GetStream(loadPath), CompressionMode.Decompress);
             m_errorMessage = String.Empty;
             m_merge = merge;
+            m_requestId = requestId;
         }
 
-        public ArchiveReadRequest(Scene scene, Stream loadStream, bool merge)
+        public ArchiveReadRequest(Scene scene, Stream loadStream, bool merge, Guid requestId)
         {
             m_scene = scene;
             m_loadStream = loadStream;
             m_merge = merge;
+            m_requestId = requestId;
         }
 
         /// <summary>
@@ -141,7 +144,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_log.ErrorFormat(
                     "[ARCHIVER]: Error loading oar file. Exception was: {0}", e);
                 m_errorMessage += e.ToString();
-                m_scene.EventManager.TriggerOarFileLoaded(m_errorMessage);
+                m_scene.EventManager.TriggerOarFileLoaded(m_requestId, m_errorMessage);
                 return;
             }
 
@@ -163,8 +166,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
             IRegionSerialiserModule serialiser = m_scene.RequestModuleInterface<IRegionSerialiserModule>();
-            int sceneObjectsLoadedCount = 0;
-            
+            int sceneObjectsLoadedCount = 0;            
 
             foreach (string serialisedSceneObject in serialisedSceneObjects)
             {
@@ -247,7 +249,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
 
-            m_scene.EventManager.TriggerOarFileLoaded(m_errorMessage);
+            m_scene.EventManager.TriggerOarFileLoaded(m_requestId, m_errorMessage);
         }
 
         /// <summary>
