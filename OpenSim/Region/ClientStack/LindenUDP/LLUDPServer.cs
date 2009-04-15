@@ -403,7 +403,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void AddNewClient(UseCircuitCodePacket useCircuit, EndPoint epSender, EndPoint epProxy)
         {            
             //Slave regions don't accept new clients
-            if (m_localScene.Region_Status != RegionStatus.SlaveScene)
+            if (m_localScene.RegionStatus != RegionStatus.SlaveScene)
             {                
                 AuthenticateResponse sessionInfo;
                 bool isNewCircuit = false;

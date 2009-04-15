@@ -59,7 +59,7 @@ namespace OpenSim.Framework
     public interface IScene
     {
         RegionInfo RegionInfo { get; }
-        RegionStatus Region_Status { get; set; }
+        RegionStatus RegionStatus { get; set; }
 
         ClientManager ClientManager { get; }
         event restart OnRestart;

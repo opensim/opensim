@@ -886,7 +886,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_frame % m_update_backup == 0)
                         CleanTempObjects();
 
-                    if (Region_Status != RegionStatus.SlaveScene)
+                    if (RegionStatus != RegionStatus.SlaveScene)
                     {
                         if (m_frame % m_update_events == 0)
                             UpdateEvents();
