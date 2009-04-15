@@ -43,7 +43,7 @@ using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     [Serializable]
-    public class ScriptEngine : IRegionModule, IScriptEngine, IScriptModule
+    public class ScriptEngine : INonSharedRegionModule, IScriptEngine, IScriptModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -117,11 +117,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
         }
 
-        public void Initialise(Scene Sceneworld, IConfigSource config)
+        public void Initialise(IConfigSource config)
+        {
+            ConfigSource = config;
+        }
+
+        public void AddRegion(Scene Sceneworld)
         {
             m_log.Info("[" + ScriptEngineName + "]: ScriptEngine initializing");
 
-            ConfigSource = config;
             m_Scene = Sceneworld;
 
             // Make sure we have config
@@ -153,7 +157,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             m_Scene.StackModuleInterface<IScriptModule>(this);
         }
 
-        public void PostInitialise()
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void RegionLoaded(Scene scene)
         {
             if (!m_enabled)
                 return;

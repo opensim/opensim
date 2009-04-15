@@ -93,6 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private bool m_postOnRez;
         private bool m_startedFromSavedState = false;
         private string m_CurrentState = String.Empty;
+        private UUID m_RegionID = UUID.Zero;
 
         //private ISponsor m_ScriptSponsor;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
@@ -231,6 +232,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_MaxScriptQueue = maxScriptQueue;
             m_stateSource = stateSource;
             m_postOnRez = postOnRez;
+            m_RegionID = part.ParentGroup.Scene.RegionInfo.RegionID;
 
             if (part != null)
             {
@@ -979,6 +981,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             PluginData = AsyncCommandManager.GetSerializationData(m_Engine, m_ItemID);
 
             return ScriptSerializer.Serialize(this);
+        }
+
+        public UUID RegionID
+        {
+            get { return m_RegionID; }
         }
     }
 }

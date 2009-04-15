@@ -60,9 +60,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
         [Test]
         public void T001_XStart()
         {
-            IRegionModule xengine = new XEngine();
+            INonSharedRegionModule xengine = new XEngine();
             SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), xengine);
-            xengine.PostInitialise();
+            xengine.RegionLoaded(scene);
         }
     }
 }

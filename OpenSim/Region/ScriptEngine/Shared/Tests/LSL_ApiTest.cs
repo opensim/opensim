@@ -60,7 +60,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
 
             XEngine.XEngine engine = new XEngine.XEngine();
-            engine.Initialise(scene, initConfigSource);
+            engine.Initialise(initConfigSource);
+            engine.AddRegion(scene);
 
             m_lslApi = new LSL_Api();
             m_lslApi.Initialize(engine, part, part.LocalId, part.UUID);

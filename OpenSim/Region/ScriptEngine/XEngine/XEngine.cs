@@ -52,14 +52,14 @@ using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.XEngine
 {
-    public class XEngine : IRegionModule, IScriptModule, IScriptEngine
+    public class XEngine : INonSharedRegionModule, IScriptModule, IScriptEngine
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private SmartThreadPool m_ThreadPool;
         private int m_MaxScriptQueue;
         private Scene m_Scene;
-        private IConfig m_ScriptConfig;
+        private IConfig m_ScriptConfig = null;
         private ICompiler m_Compiler;
         private int m_MinThreads;
         private int m_MaxThreads ;
@@ -154,9 +154,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         //
         // IRegionModule functions
         //
-        public void Initialise(Scene scene, IConfigSource configSource)
+        public void Initialise(IConfigSource configSource)
         {
+            if (configSource.Configs["XEngine"] == null)
+                return;
+
             m_ScriptConfig = configSource.Configs["XEngine"];
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (m_ScriptConfig == null)
+                return;
             m_ScriptFailCount = 0;
             m_ScriptErrorMessage = String.Empty;
 
@@ -237,7 +246,52 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        public void PostInitialise()
+        public void RemoveRegion(Scene scene)
+        {
+            lock (m_Scripts)
+            {
+                foreach (IScriptInstance instance in m_Scripts.Values)
+                {
+                    // Force a final state save
+                    //
+                    if (m_Assemblies.ContainsKey(instance.AssetID))
+                    {
+                        string assembly = m_Assemblies[instance.AssetID];
+                        instance.SaveState(assembly);
+                    }
+
+                    // Clear the event queue and abort the instance thread
+                    //
+                    instance.ClearQueue();
+                    instance.Stop(0);
+
+                    // Unload scripts and app domains
+                    // Must be done explicitly because they have infinite
+                    // lifetime
+                    //
+                    m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
+                    if (m_DomainScripts[instance.AppDomain].Count == 0)
+                    {
+                        m_DomainScripts.Remove(instance.AppDomain);
+                        UnloadAppDomain(instance.AppDomain);
+                    }
+
+                    // Release events, timer, etc
+                    //
+                    instance.DestroyScriptInstance();
+                }
+                m_Scripts.Clear();
+                m_PrimObjects.Clear();
+                m_Assemblies.Clear();
+                m_DomainScripts.Clear();
+            }
+            lock (m_ScriptEngines)
+            {
+                m_ScriptEngines.Remove(this);
+            }
+        }
+
+        public void RegionLoaded(Scene scene)
         {
             if (!m_Enabled)
                 return;
@@ -344,11 +398,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public string Name
         {
             get { return "XEngine"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)

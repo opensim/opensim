@@ -30,7 +30,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IScriptModule : IRegionModule
+    public interface IScriptModule: INonSharedRegionModule
     {
         string ScriptEngineName { get; }
 
