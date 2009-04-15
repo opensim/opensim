@@ -260,6 +260,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private UUIDNameRequest handlerUUIDGroupNameRequest;
 
+        private ParcelDeedToGroup handlerParcelDeedToGroup;
+
         private RequestObjectPropertiesFamily handlerObjectGroupRequest;
         private ScriptReset handlerScriptReset;
         private GetScriptRunning handlerGetScriptRunning;
@@ -1014,6 +1016,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ParcelGodForceOwner OnParcelGodForceOwner;
         public event ParcelReclaim OnParcelReclaim;
         public event ParcelReturnObjectsRequest OnParcelReturnObjectsRequest;
+        public event ParcelDeedToGroup OnParcelDeedToGroup;
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
         public event FriendActionDelegate OnApproveFriendRequest;
@@ -3441,7 +3444,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     dataBlock[num] = new ParcelObjectOwnersReplyPacket.DataBlock();
                     dataBlock[num].Count = ownersAndCount[owner];
-                    dataBlock[num].IsGroupOwned = false; //TODO: fix me when group support is added
+
+                    if (m_GroupsModule != null)
+                    {
+                        //TODO: There's probably a better way to do this.
+                        GroupProfileData gpd;
+                        dataBlock[num].IsGroupOwned = m_GroupsModule.GetGroupProfile(owner, out gpd); 
+                    }
                     dataBlock[num].OnlineStatus = true; //TODO: fix me later
                     dataBlock[num].OwnerID = owner;
 
@@ -8596,6 +8605,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+
+
+                case PacketType.ParcelDeedToGroup:
+                    ParcelDeedToGroupPacket parcelDeedToGroup = (ParcelDeedToGroupPacket)Pack;
+                    if (m_GroupsModule != null)
+                    {
+                        handlerParcelDeedToGroup = OnParcelDeedToGroup;
+                        if (handlerParcelDeedToGroup != null)
+                        {
+                            handlerParcelDeedToGroup(parcelDeedToGroup.Data.LocalID, parcelDeedToGroup.Data.GroupID,this);
+
+                        }
+                    }
+
+                    break;
+
+
                 case PacketType.GroupNoticesListRequest:
                     GroupNoticesListRequestPacket groupNoticesListRequest =
                         (GroupNoticesListRequestPacket)Pack;

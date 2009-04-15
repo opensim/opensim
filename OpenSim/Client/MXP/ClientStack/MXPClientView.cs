@@ -668,6 +668,7 @@ namespace OpenSim.Client.MXP.ClientStack
         public event ParcelGodForceOwner OnParcelGodForceOwner;
         public event ParcelReclaim OnParcelReclaim;
         public event ParcelReturnObjectsRequest OnParcelReturnObjectsRequest;
+        public event ParcelDeedToGroup OnParcelDeedToGroup;
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
         public event FriendActionDelegate OnApproveFriendRequest;

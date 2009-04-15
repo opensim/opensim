@@ -64,5 +64,14 @@ namespace OpenSim.Region.Framework.Interfaces
         void LeaveGroupRequest(IClientAPI remoteClient, UUID GroupID);
         void EjectGroupMemberRequest(IClientAPI remoteClient, UUID GroupID, UUID EjecteeID);
         void InviteGroupRequest(IClientAPI remoteClient, UUID GroupID, UUID InviteeID, UUID RoleID);
+
+
+        /// <summary>
+        /// Retrieve group profile.
+        /// </summary>
+        /// <param name="GroupID"></param>
+        /// <param name="GroupProfile"></param>
+        /// <returns>False if group does not exist</returns>
+        bool GetGroupProfile(UUID GroupID, out GroupProfileData GroupProfile);
     }
 }
