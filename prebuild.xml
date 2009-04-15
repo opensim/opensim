@@ -2263,6 +2263,7 @@
       <Reference name="log4net.dll"/>
 
       <Files>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests" />
         </Match>
@@ -2305,6 +2306,7 @@
       <Reference name="Tools.dll"/>
 
       <Files>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
