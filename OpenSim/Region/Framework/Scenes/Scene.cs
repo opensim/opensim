@@ -213,7 +213,6 @@ namespace OpenSim.Region.Framework.Scenes
                     PhysicsScene.OnJointDeactivated += jointDeactivated;
                     PhysicsScene.OnJointErrorMessage += jointErrorMessage;
                 }
-
             }
         }
 

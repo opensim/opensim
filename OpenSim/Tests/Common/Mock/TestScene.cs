@@ -46,6 +46,19 @@ namespace OpenSim.Tests.Common.Mock
                    dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
         {
         }
+        
+        /// <summary>
+        /// Temporarily override session authentication for tests (namely teleport).
+        /// </summary>
+        /// 
+        /// TODO: This needs to be mocked out properly.
+        /// 
+        /// <param name="agent"></param>
+        /// <returns></returns>
+        public override bool AuthenticateUser(AgentCircuitData agent)
+        {
+            return true;
+        }        
             
         public AsyncSceneObjectGroupDeleter SceneObjectGroupDeleter
         {
