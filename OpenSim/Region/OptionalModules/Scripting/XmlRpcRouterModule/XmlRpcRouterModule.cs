@@ -41,7 +41,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcRouterModule
 {
     public class XmlRpcRouter : IRegionModule, IXmlRpcRouter
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         public void Initialise(Scene scene, IConfigSource config)
         {

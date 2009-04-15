@@ -770,7 +770,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (part != null)
                     part.RemoveScriptEvents(itemID);
 
-                bool objectRemoved = false;
+//                bool objectRemoved = false;
 
                 lock (m_PrimObjects)
                 {
@@ -785,7 +785,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         if (m_PrimObjects[localID].Count == 0)
                         {
                             m_PrimObjects.Remove(localID);
-                            objectRemoved = true;
+//                            objectRemoved = true;
                         }
                     }
                 }

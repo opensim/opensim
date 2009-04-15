@@ -86,10 +86,10 @@ namespace OpenSim.Framework.Servers
                 AssetBase asset = m_assetProvider.FetchAsset(assetID);
                 if (asset != null)
                 {
-                    if (asset.ContainsReferences && false)
-                    {                       
-                        asset.Data = ProcessOutgoingAssetData(asset.Data);
-                    }
+//                    if (asset.ContainsReferences)
+//                    {                       
+//                        asset.Data = ProcessOutgoingAssetData(asset.Data);
+//                    }
 
                     XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
                     MemoryStream ms = new MemoryStream();
@@ -136,24 +136,24 @@ namespace OpenSim.Framework.Servers
             {
                 string result = String.Empty;
 
-                string key = m.Groups[1].Captures[0].Value;
-
-                string value = m.Groups[2].Captures[0].Value;
-
-                Guid userUri;
-
-                switch (key)
-                {
-                    case "creator_id":
-                        userUri = new Guid(value);
-                        //         result = "creator_url " + userService(userService, userUri);
-                        break;
-
-                    case "owner_id":
-                        userUri = new Guid(value);
-                        //       result = "owner_url " + ResolveUserUri(userService, userUri);
-                        break;
-                }
+//                string key = m.Groups[1].Captures[0].Value;
+//
+//                string value = m.Groups[2].Captures[0].Value;
+//
+//                Guid userUri;
+//
+//                switch (key)
+//                {
+//                    case "creator_id":
+//                        userUri = new Guid(value);
+//                        //         result = "creator_url " + userService(userService, userUri);
+//                        break;
+//
+//                    case "owner_id":
+//                        userUri = new Guid(value);
+//                        //       result = "owner_url " + ResolveUserUri(userService, userUri);
+//                        break;
+//                }
 
                 return result;
             });

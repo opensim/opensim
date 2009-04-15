@@ -154,7 +154,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// <returns>null if the request fails</returns>
         public override UserProfileData GetUserProfile(UUID avatarID)
         {
-            string url = string.Empty;
+            //string url = string.Empty;
             // Unfortunately we can't query for foreigners here,
             // because we'll end up in an infinite loop...
             //if ((m_localUserServices != null) && (!IsForeignUser(avatarID, out url)))
