@@ -1962,6 +1962,9 @@ namespace OpenSim.Region.Framework.Scenes
                             //
                             foreach (IScriptModule m in m_scriptEngines)
                             {
+                                if (m == null) // No script engine loaded
+                                    continue;
+
                                 m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] {16384});
                             }
                         }
