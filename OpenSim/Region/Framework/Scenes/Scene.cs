@@ -167,6 +167,8 @@ namespace OpenSim.Region.Framework.Scenes
         private Thread HeartbeatThread;
         private volatile bool shuttingdown = false;
 
+        private int m_lastUpdate = Environment.TickCount;
+
         private object m_deleting_scene_object = new object();
 
         // the minimum time that must elapse before a changed object will be considered for persisted
@@ -787,6 +789,8 @@ namespace OpenSim.Region.Framework.Scenes
         private void Heartbeat(object sender)
         {
             Update();
+
+            m_lastUpdate = Environment.TickCount;
         }
 
         /// <summary>
@@ -3484,14 +3488,32 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int GetHealth()
         {
+            // Returns:
+            // 1 = sim is up and accepting http requests. The heartbeat has
+            // stopped and the sim is probably locked up, but a remote
+            // admin restart may succeed
+            //
+            // 2 = Sim is up and the heartbeat is running. The sim is likely
+            // usable for people within and logins _may_ work
+            //
+            // 3 = We have seen a new user enter within the past 4 minutes
+            // which can be seen as positive confirmation of sim health
+            //
             int health=1; // Start at 1, means we're up
+
+            if ((Environment.TickCount - m_lastUpdate) < 1000)
+                health+=1;
+            else
+                return health;
 
             // A login in the last 4 mins? We can't be doing too badly
             //
             if ((Environment.TickCount - m_LastLogin) < 240000)
                 health++;
+            else
+                return health;
 
-            return 0;
+            return health;
         }
 
         // This callback allows the PhysicsScene to call back to its caller (the SceneGraph) and
