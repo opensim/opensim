@@ -2733,28 +2733,29 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             
             
-            /*
+            
             // Inverse Inertia Matrix, set the X, Y, and/r Z inertia to 0 then invert it again.
             d.Mass objMass;
             d.MassSetZero(out objMass);
             DMassCopy(ref pMass, ref objMass);
 
-            m_log.DebugFormat("1-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", objMass.I.M00, objMass.I.M01, objMass.I.M02, objMass.I.M10, objMass.I.M11, objMass.I.M12, objMass.I.M20, objMass.I.M21, objMass.I.M22);
+            //m_log.DebugFormat("1-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", objMass.I.M00, objMass.I.M01, objMass.I.M02, objMass.I.M10, objMass.I.M11, objMass.I.M12, objMass.I.M20, objMass.I.M21, objMass.I.M22);
 
             Matrix4 dMassMat = FromDMass(objMass);
 
             Matrix4 mathmat = Inverse(dMassMat);
 
-            m_log.DebugFormat("2-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", mathmat[0, 0], mathmat[0, 1], mathmat[0, 2], mathmat[1, 0], mathmat[1, 1], mathmat[1, 2], mathmat[2, 0], mathmat[2, 1], mathmat[2, 2]);
+            /*
+            //m_log.DebugFormat("2-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", mathmat[0, 0], mathmat[0, 1], mathmat[0, 2], mathmat[1, 0], mathmat[1, 1], mathmat[1, 2], mathmat[2, 0], mathmat[2, 1], mathmat[2, 2]);
 
             mathmat = Inverse(mathmat);
 
 
             objMass = FromMatrix4(mathmat, ref objMass);
-            m_log.DebugFormat("3-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", objMass.I.M00, objMass.I.M01, objMass.I.M02, objMass.I.M10, objMass.I.M11, objMass.I.M12, objMass.I.M20, objMass.I.M21, objMass.I.M22);
+            //m_log.DebugFormat("3-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", objMass.I.M00, objMass.I.M01, objMass.I.M02, objMass.I.M10, objMass.I.M11, objMass.I.M12, objMass.I.M20, objMass.I.M21, objMass.I.M22);
 
             mathmat = Inverse(mathmat);
-
+            */
             if (axis.X == 0)
             {
                 mathmat.M33 = 50.0000001f;
@@ -2775,12 +2776,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             mathmat = Inverse(mathmat);
             objMass = FromMatrix4(mathmat, ref objMass);
-            m_log.DebugFormat("4-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", objMass.I.M00, objMass.I.M01, objMass.I.M02, objMass.I.M10, objMass.I.M11, objMass.I.M12, objMass.I.M20, objMass.I.M21, objMass.I.M22);
+            //m_log.DebugFormat("4-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", objMass.I.M00, objMass.I.M01, objMass.I.M02, objMass.I.M10, objMass.I.M11, objMass.I.M12, objMass.I.M20, objMass.I.M21, objMass.I.M22);
            
             //return;
+            if (d.MassCheck(ref objMass))
+            {
+                d.BodySetMass(Body, ref objMass);
+            }
+            else
+            {
+                //m_log.Debug("[PHYSICS]: Mass invalid, ignoring");
+            }
 
-            d.BodySetMass(Body, ref objMass);
-            */
             if (axisnum <= 0)
                 return;
             int dAMotorEuler = 1;

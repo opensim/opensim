@@ -134,7 +134,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             m_dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
             m_world = new btDiscreteDynamicsWorld(m_dispatcher, m_broadphase, m_solver, m_collisionConfiguration);
             m_world.setGravity(m_gravity);
-            EnableCollisionInterface();
+            //EnableCollisionInterface();
             
 
         }
