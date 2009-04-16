@@ -88,7 +88,7 @@ namespace OpenSim.Region.CoreModules
                 m_frame = 0;
 
                 // Register all the Wind Model Plug-ins
-                foreach (IWindModelPlugin windPlugin in AddinManager.GetExtensionObjects("/OpenSim/WindModule"))
+                foreach (IWindModelPlugin windPlugin in AddinManager.GetExtensionObjects("/OpenSim/WindModule", false))
                 {
                     m_log.InfoFormat("[WIND] Found Plugin: {0}", windPlugin.Name);
                     m_availableWindPlugins.Add(windPlugin.Name, windPlugin);
