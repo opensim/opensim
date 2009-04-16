@@ -39,16 +39,28 @@ namespace OpenSim.Framework.Communications.Cache
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <value>
+        /// Standard format for names.
+        /// </value>
+        public const string NAME_FORMAT = "{0} {1}";
+        
         /// <summary>
         /// The comms manager holds references to services (user, grid, inventory, etc.)
         /// </summary>
         private readonly CommunicationsManager m_commsManager;
 
         /// <summary>
-        /// Each user has a cached profile.
+        /// User profiles indexed by UUID
         /// </summary>
-        private readonly Dictionary<UUID, CachedUserInfo> m_userProfiles = new Dictionary<UUID, CachedUserInfo>();
-
+        private readonly Dictionary<UUID, CachedUserInfo> m_userProfilesById 
+            = new Dictionary<UUID, CachedUserInfo>();
+        
+        /// <summary>
+        /// User profiles indexed by name
+        /// </summary>
+        private readonly Dictionary<string, CachedUserInfo> m_userProfilesByName 
+            = new Dictionary<string, CachedUserInfo>();        
+        
         /// <summary>
         /// The root library folder.
         /// </summary>
@@ -89,25 +101,49 @@ namespace OpenSim.Framework.Communications.Cache
         /// <returns>true if the user was successfully removed, false otherwise</returns>
         public bool RemoveUser(UUID userId)
         {
-            lock (m_userProfiles)
+            if (!RemoveFromCaches(userId))
             {
-                if (m_userProfiles.ContainsKey(userId))
-                {
-                    m_userProfiles.Remove(userId);
-                    return true;
-                }
+                m_log.WarnFormat(
+                    "[USER CACHE]: Tried to remove the profile of user {0}, but this was not in the scene", userId);
+                
+                return false;
             }
 
-            m_log.WarnFormat(
-                "[USER CACHE]: Tried to remove the profile of user {0}, but this was not in the scene", userId);
-
-            return false;
+            return true;
         }
 
         /// <summary>
-        /// Get cached details of the given user.  If the user isn't in cache then the user is requested from the 
-        /// profile service.  
+        /// Get details of the given user.
         /// </summary>
+        /// If the user isn't in cache then the user is requested from the profile service.  
+        /// <param name="userID"></param>
+        /// <returns>null if no user details are found</returns>        
+        public CachedUserInfo GetUserDetails(string fname, string lname)
+        {
+            lock (m_userProfilesByName)
+            {    
+                CachedUserInfo userInfo;
+                
+                if (m_userProfilesByName.TryGetValue(string.Format(NAME_FORMAT, fname, lname), out userInfo))                    
+                {
+                    return userInfo;
+                }                
+                else
+                {                
+                    UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(fname, lname);
+                
+                    if (userProfile != null)
+                        return AddToCaches(userProfile);             
+                    else
+                        return null;
+                }               
+            }
+        }
+        
+        /// <summary>
+        /// Get details of the given user.
+        /// </summary>
+        /// If the user isn't in cache then the user is requested from the profile service.  
         /// <param name="userID"></param>
         /// <returns>null if no user details are found</returns>
         public CachedUserInfo GetUserDetails(UUID userID)
@@ -115,27 +151,68 @@ namespace OpenSim.Framework.Communications.Cache
             if (userID == UUID.Zero)
                 return null;
 
-            lock (m_userProfiles)
+            lock (m_userProfilesById)
             {
-                if (m_userProfiles.ContainsKey(userID))
+                if (m_userProfilesById.ContainsKey(userID))
                 {
-                    return m_userProfiles[userID];
+                    return m_userProfilesById[userID];
                 }
                 else
                 {
-                    UserProfileData userprofile = m_commsManager.UserService.GetUserProfile(userID);
-                    if (userprofile != null)
-                    {
-                        CachedUserInfo userinfo = new CachedUserInfo(m_commsManager, userprofile);
-                        m_userProfiles.Add(userID, userinfo);
-                        return userinfo;
-                    }
+                    UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(userID);
+                    if (userProfile != null)
+                        return AddToCaches(userProfile);
                     else
-                    {
                         return null;
-                    }
                 }
             }
+        }
+        
+        /// <summary>
+        /// Populate caches with the given user profile
+        /// </summary>
+        /// <param name="userProfile"></param>
+        protected CachedUserInfo AddToCaches(UserProfileData userProfile)
+        {
+            CachedUserInfo createdUserInfo = new CachedUserInfo(m_commsManager, userProfile);
+            
+            lock (m_userProfilesById)
+            {
+                m_userProfilesById[createdUserInfo.UserProfile.ID] = createdUserInfo;
+                
+                lock (m_userProfilesByName)
+                {
+                    m_userProfilesByName[createdUserInfo.UserProfile.Name] = createdUserInfo;
+                }
+            }
+            
+            return createdUserInfo;            
+        }
+        
+        /// <summary>
+        /// Remove profile belong to the given uuid from the caches
+        /// </summary>
+        /// <param name="userUuid"></param>
+        /// <returns>true if there was a profile to remove, false otherwise</returns>
+        protected bool RemoveFromCaches(UUID userId)
+        {
+            lock (m_userProfilesById)
+            {
+                if (m_userProfilesById.ContainsKey(userId))
+                {
+                    CachedUserInfo userInfo = m_userProfilesById[userId];                    
+                    m_userProfilesById.Remove(userId);
+                    
+                    lock (m_userProfilesByName)
+                    {
+                        m_userProfilesByName.Remove(userInfo.UserProfile.Name);
+                    }
+                    
+                    return true;
+                }
+            }        
+            
+            return false;
         }
 
         /// <summary>
@@ -145,21 +222,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="userData"></param>
         public void PreloadUserCache(UUID userID, UserProfileData userData)
         {
-            if (userID == UUID.Zero)
-                return;
-
-            lock (m_userProfiles)
-            {
-                if (m_userProfiles.ContainsKey(userID))
-                {
-                    return;
-                }
-                else
-                {
-                    CachedUserInfo userInfo = new CachedUserInfo(m_commsManager, userData);
-                    m_userProfiles.Add(userID, userInfo);
-                }
-            }
+            AddToCaches(userData);
         }
     }
 }
