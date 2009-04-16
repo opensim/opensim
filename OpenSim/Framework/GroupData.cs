@@ -30,6 +30,21 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
+    public class GroupRecord
+    {
+        public UUID GroupID;
+        public string GroupName;
+        public bool AllowPublish = true;
+        public bool MaturePublish = true;
+        public string Charter;
+        public UUID FounderID = UUID.Zero;
+        public UUID GroupPicture = UUID.Zero;
+        public int MembershipFee = 0;
+        public bool OpenEnrollment = true;
+        public UUID OwnerRoleID = UUID.Zero;
+        public bool ShowInList = false;
+    }
+
     public class GroupMembershipData
     {
         // Group base data
