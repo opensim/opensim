@@ -51,10 +51,10 @@ namespace OpenSim
 
         protected string m_startupCommandsFile;
         protected string m_shutdownCommandsFile;
+        protected bool m_gui = false;
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
-        private bool m_gui = false;
 
         public OpenSim(IConfigSource configSource) : base(configSource)
         {

@@ -35,7 +35,7 @@ namespace OpenSim
     /// <summary>
     /// Consoleless OpenSim region server
     /// </summary>
-    public class OpenSimBackground : OpenSimBase
+    public class OpenSimBackground : OpenSim
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -50,18 +50,10 @@ namespace OpenSim
         /// </summary>
         public override void Startup()
         {
-            //
-            // Called from app startup (OpenSim.Application)
-            //
-            m_log.Info("====================================================================");
-            m_log.Info("========================= STARTING OPENSIM =========================");
-            m_log.Info("====================================================================");
-            m_log.InfoFormat("[OPENSIM MAIN]: Running in background {0} mode",
-                             ConfigurationSettings.Standalone ? "sandbox" : "grid");
+            m_gui = false;
 
             base.Startup();
 
-            // We are done with startup
             m_log.InfoFormat("[OPENSIM MAIN]: Startup complete, serving {0} region{1}",
                              m_clientServers.Count.ToString(), m_clientServers.Count > 1 ? "s" : "");
 
@@ -74,7 +66,6 @@ namespace OpenSim
         public override void Shutdown()
         {
             WorldHasComeToAnEnd.Set();
-
             base.Shutdown();
         }
     }
