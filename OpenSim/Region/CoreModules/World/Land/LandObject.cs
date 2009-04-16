@@ -734,7 +734,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
 
-                remote_client.SendLandObjectOwners(primCount);
+                remote_client.SendLandObjectOwners(landData, primCount);
             }
         }
 

@@ -892,7 +892,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void SendForceClientSelectObjects(List<uint> objectIDs)
         {
         }
-        public void SendLandObjectOwners(Dictionary<UUID, int> ownersAndCount)
+        public void SendLandObjectOwners(LandData land, Dictionary<UUID, int> ownersAndCount)
         {
         }
         public void SendLandParcelOverlay(byte[] data, int sequence_id)

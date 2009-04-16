@@ -996,7 +996,7 @@ namespace OpenSim.Framework
 
         void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID);
         void SendForceClientSelectObjects(List<uint> objectIDs);
-        void SendLandObjectOwners(Dictionary<UUID, int> ownersAndCount);
+        void SendLandObjectOwners(LandData land, Dictionary<UUID, int> ownersAndCount);
         void SendLandParcelOverlay(byte[] data, int sequence_id);
 
         #region Parcel Methods

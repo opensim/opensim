@@ -885,7 +885,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
         
-        public void SendLandObjectOwners(Dictionary<UUID, int> ownersAndCount)
+        public void SendLandObjectOwners(LandData land, Dictionary<UUID, int> ownersAndCount)
         {
         }
         
