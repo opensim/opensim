@@ -33,7 +33,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// UserConfig -- For User Server Configuration
     /// </summary>
-    public class UserConfig:ConfigBase
+    public class UserConfig
     {
         public static uint DefaultHttpPort = 8002;
         public static bool DefaultHttpSSL = false;

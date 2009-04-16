@@ -32,7 +32,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// Message Server Config - Configuration of the Message Server
     /// </summary>
-    public class MessageServerConfig:ConfigBase
+    public class MessageServerConfig
     {
         public static uint DefaultHttpPort = 8006;
         public static bool DefaultHttpSSL = false;

@@ -32,7 +32,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// Defines and handles inventory grid server configuration
     /// </summary>
-    public class InventoryConfig:ConfigBase
+    public class InventoryConfig
     {
         public static uint DefaultHttpPort = 8004;
 

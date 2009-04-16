@@ -33,7 +33,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// AssetConfig -- For Asset Server Configuration
     /// </summary>
-    public class AssetConfig:ConfigBase
+    public class AssetConfig
     {
         public const uint DefaultHttpPort = 8003;
 
