@@ -218,9 +218,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Preloads User data into the region cache. Modules may use this service to add non-standard clients
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="userData"></param>
-        public void PreloadUserCache(UUID userID, UserProfileData userData)
+        public void PreloadUserCache(UserProfileData userData)
         {
             AddToCaches(userData);
         }

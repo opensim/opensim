@@ -542,7 +542,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             }
             
             // Stick our data in the cache so the region will know something about us
-            homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(agentData.AgentID, userProfile);
+            homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(userProfile);
 
             // Call 'new user' event handler
             homeScene.NewUserConnection(agentData);

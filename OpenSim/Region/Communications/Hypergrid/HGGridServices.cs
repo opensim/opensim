@@ -777,7 +777,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                 //m_log.Debug("XXX---- EVERYTHING OK ---XXX");
 
                 // 1 - Preload the user data
-                m_userProfileCache.PreloadUserCache(userData.ID, userData);
+                m_userProfileCache.PreloadUserCache(userData);
 
                 if (m_knownRegions.ContainsKey(userData.ID))
                 {
