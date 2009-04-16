@@ -1,7 +1,5 @@
 NANT	= $(shell if test "$$EMACS" = "t" ; then echo "nant"; else echo "./nant-color"; fi)
 
-include $(wildcard Makefile.local)
-
 all: prebuild
 	# @export PATH=/usr/local/bin:$(PATH)
 	${NANT}
@@ -26,4 +24,6 @@ test-xml: prebuild
 
 tags:
 	find OpenSim -name \*\.cs | xargs etags 
+
+include $(wildcard Makefile.local)
 
