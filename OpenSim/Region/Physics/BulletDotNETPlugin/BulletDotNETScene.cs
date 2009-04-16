@@ -103,6 +103,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private readonly btVector3 worldAabbMax = new btVector3((int)Constants.RegionSize + 10f, (int)Constants.RegionSize + 10f, 9000);
 
         public IMesher mesher;
+        private ContactAddedCallbackHandler m_CollisionInterface;
 
         public BulletDotNETScene(string sceneIdentifier)
         {
@@ -112,6 +113,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             TransZero = new btTransform(QuatIdentity, VectorZero);
             m_gravity = new btVector3(0, 0, gravityz);
             _origheightmap = new float[(int)Constants.RegionSize * (int)Constants.RegionSize];
+            
         }
 
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
@@ -132,6 +134,9 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             m_dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
             m_world = new btDiscreteDynamicsWorld(m_dispatcher, m_broadphase, m_solver, m_collisionConfiguration);
             m_world.setGravity(m_gravity);
+            EnableCollisionInterface();
+            
+
         }
 
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size, bool isFlying)
@@ -289,7 +294,19 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 */
                 prm.UpdatePositionAndVelocity();
             }
+            if (m_CollisionInterface != null)
+            {
+                List<int> collisions = m_CollisionInterface.GetContactList();
+                lock (collisions)
+                {
+                    foreach (int pvalue in collisions)
+                    {
+                        System.Console.Write(string.Format("{0} ", pvalue));
+                    }
+                }
+                m_CollisionInterface.Clear();
 
+            }
             return steps;
         }
 
@@ -675,5 +692,14 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 }
             }
         }
+        internal void EnableCollisionInterface()
+        {
+            if (m_CollisionInterface == null)
+            {
+                m_CollisionInterface = new ContactAddedCallbackHandler();
+                m_world.SetCollisionAddedCallback(m_CollisionInterface);
+            }
+        }
+
     }
 }

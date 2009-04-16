@@ -1512,8 +1512,20 @@ namespace OpenSim.Region.Physics.OdePlugin
             float fy = 0;
             float fz = 0;
 
+                
             if (IsPhysical && Body != IntPtr.Zero && !m_isSelected)
             {
+                if (d.BodyIsEnabled(Body) && !m_angularlock.IsIdentical(PhysicsVector.Zero, 0.003f))
+                {
+                    d.Vector3 avel2 = d.BodyGetAngularVel(Body);
+                    if (m_angularlock.X == 1)
+                        avel2.X = 0;
+                    if (m_angularlock.Y == 1)
+                        avel2.Y = 0;
+                    if (m_angularlock.Z == 1)
+                        avel2.Z = 0;
+                    d.BodySetAngularVel(Body, avel2.X, avel2.Y, avel2.Z);
+                }
                 //float PID_P = 900.0f;
 
                 float m_mass = CalculateMass();
@@ -2716,15 +2728,66 @@ namespace OpenSim.Region.Physics.OdePlugin
             float axisnum = 3;
 
             axisnum = (axisnum - (axis.X + axis.Y + axis.Z));
+
+            PhysicsVector totalSize = new PhysicsVector(_size.X, _size.Y, _size.Z);
+
+            
+            
+            /*
+            // Inverse Inertia Matrix, set the X, Y, and/r Z inertia to 0 then invert it again.
+            d.Mass objMass;
+            d.MassSetZero(out objMass);
+            DMassCopy(ref pMass, ref objMass);
+
+            m_log.DebugFormat("1-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", objMass.I.M00, objMass.I.M01, objMass.I.M02, objMass.I.M10, objMass.I.M11, objMass.I.M12, objMass.I.M20, objMass.I.M21, objMass.I.M22);
+
+            Matrix4 dMassMat = FromDMass(objMass);
+
+            Matrix4 mathmat = Inverse(dMassMat);
+
+            m_log.DebugFormat("2-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", mathmat[0, 0], mathmat[0, 1], mathmat[0, 2], mathmat[1, 0], mathmat[1, 1], mathmat[1, 2], mathmat[2, 0], mathmat[2, 1], mathmat[2, 2]);
+
+            mathmat = Inverse(mathmat);
+
+
+            objMass = FromMatrix4(mathmat, ref objMass);
+            m_log.DebugFormat("3-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", objMass.I.M00, objMass.I.M01, objMass.I.M02, objMass.I.M10, objMass.I.M11, objMass.I.M12, objMass.I.M20, objMass.I.M21, objMass.I.M22);
+
+            mathmat = Inverse(mathmat);
+
+            if (axis.X == 0)
+            {
+                mathmat.M33 = 50.0000001f;
+                //objMass.I.M22 = 0;
+            }
+            if (axis.Y == 0)
+            {
+                mathmat.M22 = 50.0000001f;
+                //objMass.I.M11 = 0;
+            }
+            if (axis.Z == 0)
+            {
+                mathmat.M11 = 50.0000001f;
+                //objMass.I.M00 = 0;
+            }
+            
             
 
+            mathmat = Inverse(mathmat);
+            objMass = FromMatrix4(mathmat, ref objMass);
+            m_log.DebugFormat("4-{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, ", objMass.I.M00, objMass.I.M01, objMass.I.M02, objMass.I.M10, objMass.I.M11, objMass.I.M12, objMass.I.M20, objMass.I.M21, objMass.I.M22);
+           
+            //return;
+
+            d.BodySetMass(Body, ref objMass);
+            */
             if (axisnum <= 0)
                 return;
             int dAMotorEuler = 1;
 
             Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
             d.JointAttach(Amotor, Body, IntPtr.Zero);
-            d.JointSetAMotorMode(Amotor, dAMotorEuler);
+            d.JointSetAMotorMode(Amotor, 0);
 
             d.JointSetAMotorNumAxes(Amotor,(int)axisnum);
             int i = 0;
@@ -2756,15 +2819,52 @@ namespace OpenSim.Region.Physics.OdePlugin
             //d.JointSetAMotorAngle(Amotor, 2, 0);
 
             // These lowstops and high stops are effectively (no wiggle room)
-            d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
-
+            d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0f);
+            //d.JointSetAMotorParam(Amotor, (int) dParam.Vel, 9000f);
             d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, m_tensor * 5);//
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, Mass * 50f);//
+            
+        }
+
+        public Matrix4 FromDMass(d.Mass pMass)
+        {
+            Matrix4 obj;
+            obj.M11 = pMass.I.M00;
+            obj.M12 = pMass.I.M01;
+            obj.M13 = pMass.I.M02;
+            obj.M14 = 0;
+            obj.M21 = pMass.I.M10;
+            obj.M22 = pMass.I.M11;
+            obj.M23 = pMass.I.M12;
+            obj.M24 = 0;
+            obj.M31 = pMass.I.M20;
+            obj.M32 = pMass.I.M21;
+            obj.M33 = pMass.I.M22;
+            obj.M34 = 0;
+            obj.M41 = 0;
+            obj.M42 = 0;
+            obj.M43 = 0;
+            obj.M44 = 1;
+            return obj;
+        }
+
+        public d.Mass FromMatrix4(Matrix4 pMat, ref d.Mass obj)
+        {
+            obj.I.M00 = pMat[0, 0];
+            obj.I.M01 = pMat[0, 1];
+            obj.I.M02 = pMat[0, 2];
+            obj.I.M10 = pMat[1, 0];
+            obj.I.M11 = pMat[1, 1];
+            obj.I.M12 = pMat[1, 2];
+            obj.I.M20 = pMat[2, 0];
+            obj.I.M21 = pMat[2, 1];
+            obj.I.M22 = pMat[2, 2];
+            return obj;
         }
 
         public override void SubscribeEvents(int ms)
@@ -2805,5 +2905,182 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return true;
             return false;
         }
+
+        public static Matrix4 Inverse(Matrix4 pMat)
+        {
+            if (determinant3x3(pMat) == 0)
+            {
+                return Matrix4.Identity; // should probably throw an error.  singluar matrix inverse not possible
+            }
+
+
+
+            return (Adjoint(pMat) / determinant3x3(pMat));
+        }
+
+        public static Matrix4 Adjoint(Matrix4 pMat)
+        {
+            Matrix4 adjointMatrix = new Matrix4();
+            for (int i=0; i<4; i++)
+            {
+                for (int j=0; j<4; j++)
+                {
+                    Matrix4SetValue(ref adjointMatrix, i, j, (float)(Math.Pow(-1, i + j) * (determinant3x3(Minor(pMat, i, j)))));
+                }
+            }
+
+            adjointMatrix = Transpose(adjointMatrix);
+            return adjointMatrix;
+        }
+
+        public static Matrix4 Minor(Matrix4 matrix, int iRow, int iCol)
+        {
+            Matrix4 minor = new Matrix4();
+            int m = 0, n = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                if (i == iRow)
+                    continue;
+                n = 0;
+                for (int j = 0; j < 4; j++)
+                {
+                    if (j == iCol)
+                        continue;
+                    Matrix4SetValue(ref minor, m,n, matrix[i, j]);
+                    n++;
+                }
+                m++;
+            }
+            return minor;
+        }
+
+        public static Matrix4 Transpose(Matrix4 pMat)
+        {
+            Matrix4 transposeMatrix = new Matrix4();
+            for (int i = 0; i < 4; i++)
+                for (int j = 0; j < 4; j++)
+                    Matrix4SetValue( ref transposeMatrix, i, j, pMat[j, i]);
+            return transposeMatrix;
+        }
+
+        public static void Matrix4SetValue(ref Matrix4 pMat, int r, int c, float val)
+        {
+            switch (r)
+            {
+                case 0:
+                    switch (c)
+                    {
+                        case 0:
+                            pMat.M11 = val;
+                            break;
+                        case 1:
+                            pMat.M12 = val;
+                            break;
+                        case 2:
+                            pMat.M13 = val;
+                            break;
+                        case 3:
+                            pMat.M14 = val;
+                            break;
+                    }
+
+                    break;
+                case 1:
+                    switch (c)
+                    {
+                        case 0:
+                            pMat.M21 = val;
+                            break;
+                        case 1:
+                            pMat.M22 = val;
+                            break;
+                        case 2:
+                            pMat.M23 = val;
+                            break;
+                        case 3:
+                            pMat.M24 = val;
+                            break;
+                    }
+
+                    break;
+                case 2:
+                    switch (c)
+                    {
+                        case 0:
+                            pMat.M31 = val;
+                            break;
+                        case 1:
+                            pMat.M32 = val;
+                            break;
+                        case 2:
+                            pMat.M33 = val;
+                            break;
+                        case 3:
+                            pMat.M34 = val;
+                            break;
+                    }
+
+                    break;
+                case 3:
+                    switch (c)
+                    {
+                        case 0:
+                            pMat.M41 = val;
+                            break;
+                        case 1:
+                            pMat.M42 = val;
+                            break;
+                        case 2:
+                            pMat.M43 = val;
+                            break;
+                        case 3:
+                            pMat.M44 = val;
+                            break;
+                    }
+
+                    break;
+            }
+        }
+        private static float determinant3x3(Matrix4 pMat)
+        {
+            float det = 0;
+            float diag1 = pMat[0, 0]*pMat[1, 1]*pMat[2, 2];
+            float diag2 = pMat[0, 1]*pMat[2, 1]*pMat[2, 0];
+            float diag3 = pMat[0, 2]*pMat[1, 0]*pMat[2, 1];
+            float diag4 = pMat[2, 0]*pMat[1, 1]*pMat[0, 2];
+            float diag5 = pMat[2, 1]*pMat[1, 2]*pMat[0, 0];
+            float diag6 = pMat[2, 2]*pMat[1, 0]*pMat[0, 1];
+
+            det = diag1 + diag2 + diag3 - (diag4 + diag5 + diag6);
+            return det;
+
+        }
+        private static float Determinant(Matrix4 matrix)
+        {
+            float det = 0;
+
+            for (int j = 0; j < 4; j++)
+                det += (matrix[0, j] * Determinant(Minor(matrix, 0, j)) * (int)System.Math.Pow(-1, 0 + j));
+            return det;
+        }
+
+        private static void DMassCopy(ref d.Mass src, ref d.Mass dst)
+        {
+            dst.c.W = src.c.W;
+            dst.c.X = src.c.X;
+            dst.c.Y = src.c.Y;
+            dst.c.Z = src.c.Z;
+            dst.mass = src.mass;
+            dst.I.M00 = src.I.M00;
+            dst.I.M01 = src.I.M01;
+            dst.I.M02 = src.I.M02;
+            dst.I.M10 = src.I.M10;
+            dst.I.M11 = src.I.M11;
+            dst.I.M12 = src.I.M12;
+            dst.I.M20 = src.I.M20;
+            dst.I.M21 = src.I.M21;
+            dst.I.M22 = src.I.M22;
+        }
+
     }
 }

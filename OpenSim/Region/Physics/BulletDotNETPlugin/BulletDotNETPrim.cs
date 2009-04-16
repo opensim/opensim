@@ -1289,7 +1289,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             }
             else
             {
-                Body.setCollisionFlags(0);
+                Body.setCollisionFlags(0 | (int)ContactFlags.CF_CUSTOM_MATERIAL_CALLBACK);
                 enableBodySoft();
             }
             m_isSelected = m_taintselected;
@@ -2140,6 +2140,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     ((btGImpactMeshShape) prim_geom).setLocalScaling(new btVector3(1, 1, 1));
                     ((btGImpactMeshShape) prim_geom).updateBound();
                 }
+                Body.setCollisionFlags(Body.getCollisionFlags() | (int)ContactFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+                Body.setUserPointer((IntPtr) m_localID);
                 _parent_scene.AddPrimToScene(this);
             }
             else
