@@ -1228,7 +1228,7 @@ namespace OpenSim.Client.MXP.ClientStack
             // Need to translate to MXP somehow
         }
 
-        public void SendLandObjectOwners(LandData land, Dictionary<UUID, int> ownersAndCount)
+        public void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount)
         {
             // Need to translate to MXP somehow
         }

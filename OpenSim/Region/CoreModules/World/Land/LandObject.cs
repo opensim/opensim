@@ -699,6 +699,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (m_scene.Permissions.CanEditParcel(remote_client.AgentId, this))
             {
                 Dictionary<UUID, int> primCount = new Dictionary<UUID, int>();
+                List<UUID> groups = new List<UUID>();
 
                 lock (primsOverMe)
                 {
@@ -726,6 +727,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                             {
                                 m_log.Error("[LAND]: Unable to match a prim with it's owner.");
                             }
+                            if (obj.OwnerID == obj.GroupID && (!groups.Contains(obj.OwnerID)))
+                                groups.Add(obj.OwnerID);
                         }
                     }
                     catch (InvalidOperationException)
@@ -734,7 +737,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
 
-                remote_client.SendLandObjectOwners(landData, primCount);
+                remote_client.SendLandObjectOwners(landData, groups, primCount);
             }
         }
 

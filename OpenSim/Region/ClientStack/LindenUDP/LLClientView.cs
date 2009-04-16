@@ -3420,7 +3420,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void SendLandObjectOwners(LandData land, Dictionary<UUID, int> ownersAndCount)
+        public void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount)
         {
             int notifyCount = ownersAndCount.Count;
             ParcelObjectOwnersReplyPacket pack = (ParcelObjectOwnersReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelObjectOwnersReply);
@@ -3445,7 +3445,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     dataBlock[num] = new ParcelObjectOwnersReplyPacket.DataBlock();
                     dataBlock[num].Count = ownersAndCount[owner];
 
-                    if (land.GroupID == owner)
+                    if (land.GroupID == owner || groups.Contains(owner))
                         dataBlock[num].IsGroupOwned = true;
 
                     dataBlock[num].OnlineStatus = true; //TODO: fix me later
