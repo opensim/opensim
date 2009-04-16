@@ -29,7 +29,7 @@ using System;
 
 namespace OpenSim.Framework
 {
-    public class GridConfig
+    public class GridConfig:ConfigBase
     {
         public static uint DefaultHttpPort = 8001;
 
