@@ -76,6 +76,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                 // add REST method handlers
                 AddRestStreamHandler("GET", "/regions/", GetHandler);
                 AddRestStreamHandler("POST", "/regions/", PostHandler);
+                AddRestStreamHandler("GET", "/regioninfo/", GetRegionInfoHandler);
             }
             catch (Exception e)
             {
