@@ -1368,15 +1368,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (UUID.TryParse(id, out key))
             {
-                UserProfileData UserProfile = World.CommsManager.UserService
-                    .GetUserProfile(key);
-                if (UserProfile==null) 
+                CachedUserInfo userInfo = World.CommsManager.UserProfileCacheService.GetUserDetails(key);
+
+                if (null == userInfo) 
                 {
                     return "";
                 } 
                 else 
                 {
-                    return UserProfile.Name;
+                    return userInfo.UserProfile.Name;
                 }
             } 
             else
