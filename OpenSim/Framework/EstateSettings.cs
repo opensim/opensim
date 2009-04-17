@@ -43,12 +43,12 @@ namespace OpenSim.Framework
 
         // Only the client uses these
         //
-        private uint m_EstateId = 100;
+        private uint m_EstateID = 100;
 
         public uint EstateID
         {
-            get { return m_EstateId; }
-            set { m_EstateId = value; }
+            get { return m_EstateID; }
+            set { m_EstateID = value; }
         }
 
         private string m_EstateName;
@@ -466,7 +466,7 @@ namespace OpenSim.Framework
                     m_BillableFactor = (float) configuration_result;
                     break;
 //                case "estate_id":
-//                    m_EstateId = (uint) configuration_result;
+//                    m_EstateID = (uint) configuration_result;
 //                    break;
 //                case "parent_estate_id":
 //                    m_ParentEstateID = (uint) configuration_result;
