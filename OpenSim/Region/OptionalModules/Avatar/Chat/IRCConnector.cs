@@ -426,8 +426,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         public void PrivMsg(string pattern, string from, string region, string msg)
         {
 
-            m_log.DebugFormat("[IRC-Connector-{0}] PrivMsg to IRC from {1}: <{2}>", idn, from, 
-                String.Format(pattern, m_ircChannel, from, region, msg));
+            // m_log.DebugFormat("[IRC-Connector-{0}] PrivMsg to IRC from {1}: <{2}>", idn, from, 
+            //     String.Format(pattern, m_ircChannel, from, region, msg));
 
             // One message to the IRC server
 
@@ -435,7 +435,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             {
                 m_writer.WriteLine(pattern, m_ircChannel, from, region, msg);
                 m_writer.Flush();
-                m_log.DebugFormat("[IRC-Connector-{0}]: PrivMsg from {1} in {2}: {3}", idn, from, region, msg);
+                // m_log.DebugFormat("[IRC-Connector-{0}]: PrivMsg from {1} in {2}: {3}", idn, from, region, msg);
             }
             catch (IOException)
             {
@@ -453,13 +453,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         public void Send(string msg)
         {
 
-            m_log.DebugFormat("[IRC-Connector-{0}] Send to IRC : <{1}>", idn,  msg);
+            // m_log.DebugFormat("[IRC-Connector-{0}] Send to IRC : <{1}>", idn,  msg);
 
             try
             {
                 m_writer.WriteLine(msg);
                 m_writer.Flush();
-                m_log.DebugFormat("[IRC-Connector-{0}] Sent command string: {1}", idn, msg);
+                // m_log.DebugFormat("[IRC-Connector-{0}] Sent command string: {1}", idn, msg);
             }
             catch (IOException)
             {
@@ -658,10 +658,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                 case "366" : // End-of-Name list marker
                 case "372" : // MOTD body
                 case "375" : // MOTD start
-                    m_log.InfoFormat("[IRC-Connector-{0}] [{1}] {2}", idn, cmd, parms.Split(CS_SPACE,2)[1]);
+                    // m_log.InfoFormat("[IRC-Connector-{0}] [{1}] {2}", idn, cmd, parms.Split(CS_SPACE,2)[1]);
                     break;
                 case "376" : // MOTD end
-                    m_log.InfoFormat("[IRC-Connector-{0}] [{1}] {2}", idn, cmd, parms.Split(CS_SPACE,2)[1]);
+                    // m_log.InfoFormat("[IRC-Connector-{0}] [{1}] {2}", idn, cmd, parms.Split(CS_SPACE,2)[1]);
                     motd = true;
                     break;
                 case "451" : // Not registered
@@ -686,7 +686,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                     m_pending   = false;
                     break;
                 case "NOTICE" :
-                    m_log.WarnFormat("[IRC-Connector-{0}] [{1}] {2}", idn, cmd, parms.Split(CS_SPACE,2)[1]);
+                    // m_log.WarnFormat("[IRC-Connector-{0}] [{1}] {2}", idn, cmd, parms.Split(CS_SPACE,2)[1]);
                     break;
                 case "ERROR"  :
                     m_log.ErrorFormat("[IRC-Connector-{0}] [{1}] {2}", idn, cmd, parms.Split(CS_SPACE,2)[1]);
