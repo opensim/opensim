@@ -66,6 +66,7 @@ namespace OpenSim
         public override void Shutdown()
         {
             WorldHasComeToAnEnd.Set();
+            m_log.Info("[OPENSIM MAIN]: World has come to an end");
             base.Shutdown();
         }
     }
