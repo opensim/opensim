@@ -64,6 +64,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 m_angularMotorDirection = Vector3.Zero;
         private Vector3 m_linearFrictionTimescale = Vector3.Zero;
         private Vector3 m_linearMotorDirection = Vector3.Zero;
+        private Vector3 m_linearMotorDirectionLASTSET = Vector3.Zero;
         private Vector3 m_linearMotorOffset = Vector3.Zero;
         private float m_angularDeflectionEfficiency = 0;
         private float m_angularDeflectionTimescale = 0;
@@ -86,7 +87,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private VehicleFlag m_flags = (VehicleFlag) 0;
 
         private bool m_LinearMotorSetLastFrame = false;
-
+        
 
 
 
@@ -173,7 +174,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
                     m_linearMotorDirection = new Vector3(pValue, pValue, pValue);
-                    m_LinearMotorSetLastFrame = true;
+                    m_linearMotorDirectionLASTSET = new Vector3(pValue, pValue, pValue);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
                     m_linearMotorOffset = new Vector3(pValue, pValue, pValue);
@@ -199,6 +200,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
                     m_linearMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    m_linearMotorDirectionLASTSET = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
                     m_linearMotorOffset = new Vector3(pValue.X, pValue.Y, pValue.Z);
@@ -466,27 +468,31 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (!m_linearMotorDirection.ApproxEquals(Vector3.Zero, 0.01f))
             {
+                
                 Vector3 addAmount = m_linearMotorDirection/(m_linearMotorTimescale/pTimestep);
                 m_lastLinearVelocityVector += (addAmount*10);
 
                 // This will work temporarily, but we really need to compare speed on an axis
-                if (Math.Abs(m_lastLinearVelocityVector.X) > Math.Abs(m_linearMotorDirection.X))
-                    m_lastLinearVelocityVector.X = m_linearMotorDirection.X;
-                if (Math.Abs(m_lastLinearVelocityVector.Y) > Math.Abs(m_linearMotorDirection.Y))
-                    m_lastLinearVelocityVector.Y = m_linearMotorDirection.Y;
-                if (Math.Abs(m_lastLinearVelocityVector.Z) > Math.Abs(m_linearMotorDirection.Z))
-                    m_lastLinearVelocityVector.Z = m_linearMotorDirection.Z;
-                //System.Console.WriteLine("add: " + addAmount);
-                
-                m_linearMotorDirection -= (m_linearMotorDirection*new Vector3(1, 1, 1)/
-                                          (m_linearMotorDecayTimescale/pTimestep)) * 0.10f;
+                if (Math.Abs(m_lastLinearVelocityVector.X) > Math.Abs(m_linearMotorDirectionLASTSET.X))
+                    m_lastLinearVelocityVector.X = m_linearMotorDirectionLASTSET.X;
+                if (Math.Abs(m_lastLinearVelocityVector.Y) > Math.Abs(m_linearMotorDirectionLASTSET.Y))
+                    m_lastLinearVelocityVector.Y = m_linearMotorDirectionLASTSET.Y;
+                if (Math.Abs(m_lastLinearVelocityVector.Z) > Math.Abs(m_linearMotorDirectionLASTSET.Z))
+                    m_lastLinearVelocityVector.Z = m_linearMotorDirectionLASTSET.Z;
+                //Console.WriteLine("add: " + addAmount);
+
+                Vector3 decayfraction = ((Vector3.One/(m_linearMotorDecayTimescale/pTimestep)));
+                //Console.WriteLine("decay: " + decayfraction);
+
+                m_linearMotorDirection -= m_linearMotorDirection * decayfraction;
                 //Console.WriteLine("actual: " + m_linearMotorDirection);
             }
+
             //System.Console.WriteLine(m_linearMotorDirection + " " + m_lastLinearVelocityVector);
 
             SetMotorProperties();
-            
-            Vector3 decayamount = new Vector3(1,1,1)/(m_linearFrictionTimescale/pTimestep);
+
+            Vector3 decayamount = Vector3.One / (m_linearFrictionTimescale / pTimestep);
             m_lastLinearVelocityVector -= m_lastLinearVelocityVector * decayamount;
             
             //m_linearMotorDirection  *= decayamount;
@@ -507,7 +513,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
 
                 d.JointSetLMotorAxis(m_lMotor1, 0, 1, dirNorm.X, dirNorm.Y, dirNorm.Z);
-                d.JointSetLMotorParam(m_lMotor1, (int)dParam.Vel, m_linearMotorDirection.Length());
+                d.JointSetLMotorParam(m_lMotor1, (int)dParam.Vel, m_lastLinearVelocityVector.Length());
 
                 d.JointSetLMotorParam(m_lMotor1, (int)dParam.FMax, 35f * objMass.mass);
             }
