@@ -29,6 +29,7 @@ using System;
 using System.Xml;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -58,14 +59,15 @@ namespace OpenSim.Region.DataSnapshot.Providers
             if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                 ownerid = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
-            UserProfileData userProfile = m_scene.CommsManager.UserService.GetUserProfile(ownerid);
+            CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(ownerid);
 
             //TODO: Change to query userserver about the master avatar UUID ?
             String firstname;
             String lastname;
 
-            if (userProfile != null)
+            if (userInfo != null)
             {
+                UserProfileData userProfile = userInfo.UserProfile;                
                 firstname = userProfile.FirstName;
                 lastname = userProfile.SurName;
 
@@ -109,9 +111,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
             publicaccess.Value = m_scene.RegionInfo.EstateSettings.PublicAccess.ToString();
             flags.Attributes.Append(publicaccess);
 
-
             estatedata.AppendChild(flags);
-
 
             this.Stale = false;
             return estatedata;
