@@ -1948,29 +1948,32 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //m_log.DebugFormat("Updating movement animation to {0}", anim);
             
-            if (m_animations.TrySetDefaultAnimation(anim, m_controllingClient.NextAnimationSequenceNumber, UUID.Zero))
+            if (!m_isChildAgent)
             {
-                if (m_scriptEngines != null)
+                if (m_animations.TrySetDefaultAnimation(anim, m_controllingClient.NextAnimationSequenceNumber, UUID.Zero))
                 {
-                    lock (m_attachments)
+                    if (m_scriptEngines != null)
                     {
-                        foreach (SceneObjectGroup grp in m_attachments)
+                        lock (m_attachments)
                         {
-                            // 16384 is CHANGED_ANIMATION
-                            //
-                            // Send this to all attachment root prims
-                            //
-                            foreach (IScriptModule m in m_scriptEngines)
+                            foreach (SceneObjectGroup grp in m_attachments)
                             {
-                                if (m == null) // No script engine loaded
-                                    continue;
+                                // 16384 is CHANGED_ANIMATION
+                                //
+                                // Send this to all attachment root prims
+                                //
+                                foreach (IScriptModule m in m_scriptEngines)
+                                {
+                                    if (m == null) // No script engine loaded
+                                        continue;
 
-                                m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] {16384});
+                                    m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { 16384 });
+                                }
                             }
                         }
                     }
+                    SendAnimPack();
                 }
-                SendAnimPack();
             }
         }
 
