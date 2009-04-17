@@ -6,5 +6,6 @@ namespace OpenSim.Framework
 {
     public abstract class ConfigBase
     {
+        protected ConfigurationMember m_configMember;
     }
 }

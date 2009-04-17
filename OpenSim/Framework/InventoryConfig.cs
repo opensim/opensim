@@ -34,13 +34,10 @@ namespace OpenSim.Framework
     /// </summary>
     public class InventoryConfig:ConfigBase
     {
-        public static uint DefaultHttpPort = 8004;
-
-        private ConfigurationMember configMember;
         public string DatabaseConnect = String.Empty;
         public string DatabaseProvider = String.Empty;
         public string DefaultStartupMsg = String.Empty;
-        public uint HttpPort = DefaultHttpPort;
+        public uint HttpPort = DefaultSettings.DefaultInventoryServerHttpPort;
         public string InventoryServerURL = String.Empty;
         public string UserServerURL = String.Empty;
         public string AssetServerURL = String.Empty;
@@ -49,34 +46,34 @@ namespace OpenSim.Framework
 
         public InventoryConfig(string description, string filename)
         {
-            configMember =
+            m_configMember =
                 new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, true);
-            configMember.performConfigurationRetrieve();
+            m_configMember.performConfigurationRetrieve();
         }
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("default_inventory_server",
+            m_configMember.addConfigurationOption("default_inventory_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Inventory Server URI (this server's external name)",
                                                 "http://127.0.0.1:8004", false);
-            configMember.addConfigurationOption("default_user_server",
+            m_configMember.addConfigurationOption("default_user_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default User Server URI",
                                                 "http://127.0.0.1:8002", false);
-            configMember.addConfigurationOption("default_asset_server",
+            m_configMember.addConfigurationOption("default_asset_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Asset Server URI",
                                                 "http://127.0.0.1:8003", false);
-            configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
-            configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Database Connect String", "", false);
-            configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Http Listener port", DefaultHttpPort.ToString(), false);
-            configMember.addConfigurationOption("session_lookup", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+            m_configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Http Listener port", DefaultSettings.DefaultInventoryServerHttpPort.ToString(), false);
+            m_configMember.addConfigurationOption("session_lookup", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                                                 "Enable session lookup security", "False", false);
-            configMember.addConfigurationOption("region_access", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+            m_configMember.addConfigurationOption("region_access", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                                                 "Allow direct region access to users inventories? (Keep True if you don't know what this is about)", "True", false);
         }
 

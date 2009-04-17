@@ -34,17 +34,14 @@ namespace OpenSim.Framework
     /// </summary>
     public class MessageServerConfig:ConfigBase
     {
-        public static uint DefaultHttpPort = 8006;
-        public static bool DefaultHttpSSL = false;
-        private ConfigurationMember configMember;
         public string DatabaseProvider = String.Empty;
         public string DatabaseConnect = String.Empty;
         public string GridCommsProvider = String.Empty;
         public string GridRecvKey = String.Empty;
         public string GridSendKey = String.Empty;
         public string GridServerURL = String.Empty;
-        public uint HttpPort = DefaultHttpPort;
-        public bool HttpSSL = DefaultHttpSSL;
+        public uint HttpPort = DefaultSettings.DefaultMessageServerHttpPort;
+        public bool HttpSSL = DefaultSettings.DefaultMessageServerHttpSSL;
         public string MessageServerIP = String.Empty;
         public string UserRecvKey = String.Empty;
         public string UserSendKey = String.Empty;
@@ -52,44 +49,44 @@ namespace OpenSim.Framework
 
         public MessageServerConfig(string description, string filename)
         {
-            configMember =
+            m_configMember =
                 new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, true);
-            configMember.performConfigurationRetrieve();
+            m_configMember.performConfigurationRetrieve();
         }
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("default_user_server",
+            m_configMember.addConfigurationOption("default_user_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default User Server URI",
-                                                "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString() + "/", false);
-            configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "http://127.0.0.1:" + DefaultSettings.DefaultUserServerHttpPort.ToString() + "/", false);
+            m_configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to user server", "null", false);
-            configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to expect from user server", "null", false);
-            configMember.addConfigurationOption("default_grid_server",
+            m_configMember.addConfigurationOption("default_grid_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Grid Server URI",
-                                                "http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString() + "/", false);
-            configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "http://127.0.0.1:" + DefaultSettings.DefaultGridServerHttpPort.ToString() + "/", false);
+            m_configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to grid server", "null", false);
-            configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to expect from grid server", "null", false);
 
-            configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Connection String for Database", "", false);
 
-            configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
 
-            configMember.addConfigurationOption("region_comms_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("region_comms_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for comms provider", "OpenSim.Region.Communications.OGS1.dll", false);
 
-            configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Http Listener port", DefaultHttpPort.ToString(), false);
-            configMember.addConfigurationOption("http_ssl", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Use SSL? true/false", DefaultHttpSSL.ToString(), false);
-            configMember.addConfigurationOption("published_ip", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Http Listener port", DefaultSettings.DefaultMessageServerHttpPort.ToString(), false);
+            m_configMember.addConfigurationOption("http_ssl", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+                                                "Use SSL? true/false", DefaultSettings.DefaultMessageServerHttpSSL.ToString(), false);
+            m_configMember.addConfigurationOption("published_ip", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "My Published IP Address", "127.0.0.1", false);
         }
 

@@ -64,7 +64,7 @@ namespace OpenSim.Region.DataSnapshot
 
         //DataServices and networking
         private string m_dataServices = "noservices";
-        public string m_listener_port = NetworkServersInfo.DefaultHttpListenerPort.ToString();
+        public string m_listener_port = DefaultSettings.DefaultRegionHttpPort.ToString();
         public string m_hostname = "127.0.0.1";
 
         //Update timers
@@ -106,15 +106,15 @@ namespace OpenSim.Region.DataSnapshot
                             m_gridinfo.Add(
                                  "gridserverURL", 
                                  config.Configs["Network"].GetString(
-                                     "grid_server_url", "http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString()));
+                                     "grid_server_url", "http://127.0.0.1:" + DefaultSettings.DefaultGridServerHttpPort.ToString()));
                             m_gridinfo.Add(
                                  "userserverURL", 
                                  config.Configs["Network"].GetString(
-                                 "user_server_url", "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString()));
+                                 "user_server_url", "http://127.0.0.1:" + DefaultSettings.DefaultUserServerHttpPort.ToString()));
                             m_gridinfo.Add(
                                  "assetserverURL", 
                                  config.Configs["Network"].GetString(
-                                 "asset_server_url", "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString()));
+                                 "asset_server_url", "http://127.0.0.1:" + DefaultSettings.DefaultAssetServerHttpPort.ToString()));
                         }
 
                         m_gridinfo.Add(

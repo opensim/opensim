@@ -32,15 +32,13 @@ namespace OpenSim.Framework
 {
     public class NetworkServersInfo
     {
-        public static readonly uint DefaultHttpListenerPort = 9000;
-        public static uint RemotingListenerPort = 8895;
         public string AssetSendKey = String.Empty;        
-        public string AssetURL = "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString() + "/";
+        public string AssetURL = "http://127.0.0.1:" + DefaultSettings.DefaultAssetServerHttpPort.ToString() + "/";
 
         public string GridRecvKey = String.Empty;
         public string GridSendKey = String.Empty;
         public string GridURL = String.Empty;
-        public uint HttpListenerPort = DefaultHttpListenerPort;
+        public uint HttpListenerPort = DefaultSettings.DefaultRegionHttpPort;
         public string InventoryURL = String.Empty;
         public bool secureInventoryServer = false;
         public bool isSandbox;
@@ -81,31 +79,31 @@ namespace OpenSim.Framework
             m_defaultHomeLocY = (uint) config.Configs["StandAlone"].GetInt("default_location_y", 1000);
 
             HttpListenerPort =
-                (uint) config.Configs["Network"].GetInt("http_listener_port", (int) DefaultHttpListenerPort);
+                (uint) config.Configs["Network"].GetInt("http_listener_port", (int) DefaultSettings.DefaultRegionHttpPort);
             httpSSLPort =
-                (uint)config.Configs["Network"].GetInt("http_listener_sslport", ((int)DefaultHttpListenerPort+1));
+                (uint)config.Configs["Network"].GetInt("http_listener_sslport", ((int)DefaultSettings.DefaultRegionHttpPort+1));
             HttpUsesSSL = config.Configs["Network"].GetBoolean("http_listener_ssl", false);
             HttpSSLCN = config.Configs["Network"].GetString("http_listener_cn", "localhost");
-            RemotingListenerPort =
-                (uint) config.Configs["Network"].GetInt("remoting_listener_port", (int) RemotingListenerPort);
+            DefaultSettings.DefaultRegionRemotingPort =
+                (uint) config.Configs["Network"].GetInt("remoting_listener_port", (int) DefaultSettings.DefaultRegionRemotingPort);
             GridURL =
                 config.Configs["Network"].GetString("grid_server_url",
-                                                    "http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString());
+                                                    "http://127.0.0.1:" + DefaultSettings.DefaultGridServerHttpPort.ToString());
             GridSendKey = config.Configs["Network"].GetString("grid_send_key", "null");
             GridRecvKey = config.Configs["Network"].GetString("grid_recv_key", "null");
             UserURL =
                 config.Configs["Network"].GetString("user_server_url",
-                                                    "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString());
+                                                    "http://127.0.0.1:" + DefaultSettings.DefaultUserServerHttpPort.ToString());
             UserSendKey = config.Configs["Network"].GetString("user_send_key", "null");
             UserRecvKey = config.Configs["Network"].GetString("user_recv_key", "null");
             AssetURL = config.Configs["Network"].GetString("asset_server_url", AssetURL);
             InventoryURL = config.Configs["Network"].GetString("inventory_server_url",
                                                                "http://127.0.0.1:" +
-                                                               InventoryConfig.DefaultHttpPort.ToString());
+                                                               DefaultSettings.DefaultInventoryServerHttpPort.ToString());
             secureInventoryServer = config.Configs["Network"].GetBoolean("secure_inventory_server", true);
 
             MessagingURL = config.Configs["Network"].GetString("messaging_server_url",
-                                                               "http://127.0.0.1:" + MessageServerConfig.DefaultHttpPort);
+                                                               "http://127.0.0.1:" + DefaultSettings.DefaultMessageServerHttpPort);
         }
     }
 }

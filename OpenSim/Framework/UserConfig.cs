@@ -35,9 +35,6 @@ namespace OpenSim.Framework
     /// </summary>
     public class UserConfig:ConfigBase
     {
-        public static uint DefaultHttpPort = 8002;
-        public static bool DefaultHttpSSL = false;
-        private ConfigurationMember configMember;
         public string DatabaseProvider = String.Empty;
         public string DatabaseConnect = String.Empty;
         public string DefaultStartupMsg = String.Empty;
@@ -45,8 +42,8 @@ namespace OpenSim.Framework
         public uint DefaultY = 1000;
         public string GridRecvKey = String.Empty;
         public string GridSendKey = String.Empty;
-        public uint HttpPort = DefaultHttpPort;
-        public bool HttpSSL = DefaultHttpSSL;
+        public uint HttpPort = DefaultSettings.DefaultUserServerHttpPort;
+        public bool HttpSSL = DefaultSettings.DefaultUserServerHttpSSL;
         public uint DefaultUserLevel = 0;
         public string LibraryXmlfile = "";
 
@@ -101,61 +98,61 @@ namespace OpenSim.Framework
         }
         public UserConfig(string description, string filename)
         {
-            configMember =
+            m_configMember =
                 new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, true);
-            configMember.performConfigurationRetrieve();
+            m_configMember.performConfigurationRetrieve();
         }
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("default_startup_message",
+            m_configMember.addConfigurationOption("default_startup_message",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Startup Message", "Welcome to OGS", false);
 
-            configMember.addConfigurationOption("default_grid_server",
+            m_configMember.addConfigurationOption("default_grid_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Grid Server URI",
-                                                "http://127.0.0.1:" + GridConfig.DefaultHttpPort + "/", false);
-            configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "http://127.0.0.1:" + DefaultSettings.DefaultGridServerHttpPort + "/", false);
+            m_configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to grid server", "null", false);
-            configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to expect from grid server", "null", false);
 
-            configMember.addConfigurationOption("default_inventory_server",
+            m_configMember.addConfigurationOption("default_inventory_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Inventory Server URI",
-                                                "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort + "/",
+                                                "http://127.0.0.1:" + DefaultSettings.DefaultInventoryServerHttpPort + "/",
                                                 false);
-            configMember.addConfigurationOption("default_authentication_server",
+            m_configMember.addConfigurationOption("default_authentication_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "User Server (this) External URI for authentication keys",
-                                                "http://localhost:" + UserConfig.DefaultHttpPort + "/",
+                                                "http://localhost:" + DefaultSettings.DefaultUserServerHttpPort + "/",
                                                 false);
-            configMember.addConfigurationOption("library_location",
+            m_configMember.addConfigurationOption("library_location",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Path to library control file",
                                                 string.Format(".{0}inventory{0}Libraries.xml", Path.DirectorySeparatorChar), false);            
             
-            configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
-            configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Connection String for Database", "", false);
 
-            configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Http Listener port", DefaultHttpPort.ToString(), false);
-            configMember.addConfigurationOption("http_ssl", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Use SSL? true/false", DefaultHttpSSL.ToString(), false);
-            configMember.addConfigurationOption("default_X", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+            m_configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Http Listener port", DefaultSettings.DefaultUserServerHttpPort.ToString(), false);
+            m_configMember.addConfigurationOption("http_ssl", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+                                                "Use SSL? true/false", DefaultSettings.DefaultUserServerHttpSSL.ToString(), false);
+            m_configMember.addConfigurationOption("default_X", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Known good region X", "1000", false);
-            configMember.addConfigurationOption("default_Y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+            m_configMember.addConfigurationOption("default_Y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Known good region Y", "1000", false);
-            configMember.addConfigurationOption("enable_llsd_login", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+            m_configMember.addConfigurationOption("enable_llsd_login", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                     "Enable LLSD login support [Currently used by libsl based clients/bots]? true/false", true.ToString(), false);
 
-            configMember.addConfigurationOption("enable_hg_login", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+            m_configMember.addConfigurationOption("enable_hg_login", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                     "Enable Hypergrid login support [Currently used by GridSurfer-proxied clients]? true/false", true.ToString(), false);
 
-            configMember.addConfigurationOption("default_loginLevel", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+            m_configMember.addConfigurationOption("default_loginLevel", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Minimum Level a user should have to login [0 default]", "0", false);
             
         }

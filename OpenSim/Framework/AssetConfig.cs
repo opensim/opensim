@@ -35,33 +35,30 @@ namespace OpenSim.Framework
     /// </summary>
     public class AssetConfig:ConfigBase
     {
-        public const uint DefaultHttpPort = 8003;
-
-        private ConfigurationMember configMember;
         public string DatabaseConnect = String.Empty;
         public string DatabaseProvider = String.Empty;
-        public uint HttpPort = DefaultHttpPort;
+        public uint HttpPort = DefaultSettings.DefaultAssetServerHttpPort;
         public string AssetSetsLocation = string.Empty;
 
         public AssetConfig(string description, string filename)
         {
-            configMember =
+            m_configMember =
                 new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, true);
-            configMember.performConfigurationRetrieve();
+            m_configMember.performConfigurationRetrieve();
         }
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
 
-            configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Database connection string", "", false);
 
-            configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Http Listener port", DefaultHttpPort.ToString(), false);
+            m_configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Http Listener port", DefaultSettings.DefaultAssetServerHttpPort.ToString(), false);
 
-            configMember.addConfigurationOption("assetset_location", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("assetset_location", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                         "Location of 'AssetSets.xml'",
                                         string.Format(".{0}assets{0}AssetSets.xml", Path.DirectorySeparatorChar), false);
         }

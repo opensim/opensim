@@ -104,13 +104,13 @@ namespace OpenSim.Framework.Communications.Services
                     if (grid)
                         _info["login"] 
                             = netCfg.GetString(
-                                "user_server_url", "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString());
+                                "user_server_url", "http://127.0.0.1:" + DefaultSettings.DefaultUserServerHttpPort.ToString());
                     else
                         _info["login"] 
                             = String.Format(
                                 "http://127.0.0.1:{0}/", 
                                 netCfg.GetString(
-                                    "http_listener_port", NetworkServersInfo.DefaultHttpListenerPort.ToString()));
+                                    "http_listener_port", DefaultSettings.DefaultRegionHttpPort.ToString()));
                     
                     IssueWarning();
                 }

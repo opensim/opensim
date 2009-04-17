@@ -31,19 +31,16 @@ namespace OpenSim.Framework
 {
     public class GridConfig:ConfigBase
     {
-        public static uint DefaultHttpPort = 8001;
-
         public string AllowForcefulBanlines = "TRUE";
         public bool AllowRegionRegistration = true;
         public string AssetRecvKey = String.Empty;
         public string AssetSendKey = String.Empty;
 
-        private ConfigurationMember configMember;
         public string DatabaseProvider = String.Empty;
         public string DatabaseConnect = String.Empty;
         public string DefaultAssetServer = String.Empty;
         public string DefaultUserServer = String.Empty;
-        public uint HttpPort = DefaultHttpPort;
+        public uint HttpPort = DefaultSettings.DefaultGridServerHttpPort;
         public string SimRecvKey = String.Empty;
         public string SimSendKey = String.Empty;
         public string UserRecvKey = String.Empty;
@@ -51,49 +48,49 @@ namespace OpenSim.Framework
 
         public GridConfig(string description, string filename)
         {
-            configMember =
+            m_configMember =
                 new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, true);
-            configMember.performConfigurationRetrieve();
+            m_configMember.performConfigurationRetrieve();
         }
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("default_asset_server",
+            m_configMember.addConfigurationOption("default_asset_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Asset Server URI",
-                                                "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString() + "/",
+                                                "http://127.0.0.1:" + DefaultSettings.DefaultAssetServerHttpPort.ToString() + "/",
                                                 false);
-            configMember.addConfigurationOption("asset_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("asset_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to asset server", "null", false);
-            configMember.addConfigurationOption("asset_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("asset_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to expect from asset server", "null", false);
 
-            configMember.addConfigurationOption("default_user_server",
+            m_configMember.addConfigurationOption("default_user_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default User Server URI",
-                                                "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString() + "/", false);
-            configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "http://127.0.0.1:" + DefaultSettings.DefaultUserServerHttpPort.ToString() + "/", false);
+            m_configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to user server", "null", false);
-            configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to expect from user server", "null", false);
 
-            configMember.addConfigurationOption("sim_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("sim_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to a simulator", "null", false);
-            configMember.addConfigurationOption("sim_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("sim_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to expect from a simulator", "null", false);
-            configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
-            configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+            m_configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Database connect string", "", false);
 
-            configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Http Listener port", DefaultHttpPort.ToString(), false);
+            m_configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Http Listener port", DefaultSettings.DefaultGridServerHttpPort.ToString(), false);
 
-            configMember.addConfigurationOption("allow_forceful_banlines",
+            m_configMember.addConfigurationOption("allow_forceful_banlines",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Allow Forceful Banlines", "TRUE", true);   
             
-            configMember.addConfigurationOption("allow_region_registration", 
+            m_configMember.addConfigurationOption("allow_region_registration", 
                                                 ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                                                 "Allow regions to register immediately upon grid server startup? true/false", 
                                                 "True", 
