@@ -33,6 +33,8 @@ namespace OpenSim.Framework.Communications.Capabilities
     {
         public string username;
         public string password;
+        public string voice_sip_uri_hostname;
+        public string voice_account_server_name;
 
         public LLSDVoiceAccountResponse()
         {
@@ -42,6 +44,14 @@ namespace OpenSim.Framework.Communications.Capabilities
         {
             username = user;
             password = pass;
+        }
+
+        public LLSDVoiceAccountResponse(string user, string pass, string sipUriHost, string accountServer)
+        {
+            username = user;
+            password = pass;
+            voice_sip_uri_hostname = sipUriHost;
+            voice_account_server_name = accountServer;
         }
     }
 }
