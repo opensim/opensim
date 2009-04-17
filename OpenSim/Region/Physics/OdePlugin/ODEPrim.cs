@@ -66,6 +66,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IntPtr Amotor = IntPtr.Zero;
 
         private PhysicsVector m_PIDTarget = new PhysicsVector(0, 0, 0);
+        private PhysicsVector m_taintPIDTarget = new PhysicsVector(0, 0, 0);
         private float m_PIDTau = 0f;
         private float PID_D = 35f;
         private float PID_G = 25f;
@@ -908,12 +909,15 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (!m_angularlock.IsIdentical(m_taintAngularLock,0))
                     changeAngularLock(timestep);
+                
+                    
             }
             else
             {
                 m_log.Error("[PHYSICS]: The scene reused a disposed PhysActor! *waves finger*, Don't be evil.  A couple of things can cause this.   An improper prim breakdown(be sure to set prim_geom to zero after d.GeomDestroy!   An improper buildup (creating the geom failed).   Or, the Scene Reused a physics actor after disposing it.)");
             }
         }
+
 
         private void changeAngularLock(float timestep)
         {
@@ -1470,6 +1474,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                         }
                         d.BodyEnable(Body);
+                        if (m_vehicle.Type != Vehicle.TYPE_NONE)
+                        {
+                            m_vehicle.Enable(Body, _parent_scene);
+                        }
                     }
                     else
                     {
@@ -1550,6 +1558,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (m_usePID)
                 {
+                    
                     //if (!d.BodyIsEnabled(Body))
                     //d.BodySetForce(Body, 0f, 0f, 0f);
                     // If we're using the PID controller, then we have no gravity
@@ -1737,6 +1746,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         fy = nmin;
                     d.BodyAddForce(Body, fx, fy, fz);
                 }
+                if (m_vehicle.Body == IntPtr.Zero && m_vehicle.Type != Vehicle.TYPE_NONE)
+                    m_vehicle.Enable(Body, _parent_scene);
 
                 m_vehicle.Step(timestep);
             }
@@ -1746,6 +1757,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
             }
         }
+
+
 
         public void rotate(float timestep)
         {
@@ -2701,8 +2714,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 if (PhysicsVector.isFinite(value))
-                    m_PIDTarget = value; 
-                else 
+                {
+                    m_PIDTarget = value;
+                }
+                else
                     m_log.Warn("[PHYSICS]: Got NaN PIDTarget from Scene on Object");
             } 
         }
@@ -3062,15 +3077,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             return det;
 
         }
-        private static float Determinant(Matrix4 matrix)
-        {
-            float det = 0;
-
-            for (int j = 0; j < 4; j++)
-                det += (matrix[0, j] * Determinant(Minor(matrix, 0, j)) * (int)System.Math.Pow(-1, 0 + j));
-            return det;
-        }
-
+        
         private static void DMassCopy(ref d.Mass src, ref d.Mass dst)
         {
             dst.c.W = src.c.W;

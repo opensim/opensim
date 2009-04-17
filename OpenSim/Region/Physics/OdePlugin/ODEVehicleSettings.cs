@@ -44,6 +44,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return m_type; }
         }
 
+        public IntPtr Body
+        {
+            get { return m_body; }
+        }
+
         private Vehicle m_type = Vehicle.TYPE_NONE;
         private OdeScene m_parentScene = null;
         private IntPtr m_body = IntPtr.Zero;
@@ -75,6 +80,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_linearMotorTimescale = 0;
         private float m_verticalAttractionEfficiency = 0;
         private float m_verticalAttractionTimescale = 0;
+        private Vector3 m_lastVector = Vector3.Zero;
         private VehicleFlag m_flags = (VehicleFlag) 0;
 
 
@@ -222,8 +228,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void Enable(IntPtr pBody, OdeScene pParentScene)
         {
-            if (pBody == IntPtr.Zero || m_type == Vehicle.TYPE_NONE)
+            if (m_type == Vehicle.TYPE_NONE)
                 return;
+
             m_body = pBody;
             m_parentScene = pParentScene;
         }
@@ -246,11 +253,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_body == IntPtr.Zero || m_type == Vehicle.TYPE_NONE)
                 return;
-            
+            VerticalAttractor(pTimestep);
+            LinearMotor(pTimestep);
         }
 
         private void SetDefaultsForType(Vehicle pType)
         {
+            m_type = pType;
             switch (pType)
             {
                 case Vehicle.TYPE_SLED:
@@ -387,6 +396,44 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
 
             }
+        }
+        
+        private void VerticalAttractor(float pTimestep)
+        {
+            // The purpose of this routine here is to quickly stabilize the Body while it's popped up in the air.
+            // The amotor needs a few seconds to stabilize so without it, the avatar shoots up sky high when you
+            // change appearance and when you enter the simulator
+            // After this routine is done, the amotor stabilizes much quicker
+            d.Mass objMass;
+            d.BodyGetMass(Body, out objMass);
+            //d.BodyGetS
+
+            d.Vector3 feet;
+            d.Vector3 head;
+            d.BodyGetRelPointPos(m_body, 0.0f, 0.0f, -1.0f, out feet);
+            d.BodyGetRelPointPos(m_body, 0.0f, 0.0f, 1.0f, out head);
+            float posture = head.Z - feet.Z;
+            
+            // restoring force proportional to lack of posture:
+            float servo = (2.5f - posture) * (objMass.mass * m_verticalAttractionEfficiency / (m_verticalAttractionTimescale * pTimestep)) * objMass.mass;
+            d.BodyAddForceAtRelPos(m_body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
+            d.BodyAddForceAtRelPos(m_body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+            //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
+            //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
+        }
+
+        private void LinearMotor(float pTimestep)
+        {
+
+            /*
+            float decayval = (m_linearMotorDecayTimescale * pTimestep);
+            m_linearMotorDirection  *= decayval;
+            m_lastVector += m_linearMotorDirection
+
+            
+            m_lin
+            m_lastVector
+             * */
         }
     }
 }
