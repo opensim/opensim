@@ -37,5 +37,13 @@ namespace OpenSim.Framework.Statistics
         /// </summary>
         /// <returns></returns>
         string Report();
+		 
+		/// <summary>
+		/// Report back collected statistical information in json
+		/// </summary>
+		/// <returns>
+		/// A <see cref="System.String"/>
+		/// </returns>
+		string XReport();
     }
 }

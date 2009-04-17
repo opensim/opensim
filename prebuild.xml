@@ -146,6 +146,7 @@
       <Reference name="System"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenSim.Framework"/>
 
       <Files>
@@ -3283,6 +3284,7 @@
 
   </Solution>
 </Prebuild>
+
 
 
 

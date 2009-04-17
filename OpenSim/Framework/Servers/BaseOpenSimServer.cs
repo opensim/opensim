@@ -40,6 +40,10 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
 using Timer=System.Timers.Timer;
 
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
+
+
 namespace OpenSim.Framework.Servers
 {
     /// <summary>
@@ -454,6 +458,10 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+
+	public string StatReport() {
+		return m_stats.XReport();
+	}
             
         protected void RemovePIDFile()
         {
