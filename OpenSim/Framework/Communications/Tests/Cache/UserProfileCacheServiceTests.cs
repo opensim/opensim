@@ -30,39 +30,46 @@ using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.Communications.Local;
 using OpenSim.Tests.Common.Mock;
-//using OpenSim.Framework;
 
 namespace OpenSim.Framework.Communications.Tests
 {
-    /// <summary>
-    /// User profile cache service tests
-    /// </summary>
     [TestFixture]
     public class UserProfileCacheServiceTests
     {
-        /// <summary>
-        /// Test user details get.
-        /// </summary>
         [Test]
         public void TestGetUserDetails()
         {
-            UUID nonExistingUserId = UUID.Parse("00000000-0000-0000-0000-000000000001");
-            UUID existingUserId = UUID.Parse("00000000-0000-0000-0000-000000000002");
-
+            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000002");
+            string firstName = "Bill";
+            string lastName = "Bailey";            
+            CachedUserInfo nonExistingUserInfo;
+            
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            CachedUserInfo existingUserInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager, existingUserId);
+            
+            // Check we can't retrieve info before it exists by uuid
+            nonExistingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
+            Assert.That(nonExistingUserInfo, Is.Null, "User info found by uuid before user creation");
+            
+            // Check we can't retrieve info before it exists by name
+            nonExistingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
+            Assert.That(nonExistingUserInfo, Is.Null, "User info found by name before user creation");            
 
-            Assert.That(existingUserInfo, Is.Not.Null, "Existing user info unexpectedly not found");
-
-            CachedUserInfo nonExistingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(nonExistingUserId);
-
-            Assert.That(nonExistingUserInfo, Is.Null, "Non existing user info unexpectedly found");
+            LocalUserServices lus = (LocalUserServices)commsManager.UserService;           
+            lus.AddUser(firstName, lastName, "troll", "bill@bailey.com", 1000, 1000, userId);
+            
+            CachedUserInfo existingUserInfo;
+            
+            // Check we can retrieve info by uuid
+            existingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
+            Assert.That(existingUserInfo, Is.Not.Null, "User info not found by uuid");
+            
+            // Check we can retrieve info by name 
+            existingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
+            Assert.That(existingUserInfo, Is.Not.Null, "User info not found by name");                       
         }
 
-        /// <summary>
-        /// Test requesting inventory for a user
-        /// </summary>
         [Test]
         public void TestFetchInventory()
         {
@@ -72,9 +79,6 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(userInfo.HasReceivedInventory, Is.True);
         }
 
-        /// <summary>
-        /// Test retrieving a child folder
-        /// </summary>
         [Test]
         public void TestGetChildFolder()
         {
@@ -89,9 +93,6 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(userInfo.RootFolder.GetChildFolder(folderId), Is.Not.Null);
         }
 
-        /// <summary>
-        /// Test creating an inventory folder
-        /// </summary>
         [Test]
         public void TestCreateFolder()
         {
@@ -119,9 +120,6 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(userInfo.RootFolder.ContainsChildFolder(folderId), Is.True);
         }
 
-        /// <summary>
-        /// Test updating a folder
-        /// </summary>
         [Test]
         public void TestUpdateFolder()
         {
@@ -176,9 +174,6 @@ namespace OpenSim.Framework.Communications.Tests
 
         }
 
-        /// <summary>
-        /// Test moving an inventory folder
-        /// </summary>
         [Test]
         public void TestMoveFolder()
         {
@@ -210,9 +205,6 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(folder1.ContainsChildFolder(folderToMoveId), Is.False);
         }
 
-        /// <summary>
-        /// Test purging an inventory folder
-        /// </summary>
         [Test]
         public void TestPurgeFolder()
         {

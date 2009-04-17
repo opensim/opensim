@@ -32,7 +32,7 @@ using OpenSim.Region.Communications.Local;
 namespace OpenSim.Framework.Communications.Tests
 {    
     /// <summary>
-    /// Utility functions for carrying out user profile relate tests.
+    /// Utility functions for carrying out user profile related tests.
     /// </summary>
     public class UserProfileTestUtils
     {           
@@ -56,7 +56,6 @@ namespace OpenSim.Framework.Communications.Tests
         public static CachedUserInfo CreateUserWithInventory(CommunicationsManager commsManager, UUID userId)
         {                        
             LocalUserServices lus = (LocalUserServices)commsManager.UserService;           
-
             lus.AddUser("Bill", "Bailey", "troll", "bill@bailey.com", 1000, 1000, userId);
             
             CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
