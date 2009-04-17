@@ -54,7 +54,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IntPtr m_body = IntPtr.Zero;
         private IntPtr m_jointGroup = IntPtr.Zero;
         private IntPtr m_aMotor = IntPtr.Zero;
-        private IntPtr m_lMotor = IntPtr.Zero;
+        private IntPtr m_lMotor1 = IntPtr.Zero;
+        private IntPtr m_lMotor2 = IntPtr.Zero;
+        private IntPtr m_lMotor3 = IntPtr.Zero;
 
         // Vehicle properties
         private Quaternion m_referenceFrame = Quaternion.Identity;
@@ -80,8 +82,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_linearMotorTimescale = 0;
         private float m_verticalAttractionEfficiency = 0;
         private float m_verticalAttractionTimescale = 0;
-        private Vector3 m_lastVector = Vector3.Zero;
+        private Vector3 m_lastLinearVelocityVector = Vector3.Zero;
         private VehicleFlag m_flags = (VehicleFlag) 0;
+
+        private bool m_LinearMotorSetLastFrame = false;
 
 
 
@@ -169,6 +173,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
                     m_linearMotorDirection = new Vector3(pValue, pValue, pValue);
+                    m_LinearMotorSetLastFrame = true;
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
                     m_linearMotorOffset = new Vector3(pValue, pValue, pValue);
@@ -187,6 +192,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
                     m_angularMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    m_LinearMotorSetLastFrame = true;
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
@@ -247,6 +253,25 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_body = pBody;
             m_parentScene = pParentScene;
+            if (m_jointGroup == IntPtr.Zero)
+                m_jointGroup = d.JointGroupCreate(3);
+            
+            if (pBody != IntPtr.Zero)
+            {
+
+                if (m_lMotor1 == IntPtr.Zero)
+                {
+                    d.BodySetAutoDisableFlag(Body, false);
+                    m_lMotor1 = d.JointCreateLMotor(pParentScene.world, m_jointGroup);
+                    d.JointSetLMotorNumAxes(m_lMotor1, 1);
+                    d.JointAttach(m_lMotor1, Body, IntPtr.Zero);
+                }
+
+                Vector3 dirNorm = m_lastLinearVelocityVector;
+                dirNorm.Normalize();
+                //d.JointSetLMotorAxis(m_lMotor1, 0, 1, dirNorm.X, dirNorm.Y, dirNorm.Z);
+                //d.JointSetLMotorParam(m_lMotor1, (int)dParam.Vel, m_lastLinearVelocityVector.Length());
+            }
         }
 
         internal void Reset()
@@ -439,15 +464,54 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void LinearMotor(float pTimestep)
         {
 
-            /*
-            float decayval = (m_linearMotorDecayTimescale * pTimestep);
-            m_linearMotorDirection  *= decayval;
-            m_lastVector += m_linearMotorDirection
+            if (!m_linearMotorDirection.ApproxEquals(Vector3.Zero, 0.01f))
+            {
+                Vector3 addAmount = m_linearMotorDirection/(m_linearMotorTimescale/pTimestep);
+                m_lastLinearVelocityVector += (addAmount*10);
 
+                // This will work temporarily, but we really need to compare speed on an axis
+                if (Math.Abs(m_lastLinearVelocityVector.X) > Math.Abs(m_linearMotorDirection.X))
+                    m_lastLinearVelocityVector.X = m_linearMotorDirection.X;
+                if (Math.Abs(m_lastLinearVelocityVector.Y) > Math.Abs(m_linearMotorDirection.Y))
+                    m_lastLinearVelocityVector.Y = m_linearMotorDirection.Y;
+                if (Math.Abs(m_lastLinearVelocityVector.Z) > Math.Abs(m_linearMotorDirection.Z))
+                    m_lastLinearVelocityVector.Z = m_linearMotorDirection.Z;
+                //System.Console.WriteLine("add: " + addAmount);
+                
+                m_linearMotorDirection -= (m_linearMotorDirection*new Vector3(1, 1, 1)/
+                                          (m_linearMotorDecayTimescale/pTimestep)) * 0.10f;
+                //Console.WriteLine("actual: " + m_linearMotorDirection);
+            }
+            //System.Console.WriteLine(m_linearMotorDirection + " " + m_lastLinearVelocityVector);
+
+            SetMotorProperties();
             
-            m_lin
-            m_lastVector
-             * */
+            Vector3 decayamount = new Vector3(1,1,1)/(m_linearFrictionTimescale/pTimestep);
+            m_lastLinearVelocityVector -= m_lastLinearVelocityVector * decayamount;
+            
+            //m_linearMotorDirection  *= decayamount;
+
+        }
+
+        private void SetMotorProperties()
+        {
+            Vector3 dirNorm = m_lastLinearVelocityVector;
+            dirNorm.Normalize();
+
+            d.Mass objMass;
+            d.BodyGetMass(Body, out objMass);
+            d.Quaternion rot = d.BodyGetQuaternion(Body);
+            Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
+            dirNorm *= rotq;
+            if (m_lMotor1 != IntPtr.Zero)
+            {
+
+                d.JointSetLMotorAxis(m_lMotor1, 0, 1, dirNorm.X, dirNorm.Y, dirNorm.Z);
+                d.JointSetLMotorParam(m_lMotor1, (int)dParam.Vel, m_linearMotorDirection.Length());
+
+                d.JointSetLMotorParam(m_lMotor1, (int)dParam.FMax, 35f * objMass.mass);
+            }
+
         }
     }
 }
