@@ -252,16 +252,16 @@ namespace OpenSim
 
                 config.Set("default_location_x", 1000);
                 config.Set("default_location_y", 1000);
-                config.Set("http_listener_port", DefaultSettings.DefaultRegionHttpPort);
-                config.Set("remoting_listener_port", DefaultSettings.DefaultRegionRemotingPort);
-                config.Set("grid_server_url", "http://127.0.0.1:" + DefaultSettings.DefaultGridServerHttpPort.ToString());
+                config.Set("http_listener_port", ConfigSettings.DefaultRegionHttpPort);
+                config.Set("remoting_listener_port", ConfigSettings.DefaultRegionRemotingPort);
+                config.Set("grid_server_url", "http://127.0.0.1:" + ConfigSettings.DefaultGridServerHttpPort.ToString());
                 config.Set("grid_send_key", "null");
                 config.Set("grid_recv_key", "null");
-                config.Set("user_server_url", "http://127.0.0.1:" + DefaultSettings.DefaultUserServerHttpPort.ToString());
+                config.Set("user_server_url", "http://127.0.0.1:" + ConfigSettings.DefaultUserServerHttpPort.ToString());
                 config.Set("user_send_key", "null");
                 config.Set("user_recv_key", "null");
-                config.Set("asset_server_url", "http://127.0.0.1:" + DefaultSettings.DefaultAssetServerHttpPort.ToString());
-                config.Set("inventory_server_url", "http://127.0.0.1:" + DefaultSettings.DefaultInventoryServerHttpPort.ToString());
+                config.Set("asset_server_url", "http://127.0.0.1:" + ConfigSettings.DefaultAssetServerHttpPort.ToString());
+                config.Set("inventory_server_url", "http://127.0.0.1:" + ConfigSettings.DefaultInventoryServerHttpPort.ToString());
                 config.Set("secure_inventory_server", "true");
             }
 

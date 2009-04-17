@@ -40,8 +40,8 @@ namespace OpenSim.Framework
         public string GridRecvKey = String.Empty;
         public string GridSendKey = String.Empty;
         public string GridServerURL = String.Empty;
-        public uint HttpPort = DefaultSettings.DefaultMessageServerHttpPort;
-        public bool HttpSSL = DefaultSettings.DefaultMessageServerHttpSSL;
+        public uint HttpPort = ConfigSettings.DefaultMessageServerHttpPort;
+        public bool HttpSSL = ConfigSettings.DefaultMessageServerHttpSSL;
         public string MessageServerIP = String.Empty;
         public string UserRecvKey = String.Empty;
         public string UserSendKey = String.Empty;
@@ -59,7 +59,7 @@ namespace OpenSim.Framework
             m_configMember.addConfigurationOption("default_user_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default User Server URI",
-                                                "http://127.0.0.1:" + DefaultSettings.DefaultUserServerHttpPort.ToString() + "/", false);
+                                                "http://127.0.0.1:" + ConfigSettings.DefaultUserServerHttpPort.ToString() + "/", false);
             m_configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to user server", "null", false);
             m_configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
@@ -67,7 +67,7 @@ namespace OpenSim.Framework
             m_configMember.addConfigurationOption("default_grid_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Grid Server URI",
-                                                "http://127.0.0.1:" + DefaultSettings.DefaultGridServerHttpPort.ToString() + "/", false);
+                                                "http://127.0.0.1:" + ConfigSettings.DefaultGridServerHttpPort.ToString() + "/", false);
             m_configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to grid server", "null", false);
             m_configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
@@ -83,9 +83,9 @@ namespace OpenSim.Framework
                                                 "DLL for comms provider", "OpenSim.Region.Communications.OGS1.dll", false);
 
             m_configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Http Listener port", DefaultSettings.DefaultMessageServerHttpPort.ToString(), false);
+                                                "Http Listener port", ConfigSettings.DefaultMessageServerHttpPort.ToString(), false);
             m_configMember.addConfigurationOption("http_ssl", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Use SSL? true/false", DefaultSettings.DefaultMessageServerHttpSSL.ToString(), false);
+                                                "Use SSL? true/false", ConfigSettings.DefaultMessageServerHttpSSL.ToString(), false);
             m_configMember.addConfigurationOption("published_ip", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "My Published IP Address", "127.0.0.1", false);
         }

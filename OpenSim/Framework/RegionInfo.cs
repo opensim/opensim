@@ -366,7 +366,7 @@ namespace OpenSim.Framework
                 errorMessage = "needs an IP Address (IPAddress)";
             }
             m_internalEndPoint.Port =
-                source.Configs[sectionName].GetInt("internal_ip_port", (int) DefaultSettings.DefaultRegionHttpPort);
+                source.Configs[sectionName].GetInt("internal_ip_port", (int) ConfigSettings.DefaultRegionHttpPort);
 
             string externalHost = source.Configs[sectionName].GetString("external_host_name", "127.0.0.1");
             if (externalHost != "SYSTEMIP")
@@ -475,7 +475,7 @@ namespace OpenSim.Framework
                                                 false);
             configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Internal IP Port for incoming UDP client connections",
-                                                DefaultSettings.DefaultRegionHttpPort.ToString(), false);
+                                                ConfigSettings.DefaultRegionHttpPort.ToString(), false);
             configMember.addConfigurationOption("allow_alternate_ports", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                                                 "Allow sim to find alternate UDP ports when ports are in use?",
                                                 "false", true);

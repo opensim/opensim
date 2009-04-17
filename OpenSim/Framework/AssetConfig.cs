@@ -37,7 +37,7 @@ namespace OpenSim.Framework
     {
         public string DatabaseConnect = String.Empty;
         public string DatabaseProvider = String.Empty;
-        public uint HttpPort = DefaultSettings.DefaultAssetServerHttpPort;
+        public uint HttpPort = ConfigSettings.DefaultAssetServerHttpPort;
         public string AssetSetsLocation = string.Empty;
 
         public AssetConfig(string description, string filename)
@@ -56,7 +56,7 @@ namespace OpenSim.Framework
                                                 "Database connection string", "", false);
 
             m_configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Http Listener port", DefaultSettings.DefaultAssetServerHttpPort.ToString(), false);
+                                                "Http Listener port", ConfigSettings.DefaultAssetServerHttpPort.ToString(), false);
 
             m_configMember.addConfigurationOption("assetset_location", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                         "Location of 'AssetSets.xml'",

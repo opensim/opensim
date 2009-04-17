@@ -37,7 +37,7 @@ namespace OpenSim.Framework
         public string DatabaseConnect = String.Empty;
         public string DatabaseProvider = String.Empty;
         public string DefaultStartupMsg = String.Empty;
-        public uint HttpPort = DefaultSettings.DefaultInventoryServerHttpPort;
+        public uint HttpPort = ConfigSettings.DefaultInventoryServerHttpPort;
         public string InventoryServerURL = String.Empty;
         public string UserServerURL = String.Empty;
         public string AssetServerURL = String.Empty;
@@ -70,7 +70,7 @@ namespace OpenSim.Framework
             m_configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Database Connect String", "", false);
             m_configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Http Listener port", DefaultSettings.DefaultInventoryServerHttpPort.ToString(), false);
+                                                "Http Listener port", ConfigSettings.DefaultInventoryServerHttpPort.ToString(), false);
             m_configMember.addConfigurationOption("session_lookup", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                                                 "Enable session lookup security", "False", false);
             m_configMember.addConfigurationOption("region_access", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,

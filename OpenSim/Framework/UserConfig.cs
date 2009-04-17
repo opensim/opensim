@@ -42,8 +42,8 @@ namespace OpenSim.Framework
         public uint DefaultY = 1000;
         public string GridRecvKey = String.Empty;
         public string GridSendKey = String.Empty;
-        public uint HttpPort = DefaultSettings.DefaultUserServerHttpPort;
-        public bool HttpSSL = DefaultSettings.DefaultUserServerHttpSSL;
+        public uint HttpPort = ConfigSettings.DefaultUserServerHttpPort;
+        public bool HttpSSL = ConfigSettings.DefaultUserServerHttpSSL;
         public uint DefaultUserLevel = 0;
         public string LibraryXmlfile = "";
 
@@ -112,7 +112,7 @@ namespace OpenSim.Framework
             m_configMember.addConfigurationOption("default_grid_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Grid Server URI",
-                                                "http://127.0.0.1:" + DefaultSettings.DefaultGridServerHttpPort + "/", false);
+                                                "http://127.0.0.1:" + ConfigSettings.DefaultGridServerHttpPort + "/", false);
             m_configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to grid server", "null", false);
             m_configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
@@ -121,12 +121,12 @@ namespace OpenSim.Framework
             m_configMember.addConfigurationOption("default_inventory_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Inventory Server URI",
-                                                "http://127.0.0.1:" + DefaultSettings.DefaultInventoryServerHttpPort + "/",
+                                                "http://127.0.0.1:" + ConfigSettings.DefaultInventoryServerHttpPort + "/",
                                                 false);
             m_configMember.addConfigurationOption("default_authentication_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "User Server (this) External URI for authentication keys",
-                                                "http://localhost:" + DefaultSettings.DefaultUserServerHttpPort + "/",
+                                                "http://localhost:" + ConfigSettings.DefaultUserServerHttpPort + "/",
                                                 false);
             m_configMember.addConfigurationOption("library_location",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
@@ -139,9 +139,9 @@ namespace OpenSim.Framework
                                                 "Connection String for Database", "", false);
 
             m_configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Http Listener port", DefaultSettings.DefaultUserServerHttpPort.ToString(), false);
+                                                "Http Listener port", ConfigSettings.DefaultUserServerHttpPort.ToString(), false);
             m_configMember.addConfigurationOption("http_ssl", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Use SSL? true/false", DefaultSettings.DefaultUserServerHttpSSL.ToString(), false);
+                                                "Use SSL? true/false", ConfigSettings.DefaultUserServerHttpSSL.ToString(), false);
             m_configMember.addConfigurationOption("default_X", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Known good region X", "1000", false);
             m_configMember.addConfigurationOption("default_Y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,

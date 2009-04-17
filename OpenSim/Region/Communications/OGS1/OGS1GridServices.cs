@@ -119,7 +119,7 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["region_locy"] = regionInfo.RegionLocY.ToString();
             GridParams["sim_name"] = regionInfo.RegionName;
             GridParams["http_port"] = serversInfo.HttpListenerPort.ToString();
-            GridParams["remoting_port"] = DefaultSettings.DefaultRegionRemotingPort.ToString();
+            GridParams["remoting_port"] = ConfigSettings.DefaultRegionRemotingPort.ToString();
             GridParams["map-image-id"] = regionInfo.RegionSettings.TerrainImageID.ToString();
             GridParams["originUUID"] = regionInfo.originRegionID.ToString();
             GridParams["server_uri"] = regionInfo.ServerURI;

@@ -8808,7 +8808,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 shard 
                     = config.Configs["Network"].GetString(
-                        "user_server_url", "http://127.0.0.1:" + DefaultSettings.DefaultUserServerHttpPort.ToString());
+                        "user_server_url", "http://127.0.0.1:" + ConfigSettings.DefaultUserServerHttpPort.ToString());
                 shard = config.Configs["Network"].GetString("shard", shard);
             }
 

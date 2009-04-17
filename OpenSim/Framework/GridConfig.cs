@@ -40,7 +40,7 @@ namespace OpenSim.Framework
         public string DatabaseConnect = String.Empty;
         public string DefaultAssetServer = String.Empty;
         public string DefaultUserServer = String.Empty;
-        public uint HttpPort = DefaultSettings.DefaultGridServerHttpPort;
+        public uint HttpPort = ConfigSettings.DefaultGridServerHttpPort;
         public string SimRecvKey = String.Empty;
         public string SimSendKey = String.Empty;
         public string UserRecvKey = String.Empty;
@@ -58,7 +58,7 @@ namespace OpenSim.Framework
             m_configMember.addConfigurationOption("default_asset_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Asset Server URI",
-                                                "http://127.0.0.1:" + DefaultSettings.DefaultAssetServerHttpPort.ToString() + "/",
+                                                "http://127.0.0.1:" + ConfigSettings.DefaultAssetServerHttpPort.ToString() + "/",
                                                 false);
             m_configMember.addConfigurationOption("asset_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to asset server", "null", false);
@@ -68,7 +68,7 @@ namespace OpenSim.Framework
             m_configMember.addConfigurationOption("default_user_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default User Server URI",
-                                                "http://127.0.0.1:" + DefaultSettings.DefaultUserServerHttpPort.ToString() + "/", false);
+                                                "http://127.0.0.1:" + ConfigSettings.DefaultUserServerHttpPort.ToString() + "/", false);
             m_configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to user server", "null", false);
             m_configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
@@ -84,7 +84,7 @@ namespace OpenSim.Framework
                                                 "Database connect string", "", false);
 
             m_configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Http Listener port", DefaultSettings.DefaultGridServerHttpPort.ToString(), false);
+                                                "Http Listener port", ConfigSettings.DefaultGridServerHttpPort.ToString(), false);
 
             m_configMember.addConfigurationOption("allow_forceful_banlines",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING,

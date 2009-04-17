@@ -552,7 +552,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             hash["region_image"] = regInfo.RegionSettings.TerrainImageID.ToString();
             hash["region_name"] = regInfo.RegionName;
             hash["internal_port"] = regInfo.InternalEndPoint.Port.ToString();
-            hash["remoting_port"] = DefaultSettings.DefaultRegionRemotingPort.ToString();
+            hash["remoting_port"] = ConfigSettings.DefaultRegionRemotingPort.ToString();
             //m_log.Debug(">> Here: " + regInfo.InternalEndPoint.Port);
 
 
@@ -640,7 +640,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                         m_log.Debug("  >> " + loginParams["home_address"] + " <<");
                         m_log.Debug("  --------- ------------ -------");
                         loginParams["home_port"] = rinfo.HttpPort.ToString();
-                        loginParams["home_remoting"] = DefaultSettings.DefaultRegionRemotingPort.ToString(); ;
+                        loginParams["home_remoting"] = ConfigSettings.DefaultRegionRemotingPort.ToString(); ;
                     }
                 }
                 else
