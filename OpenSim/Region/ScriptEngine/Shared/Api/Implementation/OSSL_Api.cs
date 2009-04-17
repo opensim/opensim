@@ -35,6 +35,7 @@ using OpenMetaverse;
 using Nini.Config;
 using OpenSim;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -1348,15 +1349,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Low, "osAvatarName2Key");
 
-            UserProfileData UserProfile = World.CommsManager.UserService
-                .GetUserProfile(firstname, lastname);
-            if (UserProfile==null) 
+            CachedUserInfo userInfo = World.CommsManager.UserProfileCacheService.GetUserDetails(firstname, lastname);
+            
+            if (null == userInfo) 
             {
                 return UUID.Zero.ToString();
             } 
             else 
             {
-                return UserProfile.ID.ToString();
+                return userInfo.UserProfile.ID.ToString();
             }
         }
 
