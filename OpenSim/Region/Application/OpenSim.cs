@@ -903,7 +903,7 @@ namespace OpenSim
                 email = MainConsole.Instance.CmdPrompt("Email", "");
             else email = cmdparams[7];
 
-            if (null == m_commsManager.UserService.GetUserProfile(firstName, lastName))
+            if (null == m_commsManager.UserProfileCacheService.GetUserDetails(firstName, lastName))
             {
                 m_commsManager.UserAdminService.AddUser(firstName, lastName, password, email, regX, regY);
             }
