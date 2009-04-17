@@ -27,8 +27,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using System.Timers;
+using log4net;
 using MXP;
 using Nini.Config;
 using OpenMetaverse;
@@ -44,6 +46,8 @@ namespace OpenSim.Client.MXP
      */
     public class MXPModule : IRegionModule
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private MXPPacketServer m_server;
 
         private IConfigSource m_config;
@@ -78,6 +82,8 @@ namespace OpenSim.Client.MXP
                 m_ticker.Elapsed += ticker_Elapsed;
 
                 m_ticker.Start();
+
+                m_log.Info("[MXP] MXP Enabled and Listening");
             }
         }
 
