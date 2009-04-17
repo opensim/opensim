@@ -222,7 +222,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                                              part.AbsolutePosition.Y,
                                              part.AbsolutePosition.Z);
 
-            Quaternion wr = part.GetWorldRotation();
+            Quaternion wr = part.ParentGroup.GroupRotation;
             Rotation = new LSL_Types.Quaternion(wr.X, wr.Y, wr.Z, wr.W);
 
             Velocity = new LSL_Types.Vector3(part.Velocity.X,
