@@ -35,7 +35,7 @@ namespace OpenSim.Framework
     public class EstateSettings
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly ConfigurationMember _configMember;
+        private readonly ConfigurationMember configMember;
 
         public delegate void SaveDelegate(EstateSettings rs);
 
@@ -273,20 +273,20 @@ namespace OpenSim.Framework
 
         public EstateSettings()
         {
-            if (_configMember == null)
+            if (configMember == null)
             {
                 try
                 {
                     // Load legacy defaults
                     //
-                    _configMember =
+                    configMember =
                         new ConfigurationMember(Path.Combine(Util.configDir(),
                                 "estate_settings.xml"), "ESTATE SETTINGS",
                                 loadConfigurationOptions,
                                 handleIncomingConfiguration, true);
 
                     l_EstateManagers.Clear();
-                    _configMember.performConfigurationRetrieve();
+                    configMember.performConfigurationRetrieve();
                 }
                 catch (Exception)
                 {
@@ -360,75 +360,75 @@ namespace OpenSim.Framework
 
         public void loadConfigurationOptions()
         {
-            _configMember.addConfigurationOption("billable_factor",
+            configMember.addConfigurationOption("billable_factor",
                     ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
                     String.Empty, "0.0", true);
 
-//            _configMember.addConfigurationOption("estate_id",
+//            configMember.addConfigurationOption("estate_id",
 //                    ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
 //                    String.Empty, "100", true);
 
-//            _configMember.addConfigurationOption("parent_estate_id",
+//            configMember.addConfigurationOption("parent_estate_id",
 //                    ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
 //                    String.Empty, "1", true);
 
-            _configMember.addConfigurationOption("redirect_grid_x",
+            configMember.addConfigurationOption("redirect_grid_x",
                     ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                     String.Empty, "0", true);
 
-            _configMember.addConfigurationOption("redirect_grid_y",
+            configMember.addConfigurationOption("redirect_grid_y",
                     ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                     String.Empty, "0", true);
 
-            _configMember.addConfigurationOption("price_per_meter",
+            configMember.addConfigurationOption("price_per_meter",
                     ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                     String.Empty, "1", true);
 
-            _configMember.addConfigurationOption("estate_name",
+            configMember.addConfigurationOption("estate_name",
                     ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                     String.Empty, "My Estate", true);
 
-            _configMember.addConfigurationOption("estate_manager_0",
+            configMember.addConfigurationOption("estate_manager_0",
                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
-            _configMember.addConfigurationOption("estate_manager_1",
+            configMember.addConfigurationOption("estate_manager_1",
                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
-            _configMember.addConfigurationOption("estate_manager_2",
+            configMember.addConfigurationOption("estate_manager_2",
                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
-            _configMember.addConfigurationOption("estate_manager_3",
+            configMember.addConfigurationOption("estate_manager_3",
                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
-            _configMember.addConfigurationOption("estate_manager_4",
+            configMember.addConfigurationOption("estate_manager_4",
                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
-            _configMember.addConfigurationOption("estate_manager_5",
+            configMember.addConfigurationOption("estate_manager_5",
                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
-            _configMember.addConfigurationOption("estate_manager_6",
+            configMember.addConfigurationOption("estate_manager_6",
                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
-            _configMember.addConfigurationOption("estate_manager_7",
+            configMember.addConfigurationOption("estate_manager_7",
                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
-            _configMember.addConfigurationOption("estate_manager_8",
+            configMember.addConfigurationOption("estate_manager_8",
                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
-            _configMember.addConfigurationOption("estate_manager_9",
+            configMember.addConfigurationOption("estate_manager_9",
                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
-            _configMember.addConfigurationOption("region_flags",
+            configMember.addConfigurationOption("region_flags",
                     ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                     String.Empty, "336723974", true);
         }
