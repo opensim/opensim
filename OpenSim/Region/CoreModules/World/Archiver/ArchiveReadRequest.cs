@@ -425,14 +425,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 if (File.Exists(path))
                 {
-                    return new FileStream(path, FileMode.Open);
+                    return new FileStream(path, FileMode.Open, FileAccess.Read);
                 }
                 else
                 {
                     Uri uri = new Uri(path); // throw exception if not valid URI
                     if (uri.Scheme == "file")
                     {
-                        return new FileStream(uri.AbsolutePath, FileMode.Open);
+                        return new FileStream(uri.AbsolutePath, FileMode.Open, FileAccess.Read);
                     }
                     else
                     {
