@@ -91,24 +91,31 @@ namespace OpenSim.Region.Physics.OdePlugin
             switch (pParam)
             {
                 case Vehicle.ANGULAR_DEFLECTION_EFFICIENCY:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_angularDeflectionEfficiency = pValue;
                     break;
                 case Vehicle.ANGULAR_DEFLECTION_TIMESCALE:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_angularDeflectionTimescale = pValue;
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_angularMotorDecayTimescale = pValue;
                     break;
                 case Vehicle.ANGULAR_MOTOR_TIMESCALE:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_angularMotorTimescale = pValue;
                     break;
                 case Vehicle.BANKING_EFFICIENCY:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_bankingEfficiency = pValue;
                     break;
                 case Vehicle.BANKING_MIX:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_bankingMix = pValue;
                     break;
                 case Vehicle.BANKING_TIMESCALE:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_bankingTimescale = pValue;
                     break;
                 case Vehicle.BUOYANCY:
@@ -121,24 +128,31 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_hoverHeight = pValue;
                     break;
                 case Vehicle.HOVER_TIMESCALE:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_hoverTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_DEFLECTION_EFFICIENCY:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_linearDeflectionEfficiency = pValue;
                     break;
                 case Vehicle.LINEAR_DEFLECTION_TIMESCALE:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_linearDeflectionTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_linearMotorDecayTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_TIMESCALE:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_linearMotorTimescale = pValue;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_EFFICIENCY:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_verticalAttractionEfficiency = pValue;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_TIMESCALE:
+                    if (pValue < 0.01f) pValue = 0.01f;
                     m_verticalAttractionTimescale = pValue;
                     break;
                     
