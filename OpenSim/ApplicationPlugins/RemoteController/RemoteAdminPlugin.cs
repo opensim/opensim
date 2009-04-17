@@ -38,6 +38,7 @@ using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.CoreModules.World.Terrain;
@@ -555,8 +556,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     else
                     {
                         // no client supplied UUID: look it up...
-                        UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(masterFirst, masterLast);
-                        if (null == userProfile)
+                        CachedUserInfo userInfo 
+                            = m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(
+                                masterFirst, masterLast);
+                            
+                        if (null == userInfo)
                         {
                             m_log.InfoFormat("master avatar does not exist, creating it");
                             // ...or create new user
@@ -569,7 +573,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         }
                         else
                         {
-                            userID = userProfile.ID;
+                            userID = userInfo.UserProfile.ID;
                         }
                     }
 
@@ -627,6 +631,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     response.Value = responseData;
                 }
+                    
                 m_log.Info("[RADMIN]: CreateRegion: request complete");
                 return response;
             }
@@ -772,10 +777,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if (requestData.Contains("user_email"))
                         email = (string)requestData["user_email"];
 
-                    UserProfileData userProfile = 
-                        m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
-                    if (null != userProfile)
-                        throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
+                    CachedUserInfo userInfo =  
+                        m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(firstname, lastname);
+                                
+                    if (null != userInfo)
+                        throw new Exception(String.Format("Avatar {0} {1} already exists", firstname, lastname));
 
                     UUID userID = 
                         m_app.CommunicationsManager.UserAdminService.AddUser(firstname, lastname,
@@ -854,12 +860,13 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 string firstname = (string) requestData["user_firstname"];
                 string lastname = (string) requestData["user_lastname"];
 
-                UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+                CachedUserInfo userInfo 
+                    = m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(firstname, lastname);                 
 
                 responseData["user_firstname"] = firstname;
                 responseData["user_lastname"] = lastname;
 
-                if (null == userProfile)
+                if (null == userInfo)
                     responseData["success"] = false;
                 else
                     responseData["success"] = true;
@@ -980,7 +987,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if (requestData.ContainsKey("about_virtual_world"))
                         aboutAvatar = (string)requestData["about_virtual_world"];
 
-                    UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+                    UserProfileData userProfile 
+                        = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
 
                     if (null == userProfile)
                         throw new Exception(String.Format("avatar {0} {1} does not exist", firstname, lastname));
