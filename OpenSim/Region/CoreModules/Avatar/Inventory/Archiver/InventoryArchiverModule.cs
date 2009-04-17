@@ -234,20 +234,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns></returns>
         protected CachedUserInfo GetUserInfo(string firstName, string lastName)
         {
-            UserProfileData userProfile = CommsManager.UserService.GetUserProfile(firstName, lastName);
-            
-            if (null == userProfile)
-            {
-                m_log.ErrorFormat("[INVENTORY ARCHIVER]: Failed to find user {0} {1}", firstName, lastName);
-                return null;
-            }
-
-            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
+            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
             if (null == userInfo)
             {
                 m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1} {2}", 
-                    firstName, lastName, userProfile.ID);
+                    "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1}", 
+                    firstName, lastName);
                 return null;
             }
             

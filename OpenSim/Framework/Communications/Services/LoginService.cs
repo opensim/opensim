@@ -292,7 +292,8 @@ namespace OpenSim.Framework.Communications.Services
             }
         }
 
-        protected virtual bool TryAuthenticateXmlRpcLogin(XmlRpcRequest request, string firstname, string lastname, out UserProfileData userProfile)
+        protected virtual bool TryAuthenticateXmlRpcLogin(
+            XmlRpcRequest request, string firstname, string lastname, out UserProfileData userProfile)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
 
