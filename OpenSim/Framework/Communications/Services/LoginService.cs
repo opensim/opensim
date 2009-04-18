@@ -425,6 +425,12 @@ namespace OpenSim.Framework.Communications.Services
 
                     CreateAgent(userProfile, request);
 
+                    // We need to commit the agent right here, even though the userProfile info is not complete
+                    // at this point. There is another commit further down.
+                    // This is for the new sessionID to be stored so that the region can check it for session authentication. 
+                    // CustomiseResponse->PrepareLoginToRegion
+                    CommitAgent(ref userProfile);
+
                     try
                     {
                         UUID agentID = userProfile.ID;
