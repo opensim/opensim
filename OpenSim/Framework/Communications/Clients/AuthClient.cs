@@ -129,12 +129,12 @@ namespace OpenSim.Framework.Communications.Clients
             Hashtable responseData = (Hashtable)UserResp.Value;
             if (responseData.ContainsKey("auth_session") && responseData["auth_session"].ToString() == "TRUE")
             {
-                System.Console.WriteLine("[Authorization]: userserver reported authorized session for user " + userID);
+                //System.Console.WriteLine("[Authorization]: userserver reported authorized session for user " + userID);
                 return true;
             }
             else
             {
-                System.Console.WriteLine("[Authorization]: userserver reported unauthorized session for user " + userID);
+                //System.Console.WriteLine("[Authorization]: userserver reported unauthorized session for user " + userID);
                 return false;
             }
         }
