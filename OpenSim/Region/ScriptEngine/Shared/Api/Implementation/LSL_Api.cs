@@ -8797,7 +8797,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 position = m_host.AbsolutePosition;
             Vector3 velocity = m_host.Velocity;
             Quaternion rotation = m_host.RotationOffset;
+            string ownerName = String.Empty;
             ScenePresence scenePresence = World.GetScenePresence(m_host.ObjectOwner);
+            if (scenePresence == null)
+                ownerName = resolveName(m_host.ObjectOwner);
+            else
+                ownerName = scenePresence.Name;
+
             RegionInfo regionInfo = World.RegionInfo;
 
             Dictionary<string, string> httpHeaders = new Dictionary<string, string>();
@@ -8819,7 +8825,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             httpHeaders["X-SecondLife-Local-Position"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000})", position.X, position.Y, position.Z);
             httpHeaders["X-SecondLife-Local-Velocity"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000})", velocity.X, velocity.Y, velocity.Z);
             httpHeaders["X-SecondLife-Local-Rotation"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000})", rotation.X, rotation.Y, rotation.Z, rotation.W);
-            httpHeaders["X-SecondLife-Owner-Name"] = scenePresence == null ? string.Empty : scenePresence.ControllingClient.Name;
+            httpHeaders["X-SecondLife-Owner-Name"] = ownerName;
             httpHeaders["X-SecondLife-Owner-Key"] = m_host.ObjectOwner.ToString();
             string userAgent = config.Configs["Network"].GetString("user_agent", null);
             if (userAgent != null)
