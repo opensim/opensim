@@ -46,7 +46,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //ProcessImageQueue
         //Close
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private bool m_shuttingdown = false; 
+        private bool m_shuttingdown = false;
+        private long m_lastloopprocessed = 0;
 
         private LLClientView m_client; //Client we're assigned to
         private IAssetCache m_assetCache; //Asset Cache
@@ -58,6 +59,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Dictionary<int, int> m_priorityresolver; //Enabling super fast assignment of images with the same priorities
 
         private const double doubleMinimum = .0000001;
+
+        public int m_outstandingtextures = 0;
         //Constructor
         public LLImageManager(LLClientView client, IAssetCache pAssetCache, IJ2KDecoder pJ2kDecodeModule)
         {
@@ -92,20 +95,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     J2KImage imgrequest = m_imagestore[newRequest.RequestedAssetID];
 
-                    //if (newRequest.requestSequence > imgrequest.m_lastSequence)
-                    //{
+                    if (newRequest.requestSequence > imgrequest.m_lastSequence)
+                    {
                         imgrequest.m_lastSequence = newRequest.requestSequence;
 
                         //First of all, is this being killed?
-                        if (newRequest.Priority == 0.0f && newRequest.DiscardLevel == -1)
-                        {
-                            //Remove the old priority
-                            m_priorities.Remove(imgrequest.m_designatedPriorityKey);
-                            m_imagestore.Remove(imgrequest.m_requestedUUID);
-                            imgrequest = null;
-                        }
-                        else
-                        {
+                        //if (newRequest.Priority == 0.0f && newRequest.DiscardLevel == -1)
+                        //{
+                            //Do nothing (leaving the if for future use)
+                        //}
+                        //else
+                        //{
 
 
                             //Check the priority
@@ -125,14 +125,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             //Update the requested packet number
                             imgrequest.m_requestedPacketNumber = newRequest.PacketNumber;
 
-                            //Run an update
-                            imgrequest.RunUpdate();
-                        }
-                    //}
+                             //Check if this will create an outstanding texture request
+                             bool activated = imgrequest.m_completedSendAtCurrentDiscardLevel;
+                             //Run an update
+                             imgrequest.RunUpdate();
+                             if (activated && !imgrequest.m_completedSendAtCurrentDiscardLevel && imgrequest.m_decoded)
+                             {
+                                 m_outstandingtextures++;
+                             }
+
+                        //}
+                    }
                 }
                 else
                 {
-                    J2KImage imgrequest = new J2KImage();
+                    J2KImage imgrequest = new J2KImage(this);
 
                     //Assign our missing substitute
                     imgrequest.m_MissingSubstitute = m_missingsubstitute;
@@ -198,20 +205,50 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //since we're processing in a more efficient manner.
             
             int numCollected = 0;
+
+             //Calculate our threshold
+             int threshold;
+             if (m_lastloopprocessed == 0)
+             {
+                 //This is decent for a semi fast machine, but we'll calculate it more accurately based on time below
+                  threshold = m_client.PacketHandler.PacketQueue.TextureThrottle.Current / 6300;
+                  m_lastloopprocessed = DateTime.Now.Ticks;
+             }
+             else
+             {
+                 double throttleseconds = ((double)DateTime.Now.Ticks - (double)m_lastloopprocessed) / (double)TimeSpan.TicksPerSecond;
+                 throttleseconds = throttleseconds * m_client.PacketHandler.PacketQueue.TextureThrottle.Current;
+ 
+                 //Average of 1000 bytes per packet
+                 throttleseconds = throttleseconds / 1000;
+ 
+                 //Safe-zone multiplier of 2.0
+                 threshold = (int)(throttleseconds * 2.0);
+                 m_lastloopprocessed = DateTime.Now.Ticks;
+ 
+             }
+             
+             if (threshold < 10)
+             {
+                 threshold = 10;
+             }
+
+             if (m_client.PacketHandler == null)
+                 return;
+
+             if (m_client.PacketHandler.PacketQueue == null)
+                 return;
+
             //First of all make sure our packet queue isn't above our threshold 
-            if (m_client == null)
-                return;
 
-            if (m_client.PacketHandler == null)
-                return;
+            //Uncomment this to see what the texture stack is doing
+             //m_log.Debug("Queue: " + m_client.PacketHandler.PacketQueue.TextureOutgoingPacketQueueCount.ToString() + " Threshold: " + threshold.ToString() + " outstanding: " + m_outstandingtextures.ToString());
+             if (m_client.PacketHandler.PacketQueue.TextureOutgoingPacketQueueCount < threshold && m_outstandingtextures > 0)
+             {
+                bool justreset = false;
+            
 
-            if (m_client.PacketHandler.PacketQueue == null)
-                return;
 
-
-            if (m_client.PacketHandler.PacketQueue.TextureOutgoingPacketQueueCount < 200)
-            {
-                
                 for (int x = m_priorities.Count - 1; x > -1; x--)
                 {
                     
@@ -221,41 +258,55 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         numCollected++;
                         //SendPackets will send up to ten packets per cycle
-                        //m_log.Debug("Processing packet with priority of " + imagereq.m_designatedPriorityKey.ToString());
                         if (imagereq.SendPackets(m_client))
                         {
                             //Send complete
-                            imagereq.m_completedSendAtCurrentDiscardLevel = true;
-                            //Re-assign priority to bottom
-                            //Remove the old priority
-                            m_priorities.Remove(imagereq.m_designatedPriorityKey);
-                            int lowest;
-                            if (m_priorities.Count > 0)
+                            if (!imagereq.m_completedSendAtCurrentDiscardLevel)
                             {
-                                lowest = (int)m_priorities.Keys[0];
-                                lowest--;
-                            }
-                            else
-                            {
-                                lowest = -10000;
-                            }
-                            m_priorities.Add((double)lowest, imagereq.m_requestedUUID);
-                            imagereq.m_designatedPriorityKey = (double)lowest;
-                            if (m_priorityresolver.ContainsKey((int)lowest))
-                            {
-                                m_priorityresolver[(int)lowest]++;
-                            }
-                            else
-                            {
-                                m_priorityresolver.Add((int)lowest, 0);
+                                imagereq.m_completedSendAtCurrentDiscardLevel = true;
+                                m_outstandingtextures--;
+                                //Re-assign priority to bottom
+                                //Remove the old priority
+                                m_priorities.Remove(imagereq.m_designatedPriorityKey);
+                                int lowest;
+                                if (m_priorities.Count > 0)
+                                {
+                                    lowest = (int)m_priorities.Keys[0];
+                                    lowest--;
+                                }
+                                else
+                                {
+                                    lowest = -10000;
+                                }
+                                m_priorities.Add((double)lowest, imagereq.m_requestedUUID);
+                                imagereq.m_designatedPriorityKey = (double)lowest;
+                                if (m_priorityresolver.ContainsKey((int)lowest))
+                                {
+                                    m_priorityresolver[(int)lowest]++;
+                                }
+                                else
+                                {
+                                    m_priorityresolver.Add((int)lowest, 0);
+                                }
                             }
                         }
-                        //m_log.Debug("...now has priority of " + imagereq.m_designatedPriorityKey.ToString());
                         if (numCollected == count)
                         {
                             break;
                         }
                     }
+                    if (numCollected == count || m_outstandingtextures == 0)
+                        break;
+                    if (numCollected % m_outstandingtextures == 0 && !justreset)
+                    {
+                        //We've gotten as much as we can from the stack,
+                        //reset to the top so that we can send MOAR DATA (nomnomnom)!
+                        x = m_priorities.Count - 1;
+
+                        justreset = true; //prevents us from getting stuck in a loop
+                    }
+
+
                 }
             }
 

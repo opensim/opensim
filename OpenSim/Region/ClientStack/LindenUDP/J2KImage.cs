@@ -48,6 +48,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
     public class J2KImage
     {
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public double m_designatedPriorityKey;
         public double m_requestedPriority = 0.0d;
@@ -61,7 +62,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public AssetBase m_MissingSubstitute = null;
         public bool m_decoded = false;
         public bool m_completedSendAtCurrentDiscardLevel;
-        
+                
         private sbyte m_discardLevel=-1;
         private uint m_packetNumber;
         private bool m_decoderequested = false;
@@ -72,7 +73,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private const int cImagePacketSize = 1000;
         private const int cFirstPacketSize = 600;
         private AssetBase m_asset = null;
-        
+        private LLImageManager m_image;
+        public J2KImage(LLImageManager image)
+        {
+            m_image = image;
+        }
 
         public uint m_pPacketNumber
         {
@@ -103,6 +108,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void J2KDecodedCallback(UUID AssetId, OpenJPEG.J2KLayerInfo[] layers)
         {
+           m_image.m_outstandingtextures++;
            Layers = layers;
            m_decoded = true;
            RunUpdate();
@@ -130,8 +136,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (m_packetNumber == 1)
                 return m_asset.Data.Length;
-            return (m_asset.Data.Length - cFirstPacketSize) % cImagePacketSize;
-        }
+            int lastsize = (m_asset.Data.Length - cFirstPacketSize) % cImagePacketSize;
+            //If the last packet size is zero, it's really cImagePacketSize, it sits on the boundary
+            if (lastsize == 0)
+            {
+                lastsize = cImagePacketSize;
+            }
+            return lastsize;
+         }
+
  
         public int CurrentBytePosition()
         {
@@ -247,7 +260,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_sentinfo = true;
                         m_packetNumber++;
                     }
-
+                    bool ignoreStop = false;
                     if (m_packetNumber < 2)
                     {
                         m_packetNumber = 2;
@@ -260,6 +273,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SendMore = SendPacket(client);
                         m_packetNumber++;
                     }
+
                     if (m_packetNumber > m_stopPacket)
                     {
 
@@ -339,11 +353,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             {
                                 m_discardLevel = m_requestedDiscardLevel;
                             }
-                
+                                
                             //Calculate the m_stopPacket
                             if (Layers.Length > 0)
                             {
                                 m_stopPacket = (uint)GetPacketForBytePosition(Layers[(Layers.Length - 1) - m_discardLevel].End);
+                                //I don't know why, but the viewer seems to expect the final packet if the file
+                                //is just one packet bigger.
+                                if (TexturePacketCount() == m_stopPacket + 1)
+                                {
+                                    m_stopPacket = TexturePacketCount();
+                                }
                             }
                             else
                             {
