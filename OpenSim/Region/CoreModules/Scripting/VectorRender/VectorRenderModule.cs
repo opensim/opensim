@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         private string m_name = "VectorRenderModule";
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
-
+        
         public VectorRenderModule()
         {
         }
@@ -152,6 +152,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             int height = 256;
             int alpha = 255; // 0 is transparent
             Color bgColour = Color.White;  // Default background color
+            char altDataDelim = ';';
             
             char[] paramDelimiter = { ',' };
             char[] nvpDelimiter = { ':' };
@@ -248,7 +249,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                          {
                              bgColour = Color.FromName(value);
                          }
-                         break;    
+                         break;
+                     case "altdatadelim":
+                         altDataDelim = value.ToCharArray()[0];
+                         break;
                      case "":
                          // blank string has been passed do nothing just use defaults
                      break;
@@ -311,7 +315,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 }
             }
 
-            GDIDraw(data, graph);
+            GDIDraw(data, graph, altDataDelim);
 
             byte[] imageJ2000 = new byte[0];
 
@@ -382,7 +386,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         }
 */
 
-        private void GDIDraw(string data, Graphics graph)
+        private void GDIDraw(string data, Graphics graph, char dataDelim)
         {
             Point startPoint = new Point(0, 0);
             Point endPoint = new Point(0, 0);
@@ -391,7 +395,8 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             float fontSize = 14;
             Font myFont = new Font(fontName, fontSize);
             SolidBrush myBrush = new SolidBrush(Color.Black);
-            char[] lineDelimiter = {';'};
+            
+            char[] lineDelimiter = {dataDelim};            
             char[] partsDelimiter = {','};
             string[] lines = data.Split(lineDelimiter);
 
