@@ -74,7 +74,9 @@ namespace OpenSim.Region.Physics.Meshing
 
 
         /// <summary>
-        /// creates a simple box mesh of the specified size
+        /// creates a simple box mesh of the specified size. This mesh is of very low vertex count and may
+        /// be useful as a backup proxy when level of detail is not needed or when more complex meshes fail
+        /// for some reason
         /// </summary>
         /// <param name="minX"></param>
         /// <param name="maxX"></param>
