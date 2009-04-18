@@ -69,34 +69,36 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="callback"></param>
         public void RequestInventoryForUser(UUID userID, UUID session_id, InventoryReceiptCallback callback)
         {
-            if (!m_RequestingInventory.ContainsKey(userID))
+            lock (m_RequestingInventory)
             {
-                m_RequestingInventory.Add(userID, callback);
-
-                try
+                if (!m_RequestingInventory.ContainsKey(userID))
+                    m_RequestingInventory.Add(userID, callback);
+                else
                 {
-                    m_log.InfoFormat(
-                        "[OGS1 INVENTORY SERVICE]: Requesting inventory from {0}/GetInventory/ for user {1}",
-                        _inventoryServerUrl, userID);
-
-                    RestSessionObjectPosterResponse<Guid, InventoryCollection> requester
-                        = new RestSessionObjectPosterResponse<Guid, InventoryCollection>();
-                    requester.ResponseCallback = InventoryResponse;
-
-                    requester.BeginPostObject(_inventoryServerUrl + "/GetInventory/", userID.Guid, session_id.ToString(), userID.ToString());
-                }
-                catch (WebException e)
-                {
-                    if (StatsManager.SimExtraStats != null)
-                        StatsManager.SimExtraStats.AddInventoryServiceRetrievalFailure();
-
-                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Request inventory operation failed, {0} {1}",
-                        e.Source, e.Message);
+                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: RequestInventoryForUser() - could you not find user profile for {0}", userID);
+                    return;
                 }
             }
-            else
+
+            try
             {
-                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: RequestInventoryForUser() - could you not find user profile for {0}", userID);
+                m_log.InfoFormat(
+                    "[OGS1 INVENTORY SERVICE]: Requesting inventory from {0}/GetInventory/ for user {1}",
+                    _inventoryServerUrl, userID);
+
+                RestSessionObjectPosterResponse<Guid, InventoryCollection> requester
+                    = new RestSessionObjectPosterResponse<Guid, InventoryCollection>();
+                requester.ResponseCallback = InventoryResponse;
+
+                requester.BeginPostObject(_inventoryServerUrl + "/GetInventory/", userID.Guid, session_id.ToString(), userID.ToString());
+            }
+            catch (WebException e)
+            {
+                if (StatsManager.SimExtraStats != null)
+                    StatsManager.SimExtraStats.AddInventoryServiceRetrievalFailure();
+
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Request inventory operation failed, {0} {1}",
+                    e.Source, e.Message);
             }
         }
 
@@ -107,60 +109,66 @@ namespace OpenSim.Region.Communications.OGS1
         private void InventoryResponse(InventoryCollection response)
         {
             UUID userID = response.UserID;
-            if (m_RequestingInventory.ContainsKey(userID))
+            InventoryReceiptCallback callback = null;
+            lock (m_RequestingInventory)
             {
-                m_log.InfoFormat("[OGS1 INVENTORY SERVICE]: " +
-                                 "Received inventory response for user {0} containing {1} folders and {2} items",
-                                 userID, response.Folders.Count, response.Items.Count);
-
-                InventoryFolderImpl rootFolder = null;
-                InventoryReceiptCallback callback = m_RequestingInventory[userID];
-
-                ICollection<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
-                ICollection<InventoryItemBase> items = new List<InventoryItemBase>();
-
-                foreach (InventoryFolderBase folder in response.Folders)
+                if (m_RequestingInventory.ContainsKey(userID))
                 {
-                    if (folder.ParentID == UUID.Zero)
-                    {
-                        rootFolder = new InventoryFolderImpl(folder);
-                        folders.Add(rootFolder);
-
-                        break;
-                    }
-                }
-
-                if (rootFolder != null)
-                {
-                    foreach (InventoryFolderBase folder in response.Folders)
-                    {
-                        if (folder.ID != rootFolder.ID)
-                        {
-                            folders.Add(new InventoryFolderImpl(folder));
-                        }
-                    }
-
-                    foreach (InventoryItemBase item in response.Items)
-                    {
-                        items.Add(item);
-                    }
+                    callback = m_RequestingInventory[userID];
+                    m_RequestingInventory.Remove(userID);
                 }
                 else
                 {
-                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Did not get back an inventory containing a root folder for user {0}", userID);
+                    m_log.WarnFormat(
+                        "[OGS1 INVENTORY SERVICE]: " +
+                        "Received inventory response for {0} for which we do not have a record of requesting!",
+                        userID);
+                    return;
+                }
+            }
+
+            m_log.InfoFormat("[OGS1 INVENTORY SERVICE]: " +
+                             "Received inventory response for user {0} containing {1} folders and {2} items",
+                             userID, response.Folders.Count, response.Items.Count);
+
+            InventoryFolderImpl rootFolder = null;
+
+            ICollection<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
+            ICollection<InventoryItemBase> items = new List<InventoryItemBase>();
+
+            foreach (InventoryFolderBase folder in response.Folders)
+            {
+                if (folder.ParentID == UUID.Zero)
+                {
+                    rootFolder = new InventoryFolderImpl(folder);
+                    folders.Add(rootFolder);
+
+                    break;
+                }
+            }
+
+            if (rootFolder != null)
+            {
+                foreach (InventoryFolderBase folder in response.Folders)
+                {
+                    if (folder.ID != rootFolder.ID)
+                    {
+                        folders.Add(new InventoryFolderImpl(folder));
+                    }
                 }
 
-                callback(folders, items);
-
-                m_RequestingInventory.Remove(userID);
+                foreach (InventoryItemBase item in response.Items)
+                {
+                    items.Add(item);
+                }
             }
             else
             {
-                m_log.WarnFormat(
-                    "[OGS1 INVENTORY SERVICE]: " +
-                    "Received inventory response for {0} for which we do not have a record of requesting!",
-                    userID);
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Did not get back an inventory containing a root folder for user {0}", userID);
             }
+
+            callback(folders, items);
+
         }
 
         /// <summary>

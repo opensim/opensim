@@ -77,52 +77,54 @@ namespace OpenSim.Region.Communications.Hypergrid
             }
 
             // grid/hypergrid mode
-            if (!m_RequestingInventory.ContainsKey(userID))
+            lock (m_RequestingInventory)
             {
-                m_RequestingInventory.Add(userID, callback);
-
-                string invServer = GetUserInventoryURI(userID);
-                m_log.InfoFormat(
-                    "[HGrid INVENTORY SERVICE]: Requesting inventory from {0}/GetInventory/ for user {1} ({2})",
-                    /*_inventoryServerUrl*/ invServer, userID, userID.Guid);
-
-                try
+                if (!m_RequestingInventory.ContainsKey(userID))
                 {
-
-                    //RestSessionObjectPosterResponse<Guid, InventoryCollection> requester
-                    //    = new RestSessionObjectPosterResponse<Guid, InventoryCollection>();
-                    //requester.ResponseCallback = InventoryResponse;
-
-                    //requester.BeginPostObject(invServer + "/GetInventory/", userID.Guid, session_id.ToString(), userID.ToString());
-                    GetInventoryDelegate d = GetInventoryAsync;
-                    d.BeginInvoke(invServer, userID, session_id, GetInventoryCompleted, d);
-
+                    m_RequestingInventory.Add(userID, callback);
                 }
-                catch (WebException e)
+                else
                 {
-                    if (StatsManager.SimExtraStats != null)
-                        StatsManager.SimExtraStats.AddInventoryServiceRetrievalFailure();
-
-                    m_log.ErrorFormat("[HGrid INVENTORY SERVICE]: Request inventory operation failed, {0} {1}",
-                        e.Source, e.Message);
-
-                    // Well, let's synthesize one
-                    InventoryCollection icol = new InventoryCollection();
-                    icol.UserID = userID;
-                    icol.Items = new List<InventoryItemBase>();
-                    icol.Folders = new List<InventoryFolderBase>();
-                    InventoryFolderBase rootFolder = new InventoryFolderBase();
-                    rootFolder.ID = UUID.Random();
-                    rootFolder.Owner = userID;
-                    icol.Folders.Add(rootFolder);
-                    InventoryResponse(icol);
+                    m_log.ErrorFormat("[HGrid INVENTORY SERVICE]: RequestInventoryForUser() - could  not find user profile for {0}", userID);
+                    return;
                 }
             }
-            else
+            string invServer = GetUserInventoryURI(userID);
+            m_log.InfoFormat(
+                "[HGrid INVENTORY SERVICE]: Requesting inventory from {0}/GetInventory/ for user {1} ({2})",
+                /*_inventoryServerUrl*/ invServer, userID, userID.Guid);
+
+            try
             {
-                m_log.ErrorFormat("[HGrid INVENTORY SERVICE]: RequestInventoryForUser() - could  not find user profile for {0}", userID);
+
+                //RestSessionObjectPosterResponse<Guid, InventoryCollection> requester
+                //    = new RestSessionObjectPosterResponse<Guid, InventoryCollection>();
+                //requester.ResponseCallback = InventoryResponse;
+
+                //requester.BeginPostObject(invServer + "/GetInventory/", userID.Guid, session_id.ToString(), userID.ToString());
+                GetInventoryDelegate d = GetInventoryAsync;
+                d.BeginInvoke(invServer, userID, session_id, GetInventoryCompleted, d);
+
             }
-            
+            catch (WebException e)
+            {
+                if (StatsManager.SimExtraStats != null)
+                    StatsManager.SimExtraStats.AddInventoryServiceRetrievalFailure();
+
+                m_log.ErrorFormat("[HGrid INVENTORY SERVICE]: Request inventory operation failed, {0} {1}",
+                    e.Source, e.Message);
+
+                // Well, let's synthesize one
+                InventoryCollection icol = new InventoryCollection();
+                icol.UserID = userID;
+                icol.Items = new List<InventoryItemBase>();
+                icol.Folders = new List<InventoryFolderBase>();
+                InventoryFolderBase rootFolder = new InventoryFolderBase();
+                rootFolder.ID = UUID.Random();
+                rootFolder.Owner = userID;
+                icol.Folders.Add(rootFolder);
+                InventoryResponse(icol);
+            }            
         }
 
         private delegate InventoryCollection GetInventoryDelegate(string url, UUID userID, UUID sessionID);
@@ -447,62 +449,66 @@ namespace OpenSim.Region.Communications.Hypergrid
         private void InventoryResponse(InventoryCollection response)
         {
             UUID userID = response.UserID;
-            if (m_RequestingInventory.ContainsKey(userID))
+            InventoryReceiptCallback callback = null;
+            lock (m_RequestingInventory)
             {
-                m_log.InfoFormat("[HGrid INVENTORY SERVICE]: " +
-                                 "Received inventory response for user {0} containing {1} folders and {2} items",
-                                 userID, response.Folders.Count, response.Items.Count);
-
-                InventoryFolderImpl rootFolder = null;
-                InventoryReceiptCallback callback = m_RequestingInventory[userID];
-
-                ICollection<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
-                ICollection<InventoryItemBase> items = new List<InventoryItemBase>();
-
-                foreach (InventoryFolderBase folder in response.Folders)
+                if (m_RequestingInventory.ContainsKey(userID))
                 {
-                    if (folder.ParentID == UUID.Zero)
-                    {
-                        rootFolder = new InventoryFolderImpl(folder);
-                        folders.Add(rootFolder);
-
-                        break;
-                    }
-                }
-
-                if (rootFolder != null)
-                {
-                    foreach (InventoryFolderBase folder in response.Folders)
-                    {
-                        if (folder.ID != rootFolder.ID)
-                        {
-                            folders.Add(new InventoryFolderImpl(folder));
-                        }
-                    }
-
-                    foreach (InventoryItemBase item in response.Items)
-                    {
-                        items.Add(item);
-                    }
+                    m_log.InfoFormat("[HGrid INVENTORY SERVICE]: " +
+                                     "Received inventory response for user {0} containing {1} folders and {2} items",
+                                     userID, response.Folders.Count, response.Items.Count);
+                    callback = m_RequestingInventory[userID];
+                    m_RequestingInventory.Remove(userID);
                 }
                 else
                 {
-                    m_log.ErrorFormat("[HGrid INVENTORY SERVICE]: Did not get back an inventory containing a root folder for user {0}", userID);
+                    m_log.WarnFormat(
+                        "[HGrid INVENTORY SERVICE]: " +
+                        "Received inventory response for {0} for which we do not have a record of requesting!",
+                        userID);
+                    return;
+                }
+            }
+
+            InventoryFolderImpl rootFolder = null;
+
+            ICollection<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
+            ICollection<InventoryItemBase> items = new List<InventoryItemBase>();
+
+            foreach (InventoryFolderBase folder in response.Folders)
+            {
+                if (folder.ParentID == UUID.Zero)
+                {
+                    rootFolder = new InventoryFolderImpl(folder);
+                    folders.Add(rootFolder);
+
+                    break;
+                }
+            }
+
+            if (rootFolder != null)
+            {
+                foreach (InventoryFolderBase folder in response.Folders)
+                {
+                    if (folder.ID != rootFolder.ID)
+                    {
+                        folders.Add(new InventoryFolderImpl(folder));
+                    }
                 }
 
-                m_RequestingInventory.Remove(userID);
-                callback(folders, items);
-
+                foreach (InventoryItemBase item in response.Items)
+                {
+                    items.Add(item);
+                }
             }
             else
             {
-                m_log.WarnFormat(
-                    "[HGrid INVENTORY SERVICE]: " +
-                    "Received inventory response for {0} for which we do not have a record of requesting!",
-                    userID);
+                m_log.ErrorFormat("[HGrid INVENTORY SERVICE]: Did not get back an inventory containing a root folder for user {0}", userID);
             }
-        }
 
+            callback(folders, items);
+
+        }
 
         private bool IsLocalStandaloneUser(UUID userID)
         {
