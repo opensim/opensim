@@ -123,8 +123,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public void AddRegion(Scene scene)
         {
-            scene.RegisterModuleInterface<IGroupsModule>(this);
+            if (m_GroupsEnabled)
+                scene.RegisterModuleInterface<IGroupsModule>(this);
         }
+
         public void RegionLoaded(Scene scene)
         {
             if (m_debugEnabled) m_log.InfoFormat("[GROUPS] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
