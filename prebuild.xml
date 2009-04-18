@@ -1268,6 +1268,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="Mono.Addins.dll" />
 
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
@@ -1277,10 +1278,12 @@
       <Reference name="log4net.dll"/>
       <Reference name="DotNetOpenMail.dll"/>
 
+	  
       <Files>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests" />
         </Match>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
@@ -3284,6 +3287,7 @@
 
   </Solution>
 </Prebuild>
+
 
 
 

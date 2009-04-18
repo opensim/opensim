@@ -1230,3 +1230,25 @@ freeswitch_well_known_ip = ip.address.of.freeswitch.server
 freeswitch_default_timeout = 5000
 freeswitch_subscribe_retry = 120
 ; freeswitch_password_reset_url =  
+
+
+[Groups]
+    Enabled = false
+	
+	; This is the current groups stub in Region.CoreModules.Avatar.Groups
+    Module  = Default
+
+	
+    ; The XmlRpcGroups implementation can be used against the publically available service
+    ; that I have made available for testing.  Your group data is not guarenteed safe
+    ; or available if you use this service, but it's available now and seems to work.  
+    ; The PHP code for the service is available for you to deploy to your own server.
+    ;
+    ;Module  = XmlRpcGroups
+
+    ;XmlRpcServiceURL       = http://osflotsam.org/xmlrpc.php
+    ;XmlRpcMessagingEnabled = true
+    ;XmlRpcNoticesEnabled   = true
+	
+	; This makes the XmlRpcGroups modules very chatty on the console.
+    ;XmlRpcDebugEnabled     = true

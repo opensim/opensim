@@ -1,0 +1,14 @@
+<Addin id="OpenSim.Region.OptionalModules" version="0.1">
+    <Runtime>
+        <Import assembly="OpenSim.Region.OptionalModules.dll"/>
+    </Runtime>
+
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+    </Dependencies>
+
+    <Extension path = "/OpenSim/RegionModules">
+      <RegionModule id="XmlRpcGroups"          type="OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.XmlRpcGroupsModule" />
+      <RegionModule id="XmlRpcGroupsMessaging" type="OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.XmlRpcGroupsMessaging" />
+    </Extension>
+</Addin>
