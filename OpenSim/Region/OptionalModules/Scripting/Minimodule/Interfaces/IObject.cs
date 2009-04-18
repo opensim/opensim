@@ -157,7 +157,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         bool IsFlexible { get; set; }
 
-        PrimType PrimShape { get; set; }
+        IObjectShape Shape { get; }
+
         // TODO:
         // PrimHole
         // Repeats, Offsets, Cut/Dimple/ProfileCut
@@ -189,19 +190,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         Rubber,
         Stone,
         Flesh
-    }
-
-    public enum PrimType
-    {
-        NotPrimitive = 255,
-        Box = 0,
-        Cylinder = 1,
-        Prism = 2,
-        Sphere = 3,
-        Torus = 4,
-        Tube = 5,
-        Ring = 6,
-        Sculpt = 7
     }
 
     public enum TextureMapping

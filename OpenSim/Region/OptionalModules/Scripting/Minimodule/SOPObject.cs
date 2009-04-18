@@ -28,14 +28,17 @@
 using System;
 using System.Collections.Generic;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.OptionalModules.Scripting.Minimodule.Object;
 using OpenSim.Region.Physics.Manager;
+using PrimType=OpenSim.Region.OptionalModules.Scripting.Minimodule.Object.PrimType;
+using SculptType=OpenSim.Region.OptionalModules.Scripting.Minimodule.Object.SculptType;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class SOPObject : MarshalByRefObject, IObject, IObjectPhysics 
+    class SOPObject : MarshalByRefObject, IObject, IObjectPhysics, IObjectShape
     {
         private readonly Scene m_rootScene;
         private readonly uint m_localID;
@@ -282,12 +285,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             set { throw new System.NotImplementedException(); }
         }
 
-        public PrimType PrimShape
-        {
-            get { return (PrimType) getScriptPrimType(GetSOP().Shape); }
-            set { throw new System.NotImplementedException(); }
-        }
-
         public PhysicsMaterial PhysicsMaterial
         {
             get { throw new System.NotImplementedException(); }
@@ -295,6 +292,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         }
 
         public IObjectPhysics Physics
+        {
+            get { return this; }
+        }
+
+        public IObjectShape Shape
         {
             get { return this; }
         }
@@ -567,6 +569,73 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             GetSOP().PhysActor.SetMomentum(new PhysicsVector(momentum.X, momentum.Y, momentum.Z));
         }
+
+        #endregion
+
+        #region Implementation of IObjectShape
+
+        private UUID m_sculptMap = UUID.Zero;
+
+        public UUID SculptMap
+        {
+            get { return m_sculptMap; }
+            set
+            {
+                m_sculptMap = value;
+                SetPrimitiveSculpted(SculptMap, (byte) SculptType);
+            }
+        }
+
+        private SculptType m_sculptType = Object.SculptType.Default;
+
+        public SculptType SculptType
+        {
+            get { return m_sculptType; }
+            set
+            {
+                m_sculptType = value;
+                SetPrimitiveSculpted(SculptMap, (byte) SculptType);
+            }
+        }
+
+        public HoleShape HoleType
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public double HoleSize
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        public PrimType PrimType
+        {
+            get { return (PrimType)getScriptPrimType(GetSOP().Shape); }
+            set { throw new System.NotImplementedException(); }
+        }
+
+        private void SetPrimitiveSculpted(UUID map, byte type)
+        {
+            ObjectShapePacket.ObjectDataBlock shapeBlock = new ObjectShapePacket.ObjectDataBlock();
+
+            SceneObjectPart part = GetSOP();
+
+            UUID sculptId = map;
+
+            shapeBlock.ObjectLocalID = part.LocalId;
+            shapeBlock.PathScaleX = 100;
+            shapeBlock.PathScaleY = 150;
+
+            // retain pathcurve
+            shapeBlock.PathCurve = part.Shape.PathCurve;
+
+            part.Shape.SetSculptData((byte)type, sculptId);
+            part.Shape.SculptEntry = true;
+            part.UpdateShape(shapeBlock);
+        }
+
 
         #endregion
     }
