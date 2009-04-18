@@ -316,6 +316,16 @@ namespace OpenSim.Region.Communications.Hypergrid
         }
         #endregion
 
+        public override bool VerifySession(UUID userID, UUID sessionID)
+        {
+            string url = string.Empty;
+            if ((m_localUserServices != null) && (!IsForeignUser(userID, out url)))
+                return m_localUserServices.VerifySession(userID, sessionID);
+            else
+                return base.VerifySession(userID, sessionID);
+        }
+
+
         protected override string GetUserServerURL(UUID userID)
         {
             string serverURL = string.Empty;

@@ -847,7 +847,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool VerifySession(UUID userID, UUID sessionID)
+        public virtual bool VerifySession(UUID userID, UUID sessionID)
         {
             m_log.DebugFormat("[OGS1 USER SERVICES]: Verifying user session for " + userID);
             return AuthClient.VerifySession(GetUserServerURL(userID), userID, sessionID);
