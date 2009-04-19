@@ -158,7 +158,7 @@
 
 
 <target name="test-xml" depends="build">
-      <nunit2 failonerror="true" verbose="true">
+      <nunit2 failonerror="false" verbose="true">
       <formatter type="Xml" usefile="true" extension=".xml" outputdir="./test-results" />
       <test>
         <assemblies>
