@@ -557,6 +557,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     title.Selected = agentMembership.ActiveRole == role.RoleID;
                 }
                 title.UUID = role.RoleID;
+
+                titles.Add(title);
             }
 
             return titles;
