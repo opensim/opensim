@@ -569,6 +569,16 @@
     ; (see NINJA Physics documentation, http://opensimulator.org/wiki/NINJA_Physics)
     ; default is false
     ;use_NINJA_physics_joints = true
+    
+    ; ##
+    ; ## additional meshing options
+    ; ##
+    
+    ; physical collision mesh proxies are normally created for complex prim shapes, and collisions for simple boxes and
+    ; spheres are computed algorithmically. If you would rather have mesh proxies for simple prims, you can set this to
+    ; true. Note that this will increase memory usage and region startup time. Default is false.
+    ;force_simple_prim_meshing = true
+
 
 
 [RemoteAdmin]

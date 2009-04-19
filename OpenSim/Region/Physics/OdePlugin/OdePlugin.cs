@@ -184,6 +184,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float minimumGroundFlightOffset = 3f;
 
         public bool meshSculptedPrim = true;
+        public bool forceSimplePrimMeshing = false;
 
         public float meshSculptLOD = 32;
         public float MeshSculptphysicalLOD = 16;
@@ -408,6 +409,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     bodyPIDD = physicsconfig.GetFloat("body_pid_derivative", 35f);
                     bodyPIDG = physicsconfig.GetFloat("body_pid_gain", 25f);
 
+                    forceSimplePrimMeshing = physicsconfig.GetBoolean("force_simple_prim_meshing", forceSimplePrimMeshing);
                     meshSculptedPrim = physicsconfig.GetBoolean("mesh_sculpted_prim", true);
                     meshSculptLOD = physicsconfig.GetFloat("mesh_lod", 32f);
                     MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", 16f);
@@ -1429,18 +1431,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             PhysicsActor result;
             IMesh mesh = null;
 
-            //switch (pbs.ProfileShape)
-            //{
-            //    case ProfileShape.Square:
-            //         //support simple box & hollow box now; later, more shapes
-            //        if (needsMeshing(pbs))
-            //        {
-            //            mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
-            //        }
-
-            //        break;
-            //}
-
             if (needsMeshing(pbs))
                 mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
 
@@ -2152,23 +2142,26 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             // if it's a standard box or sphere with no cuts, hollows, twist or top shear, return false since ODE can use an internal representation for the prim
-            if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
-                || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
-                && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z))
+            if (!forceSimplePrimMeshing)
             {
-
-                if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
-                    && pbs.ProfileHollow == 0
-                    && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
-                    && pbs.PathBegin == 0 && pbs.PathEnd == 0
-                    && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
-                    && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
-                    && pbs.PathShearX == 0 && pbs.PathShearY == 0)
+                if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
+                    || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
+                    && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z))
                 {
+
+                    if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
+                        && pbs.ProfileHollow == 0
+                        && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
+                        && pbs.PathBegin == 0 && pbs.PathEnd == 0
+                        && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
+                        && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
+                        && pbs.PathShearX == 0 && pbs.PathShearY == 0)
+                    {
 #if SPAM
                     m_log.Warn("NonMesh");
 #endif
-                    return false;
+                        return false;
+                    }
                 }
             }
 
