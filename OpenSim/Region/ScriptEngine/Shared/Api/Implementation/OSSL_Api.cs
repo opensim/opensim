@@ -270,7 +270,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //
         // OpenSim functions
         //
-        public int osTerrainSetHeight(int x, int y, double val)
+        public LSL_Integer osTerrainSetHeight(int x, int y, double val)
         {
             CheckThreatLevel(ThreatLevel.High, "osTerrainSetHeight");
 
@@ -289,7 +289,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public double osTerrainGetHeight(int x, int y)
+        public LSL_Float osTerrainGetHeight(int x, int y)
         {
             CheckThreatLevel(ThreatLevel.None, "osTerrainGetHeight");
 
@@ -298,6 +298,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 OSSLError("osTerrainGetHeight: Coordinate out of bounds");
 
             return World.Heightmap[x, y];
+        }
+
+        public void osTerrainFlush()
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osTerrainFlush");
+
+            ITerrainModule terrainModule = World.RequestModuleInterface<ITerrainModule>();
+            if (terrainModule != null) terrainModule.TaintTerrain();
         }
 
         public int osRegionRestart(double seconds)
@@ -504,23 +512,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence != null)
                 {
                     // agent must be over owners land to avoid abuse
-                    if (m_host.OwnerID 
+                    if (m_host.OwnerID
                         == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).landData.OwnerID)                        
+                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).landData.OwnerID)
                     {
-                        
-                        // Check for hostname , attempt to make a hglink 
+
+                        // Check for hostname , attempt to make a hglink
                         // and convert the regionName to the target region
                         if ( regionName.Contains(".") && regionName.Contains(":"))
                         {
                             // Try to link the region
-                            RegionInfo regInfo = HGHyperlink.TryLinkRegion(World, 
-                                                               presence.ControllingClient,                                            
+                            RegionInfo regInfo = HGHyperlink.TryLinkRegion(World,
+                                                               presence.ControllingClient,
                                                                regionName);
-                            // Get the region name 
+                            // Get the region name
                             if (regInfo != null)
                             {
-                                regionName = regInfo.RegionName;    
+                                regionName = regInfo.RegionName;
                             }
                             else
                             {
@@ -531,7 +539,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         World.RequestTeleportLocation(presence.ControllingClient, regionName,
                             new Vector3((float)position.x, (float)position.y, (float)position.z),
                             new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation);
-                        
+
                         ScriptSleep(5000);
                     }
                 }
@@ -555,9 +563,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence != null)
                 {
                     // agent must be over owners land to avoid abuse
-                    if (m_host.OwnerID 
+                    if (m_host.OwnerID
                         == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).landData.OwnerID)                          
+                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).landData.OwnerID)
                     {
                         presence.ControllingClient.SendTeleportLocationStart();
                         World.RequestTeleportLocation(presence.ControllingClient, regionHandle,
@@ -592,7 +600,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 ScenePresence target = (ScenePresence)World.Entities[avatarID];
                 EndPoint ep = target.ControllingClient.GetClientInfo().userEP;
-                if (ep is IPEndPoint) 
+                if (ep is IPEndPoint)
                 {
                     IPEndPoint ip = (IPEndPoint)ep;
                     return ip.Address.ToString();
@@ -610,12 +618,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetAgents");
 
             LSL_List result = new LSL_List();
-            foreach (ScenePresence avatar in World.GetAvatars()) 
+            foreach (ScenePresence avatar in World.GetAvatars())
             {
                 result.Add(avatar.Name);
             }
             return result;
-        }        
+        }
 
         // Adam's super super custom animation functions
         public void osAvatarPlayAnimation(string avatar, string animation)
@@ -791,7 +799,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_Vector vec = new LSL_Vector(0,0,0);
             IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
-            if (textureManager != null) 
+            if (textureManager != null)
             {
                 double xSize, ySize;
                 textureManager.GetDrawStringSize(contentType, text, fontName, fontSize,
@@ -847,7 +855,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 while (sunHour < 0)
                     sunHour += 24.0;
-                    
+
 
                 World.RegionInfo.RegionSettings.UseEstateSun = useEstateSun;
                 World.RegionInfo.RegionSettings.SunPosition  = sunHour + 6; // LL Region Sun Hour is 6 to 30
@@ -1014,8 +1022,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelMediaURL");
 
             m_host.AddScriptLPS(1);
-            
-            ILandObject land 
+
+            ILandObject land
                 = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
 
             if (land.landData.OwnerID != m_host.ObjectOwner)
@@ -1350,12 +1358,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Low, "osAvatarName2Key");
 
             CachedUserInfo userInfo = World.CommsManager.UserProfileCacheService.GetUserDetails(firstname, lastname);
-            
-            if (null == userInfo) 
+
+            if (null == userInfo)
             {
                 return UUID.Zero.ToString();
-            } 
-            else 
+            }
+            else
             {
                 return userInfo.UserProfile.ID.ToString();
             }
@@ -1370,15 +1378,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 CachedUserInfo userInfo = World.CommsManager.UserProfileCacheService.GetUserDetails(key);
 
-                if (null == userInfo) 
+                if (null == userInfo)
                 {
                     return "";
-                } 
-                else 
+                }
+                else
                 {
                     return userInfo.UserProfile.Name;
                 }
-            } 
+            }
             else
             {
                 return "";
@@ -1391,7 +1399,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// for instance in a HG scenario, are a distinct possibility.
         ///
         /// Use value from the config file and return it.
-        ///         
+        ///
         public string osGetGridNick()
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridNick");
@@ -1454,15 +1462,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return result;  // empty list
             }
-                 
+
             // Find matches beginning at start position
             Regex matcher = new Regex(pattern);
             Match match = matcher.Match(src, start);
-            if (match.Success) 
+            if (match.Success)
             {
                 foreach (System.Text.RegularExpressions.Group g in match.Groups)
                 {
-                    if (g.Success) 
+                    if (g.Success)
                     {
                         result.Add(g.Value);
                         result.Add(g.Index);

@@ -33,6 +33,8 @@ using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
+using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
@@ -59,8 +61,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams, int timer);
         string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
                                             int timer, int alpha);
-        double osTerrainGetHeight(int x, int y);
-        int osTerrainSetHeight(int x, int y, double val);
+
+        LSL_Float osTerrainGetHeight(int x, int y);
+        LSL_Integer osTerrainSetHeight(int x, int y, double val);
+        void osTerrainFlush();
+
         int osRegionRestart(double seconds);
         void osRegionNotice(string msg);
         bool osConsoleCommand(string Command);

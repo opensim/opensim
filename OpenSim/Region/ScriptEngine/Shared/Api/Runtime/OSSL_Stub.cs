@@ -40,6 +40,8 @@ using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
+using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
@@ -132,14 +134,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osSetDynamicTextureDataBlend(dynamicID, contentType, data, extraParams, timer, alpha);
         }
 
-        public double osTerrainGetHeight(int x, int y)
+        public LSL_Float osTerrainGetHeight(int x, int y)
         {
             return m_OSSL_Functions.osTerrainGetHeight(x, y);
         }
 
-        public int osTerrainSetHeight(int x, int y, double val)
+        public LSL_Integer osTerrainSetHeight(int x, int y, double val)
         {
             return m_OSSL_Functions.osTerrainSetHeight(x, y, val);
+        }
+
+        public void osTerrainFlush()
+        {
+            m_OSSL_Functions.osTerrainFlush();
         }
 
         public int osRegionRestart(double seconds)
