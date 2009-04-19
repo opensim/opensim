@@ -25,36 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-using System.IO;
-using OpenMetaverse;
-
-namespace OpenSim.Region.CoreModules.World.Terrain
+namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface ITerrainModule
+    public interface ITerrainEffect
     {
-        void LoadFromFile(string filename);
-        void SaveToFile(string filename);
-        void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action, UUID agentId);
-        
-        /// <summary>
-        /// Load a terrain from a stream.
-        /// </summary>
-        /// <param name="filename">
-        /// Only required here to identify the image type.  Not otherwise used in the loading itself.
-        /// </param>
-        /// <param name="stream"></param>
-        void LoadFromStream(string filename, Stream stream);
-
-        /// <summary>
-        /// Save a terrain to a stream.
-        /// </summary>
-        /// <param name="filename">
-        /// Only required here to identify the image type.  Not otherwise used in the saving itself.
-        /// </param>
-        /// <param name="stream"></param>
-        void SaveToStream(string filename, Stream stream);
-
-        void InstallPlugin(string name, ITerrainEffect plug);
+        void RunEffect(ITerrainChannel map);
     }
 }

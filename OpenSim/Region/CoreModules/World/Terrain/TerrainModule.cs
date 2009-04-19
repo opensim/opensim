@@ -82,7 +82,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private Dictionary<string, ITerrainEffect> m_plugineffects;
         private ITerrainChannel m_revert;
         private Scene m_scene;
-        private bool m_tainted;
+        private volatile bool m_tainted;
 
         #region ICommandableModule Members
 
@@ -325,6 +325,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 m_log.Error("Unable to save to " + filename + ", saving of this file format has not been implemented.");
                 throw new TerrainException(String.Format("Unable to save heightmap: saving of this file format not implemented"));
             }
+        }
+
+        public void TaintTerrain ()
+        {
+            CheckForTerrainUpdates();
         }
 
         #region Plugin Loading Methods
@@ -1080,6 +1085,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_scene.RegisterModuleCommander(m_commander);
         }
 
+
         #endregion
+
     }
 }
