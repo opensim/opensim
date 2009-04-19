@@ -307,6 +307,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                         asscli = new GridAssetClient(userAssetURL);
                         asscli.SetReceiver(m_scene.CommsManager.AssetCache); // Straight to the asset cache!
                         m_assetServers.Add(userAssetURL, asscli);
+                        asscli.Start();
                     }
 
                     m_log.Debug("[HGScene]: Fetching object " + assetID + " to asset server " + userAssetURL);
