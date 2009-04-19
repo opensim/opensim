@@ -76,6 +76,8 @@ namespace OpenSim.Region.Framework.Interfaces
         void removePrimFromCount(SceneObjectGroup obj);
         void updateLandSold(UUID avatarID, UUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area);
 
+        void deedToGroup(UUID groupID);
+
         void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
         void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);
 

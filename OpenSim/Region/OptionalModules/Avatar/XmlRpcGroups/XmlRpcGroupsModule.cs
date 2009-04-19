@@ -552,7 +552,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             {
                 GroupTitlesData title = new GroupTitlesData();
                 title.Name = role.Name;
-                title.Selected = agentMembership.ActiveRole == role.RoleID;
+                if (agentMembership != null)
+                {
+                    title.Selected = agentMembership.ActiveRole == role.RoleID;
+                }
                 title.UUID = role.RoleID;
             }
 

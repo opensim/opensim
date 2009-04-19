@@ -121,13 +121,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelReclaim += new ParcelReclaim(handleParcelReclaim);
             client.OnParcelInfoRequest += new ParcelInfoRequest(handleParcelInfo);
             client.OnParcelDwellRequest += new ParcelDwellRequest(handleParcelDwell);
-            
+
+            client.OnParcelDeedToGroup += new ParcelDeedToGroup(handleParcelDeedToGroup);
+
             if (m_scene.Entities.ContainsKey(client.AgentId))
             {
                 SendLandUpdate((ScenePresence)m_scene.Entities[client.AgentId], true);
                 SendParcelOverlay(client);
             }
         }
+
 
         public void PostInitialise()
         {
@@ -1124,6 +1127,24 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
         }
+
+
+        void handleParcelDeedToGroup(int parcelLocalID, UUID groupID, IClientAPI remote_client)
+        {
+            // TODO: May want to validate that the group id is valid and that the remote client has the right to deed
+            ILandObject land;
+            lock (m_landList)
+            {
+                m_landList.TryGetValue(parcelLocalID, out land);
+            }
+
+            if (land != null)
+            {
+                land.deedToGroup(groupID);
+            }
+
+        }
+
 
         #region Land Object From Storage Functions
 

@@ -232,6 +232,18 @@ namespace OpenSim.Region.CoreModules.World.Land
             sendLandUpdateToAvatarsOverMe();
         }
 
+        public void deedToGroup(UUID groupID)
+        {
+            LandData newData = landData.Copy();
+            newData.OwnerID = groupID;
+            newData.GroupID = groupID;
+            newData.IsGroupOwned = true;
+
+            m_scene.LandChannel.UpdateLandObject(landData.LocalID, newData);
+
+            sendLandUpdateToAvatarsOverMe();
+        }
+
         public bool isEitherBannedOrRestricted(UUID avatar)
         {
             if (isBannedFromLand(avatar))
