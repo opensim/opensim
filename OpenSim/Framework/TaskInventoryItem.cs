@@ -55,7 +55,7 @@ namespace OpenSim.Framework
                 "notecard",
                 String.Empty,
                 String.Empty,
-                "lsl_text",
+                "script",
                 String.Empty,
                 String.Empty,
                 "bodypart",
