@@ -164,16 +164,19 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                     {
                         actor.Position.Z = height;
                         actor.Velocity.Z = 0;
+                        actor.IsColliding = true;
                     }
                     else
                     {
                         actor.Position.Z += actor.Velocity.Z*timeStep;
+                        actor.IsColliding = false;
                     }
                 }
                 else
                 {
                     actor.Position.Z = height;
                     actor.Velocity.Z = 0;
+                    actor.IsColliding = true;
                 }
             }
             return fps;
