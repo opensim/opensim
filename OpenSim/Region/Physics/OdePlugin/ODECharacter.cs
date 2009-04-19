@@ -52,8 +52,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         StopCFM = 8,
         LoStop2 = 256,
         HiStop2 = 257,
+        Vel2 = 258,
+        FMax2 = 259,
         LoStop3 = 512,
-        HiStop3 = 513
+        HiStop3 = 513,
+        Vel3 = 514,
+        FMax3 = 515
     }
     public class OdeCharacter : PhysicsActor
     {
