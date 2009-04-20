@@ -90,6 +90,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 if (groupsConfig.GetString("Module", "Default") != "XmlRpcGroups")
                 {
                     m_log.Info("[GROUPS-MESSAGING]: Config Groups Module not set to XmlRpcGroups");
+                    m_GroupMessagingEnabled = false;
 
                     return;
                 }
@@ -115,10 +116,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         }
         public void RegionLoaded(Scene scene)
         {
-            if (m_debugEnabled) m_log.InfoFormat("[GROUPS-MESSAGING] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
-
             if (!m_GroupMessagingEnabled)
                 return;
+
+            if (m_debugEnabled) m_log.InfoFormat("[GROUPS-MESSAGING] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
 
             m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
@@ -154,6 +155,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public void RemoveRegion(Scene scene)
         {
+            if (!m_GroupMessagingEnabled)
+                return;
+
             if (m_debugEnabled) m_log.InfoFormat("[GROUPS-MESSAGING] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             m_SceneList.Remove(scene);
@@ -162,6 +166,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public void Close()
         {
+            if (!m_GroupMessagingEnabled)
+                return;
+
             m_log.Debug("[GROUPS-MESSAGING]: Shutting down XmlRpcGroupsMessaging module.");
 
 
