@@ -4515,13 +4515,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
 
                 case PacketType.AvatarPropertiesUpdate:
-                    AvatarPropertiesUpdatePacket Packet = (AvatarPropertiesUpdatePacket)Pack;
+                    AvatarPropertiesUpdatePacket avatarProps = (AvatarPropertiesUpdatePacket)Pack;
 
                     #region Packet Session and User Check
                     if (m_checkPackets)
                     {
-                        if (Packet.AgentData.SessionID != SessionId ||
-                            Packet.AgentData.AgentID != AgentId)
+                        if (avatarProps.AgentData.SessionID != SessionId ||
+                            avatarProps.AgentData.AgentID != AgentId)
                             break;
                     }
                     #endregion
@@ -4529,7 +4529,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     handlerUpdateAvatarProperties = OnUpdateAvatarProperties;
                     if (handlerUpdateAvatarProperties != null)
                     {
-                        AvatarPropertiesUpdatePacket.PropertiesDataBlock Properties = Packet.PropertiesData;
+                        AvatarPropertiesUpdatePacket.PropertiesDataBlock Properties = avatarProps.PropertiesData;
                         UserProfileData UserProfile = new UserProfileData();
                         UserProfile.ID = AgentId;
                         UserProfile.AboutText = Utils.BytesToString(Properties.AboutText);
