@@ -49,6 +49,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return m_body; }
         }
 
+        private int frcount = 0;
+        private float frmod = 3.0f;
+
         private Vehicle m_type = Vehicle.TYPE_NONE;
         private OdeScene m_parentScene = null;
         private IntPtr m_body = IntPtr.Zero;
@@ -312,9 +315,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_body == IntPtr.Zero || m_type == Vehicle.TYPE_NONE)
                 return;
+            frcount++;
+            if (frcount > 100)
+                frcount = 0;
+
             VerticalAttractor(pTimestep);
             LinearMotor(pTimestep);
+           
+                
             AngularMotor(pTimestep);
+            
         }
 
         private void SetDefaultsForType(Vehicle pType)
@@ -473,11 +483,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.BodyGetRelPointPos(m_body, 0.0f, 0.0f, -1.0f, out feet);
             d.BodyGetRelPointPos(m_body, 0.0f, 0.0f, 1.0f, out head);
             float posture = head.Z - feet.Z;
+
+            //Console.WriteLine(String.Format("head: <{0},{1},{2}>, feet:<{3},{4},{5}> diff:<{6},{7},{8}>", head.X, head.Y, head.Z, feet.X,
+            //                                feet.Y, feet.Z, head.X - feet.X, head.Y - feet.Y, head.Z - feet.Z));
+            //Console.WriteLine(String.Format("diff:<{0},{1},{2}>",head.X - feet.X, head.Y - feet.Y, head.Z - feet.Z));
             
             // restoring force proportional to lack of posture:
             float servo = (2.5f - posture) * (objMass.mass * m_verticalAttractionEfficiency / (m_verticalAttractionTimescale * pTimestep)) * objMass.mass;
             d.BodyAddForceAtRelPos(m_body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
             d.BodyAddForceAtRelPos(m_body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+            //d.BodyAddTorque(m_body, (head.X - feet.X) * servo, (head.Y - feet.Y) * servo, (head.Z - feet.Z) * servo); 
             //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
             //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
         }
@@ -575,20 +590,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         private void SetAngularMotorProperties()
         {
-            
-            
 
+
+            
             d.Mass objMass;
             d.BodyGetMass(Body, out objMass);
-            d.Quaternion rot = d.BodyGetQuaternion(Body);
-            Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
+            //d.Quaternion rot = d.BodyGetQuaternion(Body);
+            //Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
             Vector3 axis0 = Vector3.UnitX;
             Vector3 axis1 = Vector3.UnitY;
             Vector3 axis2 = Vector3.UnitZ;
-            axis0 *= rotq;
-            axis1 *= rotq;
-            axis2 *= rotq;
+            //axis0 *= rotq;
+            //axis1 *= rotq;
+            //axis2 *= rotq;
 
+           
 
             if (m_aMotor != IntPtr.Zero)
             {
@@ -604,5 +620,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             }
         }
+        
     }
 }
