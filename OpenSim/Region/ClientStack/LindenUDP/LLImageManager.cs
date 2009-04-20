@@ -210,6 +210,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              int threshold;
              if (m_lastloopprocessed == 0)
              {
+                  if (m_client.PacketHandler == null || m_client.PacketHandler.PacketQueue == null || m_client.PacketHandler.PacketQueue.TextureThrottle == null)
+                      return;
                  //This is decent for a semi fast machine, but we'll calculate it more accurately based on time below
                   threshold = m_client.PacketHandler.PacketQueue.TextureThrottle.Current / 6300;
                   m_lastloopprocessed = DateTime.Now.Ticks;
