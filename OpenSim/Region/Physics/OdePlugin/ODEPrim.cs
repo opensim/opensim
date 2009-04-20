@@ -169,6 +169,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private ODEVehicleSettings m_vehicle;
 
+        internal int m_material = (int)Material.Wood;
+
         public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
         {
@@ -3094,6 +3096,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             dst.I.M20 = src.I.M20;
             dst.I.M21 = src.I.M21;
             dst.I.M22 = src.I.M22;
+        }
+
+        public override void SetMaterial(int pMaterial)
+        {
+            m_material = pMaterial;
         }
 
     }

@@ -182,6 +182,11 @@ namespace OpenSim.Region.Physics.Manager
             }
         }
 
+        public virtual void SetMaterial (int material)
+        {
+            
+        }
+
         public abstract PhysicsVector Position { get; set; }
         public abstract float Mass { get; }
         public abstract PhysicsVector Force { get; set; }
@@ -332,6 +337,11 @@ namespace OpenSim.Region.Physics.Manager
         public override void SetVolumeDetect(int param)
         {
 
+        }
+
+        public override void SetMaterial(int material)
+        {
+            
         }
 
         public override PhysicsVector CenterOfMass

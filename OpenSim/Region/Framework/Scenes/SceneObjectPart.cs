@@ -421,7 +421,14 @@ namespace OpenSim.Region.Framework.Scenes
         public byte Material
         {
             get { return (byte) m_material; }
-            set { m_material = (Material)value; }
+            set
+            {
+                m_material = (Material)value;
+                if (PhysActor != null)
+                {
+                    PhysActor.SetMaterial((int)value);
+                }
+            }
         }
 
         public ulong RegionHandle
