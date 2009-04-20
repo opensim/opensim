@@ -375,6 +375,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public event AvatarInterestUpdate OnAvatarInterestUpdate;
 
+        public event PlacesQuery OnPlacesQuery;
+
 #pragma warning restore 67
 
         #endregion

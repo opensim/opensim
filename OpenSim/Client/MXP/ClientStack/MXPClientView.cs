@@ -754,6 +754,8 @@ namespace OpenSim.Client.MXP.ClientStack
         public event MuteListRequest OnMuteListRequest;
         public event AvatarInterestUpdate OnAvatarInterestUpdate;
 
+        public event PlacesQuery OnPlacesQuery;
+
         #pragma warning restore 67
 
         #endregion

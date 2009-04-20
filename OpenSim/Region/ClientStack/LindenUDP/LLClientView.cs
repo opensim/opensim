@@ -313,6 +313,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         //private AvatarInterestUpdate handlerAvatarInterestUpdate;
 
+        private PlacesQuery handlerPlacesQuery;
+
         private readonly IGroupsModule m_GroupsModule;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
@@ -1111,6 +1113,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event MuteListRequest OnMuteListRequest;
 
         //public event AvatarInterestUpdate OnAvatarInterestUpdate;
+
+        public event PlacesQuery OnPlacesQuery;
 
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
@@ -9140,6 +9144,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //
 //                    break;
 
+                case PacketType.PlacesQuery:
+                    PlacesQueryPacket placesQueryPacket =
+                            (PlacesQueryPacket)Pack;
+
+                    handlerPlacesQuery = OnPlacesQuery;
+
+                    if (handlerPlacesQuery != null)
+                        handlerPlacesQuery(placesQueryPacket.AgentData.QueryID,
+                                placesQueryPacket.TransactionData.TransactionID,
+                                Utils.BytesToString(
+                                        placesQueryPacket.QueryData.QueryText),
+                                placesQueryPacket.QueryData.QueryFlags,
+                                (byte)placesQueryPacket.QueryData.Category,
+                                Utils.BytesToString(
+                                        placesQueryPacket.QueryData.SimName),
+                                this);
+                    break;
                 default:
                     m_log.Warn("[CLIENT]: unhandled packet " + Pack);
                     break;

@@ -269,6 +269,8 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public event AvatarInterestUpdate OnAvatarInterestUpdate;
 
+        public event PlacesQuery OnPlacesQuery;
+
 #pragma warning restore 67
 
         private UUID myID = UUID.Random();

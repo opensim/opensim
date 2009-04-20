@@ -442,6 +442,7 @@ namespace OpenSim.Framework
     public delegate void AvatarNotesUpdate(IClientAPI client, UUID targetID, string notes);
     public delegate void MuteListRequest(IClientAPI client, uint muteCRC);
     public delegate void AvatarInterestUpdate(IClientAPI client, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages);
+    public delegate void PlacesQuery(UUID QueryID, UUID TransactionID, string QueryText, uint QueryFlags, byte Category, string SimName, IClientAPI client);
 
     #endregion
 
@@ -782,6 +783,8 @@ namespace OpenSim.Framework
         event AvatarNotesUpdate OnAvatarNotesUpdate;
 
         event MuteListRequest OnMuteListRequest;
+
+        event PlacesQuery OnPlacesQuery;
         
         /// <summary>
         /// Set the debug level at which packet output should be printed to console.

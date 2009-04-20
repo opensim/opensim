@@ -282,6 +282,8 @@ namespace OpenSim.Tests.Common.Mock
 
         public event AvatarInterestUpdate OnAvatarInterestUpdate;
 
+        public event PlacesQuery OnPlacesQuery;
+
 #pragma warning restore 67
 
         /// <value>
