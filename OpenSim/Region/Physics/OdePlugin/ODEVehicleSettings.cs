@@ -248,6 +248,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_body == IntPtr.Zero || m_type == Vehicle.TYPE_NONE)
                 return;
+
+            if (m_aMotor != IntPtr.Zero)
+            {
+                
+            }
             
         }
 
@@ -292,6 +297,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_body == IntPtr.Zero || m_type == Vehicle.TYPE_NONE)
                 return;
+            if (m_aMotor != IntPtr.Zero)
+            {
+                d.JointDestroy(m_aMotor);
+            }
+            if (m_lMotor1 != IntPtr.Zero)
+            {
+                d.JointDestroy(m_lMotor1);
+            }
             
         }
 
