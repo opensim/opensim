@@ -9209,6 +9209,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             WithNotecard(assetID, delegate (UUID id, AssetBase a)
             {
+                if (a == null)
+                    return;
+
                 if (a.Type != 7)
                     return;
 
@@ -9283,6 +9286,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             WithNotecard(assetID, delegate (UUID id, AssetBase a)
             {
+                if (a == null)
+                    return;
+
                 if (a.Type != 7)
                     return;
 
