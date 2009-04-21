@@ -303,6 +303,9 @@ namespace OpenSim.Framework.Servers
                     //m_log.Debug("[BASE HTTP SERVER]: Found Stream Handler");
                     // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
                     byte[] buffer;
+
+                    response.ContentType = requestHandler.ContentType; // Lets do this defaulting before in case handler has varying content type.
+
                     if (requestHandler is IStreamedRequestHandler)
                     {
                         IStreamedRequestHandler streamedRequestHandler = requestHandler as IStreamedRequestHandler;
@@ -371,7 +374,7 @@ namespace OpenSim.Framework.Servers
                     }
 
                     request.InputStream.Close();
-                    response.ContentType = requestHandler.ContentType;
+                    
                     if (!response.SendChunked)
                         response.ContentLength64 = buffer.LongLength;
 

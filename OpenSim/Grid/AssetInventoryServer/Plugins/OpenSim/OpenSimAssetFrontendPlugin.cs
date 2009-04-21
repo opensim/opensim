@@ -113,17 +113,26 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                     AssetBase asset = new AssetBase();
                     if ((dataResponse = m_server.StorageProvider.TryFetchDataMetadata(assetID, out asset)) == BackendResponse.Success)
                     {
-                        XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
-                        MemoryStream ms = new MemoryStream();
-                        XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
-                        xs.Serialize(xw, asset);
-                        xw.Flush();
+                        if (rawUrl.Length >= 4 && rawUrl[3] == "data")
+                        {
+                            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                            httpResponse.ContentType = Utils.SLAssetTypeToContentType(asset.Type);
+                            buffer=asset.Data;
+                        }
+                        else
+                        {
+                            XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
+                            MemoryStream ms = new MemoryStream();
+                            XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
+                            xs.Serialize(xw, asset);
+                            xw.Flush();
 
-                        ms.Seek(0, SeekOrigin.Begin);
-                        buffer = ms.GetBuffer();
-                        Array.Resize<byte>(ref buffer, (int) ms.Length);
-                        ms.Close();
-                        httpResponse.StatusCode = (int) HttpStatusCode.OK;
+                            ms.Seek(0, SeekOrigin.Begin);
+                            buffer = ms.GetBuffer();
+                            Array.Resize<byte>(ref buffer, (int)ms.Length);
+                            ms.Close();
+                            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                        }
                     }
                     else
                     {
