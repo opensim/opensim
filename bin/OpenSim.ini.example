@@ -1233,3 +1233,10 @@
 	
 	; This makes the XmlRpcGroups modules very chatty on the console.
     ;XmlRpcDebugEnabled     = true
+
+    ; Disables HTTP Keep-Alive for Groups Module HTTP Requests, work around for
+    ; a problem discovered on some Windows based region servers.  Only disable
+    ; if you see a large number (dozens) of the following Exceptions:
+    ; System.Net.WebException: The request was aborted: The request was canceled.
+	;
+	; XmlRpcDisableKeepAlive = false

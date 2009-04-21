@@ -212,6 +212,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // Incoming message from a group
             if ((msg.dialog == (byte)InstantMessageDialog.SessionSend) && (msg.fromGroup == true))
             {
+                if (m_debugEnabled) m_log.InfoFormat("[GROUPS-MESSAGING] OnGridInstantMessage from group session {0} going to agent {1}", msg.fromAgentID, msg.toAgentID);
+
                 if (m_ActiveClients.ContainsKey(msg.toAgentID))
                 {
                     UUID GroupID = new UUID(msg.fromAgentID);
@@ -220,6 +222,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     GroupRecord GroupInfo = m_GroupsModule.GetGroupRecord(GroupID);
                     if (GroupInfo != null)
                     {
+                        // TODO: Check to see if already a member of session, if so, do not send chatterbox, just forward message
 
                         if (m_debugEnabled) m_log.InfoFormat("[GROUPS-MESSAGING] Sending chatterbox invite instant message");
 

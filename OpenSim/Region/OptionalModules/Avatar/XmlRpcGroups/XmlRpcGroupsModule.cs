@@ -53,14 +53,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
     public class XmlRpcGroupsModule : INonSharedRegionModule, IGroupsModule
     {
         /// <summary>
-        /// To use this module, you must specify the following in your OpenSim.ini
+        /// ; To use this module, you must specify the following in your OpenSim.ini
         /// [GROUPS]
         /// Enabled = true
         /// Module  = XmlRpcGroups
+        /// XmlRpcServiceURL = http://osflotsam.org/xmlrpc.php
         /// XmlRpcMessagingEnabled = true
         /// XmlRpcNoticesEnabled = true
         /// XmlRpcDebugEnabled = true
         /// 
+        /// ; Disables HTTP Keep-Alive for Groups Module HTTP Requests, work around for
+        /// ; a problem discovered on some Windows based region servers.  Only disable
+        /// ; if you see a large number (dozens) of the following Exceptions:
+        /// ; System.Net.WebException: The request was aborted: The request was canceled.
+        ///
+        /// XmlRpcDisableKeepAlive = false
         /// </summary>
 
         private static readonly ILog m_log =
@@ -113,7 +120,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 }
 
                 string ServiceURL = groupsConfig.GetString("XmlRpcServiceURL", m_defaultXmlRpcServiceURL);
-                m_groupData = new XmlRpcGroupDataProvider(ServiceURL);
+                bool DisableKeepAlive = groupsConfig.GetBoolean("XmlRpcDisableKeepAlive", false);
+
+                m_groupData = new XmlRpcGroupDataProvider(ServiceURL, DisableKeepAlive);
                 m_log.InfoFormat("[GROUPS]: XmlRpc Service URL set to: {0}", ServiceURL);
 
                 m_GroupNoticesEnabled   = groupsConfig.GetBoolean("XmlRpcNoticesEnabled", true);
@@ -496,6 +505,24 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             // Trigger the above event handler
             OnInstantMessage(null, msg);
+
+
+            // If a message from a group arrives here, it may need to be forwarded to a local client
+            if (msg.fromGroup == true)
+            {
+                switch( msg.dialog )
+                {
+                    case (byte)InstantMessageDialog.GroupInvitation:
+                    case (byte)InstantMessageDialog.GroupNotice:
+                        UUID toAgentID = new UUID(msg.toAgentID);
+                        if (m_ActiveClients.ContainsKey(toAgentID))
+                        {
+                            m_ActiveClients[toAgentID].SendInstantMessage(msg);
+                        }
+                        break;
+                }
+            }
+
         }
 
 
