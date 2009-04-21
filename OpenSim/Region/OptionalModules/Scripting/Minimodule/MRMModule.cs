@@ -41,14 +41,21 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public class MRMModule : IRegionModule
+    public class MRMModule : IRegionModule, IMRMModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
         
         private readonly Dictionary<UUID,MRMBase> m_scripts = new Dictionary<UUID, MRMBase>();
 
+        private readonly Dictionary<Type,object> m_extensions = new Dictionary<Type, object>();
+
         private static readonly CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
+
+        public void RegisterExtension<T>(T instance)
+        {
+            m_extensions[typeof (T)] = instance;
+        }
 
         public void Initialise(Scene scene, IConfigSource source)
         {
@@ -59,6 +66,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                     m_log.Info("[MRM] Enabling MRM Module");
                     m_scene = scene;
                     scene.EventManager.OnRezScript += EventManager_OnRezScript;
+
+                    scene.RegisterModuleInterface<IMRMModule>(this);
                 }
                 else
                 {
@@ -82,7 +91,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 {
                     m_log.Info("[MRM] Found C# MRM");
                     IWorld m_world = new World(m_scene);
-                    IHost m_host = new Host(new SOPObject(m_scene, localID), m_scene);
+                    IHost m_host = new Host(new SOPObject(m_scene, localID), m_scene, new ExtensionHandler(m_extensions));
 
                     MRMBase mmb = (MRMBase)AppDomain.CurrentDomain.CreateInstanceFromAndUnwrap(
                                                 CompileFromDotNetText(script, itemID.ToString()),

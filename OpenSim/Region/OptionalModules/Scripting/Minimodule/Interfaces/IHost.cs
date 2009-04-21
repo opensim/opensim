@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using log4net;
+using OpenSim.Region.OptionalModules.Scripting.Minimodule.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
@@ -37,5 +38,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         IObject Object { get; }
         ILog Console { get; }
         IGraphics Graphics { get; }
+        IExtension Extensions { get; }
     }
 }

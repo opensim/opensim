@@ -28,6 +28,7 @@
 using System.Reflection;
 using log4net;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.OptionalModules.Scripting.Minimodule.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
@@ -36,11 +37,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         private readonly IObject m_obj;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly IGraphics m_graphics;
+        private readonly IExtension m_extend;
         //private Scene m_scene;
 
-        public Host(IObject m_obj, Scene m_scene)
+        public Host(IObject m_obj, Scene m_scene, IExtension m_extend)
         {
             this.m_obj = m_obj;
+            this.m_extend = m_extend;
             //this.m_scene = m_scene;
 
             m_graphics = new Graphics(m_scene);
@@ -59,6 +62,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public IGraphics Graphics
         {
             get { return m_graphics; }
+        }
+
+        public IExtension Extensions
+        {
+            get { return m_extend; }
         }
     }
 }
