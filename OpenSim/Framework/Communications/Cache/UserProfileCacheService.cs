@@ -173,23 +173,26 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userProfile"></param>
         /// <returns>true if a user profile was found to update, false otherwise</returns>
-        public bool UpdateProfile(UserProfileData userProfile)
-        {            
-            lock (m_userProfilesById)
-            {            
-                CachedUserInfo userInfo = GetUserDetails(userProfile.ID);
-                
-                if (userInfo != null)
-                {
-                    userInfo.m_userProfile = userProfile;                   
-                    m_commsManager.UserService.UpdateUserProfile(userProfile);
-                    
-                    return true;
-                }
-            }
-            
-            return false;
-        }
+        // Commented out for now.  The implementation needs to be improved by protecting against race conditions,
+        // probably by making sure that the update doesn't use the UserCacheInfo.UserProfile directly (possibly via
+        // returning a read only class from the cache).
+//        public bool UpdateProfile(UserProfileData userProfile)
+//        {            
+//            lock (m_userProfilesById)
+//            {            
+//                CachedUserInfo userInfo = GetUserDetails(userProfile.ID);
+//                
+//                if (userInfo != null)
+//                {
+//                    userInfo.m_userProfile = userProfile;                   
+//                    m_commsManager.UserService.UpdateUserProfile(userProfile);
+//                    
+//                    return true;
+//                }
+//            }
+//            
+//            return false;
+//        }
         
         /// <summary>
         /// Populate caches with the given user profile
