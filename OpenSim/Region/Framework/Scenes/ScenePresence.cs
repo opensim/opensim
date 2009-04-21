@@ -121,6 +121,8 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_allowFalling = false;
         private bool m_useFlySlow = false;
         private bool m_usePreJump = false;
+        private bool m_forceFly = false;
+        private bool m_flyDisabled = false;
 
         private float m_speedModifier = 1.0f;
 
@@ -571,6 +573,18 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_speedModifier = value; }
         }
 
+        public bool ForceFly
+        {
+            get { return m_forceFly; }
+            set { m_forceFly = value; }
+        }
+
+        public bool FlyDisabled
+        {
+            get { return m_flyDisabled; }
+            set { m_flyDisabled = value; }
+        }
+
         #endregion
 
         #region Constructor(s)
@@ -880,6 +894,16 @@ namespace OpenSim.Region.Framework.Scenes
             AbsolutePosition = pos;
 
             AddToPhysicalScene(isFlying);
+
+            if (m_forceFly)
+            {
+                m_physicsActor.Flying = true;
+            }
+            else if (m_flyDisabled)
+            {
+                m_physicsActor.Flying = false;
+            }
+
             if (m_appearance != null)
             {
                 if (m_appearance.AvatarHeight > 0)
@@ -1223,7 +1247,12 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     bool oldflying = PhysicsActor.Flying;
 
-                    PhysicsActor.Flying = ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+                    if (m_forceFly)
+                        PhysicsActor.Flying = true;
+                    else if (m_flyDisabled)
+                        PhysicsActor.Flying = false;
+                    else
+                        PhysicsActor.Flying = ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
                     
                     if (PhysicsActor.Flying != oldflying)
                     {
@@ -1380,7 +1409,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // with something with the down arrow pressed.
 
                 // Only do this if we're flying
-                if (m_physicsActor != null && m_physicsActor.Flying)
+                if (m_physicsActor != null && m_physicsActor.Flying && !m_forceFly)
                 {
                     // Are the landing controls requirements filled?
                     bool controlland = (((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
