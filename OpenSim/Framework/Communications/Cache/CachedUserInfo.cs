@@ -65,7 +65,7 @@ namespace OpenSim.Framework.Communications.Cache
         private readonly CommunicationsManager m_commsManager;
 
         public UserProfileData UserProfile { get { return m_userProfile; } }
-        private readonly UserProfileData m_userProfile;
+        protected internal UserProfileData m_userProfile;
 
         /// <summary>
         /// Have we received the user's inventory from the inventory service?

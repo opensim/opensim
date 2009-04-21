@@ -169,6 +169,29 @@ namespace OpenSim.Framework.Communications.Cache
         }
         
         /// <summary>
+        /// Update an existing profile
+        /// </summary>
+        /// <param name="userProfile"></param>
+        /// <returns>true if a user profile was found to update, false otherwise</returns>
+        public bool UpdateProfile(UserProfileData userProfile)
+        {            
+            lock (m_userProfilesById)
+            {            
+                CachedUserInfo userInfo = GetUserDetails(userProfile.ID);
+                
+                if (userInfo != null)
+                {
+                    userInfo.m_userProfile = userProfile;                   
+                    m_commsManager.UserService.UpdateUserProfile(userProfile);
+                    
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        /// <summary>
         /// Populate caches with the given user profile
         /// </summary>
         /// <param name="userProfile"></param>
