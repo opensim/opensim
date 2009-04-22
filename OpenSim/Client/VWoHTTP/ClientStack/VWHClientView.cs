@@ -1031,6 +1031,8 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             throw new System.NotImplementedException();
         }
 
+        public event PlacesQuery OnPlacesQuery;
+
         #endregion
     }
 }
