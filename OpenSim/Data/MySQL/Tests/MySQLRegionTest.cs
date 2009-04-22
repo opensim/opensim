@@ -80,21 +80,21 @@ namespace OpenSim.Data.MySQL.Tests
         {
             if (manager != null)
             {
-                manager.ExecuteSql("drop table migrations");
-                manager.ExecuteSql("drop table prims");
-                manager.ExecuteSql("drop table primshapes");
-                manager.ExecuteSql("drop table primitems");
-                manager.ExecuteSql("drop table terrain");
-                manager.ExecuteSql("drop table land");
-                manager.ExecuteSql("drop table landaccesslist");
-                manager.ExecuteSql("drop table regionban");
-                manager.ExecuteSql("drop table regionsettings");
-                manager.ExecuteSql("drop table estate_managers");
-                manager.ExecuteSql("drop table estate_groups");
-                manager.ExecuteSql("drop table estate_users");
-                manager.ExecuteSql("drop table estateban");
-                manager.ExecuteSql("drop table estate_settings");
-                manager.ExecuteSql("drop table estate_map");
+                manager.ExecuteSql("drop table if exists migrations");
+                manager.ExecuteSql("drop table if exists prims");
+                manager.ExecuteSql("drop table if exists primshapes");
+                manager.ExecuteSql("drop table if exists primitems");
+                manager.ExecuteSql("drop table if exists terrain");
+                manager.ExecuteSql("drop table if exists land");
+                manager.ExecuteSql("drop table if exists landaccesslist");
+                manager.ExecuteSql("drop table if exists regionban");
+                manager.ExecuteSql("drop table if exists regionsettings");
+                manager.ExecuteSql("drop table if exists estate_managers");
+                manager.ExecuteSql("drop table if exists estate_groups");
+                manager.ExecuteSql("drop table if exists estate_users");
+                manager.ExecuteSql("drop table if exists estateban");
+                manager.ExecuteSql("drop table if exists estate_settings");
+                manager.ExecuteSql("drop table if exists estate_map");
             }
         }
     }
