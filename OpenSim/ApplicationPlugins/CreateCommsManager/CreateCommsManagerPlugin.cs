@@ -28,6 +28,7 @@
 using System;
 using System.Reflection;
 using log4net;
+using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Services;

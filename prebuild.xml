@@ -1550,6 +1550,7 @@
       <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.Framework"/>
