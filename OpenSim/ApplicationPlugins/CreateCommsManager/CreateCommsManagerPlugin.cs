@@ -181,21 +181,14 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
             inventoryService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneInventoryPlugin,
                                        m_openSim.ConfigurationSettings.StandaloneInventorySource);
 
-            LocalUserServices userService =
-                new LocalUserServices(
-                    m_openSim.NetServersInfo.DefaultHomeLocX, m_openSim.NetServersInfo.DefaultHomeLocY, inventoryService);
-            userService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneUserPlugin,
-                                  m_openSim.ConfigurationSettings.StandaloneUserSource);
-
             LocalBackEndServices backendService = new LocalBackEndServices();
 
             //LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, backendService);
 
             m_commsManager
                 = new CommunicationsLocal(
-                    m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, userService, userService,
-                    inventoryService, backendService, userService,
-                    libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);
+                    m_openSim.ConfigurationSettings, m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache,
+                    inventoryService, backendService, libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);
 
             CreateGridInfoService();
         }
@@ -207,7 +200,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
             m_httpServer.AddStreamHandler(new OpenSim.SimStatusHandler());
             m_httpServer.AddStreamHandler(new OpenSim.XSimStatusHandler(m_openSim));
-
         }
 
         protected virtual void InitialiseHGStandaloneServices(LibraryRootFolder libraryRootFolder)
@@ -215,30 +207,20 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
             // Standalone mode
 
             HGInventoryServiceClient inventoryService = new HGInventoryServiceClient(m_openSim.NetServersInfo.InventoryURL, null, false);
-            inventoryService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneInventoryPlugin, m_openSim.ConfigurationSettings.StandaloneInventorySource);
-
-            LocalUserServices localuserService =
-                new LocalUserServices(
-                    m_openSim.NetServersInfo.DefaultHomeLocX, m_openSim.NetServersInfo.DefaultHomeLocY, 
-                    inventoryService);            
-            localuserService.AddPlugin(
-                m_openSim.ConfigurationSettings.StandaloneUserPlugin, 
-                m_openSim.ConfigurationSettings.StandaloneUserSource);
-            
-            HGUserServices userService = new HGUserServices(m_commsManager, localuserService);
-            // This plugin arrangement could eventually be configurable rather than hardcoded here.           
-            userService.AddPlugin(new OGS1UserDataPlugin(m_commsManager));            
+            inventoryService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneInventoryPlugin, m_openSim.ConfigurationSettings.StandaloneInventorySource);         
 
             HGGridServicesStandalone gridService 
                 = new HGGridServicesStandalone(
-                    m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, m_openSim.SceneManager);
+                    m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, m_openSim.SceneManager);                         
 
-            m_commsManager = new HGCommunicationsStandalone(m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache,
-                userService, localuserService, inventoryService, gridService, userService, libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);
+            m_commsManager 
+                = new HGCommunicationsStandalone(
+                    m_openSim.ConfigurationSettings, m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache,
+                    inventoryService, gridService, 
+                    libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);                        
 
             inventoryService.UserProfileCache = m_commsManager.UserProfileCacheService;
             HGServices = gridService;
-            userService.SetCommunicationsManager(m_commsManager);
 
             CreateGridInfoService();
         }

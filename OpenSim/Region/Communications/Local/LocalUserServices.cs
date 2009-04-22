@@ -45,10 +45,10 @@ namespace OpenSim.Region.Communications.Local
         /// </summary>
         /// <param name="defaultHomeLocX"></param>
         /// <param name="defaultHomeLocY"></param>
-        /// <param name="inventoryService"></param>
+        /// <param name="commsManager"></param>
         public LocalUserServices(
-            uint defaultHomeLocX, uint defaultHomeLocY, IInterServiceInventoryServices interServiceInventoryService)
-            : base(interServiceInventoryService)
+            uint defaultHomeLocX, uint defaultHomeLocY, CommunicationsManager commsManager)
+            : base(commsManager)
         {
             m_defaultHomeX = defaultHomeLocX;
             m_defaultHomeY = defaultHomeLocY;

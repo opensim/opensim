@@ -46,12 +46,9 @@ namespace OpenSim.Region.Communications.OGS1
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        protected CommunicationsManager m_commsManager;
-        
         public OGS1UserServices(CommunicationsManager commsManager)
-            : base(commsManager.InterServiceInventoryService)
+            : base(commsManager)
         {
-            m_commsManager = commsManager;
         }
         
         public override void ClearUserAgent(UUID avatarID)

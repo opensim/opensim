@@ -117,7 +117,12 @@ namespace OpenSim.Framework.Communications
         /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship 
         /// for UUID friendslistowner
         /// </summary>
-        /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
+        /// 
+        /// <param name="friendlistowner">The agent for whom we're retreiving the friends Data.</param>
+        /// <returns>
+        /// A List of FriendListItems that contains info about the user's friends.  
+        /// Always returns a list even if the user has no friends
+        /// </returns>        
         List<FriendListItem> GetUserFriendList(UUID friendlistowner);
 
         // This probably shouldn't be here, it belongs to IAuthentication

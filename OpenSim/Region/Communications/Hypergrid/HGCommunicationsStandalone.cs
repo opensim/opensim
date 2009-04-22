@@ -25,32 +25,53 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Communications.Local;
+using OpenSim.Region.Communications.OGS1;
 
 namespace OpenSim.Region.Communications.Hypergrid
 {
-    public class HGCommunicationsStandalone : CommunicationsLocal
+    public class HGCommunicationsStandalone : CommunicationsManager
     {
         public HGCommunicationsStandalone(
+            ConfigSettings configSettings,                          
             NetworkServersInfo serversInfo,
             BaseHttpServer httpServer,
             IAssetCache assetCache,
-            IUserService userService,
-            IUserAdminService userServiceAdmin,
             LocalInventoryService inventoryService,
-            HGGridServices gridService, IMessagingService messageService, LibraryRootFolder libraryRootFolder, bool dumpAssetsToFile)
-            : base(serversInfo, httpServer, assetCache, userService, userServiceAdmin, inventoryService, gridService, messageService, libraryRootFolder, dumpAssetsToFile)
-        {
-            gridService.UserProfileCache = m_userProfileCacheService;
+            HGGridServices gridService, 
+            LibraryRootFolder libraryRootFolder, 
+            bool dumpAssetsToFile)
+            : base(serversInfo, httpServer, assetCache, dumpAssetsToFile, libraryRootFolder)
+        {           
+            LocalUserServices localUserService =
+                new LocalUserServices(
+                    serversInfo.DefaultHomeLocX, serversInfo.DefaultHomeLocY, this);
+            localUserService.AddPlugin(configSettings.StandaloneUserPlugin, configSettings.StandaloneUserSource); 
+            
+            AddInventoryService(inventoryService);
+            m_defaultInventoryHost = inventoryService.Host;
+            m_interServiceInventoryService = inventoryService;
+                        
             m_assetCache = assetCache;
             // Let's swap to always be secure access to inventory
             AddSecureInventoryService((ISecureInventoryService)inventoryService);
             m_inventoryServices = null;
+            
+            HGUserServices hgUserService = new HGUserServices(this, localUserService);
+            // This plugin arrangement could eventually be configurable rather than hardcoded here.                      
+            hgUserService.AddPlugin(new OGS1UserDataPlugin(this));
+            
+            m_userService = hgUserService;            
+            m_userAdminService = hgUserService;            
+            m_avatarService = hgUserService;
+            m_messageService = hgUserService;
+            
+            gridService.UserProfileCache = m_userProfileCacheService;
+            m_gridService = gridService;                        
         }
     }
 }

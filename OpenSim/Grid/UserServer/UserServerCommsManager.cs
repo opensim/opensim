@@ -25,40 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
 
-namespace OpenSim.Region.Communications.Local
-{
-    public class CommunicationsLocal : CommunicationsManager
-    {
-        public CommunicationsLocal(
-            ConfigSettings configSettings,                                   
-            NetworkServersInfo serversInfo,
-            BaseHttpServer httpServer,
-            IAssetCache assetCache,
-            LocalInventoryService inventoryService,
-            IGridServices gridService,
-            LibraryRootFolder libraryRootFolder, 
-            bool dumpAssetsToFile)
-            : base(serversInfo, httpServer, assetCache, dumpAssetsToFile, libraryRootFolder)
+namespace OpenSim.Grid.UserServer
+{        
+    public class UserServerCommsManager : CommunicationsManager
+    {        
+        public UserServerCommsManager(IInterServiceInventoryServices interServiceInventoryService)
+            : base(null, null, null, false, null)
         {
-            AddInventoryService(inventoryService);
-            m_defaultInventoryHost = inventoryService.Host;
-            m_interServiceInventoryService = inventoryService;
-                        
-            LocalUserServices lus 
-                = new LocalUserServices(
-                    serversInfo.DefaultHomeLocX, serversInfo.DefaultHomeLocY, this);
-            lus.AddPlugin(configSettings.StandaloneUserPlugin, configSettings.StandaloneUserSource);            
-            m_userService = lus;
-            m_userAdminService = lus;            
-            m_avatarService = lus;
-            m_messageService = lus;
-            
-            m_gridService = gridService;            
+            m_interServiceInventoryService = interServiceInventoryService;
         }
     }
 }

@@ -47,7 +47,6 @@ namespace OpenSim.Region.Communications.Hypergrid
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        //private CommunicationsManager m_parent;
         //private OGS1UserServices m_remoteUserServices;
         private LocalUserServices m_localUserServices;
 
@@ -64,12 +63,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             m_localUserServices = local;
         }
 
-        // Called for standalone mode only, to set up the communications manager
-        public void SetCommunicationsManager(CommunicationsManager parent)
-        {
-            m_commsManager = parent;
-        }
-
         /// <summary>
         /// Get a user agent from the user server
         /// </summary>
@@ -83,7 +76,6 @@ namespace OpenSim.Region.Communications.Hypergrid
 
             return base.GetAgentByUUID(userId);
         }
-
 
         /// <summary>
         /// Logs off a user on the user server

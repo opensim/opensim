@@ -67,7 +67,7 @@ namespace OpenSim.Tests.Common.Mock
             m_interServiceInventoryService = lis;
             AddInventoryService(lis);
 
-            LocalUserServices lus = new LocalUserServices(991, 992, lis);
+            LocalUserServices lus = new LocalUserServices(991, 992, this);
             lus.AddPlugin(m_userDataPlugin);
             m_userService = lus;
             m_userAdminService = lus;

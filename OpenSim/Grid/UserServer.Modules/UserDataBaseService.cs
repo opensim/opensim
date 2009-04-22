@@ -43,26 +43,14 @@ namespace OpenSim.Grid.UserServer.Modules
     {
         protected IGridServiceCore m_core;
 
-        public UserDataBaseService()
-            : base(null)
-        {
-        }
-
-        public UserDataBaseService(IInterServiceInventoryServices interServiceInventoryService)
-            : base(interServiceInventoryService)
+        public UserDataBaseService(CommunicationsManager commsManager)
+            : base(commsManager)
         {
         }
 
         public void Initialise(IGridServiceCore core)
         {
             m_core = core;
-
-            //we only need core components so we can request them from here
-            IInterServiceInventoryServices inventoryService;
-            if (m_core.TryGet<IInterServiceInventoryServices>(out inventoryService))
-            {
-                m_interServiceInventoryService = inventoryService;
-            }
 
             UserConfig cfg;
             if (m_core.TryGet<UserConfig>(out cfg))

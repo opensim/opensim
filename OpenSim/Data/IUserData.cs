@@ -64,7 +64,7 @@ namespace OpenSim.Data
         /// </summary>
         /// <param name="queryID">ID associated with the user's query. This must match what the client sent</param>
         /// <param name="query">The filtered contents of the search box when the user hit search.</param>
-        /// <returns>A list of user details.  If there are no results than either an empty list or null can be returned</returns>
+        /// <returns>A list of user details.  If there are no results than either an empty list or null</returns>
         List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query);
 
         /// <summary>
@@ -140,6 +140,7 @@ namespace OpenSim.Data
         /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for UUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
+        /// <returns>The user's friends.  If there are no results than either an empty list or null</returns>
         List<FriendListItem> GetUserFriendList(UUID friendlistowner);
 
         /// <summary>

@@ -35,6 +35,7 @@ using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Data;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.Communications
@@ -52,15 +53,15 @@ namespace OpenSim.Framework.Communications
         /// </value>
         private List<IUserDataPlugin> m_plugins = new List<IUserDataPlugin>();
 
-        protected IInterServiceInventoryServices m_interServiceInventoryService;
+        protected CommunicationsManager m_commsManager;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="interServiceInventoryService"></param>
-        public UserManagerBase(IInterServiceInventoryServices interServiceInventoryService)
+        /// <param name="commsManager"></param>
+        public UserManagerBase(CommunicationsManager commsManager)
         {
-            m_interServiceInventoryService = interServiceInventoryService;
+            m_commsManager = commsManager;
         }
 
         /// <summary>
@@ -296,48 +297,48 @@ namespace OpenSim.Framework.Communications
             return null;
         }
 
-        /// <summary>
-        /// Loads a user's friend list
-        /// </summary>
-        /// <param name="name">the UUID of the friend list owner</param>
-        /// <returns>A List of FriendListItems that contains info about the user's friends</returns>
         public virtual List<FriendListItem> GetUserFriendList(UUID ownerID)
         {
+            List<FriendListItem> allFriends = new List<FriendListItem>();
+            
             foreach (IUserDataPlugin plugin in m_plugins)
             {
                 try
                 {
-                    List<FriendListItem> result = plugin.GetUserFriendList(ownerID);
+                    List<FriendListItem> friends = plugin.GetUserFriendList(ownerID);
 
-                    if (result != null)
-                        return result;
+                    if (friends != null)
+                        allFriends.AddRange(friends);
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to GetUserFriendList via " + plugin.Name + "(" + e.ToString() + ")");
+                    m_log.Error("[USERSTORAGE]: Unable to GetUserFriendList via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
 
-            return null;
+            return allFriends;
         }
 
         public virtual Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> uuids)
         {
+            //Dictionary<UUID, FriendRegionInfo> allFriendRegions = new Dictionary<UUID, FriendRegionInfo>();
+            
             foreach (IUserDataPlugin plugin in m_plugins)
             {
                 try
                 {
-                    Dictionary<UUID, FriendRegionInfo> result = plugin.GetFriendRegionInfos(uuids);
+                    Dictionary<UUID, FriendRegionInfo> friendRegions = plugin.GetFriendRegionInfos(uuids);
 
-                    if (result != null)
-                        return result;
+                    if (friendRegions != null)
+                        return friendRegions;
                 }
                 catch (Exception e)
                 {
                     m_log.Info("[USERSTORAGE]: Unable to GetFriendRegionInfos via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
-            return null;
+            
+            return new Dictionary<UUID, FriendRegionInfo>();
         }
 
         public void StoreWebLoginKey(UUID agentID, UUID webLoginKey)
@@ -662,7 +663,7 @@ namespace OpenSim.Framework.Communications
             }
             else
             {
-                m_interServiceInventoryService.CreateNewUserInventory(userProf.ID);
+                m_commsManager.InterServiceInventoryService.CreateNewUserInventory(userProf.ID);
 
                 return userProf.ID;
             }
@@ -731,13 +732,17 @@ namespace OpenSim.Framework.Communications
             {
                 try
                 {
-                    return plugin.GetUserAppearance(user);
+                    AvatarAppearance appearance = plugin.GetUserAppearance(user);
+                    
+                    if (appearance != null)
+                        return appearance;
                 }
                 catch (Exception e)
                 {
                     m_log.InfoFormat("[USERSTORAGE]: Unable to find user appearance {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString());
                 }
             }
+            
             return null;
         }
 

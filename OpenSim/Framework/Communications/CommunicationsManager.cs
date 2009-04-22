@@ -36,6 +36,12 @@ namespace OpenSim.Framework.Communications
     /// <summary>
     /// This class manages references to OpenSim non-region services (asset, inventory, user, etc.)
     /// </summary>
+    /// 
+    /// TODO: Service retrieval needs to be managed via plugin and interfaces requests, as happens for region
+    /// modules from scene.  Among other things, this will allow this class to be used in many different contexts
+    /// (from a grid service executable, to provide services on a region) without lots of messy nulls and confusion.
+    /// Also, a post initialize step on the plugins will be needed so that we don't get tortuous problems with 
+    /// circular dependencies between plugins.
     public class CommunicationsManager
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
