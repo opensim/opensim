@@ -52,14 +52,14 @@ namespace OpenSim.Region.Communications.Hypergrid
         private LocalUserServices m_localUserServices;
 
         // Constructor called when running in grid mode
-        public HGUserServices(CommunicationsManager parent)
-            : base(parent)
+        public HGUserServices(CommunicationsManager commsManager)
+            : base(commsManager)
         {
         }
 
         // Constructor called when running in standalone
-        public HGUserServices(LocalUserServices local)
-            : base(null)
+        public HGUserServices(CommunicationsManager commsManager, LocalUserServices local)
+            : base(commsManager)
         {
             m_localUserServices = local;
         }

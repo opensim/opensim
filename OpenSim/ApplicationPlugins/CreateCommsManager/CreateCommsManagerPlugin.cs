@@ -219,15 +219,19 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
             LocalUserServices localuserService =
                 new LocalUserServices(
-                    m_openSim.NetServersInfo.DefaultHomeLocX, m_openSim.NetServersInfo.DefaultHomeLocY, inventoryService);
-            localuserService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneUserPlugin, m_openSim.ConfigurationSettings.StandaloneUserSource);
+                    m_openSim.NetServersInfo.DefaultHomeLocX, m_openSim.NetServersInfo.DefaultHomeLocY, 
+                    inventoryService);            
+            localuserService.AddPlugin(
+                m_openSim.ConfigurationSettings.StandaloneUserPlugin, 
+                m_openSim.ConfigurationSettings.StandaloneUserSource);
             
-            HGUserServices userService = new HGUserServices(localuserService);
+            HGUserServices userService = new HGUserServices(m_commsManager, localuserService);
             // This plugin arrangement could eventually be configurable rather than hardcoded here.           
-            OGS1UserDataPlugin userDataPlugin = new OGS1UserDataPlugin(m_commsManager);
-            userService.AddPlugin(userDataPlugin);            
+            userService.AddPlugin(new OGS1UserDataPlugin(m_commsManager));            
 
-            HGGridServicesStandalone gridService = new HGGridServicesStandalone(m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, m_openSim.SceneManager);
+            HGGridServicesStandalone gridService 
+                = new HGGridServicesStandalone(
+                    m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, m_openSim.SceneManager);
 
             m_commsManager = new HGCommunicationsStandalone(m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache,
                 userService, localuserService, inventoryService, gridService, userService, libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);
@@ -238,7 +242,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
             CreateGridInfoService();
         }
-
 
         protected virtual void InitialiseHGGridServices(LibraryRootFolder libraryRootFolder)
         {
