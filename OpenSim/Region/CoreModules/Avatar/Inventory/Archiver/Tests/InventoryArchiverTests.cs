@@ -96,6 +96,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 part1.Name = partName;
 
                 object1 = new SceneObjectGroup(part1);
+                scene.AddNewSceneObject(object1, false);
             }
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");

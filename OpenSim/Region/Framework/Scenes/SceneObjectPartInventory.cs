@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenMetaverse;
@@ -264,6 +265,8 @@ namespace OpenSim.Region.Framework.Scenes
                                    }
                                    else
                                    {
+                                       if(m_part.ParentGroup.m_savedScriptState != null)
+                                           RestoreSavedScriptState(item.OldItemID, item.ItemID);
                                        m_items[item.ItemID].PermsMask = 0;
                                        m_items[item.ItemID].PermsGranter = UUID.Zero;
                                        string script = Utils.BytesToString(asset.Data);
@@ -273,6 +276,22 @@ namespace OpenSim.Region.Framework.Scenes
                                        m_part.ScheduleFullUpdate();
                                    }
                                }, false);
+            }
+        }
+
+        static System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+
+        private void RestoreSavedScriptState(UUID oldID, UUID newID)
+        {
+            if(m_part.ParentGroup.m_savedScriptState.ContainsKey(oldID))
+            {
+                string fpath = Path.Combine("ScriptEngines/"+m_part.ParentGroup.Scene.RegionInfo.RegionID.ToString(),
+                                    newID.ToString()+".state");
+                FileStream fs = File.Create(fpath);
+                Byte[] buffer = enc.GetBytes(m_part.ParentGroup.m_savedScriptState[oldID]);
+                fs.Write(buffer,0,buffer.Length);
+                fs.Close();
+                m_part.ParentGroup.m_savedScriptState.Remove(oldID);
             }
         }
 
