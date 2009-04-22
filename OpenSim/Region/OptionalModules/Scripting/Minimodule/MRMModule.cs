@@ -213,7 +213,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             {
                 m_log.Error("[Compiler]: Exception while " +
                             "trying to write script source to file \"" +
-                            srcFileName + "\": " + ex.ToString());
+                            srcFileName + "\": " + ex);
             }
 
             m_log.Info("MRM 4");
