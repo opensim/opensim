@@ -53,6 +53,9 @@ namespace OpenSim.Data.MySQL.Tests
             try 
             {
                 database = new MySQLManager(connect);
+                // clear db incase to ensure we are in a clean state
+                ClearDB(database);
+
                 regionDb = new MySQLDataStore();
                 regionDb.Initialise(connect);
                 db = new MySQLEstateStore();
@@ -72,24 +75,29 @@ namespace OpenSim.Data.MySQL.Tests
             {
                 regionDb.Dispose();
             }
+            ClearDB(database);
+        }
+
+        private void ClearDB(MySQLManager manager)
+        {
             // if a new table is added, it has to be dropped here
-            if (database != null)
+            if (manager != null)
             {
-                database.ExecuteSql("drop table migrations");
-                database.ExecuteSql("drop table prims");
-                database.ExecuteSql("drop table primshapes");
-                database.ExecuteSql("drop table primitems");
-                database.ExecuteSql("drop table terrain");
-                database.ExecuteSql("drop table land");
-                database.ExecuteSql("drop table landaccesslist");
-                database.ExecuteSql("drop table regionban");
-                database.ExecuteSql("drop table regionsettings");
-                database.ExecuteSql("drop table estate_managers");
-                database.ExecuteSql("drop table estate_groups");
-                database.ExecuteSql("drop table estate_users");
-                database.ExecuteSql("drop table estateban");
-                database.ExecuteSql("drop table estate_settings");
-                database.ExecuteSql("drop table estate_map");
+                manager.ExecuteSql("drop table migrations");
+                manager.ExecuteSql("drop table prims");
+                manager.ExecuteSql("drop table primshapes");
+                manager.ExecuteSql("drop table primitems");
+                manager.ExecuteSql("drop table terrain");
+                manager.ExecuteSql("drop table land");
+                manager.ExecuteSql("drop table landaccesslist");
+                manager.ExecuteSql("drop table regionban");
+                manager.ExecuteSql("drop table regionsettings");
+                manager.ExecuteSql("drop table estate_managers");
+                manager.ExecuteSql("drop table estate_groups");
+                manager.ExecuteSql("drop table estate_users");
+                manager.ExecuteSql("drop table estateban");
+                manager.ExecuteSql("drop table estate_settings");
+                manager.ExecuteSql("drop table estate_map");
             }
         }
     }
