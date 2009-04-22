@@ -69,7 +69,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
              }
              
              string eventCallingFunction = (string) request["Event-Calling-Function"];
-             
+             if (eventCallingFunction == null)
+             {
+                 eventCallingFunction = "sofia_reg_parse_auth";
+             }
+
+             if (eventCallingFunction.Length == 0)
+             {
+                 eventCallingFunction = "sofia_reg_parse_auth";
+             }
              
              if (eventCallingFunction=="sofia_reg_parse_auth")
              {
@@ -110,12 +118,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                  //response = HandleLoadNetworkLists(request);
                  response["int_response_code"]=404;
                  response["keepalive"] = false;
+                 response["content_type"] = "text/xml";
+                 response["str_response_string"] = "";
              }
              else
              {
                  m_log.ErrorFormat("[FreeSwitchVoice] HandleDirectoryRequest unknown Event-Calling-Function {0}",eventCallingFunction);
                  response["int_response_code"]=404;
                  response["keepalive"] = false;
+                 response["content_type"] = "text/xml";
+                 response["str_response_string"] = "";
              }
              
                 
