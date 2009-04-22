@@ -10311,10 +10311,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLPacketHandler handler = (LLPacketHandler) m_PacketHandler;
             return handler.PacketQueue.GetStats();
         }
-		
-		public string XReport() 
-		{
-			return  "";
-		}
+        
+        public string XReport() 
+        {
+            return  "";
+        }
     }
 }

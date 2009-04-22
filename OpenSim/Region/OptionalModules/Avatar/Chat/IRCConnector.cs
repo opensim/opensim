@@ -546,8 +546,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             // through reconnect.
 
             if (m_enabled && (m_resetk == resetk))
-			    Reconnect();
-
+                Reconnect();
         }
 
         private Regex RE = new Regex(@":(?<nick>[\w-]*)!(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)", 

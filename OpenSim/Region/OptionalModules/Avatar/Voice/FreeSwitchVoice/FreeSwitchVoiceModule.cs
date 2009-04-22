@@ -500,7 +500,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             // is this a dialplan or directory request 
             string section = (string) requestBody["section"];
             
-            if(section=="directory")
+            if (section=="directory")
                 response = m_FreeSwitchDirectory.HandleDirectoryRequest(requestBody);
             else if (section=="dialplan")
                 response = m_FreeSwitchDialplan.HandleDialplanRequest(requestBody);

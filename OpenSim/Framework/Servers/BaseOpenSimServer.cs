@@ -458,10 +458,10 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-
-	public string StatReport() {
-		return m_stats.XReport();
-	}
+        public string StatReport()
+        {
+            return m_stats.XReport();
+        }
             
         protected void RemovePIDFile()
         {

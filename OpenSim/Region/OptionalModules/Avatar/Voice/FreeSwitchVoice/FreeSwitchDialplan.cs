@@ -43,7 +43,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
              
              Hashtable response = new Hashtable();
              
-             foreach(DictionaryEntry item in request)
+             foreach (DictionaryEntry item in request)
              {
                 m_log.InfoFormat("[FreeSwitchDirectory] requestBody item {0} {1}",item.Key, item.Value);
              }
@@ -52,34 +52,34 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
              response["keepalive"] = false;
              response["int_response_code"]=200;
              response["str_response_string"] = @"<?xml version=""1.0"" encoding=""utf-8""?>
-				<document type=""freeswitch/xml"">
-				  <section name=""dialplan"">
-				  <context name=""default"">
-				
-				        <!-- dial via SIP uri -->
-				        <extension name=""sip_uri"">
-				                <condition field=""destination_number"" expression=""^sip:(.*)$"">
-				                <action application=""bridge"" data=""sofia/${use_profile}/$1""/>
-				                <!--<action application=""bridge"" data=""$1""/>-->
-				                </condition>
-				        </extension>
-				
-				        <extension name=""opensim_conferences"">
-				                <condition field=""destination_number"" expression=""^confctl-(.*)$"">
-				                        <action application=""answer""/>
-				                        <action application=""conference"" data=""$1-${domain_name}@default""/>
-				                </condition>
-				        </extension>
-				
-				        <extension name=""avatar"">
-				                <condition field=""destination_number"" expression=""^(x.*)$"">
-				                        <action application=""bridge"" data=""user/$1""/>
-				                </condition>
-				        </extension>
-				
-				  </context>
-				</section>
-				</document>";
+                <document type=""freeswitch/xml"">
+                  <section name=""dialplan"">
+                  <context name=""default"">
+                
+                        <!-- dial via SIP uri -->
+                        <extension name=""sip_uri"">
+                                <condition field=""destination_number"" expression=""^sip:(.*)$"">
+                                <action application=""bridge"" data=""sofia/${use_profile}/$1""/>
+                                <!--<action application=""bridge"" data=""$1""/>-->
+                                </condition>
+                        </extension>
+                
+                        <extension name=""opensim_conferences"">
+                                <condition field=""destination_number"" expression=""^confctl-(.*)$"">
+                                        <action application=""answer""/>
+                                        <action application=""conference"" data=""$1-${domain_name}@default""/>
+                                </condition>
+                        </extension>
+                
+                        <extension name=""avatar"">
+                                <condition field=""destination_number"" expression=""^(x.*)$"">
+                                        <action application=""bridge"" data=""user/$1""/>
+                                </condition>
+                        </extension>
+                
+                  </context>
+                </section>
+                </document>";
              
              return response;   
         }    

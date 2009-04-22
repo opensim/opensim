@@ -813,14 +813,14 @@ namespace OpenSim
         /// Currently prints the same a "show stats" plus the uptime of the sim
         public class XSimStatusHandler : IStreamedRequestHandler
         {
-	    OpenSimBase m_opensim;
-	    
-	    public XSimStatusHandler(OpenSimBase sim)
-	    // public XSimStatusHandler(BaseOpenSimServer sim)
-	    {
-	        m_opensim = sim;
-	    }
-			
+            OpenSimBase m_opensim;
+        
+            public XSimStatusHandler(OpenSimBase sim)
+            // public XSimStatusHandler(BaseOpenSimServer sim)
+            {
+                m_opensim = sim;
+            }
+            
             public byte[] Handle(string path, Stream request,
                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
             {

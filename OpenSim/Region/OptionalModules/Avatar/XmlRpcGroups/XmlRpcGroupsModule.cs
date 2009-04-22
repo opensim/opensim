@@ -294,7 +294,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             string firstname, lastname;
             IClientAPI agent;
-            if( m_ActiveClients.TryGetValue(AgentID, out agent) )
+            if (m_ActiveClients.TryGetValue(AgentID, out agent))
             {
                 firstname = agent.FirstName;
                 lastname = agent.LastName;
@@ -405,7 +405,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 }
 
                 UUID GroupID = new UUID(im.toAgentID);
-                if( m_groupData.GetGroupRecord(GroupID, null) != null)
+                if (m_groupData.GetGroupRecord(GroupID, null) != null)
                 {
                     UUID NoticeID = UUID.Random();
                     string Subject = im.message.Substring(0, im.message.IndexOf('|'));
@@ -453,9 +453,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     GridInstantMessage msg = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
 
                     // Send notice out to everyone that wants notices
-                    foreach( GroupMembersData member in m_groupData.GetGroupMembers(GroupID) )
+                    foreach (GroupMembersData member in m_groupData.GetGroupMembers(GroupID))
                     {
-                        if( member.AcceptNotices )
+                        if (member.AcceptNotices)
                         {
                             msg.toAgentID = member.AgentID.Guid;
                             m_MsgTransferModule.SendInstantMessage(msg, delegate(bool success) { });
@@ -712,7 +712,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_debugEnabled) m_log.InfoFormat("[GROUPS] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            if( m_groupData.GetGroupRecord(UUID.Zero, name) != null )
+            if (m_groupData.GetGroupRecord(UUID.Zero, name) != null)
             {
                 remoteClient.SendCreateGroupReply(UUID.Zero, false, "A group with the same name already exists.");
                 return UUID.Zero;
