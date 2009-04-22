@@ -331,6 +331,7 @@ namespace OpenSim.Grid.UserServer.Modules
                             }
                         }
                     }
+                    
                     if (responseSuccess)
                     {
                         handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;

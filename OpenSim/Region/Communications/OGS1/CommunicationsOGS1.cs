@@ -55,7 +55,11 @@ namespace OpenSim.Region.Communications.OGS1
                 m_defaultInventoryHost = invService.Host;
             }
 
+            // This plugin arrangement could eventually be configurable rather than hardcoded here.           
             OGS1UserServices userServices = new OGS1UserServices(this);
+            OGS1UserDataPlugin userDataPlugin = new OGS1UserDataPlugin(this);
+            userServices.AddPlugin(userDataPlugin);
+            
             m_userService = userServices;
             m_messageService = userServices;
             m_avatarService = (IAvatarService)m_userService;

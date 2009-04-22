@@ -86,6 +86,8 @@ namespace OpenSim.Tests.Common.Mock
 
             return userProfile;
         }
+        
+        public UserProfileData GetUserByUri(Uri uri) { return null; }
 
         public bool UpdateUserProfile(UserProfileData user)
         {

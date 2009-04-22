@@ -1147,14 +1147,15 @@ namespace OpenSim.Framework.Communications.Services
                 if (m_userManager.VerifySession(guess_aid, guess_sid))
                 {
                     authed = "TRUE";
+                    m_log.InfoFormat("[UserManager]: CheckAuthSession TRUE for user {0}", guess_aid);
                 }
-                m_log.InfoFormat("[UserManager]: CheckAuthSession TRUE for user {0}", guess_aid);
+                else
+                {
+                    m_log.InfoFormat("[UserManager]: CheckAuthSession FALSE");
+                    return Util.CreateUnknownUserErrorResponse();
+                }
             }
-            else
-            {
-                m_log.InfoFormat("[UserManager]: CheckAuthSession FALSE");
-                return Util.CreateUnknownUserErrorResponse();
-            }
+            
             Hashtable responseData = new Hashtable();
             responseData["auth_session"] = authed;
             response.Value = responseData;

@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -48,8 +49,15 @@ namespace OpenSim.Data
         /// </summary>
         /// <param name="fname">Account firstname</param>
         /// <param name="lname">Account lastname</param>
-        /// <returns>The user data profile</returns>
+        /// <returns>The user data profile.  Null if no user is found</returns>
         UserProfileData GetUserByName(string fname, string lname);
+        
+        /// <summary>
+        /// Get a user from a given uri.
+        /// </summary>  
+        /// <param name="uri"></param>
+        /// <returns>The user data profile.  Null if no user is found.</returns>
+        UserProfileData GetUserByUri(Uri uri);
 
         /// <summary>
         /// Returns a list of UUIDs firstnames and lastnames that match string query entered into the avatar picker.
@@ -63,7 +71,7 @@ namespace OpenSim.Data
         /// Returns the current agent for a user searching by it's UUID
         /// </summary>
         /// <param name="user">The users UUID</param>
-        /// <returns>The current agent session</returns>
+        /// <returns>The current agent session.  Null if no session was found</returns>
         UserAgentData GetAgentByUUID(UUID user);
 
         /// <summary>

@@ -220,7 +220,11 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
                 new LocalUserServices(
                     m_openSim.NetServersInfo.DefaultHomeLocX, m_openSim.NetServersInfo.DefaultHomeLocY, inventoryService);
             localuserService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneUserPlugin, m_openSim.ConfigurationSettings.StandaloneUserSource);
+            
             HGUserServices userService = new HGUserServices(localuserService);
+            // This plugin arrangement could eventually be configurable rather than hardcoded here.           
+            OGS1UserDataPlugin userDataPlugin = new OGS1UserDataPlugin(m_commsManager);
+            userService.AddPlugin(userDataPlugin);            
 
             HGGridServicesStandalone gridService = new HGGridServicesStandalone(m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, m_openSim.SceneManager);
 

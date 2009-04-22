@@ -31,10 +31,18 @@ namespace OpenSim.Framework.Communications
 {
     public interface IAvatarService
     {
-        /// Get's the User Appearance
+        /// <summary>
+        /// Get avatar appearance information
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         AvatarAppearance GetUserAppearance(UUID user);
 
+        /// <summary>
+        /// Update avatar appearance information
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="appearance"></param>        
         void UpdateUserAppearance(UUID user, AvatarAppearance appearance);
-
     }
 }

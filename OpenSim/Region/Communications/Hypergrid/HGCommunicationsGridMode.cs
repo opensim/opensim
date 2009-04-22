@@ -31,6 +31,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Communications.Hypergrid
@@ -51,7 +52,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             IAssetCache assetCache, SceneManager sman, LibraryRootFolder libraryRootFolder)
             : base(serversInfo, httpServer, assetCache, false, libraryRootFolder)
         {
-
             // From constructor at CommunicationsOGS1
             HGGridServices gridInterComms = new HGGridServicesGridMode(serversInfo, httpServer, assetCache, sman, m_userProfileCacheService);
             m_gridService = gridInterComms;
@@ -63,12 +63,15 @@ namespace OpenSim.Region.Communications.Hypergrid
             AddSecureInventoryService(invService);
             m_defaultInventoryHost = invService.Host;
             if (SecureInventoryService != null)
-                m_log.Info("[HG] SecureInventoryService.");
+                m_log.Info("[HG]: SecureInventoryService.");
             else
-                m_log.Info("[HG] Non-secureInventoryService.");
-
+                m_log.Info("[HG]: Non-secureInventoryService.");
 
             HGUserServices userServices = new HGUserServices(this);
+            // This plugin arrangement could eventually be configurable rather than hardcoded here.           
+            OGS1UserDataPlugin userDataPlugin = new OGS1UserDataPlugin(this);
+            userServices.AddPlugin(userDataPlugin);            
+            
             m_userService = userServices;
             m_messageService = userServices;
             m_avatarService = (IAvatarService)m_userService;

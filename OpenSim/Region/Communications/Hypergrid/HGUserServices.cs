@@ -59,6 +59,7 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         // Constructor called when running in standalone
         public HGUserServices(LocalUserServices local)
+            : base(null)
         {
             m_localUserServices = local;
         }
@@ -101,30 +102,12 @@ namespace OpenSim.Region.Communications.Hypergrid
                 base.LogOffUser(userid, regionid, regionhandle, position, lookat);
         }
 
-        /// <summary>
-        /// Logs off a user on the user server (deprecated as of 2008-08-27)
-        /// </summary>
-        /// <param name="UserID">UUID of the user</param>
-        /// <param name="regionID">UUID of the Region</param>
-        /// <param name="regionhandle">regionhandle</param>
-        /// <param name="posx">final position x</param>
-        /// <param name="posy">final position y</param>
-        /// <param name="posz">final position z</param>
-        public override void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
-        {
-            string url = string.Empty;
-            if ((m_localUserServices != null) && !IsForeignUser(userid, out url))
-                m_localUserServices.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
-            else
-                base.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
-        }
-
         public override UserProfileData GetUserProfile(string firstName, string lastName)
         {
             if (m_localUserServices != null)
                 return m_localUserServices.GetUserProfile(firstName, lastName);
 
-            return GetUserProfile(firstName + " " + lastName);
+            return base.GetUserProfile(firstName, lastName);
         }
 
         public override List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
@@ -133,18 +116,6 @@ namespace OpenSim.Region.Communications.Hypergrid
                 return m_localUserServices.GenerateAgentPickerRequestResponse(queryID, query);
 
             return base.GenerateAgentPickerRequestResponse(queryID, query);
-        }
-
-        /// <summary>
-        /// Get a user profile from the user server
-        /// </summary>
-        /// <param name="avatarID"></param>
-        /// <returns>null if the request fails</returns>
-        public override UserProfileData GetUserProfile(string name)
-        {
-            // This doesn't exist in LocalUserServices
-
-            return base.GetUserProfile(name);
         }
 
         /// <summary>

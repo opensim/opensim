@@ -80,6 +80,6 @@ namespace OpenSim.Region.Communications.Local
                 throw new Exception("[LOCAL USER SERVICES]: Unknown master user UUID. Possible reason: UserServer is not running.");
             }
             return data;
-        }
+        }       
     }
 }
