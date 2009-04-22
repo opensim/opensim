@@ -12,21 +12,21 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
 {
     class VWHClientView : IClientAPI 
     {
-        private Scene m_scene;
+//        private Scene m_scene;
 
         public void ProcessInMsg(OSHttpRequest req, OSHttpResponse resp)
         {
-            string method = req.Url.AbsolutePath.Split('/')[2];
+//            string method = req.Url.AbsolutePath.Split('/')[2];
         }
 
-        private void ProcessAssetRequest(OSHttpRequest req, OSHttpResponse resp)
-        {
-            
-        }
+//        private void ProcessAssetRequest(OSHttpRequest req, OSHttpResponse resp)
+//        {
+//            
+//        }
 
         public VWHClientView(UUID sessionID, UUID agentID, string agentName, Scene scene)
         {
-            m_scene = scene;
+//            m_scene = scene;
         }
 
         #region Implementation of IClientAPI

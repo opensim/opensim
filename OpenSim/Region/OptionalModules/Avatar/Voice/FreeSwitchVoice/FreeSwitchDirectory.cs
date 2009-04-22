@@ -303,36 +303,36 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             return response;    
         }    
         
-        private Hashtable HandleLoadNetworkLists(Hashtable request)
-        {
-            m_log.Info("[FreeSwitchDirectory] HandleLoadNetworkLists called");
-            
-            // TODO the password we return needs to match that sent in the request, this is hard coded for now
-            string domain = (string) request["domain"];
-            
-            Hashtable response = new Hashtable();
-            response["content_type"] = "text/xml";
-            response["keepalive"] = false;
-            response["int_response_code"] = 200;
-            response["str_response_string"] = String.Format( 
-                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
-                "<document type=\"freeswitch/xml\">\r\n" +
-                    "<section name=\"directory\" description=\"User Directory\">\r\n" +
-                        "<domain name=\"{0}\">\r\n" +
-                            "<params>\r\n" +
-                                "<param name=\"dial-string\" value=\"{{presence_id=${{dialed_user}}@${{dialed_domain}}}}${{sofia_contact(${{dialed_user}}@${{dialed_domain}})}}\"/>\r\n" +
-                            "</params>\r\n" +
-                            "<groups name=\"default\"><users/></groups>\r\n" +
-                            "<variables>\r\n"+
-                              "<variable name=\"default_gateway\" value=\"$${{default_provider}}\"/>\r\n"+
-                            "</variables>\r\n"+
-                        "</domain>\r\n" +
-                    "</section>\r\n" +
-                "</document>\r\n",
-                domain); 
-         
-             
-            return response;    
-        }       
+//        private Hashtable HandleLoadNetworkLists(Hashtable request)
+//        {
+//            m_log.Info("[FreeSwitchDirectory] HandleLoadNetworkLists called");
+//            
+//            // TODO the password we return needs to match that sent in the request, this is hard coded for now
+//            string domain = (string) request["domain"];
+//            
+//            Hashtable response = new Hashtable();
+//            response["content_type"] = "text/xml";
+//            response["keepalive"] = false;
+//            response["int_response_code"] = 200;
+//            response["str_response_string"] = String.Format( 
+//                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
+//                "<document type=\"freeswitch/xml\">\r\n" +
+//                    "<section name=\"directory\" description=\"User Directory\">\r\n" +
+//                        "<domain name=\"{0}\">\r\n" +
+//                            "<params>\r\n" +
+//                                "<param name=\"dial-string\" value=\"{{presence_id=${{dialed_user}}@${{dialed_domain}}}}${{sofia_contact(${{dialed_user}}@${{dialed_domain}})}}\"/>\r\n" +
+//                            "</params>\r\n" +
+//                            "<groups name=\"default\"><users/></groups>\r\n" +
+//                            "<variables>\r\n"+
+//                              "<variable name=\"default_gateway\" value=\"$${{default_provider}}\"/>\r\n"+
+//                            "</variables>\r\n"+
+//                        "</domain>\r\n" +
+//                    "</section>\r\n" +
+//                "</document>\r\n",
+//                domain); 
+//         
+//             
+//            return response;    
+//        }       
     }
 }

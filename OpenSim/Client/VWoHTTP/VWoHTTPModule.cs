@@ -18,7 +18,7 @@ namespace OpenSim.Client.VWoHTTP
 
         private readonly List<Scene> m_scenes = new List<Scene>();
 
-        private Dictionary<UUID, VWHClientView> m_clients = new Dictionary<UUID, VWHClientView>();
+        //private Dictionary<UUID, VWHClientView> m_clients = new Dictionary<UUID, VWHClientView>();
 
         #region Implementation of IRegionModule
 
