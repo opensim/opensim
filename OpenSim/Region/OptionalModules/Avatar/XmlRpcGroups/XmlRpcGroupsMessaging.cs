@@ -229,31 +229,28 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         // Force? open the group session dialog???
                         IEventQueue eq = m_ActiveClients[msg.toAgentID].Scene.RequestModuleInterface<IEventQueue>();
                         eq.ChatterboxInvitation(
-                            GroupID
-                            , GroupInfo.GroupName
-                            , new UUID(msg.fromAgentID)
-                            , msg.message, new UUID(msg.toAgentID)
-                            , msg.fromAgentName
-                            , msg.dialog
-                            , msg.timestamp
-                            , msg.offline==1
-                            , (int)msg.ParentEstateID
-                            , msg.Position
-                            , 1
-                            , new UUID(msg.imSessionID)
-                            , msg.fromGroup
-                            , Utils.StringToBytes(GroupInfo.GroupName)
-                            );
+                            GroupID,
+                            GroupInfo.GroupName,
+                            new UUID(msg.fromAgentID),
+                            msg.message, new UUID(msg.toAgentID),
+                            msg.fromAgentName,
+                            msg.dialog,
+                            msg.timestamp,
+                            msg.offline == 1,
+                            (int)msg.ParentEstateID,
+                            msg.Position,
+                            1,
+                            new UUID(msg.imSessionID),
+                            msg.fromGroup,
+                            Utils.StringToBytes(GroupInfo.GroupName));
 
                         eq.ChatterBoxSessionAgentListUpdates(
-                            new UUID(GroupID)
-                            , new UUID(msg.fromAgentID)
-                            , new UUID(msg.toAgentID)
-                            , false //canVoiceChat
-                            , false //isModerator
-                            , false //text mute
-                            );
-
+                            new UUID(GroupID),
+                            new UUID(msg.fromAgentID),
+                            new UUID(msg.toAgentID),
+                            false,  //canVoiceChat
+                            false,  //isModerator
+                            false); //text mute
                     }
                 }
             }
@@ -285,13 +282,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                     IEventQueue queue = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
                     queue.ChatterBoxSessionAgentListUpdates(
-                        new UUID(GroupID)
-                        , new UUID(im.fromAgentID)
-                        , new UUID(im.toAgentID)
-                        , false //canVoiceChat
-                        , false //isModerator
-                        , false //text mute
-                        );
+                        new UUID(GroupID),
+                        new UUID(im.fromAgentID),
+                        new UUID(im.toAgentID),
+                        false,  //canVoiceChat
+                        false,  //isModerator
+                        false); //text mute
                 }
             }
 
@@ -373,12 +369,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             msg.ParentEstateID = im.ParentEstateID;
             msg.Position = im.Position;
             msg.RegionID = im.RegionID;
-            msg.binaryBucket = new byte[1] { 0 };
+            msg.binaryBucket = new byte[1]{0};
 
             foreach (GroupMembersData member in m_GroupsModule.GroupMembersRequest(null, groupID))
             {
                 msg.toAgentID = member.AgentID.Guid;
-                m_MsgTransferModule.SendInstantMessage(msg, delegate(bool success) { });
+                m_MsgTransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
         }
 
@@ -402,14 +398,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             bodyMap.Add("success", OSD.FromBoolean(true));
             bodyMap.Add("session_info", sessionMap);
 
-
             IEventQueue queue = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
 
             if (queue != null)
             {
                 queue.Enqueue(EventQueueHelper.buildEvent("ChatterBoxSessionStartReply", bodyMap), remoteClient.AgentId);
             }
-
         }
 
 
@@ -428,6 +422,5 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_log.WarnFormat("[GROUPS-MESSAGING] IM: binaryBucket({0})", OpenMetaverse.Utils.BytesToHexString(im.binaryBucket, "BinaryBucket"));
             }
         }
-
     }
 }

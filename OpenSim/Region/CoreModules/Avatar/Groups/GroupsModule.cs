@@ -87,7 +87,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
                         osGroup.GroupName = "OpenSimulator Testing";
                         osGroup.GroupPowers =
                                 (uint)(GroupPowers.AllowLandmark |
-                                GroupPowers.AllowSetHome);
+                                       GroupPowers.AllowSetHome);
                         m_GroupMap[opensimulatorGroupID] = osGroup;
                     }
                     m_SceneList.Add(scene);
@@ -96,8 +96,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
 
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += OnClientClosed;
-            scene.EventManager.OnIncomingInstantMessage +=
-                    OnGridInstantMessage;
+            scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
         }
 
         public void PostInitialise()
@@ -152,7 +151,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
         }
 
         private void OnAgentDataUpdateRequest(IClientAPI remoteClient,
-                UUID AgentID, UUID SessionID)
+                                              UUID AgentID, UUID SessionID)
         {
             UUID ActiveGroupID;
             string ActiveGroupName;
@@ -168,8 +167,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
             ActiveGroupPowers = osGroup.GroupPowers;
 
             remoteClient.SendAgentDataUpdate(AgentID, ActiveGroupID, firstname,
-                    lastname, ActiveGroupPowers, ActiveGroupName,
-                    ActiveGroupTitle);
+                                             lastname, ActiveGroupPowers, ActiveGroupName,
+                                             ActiveGroupTitle);
         }
 
         private void OnInstantMessage(IClientAPI client, GridInstantMessage im)

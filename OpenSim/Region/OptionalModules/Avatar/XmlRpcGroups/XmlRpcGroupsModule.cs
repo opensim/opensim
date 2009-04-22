@@ -155,13 +155,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 return;
             }
 
-
             m_sceneList.Add(scene);
 
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += OnClientClosed;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
-
         }
 
         public void RemoveRegion(Scene scene)
