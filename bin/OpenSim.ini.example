@@ -1190,7 +1190,7 @@
 [FreeSwitchVoice]
     ; In order for this to work you need a functioning freeswitch pbx set
     ; up.  Configuration for that will be posted in the wiki soon.
-    enabled = true      
+    enabled = false
     ;FreeSwitch server is going to contact us and ask us all     
     ;sorts of things.     
     freeswitch_server_user = freeswitch     
