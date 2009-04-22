@@ -1596,11 +1596,31 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart rootpart = m_rootPart;
             if (rootpart != null)
             {
-                if (rootpart.PhysActor != null)
+                if (IsAttachment)
                 {
-                    rootpart.PhysActor.PIDTarget = new PhysicsVector(target.X, target.Y, target.Z);
-                    rootpart.PhysActor.PIDTau = tau;
-                    rootpart.PhysActor.PIDActive = true;
+                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
+                    if (avatar != null)
+                    {
+                        List<string> coords = new List<string>();
+                        uint regionX = 0;
+                        uint regionY = 0;
+                        Utils.LongToUInts(Scene.RegionInfo.RegionHandle, out regionX, out regionY);
+                        target.X += regionX;
+                        target.Y += regionY;
+                        coords.Add(target.X.ToString());
+                        coords.Add(target.Y.ToString());
+                        coords.Add(target.Z.ToString());
+                        avatar.DoMoveToPosition(avatar, "", coords);
+                    }
+                }
+                else
+                {
+                    if (rootpart.PhysActor != null)
+                    {
+                        rootpart.PhysActor.PIDTarget = new PhysicsVector(target.X, target.Y, target.Z);
+                        rootpart.PhysActor.PIDTau = tau;
+                        rootpart.PhysActor.PIDActive = true;
+                    }
                 }
             }
         }
