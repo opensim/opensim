@@ -126,14 +126,14 @@ namespace OpenSim.Framework.Servers
             return result;
         }
 
-        private byte[] ProcessOutgoingAssetData(byte[] assetData)
-        {
-            string data = Encoding.ASCII.GetString(assetData);
+        // private byte[] ProcessOutgoingAssetData(byte[] assetData)
+        // {
+        //     string data = Encoding.ASCII.GetString(assetData);
 
-            data = ProcessAssetDataString(data);
+        //     data = ProcessAssetDataString(data);
 
-            return Encoding.ASCII.GetBytes(data);
-        }
+        //     return Encoding.ASCII.GetBytes(data);
+        // }
 
         public string ProcessAssetDataString(string data)
         {

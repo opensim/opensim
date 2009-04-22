@@ -54,7 +54,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         // Infrastructure
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly bool DUMP = true;
 
         // Capability string prefixes
         private static readonly string m_parcelVoiceInfoRequestPath = "0007/";
@@ -87,9 +86,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         private static int m_freeSwitchEchoPort;
         private static string m_freeSwitchDefaultWellKnownIP;
         private static int m_freeSwitchDefaultTimeout;
-        private static int m_freeSwitchSubscribeRetry;
+        // private static int m_freeSwitchSubscribeRetry;
         private static string m_freeSwitchUrlResetPassword;
-        private static IPEndPoint m_FreeSwitchServiceIP;
+        // private static IPEndPoint m_FreeSwitchServiceIP;
         private int m_freeSwitchServicePort;
         private string m_openSimWellKnownHTTPAddress;
 
@@ -132,7 +131,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     string serviceIP = m_config.GetString("freeswitch_service_server", String.Empty);
                     int servicePort = m_config.GetInt("freeswitch_service_port", 80);
                     IPAddress serviceIPAddress = IPAddress.Parse(serviceIP);
-                    m_FreeSwitchServiceIP = new IPEndPoint(serviceIPAddress, servicePort);
+                    // m_FreeSwitchServiceIP = new IPEndPoint(serviceIPAddress, servicePort);
                     m_freeSwitchServicePort = servicePort;
                     m_freeSwitchRealm = m_config.GetString("freeswitch_realm", String.Empty);
                     m_freeSwitchSIPProxy = m_config.GetString("freeswitch_sip_proxy", m_freeSwitchRealm);
@@ -143,12 +142,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     m_freeSwitchDefaultWellKnownIP = m_config.GetString("freeswitch_well_known_ip", m_freeSwitchRealm);
                     m_openSimWellKnownHTTPAddress = m_config.GetString("opensim_well_known_http_address", serviceIPAddress.ToString());
                     m_freeSwitchDefaultTimeout = m_config.GetInt("freeswitch_default_timeout", 5000);
-                    m_freeSwitchSubscribeRetry = m_config.GetInt("freeswitch_subscribe_retry", 120);
+                    // m_freeSwitchSubscribeRetry = m_config.GetInt("freeswitch_subscribe_retry", 120);
                     m_freeSwitchUrlResetPassword = m_config.GetString("freeswitch_password_reset_url", String.Empty);
                     
-                    
-                
-
                     if (String.IsNullOrEmpty(m_freeSwitchServerUser) ||
                         String.IsNullOrEmpty(m_freeSwitchServerPass) ||
                         String.IsNullOrEmpty(m_freeSwitchRealm) ||
@@ -163,12 +159,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     // - prelogin: viv_get_prelogin.php
                     // - signin: viv_signin.php
                     scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix),
-                                                                FreeSwitchSLVoiceGetPreloginHTTPHandler);
+                                                                 FreeSwitchSLVoiceGetPreloginHTTPHandler);
                                                                  
-                   // RestStreamHandler h = new RestStreamHandler("GET", String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix), FreeSwitchSLVoiceGetPreloginHTTPHandler);
+                   // RestStreamHandler h = new
+                   // RestStreamHandler("GET", 
+                   // String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix), FreeSwitchSLVoiceGetPreloginHTTPHandler);
                   //  scene.CommsManager.HttpServer.AddStreamHandler(h);
-                     
-                     
                     
                     scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/viv_signin.php", m_freeSwitchAPIPrefix),
                                                                  FreeSwitchSLVoiceSigninHTTPHandler);
@@ -307,15 +303,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 // XXX: we need to cache the voice credentials, as
                 // FreeSwitch is later going to come and ask us for
                 // those
-
                 agentname = agentname.Replace('+', '-').Replace('/', '_');
                 
                // LLSDVoiceAccountResponse voiceAccountResponse =
                //     new LLSDVoiceAccountResponse(agentname, password, m_freeSwitchRealm, "http://etsvc02.hursley.ibm.com/api");
                LLSDVoiceAccountResponse voiceAccountResponse =
-                       new LLSDVoiceAccountResponse(agentname, password, m_freeSwitchRealm,
-                                                 String.Format("http://{0}:{1}{2}/", m_openSimWellKnownHTTPAddress, m_freeSwitchServicePort, 
-                                                               m_freeSwitchAPIPrefix)); 
+                   new LLSDVoiceAccountResponse(agentname, password, m_freeSwitchRealm,
+                                                String.Format("http://{0}:{1}{2}/", m_openSimWellKnownHTTPAddress, 
+                                                              m_freeSwitchServicePort, m_freeSwitchAPIPrefix)); 
 
                 string r = LLSDHelpers.SerialiseLLSDReply(voiceAccountResponse);
 
@@ -346,7 +341,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                                              UUID agentID, Caps caps)
         {
             ScenePresence avatar = scene.GetScenePresence(agentID);
-            string        avatarName = avatar.Name;
+            string avatarName = avatar.Name;
 
             // - check whether we have a region channel in our cache
             // - if not: 
@@ -460,11 +455,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     "<UrlPrivacyNotice>{8}</UrlPrivacyNotice>\r\n"+
                     "<UrlEulaNotice/>\r\n"+
                     "<App.NoBottomLogo>false</App.NoBottomLogo>\r\n"+
-                "</VCConfiguration>"
-              , 
-                m_freeSwitchRealm,m_freeSwitchSIPProxy,m_freeSwitchAttemptUseSTUN,
-                m_freeSwitchSTUNServer,m_freeSwitchEchoServer,m_freeSwitchEchoPort,
-                m_freeSwitchDefaultWellKnownIP,m_freeSwitchDefaultTimeout,m_freeSwitchUrlResetPassword,"");
+                "</VCConfiguration>",
+                m_freeSwitchRealm, m_freeSwitchSIPProxy, m_freeSwitchAttemptUseSTUN,
+                m_freeSwitchSTUNServer, m_freeSwitchEchoServer, m_freeSwitchEchoPort,
+                m_freeSwitchDefaultWellKnownIP, m_freeSwitchDefaultTimeout, 
+                m_freeSwitchUrlResetPassword, "");
             
             response["int_response_code"] = 200;
 
@@ -531,12 +526,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 if (s.Trim() != "")
                 {
                     string [] nvp = s.Split(new Char [] {'='});
-                    bodyParams.Add(HttpUtility.UrlDecode(nvp[0]),HttpUtility.UrlDecode(nvp[1]));
+                    bodyParams.Add(HttpUtility.UrlDecode(nvp[0]), HttpUtility.UrlDecode(nvp[1]));
                 }
             }
             
             return bodyParams;
-            
         }
 
         private string ChannelUri(Scene scene, LandData land)

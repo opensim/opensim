@@ -391,10 +391,10 @@ namespace OpenSim.Framework.Communications.Cache
 
         protected void ProcessReceivedAsset(bool IsTexture, AssetInfo assetInf, IUserService userService)
         {            
-            if (!IsTexture && assetInf.ContainsReferences && false)
-            {
-                assetInf.Data = ProcessAssetData(assetInf.Data, userService);
-            }
+            // if (!IsTexture && assetInf.ContainsReferences && false)
+            // {
+            //     assetInf.Data = ProcessAssetData(assetInf.Data, userService);
+            // }
         }
 
         // See IAssetReceiver

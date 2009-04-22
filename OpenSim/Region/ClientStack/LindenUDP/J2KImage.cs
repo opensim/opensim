@@ -260,7 +260,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_sentinfo = true;
                         m_packetNumber++;
                     }
-                    bool ignoreStop = false;
+                    // bool ignoreStop = false;
                     if (m_packetNumber < 2)
                     {
                         m_packetNumber = 2;

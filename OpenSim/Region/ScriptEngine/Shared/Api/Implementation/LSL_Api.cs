@@ -9194,9 +9194,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return UUID.Zero.ToString();
             }
 
-            UUID tid = tid = AsyncCommands.
-                        DataserverPlugin.RegisterRequest(m_localID,
-                        m_itemID, assetID.ToString());
+            // was: UUID tid = tid = AsyncCommands.
+            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_itemID, assetID.ToString());
 
             if (NotecardCache.IsCached(assetID))
             {
@@ -9257,9 +9256,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return UUID.Zero.ToString();
             }
 
-            UUID tid = tid = AsyncCommands.
-                    DataserverPlugin.RegisterRequest(m_localID,
-                    m_itemID, assetID.ToString());
+            // was: UUID tid = tid = AsyncCommands.
+            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_itemID, assetID.ToString());
             
             if (NotecardCache.IsCached(assetID))
             {

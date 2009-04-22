@@ -65,7 +65,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
              
              foreach (DictionaryEntry item in request)
              {
-                m_log.InfoFormat("[FreeSwitchDirectory] requestBody item {0} {1}",item.Key, item.Value);
+                m_log.InfoFormat("[FreeSwitchDirectory] requestBody item {0} {1}", item.Key, item.Value);
              }
              
              string eventCallingFunction = (string) request["Event-Calling-Function"];
@@ -79,44 +79,44 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                  eventCallingFunction = "sofia_reg_parse_auth";
              }
              
-             if (eventCallingFunction=="sofia_reg_parse_auth")
+             if (eventCallingFunction == "sofia_reg_parse_auth")
              {
                  string sipAuthMethod = (string)request["sip_auth_method"];
                  
-                 if (sipAuthMethod=="REGISTER")
+                 if (sipAuthMethod == "REGISTER")
                  {
                      response = HandleRegister(request);
                  } 
-                 else if (sipAuthMethod=="INVITE")  
+                 else if (sipAuthMethod == "INVITE")  
                  {
                      response = HandleInvite(request);
                  }
                  else
                  {
                      m_log.ErrorFormat("[FreeSwitchVoice] HandleDirectoryRequest unknown sip_auth_method {0}",sipAuthMethod);
-                     response["int_response_code"]=404;
+                     response["int_response_code"] = 404;
                  }
              }
-             else if (eventCallingFunction=="switch_xml_locate_user")
+             else if (eventCallingFunction == "switch_xml_locate_user")
              {
                  response = HandleLocateUser(request);
              }
-             else if (eventCallingFunction=="user_data_function") // gets called when an avatar to avatar call is made
+             else if (eventCallingFunction == "user_data_function") // gets called when an avatar to avatar call is made
              {
                  response = HandleLocateUser(request);
              }
-             else if (eventCallingFunction=="user_outgoing_channel")
+             else if (eventCallingFunction == "user_outgoing_channel")
              {
                  response = HandleRegister(request);
              }
-             else if (eventCallingFunction=="config_sofia") // happens once on freeswitch startup
+             else if (eventCallingFunction == "config_sofia") // happens once on freeswitch startup
              {
                  response = HandleConfigSofia(request);
              }
-             else if (eventCallingFunction=="switch_load_network_lists")
+             else if (eventCallingFunction == "switch_load_network_lists")
              {
                  //response = HandleLoadNetworkLists(request);
-                 response["int_response_code"]=404;
+                 response["int_response_code"] = 404;
                  response["keepalive"] = false;
                  response["content_type"] = "text/xml";
                  response["str_response_string"] = "";
@@ -124,14 +124,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
              else
              {
                  m_log.ErrorFormat("[FreeSwitchVoice] HandleDirectoryRequest unknown Event-Calling-Function {0}",eventCallingFunction);
-                 response["int_response_code"]=404;
+                 response["int_response_code"] = 404;
                  response["keepalive"] = false;
                  response["content_type"] = "text/xml";
                  response["str_response_string"] = "";
              }
-             
-                
-             
              return response;   
         }
         
@@ -147,7 +144,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
-            response["int_response_code"]=200;
+            response["int_response_code"] = 200;
             response["str_response_string"] = String.Format( 
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
@@ -165,11 +162,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                             "</user>\r\n" +
                         "</domain>\r\n" +
                     "</section>\r\n" +
-                "</document>\r\n"
-                , domain , user, password);
+                "</document>\r\n",
+                domain , user, password);
                 
             return response;
-            
         }
         
         private Hashtable HandleInvite(Hashtable request)
@@ -185,7 +181,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
-            response["int_response_code"]=200;
+            response["int_response_code"] = 200;
             response["str_response_string"] = String.Format( 
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
@@ -213,8 +209,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                             "</user>\r\n" +
                         "</domain>\r\n" +
                     "</section>\r\n" +
-                "</document>\r\n"
-                , domain , user, password,sipRequestUser);
+                "</document>\r\n",
+                domain , user, password,sipRequestUser);
                 
             return response;
         }
@@ -231,7 +227,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
-            response["int_response_code"]=200;
+            response["int_response_code"] = 200;
             response["str_response_string"] = String.Format( 
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
@@ -248,10 +244,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                             "</user>\r\n" +
                         "</domain>\r\n" +
                     "</section>\r\n" +
-                "</document>\r\n"
-                , domain , user);
-            
-            
+                "</document>\r\n",
+                domain , user);
             
             return response;
         }
@@ -266,7 +260,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
-            response["int_response_code"]=200;
+            response["int_response_code"] = 200;
             response["str_response_string"] = String.Format( 
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
@@ -303,9 +297,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                             "</variables>\r\n"+
                         "</domain>\r\n" +
                     "</section>\r\n" +
-                "</document>\r\n"
-                , domain); 
-         
+                "</document>\r\n", 
+                domain); 
              
             return response;    
         }    
@@ -320,7 +313,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
-            response["int_response_code"]=200;
+            response["int_response_code"] = 200;
             response["str_response_string"] = String.Format( 
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
@@ -335,13 +328,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                             "</variables>\r\n"+
                         "</domain>\r\n" +
                     "</section>\r\n" +
-                "</document>\r\n"
-                , domain); 
+                "</document>\r\n",
+                domain); 
          
              
             return response;    
         }       
-       
     }
-    
 }

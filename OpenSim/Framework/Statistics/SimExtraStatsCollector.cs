@@ -28,10 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenMetaverse;
-using OpenSim.Framework.Statistics.Interfaces;
 
 using OpenMetaverse;
+using OpenSim.Framework.Statistics.Interfaces;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Statistics
@@ -421,11 +420,11 @@ Asset service request failures: {3}" + Environment.NewLine,
             args["Memory"] = OSD.FromString(base.XReport());
             
             string strBuffer = "";
-            byte[] buffer = new byte[1];
+            // byte[] buffer = new byte[1];
             
             strBuffer = OSDParser.SerializeJsonString(args);
-            UTF8Encoding str = new UTF8Encoding();
-            buffer = str.GetBytes(strBuffer);
+            // UTF8Encoding str = new UTF8Encoding();
+            // buffer = str.GetBytes(strBuffer);
 
             return strBuffer;
         }

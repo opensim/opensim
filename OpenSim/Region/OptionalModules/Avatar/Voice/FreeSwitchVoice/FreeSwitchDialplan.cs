@@ -50,7 +50,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
              
              response["content_type"] = "text/xml";
              response["keepalive"] = false;
-             response["int_response_code"]=200;
+             response["int_response_code"] = 200;
              response["str_response_string"] = @"<?xml version=""1.0"" encoding=""utf-8""?>
                 <document type=""freeswitch/xml"">
                   <section name=""dialplan"">
