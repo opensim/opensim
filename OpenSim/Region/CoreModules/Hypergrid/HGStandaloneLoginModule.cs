@@ -54,7 +54,6 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         protected bool m_enabled = false; // Module is only enabled if running in standalone mode
 
-
         public bool RegionLoginsEnabled
         {
             get
@@ -88,7 +87,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
                 if (m_enabled)
                 {
-                    m_log.Debug("[HGLogin] HGlogin module enabled");
+                    m_log.Debug("[HGLogin]: HGlogin module enabled");
                     bool authenticate = true;
                     string welcomeMessage = "Welcome to OpenSim";
                     IConfig standaloneConfig = source.Configs["StandAlone"];
@@ -104,7 +103,15 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                     IHttpServer httpServer = m_firstScene.CommsManager.HttpServer;
 
                     //TODO: fix the casting of the user service, maybe by registering the userManagerBase with scenes, or refactoring so we just need a IUserService reference
-                    m_loginService = new HGLoginAuthService((UserManagerBase)m_firstScene.CommsManager.UserAdminService, welcomeMessage, m_firstScene.CommsManager.InterServiceInventoryService, m_firstScene.CommsManager.NetworkServersInfo, authenticate, rootFolder, this);
+                    m_loginService 
+                        = new HGLoginAuthService(
+                            (UserManagerBase)m_firstScene.CommsManager.UserAdminService, 
+                            welcomeMessage, 
+                            m_firstScene.CommsManager.InterServiceInventoryService, 
+                            m_firstScene.CommsManager.NetworkServersInfo, 
+                            authenticate, 
+                            rootFolder, 
+                            this);
 
                     httpServer.AddXmlRPCHandler("hg_login", m_loginService.XmlRpcLoginMethod);
                     httpServer.AddXmlRPCHandler("hg_new_auth_key", m_loginService.XmlRpcGenerateKeyMethod);

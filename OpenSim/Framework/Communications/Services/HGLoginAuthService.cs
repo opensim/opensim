@@ -61,7 +61,6 @@ namespace OpenSim.Framework.Communications.Services
         /// </summary>
         protected ILoginServiceToRegionsConnector m_regionsConnector;
 
-
         public HGLoginAuthService(
             UserManagerBase userManager, string welcomeMess,
             IInterServiceInventoryServices interServiceInventoryService,
@@ -89,7 +88,7 @@ namespace OpenSim.Framework.Communications.Services
 
         public override XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
-            m_log.Info("[HGLOGIN] HGLogin called " + request.MethodName);
+            m_log.Info("[HGLOGIN]: HGLogin called " + request.MethodName);
             XmlRpcResponse response = base.XmlRpcLoginMethod(request);
             Hashtable responseData = (Hashtable)response.Value;
 
@@ -135,7 +134,6 @@ namespace OpenSim.Framework.Communications.Services
 
         public XmlRpcResponse XmlRpcGenerateKeyMethod(XmlRpcRequest request)
         {
-
             // Verify the key of who's calling
             UUID userID = UUID.Zero;
             UUID authKey = UUID.Zero; 
@@ -253,7 +251,6 @@ namespace OpenSim.Framework.Communications.Services
         {
             return m_regionsConnector.RequestNeighbourInfo(homeRegionId);
         }
-
 
         /// <summary>
         /// Not really informing the region. Just filling out the response fields related to the region. 

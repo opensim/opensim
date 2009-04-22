@@ -206,8 +206,11 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         {
             // Standalone mode
 
-            HGInventoryServiceClient inventoryService = new HGInventoryServiceClient(m_openSim.NetServersInfo.InventoryURL, null, false);
-            inventoryService.AddPlugin(m_openSim.ConfigurationSettings.StandaloneInventoryPlugin, m_openSim.ConfigurationSettings.StandaloneInventorySource);         
+            HGInventoryServiceClient inventoryService 
+                = new HGInventoryServiceClient(m_openSim.NetServersInfo.InventoryURL, null, false);
+            inventoryService.AddPlugin(
+                m_openSim.ConfigurationSettings.StandaloneInventoryPlugin, 
+                m_openSim.ConfigurationSettings.StandaloneInventorySource);         
 
             HGGridServicesStandalone gridService 
                 = new HGGridServicesStandalone(
@@ -227,7 +230,10 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
         protected virtual void InitialiseHGGridServices(LibraryRootFolder libraryRootFolder)
         {
-            m_commsManager = new HGCommunicationsGridMode(m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, m_openSim.SceneManager, libraryRootFolder);
+            m_commsManager 
+                = new HGCommunicationsGridMode(
+                    m_openSim.NetServersInfo, m_httpServer, 
+                    m_openSim.AssetCache, m_openSim.SceneManager, libraryRootFolder);
 
             HGServices = ((HGCommunicationsGridMode) m_commsManager).HGServices;
 
@@ -240,7 +246,8 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
             // provide grid info
             m_gridInfoService = new GridInfoService(m_openSim.ConfigSource.Source);
             m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
-            m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
+            m_httpServer.AddStreamHandler(
+                 new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
         }
     }
 }

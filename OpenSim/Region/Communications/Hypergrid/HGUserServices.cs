@@ -62,12 +62,15 @@ namespace OpenSim.Region.Communications.Hypergrid
         {
             m_localUserServices = local;
         }
+        
+        public override bool AddUserAgent(UserAgentData agentdata)
+        {
+            if (m_localUserServices != null)
+                return m_localUserServices.AddUserAgent(agentdata);
 
-        /// <summary>
-        /// Get a user agent from the user server
-        /// </summary>
-        /// <param name="avatarID"></param>
-        /// <returns>null if the request fails</returns>
+            return base.AddUserAgent(agentdata);
+        }        
+
         public override UserAgentData GetAgentByUUID(UUID userId)
         {
             string url = string.Empty;
@@ -77,14 +80,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             return base.GetAgentByUUID(userId);
         }
 
-        /// <summary>
-        /// Logs off a user on the user server
-        /// </summary>
-        /// <param name="UserID">UUID of the user</param>
-        /// <param name="regionID">UUID of the Region</param>
-        /// <param name="regionhandle">regionhandle</param>
-        /// <param name="position">final position</param>
-        /// <param name="lookat">final lookat</param>
         public override void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
         {
             string url = string.Empty;

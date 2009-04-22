@@ -430,6 +430,8 @@ namespace OpenSim.Framework.Communications
         /// <param name="request">The users loginrequest</param>
         public void CreateAgent(UserProfileData profile, XmlRpcRequest request)
         {
+            //m_log.DebugFormat("[USER MANAGER]: Creating agent {0} {1}", profile.Name, profile.ID);
+            
             UserAgentData agent = new UserAgentData();
 
             // User connection
@@ -483,6 +485,8 @@ namespace OpenSim.Framework.Communications
 
         public void CreateAgent(UserProfileData profile, OSD request)
         {
+            //m_log.DebugFormat("[USER MANAGER]: Creating agent {0} {1}", profile.Name, profile.ID);
+            
             UserAgentData agent = new UserAgentData();
 
             // User connection
@@ -538,6 +542,8 @@ namespace OpenSim.Framework.Communications
         /// <returns>Successful?</returns>
         public bool CommitAgent(ref UserProfileData profile)
         {
+            //m_log.DebugFormat("[USER MANAGER]: Committing agent {0} {1}", profile.Name, profile.ID);
+            
             // TODO: how is this function different from setUserProfile?  -> Add AddUserAgent() here and commit both tables "users" and "agents"
             // TODO: what is the logic should be?
             bool ret = false;
@@ -704,7 +710,7 @@ namespace OpenSim.Framework.Communications
         /// Add agent to DB
         /// </summary>
         /// <param name="agentdata">The agent data to be added</param>
-        public bool AddUserAgent(UserAgentData agentdata)
+        public virtual bool AddUserAgent(UserAgentData agentdata)
         {
             foreach (IUserDataPlugin plugin in m_plugins)
             {
@@ -845,7 +851,7 @@ namespace OpenSim.Framework.Communications
 
             if (userProfile != null && userProfile.CurrentAgent != null)
             {
-                m_log.DebugFormat("[USERAUTH]: Verifying session {0} for {1}; current  session {2}", sessionID, userID, userProfile.CurrentAgent.SessionID);
+                m_log.DebugFormat("[USER AUTH]: Verifying session {0} for {1}; current  session {2}", sessionID, userID, userProfile.CurrentAgent.SessionID);
                 if (userProfile.CurrentAgent.SessionID == sessionID)
                 {
                     return true;
