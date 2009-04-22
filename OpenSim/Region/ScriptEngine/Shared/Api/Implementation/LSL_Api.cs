@@ -9190,16 +9190,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 // => complain loudly, as specified by the LSL docs
                 ShoutError("Notecard '" + name + "' could not be found.");
+
+                return UUID.Zero.ToString();
             }
 
-            UUID tid = UUID.Zero;
+            UUID tid = tid = AsyncCommands.
+                        DataserverPlugin.RegisterRequest(m_localID,
+                        m_itemID, assetID.ToString());
 
             if (NotecardCache.IsCached(assetID))
             {
-                tid = AsyncCommands.
-                        DataserverPlugin.RegisterRequest(m_localID,
-                        m_itemID, assetID.ToString());
-                
                 AsyncCommands.
                 DataserverPlugin.DataserverReply(assetID.ToString(),
                 NotecardCache.GetLines(assetID).ToString());
@@ -9209,16 +9209,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             WithNotecard(assetID, delegate (UUID id, AssetBase a)
             {
-                if (a == null)
+                if (a == null || a.Type != 7)
+                {
+                    ShoutError("Notecard '" + name + "' could not be found.");
                     return;
+                }
 
-                if (a.Type != 7)
-                    return;
-
-                tid = AsyncCommands.
-                        DataserverPlugin.RegisterRequest(m_localID,
-                        m_itemID, assetID.ToString());
-                
                 System.Text.ASCIIEncoding enc =
                     new System.Text.ASCIIEncoding();
                 string data = enc.GetString(a.Data);
@@ -9229,18 +9225,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         NotecardCache.GetLines(id).ToString());
             });
 
-            if (tid != UUID.Zero)
-            {
-                // ScriptSleep(100);
-                return tid.ToString();
-            }
-
-            // if we got to here, we didn't find the notecard the script was asking for
-            // => complain loudly, as specified by the LSL docs
-            ShoutError("Notecard '" + name + "' could not be found.");
-
             // ScriptSleep(100);
-            return UUID.Zero.ToString();
+            return tid.ToString();
         }
 
         public LSL_String llGetNotecardLine(string name, int line)
@@ -9267,16 +9253,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 // => complain loudly, as specified by the LSL docs
                 ShoutError("Notecard '" + name + "' could not be found.");
+
+                return UUID.Zero.ToString();
             }
 
-            UUID tid = UUID.Zero;
-
+            UUID tid = tid = AsyncCommands.
+                    DataserverPlugin.RegisterRequest(m_localID,
+                    m_itemID, assetID.ToString());
+            
             if (NotecardCache.IsCached(assetID))
             {
-                tid = AsyncCommands.
-                        DataserverPlugin.RegisterRequest(m_localID,
-                        m_itemID, assetID.ToString());
-                
                 AsyncCommands.
                 DataserverPlugin.DataserverReply(assetID.ToString(),
                 NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
@@ -9286,16 +9272,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             WithNotecard(assetID, delegate (UUID id, AssetBase a)
             {
-                if (a == null)
+                if (a == null || a.Type != 7)
+                {
+                    ShoutError("Notecard '" + name + "' could not be found.");
                     return;
+                }
 
-                if (a.Type != 7)
-                    return;
-
-                tid = AsyncCommands.
-                        DataserverPlugin.RegisterRequest(m_localID,
-                        m_itemID, assetID.ToString());
-                
                 System.Text.ASCIIEncoding enc =
                     new System.Text.ASCIIEncoding();
                 string data = enc.GetString(a.Data);
@@ -9306,18 +9288,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         NotecardCache.GetLine(id, line, m_notecardLineReadCharsMax));
             });
 
-            if (tid != UUID.Zero)
-            {
-                // ScriptSleep(100);
-                return tid.ToString();
-            }
-
-            // if we got to here, we didn't find the notecard the script was asking for
-            // => complain loudly, as specified by the LSL docs
-            ShoutError("Notecard '" + name + "' could not be found.");
-
             // ScriptSleep(100);
-            return UUID.Zero.ToString();
+            return tid.ToString();
         }
 
     }
