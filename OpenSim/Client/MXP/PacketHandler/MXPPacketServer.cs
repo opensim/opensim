@@ -270,95 +270,104 @@ namespace OpenSim.Client.MXP.PacketHandler
                            (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
                             session.RemoteEndPoint.Port + ")");
 
-                        if (joinRequestMessage.BubbleId == Guid.Empty)
+                        try
                         {
-                            foreach (Scene scene in m_scenes.Values)
+
+                            if (joinRequestMessage.BubbleId == Guid.Empty)
                             {
-                                if (scene.RegionInfo.RegionName == joinRequestMessage.BubbleName)
+                                foreach (Scene scene in m_scenes.Values)
                                 {
-                                    m_log.Info("[MXP ClientStack]: Resolved region by name: " + joinRequestMessage.BubbleName + " (" + scene.RegionInfo.RegionID + ")");
-                                    joinRequestMessage.BubbleId = scene.RegionInfo.RegionID.Guid;
+                                    if (scene.RegionInfo.RegionName == joinRequestMessage.BubbleName)
+                                    {
+                                        m_log.Info("[MXP ClientStack]: Resolved region by name: " + joinRequestMessage.BubbleName + " (" + scene.RegionInfo.RegionID + ")");
+                                        joinRequestMessage.BubbleId = scene.RegionInfo.RegionID.Guid;
+                                    }
                                 }
                             }
-                        }
 
-                        if (joinRequestMessage.BubbleId == Guid.Empty)
+                            if (joinRequestMessage.BubbleId == Guid.Empty)
+                            {
+                                m_log.Warn("[MXP ClientStack]: Failed to resolve region by name: " + joinRequestMessage.BubbleName);
+                            }
+
+                            UUID sceneId = new UUID(joinRequestMessage.BubbleId);
+
+                            bool regionExists = true;
+                            if (!m_scenes.ContainsKey(sceneId))
+                            {
+                                m_log.Info("[MXP ClientStack]: No such region: " + sceneId);
+                                regionExists = false;
+                            }
+
+                            UserProfileData user = null;
+                            UUID userId = UUID.Zero;
+                            string firstName = null;
+                            string lastName = null;
+                            bool authorized = regionExists ? AuthoriseUser(joinRequestMessage.ParticipantName,
+                                                            joinRequestMessage.ParticipantPassphrase,
+                                                            new UUID(joinRequestMessage.BubbleId), out userId, out firstName, out lastName, out user)
+                                                            : false;
+
+                            if (authorized)
+                            {
+                                Scene scene = m_scenes[sceneId];
+                                UUID mxpSessionID = UUID.Random();
+
+                                m_log.Debug("[MXP ClientStack]: Session join request success: " + session.SessionId + " (" +
+                                   (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
+                                   session.RemoteEndPoint.Port + ")");
+
+                                m_log.Debug("[MXP ClientStack]: Attaching UserAgent to UserProfile...");
+                                AttachUserAgentToUserProfile(session, mxpSessionID, sceneId, user);
+                                m_log.Debug("[MXP ClientStack]: Attached UserAgent to UserProfile.");
+                                m_log.Debug("[MXP ClientStack]: Preparing Scene to Connection...");
+                                PrepareSceneForConnection(mxpSessionID, sceneId, user);
+                                m_log.Debug("[MXP ClientStack]: Prepared Scene to Connection.");
+                                m_log.Debug("[MXP ClientStack]: Accepting connection...");
+                                AcceptConnection(session, joinRequestMessage, mxpSessionID, userId);
+                                m_log.Info("[MXP ClientStack]: Accepted connection.");
+
+                                m_log.Debug("[MXP ClientStack]: Creating ClientView....");
+                                MXPClientView client = new MXPClientView(session, mxpSessionID, userId, scene, firstName, lastName);
+                                m_clients.Add(client);
+                                m_log.Debug("[MXP ClientStack]: Created ClientView.");
+
+
+                                m_log.Debug("[MXP ClientStack]: Adding ClientView to Scene...");
+                                scene.ClientManager.Add(client.CircuitCode, client);
+                                m_log.Debug("[MXP ClientStack]: Added ClientView to Scene.");
+
+
+                                client.MXPSendSynchronizationBegin(m_scenes[new UUID(joinRequestMessage.BubbleId)].SceneContents.GetTotalObjectsCount());
+
+                                m_log.Debug("[MXP ClientStack]: Starting ClientView...");
+                                try
+                                {
+                                    client.Start();
+                                    m_log.Debug("[MXP ClientStack]: Started ClientView.");
+                                }
+                                catch (Exception e)
+                                {
+                                    m_log.Error(e);
+                                }
+
+                                m_log.Debug("[MXP ClientStack]: Connected");
+                            }
+                            else
+                            {
+                                m_log.Info("[MXP ClientStack]: Session join request failure: " + session.SessionId + " (" +
+                                           (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
+                                           session.RemoteEndPoint.Port + ")");
+
+                                DeclineConnection(session, joinRequestMessage);
+                            }
+                        }
+                        catch (Exception e)
                         {
-                            m_log.Warn("[MXP ClientStack]: Failed to resolve region by name: " + joinRequestMessage.BubbleName);
-                        }
-                        
-                        UUID sceneId = new UUID(joinRequestMessage.BubbleId);
-
-                        bool regionExists = true;
-                        if (!m_scenes.ContainsKey(sceneId))
-                        {
-                            m_log.Info("[MXP ClientStack]: No such region: " + sceneId);
-                            regionExists=false;
-                        }
-
-                        UserProfileData user=null;
-                        UUID userId=UUID.Zero;
-                        string firstName=null;
-                        string lastName=null;
-                        bool authorized = regionExists?AuthoriseUser(joinRequestMessage.ParticipantName,
-                                                        joinRequestMessage.ParticipantPassphrase,
-                                                        new UUID(joinRequestMessage.BubbleId), out userId, out firstName, out lastName, out user)
-                                                        :false;
-
-                        if (authorized)
-                        {                            
-                            Scene scene = m_scenes[sceneId];
-                            UUID mxpSessionID = UUID.Random();
-
-                            m_log.Debug("[MXP ClientStack]: Session join request success: " + session.SessionId + " (" +
+                            m_log.Error("[MXP ClientStack]: Session join request failure: " + session.SessionId + " (" +
                                (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
-                               session.RemoteEndPoint.Port + ")");
-
-                            m_log.Debug("[MXP ClientStack]: Attaching UserAgent to UserProfile...");
-                            AttachUserAgentToUserProfile(session, mxpSessionID, sceneId, user);
-                            m_log.Debug("[MXP ClientStack]: Attached UserAgent to UserProfile.");
-                            m_log.Debug("[MXP ClientStack]: Preparing Scene to Connection...");
-                            PrepareSceneForConnection(mxpSessionID, sceneId, user);
-                            m_log.Debug("[MXP ClientStack]: Prepared Scene to Connection.");
-                            m_log.Debug("[MXP ClientStack]: Accepting connection...");
-                            AcceptConnection(session, joinRequestMessage, mxpSessionID, userId);
-                            m_log.Info("[MXP ClientStack]: Accepted connection.");
-
-                            m_log.Debug("[MXP ClientStack]: Creating ClientView....");
-                            MXPClientView client = new MXPClientView(session, mxpSessionID, userId, scene, firstName, lastName);
-                            m_clients.Add(client);
-                            m_log.Debug("[MXP ClientStack]: Created ClientView.");
-
-
-                            m_log.Debug("[MXP ClientStack]: Adding ClientView to Scene...");                            
-                            scene.ClientManager.Add(client.CircuitCode, client);
-                            m_log.Debug("[MXP ClientStack]: Added ClientView to Scene.");                            
-
-                            
-                            client.MXPSendSynchronizationBegin(m_scenes[new UUID(joinRequestMessage.BubbleId)].SceneContents.GetTotalObjectsCount());
-
-                            m_log.Debug("[MXP ClientStack]: Starting ClientView...");
-                            try
-                            {
-                                client.Start();
-                                m_log.Debug("[MXP ClientStack]: Started ClientView.");
-                            }
-                            catch (Exception e)
-                            {
-                                m_log.Error(e);
-                            }
-
-                            m_log.Debug("[MXP ClientStack]: Connected");
+                               session.RemoteEndPoint.Port + "): "+e.ToString()+" :"+e.StackTrace.ToString());
                         }
-                        else
-                        {
-                            m_log.Info("[MXP ClientStack]: Session join request failure: " + session.SessionId + " (" +
-                                       (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
-                                       session.RemoteEndPoint.Port + ")");
-
-                            DeclineConnection(session, joinRequestMessage);
-                        }
-
                         tmpRemove.Add(session);
                     }
                 }
@@ -528,7 +537,7 @@ namespace OpenSim.Client.MXP.PacketHandler
         {
             //Scene scene = m_scenes[sceneId];
             CommunicationsManager commsManager = m_scenes[sceneId].CommsManager;
-            UserManagerBase userService = (UserManagerBase)commsManager.UserService;
+            IUserService userService = (IUserService)commsManager.UserService;
 
             UserAgentData agent = new UserAgentData();
 
@@ -565,7 +574,9 @@ namespace OpenSim.Client.MXP.PacketHandler
 
             userProfile.CurrentAgent = agent;
 
-            userService.CommitAgent(ref userProfile);
+
+            userService.UpdateUserProfile(userProfile);
+            //userService.CommitAgent(ref userProfile);
         }
 
         private void PrepareSceneForConnection(UUID sessionId, UUID sceneId, UserProfileData userProfile)

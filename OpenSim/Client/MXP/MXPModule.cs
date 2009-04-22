@@ -83,13 +83,20 @@ namespace OpenSim.Client.MXP
 
                 m_ticker.Start();
 
-                m_log.Info("[MXP] MXP Enabled and Listening");
+                m_log.Info("[MXP ClientStack] MXP Enabled and Listening");
             }
         }
 
         void ticker_Elapsed(object sender, ElapsedEventArgs e)
         {
-            m_server.Process();
+            try
+            {
+                m_server.Process();
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("[MXP ClientStack]: Unhandled exception in process loop: " + ex.ToString() + " :" + ex.StackTrace.ToString());
+            }
 
             if (!m_shutdown)
                 m_ticker.Start();
