@@ -64,7 +64,7 @@ namespace OpenSim.Data
         /// </summary>
         /// <param name="queryID">ID associated with the user's query. This must match what the client sent</param>
         /// <param name="query">The filtered contents of the search box when the user hit search.</param>
-        /// <returns>The user data profile</returns>
+        /// <returns>A list of user details.  If there are no results than either an empty list or null can be returned</returns>
         List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query);
 
         /// <summary>

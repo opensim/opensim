@@ -174,44 +174,46 @@ namespace OpenSim.Framework.Communications
 
         public virtual List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {
-            List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
+            List<AvatarPickerAvatar> allPickerList = new List<AvatarPickerAvatar>();
+            
             foreach (IUserDataPlugin plugin in m_plugins)
             {
                 try
                 {
-                    pickerlist = plugin.GeneratePickerResults(queryID, query);
+                    List<AvatarPickerAvatar> pickerList = plugin.GeneratePickerResults(queryID, query);
+                    if (pickerList != null)
+                        allPickerList.AddRange(pickerList);
                 }
                 catch (Exception)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to generate AgentPickerData via  " + plugin.Name + "(" + query + ")");
-                    return new List<AvatarPickerAvatar>();
+                    m_log.Error(
+                        "[USERSTORAGE]: Unable to generate AgentPickerData via  " + plugin.Name + "(" + query + ")");
                 }
             }
 
-            return pickerlist;
+            return allPickerList;
         }
-
-        /// <summary>
-        /// Updates a user profile from data object
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
+        
         public virtual bool UpdateUserProfile(UserProfileData data)
         {
+            bool result = false;
+            
             foreach (IUserDataPlugin plugin in m_plugins)
             {
                 try
                 {
                     plugin.UpdateUserProfile(data);
-                    return true;
+                    result = true;
                 }
                 catch (Exception e)
                 {
-                    m_log.InfoFormat("[USERSTORAGE]: Unable to set user {0} {1} via {2}: {3}", data.FirstName, data.SurName,
-                                     plugin.Name, e.ToString());
+                    m_log.InfoFormat(
+                        "[USERSTORAGE]: Unable to set user {0} {1} via {2}: {3}", 
+                        data.FirstName, data.SurName, plugin.Name, e.ToString());
                 }
             }
-            return false;
+            
+            return result;
         }
 
         #endregion
@@ -232,9 +234,7 @@ namespace OpenSim.Framework.Communications
                     UserAgentData result = plugin.GetAgentByUUID(uuid);
 
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
                 catch (Exception e)
                 {
@@ -256,7 +256,10 @@ namespace OpenSim.Framework.Communications
             {
                 try
                 {
-                    return plugin.GetAgentByName(name);
+                    UserAgentData result = plugin.GetAgentByName(name);
+                    
+                    if (result != null)
+                        return result;
                 }
                 catch (Exception e)
                 {
@@ -279,7 +282,10 @@ namespace OpenSim.Framework.Communications
             {
                 try
                 {
-                    return plugin.GetAgentByName(fname, lname);
+                    UserAgentData result = plugin.GetAgentByName(fname, lname);
+                    
+                    if (result != null)
+                        return result;
                 }
                 catch (Exception e)
                 {
@@ -304,9 +310,7 @@ namespace OpenSim.Framework.Communications
                     List<FriendListItem> result = plugin.GetUserFriendList(ownerID);
 
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
                 catch (Exception e)
                 {
@@ -326,9 +330,7 @@ namespace OpenSim.Framework.Communications
                     Dictionary<UUID, FriendRegionInfo> result = plugin.GetFriendRegionInfos(uuids);
 
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
                 catch (Exception e)
                 {
