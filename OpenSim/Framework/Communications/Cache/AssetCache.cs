@@ -185,7 +185,15 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[ASSET CACHE]: " + e.ToString());
+                    if (e != null) 
+                    {
+                        m_log.ErrorFormat("[ASSET CACHE]: {0}", e);
+                    } 
+                    else 
+                    {
+                        // this looks weird, but we've seen this show up as an issue in unit tests, so leave it here until we know why
+                        m_log.Error("[ASSET CACHE]: an exception was thrown in RunAssetManager, but is now null.  Something is very wrong.");
+                    }
                 }
             }
         }
