@@ -3,29 +3,22 @@ for your effort!)
 
 Add your name in here if you have committed to OpenSim
 
-OpenSim Developers (in very rough order of appearance)
+= Current OpenSim Developers (in very rough order of appearance) =
+These folks represent the current core team for OpenSim, and are the
+people that make the day to day of OpenSim happen.
 
 * MW (Tribal Media AB)
-* Gareth
 * Adam Frisby 	(DeepThink Pty Ltd)
 * MingChen 	(DeepThink Pty Ltd)
 * lbsa71 (Tribal Media AB)
-* sdague (IBM)
-* Andy-	
-* MorphW
-* CW
-* Babblefrog
+* Sean Dague / sdague (IBM)
 * Tedd
 * justincc (Black Dress Technology)
 * Teravus (w3z)
 * Johan Berntsson (3Di)
 * Ckrinke (Charles Krinke)
-* Danx0r
-* Dalien
-* Darok
 * chi11ken (Genkii)
 * adjohn (Genkii)
-* Alondria
 * Dr Scofield (IBM)
 * dahlia
 * mikem (3Di)
@@ -34,22 +27,40 @@ OpenSim Developers (in very rough order of appearance)
 * idb (Ian Brown)
 * Diva (Crista Lopes, University of California, Irvine)
 * nlin (3Di)
-* dalien
+* Arthur Rodrigo S Valadares (IBM)
 
-Patches
+= Past Open Sim Developers =
+These folks are alumns of the OpenSim core group, but are now
+currently not active.  Their great contributions helped get us to
+where we are today.
+
+* Gareth
+* Andy-	
+* MorphW
+* CW
+* Babblefrog
+* Danx0r
+* Dalien
+* Darok
+* Alondria
+
+= Additional OpenSim Contributors =
+These folks have contributed code patches to OpenSim to help make it
+what it is today.  
+
 * aduffy70
-* arthursv
 * A_Biondi
 * alex_carnell
-* awebb (IBM)
+* Alan Webb (IBM)
 * BigFootAg
 * BlueWall Slade
 * brianw/Sir_Ahzz
 * CharlieO
 * ChrisDown
-* Chris Yeoh
+* Chris Yeoh (IBM)
 * coyled
 * Daedius
+* Dong Jun Lan (IBM)
 * DoranZemlja
 * daTwitch 
 * devalnor-#708
@@ -62,8 +73,9 @@ Patches
 * Fly-Man
 * Flyte Xevious
 * Intimidated
+* Jeremy Bongio (IBM)
 * jhurliman
-* jimbo2120 (IBM)
+* Mike Osias (IBM)
 * John R Sohn (XenReborn)
 * jonc
 * Junta Kohime
@@ -71,18 +83,22 @@ Patches
 * Kevin Cozens
 * kinoc (Daxtron Labs)
 * Kitto Flora
-* krtaylor (IBM)
+* Kurt Taylor (IBM)
 * lulurun 
 * M.Igarashi
 * maimedleech
 * Mic Bowman
+* Mike Pitman (IBM)
 * mikkopa/_someone - RealXtend
 * Mircea Kitsune
 * mpallari
 * nornalbion
+* Omar Vera Ustariz (IBM)
 * openlifegrid.com
 * ralphos
 * RemedyTomm
+* Richard Alimi (IBM)
+* Rob Smart (IBM)
 * rtomita
 * Ruud Lathorp
 * SachaMagne
@@ -122,7 +138,6 @@ see http://forge.opensimulator.org/gf/project/assetserver/
 
 This software uses components from the following developers:
 * Sleepycat Software (Berkeley DB)
-* DB4objects, Inc. (DB4o)
 * SQLite (Public Domain)
 * XmlRpcCS (http://xmlrpccs.sf.net/)
 * MySQL, Inc. (MySQL Connector/NET)
