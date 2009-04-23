@@ -88,9 +88,16 @@ namespace OpenSim.Framework.Communications
             m_plugins.AddRange(DataPluginFactory.LoadDataPlugins<IUserDataPlugin>(provider, connect));
         }
 
-        #region Get UserProfile
-
-        // see IUserService
+        #region UserProfile
+        
+        public virtual void AddTemporaryUserProfile(UserProfileData userProfile)
+        {
+            foreach (IUserDataPlugin plugin in m_plugins)
+            {
+                plugin.AddTemporaryUserProfile(userProfile);
+            }
+        }
+        
         public virtual UserProfileData GetUserProfile(string fname, string lname)
         {
             foreach (IUserDataPlugin plugin in m_plugins)

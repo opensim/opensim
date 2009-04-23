@@ -74,6 +74,11 @@ namespace OpenSim.Region.Communications.OGS1
         public void ResetAttachments(UUID userID) {}
         public void LogoutUsers(UUID regionID) {}
         
+        public virtual void AddTemporaryUserProfile(UserProfileData userProfile)
+        {
+            // Not interested
+        }        
+        
         public UserProfileData GetUserByUri(Uri uri)
         {
             WebRequest request = WebRequest.Create(uri);

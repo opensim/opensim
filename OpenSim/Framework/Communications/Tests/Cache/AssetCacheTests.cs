@@ -90,6 +90,11 @@ namespace OpenSim.Framework.Communications.Tests
 
         private class FakeUserService : IUserService
         {
+            public void AddTemporaryUserProfile(UserProfileData userProfile)
+            {
+                throw new NotImplementedException();
+            }
+            
             public UserProfileData GetUserProfile(string firstName, string lastName)
             {
                 throw new NotImplementedException();

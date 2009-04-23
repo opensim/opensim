@@ -280,8 +280,8 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void T023_TestAuthenticatedLoginAlreadyLoggedIn()
         {
-            Console.WriteLine("Starting T023_TestAuthenticatedLoginAlreadyLoggedIn()");            
-            log4net.Config.XmlConfigurator.Configure();
+            //Console.WriteLine("Starting T023_TestAuthenticatedLoginAlreadyLoggedIn()");            
+            //log4net.Config.XmlConfigurator.Configure();
             
             string error_already_logged = "You appear to be already logged in. " +
                                          "If this is not the case please wait for your session to timeout. " +
@@ -317,7 +317,7 @@ namespace OpenSim.Framework.Communications.Tests
             responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo("Hello folks"));
             
-            Console.WriteLine("Finished T023_TestAuthenticatedLoginAlreadyLoggedIn()");
+            //Console.WriteLine("Finished T023_TestAuthenticatedLoginAlreadyLoggedIn()");
         }
 
         public class TestLoginToRegionConnector : ILoginServiceToRegionsConnector

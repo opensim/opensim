@@ -64,6 +64,14 @@ namespace OpenSim.Framework.Communications
             return null;
         }
         
+        public virtual void AddTemporaryUserProfile(UserProfileData userProfile)
+        {
+            lock (m_profiles)
+            {
+                m_profiles[userProfile.ID] = userProfile;
+            }
+        }
+        
         public UserProfileData GetUserByUri(Uri uri) { return null; }
         public List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query) { return null; }
         public UserAgentData GetAgentByUUID(UUID user) { return null; }

@@ -65,6 +65,11 @@ namespace OpenSim.Tests.Common.Mock
 
         public void Initialise() {}
         public void Dispose() {}
+        
+        public void AddTemporaryUserProfile(UserProfileData userProfile)
+        {
+            // Not interested
+        }
 
         public void AddNewUserProfile(UserProfileData user)
         {

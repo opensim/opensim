@@ -34,6 +34,13 @@ namespace OpenSim.Framework.Communications
     public interface IUserService
     {
         /// <summary>
+        /// Add a temporary user profile.
+        /// </summary>
+        /// A temporary user profile is one that should exist only for the lifetime of the process.
+        /// <param name="userProfile"></param>
+        void AddTemporaryUserProfile(UserProfileData userProfile);
+        
+        /// <summary>
         /// Loads a user profile by name
         /// </summary>
         /// <param name="firstName">First name</param>

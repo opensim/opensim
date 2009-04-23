@@ -46,6 +46,12 @@ namespace OpenSim.Data
         public UserProfileData GetUserByUri(Uri uri) { return null; }        
         public abstract void StoreWebLoginKey(UUID agentID, UUID webLoginKey);
         public abstract void AddNewUserProfile(UserProfileData user);
+        
+        public virtual void AddTemporaryUserProfile(UserProfileData userProfile)
+        {
+            // Deliberately blank - database plugins shouldn't store temporary profiles.
+        }
+        
         public abstract bool UpdateUserProfile(UserProfileData user);
         public abstract void AddNewUserAgent(UserAgentData agent);
         public abstract void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms);
