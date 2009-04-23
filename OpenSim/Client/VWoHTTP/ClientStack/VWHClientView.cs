@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Net;
 using System.Text;
 using OpenMetaverse;
+using OpenMetaverse.Imaging;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
@@ -12,21 +16,79 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
 {
     class VWHClientView : IClientAPI 
     {
-//        private Scene m_scene;
+        private Scene m_scene;
 
-        public void ProcessInMsg(OSHttpRequest req, OSHttpResponse resp)
+
+        public bool ProcessInMsg(OSHttpRequest req, OSHttpResponse resp)
         {
-//            string method = req.Url.AbsolutePath.Split('/')[2];
+            //                              0        1          2       3
+            // http://simulator.com:9000/vwohttp/sessionid/methodname/param
+            string[] urlparts = req.Url.AbsolutePath.Split(new char[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+
+            UUID sessionID;
+            // Check for session
+            if (!UUID.TryParse(urlparts[1], out sessionID))
+                return false;
+            // Check we match session
+            if(sessionID != SessionId)
+                return false;
+
+            string method = urlparts[2];
+
+            string param = String.Empty;
+            if (urlparts.Length > 3)
+                param = urlparts[3];
+
+            bool found;
+
+            switch (method.ToLower())
+            {
+                case "textures":
+                    found = ProcessTextureRequest(param, resp);
+                    break;
+                default:
+                    found = false;
+                    break;
+            }
+
+            return found;
         }
 
-//        private void ProcessAssetRequest(OSHttpRequest req, OSHttpResponse resp)
-//        {
-//            
-//        }
+        private bool ProcessTextureRequest(string param, OSHttpResponse resp)
+        {
+            UUID assetID;
+            if(!UUID.TryParse(param, out assetID))
+                return false;
+
+            AssetBase asset = m_scene.CommsManager.AssetCache.GetAsset(assetID, true);
+
+            if(asset == null)
+                return false;
+
+            ManagedImage tmp;
+            Image imgData;
+
+            OpenJPEG.DecodeToImage(asset.Data, out tmp, out imgData);
+            
+            MemoryStream ms = new MemoryStream();
+
+            imgData.Save(ms, ImageFormat.Jpeg);
+
+            byte[] jpegdata = ms.GetBuffer();
+
+            ms.Close();
+
+            resp.ContentType = "image/jpeg";
+            resp.ContentLength = jpegdata.Length;
+            resp.StatusCode = 200;
+            resp.Body.Write(jpegdata, 0, jpegdata.Length);
+
+            return true;
+        }
 
         public VWHClientView(UUID sessionID, UUID agentID, string agentName, Scene scene)
         {
-//            m_scene = scene;
+            m_scene = scene;
         }
 
         #region Implementation of IClientAPI
@@ -1030,8 +1092,6 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         {
             throw new System.NotImplementedException();
         }
-
-        public event PlacesQuery OnPlacesQuery;
 
         #endregion
     }

@@ -1830,6 +1830,7 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="System"/>
+	  <Reference name="System.Drawing"/>
       <Reference name="OpenSim.Framework"/>
 	  <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Region.Framework"/>
