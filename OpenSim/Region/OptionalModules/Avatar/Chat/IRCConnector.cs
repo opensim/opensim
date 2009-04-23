@@ -61,7 +61,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         private static int _idk_        = 0;        // core connector identifier
         private static int _pdk_        = 0;        // ping interval counter
-        private static int _icc_        = 0;        // IRC connect counter
+        private static int _icc_        = ICCD_PERIOD; // IRC connect counter
 
         // List of configured connectors
 
@@ -70,6 +70,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         // Watchdog state
 
         private static System.Timers.Timer m_watchdog = null;
+
+        // The watch-dog gets started as soon as the class is instantiated, and
+        // ticks once every second (WD_INTERVAL)
 
         static IRCConnector()
         {
@@ -234,10 +237,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                 m_nick = m_baseNick + Util.RandomClass.Next(1, 99);
             }
 
-            // Add the newly created connector to the known connectors list
-
-            // m_connectors.Add(this);
-
             m_log.InfoFormat("[IRC-Connector-{0}]: Initialization complete", idn);
 
         }
@@ -255,13 +254,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             if (!m_enabled)
             {
 
-                m_connectors.Add(this);
-                m_enabled = true;
-
                 if (!Connected)
                 {
                     Connect();
                 }
+
+                lock(m_connectors)
+                    m_connectors.Add(this);
+
+                m_enabled = true;
 
             }
         }
@@ -305,7 +306,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
                     }
        
-                    m_connectors.Remove(this);
+                    lock(m_connectors)
+						m_connectors.Remove(this);
 
                 }
             }
@@ -340,6 +342,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
                 try
                 {
+
                     if (m_connected) return;
 
                     m_connected = true;
@@ -376,8 +379,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                 {
                     m_log.ErrorFormat("[IRC-Connector-{0}] cannot connect {1} to {2}:{3}: {4}",
                                       idn, m_nick, m_server, m_port, e.Message);
-                    m_connected = false;
-                    m_pending   = false;
+                    // It might seem reasonable to reset connected and pending status here
+                    // Seeing as we know that the login has failed, but if we do that, then
+                    // connection will be retried each time the interconnection interval
+                    // expires. By leaving them as they are, the connection will be retried
+                    // when the login timeout expires. Which is preferred.
                 }
 
             }
@@ -834,14 +840,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         protected static void WatchdogHandler(Object source, ElapsedEventArgs args)
         {
 
-            // m_log.InfoFormat("[IRC-Watchdog] Status scan");
+            // m_log.InfoFormat("[IRC-Watchdog] Status scan, pdk = {0}, icc = {1}", _pdk_, _icc_);
 
             _pdk_ = (_pdk_+1)%PING_PERIOD;    // cycle the ping trigger
             _icc_++;    // increment the inter-consecutive-connect-delay counter
 
+            lock(m_connectors)
             foreach (IRCConnector connector in m_connectors)
             {
+
                 // m_log.InfoFormat("[IRC-Watchdog] Scanning {0}", connector);
+
                 if (connector.Enabled)
                 {
                     if (!connector.Connected)
@@ -863,14 +872,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                         {
                             if (connector.m_timeout == 0)
                             {
-                                // m_log.ErrorFormat("[IRC-Watchdog] Login timed-out for connector {0}, reconnecting", connector.idn);
+                                m_log.ErrorFormat("[IRC-Watchdog] Login timed-out for connector {0}, reconnecting", connector.idn);
                                 connector.Reconnect();
                             }
                             else
                                 connector.m_timeout--;
                         }
 
-                        if (_pdk_ == 0)
+                        // Being marked connected is not enough to ping. Socket establishment can sometimes take a long
+                        // time, in which case the watch dog might try to ping the server before the socket has been 
+                        // set up, with nasty side-effects.
+
+                        else if (_pdk_ == 0)
                         {
                             try
                             {
