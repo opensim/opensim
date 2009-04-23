@@ -443,49 +443,49 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
 
-				StringReader  sr;
-				XmlTextReader reader;
-				XmlNodeList   parts;
-				XmlDocument   doc;
+                StringReader  sr;
+                XmlTextReader reader;
+                XmlNodeList   parts;
+                XmlDocument   doc;
                 int           linkNum;
 
-				doc = new XmlDocument();
-				doc.LoadXml(xmlData);
-				parts = doc.GetElementsByTagName("RootPart");
+                doc = new XmlDocument();
+                doc.LoadXml(xmlData);
+                parts = doc.GetElementsByTagName("RootPart");
 
-                if(parts.Count == 0)
+                if (parts.Count == 0)
                 {
                     throw new Exception("[SCENE] Invalid Xml format - no root part");
                 }
                 else
                 {
-				    sr = new StringReader(parts[0].InnerXml);
-				    reader = new XmlTextReader(sr);
+                    sr = new StringReader(parts[0].InnerXml);
+                    reader = new XmlTextReader(sr);
                     SetRootPart(SceneObjectPart.FromXml(fromUserInventoryItemID, reader));
-            		reader.Close();
-            		sr.Close();
+                    reader.Close();
+                    sr.Close();
                 }
 
-				parts = doc.GetElementsByTagName("Part");
+                parts = doc.GetElementsByTagName("Part");
 
                 for (int i=0; i<parts.Count ; i++)
                 {
-				    sr = new StringReader(parts[i].InnerXml);
-				    reader = new XmlTextReader(sr);
+                    sr = new StringReader(parts[i].InnerXml);
+                    reader = new XmlTextReader(sr);
                     SceneObjectPart part = SceneObjectPart.FromXml(reader);
                     linkNum = part.LinkNum;
                     AddPart(part);
                     part.LinkNum = linkNum;
                     part.TrimPermissions();
                     part.StoreUndoState();
-            		reader.Close();
-            		sr.Close();
+                    reader.Close();
+                    sr.Close();
                 }
 
-				// Script state may, or may not, exist. Not having any, is NOT
-				// ever a problem.
+                // Script state may, or may not, exist. Not having any, is NOT
+                // ever a problem.
 
-				LoadScriptState(doc);
+                LoadScriptState(doc);
 
             }
             catch (Exception e)
@@ -521,37 +521,37 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
 
-				XmlDocument doc = new XmlDocument();
-				doc.LoadXml(xmlData);
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(xmlData);
 
-				XmlNodeList parts = doc.GetElementsByTagName("SceneObjectPart");
+                XmlNodeList parts = doc.GetElementsByTagName("SceneObjectPart");
 
-				// Process the root part first
-				if(parts.Count > 0)
-				{
-					StringReader      sr = new StringReader(parts[0].OuterXml);
-					XmlTextReader reader = new XmlTextReader(sr);
-					SetRootPart(CreatePartFromXml(reader));
-					reader.Close();
-					sr.Close();
-				}
+                // Process the root part first
+                if (parts.Count > 0)
+                {
+                    StringReader      sr = new StringReader(parts[0].OuterXml);
+                    XmlTextReader reader = new XmlTextReader(sr);
+                    SetRootPart(CreatePartFromXml(reader));
+                    reader.Close();
+                    sr.Close();
+                }
 
-				// Then deal with the rest
-				for(int i=1; i<parts.Count; i++)
-				{
-					StringReader      sr = new StringReader(parts[i].OuterXml);
-					XmlTextReader reader = new XmlTextReader(sr);
-					SceneObjectPart part = CreatePartFromXml(reader);
-					AddPart(part);
-					part.StoreUndoState();
-					reader.Close();
-					sr.Close();
-				}
+                // Then deal with the rest
+                for (int i=1; i<parts.Count; i++)
+                {
+                    StringReader      sr = new StringReader(parts[i].OuterXml);
+                    XmlTextReader reader = new XmlTextReader(sr);
+                    SceneObjectPart part = CreatePartFromXml(reader);
+                    AddPart(part);
+                    part.StoreUndoState();
+                    reader.Close();
+                    sr.Close();
+                }
 
-				// Script state may, or may not, exist. Not having any, is NOT
-				// ever a problem.
+                // Script state may, or may not, exist. Not having any, is NOT
+                // ever a problem.
 
-				LoadScriptState(doc);
+                LoadScriptState(doc);
 
             }
             catch (Exception e)
@@ -587,18 +587,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void LoadScriptState(XmlDocument doc)
         {
-			XmlNodeList nodes = doc.GetElementsByTagName("SavedScriptState");
-            if(nodes.Count > 0)
+            XmlNodeList nodes = doc.GetElementsByTagName("SavedScriptState");
+            if (nodes.Count > 0)
             {
                 m_savedScriptState = new Dictionary<UUID, string>();
-				foreach(XmlNode node in nodes)
-				{
-                    if(node.Attributes["UUID"] != null)
-					{
-						UUID itemid = new UUID(node.Attributes["UUID"].Value);
-						m_savedScriptState.Add(itemid, node.InnerXml);
-					}
-				} 
+                foreach (XmlNode node in nodes)
+                {
+                    if (node.Attributes["UUID"] != null)
+                    {
+                        UUID itemid = new UUID(node.Attributes["UUID"].Value);
+                        m_savedScriptState.Add(itemid, node.InnerXml);
+                    }
+                } 
             }
         }
 
@@ -851,19 +851,19 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if(states.Count > 0)
+            if (states.Count > 0)
             {
-				// Now generate the necessary XML wrappings
-				writer.WriteStartElement(String.Empty, "GroupScriptStates", String.Empty);
-				foreach(UUID itemid in states.Keys)
-				{
-					doc.LoadXml(states[itemid]);
-					writer.WriteStartElement(String.Empty, "SavedScriptState", String.Empty);
-					writer.WriteAttributeString(String.Empty, "UUID", String.Empty, itemid.ToString());
-					writer.WriteRaw(doc.DocumentElement.OuterXml); // Writes ScriptState element
-					writer.WriteEndElement(); // End of SavedScriptState
-				}
-				writer.WriteEndElement(); // End of GroupScriptStates
+                // Now generate the necessary XML wrappings
+                writer.WriteStartElement(String.Empty, "GroupScriptStates", String.Empty);
+                foreach (UUID itemid in states.Keys)
+                {
+                    doc.LoadXml(states[itemid]);
+                    writer.WriteStartElement(String.Empty, "SavedScriptState", String.Empty);
+                    writer.WriteAttributeString(String.Empty, "UUID", String.Empty, itemid.ToString());
+                    writer.WriteRaw(doc.DocumentElement.OuterXml); // Writes ScriptState element
+                    writer.WriteEndElement(); // End of SavedScriptState
+                }
+                writer.WriteEndElement(); // End of GroupScriptStates
             }
 
         }

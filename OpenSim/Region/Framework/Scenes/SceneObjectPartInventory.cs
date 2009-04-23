@@ -265,7 +265,7 @@ namespace OpenSim.Region.Framework.Scenes
                                    }
                                    else
                                    {
-                                       if(m_part.ParentGroup.m_savedScriptState != null)
+                                       if (m_part.ParentGroup.m_savedScriptState != null)
                                            RestoreSavedScriptState(item.OldItemID, item.ItemID);
                                        m_items[item.ItemID].PermsMask = 0;
                                        m_items[item.ItemID].PermsGranter = UUID.Zero;
@@ -283,7 +283,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void RestoreSavedScriptState(UUID oldID, UUID newID)
         {
-            if(m_part.ParentGroup.m_savedScriptState.ContainsKey(oldID))
+            if (m_part.ParentGroup.m_savedScriptState.ContainsKey(oldID))
             {
                 string fpath = Path.Combine("ScriptEngines/"+m_part.ParentGroup.Scene.RegionInfo.RegionID.ToString(),
                                     newID.ToString()+".state");
