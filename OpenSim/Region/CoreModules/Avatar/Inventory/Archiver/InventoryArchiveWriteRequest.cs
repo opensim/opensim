@@ -123,71 +123,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         protected void SaveInvItem(InventoryItemBase inventoryItem, string path)
         {
-            string filename = string.Format("{0}{1}_{2}.xml", path, inventoryItem.Name, inventoryItem.ID);
-            StringWriter sw = new StringWriter();
-            XmlTextWriter writer = new XmlTextWriter(sw);
-            writer.Formatting = Formatting.Indented;
-
-            writer.WriteStartElement("InventoryItem");
-
-            writer.WriteStartElement("Name");
-            writer.WriteString(inventoryItem.Name);
-            writer.WriteEndElement();
-            writer.WriteStartElement("ID");
-            writer.WriteString(inventoryItem.ID.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("InvType");
-            writer.WriteString(inventoryItem.InvType.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("CreatorUUID");
-            writer.WriteString(inventoryItem.CreatorId);
-            writer.WriteEndElement();
-            writer.WriteStartElement("CreationDate");
-            writer.WriteString(inventoryItem.CreationDate.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("Owner");
-            writer.WriteString(inventoryItem.Owner.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("Description");
-            writer.WriteString(inventoryItem.Description);
-            writer.WriteEndElement();
-            writer.WriteStartElement("AssetType");
-            writer.WriteString(inventoryItem.AssetType.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("AssetID");
-            writer.WriteString(inventoryItem.AssetID.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("SaleType");
-            writer.WriteString(inventoryItem.SaleType.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("SalePrice");
-            writer.WriteString(inventoryItem.SalePrice.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("BasePermissions");
-            writer.WriteString(inventoryItem.BasePermissions.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("CurrentPermissions");
-            writer.WriteString(inventoryItem.CurrentPermissions.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("EveryOnePermssions");
-            writer.WriteString(inventoryItem.EveryOnePermissions.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("NextPermissions");
-            writer.WriteString(inventoryItem.NextPermissions.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("Flags");
-            writer.WriteString(inventoryItem.Flags.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("GroupID");
-            writer.WriteString(inventoryItem.GroupID.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("GroupOwned");
-            writer.WriteString(inventoryItem.GroupOwned.ToString());
-            writer.WriteEndElement();
-
-            writer.WriteEndElement();
-
-            m_archive.WriteFile(filename, sw.ToString());
+            string filename = string.Format("{0}{1}_{2}.xml", path, inventoryItem.Name, inventoryItem.ID);            
+            string serialization = UserInventoryItemSerializer.Serialize(inventoryItem);
+            m_archive.WriteFile(filename, serialization);
 
             UUID creatorId = inventoryItem.CreatorIdAsUuid;
             

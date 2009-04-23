@@ -34,6 +34,7 @@ using System.Reflection;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
+using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Servers;
 using log4net;
 
@@ -178,7 +179,8 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
             return rootFolder;
         }
 
-        private static void WriteInventoryFolderToArchive(TarArchiveWriter archive, InventoryFolderWithChildren folder, string path)
+        private static void WriteInventoryFolderToArchive(
+            TarArchiveWriter archive, InventoryFolderWithChildren folder, string path)
         {
             path += string.Format("{0}{1}{2}/", folder.Name, ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, folder.ID);
             archive.WriteDir(path);
@@ -199,72 +201,9 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins
         private static void WriteInventoryItemToArchive(TarArchiveWriter archive, InventoryItemBase item, string path)
         {
             string filename = string.Format("{0}{1}_{2}.xml", path, item.Name, item.ID);
-
-            StringWriter sw = new StringWriter();
-            XmlTextWriter writer = new XmlTextWriter(sw);
-            writer.Formatting = Formatting.Indented;
-
-            writer.WriteStartElement("InventoryItem");
-
-            writer.WriteStartElement("Name");
-            writer.WriteString(item.Name);
-            writer.WriteEndElement();
-            writer.WriteStartElement("ID");
-            writer.WriteString(item.ID.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("InvType");
-            writer.WriteString(item.InvType.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("CreatorUUID");
-            writer.WriteString(item.CreatorId);
-            writer.WriteEndElement();
-            writer.WriteStartElement("CreationDate");
-            writer.WriteString(item.CreationDate.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("Owner");
-            writer.WriteString(item.Owner.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("Description");
-            writer.WriteString(item.Description);
-            writer.WriteEndElement();
-            writer.WriteStartElement("AssetType");
-            writer.WriteString(item.AssetType.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("AssetID");
-            writer.WriteString(item.AssetID.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("SaleType");
-            writer.WriteString(item.SaleType.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("SalePrice");
-            writer.WriteString(item.SalePrice.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("BasePermissions");
-            writer.WriteString(item.BasePermissions.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("CurrentPermissions");
-            writer.WriteString(item.CurrentPermissions.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("EveryOnePermssions");
-            writer.WriteString(item.EveryOnePermissions.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("NextPermissions");
-            writer.WriteString(item.NextPermissions.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("Flags");
-            writer.WriteString(item.Flags.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("GroupID");
-            writer.WriteString(item.GroupID.ToString());
-            writer.WriteEndElement();
-            writer.WriteStartElement("GroupOwned");
-            writer.WriteString(item.GroupOwned.ToString());
-            writer.WriteEndElement();
-
-            writer.WriteEndElement();
-
-            archive.WriteFile(filename, sw.ToString());
-
+            string serialization = UserInventoryItemSerializer.Serialize(item);
+            archive.WriteFile(filename, serialization);            
+            
             //m_assetGatherer.GatherAssetUuids(item.AssetID, (AssetType) item.AssetType, assetUuids);
         }
     }

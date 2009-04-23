@@ -36,6 +36,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
+using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.CoreModules.World.Archiver;
@@ -76,71 +77,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_invPath = invPath;
             m_loadStream = loadStream;
             this.commsManager = commsManager;
-        }
-
-        protected InventoryItemBase LoadInvItem(string contents)
-        {
-            InventoryItemBase item = new InventoryItemBase();
-            StringReader sr = new StringReader(contents);
-            XmlTextReader reader = new XmlTextReader(sr);
-
-            if (contents.Equals("")) return null;
-
-            reader.ReadStartElement("InventoryItem");
-            reader.ReadStartElement("Name");
-            item.Name = reader.ReadString();
-            reader.ReadEndElement();
-            reader.ReadStartElement("ID");
-            item.ID = UUID.Parse(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("InvType");
-            item.InvType = Convert.ToInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("CreatorUUID");
-            item.CreatorId = reader.ReadString();
-            reader.ReadEndElement();
-            reader.ReadStartElement("CreationDate");
-            item.CreationDate = Convert.ToInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("Owner");
-            item.Owner = UUID.Parse(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadElementString("Description");
-            reader.ReadStartElement("AssetType");
-            item.AssetType = Convert.ToInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("AssetID");
-            item.AssetID = UUID.Parse(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("SaleType");
-            item.SaleType = Convert.ToByte(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("SalePrice");
-            item.SalePrice = Convert.ToInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("BasePermissions");
-            item.BasePermissions = Convert.ToUInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("CurrentPermissions");
-            item.CurrentPermissions = Convert.ToUInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("EveryOnePermssions");
-            item.EveryOnePermissions = Convert.ToUInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("NextPermissions");
-            item.NextPermissions = Convert.ToUInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("Flags");
-            item.Flags = Convert.ToUInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("GroupID");
-            item.GroupID = UUID.Parse(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("GroupOwned");
-            item.GroupOwned = Convert.ToBoolean(reader.ReadString());
-            reader.ReadEndElement();
-
-            return item;
         }
 
         /// <summary>
@@ -322,27 +258,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                     if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
                     {
-                        InventoryItemBase item = LoadInvItem(m_asciiEncoding.GetString(data));
+                        InventoryItemBase item = UserInventoryItemSerializer.Deserialize(data);
+                        
+                        // Don't use the item ID that's in the file
+                        item.ID = UUID.Random();
 
-                        if (item != null)
-                        {
-                            // Don't use the item ID that's in the file
-                            item.ID = UUID.Random();
+                        item.CreatorId = m_userInfo.UserProfile.ID.ToString();
+                        item.Owner = m_userInfo.UserProfile.ID;
 
-                            item.CreatorId = m_userInfo.UserProfile.ID.ToString();
-                            item.Owner = m_userInfo.UserProfile.ID;
+                        // Reset folder ID to the one in which we want to load it
+                        item.Folder = foundFolder.ID;
 
-                            // Reset folder ID to the one in which we want to load it
-                            item.Folder = foundFolder.ID;
+                        m_userInfo.AddItem(item);
+                        successfulItemRestores++;
 
-                            m_userInfo.AddItem(item);
-                            successfulItemRestores++;
-
-                            // If we're loading an item directly into the given destination folder then we need to record
-                            // it separately from any loaded root folders
-                            if (rootDestinationFolder == foundFolder)
-                                nodesLoaded.Add(item);
-                        }
+                        // If we're loading an item directly into the given destination folder then we need to record
+                        // it separately from any loaded root folders
+                        if (rootDestinationFolder == foundFolder)
+                            nodesLoaded.Add(item);
                     }
                 }
             }

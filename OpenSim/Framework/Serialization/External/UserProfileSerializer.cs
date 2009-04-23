@@ -33,10 +33,8 @@ using OpenSim.Framework;
 namespace OpenSim.Framework.Serialization.External
 {
     /// <summary>
-    /// Serialize and deserialize region settings for an archive file format.
+    /// Serialize and deserialize region settings as an external format.
     /// </summary>
-    /// We didn't use automatic .NET serialization since this is really 
-    /// a file format rather than an object serialization.
     public class UserProfileSerializer
     {    
         public const int MAJOR_VERSION = 0;

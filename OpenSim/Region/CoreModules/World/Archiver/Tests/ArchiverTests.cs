@@ -44,7 +44,7 @@ using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 {
-    [TestFixture, LongRunning]
+    [TestFixture]
     public class ArchiverTests
     {
         private Guid m_lastRequestId;
