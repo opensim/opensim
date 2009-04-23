@@ -95,6 +95,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                  {
                      m_log.ErrorFormat("[FreeSwitchVoice] HandleDirectoryRequest unknown sip_auth_method {0}",sipAuthMethod);
                      response["int_response_code"] = 404;
+                     response["content_type"] = "text/xml";
+                     response["str_response_string"] = "";
                  }
              }
              else if (eventCallingFunction == "switch_xml_locate_user")

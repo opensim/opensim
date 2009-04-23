@@ -492,7 +492,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             m_log.DebugFormat("[FreeSwitchVoice] FreeSwitchConfigHTTPHandler called with {0}", (string)request["body"]);
             
             Hashtable response = new Hashtable();
-            
+            response["str_response_string"] = string.Empty;
             // all the params come as NVPs in the request body
             Hashtable requestBody = parseRequestBody((string) request["body"]);
 
