@@ -57,7 +57,6 @@ namespace OpenSim.Client.Linden
         /// </summary>
         protected ILoginServiceToRegionsConnector m_regionsConnector;
 
-
         public LLStandaloneLoginService(
             UserManagerBase userManager, string welcomeMess,
             IInterServiceInventoryServices interServiceInventoryService,

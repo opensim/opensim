@@ -69,15 +69,13 @@ namespace OpenSim.Region.Communications.Hypergrid
                 m_log.Info("[HG]: Non-secureInventoryService.");
 
             HGUserServices userServices = new HGUserServices(this);
-            // This plugin arrangement could eventually be configurable rather than hardcoded here.           
-            OGS1UserDataPlugin userDataPlugin = new OGS1UserDataPlugin(this);
-            userServices.AddPlugin(userDataPlugin);            
+            // This plugin arrangement could eventually be configurable rather than hardcoded here.
+            userServices.AddPlugin(new TemporaryUserProfilePlugin());
+            userServices.AddPlugin(new OGS1UserDataPlugin(this));            
             
             m_userService = userServices;
             m_messageService = userServices;
-            m_avatarService = (IAvatarService)m_userService;
-           
+            m_avatarService = userServices;           
         }
-
     }
 }

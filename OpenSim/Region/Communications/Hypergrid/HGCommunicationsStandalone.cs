@@ -62,7 +62,8 @@ namespace OpenSim.Region.Communications.Hypergrid
             m_inventoryServices = null;
             
             HGUserServices hgUserService = new HGUserServices(this, localUserService);
-            // This plugin arrangement could eventually be configurable rather than hardcoded here.                      
+            // This plugin arrangement could eventually be configurable rather than hardcoded here.
+            hgUserService.AddPlugin(new TemporaryUserProfilePlugin());
             hgUserService.AddPlugin(new OGS1UserDataPlugin(this));
             
             m_userService = hgUserService;            

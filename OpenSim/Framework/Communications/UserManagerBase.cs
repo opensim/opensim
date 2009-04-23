@@ -208,7 +208,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.InfoFormat(
+                    m_log.ErrorFormat(
                         "[USERSTORAGE]: Unable to set user {0} {1} via {2}: {3}", 
                         data.FirstName, data.SurName, plugin.Name, e.ToString());
                 }
@@ -239,7 +239,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Name + "(" + e.ToString() + ")");
+                    m_log.Error("[USERSTORAGE]: Unable to find user via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
 
@@ -264,7 +264,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Name + "(" + e.ToString() + ")");
+                    m_log.Error("[USERSTORAGE]: Unable to find user via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
 
@@ -290,7 +290,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Name + "(" + e.ToString() + ")");
+                    m_log.Error("[USERSTORAGE]: Unable to find user via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
 
@@ -334,7 +334,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to GetFriendRegionInfos via " + plugin.Name + "(" + e.ToString() + ")");
+                    m_log.Error("[USERSTORAGE]: Unable to GetFriendRegionInfos via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
             
@@ -351,7 +351,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to Store WebLoginKey via " + plugin.Name + "(" + e.ToString() + ")");
+                    m_log.Error("[USERSTORAGE]: Unable to Store WebLoginKey via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
         }
@@ -366,7 +366,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to AddNewUserFriend via " + plugin.Name + "(" + e.ToString() + ")");
+                    m_log.Error("[USERSTORAGE]: Unable to AddNewUserFriend via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
         }
@@ -381,7 +381,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to RemoveUserFriend via " + plugin.Name + "(" + e.ToString() + ")");
+                    m_log.Error("[USERSTORAGE]: Unable to RemoveUserFriend via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
         }
@@ -396,7 +396,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to UpdateUserFriendPerms via " + plugin.Name + "(" + e.ToString() + ")");
+                    m_log.Error("[USERSTORAGE]: Unable to UpdateUserFriendPerms via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
         }
@@ -707,24 +707,30 @@ namespace OpenSim.Framework.Communications
         public abstract UserProfileData SetupMasterUser(UUID uuid);
 
         /// <summary>
-        /// Add agent to DB
+        /// Add an agent using data plugins.
         /// </summary>
         /// <param name="agentdata">The agent data to be added</param>
+        /// <returns>
+        /// true if at least one plugin added the user agent.  false if no plugin successfully added the agent
+        /// </returns>
         public virtual bool AddUserAgent(UserAgentData agentdata)
         {
+            bool result = false;
+            
             foreach (IUserDataPlugin plugin in m_plugins)
             {
                 try
                 {
                     plugin.AddNewUserAgent(agentdata);
-                    return true;
+                    result = true;
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to add agent via " + plugin.Name + "(" + e.ToString() + ")");
+                    m_log.Error("[USERSTORAGE]: Unable to add agent via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
-            return false;
+            
+            return result;
         }
 
         /// <summary>
@@ -745,7 +751,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.InfoFormat("[USERSTORAGE]: Unable to find user appearance {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString());
+                    m_log.ErrorFormat("[USERSTORAGE]: Unable to find user appearance {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString());
                 }
             }
             
@@ -762,7 +768,7 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.InfoFormat("[USERSTORAGE]: Unable to update user appearance {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString());
+                    m_log.ErrorFormat("[USERSTORAGE]: Unable to update user appearance {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString());
                 }
             }
         }
@@ -811,10 +817,10 @@ namespace OpenSim.Framework.Communications
                     m_log.InfoFormat("[USERAUTH]: Successfully generated new auth key for user {0}", userID);
                 }
                 else
-                    m_log.Info("[USERAUTH]: Unauthorized key generation request. Denying new key.");
+                    m_log.Warn("[USERAUTH]: Unauthorized key generation request. Denying new key.");
             }
             else
-                m_log.Info("[USERAUTH]: User not found.");
+                m_log.Warn("[USERAUTH]: User not found.");
 
             return url + newKey;
         }

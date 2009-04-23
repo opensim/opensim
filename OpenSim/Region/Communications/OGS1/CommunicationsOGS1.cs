@@ -57,8 +57,8 @@ namespace OpenSim.Region.Communications.OGS1
 
             // This plugin arrangement could eventually be configurable rather than hardcoded here.           
             OGS1UserServices userServices = new OGS1UserServices(this);
-            OGS1UserDataPlugin userDataPlugin = new OGS1UserDataPlugin(this);
-            userServices.AddPlugin(userDataPlugin);
+            userServices.AddPlugin(new TemporaryUserProfilePlugin());
+            userServices.AddPlugin(new OGS1UserDataPlugin(this));
             
             m_userService = userServices;
             m_messageService = userServices;

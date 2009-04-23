@@ -182,7 +182,7 @@ namespace OpenSim.Framework.Communications.Services
                         // Reject the login
 
                         m_log.InfoFormat(
-                            "[LOGIN END]:  XMLRPC Notifying user {0} {1} that they are already logged in",
+                            "[LOGIN END]: XMLRPC Notifying user {0} {1} that they are already logged in",
                             firstname, lastname);
 
                         return logResponse.CreateAlreadyLoggedInResponse();

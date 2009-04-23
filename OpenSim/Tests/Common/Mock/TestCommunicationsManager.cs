@@ -55,19 +55,19 @@ namespace OpenSim.Tests.Common.Mock
 
         public TestCommunicationsManager(NetworkServersInfo serversInfo)
             : base(serversInfo, new BaseHttpServer(666), null, false, null)
-        {
-            m_userDataPlugin = new TestUserDataPlugin();
-            m_inventoryDataPlugin = new TestInventoryDataPlugin();
-
+        {                        
             SQLAssetServer assetService = new SQLAssetServer(new TestAssetDataPlugin());  
             m_assetCache = new AssetCache(assetService);            
             
             LocalInventoryService lis = new LocalInventoryService();
+            m_inventoryDataPlugin = new TestInventoryDataPlugin();
             lis.AddPlugin(m_inventoryDataPlugin);
             m_interServiceInventoryService = lis;
             AddInventoryService(lis);
 
             LocalUserServices lus = new LocalUserServices(991, 992, this);
+            lus.AddPlugin(new TemporaryUserProfilePlugin());
+            m_userDataPlugin = new TestUserDataPlugin();
             lus.AddPlugin(m_userDataPlugin);
             m_userService = lus;
             m_userAdminService = lus;

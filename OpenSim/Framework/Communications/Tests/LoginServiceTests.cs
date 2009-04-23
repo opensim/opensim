@@ -280,6 +280,9 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void T023_TestAuthenticatedLoginAlreadyLoggedIn()
         {
+            Console.WriteLine("Starting T023_TestAuthenticatedLoginAlreadyLoggedIn()");            
+            log4net.Config.XmlConfigurator.Configure();
+            
             string error_already_logged = "You appear to be already logged in. " +
                                          "If this is not the case please wait for your session to timeout. " +
                                          "If this takes longer than a few minutes please contact the grid owner. " +
@@ -303,7 +306,6 @@ namespace OpenSim.Framework.Communications.Tests
 
             // Then we try again, this time expecting failure.
             request = new XmlRpcRequest("login_to_simulator", sendParams);
-
             response = m_loginService.XmlRpcLoginMethod(request);
             responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo(error_already_logged));
@@ -314,11 +316,12 @@ namespace OpenSim.Framework.Communications.Tests
             response = m_loginService.XmlRpcLoginMethod(request);
             responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo("Hello folks"));
+            
+            Console.WriteLine("Finished T023_TestAuthenticatedLoginAlreadyLoggedIn()");
         }
 
         public class TestLoginToRegionConnector : ILoginServiceToRegionsConnector
         {
-
             private List<RegionInfo> m_regionsList = new List<RegionInfo>();
 
             public void AddRegion(RegionInfo regionInfo)
