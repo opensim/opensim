@@ -153,7 +153,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                             "<user id=\"{1}\">\r\n" +
                                 "<params>\r\n" +
                                     "<param name=\"password\" value=\"{2}\" />\r\n" +
-                                    "<param name=\"dial-string\" value=\"{{presence_id=${{dialed_user}}@${{dialed_domain}}}}${{sofia_contact(${{dialed_user}}@${{dialed_domain}})}}\"/>\r\n" +
+                                    "<param name=\"dial-string\" value=\"{{sip_contact_user={1}}}{{presence_id=${{dialed_user}}@${{dialed_domain}}}}${{sofia_contact(${{dialed_user}}@${{dialed_domain}})}}\"/>\r\n" +
                                 "</params>\r\n" +
                                 "<variables>\r\n" +
                                     "<variable name=\"user_context\" value=\"default\" />\r\n" +
@@ -190,7 +190,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                             "<user id=\"{1}\">\r\n" +
                                 "<params>\r\n" +
                                     "<param name=\"password\" value=\"{2}\" />\r\n" +
-                                    "<param name=\"dial-string\" value=\"{{presence_id=${1}@${{dialed_domain}}}}${{sofia_contact(${1}@${{dialed_domain}})}}\"/>\r\n" +
+                                    "<param name=\"dial-string\" value=\"{{sip_contact_user={1}}}{{presence_id=${1}@${{dialed_domain}}}}${{sofia_contact(${1}@${{dialed_domain}})}}\"/>\r\n" +
                                 "</params>\r\n" +
                                 "<variables>\r\n" +
                                     "<variable name=\"user_context\" value=\"default\" />\r\n" +
@@ -200,7 +200,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                             "<user id=\"{3}\">\r\n" +
                                 "<params>\r\n" +
                                     "<param name=\"password\" value=\"{2}\" />\r\n" +
-                                    "<param name=\"dial-string\" value=\"{{presence_id=${3}@${{dialed_domain}}}}${{sofia_contact(${3}@${{dialed_domain}})}}\"/>\r\n" +
+                                    "<param name=\"dial-string\" value=\"{{sip_contact_user={1}}}{{presence_id=${3}@${{dialed_domain}}}}${{sofia_contact(${3}@${{dialed_domain}})}}\"/>\r\n" +
                                 "</params>\r\n" +
                                 "<variables>\r\n" +
                                     "<variable name=\"user_context\" value=\"default\" />\r\n" +
@@ -234,7 +234,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     "<section name=\"directory\" description=\"User Directory\">\r\n" +
                         "<domain name=\"{0}\">\r\n" +
                             "<params>\r\n" +
-                                "<param name=\"dial-string\" value=\"{{presence_id=${{dialed_user}}@${{dialed_domain}}}}${{sofia_contact(${{dialed_user}}@${{dialed_domain}})}}\"/>\r\n" +
+                                "<param name=\"dial-string\" value=\"{{sip_contact_user=${{dialed_user}}}}{{presence_id=${{dialed_user}}@${{dialed_domain}}}}${{sofia_contact(${{dialed_user}}@${{dialed_domain}})}}\"/>\r\n" +
                             "</params>\r\n" +
                             "<user id=\"{1}\">\r\n" +
                             "<variables>\r\n"+
@@ -267,7 +267,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     "<section name=\"directory\" description=\"User Directory\">\r\n" +
                         "<domain name=\"{0}\">\r\n" +
                             "<params>\r\n" +
-                                "<param name=\"dial-string\" value=\"{{presence_id=${{dialed_user}}@${{dialed_domain}}}}${{sofia_contact(${{dialed_user}}@${{dialed_domain}})}}\"/>\r\n" +
+                                "<param name=\"dial-string\" value=\"{{sip_contact_user=${{dialed_user}}}}{{presence_id=${{dialed_user}}@${{dialed_domain}}}}${{sofia_contact(${{dialed_user}}@${{dialed_domain}})}}\"/>\r\n" +
                             "</params>\r\n" +
                             "<groups name=\"default\">\r\n"+
                                 "<users>\r\n"+
@@ -302,6 +302,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
              
             return response;    
         }    
+
         
 //        private Hashtable HandleLoadNetworkLists(Hashtable request)
 //        {
