@@ -368,6 +368,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event PickInfoUpdate OnPickInfoUpdate = delegate { };
         public event AvatarNotesUpdate OnAvatarNotesUpdate = delegate { };
         public event MuteListRequest OnMuteListRequest = delegate { };
+        public event PlacesQuery OnPlacesQuery = delegate { };
 
 
         public void SetDebugPacketLevel(int newDebug)
