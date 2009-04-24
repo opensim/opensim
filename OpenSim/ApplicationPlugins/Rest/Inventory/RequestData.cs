@@ -1272,8 +1272,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 if (buffer != null && buffer.Length != 0)
                 {
-                    Rest.Log.DebugFormat("{0} Entity buffer, length = {1} : <{2}>",
-                                         MsgId, buffer.Length, encoding.GetString(buffer));
+                    Rest.Log.DebugFormat("{0} Entity buffer, length = {1}", MsgId, buffer.Length);
+                    // Rest.Log.DebugFormat("{0} Entity buffer, length = {1} : <{2}>",
+                    //                     MsgId, buffer.Length, encoding.GetString(buffer));
                     response.OutputStream.Write(buffer, 0, buffer.Length);
                 }
 
