@@ -37,30 +37,51 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Hypergrid
 {
-    public class HGWorldMapModule : WorldMapModule, IRegionModule
+    public class HGWorldMapModule : WorldMapModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        #region IRegionModule Members
+        #region INonSharedRegionModule Members
 
-        public override void Initialise(Scene scene, IConfigSource config)
+        public override void Initialise(IConfigSource config)
         {
             IConfig startupConfig = config.Configs["Startup"];
-            if (startupConfig.GetString("WorldMapModule", "WorldMap") == "HGWorldMap") 
+            if (startupConfig.GetString("WorldMapModule", "WorldMap") == "HGWorldMap")
                 m_Enabled = true;
+        }
 
+        public override void AddRegion(Scene scene)
+        {
             if (!m_Enabled)
                 return;
+
             m_log.Info("[HGMap] Initializing...");
-            m_scene = scene;
+            lock (scene)
+            {
+                m_scene = scene;
 
-            m_scene.RegisterModuleInterface<IWorldMapModule>(this);
+                m_scene.RegisterModuleInterface<IWorldMapModule>(this);
 
-            m_scene.AddCommand(
-                this, "export-map",
-                "export-map [<path>]",
-                "Save an image of the world map", HandleExportWorldMapConsoleCommand);            
+                m_scene.AddCommand(
+                    this, "export-map",
+                    "export-map [<path>]",
+                    "Save an image of the world map", HandleExportWorldMapConsoleCommand);
+            }
+        }
+
+        public override void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            lock (m_scene)
+            {
+                m_Enabled = false;
+                m_scene.UnregisterModuleInterface<IWorldMapModule>(this);
+                // TODO: m_scene.RemoveCommand(this, "export-map");
+                m_scene = null;
+            }
         }
 
         public override string Name
@@ -158,5 +179,5 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                 }
             }
         }
-    }    
+    }
 }
