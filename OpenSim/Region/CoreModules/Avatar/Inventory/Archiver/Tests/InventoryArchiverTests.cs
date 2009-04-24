@@ -42,6 +42,7 @@ using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
@@ -242,5 +243,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             Console.WriteLine("Finished TestLoadIarV0p1()");
         }
+        
+        /*
+        /// <summary>
+        /// Test replication of an archive path to the user's inventory.
+        /// </summary>
+        [Test]
+        public void TestReplicateArchivePathToUserInventory()
+        {
+            CommunicationsManager commsManager = new TestCommunicationsManager();
+            CachedUserInfo userInfo = new CachedUserInfo();
+            new InventoryArchiveReadRequest(userInfo, "/", null, commsManager);   
+        }
+        */
     }
 }

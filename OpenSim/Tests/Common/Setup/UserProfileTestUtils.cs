@@ -26,10 +26,11 @@
  */
 
 using OpenMetaverse;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
 
-namespace OpenSim.Framework.Communications.Tests
+namespace OpenSim.Tests.Common.Setup
 {    
     /// <summary>
     /// Utility functions for carrying out user profile related tests.

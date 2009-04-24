@@ -33,6 +33,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Tests.Common.Mock;
+using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Framework.Communications.Tests
 {
