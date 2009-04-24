@@ -64,59 +64,33 @@ namespace OpenSim.Framework.Serialization.External
             InventoryItemBase item = new InventoryItemBase();
             
             StringReader sr = new StringReader(serialization);
-            XmlTextReader reader = new XmlTextReader(sr);
+            XmlTextReader xtr = new XmlTextReader(sr);
             
-            reader.ReadStartElement("InventoryItem");
-            reader.ReadStartElement("Name");
-            item.Name = reader.ReadString();
-            reader.ReadEndElement();
-            reader.ReadStartElement("ID");
-            item.ID = UUID.Parse(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("InvType");
-            item.InvType = Convert.ToInt32(reader.ReadString());
-            reader.ReadEndElement();
-            item.CreatorId = reader.ReadElementString("CreatorUUID");
-            reader.ReadStartElement("CreationDate");
-            item.CreationDate = Convert.ToInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("Owner");
-            item.Owner = UUID.Parse(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadElementString("Description");
-            reader.ReadStartElement("AssetType");
-            item.AssetType = Convert.ToInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("AssetID");
-            item.AssetID = UUID.Parse(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("SaleType");
-            item.SaleType = Convert.ToByte(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("SalePrice");
-            item.SalePrice = Convert.ToInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("BasePermissions");
-            item.BasePermissions = Convert.ToUInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("CurrentPermissions");
-            item.CurrentPermissions = Convert.ToUInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("EveryOnePermssions");
-            item.EveryOnePermissions = Convert.ToUInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("NextPermissions");
-            item.NextPermissions = Convert.ToUInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("Flags");
-            item.Flags = Convert.ToUInt32(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("GroupID");
-            item.GroupID = UUID.Parse(reader.ReadString());
-            reader.ReadEndElement();
-            reader.ReadStartElement("GroupOwned");
-            item.GroupOwned = Convert.ToBoolean(reader.ReadString());
-            reader.ReadEndElement();
+            xtr.ReadStartElement("InventoryItem");
+            
+            item.Name                   =                   xtr.ReadElementString("Name");
+            item.ID                     = UUID.Parse(       xtr.ReadElementString("ID"));
+            item.InvType                = Convert.ToInt32(  xtr.ReadElementString("InvType"));            
+            item.CreatorId              =                   xtr.ReadElementString("CreatorUUID");
+            item.CreationDate           = Convert.ToInt32(  xtr.ReadElementString("CreationDate"));
+            item.Owner                  = UUID.Parse(       xtr.ReadElementString("Owner"));
+            item.Description            =                   xtr.ReadElementString("Description");
+            item.AssetType              = Convert.ToInt32(  xtr.ReadElementString("AssetType"));
+            item.AssetID                = UUID.Parse(       xtr.ReadElementString("AssetID"));
+            item.SaleType               = Convert.ToByte(   xtr.ReadElementString("SaleType"));
+            item.SalePrice              = Convert.ToInt32(  xtr.ReadElementString("SalePrice"));
+            item.BasePermissions        = Convert.ToUInt32( xtr.ReadElementString("BasePermissions"));
+            item.CurrentPermissions     = Convert.ToUInt32( xtr.ReadElementString("CurrentPermissions"));
+            item.EveryOnePermissions    = Convert.ToUInt32( xtr.ReadElementString("EveryOnePermssions"));
+            item.NextPermissions        = Convert.ToUInt32( xtr.ReadElementString("NextPermissions"));
+            item.Flags                  = Convert.ToUInt32( xtr.ReadElementString("Flags"));
+            item.GroupID                = UUID.Parse(       xtr.ReadElementString("GroupID"));
+            item.GroupOwned             = Convert.ToBoolean(xtr.ReadElementString("GroupOwned"));
+            
+            xtr.ReadEndElement();
+            
+            xtr.Close();
+            sr.Close();
             
             return item;
         }      
