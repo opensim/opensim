@@ -41,9 +41,9 @@ namespace OpenSim.Data.SQLite.Tests
         [TestFixtureSetUp]
         public void Init()
         {
-            if (System.Environment.GetEnvironmentVariable("CPU") == "ppc64")
+            // SQLite doesn't work on power linux
+            if (File.Exists("/proc/ppc64"))
             {
-                System.Console.WriteLine(System.Environment.GetEnvironmentVariable("CPU"));
                 Assert.Ignore();
             }
 
