@@ -67,13 +67,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             m_serviceURL = serviceURL.Trim().ToLower();
             m_disableKeepAlive = disableKeepAlive;
 
-            if ((serviceURL == null)
-                || (serviceURL == string.Empty)
-                )
+            if ((serviceURL == null) ||
+                (serviceURL == string.Empty))
             {
                 throw new Exception("Please specify a valid ServiceURL for XmlRpcGroupDataProvider in OpenSim.ini, [Groups], XmlRpcServiceURL");
             }
-
         }
 
         /// <summary>
@@ -153,7 +151,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (respData.Contains("error"))
             {
                 // UUID is not nullable
-
                 return UUID.Zero;
             }
 
@@ -236,7 +233,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 param["Name"] = GroupName.ToString();
             }
 
-
             Hashtable respData = XmlRpcCall("groups.getGroup", param);
 
             if (respData.Contains("error"))
@@ -253,7 +249,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             Hashtable param = new Hashtable();
             param["GroupID"] = GroupID.ToString();
 
-
             Hashtable respData = XmlRpcCall("groups.getGroup", param);
 
             if (respData.Contains("error"))
@@ -269,7 +264,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             MemberGroupProfile.PowersMask = MemberInfo.GroupPowers;
 
             return MemberGroupProfile;
-
         }
 
         private GroupProfileData GroupProfileHashtableToGroupProfileData(Hashtable groupProfile)
@@ -300,7 +294,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private GroupRecord GroupProfileHashtableToGroupRecord(Hashtable groupProfile)
         {
-
             GroupRecord group = new GroupRecord();
             group.GroupID = UUID.Parse((string)groupProfile["GroupID"]);
             group.GroupName = groupProfile["Name"].ToString();
@@ -319,7 +312,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             return group;
         }
-
 
         public void SetAgentActiveGroup(UUID AgentID, UUID GroupID)
         {
@@ -349,7 +341,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param["ListInProfile"] = ListInProfile ? "1" : "0";
 
             XmlRpcCall("groups.setAgentGroupInfo", param);
-
         }
 
         public void AddAgentToGroupInvite(UUID inviteID, UUID groupID, UUID roleID, UUID agentID)
@@ -361,7 +352,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param["GroupID"] = groupID.ToString();
 
             XmlRpcCall("groups.addAgentToGroupInvite", param);
-
         }
 
         public GroupInviteInfo GetAgentToGroupInvite(UUID inviteID)
@@ -410,7 +400,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param["GroupID"] = GroupID.ToString();
 
             XmlRpcCall("groups.removeAgentFromGroup", param);
-
         }
 
         public void AddAgentToGroupRole(UUID AgentID, UUID GroupID, UUID RoleID)
@@ -432,7 +421,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             XmlRpcCall("groups.removeAgentFromGroupRole", param);
         }
-
 
         public List<DirGroupsReplyData> FindGroups(string search)
         {
@@ -493,7 +481,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             return HashTableToGroupMembershipData(respData);
         }
-
 
         public List<GroupMembershipData> GetAgentGroupMemberships(UUID AgentID)
         {
@@ -757,7 +744,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             XmlRpcResponse resp = req.Send(m_serviceURL, 10000);
 
-            if( resp.Value is Hashtable )
+            if (resp.Value is Hashtable)
             {
                 Hashtable respData = (Hashtable)resp.Value;
                 if (respData.Contains("error") && !respData.Contains("succeed"))

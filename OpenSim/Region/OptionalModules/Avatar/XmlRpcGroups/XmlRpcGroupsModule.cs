@@ -490,7 +490,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // If a message from a group arrives here, it may need to be forwarded to a local client
             if (msg.fromGroup == true)
             {
-                switch( msg.dialog )
+                switch (msg.dialog)
                 {
                     case (byte)InstantMessageDialog.GroupInvitation:
                     case (byte)InstantMessageDialog.GroupNotice:
