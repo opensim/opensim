@@ -225,12 +225,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
 
-            // SerialiserModule serialiserModule = new SerialiserModule();
-            // ArchiverModule archiverModule = new ArchiverModule();
-
-            // Scene scene = SceneSetupHelpers.SetupScene();
-            // SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
-
             archiverModule.DearchiveRegion(archiveReadStream);
 
             SceneObjectPart object1PartLoaded = scene.GetSceneObjectPart(part1Name);

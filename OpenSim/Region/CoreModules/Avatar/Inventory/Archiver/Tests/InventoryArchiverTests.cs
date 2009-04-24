@@ -35,17 +35,18 @@ using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
+using OpenSim.Framework.Serialization.External;    
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
-using OpenSim.Region.CoreModules.World.Archiver;
+using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 {
-    [TestFixture, LongRunning]
+    [TestFixture]
     public class InventoryArchiverTests
     {
         private void SaveCompleted(
@@ -189,72 +190,57 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             // TODO: Test presence of more files and contents of files.
         }
         
-        /*
         /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet).
         /// </summary>
         [Test]
         public void TestLoadIarV0p1()
-        {    
-            //log4net.Config.XmlConfigurator.Configure();
+        {   
+            Console.WriteLine("Started TestLoadIarV0p1()");
+            
+            log4net.Config.XmlConfigurator.Configure();
+            
+            string userFirstName = "Mr";
+            string userLastName = "Tiddles";
+            string folderName = "a";
+            string archiveFolderName 
+                = string.Format("{0}{1}{2}", folderName, ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, UUID.Random());
+            string itemName = "b.lsl";
+            string archiveItemName
+                = string.Format("{0}{1}{2}", itemName, "_", UUID.Random());
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
 
-            string item1FileName = string.Format("{0}{1}/{2}", INVENTORY_PATH, "a", "b.lsl");
-            tar.WriteFile(item1FileName, item1.
-                
-            string part1Name = "object1";
-            PrimitiveBaseShape shape = PrimitiveBaseShape.CreateCylinder();
-            Vector3 groupPosition = new Vector3(90, 80, 70);
-            Quaternion rotationOffset = new Quaternion(60, 70, 80, 90);
-            Vector3 offsetPosition = new Vector3(20, 25, 30);
-
-            SerialiserModule serialiserModule = new SerialiserModule();
-            ArchiverModule archiverModule = new ArchiverModule();
-
-            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
-
-            SceneObjectPart part1
-                = new SceneObjectPart(
-                    UUID.Zero, shape, groupPosition, rotationOffset, offsetPosition);
-            part1.Name = part1Name;
-            SceneObjectGroup object1 = new SceneObjectGroup(part1);
-            scene.AddNewSceneObject(object1, false);
-
-            string object1FileName = string.Format(
-                "{0}_{1:000}-{2:000}-{3:000}__{4}.xml",
-                part1Name,
-                Math.Round(groupPosition.X), Math.Round(groupPosition.Y), Math.Round(groupPosition.Z),
-                part1.UUID);
-            tar.WriteFile(ArchiveConstants.OBJECTS_PATH + object1FileName, object1.ToXmlString2());
-
+            InventoryItemBase item1 = new InventoryItemBase();
+            item1.Name = itemName;
+            item1.AssetID = UUID.Random();
+            item1.GroupID = UUID.Random();
+            
+            string item1FileName 
+                = string.Format("{0}{1}/{2}", ArchiveConstants.INVENTORY_PATH, archiveFolderName, archiveItemName);
+            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
             tar.Close();
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
+            
+            SerialiserModule serialiserModule = new SerialiserModule();
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
+            
+            // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
+            Scene scene = SceneSetupHelpers.SetupScene();
+            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
+            scene.CommsManager.UserAdminService.AddUser(userFirstName, userLastName, "meowfood", String.Empty, 1000, 1000);
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", archiveReadStream);
 
-            // SerialiserModule serialiserModule = new SerialiserModule();
-            // ArchiverModule archiverModule = new ArchiverModule();
-
-            // Scene scene = SceneSetupHelpers.SetupScene();
-            // SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
-
-            archiverModule.DearchiveRegion(archiveReadStream);
-
-            SceneObjectPart object1PartLoaded = scene.GetSceneObjectPart(part1Name);
-
-            Assert.That(object1PartLoaded, Is.Not.Null, "object1 was not loaded");
-            Assert.That(object1PartLoaded.Name, Is.EqualTo(part1Name), "object1 names not identical");
-            Assert.That(object1PartLoaded.GroupPosition, Is.EqualTo(groupPosition), "object1 group position not equal");
-            Assert.That(
-                object1PartLoaded.RotationOffset, Is.EqualTo(rotationOffset), "object1 rotation offset not equal");
-            Assert.That(
-                object1PartLoaded.OffsetPosition, Is.EqualTo(offsetPosition), "object1 offset position not equal");
-
-            // Temporary
-            Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());            
+            CachedUserInfo userInfo = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
+            InventoryFolderImpl foundFolder = userInfo.RootFolder.FindFolderByPath(folderName);
+            Assert.That(foundFolder, Is.Not.Null, string.Format("Folder {0} not found on load", folderName));
+            
+            InventoryItemBase foundItem = foundFolder.FindItemByPath(itemName);
+            Assert.That(foundItem, Is.Not.Null, string.Format("Item {0} not found on load", itemName));
+            
+            Console.WriteLine("Finished TestLoadIarV0p1()");
         }
-        */
     }
 }

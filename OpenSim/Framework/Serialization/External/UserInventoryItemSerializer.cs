@@ -76,9 +76,7 @@ namespace OpenSim.Framework.Serialization.External
             reader.ReadStartElement("InvType");
             item.InvType = Convert.ToInt32(reader.ReadString());
             reader.ReadEndElement();
-            reader.ReadStartElement("CreatorUUID");
-            item.CreatorId = reader.ReadString();
-            reader.ReadEndElement();
+            item.CreatorId = reader.ReadElementString("CreatorUUID");
             reader.ReadStartElement("CreationDate");
             item.CreationDate = Convert.ToInt32(reader.ReadString());
             reader.ReadEndElement();
