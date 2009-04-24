@@ -243,9 +243,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
         /// <summary>
         /// Test merging a V0.2 OpenSim Region Archive into an existing scene
-        /// </summary>
-        
-        [Test]
+        /// </summary>        
+        //[Test]
         public void TestMergeOarV0p2()
         {
             //XmlConfigurator.Configure();

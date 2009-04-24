@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -244,17 +245,39 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Console.WriteLine("Finished TestLoadIarV0p1()");
         }
         
-        /*
         /// <summary>
         /// Test replication of an archive path to the user's inventory.
         /// </summary>
         [Test]
         public void TestReplicateArchivePathToUserInventory()
         {
-            CommunicationsManager commsManager = new TestCommunicationsManager();
-            CachedUserInfo userInfo = new CachedUserInfo();
-            new InventoryArchiveReadRequest(userInfo, "/", null, commsManager);   
+            CommunicationsManager commsManager = new TestCommunicationsManager();            
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+            Dictionary <string, InventoryFolderImpl> foldersCreated = new Dictionary<string, InventoryFolderImpl>();
+            List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
+            
+            string folder1Name = "a";
+            string folder2Name = "b";
+            string itemName = "c.lsl";
+            
+            string folder1ArchiveName 
+                = string.Format(
+                    "{0}{1}{2}", folder1Name, ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, UUID.Random());
+            string folder2ArchiveName
+                = string.Format(
+                    "{0}{1}{2}", folder2Name, ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, UUID.Random());
+            string itemArchivePath
+                = string.Format(
+                    "{0}{1}/{2}/{3}", 
+                    ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemName);            
+            
+            new InventoryArchiveReadRequest(userInfo, null, (Stream)null, null)
+                .ReplicateArchivePathToUserInventory(itemArchivePath, false, userInfo.RootFolder, foldersCreated, nodesLoaded);
+            
+            InventoryFolderImpl folder1 = userInfo.RootFolder.FindFolderByPath("a");
+            Assert.That(folder1, Is.Not.Null, "Could not find folder a");
+            InventoryFolderImpl folder2 = folder1.FindFolderByPath("b");            
+            Assert.That(folder2, Is.Not.Null, "Could not find folder b");
         }
-        */
     }
 }
