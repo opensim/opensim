@@ -1232,8 +1232,8 @@ namespace PrimMesher
                 this.profileEnd = 0.02f;
             if (profileStart >= profileEnd)
                 this.profileStart = profileEnd - 0.02f;
-            if (hollow > 1.0f)
-                this.hollow = 1.0f;
+            if (hollow > 0.99f)
+                this.hollow = 0.99f;
             if (hollow < 0.0f)
                 this.hollow = 0.0f;
 

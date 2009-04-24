@@ -251,6 +251,8 @@ namespace OpenSim.Region.Physics.Meshing
                 float profileBegin = (float)primShape.ProfileBegin * 2.0e-5f;
                 float profileEnd = 1.0f - (float)primShape.ProfileEnd * 2.0e-5f;
                 float profileHollow = (float)primShape.ProfileHollow * 2.0e-5f;
+                if (profileHollow > 0.95f)
+                    profileHollow = 0.95f;
 
                 int sides = 4;
                 if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
