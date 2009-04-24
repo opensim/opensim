@@ -168,24 +168,6 @@ namespace PrimMesher
                     {
                         Face f1, f2;
 
-                        //if (viewerMode)
-                        //{
-                        //    f1 = new Face(p1, p3, p4, p1, p3, p4);
-                        //    f1.uv1 = p1;
-                        //    f1.uv2 = p3;
-                        //    f1.uv3 = p4;
-
-                        //    f2 = new Face(p1, p4, p2, p1, p4, p2);
-                        //    f2.uv1 = p1;
-                        //    f2.uv2 = p4;
-                        //    f2.uv3 = p2;
-                        //}
-                        //else
-                        //{
-                        //    f1 = new Face(p1, p3, p4);
-                        //    f2 = new Face(p1, p4, p2);
-                        //}
-
                         if (viewerMode)
                         {
                             f1 = new Face(p1, p4, p3, p1, p4, p3);
