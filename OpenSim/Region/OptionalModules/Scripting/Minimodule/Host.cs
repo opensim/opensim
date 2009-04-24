@@ -38,11 +38,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly IGraphics m_graphics;
         private readonly IExtension m_extend;
+        private readonly IMicrothreader m_threader;
         //private Scene m_scene;
 
-        public Host(IObject m_obj, Scene m_scene, IExtension m_extend)
+        public Host(IObject m_obj, Scene m_scene, IExtension m_extend, IMicrothreader m_threader)
         {
             this.m_obj = m_obj;
+            this.m_threader = m_threader;
             this.m_extend = m_extend;
             //this.m_scene = m_scene;
 
@@ -67,6 +69,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public IExtension Extensions
         {
             get { return m_extend; }
+        }
+
+        public IMicrothreader Microthreads
+        {
+            get { return m_threader; }
         }
     }
 }

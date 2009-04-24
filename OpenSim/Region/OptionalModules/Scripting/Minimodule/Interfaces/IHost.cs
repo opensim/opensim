@@ -39,5 +39,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         ILog Console { get; }
         IGraphics Graphics { get; }
         IExtension Extensions { get; }
+        IMicrothreader Microthreads { get; }
     }
 }

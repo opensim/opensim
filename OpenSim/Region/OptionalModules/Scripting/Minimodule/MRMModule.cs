@@ -52,6 +52,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         private static readonly CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
 
+        private readonly MicroScheduler m_microthreads = new MicroScheduler();
+
         public void RegisterExtension<T>(T instance)
         {
             m_extensions[typeof (T)] = instance;
@@ -66,6 +68,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                     m_log.Info("[MRM] Enabling MRM Module");
                     m_scene = scene;
                     scene.EventManager.OnRezScript += EventManager_OnRezScript;
+                    scene.EventManager.OnFrame += EventManager_OnFrame;
 
                     scene.RegisterModuleInterface<IMRMModule>(this);
                 }
@@ -80,6 +83,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             }
         }
 
+        void EventManager_OnFrame()
+        {
+            m_microthreads.Tick(1000);
+        }
+
+        static string ConvertMRMKeywords(string script)
+        {
+            script = script.Replace("microthreaded void ", "IEnumerable");
+            script = script.Replace("relax;", "yield return null;");
+
+            return script;
+        }
+
         void EventManager_OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
         {
             if (script.StartsWith("//MRM:C#"))
@@ -87,11 +103,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 if (m_scene.GetSceneObjectPart(localID).OwnerID != m_scene.RegionInfo.MasterAvatarAssignedUUID)
                     return;
 
+                script = ConvertMRMKeywords(script);
+
                 try
                 {
                     m_log.Info("[MRM] Found C# MRM");
                     IWorld m_world = new World(m_scene);
-                    IHost m_host = new Host(new SOPObject(m_scene, localID), m_scene, new ExtensionHandler(m_extensions));
+                    IHost m_host = new Host(new SOPObject(m_scene, localID), m_scene, new ExtensionHandler(m_extensions),
+                                            m_microthreads);
 
                     MRMBase mmb = (MRMBase)AppDomain.CurrentDomain.CreateInstanceFromAndUnwrap(
                                                 CompileFromDotNetText(script, itemID.ToString()),

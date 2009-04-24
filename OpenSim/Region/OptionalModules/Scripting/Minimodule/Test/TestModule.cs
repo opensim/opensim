@@ -25,12 +25,55 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections;
+using System.Collections.Generic;
 using OpenSim.Region.OptionalModules.Scripting.Minimodule;
 
 namespace OpenSim
 {
     class MiniModule : MRMBase
     {
+        // private microthreaded Function(params...)
+        private IEnumerable TestMicrothread(string param)
+        {
+            Host.Console.Info("Microthreaded " + param);
+            // relax;
+            yield return null;
+            Host.Console.Info("Microthreaded 2" + param);
+            yield return null;
+            int c = 100;
+            while(c-- < 0)
+            {
+                Host.Console.Info("Microthreaded Looped " + c + " " + param);
+                yield return null;
+            }
+        }
+
+        public void Microthread(IEnumerable thread)
+        {
+            
+        }
+
+        public void RunMicrothread()
+        {
+            List<IEnumerator> threads = new List<IEnumerator>();
+            threads.Add(TestMicrothread("A").GetEnumerator());
+            threads.Add(TestMicrothread("B").GetEnumerator());
+            threads.Add(TestMicrothread("C").GetEnumerator());
+
+            Microthread(TestMicrothread("Ohai"));
+
+            int i = 0;
+            while(threads.Count > 0)
+            {
+                i++;
+                bool running = threads[i%threads.Count].MoveNext();
+
+                if (!running)
+                    threads.Remove(threads[i%threads.Count]);
+            }
+        }
+
         public override void Start()
         {
             // Say Hello
