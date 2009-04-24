@@ -48,7 +48,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected TarArchiveReader archive;
-        private static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
 
         private CachedUserInfo m_userInfo;
         private string m_invPath;
