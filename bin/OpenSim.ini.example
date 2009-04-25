@@ -411,7 +411,7 @@
     InstantMessageModule = InstantMessageModule
     ; MessageTransferModule = MessageTransferModule
     ; OfflineMessageModule = OfflineMessageModule
-    ; OfflineMessagesURL = http://yourserver/offlines.php
+    ; OfflineMessageURL = http://yourserver/offlines.php
     ; MuteListModule = MuteListModule
     ; MuteListsURL = http://yourserver/mutes.php
 
