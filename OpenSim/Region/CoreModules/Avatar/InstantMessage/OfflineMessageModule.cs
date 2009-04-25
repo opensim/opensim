@@ -165,10 +165,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             foreach (GridInstantMessage im in msglist)
             {
-                DateTime saved = Util.ToDateTime((uint)im.timestamp);
-
-                im.message = "(saved " + saved.ToString() + ") " + im.message;
-
                 // client.SendInstantMessage(im);
 
                 // Send through scene event manager so all modules get a chance
