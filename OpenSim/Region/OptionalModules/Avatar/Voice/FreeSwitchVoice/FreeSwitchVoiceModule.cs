@@ -28,7 +28,9 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Web;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml;
 using System.Collections;
@@ -47,6 +49,7 @@ using OpenSim.Region.Framework.Scenes;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 using System.Text.RegularExpressions;
 
+
 namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 {
     public class FreeSwitchVoiceModule : IRegionModule
@@ -55,6 +58,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         // Infrastructure
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private const bool UseProxy = false;
 
         // Capability string prefixes
         private static readonly string m_parcelVoiceInfoRequestPath = "0007/";
@@ -95,7 +100,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
         private FreeSwitchDirectory m_FreeSwitchDirectory;
         private FreeSwitchDialplan m_FreeSwitchDialplan;
+
+        private readonly Dictionary<string, string> m_UUIDName = new Dictionary<string, string>();
         
+
         private IConfig m_config;
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -159,22 +167,42 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     // set up http request handlers for
                     // - prelogin: viv_get_prelogin.php
                     // - signin: viv_signin.php
-                    scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix),
-                                                                 FreeSwitchSLVoiceGetPreloginHTTPHandler);
-                                                                 
-                   // RestStreamHandler h = new
-                   // RestStreamHandler("GET", 
-                   // String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix), FreeSwitchSLVoiceGetPreloginHTTPHandler);
-                  //  scene.CommsManager.HttpServer.AddStreamHandler(h);
-                    
-                    scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/viv_signin.php", m_freeSwitchAPIPrefix),
-                                                                 FreeSwitchSLVoiceSigninHTTPHandler);
+                    // - buddies: viv_buddy.php
+                    // - ???: viv_watcher.php
+                    // - signout: viv_signout.php
+                    if (UseProxy)
+                    {
+                        scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/", m_freeSwitchAPIPrefix),
+                                ForwardProxyRequest);
+                    }
+                    else
+                    {
+                        scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix),
+                                                             FreeSwitchSLVoiceGetPreloginHTTPHandler);
+                                                             
+                        // RestStreamHandler h = new
+                        // RestStreamHandler("GET", 
+                        // String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix), FreeSwitchSLVoiceGetPreloginHTTPHandler);
+                        //  scene.CommsManager.HttpServer.AddStreamHandler(h);
 
-                    // set up http request handlers to provide
-                    // on-demand FreeSwitch configuration to
-                    // FreeSwitch's mod_curl_xml
-                    scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/freeswitch-config", m_freeSwitchAPIPrefix),
-                                                                 FreeSwitchConfigHTTPHandler);
+
+
+                        scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/viv_signin.php", m_freeSwitchAPIPrefix),
+                                         FreeSwitchSLVoiceSigninHTTPHandler);
+
+                        // set up http request handlers to provide
+                        // on-demand FreeSwitch configuration to
+                        // FreeSwitch's mod_curl_xml
+                        scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/freeswitch-config", m_freeSwitchAPIPrefix),
+                                                             FreeSwitchConfigHTTPHandler);
+
+                        scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/viv_buddy.php", m_freeSwitchAPIPrefix),
+                                         FreeSwitchSLVoiceBuddyHTTPHandler);
+                    }
+                    
+                    
+
+
                     
                     m_log.InfoFormat("[FreeSwitchVoice] using FreeSwitch server {0}", m_freeSwitchRealm);
                     
@@ -203,7 +231,24 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                         OnRegisterCaps(scene, agentID, caps);
                     };
 
-                
+                try
+                {
+                    ServicePointManager.ServerCertificateValidationCallback += CustomCertificateValidation;
+                }
+                catch (NotImplementedException)
+                {
+                    try
+                    {
+#pragma warning disable 0612, 0618
+                        // Mono does not implement the ServicePointManager.ServerCertificateValidationCallback yet!  Don't remove this!
+                        ServicePointManager.CertificatePolicy = new MonoCert();
+#pragma warning restore 0612, 0618
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Error("[FreeSwitchVoice]: Certificate validation handler change not supported.  You may get ssl certificate validation errors teleporting from your region to some SSL regions.");
+                    }
+                }
                 
             }
         }
@@ -290,6 +335,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                                                    UUID agentID, Caps caps)
         {
             ScenePresence avatar = scene.GetScenePresence(agentID);
+            if (avatar == null)
+            {
+                System.Threading.Thread.Sleep(2000);
+                avatar = scene.GetScenePresence(agentID);
+                
+                if (avatar == null)
+                    return "<llsd>undef</llsd>";
+            }
             string avatarName = avatar.Name;
 
             try
@@ -305,8 +358,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 // FreeSwitch is later going to come and ask us for
                 // those
                 agentname = agentname.Replace('+', '-').Replace('/', '_');
-                
-               // LLSDVoiceAccountResponse voiceAccountResponse =
+
+                lock (m_UUIDName)
+                {
+                    if (m_UUIDName.ContainsKey(agentname))
+                    {
+                        m_UUIDName[agentname] = avatarName;
+                    }
+                    else
+                    {
+                        m_UUIDName.Add(agentname, avatarName);
+                    }
+                }
+
+                // LLSDVoiceAccountResponse voiceAccountResponse =
                //     new LLSDVoiceAccountResponse(agentname, password, m_freeSwitchRealm, "http://etsvc02.hursley.ibm.com/api");
                LLSDVoiceAccountResponse voiceAccountResponse =
                    new LLSDVoiceAccountResponse(agentname, password, m_freeSwitchRealm,
@@ -433,6 +498,57 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             return "<llsd>true</llsd>";
         }
 
+        public Hashtable ForwardProxyRequest(Hashtable request)
+        {
+            m_log.Debug("[PROXYING]: -------------------------------proxying request");
+            Hashtable response = new Hashtable();
+            response["content_type"] = "text/xml";
+            response["str_response_string"] = "";
+            response["int_response_code"] = 200;
+
+            string forwardaddress = "https://www.bhr.vivox.com/api2/";
+            string body = (string)request["body"];
+            string method = (string) request["http-method"];
+            string contenttype = (string) request["content-type"];
+            string uri = (string) request["uri"];
+            uri = uri.Replace("/api/", "");
+            forwardaddress += uri;
+
+
+            string fwdresponsestr = "";
+            int fwdresponsecode = 200;
+            string fwdresponsecontenttype = "text/xml";
+            
+
+            HttpWebRequest forwardreq = (HttpWebRequest)WebRequest.Create(forwardaddress);
+            forwardreq.Method = method;
+            forwardreq.ContentType = contenttype;
+            forwardreq.KeepAlive = false;
+
+            if (method == "POST")
+            {
+                byte[] contentreq = Encoding.UTF8.GetBytes(body);
+                forwardreq.ContentLength = contentreq.Length;
+                Stream reqStream = forwardreq.GetRequestStream();
+                reqStream.Write(contentreq, 0, contentreq.Length);
+                reqStream.Close();
+            }
+
+            HttpWebResponse fwdrsp = (HttpWebResponse)forwardreq.GetResponse();
+            Encoding encoding = Encoding.UTF8;
+            StreamReader fwdresponsestream = new StreamReader(fwdrsp.GetResponseStream(), encoding);
+            fwdresponsestr = fwdresponsestream.ReadToEnd();
+            fwdresponsecontenttype = fwdrsp.ContentType;
+            fwdresponsecode = (int)fwdrsp.StatusCode;
+            fwdresponsestream.Close();
+
+            response["content_type"] = fwdresponsecontenttype;
+            response["str_response_string"] = fwdresponsestr;
+            response["int_response_code"] = fwdresponsecode;
+            
+            return response;
+        }
+
 
         public Hashtable FreeSwitchSLVoiceGetPreloginHTTPHandler(Hashtable request)
         {
@@ -468,22 +584,139 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             return response;
         }
 
+        public Hashtable FreeSwitchSLVoiceBuddyHTTPHandler(Hashtable request)
+        {
+            Hashtable response = new Hashtable();
+            response["int_response_code"] = 200;
+            response["str_response_string"] = string.Empty;
+            response["content-type"] = "text/xml";
+
+            Hashtable requestBody = parseRequestBody((string)request["body"]);
+            
+            if (!requestBody.ContainsKey("auth_token"))
+                return response;
+
+            string auth_token = (string)requestBody["auth_token"];
+            string[] auth_tokenvals = auth_token.Split(':');
+            string username = auth_tokenvals[0];
+            int strcount = 0;
+            
+            string[] ids = new string[strcount];
+
+            int iter = -1;
+            lock (m_UUIDName)
+            {
+                strcount = m_UUIDName.Count;
+                ids = new string[strcount];
+                foreach (string s in m_UUIDName.Keys)
+                {
+                    iter++;
+                    ids[iter] = s;
+                }
+            }
+            StringBuilder resp = new StringBuilder();
+            resp.Append("<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?><response xmlns=\"http://www.vivox.com\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation= \"/xsd/buddy_list.xsd\">");
+            
+            resp.Append(string.Format(@"<level0>
+                        <status>OK</status>
+                        <cookie_name>lib_session</cookie_name>
+                        <cookie>{0}</cookie>
+                        <auth_token>{0}</auth_token>
+                        <body>
+                            <buddies>",auth_token));
+            /*
+                        <cookie_name>lib_session</cookie_name>
+                        <cookie>{0}:{1}:9303959503950::</cookie>
+                        <auth_token>{0}:{1}:9303959503950::</auth_token>
+            */
+            for (int i=0;i<ids.Length;i++)
+            {
+                DateTime currenttime = DateTime.Now;
+                string dt = currenttime.ToString("yyyy-MM-dd HH:mm:ss.0zz");
+                resp.Append(
+                    string.Format(@"<level3>
+                                    <bdy_id>{1}</bdy_id>
+                                    <bdy_data></bdy_data>
+                                    <bdy_uri>sip:{0}@{2}</bdy_uri>
+                                    <bdy_nickname>{0}</bdy_nickname>
+                                    <bdy_username>{0}</bdy_username>
+                                    <bdy_domain>{2}</bdy_domain>
+                                    <bdy_status>A</bdy_status>
+                                    <modified_ts>{3}</modified_ts>
+                                    <b2g_group_id></b2g_group_id>
+                                </level3>", ids[i],i,m_freeSwitchRealm,dt));
+            }
+
+                                
+                                
+            resp.Append("</buddies><groups></groups></body></level0></response>");
+
+            response["str_response_string"] = resp.ToString();
+            Regex normalizeEndLines = new Regex(@"\r\n", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.Multiline);
+
+            m_log.DebugFormat("[FREESWITCH]: {0}", normalizeEndLines.Replace((string)response["str_response_string"],""));
+            return response;
+        }
+
         public Hashtable FreeSwitchSLVoiceSigninHTTPHandler(Hashtable request)
         {
             m_log.Debug("[FreeSwitchVoice] FreeSwitchSLVoiceSigninHTTPHandler called");
-             
+            string requestbody = (string)request["body"];
+            string uri = (string)request["uri"];
+            string contenttype = (string)request["content-type"];
+            
+            Hashtable requestBody = parseRequestBody((string)request["body"]);
+
+            string pwd = (string) requestBody["pwd"];
+            string userid = (string) requestBody["userid"];
+
+            string avatarName = string.Empty;
+            int pos = -1;
+            lock (m_UUIDName)
+            {
+                if (m_UUIDName.ContainsKey(userid))
+                {
+                    avatarName = m_UUIDName[userid];
+                    foreach (string s in m_UUIDName.Keys)
+                    {
+                        pos++;
+                        if (s == userid)
+                            break;
+                        
+                    }
+                }
+            }
+
+            m_log.DebugFormat("[FreeSwitchVoice]: AUTH, URI: {0}, Content-Type:{1}, Body{2}", uri, contenttype,
+                              requestbody);
             Hashtable response = new Hashtable();
-            response["str_response_string"] = @"<response xsi:schemaLocation=""/xsd/error.xsd"">
+            response["str_response_string"] = string.Format(@"<response xsi:schemaLocation=""/xsd/signin.xsd"">
                     <level0>
                         <status>OK</status>
                         <body>
                         <code>200</code>
+                        <cookie_name>lib_session</cookie_name>
+                        <cookie>{0}:{1}:9303959503950::</cookie>
+                        <auth_token>{0}:{1}:9303959503950::</auth_token>
+                        <primary>1</primary>
+                        <account_id>{1}</account_id>
+                        <displayname>{2}</displayname>
                         <msg>auth successful</msg>
                         </body>
                     </level0>
-                </response>";
+                </response>", userid, pos, avatarName);
+            
             response["int_response_code"] = 200;
             return response;
+            /*
+            <level0>
+               <status>OK</status><body><status>Ok</status><cookie_name>lib_session</cookie_name>
+             * <cookie>xMj1QJSc7TA-G7XqcW6QXAg==:1290551700:050d35c6fef96f132f780d8039ff7592::</cookie>
+             * <auth_token>xMj1QJSc7TA-G7XqcW6QXAg==:1290551700:050d35c6fef96f132f780d8039ff7592::</auth_token>
+             * <primary>1</primary>
+             * <account_id>7449</account_id>
+             * <displayname>Teravus Ousley</displayname></body></level0>
+            */
         }
 
 
@@ -569,5 +802,26 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
             return channelUri;
         }
+        
+        private static bool CustomCertificateValidation(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
+        {
+            //if (cert.Subject == "E=root@lindenlab.com, CN=*.vaak.lindenlab.com, O=\"Linden Lab, Inc.\", L=San Francisco, S=California, C=US")
+            //{
+            return true;
+            //}
+
+            //return false;
+        }
+    }
+    public class MonoCert : ICertificatePolicy
+    {
+        #region ICertificatePolicy Members
+
+        public bool CheckValidationResult(ServicePoint srvPoint, X509Certificate certificate, WebRequest request, int certificateProblem)
+        {
+            return true;
+        }
+
+        #endregion
     }
 }
