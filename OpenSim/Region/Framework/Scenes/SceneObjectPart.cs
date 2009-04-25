@@ -3557,7 +3557,10 @@ if (m_shape != null) {
             TriggerScriptChangedEvent(Changed.TEXTURE);
 
             ParentGroup.HasGroupChanged = true;
-            ParentGroup.ScheduleGroupForFullUpdate();
+            //This is madness..
+            //ParentGroup.ScheduleGroupForFullUpdate();
+            //This is sparta
+            ScheduleFullUpdate();
         }
 
         public void aggregateScriptEvents()
