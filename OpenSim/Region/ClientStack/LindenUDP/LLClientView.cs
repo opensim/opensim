@@ -10312,7 +10312,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return handler.PacketQueue.GetStats();
         }
         
-        public string XReport() 
+        public string XReport(string uptime, string version) 
         {
             return  "";
         }

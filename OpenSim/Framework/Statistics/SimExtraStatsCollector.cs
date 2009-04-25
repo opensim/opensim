@@ -384,12 +384,12 @@ Asset service request failures: {3}" + Environment.NewLine,
         }
 
         /// <summary>
-        /// Report back collected statistical information.
+        /// Report back collected statistical information as json serialization.
         /// </summary>
         /// <returns></returns>
-        public override string XReport()
+        public override string XReport(string uptime, string version)
         {
-            OSDMap args = new OSDMap(28);
+            OSDMap args = new OSDMap(30);
             args["AssetsInCache"] = OSD.FromReal(AssetsInCache);
             args["TimeAfterCacheMiss"] = OSD.FromReal(assetRequestTimeAfterCacheMiss.Milliseconds / 1000.0);
             args["BlockedMissingTextureRequests"] = OSD.FromReal(BlockedMissingTextureRequests);
@@ -417,14 +417,12 @@ Asset service request failures: {3}" + Environment.NewLine,
             args["OthrFt"] = OSD.FromReal(otherFrameTime);
             args["AgntFt"] = OSD.FromReal(agentFrameTime);
             args["ImgsFt"] = OSD.FromReal(imageFrameTime);
-            args["Memory"] = OSD.FromString(base.XReport());
+            args["Memory"] = OSD.FromString(base.XReport(uptime, version));
+            args["Uptime"] = OSD.FromString(uptime);
+            args["Version"] = OSD.FromString(version);
             
             string strBuffer = "";
-            // byte[] buffer = new byte[1];
-            
             strBuffer = OSDParser.SerializeJsonString(args);
-            // UTF8Encoding str = new UTF8Encoding();
-            // buffer = str.GetBytes(strBuffer);
 
             return strBuffer;
         }
@@ -451,7 +449,7 @@ Asset service request failures: {3}" + Environment.NewLine,
             return m_statsProvider.GetStats();
         }
         
-        public string XReport()
+        public string XReport(string uptime, string version)
         {
             return "";
         }

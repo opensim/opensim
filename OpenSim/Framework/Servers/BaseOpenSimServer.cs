@@ -37,6 +37,7 @@ using log4net.Appender;
 using log4net.Core;
 using log4net.Repository;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
 using Timer=System.Timers.Timer;
 
@@ -458,9 +459,9 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        public string StatReport()
+        public string StatReport(OSHttpRequest httpRequest)
         {
-            return m_stats.XReport();
+            return m_stats.XReport((DateTime.Now - m_startuptime).ToString() , m_version );
         }
             
         protected void RemovePIDFile()

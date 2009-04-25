@@ -810,13 +810,12 @@ namespace OpenSim
         /// <summary>
         /// Handler to supply the current extended status of this sim 
         /// </summary>
-        /// Currently prints the same a "show stats" plus the uptime of the sim
+        /// Sends the statistical data in a json serialization
         public class XSimStatusHandler : IStreamedRequestHandler
         {
             OpenSimBase m_opensim;
         
             public XSimStatusHandler(OpenSimBase sim)
-            // public XSimStatusHandler(BaseOpenSimServer sim)
             {
                 m_opensim = sim;
             }
@@ -824,7 +823,7 @@ namespace OpenSim
             public byte[] Handle(string path, Stream request,
                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
             {
-                return Encoding.UTF8.GetBytes(m_opensim.StatReport());
+                return Encoding.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
             }
 
             public string ContentType

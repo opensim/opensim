@@ -44,6 +44,6 @@ namespace OpenSim.Framework.Statistics
         /// <returns>
         /// A <see cref="System.String"/>
         /// </returns>
-        string XReport();
+        string XReport(string uptime, string version);
     }
 }
