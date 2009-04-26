@@ -58,9 +58,9 @@ namespace OpenSim.Region.CoreModules.Framework.Services
                 m_scene = scene;
 
                 // This module is only on for standalones in hypergrid mode
-                enabled = (!config.Configs["Startup"].GetBoolean("gridmode", true)) && 
-                    (config.Configs["Startup"].GetBoolean("hypergrid", true)||
-                    config.Configs["MXP"].GetBoolean("Enabled", true));
+                enabled = ((!config.Configs["Startup"].GetBoolean("gridmode", true)) && 
+                    config.Configs["Startup"].GetBoolean("hypergrid", true)) ||
+                    ((config.Configs["MXP"] != null) && config.Configs["MXP"].GetBoolean("Enabled", true));
             }
         }
 
