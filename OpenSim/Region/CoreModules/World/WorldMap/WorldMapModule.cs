@@ -709,13 +709,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="maxY"></param>
         public virtual void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
-            List<MapBlockData> mapBlocks;
             if ((flag & 0x10000) != 0)  // user clicked on the map a tile that isn't visible
             {
                 List<MapBlockData> response = new List<MapBlockData>();
 
                 // this should return one mapblock at most. But make sure: Look whether the one we requested is in there
-                mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
+                List<MapBlockData> mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
                 if (mapBlocks != null)
                 {
                     foreach (MapBlockData block in mapBlocks)
@@ -743,9 +742,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             else
             {
                 // normal mapblock request. Use the provided values
-                mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks(minX - 4, minY - 4, maxX + 4, maxY + 4);
-                remoteClient.SendMapBlock(mapBlocks, flag);
+                GetAndSendBlocks(remoteClient, minX, minY, maxX, maxY, flag);
             }
+        }
+
+        protected virtual void GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
+        {
+            List<MapBlockData> mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks(minX - 4, minY - 4, maxX + 4, maxY + 4);
+            remoteClient.SendMapBlock(mapBlocks, flag);
         }
 
         public Hashtable OnHTTPGetMapImage(Hashtable keysvals)
