@@ -411,9 +411,9 @@
     InstantMessageModule = InstantMessageModule
     ; MessageTransferModule = MessageTransferModule
     ; OfflineMessageModule = OfflineMessageModule
-    ; OfflineMessageURL = http://yourserver/offlines.php
+    ; OfflineMessageURL = http://yourserver/Offline.php
     ; MuteListModule = MuteListModule
-    ; MuteListURL = http://yourserver/mutes.php
+    ; MuteListURL = http://yourserver/Mute.php
 
 
 [ODEPhysicsSettings]
