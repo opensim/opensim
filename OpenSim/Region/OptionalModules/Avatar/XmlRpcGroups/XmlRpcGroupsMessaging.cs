@@ -63,7 +63,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
 
         // Config Options
-        private bool m_groupMessagingEnabled = true;
+        private bool m_groupMessagingEnabled = false;
         private bool m_debugEnabled = true;
 
         #region IRegionModuleBase Members
@@ -129,9 +129,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // No groups module, no groups messaging
             if (m_groupsModule == null)
             {
-                m_groupMessagingEnabled = false;
                 m_log.Error("[GROUPS-MESSAGING]: Could not get IGroupsModule, XmlRpcGroupsMessaging is now disabled.");
                 Close();
+                m_groupMessagingEnabled = false;
                 return;
             }
 
@@ -140,9 +140,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // No message transfer module, no groups messaging
             if (m_msgTransferModule == null)
             {
-                m_groupMessagingEnabled = false;
                 m_log.Error("[GROUPS-MESSAGING]: Could not get MessageTransferModule");
                 Close();
+                m_groupMessagingEnabled = false;
                 return;
             }
 
