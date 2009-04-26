@@ -1305,6 +1305,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public void SetTexGen(SceneObjectPart part, int face,int style)
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
+            MappingType textype;
+            textype = MappingType.Default;
+            if (style == (int)ScriptBaseClass.PRIM_TEXGEN_PLANAR)
+                textype = MappingType.Planar;
+
+            if (face >= 0 && face < GetNumberOfSides(part))
+            {
+                tex.CreateFace((uint) face);
+                tex.FaceTextures[face].TexMapType = textype;
+                part.UpdateTexture(tex);
+                return;
+            }
+            else if (face == ScriptBaseClass.ALL_SIDES)
+            {
+                for (uint i = 0; i < GetNumberOfSides(part); i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        tex.FaceTextures[i].TexMapType = textype;
+                    }
+                    tex.DefaultTexture.TexMapType = textype;
+                }
+                part.UpdateTexture(tex);
+                return;
+            }
+        }
+
         public void SetGlow(SceneObjectPart part, int face, float glow)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
@@ -6821,6 +6851,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             tempOnRez = false;
 
                         part.ScriptSetTemporaryStatus(tempOnRez);
+                        break;
+		
+                    case (int)ScriptBaseClass.PRIM_TEXGEN:
+                        if (remain < 2)
+                            return;
+                            //face,type
+                        face = rules.GetLSLIntegerItem(idx++);
+                        int style = rules.GetLSLIntegerItem(idx++);
+                        SetTexGen(part, face, style);
                         break;
                 }
             }
