@@ -63,11 +63,9 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             else m_name = id.Substring(pos + 1);
 
             ExtensionNodeList list = AddinManager.GetExtensionNodes("/OpenSim/RegionModules");
-            m_log.DebugFormat("[XXX] list: {0}", list.Count);
             // load all the (new) region-module classes
             foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes("/OpenSim/RegionModules"))
             {
-                m_log.DebugFormat("[REGIONMODULES]: Found node {0}", node.Id);
                 // TODO why does node.Type.isSubclassOf(typeof(ISharedRegionModule)) not work?
                 if (node.Type.GetInterface(typeof(ISharedRegionModule).ToString()) != null)
                 {
