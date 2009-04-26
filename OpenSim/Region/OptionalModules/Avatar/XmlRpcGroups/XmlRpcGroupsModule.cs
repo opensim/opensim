@@ -436,14 +436,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         OnNewGroupNotice(GroupID, NoticeID);
                     }
 
-                    // Build notice IIM
-                    GridInstantMessage msg = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
-
                     // Send notice out to everyone that wants notices
                     foreach (GroupMembersData member in m_groupData.GetGroupMembers(GroupID))
                     {
                         if (member.AcceptNotices)
                         {
+                            // Build notice IIM
+                            GridInstantMessage msg = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
+
                             msg.toAgentID = member.AgentID.Guid;
                             OutgoingInstantMessage(msg, member.AgentID);
 
