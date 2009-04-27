@@ -2196,6 +2196,11 @@ namespace OpenSim.Region.Framework.Scenes
                 childagentYN = avatar.IsChildAgent;
             }
 
+            if (avatar.ParentID != 0)
+            {
+                avatar.StandUp();
+            }
+
             try
             {
                 m_log.DebugFormat(
