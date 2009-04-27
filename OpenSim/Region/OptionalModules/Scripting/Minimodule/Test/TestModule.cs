@@ -42,7 +42,7 @@ namespace OpenSim
             Host.Console.Info("Microthreaded 2" + param);
             yield return null;
             int c = 100;
-            while(c-- < 0)
+            while (c-- < 0)
             {
                 Host.Console.Info("Microthreaded Looped " + c + " " + param);
                 yield return null;
@@ -64,7 +64,7 @@ namespace OpenSim
             Microthread(TestMicrothread("Ohai"));
 
             int i = 0;
-            while(threads.Count > 0)
+            while (threads.Count > 0)
             {
                 i++;
                 bool running = threads[i%threads.Count].MoveNext();

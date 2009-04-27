@@ -259,7 +259,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                     Connect();
                 }
 
-                lock(m_connectors)
+                lock (m_connectors)
                     m_connectors.Add(this);
 
                 m_enabled = true;
@@ -306,8 +306,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
                     }
        
-                    lock(m_connectors)
-						m_connectors.Remove(this);
+                    lock (m_connectors)
+                        m_connectors.Remove(this);
 
                 }
             }
@@ -845,7 +845,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             _pdk_ = (_pdk_+1)%PING_PERIOD;    // cycle the ping trigger
             _icc_++;    // increment the inter-consecutive-connect-delay counter
 
-            lock(m_connectors)
+            lock (m_connectors)
             foreach (IRCConnector connector in m_connectors)
             {
 

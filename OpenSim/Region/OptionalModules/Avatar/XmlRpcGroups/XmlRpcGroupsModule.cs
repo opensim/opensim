@@ -143,13 +143,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             if (m_msgTransferModule == null)
             {
-	            m_msgTransferModule = scene.RequestModuleInterface<IMessageTransferModule>();
+                m_msgTransferModule = scene.RequestModuleInterface<IMessageTransferModule>();
 
                 // No message transfer module, no notices, group invites, rejects, ejects, etc
-	            if (m_msgTransferModule == null)
+                if (m_msgTransferModule == null)
                 {
-	                m_groupsEnabled = false;
-	                m_log.Error("[GROUPS]: Could not get MessageTransferModule");
+                    m_groupsEnabled = false;
+                    m_log.Error("[GROUPS]: Could not get MessageTransferModule");
                     Close();
                     return;
                 }
@@ -157,7 +157,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             lock (m_sceneList)
             {
-            	m_sceneList.Add(scene);
+                m_sceneList.Add(scene);
             }
 
             scene.EventManager.OnNewClient += OnNewClient;
@@ -178,7 +178,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             lock (m_sceneList)
             {
-	            m_sceneList.Remove(scene);
+                m_sceneList.Remove(scene);
             }
         }
 
@@ -313,15 +313,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 GroupName = "Unknown";
             }
 
-
             remote_client.SendGroupNameReply(GroupID, GroupName);
         }
-
 
         private void OnInstantMessage(IClientAPI remoteClient, GridInstantMessage im)
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
-
 
             // Group invitations
             if ((im.dialog == (byte)InstantMessageDialog.GroupInvitationAccept) || (im.dialog == (byte)InstantMessageDialog.GroupInvitationDecline))
@@ -334,7 +331,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 UUID fromAgentID = new UUID(im.fromAgentID);
                 if ((inviteInfo != null) && (fromAgentID == inviteInfo.AgentID))
                 {
-
                     // Accept
                     if (im.dialog == (byte)InstantMessageDialog.GroupInvitationAccept)
                     {
@@ -373,10 +369,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     {
                         if (m_debugEnabled) m_log.DebugFormat("[GROUPS] Received a reject invite notice.");
                         m_groupData.RemoveAgentToGroupInvite(inviteID);
-
                     }
-
-
                 }
             }
 
@@ -411,14 +404,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         binBucket = binBucket.Remove(0, 14).Trim();
                         if (m_debugEnabled)
                         {
-	                        m_log.WarnFormat("I don't understand a group notice binary bucket of: {0}", binBucket);
-	
-	                        OSDMap binBucketOSD = (OSDMap)OSDParser.DeserializeLLSDXml(binBucket);
-	                        
-	                        foreach (string key in binBucketOSD.Keys)
-	                        {
-	                            m_log.WarnFormat("{0}: {1}", key, binBucketOSD[key].ToString());
-	                        }                     
+                            m_log.WarnFormat("I don't understand a group notice binary bucket of: {0}", binBucket);
+
+                            OSDMap binBucketOSD = (OSDMap)OSDParser.DeserializeLLSDXml(binBucket);
+                            
+                            foreach (string key in binBucketOSD.Keys)
+                            {
+                                m_log.WarnFormat("{0}: {1}", key, binBucketOSD[key].ToString());
+                            }                     
                         }
    
                         // treat as if no attachment
@@ -428,7 +421,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         GroupID.ToBytes(bucket, 2);
                         bucket[18] = 0; //dunno
                     }
-
 
                     m_groupData.AddGroupNotice(GroupID, NoticeID, im.fromAgentName, Subject, Message, bucket);
                     if (OnNewGroupNotice != null)
@@ -446,12 +438,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                             msg.toAgentID = member.AgentID.Guid;
                             OutgoingInstantMessage(msg, member.AgentID);
-
                         }
                     }
-
-
-
                 }
             }
             
@@ -477,11 +465,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     UUID groupID = new UUID(im.fromAgentID);
                     ejectee.SendAgentDropGroup(groupID);
                 }
-
             }
-
-
-
         }
 
         private void OnGridInstantMessage(GridInstantMessage msg)
@@ -490,7 +474,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             // Trigger the above event handler
             OnInstantMessage(null, msg);
-
 
             // If a message from a group arrives here, it may need to be forwarded to a local client
             if (msg.fromGroup == true)
@@ -501,16 +484,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     case (byte)InstantMessageDialog.GroupNotice:
                         UUID toAgentID = new UUID(msg.toAgentID);
                         IClientAPI localClient = GetActiveClient(toAgentID);
-                        if( localClient != null )
+                        if (localClient != null)
                         {
                             localClient.SendInstantMessage(msg);
                         }
                         break;
                 }
             }
-
         }
-
 
         #endregion
 
@@ -570,8 +551,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             List<GroupMembersData> data = m_groupData.GetGroupMembers(groupID);
             if (m_debugEnabled)
             {
-	            foreach (GroupMembersData member in data)
-	            {
+                foreach (GroupMembersData member in data)
+                {
                     m_log.DebugFormat("[GROUPS] {0} {1}", member.AgentID, member.Title);
                 }
             }
@@ -588,8 +569,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             if (m_debugEnabled)
             {
-	            foreach (GroupRolesData member in data)
-	            {
+                foreach (GroupRolesData member in data)
+                {
                     m_log.DebugFormat("[GROUPS] {0} {1}", member.Title, member.Members);
                 }
             }
@@ -606,8 +587,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             if (m_debugEnabled)
             {
-	            foreach (GroupRoleMembersData member in data)
-	            {
+                foreach (GroupRoleMembersData member in data)
+                {
                     m_log.DebugFormat("[GROUPS] Av: {0}  Role: {1}", member.MemberID, member.RoleID);
                 }
             }

@@ -202,27 +202,27 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 try
                 {
-					path = rdata.path.Substring(rdata.Parameters[0].Length+qPrefix.Length+2);
-					if(File.Exists(path))
-					{
-						Rest.Log.DebugFormat("{0}  File located <{1}>", MsgId, path);
-						Byte[] data = File.ReadAllBytes(path);
-						rdata.initXmlWriter();
-						rdata.writer.WriteStartElement(String.Empty,"File",String.Empty);
-						rdata.writer.WriteAttributeString("name", path);
-						rdata.writer.WriteBase64(data,0,data.Length);
-						rdata.writer.WriteFullEndElement();
-					}
-					else
-					{
-						Rest.Log.DebugFormat("{0} Invalid parameters: <{1}>", MsgId, path);
-						rdata.Fail(Rest.HttpStatusCodeNotFound, String.Format("invalid parameters : {0}", path));
-					}
+                    path = rdata.path.Substring(rdata.Parameters[0].Length+qPrefix.Length+2);
+                    if (File.Exists(path))
+                    {
+                        Rest.Log.DebugFormat("{0}  File located <{1}>", MsgId, path);
+                        Byte[] data = File.ReadAllBytes(path);
+                        rdata.initXmlWriter();
+                        rdata.writer.WriteStartElement(String.Empty,"File",String.Empty);
+                        rdata.writer.WriteAttributeString("name", path);
+                        rdata.writer.WriteBase64(data,0,data.Length);
+                        rdata.writer.WriteFullEndElement();
+                    }
+                    else
+                    {
+                        Rest.Log.DebugFormat("{0} Invalid parameters: <{1}>", MsgId, path);
+                        rdata.Fail(Rest.HttpStatusCodeNotFound, String.Format("invalid parameters : {0}", path));
+                    }
                 }
                 catch (Exception e)
                 {
-					Rest.Log.DebugFormat("{0} Invalid parameters: <{1}>", MsgId, e.Message);
-					rdata.Fail(Rest.HttpStatusCodeNotFound, String.Format("invalid parameters : {0} {1}", 
+                    Rest.Log.DebugFormat("{0} Invalid parameters: <{1}>", MsgId, e.Message);
+                    rdata.Fail(Rest.HttpStatusCodeNotFound, String.Format("invalid parameters : {0} {1}", 
                                      path, e.Message));
                 }
             }
@@ -249,21 +249,21 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 try
                 {
-					path = rdata.path.Substring(rdata.Parameters[0].Length+qPrefix.Length+2);
-					bool maymod = File.Exists(path);
-					
-					rdata.initXmlReader();
-					XmlReader xml = rdata.reader;
+                    path = rdata.path.Substring(rdata.Parameters[0].Length+qPrefix.Length+2);
+                    bool maymod = File.Exists(path);
+                    
+                    rdata.initXmlReader();
+                    XmlReader xml = rdata.reader;
 
-					if (!xml.ReadToFollowing("File"))
-					{
-						Rest.Log.DebugFormat("{0} Invalid request data: <{1}>", MsgId, rdata.path);
-						rdata.Fail(Rest.HttpStatusCodeBadRequest,"invalid request data");
-					}
+                    if (!xml.ReadToFollowing("File"))
+                    {
+                        Rest.Log.DebugFormat("{0} Invalid request data: <{1}>", MsgId, rdata.path);
+                        rdata.Fail(Rest.HttpStatusCodeBadRequest,"invalid request data");
+                    }
 
-					Byte[] data = Convert.FromBase64String(xml.ReadElementContentAsString("File", ""));
+                    Byte[] data = Convert.FromBase64String(xml.ReadElementContentAsString("File", ""));
 
-					File.WriteAllBytes(path,data);
+                    File.WriteAllBytes(path,data);
                     modified =   maymod;
                     created  = ! maymod;
                 }
@@ -319,21 +319,21 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 try
                 {
-					path = rdata.path.Substring(rdata.Parameters[0].Length+qPrefix.Length+2);
-					bool maymod = File.Exists(path);
-					
-					rdata.initXmlReader();
-					XmlReader xml = rdata.reader;
+                    path = rdata.path.Substring(rdata.Parameters[0].Length+qPrefix.Length+2);
+                    bool maymod = File.Exists(path);
+                    
+                    rdata.initXmlReader();
+                    XmlReader xml = rdata.reader;
 
-					if (!xml.ReadToFollowing("File"))
-					{
-						Rest.Log.DebugFormat("{0} Invalid request data: <{1}>", MsgId, rdata.path);
-						rdata.Fail(Rest.HttpStatusCodeBadRequest,"invalid request data");
-					}
+                    if (!xml.ReadToFollowing("File"))
+                    {
+                        Rest.Log.DebugFormat("{0} Invalid request data: <{1}>", MsgId, rdata.path);
+                        rdata.Fail(Rest.HttpStatusCodeBadRequest,"invalid request data");
+                    }
 
-					Byte[] data = Convert.FromBase64String(xml.ReadElementContentAsString("File", ""));
+                    Byte[] data = Convert.FromBase64String(xml.ReadElementContentAsString("File", ""));
 
-					File.WriteAllBytes(path,data);
+                    File.WriteAllBytes(path,data);
                     modified =   maymod;
                     created  = ! maymod;
                 }
@@ -389,12 +389,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 try
                 {
-					path = rdata.path.Substring(rdata.Parameters[0].Length+qPrefix.Length+2);
+                    path = rdata.path.Substring(rdata.Parameters[0].Length+qPrefix.Length+2);
 
-					if(File.Exists(path))
+                    if (File.Exists(path))
                     {
                         File.Delete(path);
-                    }					
+                    }
                 }
                 catch (Exception e)
                 {
