@@ -312,6 +312,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetNotecardLine(name, line);
         }
 
+        public string osGetNotecard(string name)
+        {
+            return m_OSSL_Functions.osGetNotecard(name);
+        }
+
         public int osGetNumberOfNotecardLines(string name)
         {
             return m_OSSL_Functions.osGetNumberOfNotecardLines(name);

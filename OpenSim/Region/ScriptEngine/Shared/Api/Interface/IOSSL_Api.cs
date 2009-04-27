@@ -124,6 +124,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osMakeNotecard(string notecardName, LSL_Types.list contents);
 
         string osGetNotecardLine(string name, int line);
+        string osGetNotecard(string name);
         int osGetNumberOfNotecardLines(string name);
 
         string osAvatarName2Key(string firstname, string lastname);
