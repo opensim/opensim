@@ -183,6 +183,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             throw new Exception("OSSL Runtime Error: " + msg);
         }
 
+        //
+        //Dumps an error message on the debug console.
+        //
+
+        internal void OSSLShoutError(string message) 
+        {
+            if (message.Length > 1023)
+                message = message.Substring(0, 1023);
+
+            World.SimChat(Utils.StringToBytes(message),
+                          ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, true);
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            wComm.DeliverMessage(ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.Name, m_host.UUID, message);
+        }
+
         public void CheckThreatLevel(ThreatLevel level, string function)
         {
             if (!m_OSFunctionsEnabled)
@@ -1352,6 +1368,69 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.Inventory.AddInventoryItem(taskItem, false);
         }
+
+        /*Instead of using the LSL Dataserver event to pull notecard data, 
+          this will simply read the requested line and return its data as a string.
+         
+          Warning - due to the synchronous method this function uses to fetch assets, its use 
+                    may be dangerous and unreliable while running in grid mode.
+         */
+        public string osGetNotecardLine(string name, int line)
+        {
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osGetNotecardLine");
+            m_host.AddScriptLPS(1);
+
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+            {
+                if (item.Type == 7 && item.Name == name)
+                {
+                    if (NotecardCache.IsCached(item.AssetID)== false)
+                    {   AssetBase a = World.CommsManager.AssetCache.GetAsset(item.AssetID, false);
+                        System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                        string data = enc.GetString(a.Data);
+                        NotecardCache.Cache(item.AssetID, data);
+                    };
+
+                    return NotecardCache.GetLine(item.AssetID, line, 255);
+                }
+            }
+
+            //If all else fails just return error.
+            OSSLShoutError("Notecard '" + name + "' could not be found.");
+            return "ERROR!";
+        }
+
+        /*Instead of using the  LSL Dataserver event to pull notecard data, 
+          this will simply read the number of note card lines and return this data as an integer.
+          
+          Warning - due to the synchronous method this function uses to fetch assets, its use 
+                    may be dangerous and unreliable while running in grid mode.
+         */
+        public int osGetNumberOfNotecardLines(string name)
+        {
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osGetNumberOfNotecardLines");
+            m_host.AddScriptLPS(1);
+
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+            {
+                if (item.Type == 7 && item.Name == name)
+                {
+                    if (NotecardCache.IsCached(item.AssetID) == false)
+                    {
+                        AssetBase a = World.CommsManager.AssetCache.GetAsset(item.AssetID, false);
+                        System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                        string data = enc.GetString(a.Data);
+                        NotecardCache.Cache(item.AssetID, data);
+                    };
+
+                    return NotecardCache.GetLines(item.AssetID);
+                }
+            }
+
+            //If all else fails just return error.
+            OSSLShoutError("Notecard '" + name + "' could not be found.");
+            return -1;
+       }
 
         public string osAvatarName2Key(string firstname, string lastname)
         {
