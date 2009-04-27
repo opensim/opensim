@@ -736,6 +736,11 @@ namespace OpenSim
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
                                              AgentCircuitManager circuitManager)
         {
+            bool hgrid = ConfigSource.Source.Configs["Startup"].GetBoolean("hypergrid", false);
+            if (hgrid)
+                return HGCommands.CreateScene(regionInfo, circuitManager, m_commsManager, 
+                storageManager, m_moduleLoader, m_configSettings, m_config, m_version);
+
             SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
 
             return new Scene(

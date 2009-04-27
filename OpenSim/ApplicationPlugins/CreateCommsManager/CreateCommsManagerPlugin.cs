@@ -130,20 +130,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
         protected void InitialiseHGServices(OpenSimBase openSim, LibraryRootFolder libraryRootFolder)
         {
-            HGOpenSimNode hgNode = null;
-            try
-            {
-                hgNode = (HGOpenSimNode) openSim;
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[CreateComms] " + e.Message);
-                m_log.Error("[CreateComms] The OpenSim application class was : " + openSim.ToString());
-                m_log.Error("[CreateComms] To use hypergrid mode, please make sure you are starting opensim with the command line: opensim.exe -hypergrid=true");
-                m_log.Error("[CreateComms] Also hypergrid mode can not be ran while using the -background=true command line argument.");
-                Environment.Exit(1);
-            }
-
             // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
             if (m_openSim.ConfigurationSettings.Standalone)
             {
@@ -154,7 +140,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
                 // We are in grid mode
                 InitialiseHGGridServices(libraryRootFolder);
             }
-            hgNode.HGServices = HGServices;
+            HGCommands.HGServices = HGServices;
         }
 
         protected void InitialiseStandardServices(LibraryRootFolder libraryRootFolder)

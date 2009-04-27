@@ -291,6 +291,16 @@ namespace OpenSim
                                               "reset user password [<first> [<last> [<password>]]]",
                                               "Reset a user password", HandleResetUserPassword);
             }
+
+            m_console.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>] <cr>",
+                                          "Set local coordinate to map HG regions to", RunCommand);
+            m_console.Commands.AddCommand("hypergrid", false, "link-region",
+                                          "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
+                                          "Link a hypergrid region", RunCommand);
+            m_console.Commands.AddCommand("hypergrid", false, "unlink-region",
+                                          "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
+                                          "Unlink a hypergrid region", RunCommand);
+
         }
 
         public override void ShutdownSpecific()
@@ -624,6 +634,12 @@ namespace OpenSim
                     {
                         m_sceneManager.CacheJ2kDecode(1);
                     }
+                    break;
+
+                case "link-region":
+                case "unlink-region":
+                case "link-mapping":
+                    HGCommands.RunHGCommand(command, cmdparams, m_sceneManager.CurrentOrFirstScene);
                     break;
             }
         }
