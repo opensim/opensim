@@ -358,6 +358,11 @@ namespace OpenSim.Framework
                     l_EstateBans.Remove(ban);
         }
 
+        public bool HasAccess(UUID user)
+        {
+            return l_EstateAccess.Contains(user);
+        }
+
         public void loadConfigurationOptions()
         {
             configMember.addConfigurationOption("billable_factor",

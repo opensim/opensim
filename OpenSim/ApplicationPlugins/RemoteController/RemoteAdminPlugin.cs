@@ -102,19 +102,26 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     Dictionary<string, XmlRpcMethod> availableMethods = new Dictionary<string, XmlRpcMethod>();
                     availableMethods["admin_create_region"] = XmlRpcCreateRegionMethod;
                     availableMethods["admin_delete_region"] = XmlRpcDeleteRegionMethod;
+                    availableMethods["admin_region_query"] = XmlRpcRegionQueryMethod;
                     availableMethods["admin_shutdown"] = XmlRpcShutdownMethod;
                     availableMethods["admin_broadcast"] = XmlRpcAlertMethod;
                     availableMethods["admin_restart"] = XmlRpcRestartMethod;
                     availableMethods["admin_load_heightmap"] = XmlRpcLoadHeightmapMethod;
+                    // User management
                     availableMethods["admin_create_user"] = XmlRpcCreateUserMethod;
                     availableMethods["admin_create_user_email"] = XmlRpcCreateUserMethod;
                     availableMethods["admin_exists_user"] = XmlRpcUserExistsMethod;
                     availableMethods["admin_update_user"] = XmlRpcUpdateUserAccountMethod;
+                    // Region state management
                     availableMethods["admin_load_xml"] = XmlRpcLoadXMLMethod;
                     availableMethods["admin_save_xml"] = XmlRpcSaveXMLMethod;
                     availableMethods["admin_load_oar"] = XmlRpcLoadOARMethod;
                     availableMethods["admin_save_oar"] = XmlRpcSaveOARMethod;
-                    availableMethods["admin_region_query"] = XmlRpcRegionQueryMethod;
+                    // Estate access list management
+                    availableMethods["admin_acl_clear"] = XmlRpcAccessListClear;
+                    availableMethods["admin_acl_add"] = XmlRpcAccessListAdd;
+                    availableMethods["admin_acl_remove"] = XmlRpcAccessListRemove;
+                    availableMethods["admin_acl_list"] = XmlRpcAccessListList;
 
                     // Either enable full remote functionality or just selected features                    
                     string enabledMethods = m_config.GetString("enabled_methods", "all");
@@ -1496,8 +1503,287 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
+        public XmlRpcResponse XmlRpcAccessListClear(XmlRpcRequest request)
+        {
+
+            m_log.Info("[RADMIN]: Received Access List Clear Request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                responseData["success"] = "true";
+
+                Hashtable requestData = (Hashtable) request.Params[0];
+
+                if (!requestData.Contains("password"))
+                    throw new Exception(String.Format("missing required parameter"));
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string) requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                if (requestData.Contains("region_uuid"))
+                {
+                    UUID region_uuid = (UUID) (string) requestData["region_uuid"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_uuid))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_uuid.ToString());
+                }
+                else if (requestData.Contains("region_name"))
+                {
+                    string region_name = (string) requestData["region_name"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_name))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_name);
+                }
+                else throw new Exception("neither region_name nor region_uuid given");
+
+                Scene s = m_app.SceneManager.CurrentScene;
+                s.RegionInfo.EstateSettings.EstateAccess = new UUID[]{};
+
+            }
+            catch (Exception e)
+            {
+                m_log.InfoFormat("[RADMIN] Access List Clear Request: {0}", e.Message);
+
+                responseData["success"] = "false";
+                responseData["error"] = e.Message;
+
+            }
+            finally
+            {
+                response.Value = responseData;
+            }
+
+            m_log.Info("[RADMIN]: Access List Clear Request complete");
+            return response;
+        }
+
+        public XmlRpcResponse XmlRpcAccessListAdd(XmlRpcRequest request)
+        {
+
+            m_log.Info("[RADMIN]: Received Access List Add Request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                responseData["success"] = "true";
+
+                Hashtable requestData = (Hashtable) request.Params[0];
+
+                if (!requestData.Contains("password"))
+                    throw new Exception(String.Format("missing required parameter"));
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string) requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                if (requestData.Contains("region_uuid"))
+                {
+                    UUID region_uuid = (UUID) (string) requestData["region_uuid"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_uuid))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_uuid.ToString());
+                }
+                else if (requestData.Contains("region_name"))
+                {
+                    string region_name = (string) requestData["region_name"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_name))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_name);
+                }
+                else throw new Exception("neither region_name nor region_uuid given");
+
+                int addk = 0;
+
+                if(requestData.Contains("users"))
+                {
+                    UserProfileCacheService ups = m_app.CommunicationsManager.UserProfileCacheService;
+                    Scene s = m_app.SceneManager.CurrentScene;
+                    Hashtable users = (Hashtable) requestData["users"];
+                    List<UUID> uuids = new List<UUID>();
+                    foreach(string name in users.Values)
+                    {
+                        string[] parts = name.Split();
+                        uuids.Add(ups.GetUserDetails(parts[0],parts[1]).UserProfile.ID);
+                    }
+                    List<UUID> acl = new List<UUID>(s.RegionInfo.EstateSettings.EstateAccess);
+                    foreach(UUID uuid in uuids)
+                    {
+                        if(!acl.Contains(uuid))
+                        {
+                            acl.Add(uuid);
+                            addk++;
+                        }
+                    }
+                    s.RegionInfo.EstateSettings.EstateAccess = acl.ToArray();
+                }
+
+                responseData["added"] = addk;
+
+            }
+            catch (Exception e)
+            {
+                m_log.InfoFormat("[RADMIN] Access List Add Request: {0}", e.Message);
+
+                responseData["success"] = "false";
+                responseData["error"] = e.Message;
+
+            }
+            finally
+            {
+                response.Value = responseData;
+            }
+
+            m_log.Info("[RADMIN]: Access List Add Request complete");
+            return response;
+        }
+
+        public XmlRpcResponse XmlRpcAccessListRemove(XmlRpcRequest request)
+        {
+
+            m_log.Info("[RADMIN]: Received Access List Remove Request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                responseData["success"] = "true";
+
+                Hashtable requestData = (Hashtable) request.Params[0];
+
+                if (!requestData.Contains("password"))
+                    throw new Exception(String.Format("missing required parameter"));
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string) requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                if (requestData.Contains("region_uuid"))
+                {
+                    UUID region_uuid = (UUID) (string) requestData["region_uuid"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_uuid))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_uuid.ToString());
+                }
+                else if (requestData.Contains("region_name"))
+                {
+                    string region_name = (string) requestData["region_name"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_name))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_name);
+                }
+                else throw new Exception("neither region_name nor region_uuid given");
+
+                int remk = 0;
+
+                if(requestData.Contains("users"))
+                {
+                    UserProfileCacheService ups = m_app.CommunicationsManager.UserProfileCacheService;
+                    Scene s = m_app.SceneManager.CurrentScene;
+                    Hashtable users = (Hashtable) requestData["users"];
+                    List<UUID> uuids = new List<UUID>();
+                    foreach(string name in users.Values)
+                    {
+                        string[] parts = name.Split();
+                        uuids.Add(ups.GetUserDetails(parts[0],parts[1]).UserProfile.ID);
+                    }
+                    List<UUID> acl = new List<UUID>(s.RegionInfo.EstateSettings.EstateAccess);
+                    foreach(UUID uuid in uuids)
+                    {
+                        if(acl.Contains(uuid))
+                        {
+                            acl.Remove(uuid);
+                            remk++;
+                        }
+                    }
+                    s.RegionInfo.EstateSettings.EstateAccess = acl.ToArray();
+                }
+
+                responseData["added"] = remk;
+
+
+            }
+            catch (Exception e)
+            {
+                m_log.InfoFormat("[RADMIN] Access List Remove Request: {0}", e.Message);
+
+                responseData["success"] = "false";
+                responseData["error"] = e.Message;
+
+            }
+            finally
+            {
+                response.Value = responseData;
+            }
+
+            m_log.Info("[RADMIN]: Access List Remove Request complete");
+            return response;
+        }
+
+        public XmlRpcResponse XmlRpcAccessListList(XmlRpcRequest request)
+        {
+
+            m_log.Info("[RADMIN]: Received Access List List Request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                responseData["success"] = "true";
+
+                Hashtable requestData = (Hashtable) request.Params[0];
+
+                if (!requestData.Contains("password"))
+                    throw new Exception(String.Format("missing required parameter"));
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string) requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                if (requestData.Contains("region_uuid"))
+                {
+                    UUID region_uuid = (UUID) (string) requestData["region_uuid"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_uuid))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_uuid.ToString());
+                }
+                else if (requestData.Contains("region_name"))
+                {
+                    string region_name = (string) requestData["region_name"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_name))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_name);
+                }
+                else throw new Exception("neither region_name nor region_uuid given");
+
+                Scene s = m_app.SceneManager.CurrentScene;
+                UUID[] acl = s.RegionInfo.EstateSettings.EstateAccess;
+                Hashtable users = new Hashtable();
+
+                foreach(UUID user in acl)
+                {
+                    users[user.ToString()] = 
+                       m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(user).UserProfile.Name;
+                }
+                
+                responseData["users"] = users;
+
+            }
+            catch (Exception e)
+            {
+                m_log.InfoFormat("[RADMIN] Acces List List: {0}", e.Message);
+
+                responseData["success"] = "false";
+                responseData["error"] = e.Message;
+
+            }
+            finally
+            {
+                response.Value = responseData;
+            }
+
+            m_log.Info("[RADMIN]: Access List List Request complete");
+            return response;
+        }
+
         public void Dispose()
         {
         }
     }
+
 }
