@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         private uint PERM_COPY = (uint)32768;
         //private uint PERM_MODIFY = (uint)16384;
         private uint PERM_MOVE = (uint)524288;
-        //private uint PERM_TRANS = (uint)8192;
+        private uint PERM_TRANS = (uint)8192;
         private uint PERM_LOCKED = (uint)540672;  
         
         /// <value>
@@ -1132,14 +1132,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
                     permission = true;
 
-                if ((task.GetEffectivePermissions() & PERM_COPY) == 0)
+                if ((task.GetEffectivePermissions() & (PERM_COPY | PERM_TRANS)) != (PERM_COPY | PERM_TRANS))
                     permission = false;
             }
             else
             {
                 SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
 
-                if ((task.GetEffectivePermissions() & PERM_COPY) == 0)
+                if ((task.GetEffectivePermissions() & (PERM_COPY | PERM_TRANS)) != (PERM_COPY | PERM_TRANS))
                     permission = false;
             }
             
