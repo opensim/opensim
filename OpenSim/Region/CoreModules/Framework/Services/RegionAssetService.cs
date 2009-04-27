@@ -45,7 +45,8 @@ namespace OpenSim.Region.CoreModules.Framework.Services
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static bool initialized = false;
         private static bool enabled = false;
-
+        
+        private bool m_gridMode = false;
         Scene m_scene;
 
         #region IRegionModule interface
@@ -58,9 +59,10 @@ namespace OpenSim.Region.CoreModules.Framework.Services
                 m_scene = scene;
 
                 // This module is only on for standalones in hypergrid mode
-                enabled = ((!config.Configs["Startup"].GetBoolean("gridmode", true)) && 
+                enabled = ((!config.Configs["Startup"].GetBoolean("gridmode", true)) &&
                     config.Configs["Startup"].GetBoolean("hypergrid", true)) ||
                     ((config.Configs["MXP"] != null) && config.Configs["MXP"].GetBoolean("Enabled", true));
+                m_gridMode = config.Configs["Startup"].GetBoolean("gridmode", true);
             }
         }
 
@@ -70,7 +72,7 @@ namespace OpenSim.Region.CoreModules.Framework.Services
             {
                 m_log.Info("[RegionAssetService]: Starting...");
 
-                new AssetService(m_scene);
+                new AssetService(m_scene,m_gridMode);
             }
         }
 
@@ -96,6 +98,7 @@ namespace OpenSim.Region.CoreModules.Framework.Services
     {
 //        private IUserService m_userService;
         private bool m_doLookup = false;
+        private bool m_gridMode = false;
 
         public bool DoLookup
         {
@@ -105,8 +108,9 @@ namespace OpenSim.Region.CoreModules.Framework.Services
 //        private static readonly ILog m_log
 //            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public AssetService(Scene m_scene)
+        public AssetService(Scene m_scene, bool gridMode)
         {
+            m_gridMode = gridMode;
             AddHttpHandlers(m_scene);
 //            m_userService = m_scene.CommsManager.UserService;
         }
@@ -117,7 +121,16 @@ namespace OpenSim.Region.CoreModules.Framework.Services
                 = ((AssetServerBase)m_scene.CommsManager.AssetCache.AssetServer).AssetProviderPlugin;
 
             IHttpServer httpServer = m_scene.CommsManager.HttpServer;
-            httpServer.AddStreamHandler(new GetAssetStreamHandler(m_assetProvider));
+            
+            if (m_gridMode)
+            {
+                httpServer.AddStreamHandler(new CachedGetAssetStreamHandler(m_scene.CommsManager.AssetCache));
+            }
+            else
+            {
+                httpServer.AddStreamHandler(new GetAssetStreamHandler(m_assetProvider));
+            }
+
             httpServer.AddStreamHandler(new PostAssetStreamHandler(m_assetProvider));
 
         }
