@@ -101,6 +101,15 @@ namespace OpenSim.Region.Communications.OGS1
         // see IGridServices
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
+            if (m_regionsOnInstance.Contains(regionInfo))
+            {
+                m_log.Debug("[OGS1 GRID SERVICES] Foobar! Client is confused, region already registered " + regionInfo.RegionName);
+                Exception e = new Exception(String.Format("Unable to register region"));
+
+                throw e;
+
+            }
+
             m_regionsOnInstance.Add(regionInfo);
 
             m_log.InfoFormat(
@@ -178,7 +187,8 @@ namespace OpenSim.Region.Communications.OGS1
                     if ((string) GridRespData["allow_forceful_banlines"] != "TRUE")
                     {
                         //m_localBackend.SetForcefulBanlistsDisallowed(regionInfo.RegionHandle);
-                        m_queuedGridSettings.Add("allow_forceful_banlines", "FALSE");
+                        if (!m_queuedGridSettings.ContainsKey("allow_forceful_banlines"))
+                            m_queuedGridSettings.Add("allow_forceful_banlines", "FALSE");
                     }
                 }
 
