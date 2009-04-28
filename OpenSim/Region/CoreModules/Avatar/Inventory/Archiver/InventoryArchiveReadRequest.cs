@@ -57,7 +57,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </value>
         private Stream m_loadStream;
 
-        CommunicationsManager commsManager;
+        protected CommunicationsManager m_commsManager;
 
         public InventoryArchiveReadRequest(
             CachedUserInfo userInfo, string invPath, string loadPath, CommunicationsManager commsManager)
@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_userInfo = userInfo;
             m_invPath = invPath;
             m_loadStream = loadStream;
-            this.commsManager = commsManager;
+            m_commsManager = commsManager;
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 //
                 // FIXME: FetchInventory should probably be assumed to by async anyway, since even standalones might
                 // use a remote inventory service, though this is vanishingly rare at the moment.
-                if (null == commsManager.UserAdminService)
+                if (null == m_commsManager.UserAdminService)
                 {
                     m_log.ErrorFormat(
                         "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1}",
@@ -156,7 +156,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         // Don't use the item ID that's in the file
                         item.ID = UUID.Random();
 
-                        item.CreatorId = m_userInfo.UserProfile.ID.ToString();
+                        string ospResolvedId = OspResolver.Resolve(item.CreatorId, m_commsManager); 
+                        if (null != ospResolvedId)
+                            item.CreatorId = ospResolvedId;
+                        
                         item.Owner = m_userInfo.UserProfile.ID;
 
                         // Reset folder ID to the one in which we want to load it
@@ -352,7 +355,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 asset.Type = assetType;
                 asset.Data = data;
 
-                commsManager.AssetCache.AddAsset(asset);
+                m_commsManager.AssetCache.AddAsset(asset);
 
                 return true;
             }

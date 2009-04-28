@@ -373,7 +373,6 @@ namespace OpenSim.Framework
             return SHA1.ComputeHash(Encoding.Default.GetBytes(src));
         }
 
-
         public static int fast_distance2d(int x, int y)
         {
             x = Math.Abs(x);

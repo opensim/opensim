@@ -204,9 +204,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             string userFirstName = "Mr";
             string userLastName = "Tiddles";
-            string folderName = "a";
-            string archiveFolderName 
-                = string.Format("{0}{1}{2}", folderName, ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, UUID.Random());
+            UUID userUuid = UUID.Parse("00000000-0000-0000-0000-000000000555");
             string itemName = "b.lsl";
             string archiveItemName
                 = string.Format("{0}{1}{2}", itemName, "_", UUID.Random());
@@ -218,29 +216,33 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.Name = itemName;
             item1.AssetID = UUID.Random();
             item1.GroupID = UUID.Random();
+            item1.CreatorId = userUuid.ToString();
+            //item1.CreatorId = "00000000-0000-0000-0000-000000000444";
+            item1.Owner = UUID.Parse(item1.CreatorId);
             
             string item1FileName 
-                = string.Format("{0}{1}/{2}", ArchiveConstants.INVENTORY_PATH, archiveFolderName, archiveItemName);
+                = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
             tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
             tar.Close();
 
-            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
-            
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());            
             SerialiserModule serialiserModule = new SerialiserModule();
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
             
             // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
             Scene scene = SceneSetupHelpers.SetupScene();
             SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
-            scene.CommsManager.UserAdminService.AddUser(userFirstName, userLastName, "meowfood", String.Empty, 1000, 1000);
+            scene.CommsManager.UserAdminService.AddUser(
+                userFirstName, userLastName, "meowfood", String.Empty, 1000, 1000, userUuid);
             archiverModule.DearchiveInventory(userFirstName, userLastName, "/", archiveReadStream);
 
-            CachedUserInfo userInfo = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
-            InventoryFolderImpl foundFolder = userInfo.RootFolder.FindFolderByPath(folderName);
-            Assert.That(foundFolder, Is.Not.Null, string.Format("Folder {0} not found on load", folderName));
+            CachedUserInfo userInfo 
+                = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);            
+            InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
             
-            InventoryItemBase foundItem = foundFolder.FindItemByPath(itemName);
-            Assert.That(foundItem, Is.Not.Null, string.Format("Item {0} not found on load", itemName));
+            // Currently, creator and ownership both revert to the loader
+            Assert.That(foundItem.CreatorId, Is.EqualTo(userUuid.ToString()));            
+            Assert.That(foundItem.Owner, Is.EqualTo(userUuid));            
             
             Console.WriteLine("Finished TestLoadIarV0p1()");
         }
