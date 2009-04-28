@@ -224,7 +224,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         if (parcel.GroupID != UUID.Zero)
                         {
                             XmlNode groupblock = nodeFactory.CreateNode(XmlNodeType.Element, "group", "");
-                            XmlNode groupuuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
+                            XmlNode groupuuid = nodeFactory.CreateNode(XmlNodeType.Element, "groupuuid", "");
                             groupuuid.InnerText = parcel.GroupID.ToString();
                             groupblock.AppendChild(groupuuid);
 
