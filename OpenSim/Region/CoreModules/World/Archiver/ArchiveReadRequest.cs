@@ -99,20 +99,22 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             int successfulAssetRestores = 0;
             int failedAssetRestores = 0;
             List<string> serialisedSceneObjects = new List<string>();
-
+            string filePath = "NONE";
+            
             try
             {
                 TarArchiveReader archive = new TarArchiveReader(m_loadStream);
-
-                string filePath = "ERROR";
-
+               
                 byte[] data;
                 TarArchiveReader.TarEntryType entryType;
 
                 while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
-                {
-                    //m_log.DebugFormat(
-                    //    "[ARCHIVER]: Successfully read {0} ({1} bytes)}", filePath, data.Length);
+                {                    
+                    m_log.DebugFormat(
+                        "[ARCHIVER]: Successfully read {0} ({1} bytes)", filePath, data.Length);
+                    
+                    if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType)
+                        continue;                    
 
                     if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
                     {
@@ -142,7 +144,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[ARCHIVER]: Error loading oar file. Exception was: {0}", e);
+                    "[ARCHIVER]: Aborting load with error in archive file {0}.  {1}", filePath, e);
                 m_errorMessage += e.ToString();
                 m_scene.EventManager.TriggerOarFileLoaded(m_requestId, m_errorMessage);
                 return;

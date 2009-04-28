@@ -48,13 +48,27 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
     public class ArchiverTests
     {
         private Guid m_lastRequestId;
+        private string m_lastErrorMessage;
+        
+        private void LoadCompleted(Guid requestId, string errorMessage)
+        {
+            lock (this)
+            {
+                m_lastRequestId = requestId;
+                m_lastErrorMessage = errorMessage;
+                Console.WriteLine("About to pulse ArchiverTests on LoadCompleted");
+                                
+                Monitor.PulseAll(this);                
+            }
+        }
         
         private void SaveCompleted(Guid requestId, string errorMessage)
         {
             lock (this)
             {
                 m_lastRequestId = requestId;
-                System.Console.WriteLine("About to pulse ArchiverTests");
+                m_lastErrorMessage = errorMessage;
+                Console.WriteLine("About to pulse ArchiverTests on SaveCompleted");
                 Monitor.PulseAll(this);
             }
         }
@@ -188,10 +202,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestLoadOarV0p2()
         {
-            //log4net.Config.XmlConfigurator.Configure();
+            log4net.Config.XmlConfigurator.Configure();
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
+            
+            // Put in a random blank directory to check that this doesn't upset the load process
+            tar.WriteDir("ignoreme");
+            
+            // Also check that direct entries which will also have a file entry containing that directory doesn't 
+            // upset load
+            tar.WriteDir(ArchiveConstants.TERRAINS_PATH);            
 
             tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestExecution.Create0p2ControlFile());
 
@@ -220,12 +241,21 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 Math.Round(groupPosition.X), Math.Round(groupPosition.Y), Math.Round(groupPosition.Z),
                 part1.UUID);
             tar.WriteFile(ArchiveConstants.OBJECTS_PATH + object1FileName, object1.ToXmlString2());
-
+            
             tar.Close();
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
 
-            archiverModule.DearchiveRegion(archiveReadStream);
+            lock (this)
+            {
+                scene.EventManager.OnOarFileLoaded += LoadCompleted;
+                archiverModule.DearchiveRegion(archiveReadStream);
+                
+                // Load occurs asynchronously right now
+                //Monitor.Wait(this, 60000);
+            }            
+            
+            Assert.That(m_lastErrorMessage, Is.Null);
 
             SceneObjectPart object1PartLoaded = scene.GetSceneObjectPart(part1Name);
 
