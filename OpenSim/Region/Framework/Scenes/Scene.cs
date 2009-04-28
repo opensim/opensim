@@ -1848,14 +1848,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool welcome  = true;
 
-            if(m_regInfo.EstateSettings.IsBanned(client.AgentId))
+            if(m_regInfo.EstateSettings.IsBanned(client.AgentId) && (!Permissions.IsGod(client.AgentId)))
             {
                 m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
                                 client.AgentId, client.FirstName, client.LastName, RegionInfo.RegionName);
                 client.SendAlertMessage("Denied access to region " + RegionInfo.RegionName + ". You have been banned from that region.");
                 welcome = false;
             }
-            else if (!m_regInfo.EstateSettings.PublicAccess && !m_regInfo.EstateSettings.HasAccess(client.AgentId))
+            else if (!m_regInfo.EstateSettings.PublicAccess && !m_regInfo.EstateSettings.HasAccess(client.AgentId) && !Permissions.IsGod(client.AgentId))
             {
                 m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access",
                                 client.AgentId, client.FirstName, client.LastName, RegionInfo.RegionName);
