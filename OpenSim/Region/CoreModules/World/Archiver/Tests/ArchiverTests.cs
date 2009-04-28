@@ -79,7 +79,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestSaveOarV0p2()
         {
-            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
 
             ArchiverModule archiverModule = new ArchiverModule();
             SerialiserModule serialiserModule = new SerialiserModule();
@@ -202,7 +202,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestLoadOarV0p2()
         {
-            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);

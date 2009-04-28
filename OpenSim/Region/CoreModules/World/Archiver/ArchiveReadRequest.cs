@@ -110,8 +110,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
                 {                    
-                    m_log.DebugFormat(
-                        "[ARCHIVER]: Successfully read {0} ({1} bytes)", filePath, data.Length);
+                    //m_log.DebugFormat(
+                    //    "[ARCHIVER]: Successfully read {0} ({1} bytes)", filePath, data.Length);
                     
                     if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType)
                         continue;                    
