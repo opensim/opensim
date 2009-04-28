@@ -220,6 +220,8 @@ namespace OpenSim.Region.DataSnapshot.Providers
                             xmlparcel.AppendChild(textureuuid);
                         }
 
+                        string groupName = String.Empty;
+
                         //attached user and group
                         if (parcel.GroupID != UUID.Zero)
                         {
@@ -228,22 +230,31 @@ namespace OpenSim.Region.DataSnapshot.Providers
                             groupuuid.InnerText = parcel.GroupID.ToString();
                             groupblock.AppendChild(groupuuid);
 
-                            //No name yet, there's no way to get a group name since they don't exist yet.
-                            //TODO: When groups are supported, add the group handling code.
+                            IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
+                            if (gm != null)
+                            {
+                                GroupRecord g = gm.GetGroupRecord(parcel.GroupID);
+                                if (g != null)
+                                    groupName = g.GroupName;
+                            }
+
+                            XmlNode groupname = nodeFactory.CreateNode(XmlNodeType.Element, "groupname", "");
+                            groupname.InnerText = groupName;
+                            groupblock.AppendChild(groupname);
 
                             xmlparcel.AppendChild(groupblock);
                         }
 
+                        XmlNode userblock = nodeFactory.CreateNode(XmlNodeType.Element, "owner", "");
+
+                        UUID userOwnerUUID = parcel.OwnerID;
+
+                        XmlNode useruuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
+                        useruuid.InnerText = userOwnerUUID.ToString();
+                        userblock.AppendChild(useruuid);
+
                         if (!parcel.IsGroupOwned)
                         {
-                            XmlNode userblock = nodeFactory.CreateNode(XmlNodeType.Element, "owner", "");
-
-                            UUID userOwnerUUID = parcel.OwnerID;
-
-                            XmlNode useruuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
-                            useruuid.InnerText = userOwnerUUID.ToString();
-                            userblock.AppendChild(useruuid);
-
                             try
                             {
                                 XmlNode username = nodeFactory.CreateNode(XmlNodeType.Element, "name", "");
@@ -256,14 +267,15 @@ namespace OpenSim.Region.DataSnapshot.Providers
                                 //m_log.Info("[DATASNAPSHOT]: Cannot find owner name; ignoring this parcel");
                             }
 
-                            xmlparcel.AppendChild(userblock);
                         }
-                        //else
-                        //{
-                        //    XmlAttribute type = (XmlAttribute)nodeFactory.CreateNode(XmlNodeType.Attribute, "type", "");
-                        //    type.InnerText = "owner";
-                        //    groupblock.Attributes.Append(type);
-                        //}
+                        else
+                        {
+                            XmlNode username = nodeFactory.CreateNode(XmlNodeType.Element, "name", "");
+                            username.InnerText = groupName;
+                            userblock.AppendChild(username);
+                        }
+
+                        xmlparcel.AppendChild(userblock);
 
                         parent.AppendChild(xmlparcel);
                     }
