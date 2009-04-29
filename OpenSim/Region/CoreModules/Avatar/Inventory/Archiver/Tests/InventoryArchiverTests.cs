@@ -198,16 +198,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarV0p1()
         {   
-            Console.WriteLine("Started TestLoadIarV0p1()");
+            Console.WriteLine("Started {0}", MethodBase.GetCurrentMethod());
             
             log4net.Config.XmlConfigurator.Configure();
             
             string userFirstName = "Mr";
             string userLastName = "Tiddles";
             UUID userUuid = UUID.Parse("00000000-0000-0000-0000-000000000555");
+            string user2FirstName = "Lord";
+            string user2LastName = "Lucan";
+            UUID user2Uuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
+            
             string itemName = "b.lsl";
             string archiveItemName
-                = string.Format("{0}{1}{2}", itemName, "_", UUID.Random());
+                = string.Format("{0}{1}{2}", itemName, "_", UUID.Random());            
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
@@ -216,9 +220,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.Name = itemName;
             item1.AssetID = UUID.Random();
             item1.GroupID = UUID.Random();
-            item1.CreatorId = userUuid.ToString();
+            item1.CreatorId = OspResolver.MakeOspa(user2FirstName, user2LastName);
+            //item1.CreatorId = userUuid.ToString();
             //item1.CreatorId = "00000000-0000-0000-0000-000000000444";
-            item1.Owner = UUID.Parse(item1.CreatorId);
+            item1.Owner = UUID.Zero;
             
             string item1FileName 
                 = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
@@ -231,9 +236,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
             Scene scene = SceneSetupHelpers.SetupScene();
+            IUserAdminService userAdminService = scene.CommsManager.UserAdminService;
+            
             SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
-            scene.CommsManager.UserAdminService.AddUser(
+            userAdminService.AddUser(
                 userFirstName, userLastName, "meowfood", String.Empty, 1000, 1000, userUuid);
+            userAdminService.AddUser(
+                user2FirstName, user2LastName, "hampshire", String.Empty, 1000, 1000, user2Uuid);
+            
             archiverModule.DearchiveInventory(userFirstName, userLastName, "/", archiveReadStream);
 
             CachedUserInfo userInfo 
@@ -241,10 +251,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
             
             // Currently, creator and ownership both revert to the loader
-            Assert.That(foundItem.CreatorId, Is.EqualTo(userUuid.ToString()));            
+            Assert.That(foundItem.CreatorId, Is.EqualTo(user2Uuid.ToString()));            
             Assert.That(foundItem.Owner, Is.EqualTo(userUuid));            
             
-            Console.WriteLine("Finished TestLoadIarV0p1()");
+            Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
         }
         
         /// <summary>

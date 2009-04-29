@@ -47,7 +47,18 @@ namespace OpenSim.Framework.Communications
         public const string OSPA_NAME_VALUE_SEPARATOR = " ";
         public const string OSPA_TUPLE_SEPARATOR = "|";
         public static readonly char[] OSPA_TUPLE_SEPARATOR_ARRAY = OSPA_TUPLE_SEPARATOR.ToCharArray();
-        public const string OSPA_KEY_VALUE_PAIR_SEPARATOR = "=";
+        public const string OSPA_PAIR_SEPARATOR = "=";
+
+        /// <summary>
+        /// Make an OSPA given an avatar name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static string MakeOspa(string firstName, string lastName)
+        {
+            return 
+                OSPA_PREFIX + OSPA_NAME_KEY + OSPA_PAIR_SEPARATOR + firstName + OSPA_NAME_VALUE_SEPARATOR + lastName;
+        }
         
         /// <summary>
         /// Resolve an osp string into the most suitable internal OpenSim identifier.
@@ -73,7 +84,7 @@ namespace OpenSim.Framework.Communications
             
             foreach (string tuple in ospaTuples)
             {
-                int tupleSeparatorIndex = tuple.IndexOf(OSPA_TUPLE_SEPARATOR);
+                int tupleSeparatorIndex = tuple.IndexOf(OSPA_PAIR_SEPARATOR);
 
                 if (tupleSeparatorIndex < 0)
                 {
