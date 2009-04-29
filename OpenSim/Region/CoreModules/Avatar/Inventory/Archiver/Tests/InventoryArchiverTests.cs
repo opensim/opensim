@@ -257,8 +257,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
         }
-  
-        /*
+
         /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
         /// no account exists with the creator name 
@@ -311,7 +310,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             // Check that a suitable temporary user profile has been created.
             UserProfileData user2Profile 
-                = scene.CommsManager.UserService.GetUserProfile(user2FirstName, user2LastName);
+                = scene.CommsManager.UserService.GetUserProfile(
+                    new UUID(Utils.MD5(Encoding.Unicode.GetBytes(user2FirstName + " " + user2LastName)), 0));
             Assert.That(user2Profile, Is.Not.Null);
             Assert.That(user2Profile.FirstName == user2FirstName);
             Assert.That(user2Profile.SurName == user2LastName);
@@ -325,7 +325,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             Console.WriteLine("### Successfully completed {0} ###", MethodBase.GetCurrentMethod());
         }        
-        */
         
         /// <summary>
         /// Test replication of an archive path to the user's inventory.

@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Communications
     {   
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        public const string OSPA_PREFIX = "ospi:";
+        public const string OSPA_PREFIX = "ospa:";
         public const string OSPA_NAME_KEY = "n";
         public const string OSPA_NAME_VALUE_SEPARATOR = " ";
         public const string OSPA_TUPLE_SEPARATOR = "|";
@@ -76,6 +76,8 @@ namespace OpenSim.Framework.Communications
         /// </returns>
         public static string Resolve(string ospa, CommunicationsManager commsManager)
         {
+            m_log.DebugFormat("[OSP RESOLVER]: Resolving {0}", ospa);
+            
             if (!ospa.StartsWith(OSPA_PREFIX))
                 return ospa;
             
@@ -88,7 +90,7 @@ namespace OpenSim.Framework.Communications
 
                 if (tupleSeparatorIndex < 0)
                 {
-                    m_log.WarnFormat("[OSPA RESOLVER]: Ignoring non-tuple component {0} in OSPA {1}", tuple, ospa);
+                    m_log.WarnFormat("[OSP RESOLVER]: Ignoring non-tuple component {0} in OSPA {1}", tuple, ospa);
                     continue;
                 }
                 
@@ -117,7 +119,7 @@ namespace OpenSim.Framework.Communications
             
             if (nameSeparatorIndex < 0)
             {
-                m_log.WarnFormat("[OSPA RESOLVER]: Ignoring unseparated name {0}", name);
+                m_log.WarnFormat("[OSP RESOLVER]: Ignoring unseparated name {0}", name);
                 return null;
             }
             
@@ -127,12 +129,14 @@ namespace OpenSim.Framework.Communications
             CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
             if (userInfo != null)
                 return userInfo.UserProfile.ID.ToString();
-            
+                        
             UserProfileData tempUserProfile = new UserProfileData();
             tempUserProfile.FirstName = firstName;
             tempUserProfile.SurName = lastName;
             tempUserProfile.ID = new UUID(Utils.MD5(Encoding.Unicode.GetBytes(tempUserProfile.Name)), 0);
             
+            m_log.DebugFormat(
+                "[OSP RESOLVER]: Adding temporary user profile for {0} {1}", tempUserProfile.Name, tempUserProfile.ID);            
             commsManager.UserService.AddTemporaryUserProfile(tempUserProfile);
             
             return tempUserProfile.ID.ToString();

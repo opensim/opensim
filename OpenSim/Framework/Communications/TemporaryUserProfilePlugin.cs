@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Data;
 
@@ -37,6 +39,8 @@ namespace OpenSim.Framework.Communications
     /// </summary>
     public class TemporaryUserProfilePlugin : IUserDataPlugin
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         protected Dictionary<UUID, UserProfileData> m_profiles = new Dictionary<UUID, UserProfileData>();
         
         public string Name { get { return "TemporaryUserProfilePlugin"; } }
@@ -47,6 +51,8 @@ namespace OpenSim.Framework.Communications
         
         public UserProfileData GetUserByUUID(UUID user)
         {
+            m_log.DebugFormat("[TEMP USER PROFILE]: Received request for {0}", user);
+            
             lock (m_profiles)
             {
                 if (m_profiles.ContainsKey(user))
@@ -66,6 +72,8 @@ namespace OpenSim.Framework.Communications
         
         public virtual void AddTemporaryUserProfile(UserProfileData userProfile)
         {
+            m_log.DebugFormat("[TEMP USER PROFILE]: Adding {0} {1}", userProfile.Name, userProfile.ID);
+            
             lock (m_profiles)
             {
                 m_profiles[userProfile.ID] = userProfile;
