@@ -199,6 +199,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void ProcessImageQueue(int count)
         {
+            // this can happen during Close()
+            if (m_client == null) return;
             
             //Count is the number of textures we want to process in one go.
             //As part of this class re-write, that number will probably rise
