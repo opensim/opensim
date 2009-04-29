@@ -228,7 +228,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         public GroupRecord GetGroupRecord(UUID GroupID, string GroupName)
         {
             Hashtable param = new Hashtable();
-            if ((GroupID != null) && (GroupID != UUID.Zero))
+            if (GroupID != UUID.Zero)
             {
                 param["GroupID"] = GroupID.ToString();
             }

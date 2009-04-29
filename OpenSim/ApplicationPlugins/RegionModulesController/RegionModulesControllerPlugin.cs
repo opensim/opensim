@@ -62,7 +62,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             if (pos == -1) m_name = id;
             else m_name = id.Substring(pos + 1);
 
-            ExtensionNodeList list = AddinManager.GetExtensionNodes("/OpenSim/RegionModules");
+            //ExtensionNodeList list = AddinManager.GetExtensionNodes("/OpenSim/RegionModules");
             // load all the (new) region-module classes
             foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes("/OpenSim/RegionModules"))
             {

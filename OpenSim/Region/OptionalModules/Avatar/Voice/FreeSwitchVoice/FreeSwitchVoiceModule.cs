@@ -59,7 +59,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private const bool UseProxy = false;
+        private bool UseProxy = false;
 
         // Capability string prefixes
         private static readonly string m_parcelVoiceInfoRequestPath = "0007/";
@@ -598,7 +598,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
             string auth_token = (string)requestBody["auth_token"];
             string[] auth_tokenvals = auth_token.Split(':');
-            string username = auth_tokenvals[0];
+            //string username = auth_tokenvals[0];
             int strcount = 0;
             
             string[] ids = new string[strcount];
@@ -667,7 +667,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             
             Hashtable requestBody = parseRequestBody((string)request["body"]);
 
-            string pwd = (string) requestBody["pwd"];
+            //string pwd = (string) requestBody["pwd"];
             string userid = (string) requestBody["userid"];
 
             string avatarName = string.Empty;

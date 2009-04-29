@@ -251,7 +251,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);            
             InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
             
-            // Currently, creator and ownership both revert to the loader
             Assert.That(foundItem.CreatorId, Is.EqualTo(user2Uuid.ToString()));            
             Assert.That(foundItem.Owner, Is.EqualTo(userUuid));            
             

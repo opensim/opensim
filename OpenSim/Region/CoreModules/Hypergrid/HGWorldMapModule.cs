@@ -39,8 +39,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 {
     public class HGWorldMapModule : WorldMapModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         #region INonSharedRegionModule Members
 

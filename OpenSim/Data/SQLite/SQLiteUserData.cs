@@ -61,7 +61,6 @@ namespace OpenSim.Data.SQLite
         private const string AvatarPickerAndSQL = "select * from users where username like :username and surname like :surname";
         private const string AvatarPickerOrSQL = "select * from users where username like :username or surname like :surname";
 
-        private Dictionary<UUID, AvatarAppearance> aplist = new Dictionary<UUID, AvatarAppearance>();
         private DataSet ds;
         private SqliteDataAdapter da;
         private SqliteDataAdapter daf;
@@ -162,7 +161,6 @@ namespace OpenSim.Data.SQLite
                 daa.Dispose();
                 daa = null;
             }
-            aplist = null;
         }
 
         /// <summary>
@@ -659,7 +657,6 @@ namespace OpenSim.Data.SQLite
             AvatarAppearance aa = new AvatarAppearance(user);
             //try {
             aa.Owner = user;
-            //aplist[user] = appearance;
 
             DataTable aap = ds.Tables["avatarappearance"];
             lock (ds)
@@ -726,7 +723,6 @@ namespace OpenSim.Data.SQLite
                 }
             }
 
-           //     aa = aplist[user];
            //     m_log.Info("[APPEARANCE] Found appearance for " + user.ToString() + aa.ToString());
            // } catch (KeyNotFoundException) {
            //     m_log.InfoFormat("[APPEARANCE] No appearance found for {0}", user.ToString());
@@ -742,7 +738,6 @@ namespace OpenSim.Data.SQLite
         override public void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
             appearance.Owner = user;
-            //aplist[user] = appearance;
             DataTable aap = ds.Tables["avatarappearance"];
             lock (ds)
             {
