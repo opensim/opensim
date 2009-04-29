@@ -760,7 +760,25 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 req = new NoKeepAliveXmlRpcRequest(function, parameters);
             }
 
-            XmlRpcResponse resp = req.Send(m_serviceURL, 10000);
+            XmlRpcResponse resp = null;
+
+            try
+            {
+                req.Send(m_serviceURL, 10000);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[GROUPS] An error has occured while attempting to access the XmlRpcGroups server");
+                m_log.ErrorFormat("[GROUPS] {0} ", e.ToString());
+
+                foreach (KeyValuePair<object, object> kvp in param)
+                {
+                    m_log.WarnFormat("[GROUPS] {0} :: {1}", kvp.Key.ToString(), kvp.Value.ToString());
+                }
+                Hashtable respData = (Hashtable)resp.Value;
+                respData.Add("error", e.ToString());
+                return respData;
+            }
 
             if (resp.Value is Hashtable)
             {
