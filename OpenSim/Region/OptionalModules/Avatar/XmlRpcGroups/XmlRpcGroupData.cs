@@ -64,7 +64,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public XmlRpcGroupDataProvider(string serviceURL, bool disableKeepAlive)
         {
-            m_serviceURL = serviceURL.Trim().ToLower();
+            m_serviceURL = serviceURL.Trim();
             m_disableKeepAlive = disableKeepAlive;
 
             if ((serviceURL == null) ||
