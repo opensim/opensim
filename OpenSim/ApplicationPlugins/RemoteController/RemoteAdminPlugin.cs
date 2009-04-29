@@ -948,6 +948,32 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         throw new Exception(String.Format("failed to create new user {0} {1}",
                                                           firstname, lastname));
 
+                    // User has been created. Now establish gender and appearance.
+                    // Default appearance is 'Default Male'. Specifying gender can
+                    // establish "Default Female". Specifying a specific model can
+                    // establish a specific appearance without regard for gender.
+
+                    try
+                    {
+                        string model = "Default Male";
+                        if (requestData.Contains("gender"))
+                            if ((string)requestData["gender"] == "f")
+                                model = "Default Female";
+                        
+                        if (requestData.Contains("model"))
+                            model = (string)requestData["model"];
+
+                        string[] uname = model.Split();
+                        UserProfileData udata = m_app.CommunicationsManager.UserService.GetUserProfile(uname[0],uname[1]);
+                        AvatarAppearance ava = m_app.CommunicationsManager.AvatarService.GetUserAppearance(udata.ID);
+                        m_app.CommunicationsManager.AvatarService.UpdateUserAppearance(userID, ava);
+
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[RADMIN] Error establishing initial appearance : {0}", e.Message);
+                    }
+
                     responseData["success"] = "true";
                     responseData["avatar_uuid"] = userID.ToString();
 
@@ -1169,6 +1195,38 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     if (String.Empty != aboutFirstLive) userProfile.FirstLifeAboutText = aboutFirstLive;
                     if (String.Empty != aboutAvatar) userProfile.AboutText = aboutAvatar;
+
+                    // User has been created. Now establish gender and appearance.
+                    // Default appearance is 'Default Male'. Specifying gender can
+                    // establish "Default Female". Specifying a specific model can
+                    // establish a specific appearance without regard for gender.
+
+                    try
+                    {
+                        string model = "*none*";
+                        if (requestData.Contains("gender"))
+                        {
+                            if ((string)requestData["gender"] == "f")
+                                model = "Default Female";
+                            else
+                                model = "Default Male";
+                        }
+                        
+                        if (requestData.Contains("model"))
+                            model = (string)requestData["model"];
+
+                        if (model != "*none*")
+                        {
+                            string[] uname = model.Split();
+                            UserProfileData udata = m_app.CommunicationsManager.UserService.GetUserProfile(uname[0],uname[1]);
+                            AvatarAppearance ava = m_app.CommunicationsManager.AvatarService.GetUserAppearance(udata.ID);
+                            m_app.CommunicationsManager.AvatarService.UpdateUserAppearance(userProfile.ID, ava);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[RADMIN] Error establishing initial appearance : {0}", e.Message);
+                    }
 
                     if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
                         throw new Exception("did not manage to update user profile");
@@ -1744,21 +1802,21 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 int addk = 0;
 
-                if(requestData.Contains("users"))
+               if (requestData.Contains("users"))
                 {
                     UserProfileCacheService ups = m_app.CommunicationsManager.UserProfileCacheService;
                     Scene s = m_app.SceneManager.CurrentScene;
                     Hashtable users = (Hashtable) requestData["users"];
                     List<UUID> uuids = new List<UUID>();
-                    foreach(string name in users.Values)
+                   foreach (string name in users.Values)
                     {
                         string[] parts = name.Split();
                         uuids.Add(ups.GetUserDetails(parts[0],parts[1]).UserProfile.ID);
                     }
                     List<UUID> acl = new List<UUID>(s.RegionInfo.EstateSettings.EstateAccess);
-                    foreach(UUID uuid in uuids)
+                   foreach (UUID uuid in uuids)
                     {
-                        if(!acl.Contains(uuid))
+                       if (!acl.Contains(uuid))
                         {
                             acl.Add(uuid);
                             addk++;
@@ -1823,21 +1881,21 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 int remk = 0;
 
-                if(requestData.Contains("users"))
+               if (requestData.Contains("users"))
                 {
                     UserProfileCacheService ups = m_app.CommunicationsManager.UserProfileCacheService;
                     Scene s = m_app.SceneManager.CurrentScene;
                     Hashtable users = (Hashtable) requestData["users"];
                     List<UUID> uuids = new List<UUID>();
-                    foreach(string name in users.Values)
+                   foreach (string name in users.Values)
                     {
                         string[] parts = name.Split();
                         uuids.Add(ups.GetUserDetails(parts[0],parts[1]).UserProfile.ID);
                     }
                     List<UUID> acl = new List<UUID>(s.RegionInfo.EstateSettings.EstateAccess);
-                    foreach(UUID uuid in uuids)
+                   foreach (UUID uuid in uuids)
                     {
-                        if(acl.Contains(uuid))
+                       if (acl.Contains(uuid))
                         {
                             acl.Remove(uuid);
                             remk++;
@@ -1905,7 +1963,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 UUID[] acl = s.RegionInfo.EstateSettings.EstateAccess;
                 Hashtable users = new Hashtable();
 
-                foreach(UUID user in acl)
+               foreach (UUID user in acl)
                 {
                     users[user.ToString()] = 
                        m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(user).UserProfile.Name;
