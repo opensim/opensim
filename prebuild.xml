@@ -1588,7 +1588,9 @@
       <Reference name="Mono.Addins.dll" />
       <Reference name="System"/>
       <Reference name="System.Xml"/>
+      <Reference name="OpenMetaverse.dll" />
       <Reference name="OpenMetaverseTypes.dll" />
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll" />
       <Reference name="OpenSim"/>

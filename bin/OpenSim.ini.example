@@ -588,6 +588,19 @@
     enabled = false
     access_password = unknown
 
+    ; set this variable to true if you want the create_region XmlRpc
+    ; call to unconditionally enable voice on all parcels for a newly
+    ; created region [default: false]
+
+    create_region_enable_voice = false
+
+    ; set this variable to false if you want the create_region XmlRpc
+    ; call to create all regions as private per default (can be
+    ; overridden in the XmlRpc call) [default: true]
+
+    create_region_public = false
+
+
     ; the create_region XmlRpc call uses region_file_template to generate
     ; the file name of newly create regions (if they are created
     ; persistent). the parameter available are:
