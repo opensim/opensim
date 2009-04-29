@@ -103,7 +103,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (!m_decoded)
                 return 0;
-            return (ushort)(((m_asset.Data.Length - cFirstPacketSize + cImagePacketSize - 1) / cImagePacketSize) + 1);
+            try
+            {
+                return (ushort)(((m_asset.Data.Length - cFirstPacketSize + cImagePacketSize - 1) / cImagePacketSize) + 1);
+            }
+            catch(Exception e)
+            {
+                // If the asset is missing/destroyed/truncated, we will land
+                // here
+                //
+                return 0;
+            }
         }
 
         public void J2KDecodedCallback(UUID AssetId, OpenJPEG.J2KLayerInfo[] layers)
