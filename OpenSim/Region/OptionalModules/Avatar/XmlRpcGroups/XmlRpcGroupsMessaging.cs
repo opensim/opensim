@@ -120,7 +120,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (!m_groupMessagingEnabled)
                 return;
 
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             m_groupsModule = scene.RequestModuleInterface<IGroupsModule>();
 
@@ -157,7 +157,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (!m_groupMessagingEnabled)
                 return;
 
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             m_sceneList.Remove(scene);
         }
@@ -201,7 +201,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private void OnNewClient(IClientAPI client)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] OnInstantMessage registered for {0}", client.Name);
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: OnInstantMessage registered for {0}", client.Name);
 
             client.OnInstantMessage += OnInstantMessage;
         }
@@ -217,7 +217,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             if (m_debugEnabled)
             {
-                m_log.DebugFormat("[GROUPS-MESSAGING] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+                m_log.DebugFormat("[GROUPS-MESSAGING]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
                 DebugGridInstantMessage(msg);
             }
@@ -234,7 +234,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private void ProcessMessageFromGroupSession(GridInstantMessage msg)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] Session message from {0} going to agent {1}", msg.fromAgentName, msg.toAgentID);
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Session message from {0} going to agent {1}", msg.fromAgentName, msg.toAgentID);
 
             switch (msg.dialog)
             {
@@ -263,7 +263,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                             GroupRecord groupInfo = m_groupsModule.GetGroupRecord(groupID);
                             if (groupInfo != null)
                             {
-                                if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] Sending chatterbox invite instant message");
+                                if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Sending chatterbox invite instant message");
 
                                 // Force? open the group session dialog???
                                 IEventQueue eq = activeClient.Scene.RequestModuleInterface<IEventQueue>();
@@ -303,18 +303,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         if (client != null)
                         {
                             // Deliver locally, directly
-                            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] Delivering to {0} locally", client.Name);
+                            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Delivering to {0} locally", client.Name);
                             client.SendInstantMessage(msg);
                         }
                         else
                         {
-                            m_log.WarnFormat("[GROUPS-MESSAGING] Received a message over the grid for a client that isn't here: {0}", msg.toAgentID);
+                            m_log.WarnFormat("[GROUPS-MESSAGING]: Received a message over the grid for a client that isn't here: {0}", msg.toAgentID);
                         }
                     }
                     break;
 
                 default:
-                    m_log.WarnFormat("[GROUPS-MESSAGING] I don't know how to proccess a {0} message.", ((InstantMessageDialog)msg.dialog).ToString());
+                    m_log.WarnFormat("[GROUPS-MESSAGING]: I don't know how to proccess a {0} message.", ((InstantMessageDialog)msg.dialog).ToString());
                     break;
             }
         }
@@ -336,7 +336,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 // If not in dropped list, add
                 if (!m_agentsDroppedSession[sessionID].Contains(agentID))
                 {
-                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] Dropped {1} from session {0}", sessionID, agentID);
+                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Dropped {1} from session {0}", sessionID, agentID);
                     m_agentsDroppedSession[sessionID].Add(agentID);
                 }
             }
@@ -356,7 +356,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // If nessesary, add to in session list
             if (!m_agentsInGroupSession[sessionID].Contains(agentID))
             {
-                if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] Added {1} to session {0}", sessionID, agentID);
+                if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Added {1} to session {0}", sessionID, agentID);
                 m_agentsInGroupSession[sessionID].Add(agentID);
             }
         }
@@ -365,7 +365,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (!m_agentsInGroupSession.ContainsKey(sessionID))
             {
-                if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] Creating session tracking for : {0}", sessionID);
+                if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Creating session tracking for : {0}", sessionID);
                 m_agentsInGroupSession.Add(sessionID, new List<Guid>());
                 m_agentsDroppedSession.Add(sessionID, new List<Guid>());
             }
@@ -375,7 +375,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_debugEnabled)
             {
-                m_log.DebugFormat("[GROUPS-MESSAGING] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+                m_log.DebugFormat("[GROUPS-MESSAGING]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
                 DebugGridInstantMessage(im);
             }
@@ -388,7 +388,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 GroupRecord groupInfo = m_groupsModule.GetGroupRecord(groupID);
                 if (groupInfo != null)
                 {
-                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] Start Group Session for {0}", groupInfo.GroupName);
+                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Start Group Session for {0}", groupInfo.GroupName);
 
                     AddAgentToGroupSession(im.fromAgentID, im.imSessionID);
 
@@ -411,7 +411,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             {
                 UUID groupID = new UUID(im.toAgentID);
 
-                if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] Send message to session for group {0} with session ID {1}", groupID, im.imSessionID.ToString());
+                if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Send message to session for group {0} with session ID {1}", groupID, im.imSessionID.ToString());
 
                 SendMessageToGroup(im, groupID);
             }
@@ -421,14 +421,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private void SendMessageToGroup(GridInstantMessage im, UUID groupID)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             foreach (GroupMembersData member in m_groupsModule.GroupMembersRequest(null, groupID))
             {
                 if (m_agentsDroppedSession[im.imSessionID].Contains(member.AgentID.Guid))
                 {
                     // Don't deliver messages to people who have dropped this session
-                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] {0} has dropped session, not delivering to them", member.AgentID);
+                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: {0} has dropped session, not delivering to them", member.AgentID);
                     continue;
                 }
 
@@ -455,13 +455,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 if (client == null)
                 {
                     // If they're not local, forward across the grid
-                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] Delivering to {0} via Grid", member.AgentID);
+                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Delivering to {0} via Grid", member.AgentID);
                     m_msgTransferModule.SendInstantMessage(msg, delegate(bool success) { });
                 }
                 else
                 {
                     // Deliver locally, directly
-                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] Passing to ProcessMessageFromGroupSession to deliver to {0} locally", client.Name);
+                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Passing to ProcessMessageFromGroupSession to deliver to {0} locally", client.Name);
                     ProcessMessageFromGroupSession(msg);
                 }
             }
@@ -469,7 +469,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         void ChatterBoxSessionStartReplyViaCaps(IClientAPI remoteClient, string groupName, UUID groupID)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING] {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             OSDMap moderatedMap = new OSDMap(4);
             moderatedMap.Add("voice", OSD.FromBoolean(false));
@@ -498,15 +498,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_debugEnabled)
             {
-                m_log.WarnFormat("[GROUPS-MESSAGING] IM: fromGroup({0})", im.fromGroup ? "True" : "False");
-                m_log.WarnFormat("[GROUPS-MESSAGING] IM: Dialog({0})", ((InstantMessageDialog)im.dialog).ToString());
-                m_log.WarnFormat("[GROUPS-MESSAGING] IM: fromAgentID({0})", im.fromAgentID.ToString());
-                m_log.WarnFormat("[GROUPS-MESSAGING] IM: fromAgentName({0})", im.fromAgentName.ToString());
-                m_log.WarnFormat("[GROUPS-MESSAGING] IM: imSessionID({0})", im.imSessionID.ToString());
-                m_log.WarnFormat("[GROUPS-MESSAGING] IM: message({0})", im.message.ToString());
-                m_log.WarnFormat("[GROUPS-MESSAGING] IM: offline({0})", im.offline.ToString());
-                m_log.WarnFormat("[GROUPS-MESSAGING] IM: toAgentID({0})", im.toAgentID.ToString());
-                m_log.WarnFormat("[GROUPS-MESSAGING] IM: binaryBucket({0})", OpenMetaverse.Utils.BytesToHexString(im.binaryBucket, "BinaryBucket"));
+                m_log.WarnFormat("[GROUPS-MESSAGING]: IM: fromGroup({0})", im.fromGroup ? "True" : "False");
+                m_log.WarnFormat("[GROUPS-MESSAGING]: IM: Dialog({0})", ((InstantMessageDialog)im.dialog).ToString());
+                m_log.WarnFormat("[GROUPS-MESSAGING]: IM: fromAgentID({0})", im.fromAgentID.ToString());
+                m_log.WarnFormat("[GROUPS-MESSAGING]: IM: fromAgentName({0})", im.fromAgentName.ToString());
+                m_log.WarnFormat("[GROUPS-MESSAGING]: IM: imSessionID({0})", im.imSessionID.ToString());
+                m_log.WarnFormat("[GROUPS-MESSAGING]: IM: message({0})", im.message.ToString());
+                m_log.WarnFormat("[GROUPS-MESSAGING]: IM: offline({0})", im.offline.ToString());
+                m_log.WarnFormat("[GROUPS-MESSAGING]: IM: toAgentID({0})", im.toAgentID.ToString());
+                m_log.WarnFormat("[GROUPS-MESSAGING]: IM: binaryBucket({0})", OpenMetaverse.Utils.BytesToHexString(im.binaryBucket, "BinaryBucket"));
             }
         }
 
