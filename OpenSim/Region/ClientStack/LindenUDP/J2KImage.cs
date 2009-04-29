@@ -210,47 +210,52 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool complete = false;
             int imagePacketSize = ((int)m_packetNumber == (TexturePacketCount())) ? LastPacketSize() : cImagePacketSize;
 
-            if ((CurrentBytePosition() + cImagePacketSize) > m_asset.Data.Length)
+            try
             {
-                imagePacketSize = LastPacketSize();
-                complete=true;
-                if ((CurrentBytePosition() + imagePacketSize) > m_asset.Data.Length)
+                if ((CurrentBytePosition() + cImagePacketSize) > m_asset.Data.Length)
                 {
-                    imagePacketSize = m_asset.Data.Length - CurrentBytePosition();
-                    complete = true;
+                    imagePacketSize = LastPacketSize();
+                    complete=true;
+                    if ((CurrentBytePosition() + imagePacketSize) > m_asset.Data.Length)
+                    {
+                        imagePacketSize = m_asset.Data.Length - CurrentBytePosition();
+                        complete = true;
+                    }
                 }
-            }
-            
-            //It's concievable that the client might request packet one
-            //from a one packet image, which is really packet 0,
-            //which would leave us with a negative imagePacketSize..
-            if (imagePacketSize > 0)
-            {
-                byte[] imageData = new byte[imagePacketSize];
-                try
+                
+                //It's concievable that the client might request packet one
+                //from a one packet image, which is really packet 0,
+                //which would leave us with a negative imagePacketSize..
+                if (imagePacketSize > 0)
                 {
-                    Buffer.BlockCopy(m_asset.Data, CurrentBytePosition(), imageData, 0, imagePacketSize);
+                    byte[] imageData = new byte[imagePacketSize];
+                    try
+                    {
+                        Buffer.BlockCopy(m_asset.Data, CurrentBytePosition(), imageData, 0, imagePacketSize);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error("Error copying texture block. Out of memory? imagePacketSize was " + imagePacketSize.ToString() + " on packet " + m_packetNumber.ToString() + " out of " + m_stopPacket.ToString() + ". Exception: " + e.ToString());
+                        return false;
+                    }
+
+                    //Send the packet
+                    client.SendImageNextPart((ushort)(m_packetNumber-1), m_requestedUUID, imageData);
+                    
                 }
-                catch (Exception e)
+                if (complete)
                 {
-                    m_log.Error("Error copying texture block. Out of memory? imagePacketSize was " + imagePacketSize.ToString() + " on packet " + m_packetNumber.ToString() + " out of " + m_stopPacket.ToString() + ". Exception: " + e.ToString());
                     return false;
                 }
-
-                //Send the packet
-                client.SendImageNextPart((ushort)(m_packetNumber-1), m_requestedUUID, imageData);
-                
+                else
+                {
+                    return true;
+                }
             }
-            if (complete)
+            catch (Exception e)
             {
                 return false;
             }
-            else
-            {
-                return true;
-            }
-
-
         }
         public bool SendPackets(LLClientView client)
         {
