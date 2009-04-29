@@ -2237,64 +2237,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart linkPart = GetChildPart(partID);
 
-            if (null != linkPart)
+            if (linkPart != null)
             {
-                linkPart.ClearUndoState();
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT GROUP]: Delinking part {0}, {1} from group with root part {2}, {3}",
-//                    linkPart.Name, linkPart.UUID, RootPart.Name, RootPart.UUID);
-
-                Quaternion worldRot = linkPart.GetWorldRotation();
-
-                // Remove the part from this object
-                lock (m_parts)
-                {
-                    m_parts.Remove(linkPart.UUID);
-                }
-
-                if (m_parts.Count == 1 && RootPart != null) //Single prim is left
-                    RootPart.LinkNum = 0;
-                else
-                {
-                    foreach (SceneObjectPart p in m_parts.Values)
-                    {
-                        if (p.LinkNum > linkPart.LinkNum)
-                            p.LinkNum--;
-                    }
-                }
-
-                linkPart.ParentID = 0;
-                linkPart.LinkNum = 0;
-
-                if (linkPart.PhysActor != null)
-                {
-                    m_scene.PhysicsScene.RemovePrim(linkPart.PhysActor);
-                }
-
-                // We need to reset the child part's position
-                // ready for life as a separate object after being a part of another object
-                Quaternion parentRot = m_rootPart.RotationOffset;
-
-                Vector3 axPos = linkPart.OffsetPosition;
-
-                axPos *= parentRot;
-                linkPart.OffsetPosition = new Vector3(axPos.X, axPos.Y, axPos.Z);
-                linkPart.GroupPosition = AbsolutePosition + linkPart.OffsetPosition;
-                linkPart.OffsetPosition = new Vector3(0, 0, 0);
-
-                linkPart.RotationOffset = worldRot;
-
-                SceneObjectGroup objectGroup = new SceneObjectGroup(linkPart);
-
-                m_scene.AddNewSceneObject(objectGroup, true);
-
-                if (sendEvents)
-                    linkPart.TriggerScriptChangedEvent(Changed.LINK);
-
-                linkPart.Rezzed = RootPart.Rezzed;
-
-                HasGroupChanged = true;
-                ScheduleGroupForFullUpdate();
+                DelinkFromGroup(linkPart, sendEvents);
             }
             else
             {
@@ -2302,6 +2247,66 @@ namespace OpenSim.Region.Framework.Scenes
                                  "DelinkFromGroup(): Child prim {0} not found in object {1}, {2}",
                                  partID, LocalId, UUID);
             }
+        }
+
+        public void DelinkFromGroup(SceneObjectPart linkPart, bool sendEvents)
+        {
+            linkPart.ClearUndoState();
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT GROUP]: Delinking part {0}, {1} from group with root part {2}, {3}",
+//                    linkPart.Name, linkPart.UUID, RootPart.Name, RootPart.UUID);
+
+            Quaternion worldRot = linkPart.GetWorldRotation();
+
+            // Remove the part from this object
+            lock (m_parts)
+            {
+                m_parts.Remove(linkPart.UUID);
+            }
+
+            if (m_parts.Count == 1 && RootPart != null) //Single prim is left
+                RootPart.LinkNum = 0;
+            else
+            {
+                foreach (SceneObjectPart p in m_parts.Values)
+                {
+                    if (p.LinkNum > linkPart.LinkNum)
+                        p.LinkNum--;
+                }
+            }
+
+            linkPart.ParentID = 0;
+            linkPart.LinkNum = 0;
+
+            if (linkPart.PhysActor != null)
+            {
+                m_scene.PhysicsScene.RemovePrim(linkPart.PhysActor);
+            }
+
+            // We need to reset the child part's position
+            // ready for life as a separate object after being a part of another object
+            Quaternion parentRot = m_rootPart.RotationOffset;
+
+            Vector3 axPos = linkPart.OffsetPosition;
+
+            axPos *= parentRot;
+            linkPart.OffsetPosition = new Vector3(axPos.X, axPos.Y, axPos.Z);
+            linkPart.GroupPosition = AbsolutePosition + linkPart.OffsetPosition;
+            linkPart.OffsetPosition = new Vector3(0, 0, 0);
+
+            linkPart.RotationOffset = worldRot;
+
+            SceneObjectGroup objectGroup = new SceneObjectGroup(linkPart);
+
+            m_scene.AddNewSceneObject(objectGroup, true);
+
+            if (sendEvents)
+                linkPart.TriggerScriptChangedEvent(Changed.LINK);
+
+            linkPart.Rezzed = RootPart.Rezzed;
+
+            HasGroupChanged = true;
+            ScheduleGroupForFullUpdate();
         }
 
         /// <summary>
