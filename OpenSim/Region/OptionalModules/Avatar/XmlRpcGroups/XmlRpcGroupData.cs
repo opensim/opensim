@@ -146,9 +146,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                                     | GroupPowers.VoteOnProposal;
             param["OwnersPowers"] = ((ulong)OwnerPowers).ToString();
 
-
-
-
             Hashtable respData = XmlRpcCall("groups.createGroup", param);
 
             if (respData.Contains("error"))
@@ -237,7 +234,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 param["Name"] = GroupName.ToString();
             }
 
-
             Hashtable respData = XmlRpcCall("groups.getGroup", param);
 
             if (respData.Contains("error"))
@@ -246,14 +242,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
 
             return GroupProfileHashtableToGroupRecord(respData);
-
         }
 
         public GroupProfileData GetMemberGroupProfile(UUID GroupID, UUID AgentID)
         {
             Hashtable param = new Hashtable();
             param["GroupID"] = GroupID.ToString();
-
 
             Hashtable respData = XmlRpcCall("groups.getGroup", param);
 
@@ -270,7 +264,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             MemberGroupProfile.PowersMask = MemberInfo.GroupPowers;
 
             return MemberGroupProfile;
-
         }
 
         private GroupProfileData GroupProfileHashtableToGroupProfileData(Hashtable groupProfile)
@@ -350,7 +343,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param["ListInProfile"] = ListInProfile ? "1" : "0";
 
             XmlRpcCall("groups.setAgentGroupInfo", param);
-
         }
 
         public void AddAgentToGroupInvite(UUID inviteID, UUID groupID, UUID roleID, UUID agentID)
@@ -362,7 +354,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param["GroupID"] = groupID.ToString();
 
             XmlRpcCall("groups.addAgentToGroupInvite", param);
-
         }
 
         public GroupInviteInfo GetAgentToGroupInvite(UUID inviteID)
@@ -434,7 +425,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             XmlRpcCall("groups.removeAgentFromGroupRole", param);
         }
 
-
         public List<DirGroupsReplyData> FindGroups(string search)
         {
             Hashtable param = new Hashtable();
@@ -495,7 +485,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return HashTableToGroupMembershipData(respData);
         }
 
-
         public List<GroupMembershipData> GetAgentGroupMemberships(UUID AgentID)
         {
             Hashtable param = new Hashtable();
@@ -543,8 +532,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
 
             return Roles;
-
-
         }
 
         public List<GroupRolesData> GetGroupRoles(UUID GroupID)
@@ -575,7 +562,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
 
             return Roles;
-
         }
 
         private static GroupMembershipData HashTableToGroupMembershipData(Hashtable respData)
@@ -643,7 +629,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
 
             return members;
-
         }
 
         public List<GroupRoleMembersData> GetGroupRoleMembers(UUID GroupID)
@@ -667,6 +652,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     members.Add(data);
                 }
             }
+            
             return members;
         }
 
@@ -694,16 +680,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     values.Add(data);
                 }
             }
+            
             return values;
-
         }
+        
         public GroupNoticeInfo GetGroupNotice(UUID noticeID)
         {
             Hashtable param = new Hashtable();
             param["NoticeID"] = noticeID.ToString();
 
             Hashtable respData = XmlRpcCall("groups.getGroupNotice", param);
-
 
             if (respData.Contains("error"))
             {
@@ -728,6 +714,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             return data;
         }
+        
         public void AddGroupNotice(UUID groupID, UUID noticeID, string fromName, string subject, string message, byte[] binaryBucket)
         {
             string binBucket = OpenMetaverse.Utils.BytesToHexString(binaryBucket, "");
@@ -768,14 +755,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
             catch (Exception e)
             {
-                m_log.Error("[GROUPS] An error has occured while attempting to access the XmlRpcGroups server");
-                m_log.ErrorFormat("[GROUPS] {0} ", e.ToString());
+                m_log.ErrorFormat("[GROUPS]: An error has occured while attempting to access the XmlRpcGroups server method: {0}", function);
+                m_log.ErrorFormat("[GROUPS]: {0} ", e.ToString());
 
                 foreach (KeyValuePair<object, object> kvp in param)
                 {
-                    m_log.WarnFormat("[GROUPS] {0} :: {1}", kvp.Key.ToString(), kvp.Value.ToString());
+                    m_log.WarnFormat("[GROUPS]: {0} :: {1}", kvp.Key.ToString(), kvp.Value.ToString());
                 }
-                Hashtable respData = (Hashtable)resp.Value;
+
+
+                Hashtable respData = new Hashtable();
                 respData.Add("error", e.ToString());
                 return respData;
             }
@@ -791,21 +780,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 return respData;
             }
 
-            m_log.ErrorFormat("[XmlRpcGroupData] The XmlRpc server returned a {1} instead of a hashtable for {0}", function, resp.Value.GetType().ToString());
+            m_log.ErrorFormat("[GROUPS]: The XmlRpc server returned a {1} instead of a hashtable for {0}", function, resp.Value.GetType().ToString());
 
             if (resp.Value is ArrayList)
             {
                 ArrayList al = (ArrayList)resp.Value;
-                m_log.ErrorFormat("[XmlRpcGroupData] Contains {0} elements", al.Count);
+                m_log.ErrorFormat("[GROUPS]: Contains {0} elements", al.Count);
 
                 foreach (object o in al)
                 {
-                    m_log.ErrorFormat("[XmlRpcGroupData] {0} :: {1}", o.GetType().ToString(), o.ToString());
+                    m_log.ErrorFormat("[GROUPS]: {0} :: {1}", o.GetType().ToString(), o.ToString());
                 }
             }
             else
             {
-                m_log.ErrorFormat("[XmlRpcGroupData] Function returned: {0}", resp.Value.ToString());
+                m_log.ErrorFormat("[GROUPS]: Function returned: {0}", resp.Value.ToString());
             }
 
             Hashtable error = new Hashtable();
@@ -815,21 +804,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private void LogRespDataToConsoleError(Hashtable respData)
         {
-            m_log.Error("[GROUPDATA] Error:");
+            m_log.Error("[GROUPS]: Error:");
 
             foreach (string key in respData.Keys)
             {
-                m_log.ErrorFormat("[GROUPDATA] Key: {0}", key);
+                m_log.ErrorFormat("[GROUPS]: Key: {0}", key);
 
                 string[] lines = respData[key].ToString().Split(new char[] { '\n' });
                 foreach (string line in lines)
                 {
-                    m_log.ErrorFormat("[GROUPDATA] {0}", line);
+                    m_log.ErrorFormat("[GROUPS]: {0}", line);
                 }
-
             }
         }
-
     }
 
     public class GroupNoticeInfo
