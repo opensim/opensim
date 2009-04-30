@@ -2746,13 +2746,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void ProcessAvatarTerseUpdates(object sender, ElapsedEventArgs e)
         {
-            Dictionary<uint, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> dataBlocks = null;
-
             lock (m_terseUpdates)
             {
                 ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
                 terse.RegionData.RegionHandle = Scene.RegionInfo.RegionHandle;
-                terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[dataBlocks.Count];
+                terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[m_terseUpdates.Count];
 
                 int i = 0;
                 foreach (KeyValuePair<uint, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> dbe in m_terseUpdates)
