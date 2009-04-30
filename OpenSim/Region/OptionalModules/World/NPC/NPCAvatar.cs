@@ -592,7 +592,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
 
         public virtual void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
-                                                  Vector3 position, Vector3 velocity, Quaternion rotation)
+                                                  Vector3 position, Vector3 velocity, Quaternion rotation, UUID agentId)
         {
         }
 

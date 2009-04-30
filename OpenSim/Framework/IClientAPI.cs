@@ -871,7 +871,7 @@ namespace OpenSim.Framework
                             Vector3 Pos, byte[] textureEntry, uint parentID, Quaternion rotation);
 
         void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
-                                   Vector3 velocity, Quaternion rotation);
+                                   Vector3 velocity, Quaternion rotation, UUID agentid);
 
         void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations);
 

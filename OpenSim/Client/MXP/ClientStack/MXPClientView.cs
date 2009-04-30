@@ -1001,7 +1001,7 @@ namespace OpenSim.Client.MXP.ClientStack
             MXPSendAvatarData(firstName + " " + lastName, ownerID, UUID.Zero, avatarID, avatarLocalID, position, rotation);
         }
 
-        public void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position, Vector3 velocity, Quaternion rotation)
+        public void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position, Vector3 velocity, Quaternion rotation, UUID uuid)
         {
             MovementEventMessage me = new MovementEventMessage();
             me.ObjectIndex = localID;

@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
@@ -67,6 +68,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly IAssetCache m_assetCache;
         private int m_cachedTextureSerial;
         private Timer m_clientPingTimer;
+
+        private Timer m_terseUpdateTimer;
+        private Dictionary<uint, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_terseUpdates = new Dictionary<uint, ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+        private ushort m_terseTimeDilationLast = 0;
 
         private bool m_clientBlocked;
 
@@ -116,6 +121,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected string m_activeGroupName = String.Empty;
         protected ulong m_activeGroupPowers;
         protected Dictionary<UUID,ulong> m_groupPowers = new Dictionary<UUID, ulong>();
+        protected int m_terseUpdateRate = 50;
+        protected int m_terseUpdatesPerPacket = 5;
 
         // LLClientView Only
         public delegate void BinaryGenericMessage(Object sender, string method, byte[][] args);
@@ -521,7 +528,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Shut down timers
             m_clientPingTimer.Stop();
-
+            m_terseUpdateTimer.Stop();
 
             // This is just to give the client a reasonable chance of
             // flushing out all it's packets.  There should probably
@@ -602,6 +609,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Shut down timers
             m_clientPingTimer.Stop();
+            m_terseUpdateTimer.Stop();
         }
 
         public void Restart()
@@ -612,6 +620,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientPingTimer = new Timer(5000);
             m_clientPingTimer.Elapsed += CheckClientConnectivity;
             m_clientPingTimer.Enabled = true;
+
+            m_terseUpdateTimer = new Timer(m_terseUpdateRate);
+            m_terseUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessAvatarTerseUpdates);
+            m_terseUpdateTimer.AutoReset = false;
         }
 
         public void Terminate()
@@ -832,6 +844,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientPingTimer = new Timer(5000);
             m_clientPingTimer.Elapsed += CheckClientConnectivity;
             m_clientPingTimer.Enabled = true;
+
+            m_terseUpdateTimer = new Timer(m_terseUpdateRate);
+            m_terseUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessAvatarTerseUpdates);
+            m_terseUpdateTimer.AutoReset = false;
 
             m_scene.AddNewClient(this);
 
@@ -2696,8 +2712,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Send a terse positional/rotation/velocity update about an avatar to the client.  This avatar can be that of
         /// the client itself.
         /// </summary>
-        public void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
-                                          Vector3 velocity, Quaternion rotation)
+        public virtual void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
+                                          Vector3 velocity, Quaternion rotation, UUID agentid)
         {
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = Quaternion.Identity;
@@ -2706,17 +2722,52 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock =
                 CreateAvatarImprovedBlock(localID, position, velocity, rotation);
-            ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
-            // TODO: don't create new blocks if recycling an old packet
-            terse.RegionData.RegionHandle = regionHandle;
-            terse.RegionData.TimeDilation = timeDilation;
-            terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-            terse.ObjectData[0] = terseBlock;
+                
+            bool sendpacketnow = false;
+            lock (m_terseUpdates)
+            {
+                // Only one update per avatar per packet. No need to send old ones so just overwrite them.
+                m_terseUpdates[localID] = terseBlock;
+                m_terseTimeDilationLast = timeDilation;
 
-            terse.Header.Reliable = false;
-            terse.Header.Zerocoded = true;
+                // If packet is full or own movement packet, send it.
+                if (agentid == m_agentId || m_terseUpdates.Count >= m_terseUpdatesPerPacket)
+                {
+                    m_terseUpdateTimer.Stop();
+                    sendpacketnow = true;
+                }
+                else if (m_terseUpdates.Count == 1)
+                    m_terseUpdateTimer.Start();                
+            }
+            // Call ProcessAvatarTerseUpdates outside the lock
+            if (sendpacketnow)
+                ProcessAvatarTerseUpdates(this, null);
+        }
 
-            OutPacket(terse, ThrottleOutPacketType.Task);
+        private void ProcessAvatarTerseUpdates(object sender, ElapsedEventArgs e)
+        {
+            Dictionary<uint, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> dataBlocks = null;
+
+            lock (m_terseUpdates)
+            {
+                ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
+                terse.RegionData.RegionHandle = Scene.RegionInfo.RegionHandle;
+                terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[dataBlocks.Count];
+
+                int i = 0;
+                foreach (KeyValuePair<uint, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> dbe in m_terseUpdates)
+                {
+                    terse.ObjectData[i] = dbe.Value;
+                    i++;
+                }
+                terse.RegionData.TimeDilation = m_terseTimeDilationLast;
+
+                terse.Header.Reliable = false;
+                terse.Header.Zerocoded = true;
+                OutPacket(terse, ThrottleOutPacketType.Task);
+
+                m_terseUpdates.Clear();
+            }
         }
 
         public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)

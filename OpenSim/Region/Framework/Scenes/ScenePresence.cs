@@ -2367,7 +2367,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Quaternion rot = m_bodyRot;
                 pos.Z -= m_appearance.HipOffset;
                 remoteClient.SendAvatarTerseUpdate(m_regionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId, new Vector3(pos.X, pos.Y, pos.Z),
-                                                   new Vector3(vel.X, vel.Y, vel.Z), rot);
+                                                   new Vector3(vel.X, vel.Y, vel.Z), rot, m_uuid);
 
                 m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
                 m_scene.StatsReporter.AddAgentUpdates(1);
