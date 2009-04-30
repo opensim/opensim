@@ -105,6 +105,16 @@ namespace OpenSim.Framework.Communications
         }
         
         /// <summary>
+        /// Hash a profile name into a UUID
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static UUID HashName(string name)
+        {
+            return new UUID(Utils.MD5(Encoding.Unicode.GetBytes(name)), 0);
+        }
+        
+        /// <summary>
         /// Resolve an OSPI name by querying existing persistent user profiles.  If there is no persistent user profile
         /// then a temporary user profile is inserted in the cache.
         /// </summary>
@@ -133,7 +143,7 @@ namespace OpenSim.Framework.Communications
             UserProfileData tempUserProfile = new UserProfileData();
             tempUserProfile.FirstName = firstName;
             tempUserProfile.SurName = lastName;
-            tempUserProfile.ID = new UUID(Utils.MD5(Encoding.Unicode.GetBytes(tempUserProfile.Name)), 0);
+            tempUserProfile.ID = HashName(tempUserProfile.Name);
             
             m_log.DebugFormat(
                 "[OSP RESOLVER]: Adding temporary user profile for {0} {1}", tempUserProfile.Name, tempUserProfile.ID);            

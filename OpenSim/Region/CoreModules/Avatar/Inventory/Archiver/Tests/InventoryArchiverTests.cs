@@ -311,7 +311,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             // Check that a suitable temporary user profile has been created.
             UserProfileData user2Profile 
                 = scene.CommsManager.UserService.GetUserProfile(
-                    new UUID(Utils.MD5(Encoding.Unicode.GetBytes(user2FirstName + " " + user2LastName)), 0));
+                    OspResolver.HashName(user2FirstName + " " + user2LastName));
             Assert.That(user2Profile, Is.Not.Null);
             Assert.That(user2Profile.FirstName == user2FirstName);
             Assert.That(user2Profile.SurName == user2LastName);
