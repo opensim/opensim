@@ -62,6 +62,8 @@ namespace OpenSim.Framework
         RegionStatus RegionStatus { get; set; }
 
         ClientManager ClientManager { get; }
+        float TimeDilation { get; }
+
         event restart OnRestart;
 
         void AddNewClient(IClientAPI client);
