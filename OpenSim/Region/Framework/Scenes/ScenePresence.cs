@@ -935,6 +935,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_isChildAgent = false;
 
+            List<ScenePresence> AnimAgents = m_scene.GetScenePresences();
+            foreach (ScenePresence p in AnimAgents)
+            {
+                if (p != this)
+                    p.SendAnimPackToClient(ControllingClient);
+            }
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
 
         }
