@@ -747,7 +747,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            while (m_pendingObjects != null && m_pendingObjects.Count > 0 && m_partsUpdateQueue.Count < 120)
+            while (m_pendingObjects != null && m_pendingObjects.Count > 0 && m_partsUpdateQueue.Count < 60)
             {
                 SceneObjectGroup g = m_pendingObjects.Dequeue();
 
@@ -836,7 +836,7 @@ namespace OpenSim.Region.Framework.Scenes
                     updateCount++;
                 }
 
-                if (updateCount > 300)
+                if (updateCount > 200)
                     break;
             }
 
