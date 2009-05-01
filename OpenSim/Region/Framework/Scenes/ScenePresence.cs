@@ -141,6 +141,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Vector3 m_lastVelocity = Vector3.Zero;
 
+        private int m_maxPrimsPerFrame = 200;
+
         // Default AV Height
         private float m_avHeight = 127.0f;
 
@@ -390,6 +392,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_parentPosition; }
             set { m_parentPosition = value; }
+        }
+
+        public int MaxPrimsPerFrame
+        {
+            get { return m_maxPrimsPerFrame; }
+            set { m_maxPrimsPerFrame = value; }
         }
 
         /// <summary>
@@ -747,7 +755,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            while (m_pendingObjects != null && m_pendingObjects.Count > 0 && m_partsUpdateQueue.Count < 60)
+            while (m_pendingObjects != null && m_pendingObjects.Count > 0 && m_partsUpdateQueue.Count < m_maxPrimsPerFrame)
             {
                 SceneObjectGroup g = m_pendingObjects.Dequeue();
 
@@ -762,8 +770,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!m_updateTimes.ContainsKey(g.UUID))
                     g.ScheduleFullUpdateToAvatar(this);
             }
-
-            int updateCount = 0;
 
             while (m_partsUpdateQueue.Count > 0)
             {
@@ -798,7 +804,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                         update.LastFullUpdateTime = part.TimeStampFull;
 
-                        updateCount++;
                     }
                     else if (update.LastTerseUpdateTime <= part.TimeStampTerse)
                     {
@@ -809,7 +814,6 @@ namespace OpenSim.Region.Framework.Scenes
                         part.SendTerseUpdateToClient(ControllingClient);
 
                         update.LastTerseUpdateTime = part.TimeStampTerse;
-                        updateCount++;
                     }
                 }
                 else
@@ -833,11 +837,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     part.SendFullUpdate(ControllingClient,
                             GenerateClientFlags(part.UUID));
-                    updateCount++;
                 }
-
-                if (updateCount > 200)
-                    break;
             }
 
             m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);

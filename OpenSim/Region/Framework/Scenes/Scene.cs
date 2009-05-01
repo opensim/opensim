@@ -168,6 +168,7 @@ namespace OpenSim.Region.Framework.Scenes
         private volatile bool shuttingdown = false;
 
         private int m_lastUpdate = Environment.TickCount;
+        private int m_maxPrimsPerFrame = 200;
 
         private object m_deleting_scene_object = new object();
 
@@ -227,6 +228,12 @@ namespace OpenSim.Region.Framework.Scenes
         public float TimeDilation
         {
             get { return m_timedilation; }
+        }
+
+        public int MaxPrimsPerFrame
+        {
+            get { return m_maxPrimsPerFrame; }
+            set { m_maxPrimsPerFrame = value; }
         }
 
         /// <summary>
@@ -372,6 +379,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_persistAfter *= 10000000;
 
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "DotNetEngine");
+
+                m_maxPrimsPerFrame = startupConfig.GetInt("MaxPrimsPerFrame", 200);
             }
             catch
             {
