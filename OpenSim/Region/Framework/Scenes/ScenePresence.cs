@@ -116,6 +116,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_setAlwaysRun;
 
+        private bool m_updatesAllowed = true;
+        private List<AgentUpdateArgs> m_agentUpdates = new List<AgentUpdateArgs>();
         private string m_movementAnimation = "DEFAULT";
         private long m_animPersistUntil = 0;
         private bool m_allowFalling = false;
@@ -1127,10 +1129,51 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
+        // These methods allow to queue up agent updates (like key presses)
+        // until all attachment scripts are running and the animations from
+        // AgentDataUpdate have been started. It is essential for combat
+        // devices, weapons and AOs that keypresses are not processed
+        // until scripts that are potentially interested in them are
+        // up and running and that animations a script knows to be running
+        // from before a crossing are running again
+        //
+        public void LockAgentUpdates()
+        {
+            m_updatesAllowed = false;
+        }
+
+        public void UnlockAgentUpdates()
+        {
+            lock (m_agentUpdates)
+            {
+                if (m_updatesAllowed == false)
+                {
+                    foreach (AgentUpdateArgs a in m_agentUpdates)
+                        RealHandleAgentUpdate(ControllingClient, a);
+                    m_agentUpdates.Clear();
+                    m_updatesAllowed = true;
+                }
+            }
+        }
+
         /// <summary>
         /// This is the event handler for client movement.   If a client is moving, this event is triggering.
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
+        {
+            lock (m_agentUpdates)
+            {
+                if (m_updatesAllowed)
+                {
+                    RealHandleAgentUpdate(remoteClient, agentData);
+                    return;
+                }
+                
+                m_agentUpdates.Add(agentData);
+            }
+        }
+
+        private void RealHandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
             //if (m_isChildAgent)
             //{
