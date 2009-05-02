@@ -745,12 +745,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Assign sequence number here to prevent out of order packets
             if (packet.Header.Sequence == 0)
             {
-                packet.Header.Sequence = NextPacketSequenceNumber();
-                item.Sequence = packet.Header.Sequence;
-                item.TickCount = Environment.TickCount;
-
                 lock (m_NeedAck)
                 {
+                    packet.Header.Sequence = NextPacketSequenceNumber();
+                    item.Sequence = packet.Header.Sequence;
+                    item.TickCount = Environment.TickCount;
+
                     // We want to see that packet arrive if it's reliable
                     if (packet.Header.Reliable)
                     {
