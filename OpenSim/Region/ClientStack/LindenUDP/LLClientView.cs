@@ -524,8 +524,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (clientConfig != null)
                 {
                     m_PacketHandler.ReliableIsImportant =
-                            clientConfig.GetBoolean("ReliableIsImportant",
-                            false);
+                        clientConfig.GetBoolean("ReliableIsImportant",
+                                                false);
+
+                    m_primTerseUpdatesPerPacket = clientConfig.GetInt("TerseUpdatesPerPacket",
+                                                                      m_primTerseUpdatesPerPacket);
+                    m_primFullUpdatesPerPacket = clientConfig.GetInt("FullUpdatesPerPacket",
+                                                                     m_primFullUpdatesPerPacket);
+
+                    m_primTerseUpdateRate = clientConfig.GetInt("TerseUpdateRate",
+                                                                m_primTerseUpdateRate);
+                    m_primFullUpdateRate = clientConfig.GetInt("FullUpdateRate",
+                                                               m_primFullUpdateRate);
+
                 }
             }
 

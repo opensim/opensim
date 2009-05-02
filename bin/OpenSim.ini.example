@@ -1279,3 +1279,9 @@
 [LLClient]
     ; Resend packets markes as reliable until they are received
     ;ReliableIsImportant = false
+	
+	; Configures how ObjectUpdates are compressed.
+	;TerseUpdatesPerPacket=10
+	;FullUpdatesPerPacket=14
+	;TerseUpdateRate=10
+	;FullUpdateRate=14
