@@ -112,7 +112,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
             // TODO: 
             // * This should probably be based on in-world time.
             // * should probably move all these local variables to class members and constants
-            double time = DateTime.Now.TimeOfDay.Seconds / 86400;
+            double time = DateTime.Now.TimeOfDay.Seconds / 86400.0f;
 
             double theta = time * (2 * Math.PI) * m_rateChange;
 
