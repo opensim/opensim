@@ -381,6 +381,12 @@ namespace OpenSim.Region.Framework.Scenes
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "DotNetEngine");
 
                 m_maxPrimsPerFrame = startupConfig.GetInt("MaxPrimsPerFrame", 200);
+                IConfig packetConfig = m_config.Configs["PacketPool"];
+                if (packetConfig != null)
+                {
+                    PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
+                    PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
+                }
             }
             catch
             {

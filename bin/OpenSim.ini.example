@@ -1269,3 +1269,8 @@
     ; System.Net.WebException: The request was aborted: The request was canceled.
 	;
 	; XmlRpcDisableKeepAlive = false
+
+[PacketPool]
+    ; Enables the experimental packet pool. Yes, we've been here before.
+    ;RecyclePackets = true;
+    ;RecycleDataBlocks = true;

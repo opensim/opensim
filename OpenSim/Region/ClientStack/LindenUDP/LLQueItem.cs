@@ -44,5 +44,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public Object Identifier;
         public int Resends;
         public int Length;
+        public uint Sequence;
     }
 }

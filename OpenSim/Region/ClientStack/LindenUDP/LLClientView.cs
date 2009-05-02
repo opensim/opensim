@@ -936,6 +936,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     LLQueItem item = new LLQueItem();
                     item.Packet = packet;
+                    item.Sequence = packet.Header.Sequence;
 
                     m_PacketHandler.ProcessOutPacket(item);
 

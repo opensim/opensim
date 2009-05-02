@@ -253,7 +253,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             item.TickCount = Environment.TickCount;
             item.Identifier = id;
             item.Resends = 0;
-            item.Length = packet.ToBytes().Length;
+            item.Length = packet.Length;
+            item.Sequence = packet.Header.Sequence;
 
             m_PacketQueue.Enqueue(item);
             m_PacketsSent++;
@@ -310,7 +311,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // Packets this old get resent
                     //
-                    if ((now - data.TickCount) > m_ResendTimeout)
+                    if ((now - data.TickCount) > m_ResendTimeout && data.Sequence != 0)
                     {
                         if (resent < 20)
                         {
@@ -325,6 +326,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             {
                                 m_NeedAck.Remove(packet.Header.Sequence);
                                 TriggerOnPacketDrop(packet, data.Identifier);
+                                m_PacketQueue.Cancel(packet.Header.Sequence);
                                 PacketPool.Instance.ReturnPacket(packet);
                                 continue;
                             }
@@ -586,11 +588,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return;
 
                 m_NeedAck.Remove(id);
-                // We can't return this packet, it will just have to be GC'd
-                // Reason for that is that the packet may still be in the
-                // send queue, and if it gets reused things get messy!
-                //
-                // PacketPool.Instance.ReturnPacket(data.Packet);
+                m_PacketQueue.Cancel(data.Sequence);
+                PacketPool.Instance.ReturnPacket(data.Packet);
                 m_UnackedBytes -= data.Length;
             }
         }
@@ -680,7 +679,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 item.TickCount = Environment.TickCount;
                 item.Identifier = 0;
                 item.Resends = 0;
-                item.Length = packet.ToBytes().Length;
+                item.Length = packet.Length;
+                item.Sequence = packet.Header.Sequence;
                 m_NeedAck.Add(key, item);
             }
 
@@ -719,6 +719,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (data.Identifier != null && data.Identifier == id)
                 {
                     m_NeedAck.Remove(data.Packet.Header.Sequence);
+                    m_PacketQueue.Cancel(data.Sequence);
                     PacketPool.Instance.ReturnPacket(data.Packet);
                     return;
                 }
@@ -745,6 +746,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet.Header.Sequence == 0)
             {
                 packet.Header.Sequence = NextPacketSequenceNumber();
+                item.Sequence = packet.Header.Sequence;
+                item.TickCount = Environment.TickCount;
 
                 lock (m_NeedAck)
                 {
@@ -793,7 +796,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Dont't return in that case
             //
             if (!packet.Header.Reliable)
+            {
+                m_PacketQueue.Cancel(item.Sequence);
                 PacketPool.Instance.ReturnPacket(packet);
+            }
         }
 
         private void Abort()

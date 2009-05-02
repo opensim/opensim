@@ -41,7 +41,8 @@ namespace OpenSim.Framework
 
         private static readonly PacketPool instance = new PacketPool();
 
-        private bool packetPoolEnabled = false;
+        private bool packetPoolEnabled = true;
+        private bool dataBlockPoolEnabled = true;
 
         private readonly Dictionary<PacketType, Stack<Packet>> pool = new Dictionary<PacketType, Stack<Packet>>();
 
@@ -55,6 +56,18 @@ namespace OpenSim.Framework
         public static PacketPool Instance
         {
             get { return instance; }
+        }
+
+        public bool RecyclePackets
+        {
+            set { packetPoolEnabled = value; }
+            get { return packetPoolEnabled; }
+        }
+
+        public bool RecycleDataBlocks
+        {
+            set { dataBlockPoolEnabled = value; }
+            get { return dataBlockPoolEnabled; }
         }
 
         public Packet GetPacket(PacketType type)
@@ -140,55 +153,58 @@ namespace OpenSim.Framework
         /// <param name="packet"></param>
         public void ReturnPacket(Packet packet)
         {
-            switch (packet.Type)
+            if (dataBlockPoolEnabled)
             {
-                case PacketType.ObjectUpdate:
-                    ObjectUpdatePacket oup = (ObjectUpdatePacket)packet;
+                switch (packet.Type)
+                {
+                    case PacketType.ObjectUpdate:
+                        ObjectUpdatePacket oup = (ObjectUpdatePacket)packet;
 
-                    foreach (ObjectUpdatePacket.ObjectDataBlock oupod in
-                            oup.ObjectData)
-                        ReturnDataBlock<ObjectUpdatePacket.ObjectDataBlock>(oupod);
-                    oup.ObjectData = null;
-                    break;
+                        foreach (ObjectUpdatePacket.ObjectDataBlock oupod in
+                                oup.ObjectData)
+                            ReturnDataBlock<ObjectUpdatePacket.ObjectDataBlock>(oupod);
+                        oup.ObjectData = null;
+                        break;
 
-                case PacketType.ImprovedTerseObjectUpdate:
-                    ImprovedTerseObjectUpdatePacket itoup =
-                            (ImprovedTerseObjectUpdatePacket)packet;
+                    case PacketType.ImprovedTerseObjectUpdate:
+                        ImprovedTerseObjectUpdatePacket itoup =
+                                (ImprovedTerseObjectUpdatePacket)packet;
 
-                    foreach (ImprovedTerseObjectUpdatePacket.ObjectDataBlock
-                            itoupod in itoup.ObjectData)
-                        ReturnDataBlock<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>(itoupod);
-                    itoup.ObjectData = null;
-                    break;
+                        foreach (ImprovedTerseObjectUpdatePacket.ObjectDataBlock
+                                itoupod in itoup.ObjectData)
+                            ReturnDataBlock<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>(itoupod);
+                        itoup.ObjectData = null;
+                        break;
+                }
             }
 
-            if (!packetPoolEnabled)
-                return;
-
-            switch (packet.Type)
+            if (packetPoolEnabled)
             {
-                // List pooling packets here
-                case PacketType.PacketAck:
-                case PacketType.ObjectUpdate:
-                case PacketType.ImprovedTerseObjectUpdate:
-                    lock (pool)
-                    {
-                        PacketType type = packet.Type;
+                switch (packet.Type)
+                {
+                    // List pooling packets here
+                    case PacketType.PacketAck:
+                    case PacketType.ObjectUpdate:
+                    case PacketType.ImprovedTerseObjectUpdate:
+                        lock (pool)
+                        {
+                            PacketType type = packet.Type;
 
-                        if (!pool.ContainsKey(type))
-                        {
-                            pool[type] = new Stack<Packet>();
+                            if (!pool.ContainsKey(type))
+                            {
+                                pool[type] = new Stack<Packet>();
+                            }
+                            if ((pool[type]).Count < 50)
+                            {
+                                (pool[type]).Push(packet);
+                            }
                         }
-                        if ((pool[type]).Count < 50)
-                        {
-                            (pool[type]).Push(packet);
-                        }
-                    }
-                    break;
-                
-                // Other packets wont pool
-                default:
-                    return;
+                        break;
+                    
+                    // Other packets wont pool
+                    default:
+                        return;
+                }
             }
         }
 
