@@ -26,12 +26,14 @@
  */
 
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
 using System.Timers;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
+using log4net;
 using OpenSim.Framework;
 using Timer=System.Timers.Timer;
 
@@ -39,8 +41,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public class LLPacketHandler : ILLPacketHandler
     {
-        //private static readonly ILog m_log 
-        //    = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log 
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         //private int m_resentCount;
 
@@ -768,28 +770,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet is KillPacket)
                 Abort();
 
-            // Actually make the byte array and send it
-            byte[] sendbuffer = item.Packet.ToBytes();
-
-            //m_log.DebugFormat(
-            //    "[CLIENT]: In {0} sending packet {1}",
-            //    m_Client.Scene.RegionInfo.ExternalEndPoint.Port, packet.Header.Sequence);
-
-            if (packet.Header.Zerocoded)
+            try
             {
-                int packetsize = Helpers.ZeroEncode(sendbuffer,
-                        sendbuffer.Length, m_ZeroOutBuffer);
-                m_PacketServer.SendPacketTo(m_ZeroOutBuffer, packetsize,
-                        SocketFlags.None, m_Client.CircuitCode);
+                // If this packet has been reused/returned, the ToBytes
+                // will blow up in our face.
+                // Fail gracefully.
+                //
+
+                // Actually make the byte array and send it
+                byte[] sendbuffer = item.Packet.ToBytes();
+
+                if (packet.Header.Zerocoded)
+                {
+                    int packetsize = Helpers.ZeroEncode(sendbuffer,
+                            sendbuffer.Length, m_ZeroOutBuffer);
+                    m_PacketServer.SendPacketTo(m_ZeroOutBuffer, packetsize,
+                            SocketFlags.None, m_Client.CircuitCode);
+                }
+                else
+                {
+                    // Need some extra space in case we need to add proxy
+                    // information to the message later
+                    Buffer.BlockCopy(sendbuffer, 0, m_ZeroOutBuffer, 0,
+                            sendbuffer.Length);
+                    m_PacketServer.SendPacketTo(m_ZeroOutBuffer,
+                            sendbuffer.Length, SocketFlags.None, m_Client.CircuitCode);
+                }
             }
-            else
+            catch (NullReferenceException)
             {
-                // Need some extra space in case we need to add proxy
-                // information to the message later
-                Buffer.BlockCopy(sendbuffer, 0, m_ZeroOutBuffer, 0,
-                        sendbuffer.Length);
-                m_PacketServer.SendPacketTo(m_ZeroOutBuffer,
-                        sendbuffer.Length, SocketFlags.None, m_Client.CircuitCode);
+                m_log.Debug("[PACKET] Detected reuse of a returned packet");
+                m_PacketQueue.Cancel(item.Sequence);
+                return;
             }
 
             // If this is a reliable packet, we are still holding a ref
