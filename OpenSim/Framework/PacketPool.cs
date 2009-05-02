@@ -169,6 +169,8 @@ namespace OpenSim.Framework
             {
                 // List pooling packets here
                 case PacketType.PacketAck:
+                case PacketType.ObjectUpdate:
+                case PacketType.ImprovedTerseObjectUpdate:
                     lock (pool)
                     {
                         PacketType type = packet.Type;
