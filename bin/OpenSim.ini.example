@@ -1245,15 +1245,12 @@
     Module  = Default
 
 	
-    ; The XmlRpcGroups implementation can be used against the publically available service
-    ; that I have made available for testing.  Your group data is not guarenteed safe
-    ; or available if you use this service, but it's available now and seems to work.  
-    ; The PHP code for the service is available from the Flotsam project for you to deploy 
+    ; The PHP code for the server is available from the Flotsam project for you to deploy 
 	; to your own server.  The Flotsam project is located at http://code.google.com/p/flotsam/
     ;
     ;Module  = XmlRpcGroups
 
-    ;XmlRpcServiceURL       = http://osflotsam.org/xmlrpc.php
+    ;XmlRpcServiceURL       = http://yourxmlrpcserver.com/xmlrpc.php
 	;XmlRpcServiceReadKey = 1234
     ;XmlRpcServiceWriteKey = 1234
 	

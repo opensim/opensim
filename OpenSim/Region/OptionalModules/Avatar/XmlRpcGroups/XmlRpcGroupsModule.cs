@@ -1089,6 +1089,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private GroupRequestID GetClientGroupRequestID(IClientAPI client)
         {
+            if (client == null)
+            {
+                return new GroupRequestID();
+            }
+
             lock (m_clientRequestIDInfo)
             {
                 if (!m_clientRequestIDInfo.ContainsKey(client.AgentId))
@@ -1098,7 +1103,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     info.RequestID.SessionID = client.SessionId;
 
                     UserProfileData userProfile = m_sceneList[0].CommsManager.UserService.GetUserProfile(client.AgentId);
-                    if (userProfile is ForeignUserProfileData)
+                    if (userProfile == null)
+                    {
+                        // This should be impossible.  If I've been passed a reference to a client
+                        // that client should be registered with the UserService.  So something
+                        // is horribly wrong somewhere.
+
+                        m_log.WarnFormat("[GROUPS]: Could not find a user profile for {0} / {1}", client.Name, client.AgentId);
+
+                        // Default to local user service and hope for the best?
+                        info.RequestID.UserServiceURL = m_sceneList[0].CommsManager.NetworkServersInfo.UserURL;
+
+                    }
+                    else if (userProfile is ForeignUserProfileData)
                     {
                         // They aren't from around here
                         ForeignUserProfileData fupd = (ForeignUserProfileData)userProfile;
