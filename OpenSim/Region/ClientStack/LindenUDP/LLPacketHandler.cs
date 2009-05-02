@@ -315,7 +315,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //
                     if ((now - data.TickCount) > m_ResendTimeout && data.Sequence != 0 && !m_PacketQueue.Contains(data.Sequence))
                     {
-                        if (resent < 100) // Was 20 (= Max 117kbit/sec resends)
+                        if (resent < 20) // Was 20 (= Max 117kbit/sec resends)
                         {
                             m_NeedAck[packet.Header.Sequence].Resends++;
 
