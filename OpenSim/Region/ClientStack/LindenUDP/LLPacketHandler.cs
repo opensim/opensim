@@ -586,7 +586,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return;
 
                 m_NeedAck.Remove(id);
-                PacketPool.Instance.ReturnPacket(data.Packet);
+                // We can't return this packet, it will just have to be GC'd
+                // Reason for that is that the packet may still be in the
+                // send queue, and if it gets reused things get messy!
+                //
+                // PacketPool.Instance.ReturnPacket(data.Packet);
                 m_UnackedBytes -= data.Length;
             }
         }

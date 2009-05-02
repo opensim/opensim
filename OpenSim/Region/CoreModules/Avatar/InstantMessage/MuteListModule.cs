@@ -129,7 +129,7 @@ namespace OpenSim.Region.CoreModules.Avatar.MuteList
 
         private void OnMuteListRequest(IClientAPI client, uint crc)
         {
-            m_log.DebugFormat("[MUTE LIST] Got mute list requestg for crc {0}", crc);
+            m_log.DebugFormat("[MUTE LIST] Got mute list request for crc {0}", crc);
             string filename = "mutes"+client.AgentId.ToString();
 
             IXfer xfer = client.Scene.RequestModuleInterface<IXfer>();

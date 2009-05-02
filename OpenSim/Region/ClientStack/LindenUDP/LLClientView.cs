@@ -2893,10 +2893,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = Quaternion.Identity;
 
-            ObjectUpdatePacket.ObjectDataBlock objectData =
-                    new ObjectUpdatePacket.ObjectDataBlock();
-
-            objectData = CreatePrimUpdateBlock(primShape, flags);
+            ObjectUpdatePacket.ObjectDataBlock objectData = CreatePrimUpdateBlock(primShape, flags);
 
             objectData.ID = localID;
             objectData.FullID = objectID;
@@ -3655,7 +3652,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             byte[] bytes = new byte[60];
             int i = 0;
-            ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
+            ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = PacketPool.GetDataBlock<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
 
             dat.TextureEntry = new byte[0]; // AvatarTemplate.TextureEntry;
 
@@ -3750,7 +3747,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             byte[] bytes = new byte[60];
 
             int i = 0;
-            ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
+            ImprovedTerseObjectUpdatePacket.ObjectDataBlock dat = PacketPool.GetDataBlock<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
             dat.TextureEntry = new byte[0];
             bytes[i++] = (byte)(ID % 256);
             bytes[i++] = (byte)((ID >> 8) % 256);
@@ -3837,7 +3834,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns></returns>
         protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(PrimitiveBaseShape primShape, uint flags)
         {
-            ObjectUpdatePacket.ObjectDataBlock objupdate = new ObjectUpdatePacket.ObjectDataBlock();
+            ObjectUpdatePacket.ObjectDataBlock objupdate = PacketPool.GetDataBlock<ObjectUpdatePacket.ObjectDataBlock>();
             SetDefaultPrimPacketValues(objupdate);
             objupdate.UpdateFlags = flags;
             SetPrimPacketShapeData(objupdate, primShape);
@@ -3908,7 +3905,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns></returns>
         public ObjectUpdatePacket.ObjectDataBlock CreateDefaultAvatarPacket(byte[] textureEntry)
         {
-            ObjectUpdatePacket.ObjectDataBlock objdata = new ObjectUpdatePacket.ObjectDataBlock();
+            ObjectUpdatePacket.ObjectDataBlock objdata = PacketPool.GetDataBlock<ObjectUpdatePacket.ObjectDataBlock>();
             //  new OpenMetaverse.Packets.ObjectUpdatePacket.ObjectDataBlock(data1, ref i);
 
             SetDefaultAvatarPacketValues(ref objdata);

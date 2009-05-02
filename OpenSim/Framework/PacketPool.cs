@@ -34,6 +34,7 @@ using log4net;
 
 namespace OpenSim.Framework
 {
+
     public sealed class PacketPool
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -43,6 +44,9 @@ namespace OpenSim.Framework
         private bool packetPoolEnabled = false;
 
         private readonly Dictionary<PacketType, Stack<Packet>> pool = new Dictionary<PacketType, Stack<Packet>>();
+
+        private static Dictionary<Type, List<Object>> DataBlocks =
+                new Dictionary<Type, List<Object>>();
 
         static PacketPool()
         {
@@ -136,6 +140,28 @@ namespace OpenSim.Framework
         /// <param name="packet"></param>
         public void ReturnPacket(Packet packet)
         {
+            switch (packet.Type)
+            {
+                case PacketType.ObjectUpdate:
+                    ObjectUpdatePacket oup = (ObjectUpdatePacket)packet;
+
+                    foreach (ObjectUpdatePacket.ObjectDataBlock oupod in
+                            oup.ObjectData)
+                        ReturnDataBlock<ObjectUpdatePacket.ObjectDataBlock>(oupod);
+                    oup.ObjectData = null;
+                    break;
+
+                case PacketType.ImprovedTerseObjectUpdate:
+                    ImprovedTerseObjectUpdatePacket itoup =
+                            (ImprovedTerseObjectUpdatePacket)packet;
+
+                    foreach (ImprovedTerseObjectUpdatePacket.ObjectDataBlock
+                            itoupod in itoup.ObjectData)
+                        ReturnDataBlock<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>(itoupod);
+                    itoup.ObjectData = null;
+                    break;
+            }
+
             if (!packetPoolEnabled)
                 return;
 
@@ -161,6 +187,46 @@ namespace OpenSim.Framework
                 // Other packets wont pool
                 default:
                     return;
+            }
+        }
+
+        public static T GetDataBlock<T>() where T: new()
+        {
+            lock(DataBlocks)
+            {
+                if (DataBlocks.ContainsKey(typeof(T)) && DataBlocks[typeof(T)].Count > 0)
+                {
+                    T block = (T)DataBlocks[typeof(T)][0];
+                    DataBlocks[typeof(T)].RemoveAt(0);
+                    if (block == null)
+                        return new T();
+                    return block;
+                }
+                else
+                {
+                    return new T();
+                }
+            }
+        }
+
+        public static void ReturnDataBlock<T>(T block) where T: new()
+        {
+            if (block == null)
+                return;
+
+            lock (DataBlocks)
+            {
+                if (!DataBlocks.ContainsKey(typeof(T)))
+                {
+                    List<Object> l = new List<Object>();
+                    l.Add(block);
+                    DataBlocks.Add(typeof(T), l);
+                }
+                else
+                {
+                    if (DataBlocks[typeof(T)].Count < 500)
+                        DataBlocks[typeof(T)].Add(block);
+                }
             }
         }
     }
