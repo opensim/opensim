@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Threading;
 using OpenMetaverse;
 using log4net;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Communications.Cache;
@@ -50,6 +51,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Fields
         
+        public IConfigSource Config
+        {
+            get { return null; }
+        }
+
         /// <value>
         /// All the region modules attached to this scene.
         /// </value>

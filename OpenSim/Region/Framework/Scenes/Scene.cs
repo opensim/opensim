@@ -135,6 +135,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_capsModule; }
         }
+        
+        public IConfigSource Config
+        {
+            get { return m_config; }
+        }
 
         // Central Update Loop
 

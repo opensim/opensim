@@ -1275,3 +1275,7 @@
     ; Enables the experimental packet pool. Yes, we've been here before.
     ;RecyclePackets = true;
     ;RecycleDataBlocks = true;
+
+[LLClient]
+    ; Resend packets markes as reliable until they are received
+    ;ReliableIsImportant = false

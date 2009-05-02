@@ -27,6 +27,7 @@
 
 using OpenMetaverse;
 using OpenSim.Framework.Console;
+using Nini.Config;
 
 namespace OpenSim.Framework
 {
@@ -62,6 +63,8 @@ namespace OpenSim.Framework
         RegionStatus RegionStatus { get; set; }
 
         ClientManager ClientManager { get; }
+        IConfigSource Config { get; }
+
         float TimeDilation { get; }
 
         event restart OnRestart;

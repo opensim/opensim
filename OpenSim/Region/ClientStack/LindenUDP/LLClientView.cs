@@ -44,6 +44,7 @@ using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Timer=System.Timers.Timer;
+using Nini.Config;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -516,6 +517,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler = new LLPacketHandler(this, m_networkServer, userSettings);
             m_PacketHandler.SynchronizeClient = SynchronizeClient;
             m_PacketHandler.OnPacketStats += PopulateStats;
+
+            if (scene.Config != null)
+            {
+                IConfig clientConfig = scene.Config.Configs["LLClient"];
+                if (clientConfig != null)
+                {
+                    m_PacketHandler.ReliableIsImportant =
+                            clientConfig.GetBoolean("ReliableIsImportant",
+                            false);
+                }
+            }
 
             RegisterLocalPacketHandlers();
             m_imageManager = new LLImageManager(this, m_assetCache,Scene.RequestModuleInterface<IJ2KDecoder>());

@@ -1390,6 +1390,7 @@
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="C5.dll" />
+      <Reference name="Nini.dll" />
 
       <Files>
         <Match pattern="*.cs" recurse="false"/>
