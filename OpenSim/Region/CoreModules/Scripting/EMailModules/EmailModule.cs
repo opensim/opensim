@@ -302,7 +302,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     emailMessage.Send(smtpServer);
 
                     //Log
-                    m_log.Info("[EMAIL] EMail sent to: " + address + " from object: " + objectID.ToString());
+                    m_log.Info("[EMAIL] EMail sent to: " + address + " from object: " + objectID.ToString() + "@" + m_HostName);
                 }
                 catch (Exception e)
                 {
