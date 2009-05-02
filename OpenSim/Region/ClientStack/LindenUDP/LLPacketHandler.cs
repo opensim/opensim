@@ -311,7 +311,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // Packets this old get resent
                     //
-                    if ((now - data.TickCount) > m_ResendTimeout && data.Sequence != 0)
+                    if ((now - data.TickCount) > m_ResendTimeout && data.Sequence != 0 && !m_PacketQueue.Contains(data.Sequence))
                     {
                         if (resent < 20)
                         {

@@ -251,6 +251,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ;
         }
 
+        public bool Contains(uint sequence)
+        {
+            return contents.Contains(sequence);
+        }
+
         public void Flush()
         {
             lock (this)
