@@ -65,6 +65,8 @@ namespace OpenSim
 
         protected string proxyUrl;
         protected int proxyOffset = 0;
+        
+        public string userStatsURI = String.Empty;
 
         protected bool m_autoCreateClientStack = true;
 
@@ -189,6 +191,9 @@ namespace OpenSim
                 string pidFile = startupConfig.GetString("PIDFile", String.Empty);
                 if (pidFile != String.Empty)
                     CreatePIDFile(pidFile);
+                
+                userStatsURI = startupConfig.GetString("Stats_URI", String.Empty);
+
             }
 
             base.StartupSpecific();
@@ -508,7 +513,9 @@ namespace OpenSim
             // set initial ServerURI
             regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.InternalEndPoint.Port;
             regionInfo.HttpPort = m_httpServerPort;
-
+            
+            regionInfo.osSecret = m_osSecret;
+            
             if ((proxyUrl.Length > 0) && (portadd_flag))
             {
                 // set proxy url to RegionInfo
@@ -543,7 +550,10 @@ namespace OpenSim
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);
 
             scene.StartTimer();
-
+            
+            // TODO : Try setting resource for region xstats here on scene            
+            scene.CommsManager.HttpServer.AddStreamHandler( new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
+            
             // moved these here as the terrain texture has to be created after the modules are initialized
             // and has to happen before the region is registered with the grid.
             scene.CreateTerrainTexture(false);
@@ -813,16 +823,18 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// Handler to supply the current extended status of this sim 
+        /// Handler to supply the current extended status of this sim
+        /// Sends the statistical data in a json serialization 
         /// </summary>
-        /// Sends the statistical data in a json serialization
         public class XSimStatusHandler : IStreamedRequestHandler
         {
             OpenSimBase m_opensim;
+            string osXStatsURI = String.Empty;
         
             public XSimStatusHandler(OpenSimBase sim)
             {
                 m_opensim = sim;
+                osXStatsURI = Util.SHA1Hash(sim.osSecret);
             }
             
             public byte[] Handle(string path, Stream request,
@@ -842,11 +854,50 @@ namespace OpenSim
             }
 
             public string Path
-            {
-                get { return "/simstatusx/"; }
+            {   
+                // This is for the OpenSim instance and is the osSecret hashed
+                get { return "/" + osXStatsURI + "/"; }
             }
         }
 
+        /// <summary>
+        /// Handler to supply the current extended status of this sim
+        /// Sends the statistical data in a json serialization 
+        /// </summary>
+        public class UXSimStatusHandler : IStreamedRequestHandler
+        {
+            OpenSimBase m_opensim;
+            string osUXStatsURI = String.Empty;
+        
+            public UXSimStatusHandler(OpenSimBase sim)
+            {
+                m_opensim = sim;
+                osUXStatsURI = sim.userStatsURI;
+                
+            }
+            
+            public byte[] Handle(string path, Stream request,
+                                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+            {
+                return Encoding.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
+            }
+
+            public string ContentType
+            {
+                get { return "text/plain"; }
+            }
+
+            public string HttpMethod
+            {
+                get { return "GET"; }
+            }
+
+            public string Path
+            {   
+                // This is for the OpenSim instance and is the osSecret hashed
+                get { return "/" + osUXStatsURI + "/"; }
+            }
+        }
 
         #endregion
 
@@ -906,6 +957,7 @@ namespace OpenSim
         }
     }
 
+    
     public class OpenSimConfigSource
     {
         public IConfigSource Source;

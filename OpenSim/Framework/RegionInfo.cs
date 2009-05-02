@@ -211,6 +211,8 @@ namespace OpenSim.Framework
         public int ProxyOffset = 0;
         public string RegionName = String.Empty;
         public string regionSecret = UUID.Random().ToString();
+        
+        public string osSecret;
 
         public UUID lastMapUUID = UUID.Zero;
         public string lastMapRefresh = "0";

@@ -79,6 +79,11 @@ namespace OpenSim.Framework.Servers
         protected string m_version;
 
         protected string m_pidFile = String.Empty;
+        
+        /// <summary>
+        /// Random uuid for private data 
+        /// </summary>
+        protected string m_osSecret = String.Empty;
 
         protected BaseHttpServer m_httpServer;
         public BaseHttpServer HttpServer
@@ -95,6 +100,9 @@ namespace OpenSim.Framework.Servers
         {
             m_startuptime = DateTime.Now;
             m_version = VersionInfo.Version;
+            
+            // Random uuid for private data
+            m_osSecret = UUID.Random().ToString();
 
             m_periodicDiagnosticsTimer.Elapsed += new ElapsedEventHandler(LogDiagnostics);
             m_periodicDiagnosticsTimer.Enabled = true;
@@ -458,12 +466,18 @@ namespace OpenSim.Framework.Servers
             {
             }
         }
+        
+        public string osSecret {
+            // Secret uuid for the simulator
+            get { return m_osSecret; }
+            
+        }
 
         public string StatReport(OSHttpRequest httpRequest)
         {
             return m_stats.XReport((DateTime.Now - m_startuptime).ToString() , m_version );
         }
-            
+           
         protected void RemovePIDFile()
         {
             if (m_pidFile != String.Empty)

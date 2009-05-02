@@ -255,6 +255,10 @@
 
     ; enableprejump = true
 
+    ; Simulator Stats URI
+    ; Enable JSON simulator data by setting a URI name (case sensitive)
+    ; Stats_URI = "jsonSimStats"
+
 
 [SMTP]
     enabled=false
