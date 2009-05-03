@@ -238,6 +238,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return null;
                 if (item.Incoming)
                     return item;
+                item.TickCount = System.Environment.TickCount;
                 if (item.Sequence == 0)
                     return item;
                 if (contents.Remove(item.Sequence))
