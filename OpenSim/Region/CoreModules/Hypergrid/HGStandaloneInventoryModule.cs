@@ -43,7 +43,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.Communications.REST;
+using OpenSim.Region.CoreModules.ServiceConnectors.Interregion;
 
 using OpenMetaverse.StructuredData;
 

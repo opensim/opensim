@@ -40,7 +40,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.CoreModules.Communications.REST;
+using OpenSim.Region.CoreModules.ServiceConnectors.Interregion;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;

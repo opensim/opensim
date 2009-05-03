@@ -38,12 +38,11 @@ using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Clients;
-using OpenSim.Region.CoreModules.Communications.Local;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
 
-namespace OpenSim.Region.CoreModules.Communications.REST
+namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
 {
     public class RESTInterregionComms : IRegionModule, IInterregionCommsOut
     {

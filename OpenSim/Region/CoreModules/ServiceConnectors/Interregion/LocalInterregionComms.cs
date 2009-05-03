@@ -33,7 +33,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.Communications.Local
+namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
 {
     public class LocalInterregionComms : IRegionModule, IInterregionCommsOut, IInterregionCommsIn
     {
