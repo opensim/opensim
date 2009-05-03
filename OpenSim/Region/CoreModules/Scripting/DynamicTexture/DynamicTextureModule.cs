@@ -298,7 +298,8 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 tmptex.DefaultTexture.TextureID = asset.FullID;
                 // I'm pretty sure we always want to force this to true
-                tmptex.DefaultTexture.Fullbright = true;
+                               // I'm pretty sure noone whats to set fullbright true if it wasn't true before.
+//                tmptex.DefaultTexture.Fullbright = true;
 
                 part.Shape.Textures = tmptex;
                 part.ScheduleFullUpdate();
