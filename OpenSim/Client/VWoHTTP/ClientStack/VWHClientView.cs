@@ -593,6 +593,11 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             throw new System.NotImplementedException();
         }
 
+        public void FlushPrimUpdates()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items, List<InventoryFolderBase> folders, bool fetchFolders, bool fetchItems)
         {
             throw new System.NotImplementedException();

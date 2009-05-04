@@ -840,6 +840,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            ControllingClient.FlushPrimUpdates();
+
             m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
         }
 

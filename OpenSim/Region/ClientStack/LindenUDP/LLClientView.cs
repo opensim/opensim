@@ -3141,6 +3141,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        public void FlushPrimUpdates()
+        {
+            while (m_primFullUpdates.Count > 0)
+            {
+                ProcessPrimFullUpdates(this, null);
+            }
+            while (m_primTerseUpdates.Count > 0)
+            {
+                ProcessPrimTerseUpdates(this, null);
+            }
+        }
+
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
         {
             AssetUploadCompletePacket newPack = new AssetUploadCompletePacket();

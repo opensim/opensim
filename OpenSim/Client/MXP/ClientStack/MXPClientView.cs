@@ -1045,6 +1045,10 @@ namespace OpenSim.Client.MXP.ClientStack
             Session.Send(me);
         }
 
+        public void FlushPrimUpdates()
+        {
+        }
+
         public void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items, List<InventoryFolderBase> folders, bool fetchFolders, bool fetchItems)
         {
             // Need to translate to MXP somehow

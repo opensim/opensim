@@ -902,6 +902,8 @@ namespace OpenSim.Framework
                                         List<InventoryFolderBase> folders, bool fetchFolders,
                                         bool fetchItems);
 
+        void FlushPrimUpdates();
+
         void SendInventoryItemDetails(UUID ownerID, InventoryItemBase item);
 
         /// <summary>

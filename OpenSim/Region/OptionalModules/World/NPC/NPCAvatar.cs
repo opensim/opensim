@@ -631,6 +631,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public void FlushPrimUpdates()
+        {
+        }
+
         public virtual void SendInventoryFolderDetails(UUID ownerID, UUID folderID,
                                                        List<InventoryItemBase> items,
                                                        List<InventoryFolderBase> folders,
