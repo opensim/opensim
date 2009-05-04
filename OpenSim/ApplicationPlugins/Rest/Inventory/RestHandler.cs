@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Servers.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {

@@ -36,6 +36,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 using log4net;
 
 namespace OpenSim.Grid.AssetInventoryServer.Plugins

@@ -36,7 +36,7 @@ using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Grid.Framework;
 
 namespace OpenSim.Grid.GridServer.Modules

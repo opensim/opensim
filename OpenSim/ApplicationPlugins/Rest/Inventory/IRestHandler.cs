@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {

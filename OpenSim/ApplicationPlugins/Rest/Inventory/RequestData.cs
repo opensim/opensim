@@ -34,6 +34,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {

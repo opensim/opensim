@@ -30,7 +30,7 @@ using System.IO;
 using System.Reflection;
 using System.Xml.Serialization;
 using log4net;
-using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Framework.Communications.Cache
 {

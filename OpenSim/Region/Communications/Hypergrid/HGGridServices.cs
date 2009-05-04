@@ -43,6 +43,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Framework.Scenes;
 // using OpenSim.Region.Environment.Modules.Framework;

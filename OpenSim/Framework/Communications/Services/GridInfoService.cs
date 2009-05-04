@@ -33,7 +33,7 @@ using System.Text;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
-using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Framework.Communications.Services
 {

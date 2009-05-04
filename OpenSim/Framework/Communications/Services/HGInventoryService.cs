@@ -39,7 +39,7 @@ using OpenSim.Framework.Communications.Cache;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 using LLSDHelpers = OpenSim.Framework.Communications.Capabilities.LLSDHelpers;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Servers.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
 
 using OpenMetaverse.StructuredData;
 

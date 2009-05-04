@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.AssetLoader.Filesystem;
 using Nini.Config;

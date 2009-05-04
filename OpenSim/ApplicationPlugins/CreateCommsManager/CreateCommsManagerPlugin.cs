@@ -36,6 +36,7 @@ using OpenSim.Framework.Communications.Services;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Osp;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Communications.Hypergrid;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;

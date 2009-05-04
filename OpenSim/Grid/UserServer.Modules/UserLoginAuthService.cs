@@ -40,6 +40,7 @@ using OpenSim.Framework.Communications.Services;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Grid.UserServer.Modules
 {

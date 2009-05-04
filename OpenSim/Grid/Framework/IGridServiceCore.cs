@@ -26,7 +26,7 @@
  */
 
 using System;
-using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Grid.Framework
 {

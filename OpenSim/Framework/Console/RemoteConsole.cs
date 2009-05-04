@@ -32,7 +32,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using Nini.Config;
-using OpenSim.Framework.Servers.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
 using log4net;
 
 namespace OpenSim.Framework.Console

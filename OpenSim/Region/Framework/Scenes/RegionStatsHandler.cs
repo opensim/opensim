@@ -40,7 +40,7 @@ using OpenSim.Framework.Communications.Services;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Servers.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;

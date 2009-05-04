@@ -74,6 +74,16 @@ namespace OpenSim
                 m_gui = startupConfig.GetBoolean("gui", false);
 
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
+                if (m_logFileAppender != null)
+                {
+                    if (m_logFileAppender is log4net.Appender.FileAppender)
+                    {
+                        log4net.Appender.FileAppender appender =
+                                (log4net.Appender.FileAppender)m_logFileAppender;
+                        appender.File = startupConfig.GetString("LogFile", "OpenSim.log");
+                        m_log.InfoFormat("[LOGGING] Logging started to file {0}", appender.File);
+                    }
+                }
             }
         }
 
