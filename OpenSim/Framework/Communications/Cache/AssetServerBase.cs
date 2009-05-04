@@ -169,7 +169,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[ASSET]: Asset request for {0} threw exception {1}", req.AssetID, e);
+                m_log.ErrorFormat("[ASSET]: Asset request for {0} threw exception {1} - Stack Trace: {2}", req.AssetID, e, e.StackTrace);
 
                 if (StatsManager.SimExtraStats != null)
                     StatsManager.SimExtraStats.AddAssetServiceRequestFailure();
