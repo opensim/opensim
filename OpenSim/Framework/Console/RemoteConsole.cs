@@ -31,6 +31,8 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Nini.Config;
+using OpenSim.Framework.Servers.Interfaces;
 using log4net;
 
 namespace OpenSim.Framework.Console
@@ -41,8 +43,21 @@ namespace OpenSim.Framework.Console
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private IHttpServer m_Server = null;
+        private IConfigSource m_Config = null;
+
         public RemoteConsole(string defaultPrompt) : base(defaultPrompt)
         {
+        }
+
+        public void ReadConfig(IConfigSource config)
+        {
+            m_Config = config;
+        }
+
+        public void SetServer(IHttpServer server)
+        {
+            m_Server = server;
         }
 
         public override void Output(string text)
