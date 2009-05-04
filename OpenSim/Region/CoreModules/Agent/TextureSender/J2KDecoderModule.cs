@@ -325,16 +325,13 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                
             }
 
-
             // Cache Decoded layers
             lock (m_cacheddecode)
             {
                 if (!m_cacheddecode.ContainsKey(AssetId))
                     m_cacheddecode.Add(AssetId, layers);
 
-            }
-
-            
+            }            
 
             // Notify Interested Parties
             lock (m_notifyList)
@@ -371,7 +368,6 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
             {
                 Createj2KCacheFolder(pFolder);
             }
-
         }
 
         /// <summary>

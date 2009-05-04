@@ -34,111 +34,19 @@ namespace OpenSim.Framework
     /// Inventory Item - contains all the properties associated with an individual inventory piece.
     /// </summary>
     public class InventoryItemBase : InventoryNodeBase
-    {
+    {       
         /// <summary>
-        /// The UUID of the associated asset on the asset server
-        /// </summary>
-        private UUID _assetID;
-
-        /// <summary>
-        /// This is an enumerated value determining the type of asset (eg Notecard, Sound, Object, etc)
-        /// </summary>
-        private int _assetType;
-
-        /// <summary>
-        ///
-        /// </summary>
-        private uint _basePermissions;
-
-        /// <summary>
-        /// The creator of this item
-        /// </summary>
-        private string m_creatorId = String.Empty;
-        
-        /// <summary>
-        /// The creator of this item expressed as a UUID
-        /// </summary>
-        private UUID m_creatorIdAsUuid = UUID.Zero;
-
-        /// <summary>
-        ///
+        /// The inventory type of the item.  This is slightly different from the asset type in some situations.
         /// </summary>        
-        private uint _nextPermissions;
-
-        /// <summary>
-        /// A mask containing permissions for the current owner (cannot be enforced)
-        /// </summary>
-        private uint _currentPermissions;
-
-        /// <summary>
-        /// The description of the inventory item (must be less than 64 characters)
-        /// </summary>
-        private string _description = string.Empty;
-
-        /// <summary>
-        ///
-        /// </summary>
-        private uint _everyOnePermissions;
-
-        /// <summary>
-        ///
-        /// </summary>
-        private uint _groupPermissions;
+        public int InvType;
 
         /// <summary>
         /// The folder this item is contained in
-        /// </summary>
-        private UUID _folder;
-
-        /// <summary>
-        /// The inventory type of the item.  This is slightly different from the asset type in some situations.
-        /// </summary>
-        private int _invType;
-
-        /// <summary>
-        ///
-        /// </summary>
-        private UUID _groupID;
-
-        /// <summary>
-        ///
-        /// </summary>
-        private bool _groupOwned;
-
-        /// <summary>
-        ///
-        /// </summary>
-        private int _salePrice;
-
-        /// <summary>
-        ///
-        /// </summary>
-        private byte _saleType;
-
-        /// <summary>
-        ///
-        /// </summary>
-        private uint _flags;
-
-        /// <summary>
-        ///
-        /// </summary>
-        private int _creationDate;
-
-        public int InvType
-        {
-            get { return _invType; }
-            set { _invType = value; }
-        }
-
-        public UUID Folder
-        {
-            get { return _folder; }
-            set { _folder = value; }
-        }
+        /// </summary>        
+        public UUID Folder;
 
         /// <value>
-        /// The creator ID
+        /// The creator of this item
         /// </value>        
         public string CreatorId
         {
@@ -146,107 +54,94 @@ namespace OpenSim.Framework
             set 
             { 
                 m_creatorId = value;
+                UUID creatorIdAsUuid;
                 
                 // For now, all IDs are UUIDs
-                UUID.TryParse(m_creatorId, out m_creatorIdAsUuid);
+                UUID.TryParse(m_creatorId, out creatorIdAsUuid);
+                CreatorIdAsUuid = creatorIdAsUuid;
             }
         }
+
+        private string m_creatorId = String.Empty;        
         
         /// <value>
-        /// The creator ID expressed as a UUID
+        /// The creator of this item expressed as a UUID
         /// </value>
-        public UUID CreatorIdAsUuid
-        {
-            get { return m_creatorIdAsUuid; }
-        }
+        public UUID CreatorIdAsUuid { get; private set; }       
 
-        public string Description
-        {
-            get { return _description; }
-            set { _description = value; }
-        }
+        /// <summary>
+        /// The description of the inventory item (must be less than 64 characters)
+        /// </summary>
+        public string Description = String.Empty;
 
-        public uint NextPermissions
-        {
-            get { return _nextPermissions; }
-            set { _nextPermissions = value; }
-        }
+        /// <value>
+        ///
+        /// </value>          
+        public uint NextPermissions;
 
-        public uint CurrentPermissions
-        {
-            get { return _currentPermissions; }
-            set { _currentPermissions = value; }
-        }
+        /// <summary>
+        /// A mask containing permissions for the current owner (cannot be enforced)
+        /// </summary>        
+        public uint CurrentPermissions;
 
-        public uint BasePermissions
-        {
-            get { return _basePermissions; }
-            set { _basePermissions = value; }
-        }
+        /// <summary>
+        ///
+        /// </summary>        
+        public uint BasePermissions;
 
-        public uint EveryOnePermissions
-        {
-            get { return _everyOnePermissions; }
-            set { _everyOnePermissions = value; }
-        }
+        /// <summary>
+        ///
+        /// </summary>        
+        public uint EveryOnePermissions;
+        
+        /// <summary>
+        ///
+        /// </summary>        
+        public uint GroupPermissions;
 
-        public uint GroupPermissions
-        {
-            get { return _groupPermissions; }
-            set { _groupPermissions = value; }
-        }
+        /// <summary>
+        /// This is an enumerated value determining the type of asset (eg Notecard, Sound, Object, etc)
+        /// </summary>        
+        public int AssetType;
 
-        public int AssetType
-        {
-            get { return _assetType; }
-            set { _assetType = value; }
-        }
+        /// <summary>
+        /// The UUID of the associated asset on the asset server
+        /// </summary>        
+        public UUID AssetID;
 
-        public UUID AssetID
-        {
-            get { return _assetID; }
-            set { _assetID = value; }
-        }
+        /// <summary>
+        ///
+        /// </summary>        
+        public UUID GroupID;
 
-        public UUID GroupID
-        {
-            get { return _groupID; }
-            set { _groupID = value; }
-        }
+        /// <summary>
+        ///
+        /// </summary>        
+        public bool GroupOwned;
 
-        public bool GroupOwned
-        {
-            get { return _groupOwned; }
-            set { _groupOwned = value; }
-        }
+        /// <summary>
+        ///
+        /// </summary>        
+        public int SalePrice;
 
-        public int SalePrice
-        {
-            get { return _salePrice; }
-            set { _salePrice = value; }
-        }
+        /// <summary>
+        ///
+        /// </summary>        
+        public byte SaleType;
 
-        public byte SaleType
-        {
-            get { return _saleType; }
-            set { _saleType = value; }
-        }
+        /// <summary>
+        ///
+        /// </summary>        
+        public uint Flags;
 
-        public uint Flags
-        {
-            get { return _flags; }
-            set { _flags = value; }
-        }
-
-        public int CreationDate
-        {
-            get { return _creationDate; }
-            set { _creationDate = value; }
-        }
+        /// <summary>
+        ///
+        /// </summary>        
+        public int CreationDate;
         
         public InventoryItemBase()
         {
-            _creationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            CreationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
         }
     }
 }

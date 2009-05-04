@@ -396,7 +396,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Return a copy of the list of child items in this folder
+        /// Return a copy of the list of child items in this folder.  The items themselves are the originals.
         /// </summary>
         public List<InventoryItemBase> RequestListOfItems()
         {
@@ -416,7 +416,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Return a copy of the list of child folders in this folder.
+        /// Return a copy of the list of child folders in this folder.  The folders themselves are the originals.
         /// </summary>
         public List<InventoryFolderBase> RequestListOfFolders()
         {
