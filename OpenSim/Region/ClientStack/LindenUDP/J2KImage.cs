@@ -36,20 +36,13 @@ using System.Reflection;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    /*
-     * 
-     *          J2KImage
-     *          
-     *          We use this class to store image data and associated request data and attributes
-     *          
-     * 
-     * 
-     */
-
+	/// <summary>
+	/// We use this class to store image data and associated request data and attributes
+	/// </summary>
     public class J2KImage
     {
-
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+		
         public double m_designatedPriorityKey;
         public double m_requestedPriority = 0.0d;
         public uint m_lastSequence = 0;
@@ -107,7 +100,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 return (ushort)(((m_asset.Data.Length - cFirstPacketSize + cImagePacketSize - 1) / cImagePacketSize) + 1);
             }
-            catch(Exception e)
+            catch (Exception)
             {
                 // If the asset is missing/destroyed/truncated, we will land
                 // here
@@ -223,9 +216,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
                 
-                //It's concievable that the client might request packet one
-                //from a one packet image, which is really packet 0,
-                //which would leave us with a negative imagePacketSize..
+                // It's concievable that the client might request packet one
+                // from a one packet image, which is really packet 0,
+                // which would leave us with a negative imagePacketSize..
                 if (imagePacketSize > 0)
                 {
                     byte[] imageData = new byte[imagePacketSize];
@@ -252,7 +245,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return true;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }

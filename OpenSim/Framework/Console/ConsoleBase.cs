@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Console
 {
     public class ConsoleBase
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected string prompt = "# ";
 

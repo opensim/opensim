@@ -1361,7 +1361,7 @@ if (m_shape != null) {
         /// <returns></returns>
         public SceneObjectPart Copy(uint localID, UUID AgentID, UUID GroupID, int linkNum, bool userExposed)
         {
-            SceneObjectPart dupe = (SceneObjectPart) MemberwiseClone();
+            SceneObjectPart dupe = (SceneObjectPart)MemberwiseClone();
             dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
             if (userExposed)

@@ -148,8 +148,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected float m_timespan = 0.089f;
         protected DateTime m_lastupdate = DateTime.Now;
 
-        protected float m_timedilation = 1.0f;
-
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
         private int m_update_entities = 1; // Run through all objects checking for updates
@@ -228,11 +226,6 @@ namespace OpenSim.Region.Framework.Scenes
         public object SyncRoot
         {
             get { return m_sceneGraph.m_syncRoot; }
-        }
-
-        public float TimeDilation
-        {
-            get { return m_timedilation; }
         }
 
         public int MaxPrimsPerFrame

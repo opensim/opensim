@@ -594,7 +594,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 return response;
 
             string auth_token = (string)requestBody["auth_token"];
-            string[] auth_tokenvals = auth_token.Split(':');
+            //string[] auth_tokenvals = auth_token.Split(':');
             //string username = auth_tokenvals[0];
             int strcount = 0;
             
@@ -643,9 +643,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                                     <b2g_group_id></b2g_group_id>
                                 </level3>", ids[i],i,m_freeSwitchRealm,dt));
             }
-
-                                
-                                
+                                                                
             resp.Append("</buddies><groups></groups></body></level0></response>");
 
             response["str_response_string"] = resp.ToString();
@@ -715,7 +713,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
              * <displayname>Teravus Ousley</displayname></body></level0>
             */
         }
-
 
         public Hashtable FreeSwitchConfigHTTPHandler(Hashtable request)
         {

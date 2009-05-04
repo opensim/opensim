@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Console
     //
     public class LocalConsole : CommandConsole
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private readonly object m_syncRoot = new object();
 

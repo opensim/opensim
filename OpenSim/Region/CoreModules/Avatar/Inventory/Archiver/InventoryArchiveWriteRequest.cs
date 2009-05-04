@@ -124,6 +124,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected void SaveInvItem(InventoryItemBase inventoryItem, string path)
         {
             string filename = string.Format("{0}{1}_{2}.xml", path, inventoryItem.Name, inventoryItem.ID);            
+			
             string serialization = UserInventoryItemSerializer.Serialize(inventoryItem);
             m_archive.WriteFile(filename, serialization);
             

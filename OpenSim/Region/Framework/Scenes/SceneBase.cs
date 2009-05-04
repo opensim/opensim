@@ -110,14 +110,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public float TimeDilation
         {
-            get { return 1.0f; }
+            get { return m_timedilation; }
         }
+        protected float m_timedilation = 1.0f;
 
         protected ulong m_regionHandle;
         protected string m_regionName;
         protected RegionInfo m_regInfo;
 
-        //public TerrainEngine Terrain;
         public ITerrainChannel Heightmap;
 
         /// <value>

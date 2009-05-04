@@ -33,7 +33,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// Inventory Item - contains all the properties associated with an individual inventory piece.
     /// </summary>
-    public class InventoryItemBase : InventoryNodeBase
+    public class InventoryItemBase : InventoryNodeBase, ICloneable
     {       
         /// <summary>
         /// The inventory type of the item.  This is slightly different from the asset type in some situations.
@@ -143,5 +143,16 @@ namespace OpenSim.Framework
         {
             CreationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
         }
+		
+		public object Clone()
+		{
+			InventoryItemBase clone = new InventoryItemBase();
+			clone.AssetID = AssetID;
+			clone.AssetType = AssetType;
+			clone.BasePermissions = BasePermissions;
+			clone.CreationDate = CreationDate;
+			clone.CreatorId = CreatorId;
+			
+		}
     }
 }
