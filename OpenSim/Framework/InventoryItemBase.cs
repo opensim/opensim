@@ -71,15 +71,15 @@ namespace OpenSim.Framework
         {
             get
             {
-                UUID uuid = UUID.Zero;
-                UUID.TryParse(m_creatorId, out uuid);
-                return uuid;
+                return m_creatorIdAsUuid;
             }
             private set
             {
-                m_creatorId = value.ToString();
+                m_creatorIdAsUuid = value;
             }
         }       
+
+        private UUID m_creatorIdAsUuid = UUID.Zero;
 
         /// <value>
         /// The description of the inventory item (must be less than 64 characters)
