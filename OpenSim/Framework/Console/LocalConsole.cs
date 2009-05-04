@@ -46,7 +46,6 @@ namespace OpenSim.Framework.Console
         private int y = -1;
         private int cp = 0;
         private int h = 1;
-        private string prompt = "# ";
         private StringBuilder cmdline = new StringBuilder();
         private bool echo = true;
         private List<string> history = new List<string>();
