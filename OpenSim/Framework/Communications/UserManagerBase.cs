@@ -623,7 +623,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="regX">location X</param>
         /// <param name="regY">location Y</param>
         /// <returns>The UUID of the created user profile.  On failure, returns UUID.Zero</returns>
-        public UUID AddUser(string firstName, string lastName, string password, string email, uint regX, uint regY)
+        public virtual UUID AddUser(string firstName, string lastName, string password, string email, uint regX, uint regY)
         {
             return AddUser(firstName, lastName, password, email, regX, regY, UUID.Random());
         }
@@ -639,7 +639,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="regY">location Y</param>
         /// <param name="SetUUID">UUID of avatar.</param>
         /// <returns>The UUID of the created user profile.  On failure, returns UUID.Zero</returns>
-        public UUID AddUser(
+        public virtual UUID AddUser(
             string firstName, string lastName, string password, string email, uint regX, uint regY, UUID SetUUID)
         {
             string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);

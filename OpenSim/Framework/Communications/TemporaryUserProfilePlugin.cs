@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Communications
     /// </summary>
     public class TemporaryUserProfilePlugin : IUserDataPlugin
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Dictionary<UUID, UserProfileData> m_profiles = new Dictionary<UUID, UserProfileData>();
         
@@ -51,7 +51,7 @@ namespace OpenSim.Framework.Communications
         
         public UserProfileData GetUserByUUID(UUID user)
         {
-            m_log.DebugFormat("[TEMP USER PROFILE]: Received request for {0}", user);
+            //m_log.DebugFormat("[TEMP USER PROFILE]: Received request for {0}", user);
             
             lock (m_profiles)
             {

@@ -62,6 +62,16 @@ namespace OpenSim.Region.Communications.Hypergrid
         {
             m_localUserServices = local;
         }
+
+        public override UUID AddUser(
+            string firstName, string lastName, string password, string email, uint regX, uint regY, UUID uuid)
+        {
+            // Only valid to create users locally
+            if (m_localUserServices != null)
+                return m_localUserServices.AddUser(firstName, lastName, password, email, regX, regY, uuid);
+
+            return UUID.Zero;
+        }
         
         public override bool AddUserAgent(UserAgentData agentdata)
         {
