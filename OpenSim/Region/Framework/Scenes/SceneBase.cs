@@ -53,7 +53,12 @@ namespace OpenSim.Region.Framework.Scenes
         
         public IConfigSource Config
         {
-            get { return null; }
+            get { return GetConfig(); }
+        }
+
+        protected virtual IConfigSource GetConfig()
+        {
+            return null;
         }
 
         /// <value>
