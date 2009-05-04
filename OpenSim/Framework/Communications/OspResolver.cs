@@ -50,7 +50,22 @@ namespace OpenSim.Framework.Communications
         public const string OSPA_PAIR_SEPARATOR = "=";
 
         /// <summary>
-        /// Make an OSPA given an avatar name
+        /// Make an OSPA given a user UUID
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="commsManager"></param>
+        /// <returns>The OSPA.  Null if a user with the given UUID could not be found.</returns>
+        public static string MakeOspa(UUID userId, CommunicationsManager commsManager)
+        {
+            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
+            if (userInfo != null)
+                return MakeOspa(userInfo.UserProfile.FirstName, userInfo.UserProfile.SurName);
+
+            return null;
+        }
+        
+        /// <summary>
+        /// Make an OSPA given a user name
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -58,7 +73,7 @@ namespace OpenSim.Framework.Communications
         {
             return 
                 OSPA_PREFIX + OSPA_NAME_KEY + OSPA_PAIR_SEPARATOR + firstName + OSPA_NAME_VALUE_SEPARATOR + lastName;
-        }
+        }        
         
         /// <summary>
         /// Resolve an osp string into the most suitable internal OpenSim identifier.
@@ -74,7 +89,7 @@ namespace OpenSim.Framework.Communications
         /// return that same string.  If the input string was ospi data but no valid profile information has been found,
         /// then returns null.
         /// </returns>
-        public static string Resolve(string ospa, CommunicationsManager commsManager)
+        public static string ResolveOspa(string ospa, CommunicationsManager commsManager)
         {
             m_log.DebugFormat("[OSP RESOLVER]: Resolving {0}", ospa);
             

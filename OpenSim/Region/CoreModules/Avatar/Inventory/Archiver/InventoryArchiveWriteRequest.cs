@@ -125,13 +125,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             string filename = string.Format("{0}{1}_{2}.xml", path, inventoryItem.Name, inventoryItem.ID);            
 			
-            string serialization = UserInventoryItemSerializer.Serialize(inventoryItem);
-            m_archive.WriteFile(filename, serialization);
-            
             // Record the creator of this item for user record purposes (which might go away soon)
             m_userUuids[inventoryItem.CreatorIdAsUuid] = 1;
-
-            m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, m_assetUuids);
+			
+            InventoryItemBase saveItem = (InventoryItemBase)inventoryItem.Clone();
+            saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_module.CommsManager);
+			
+            string serialization = UserInventoryItemSerializer.Serialize(saveItem);
+            m_archive.WriteFile(filename, serialization);
+            
+            m_assetGatherer.GatherAssetUuids(saveItem.AssetID, (AssetType)saveItem.AssetType, m_assetUuids);
         }
 
         /// <summary>

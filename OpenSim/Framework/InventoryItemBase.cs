@@ -35,14 +35,14 @@ namespace OpenSim.Framework
     /// </summary>
     public class InventoryItemBase : InventoryNodeBase, ICloneable
     {       
-        /// <summary>
+        /// <value>
         /// The inventory type of the item.  This is slightly different from the asset type in some situations.
-        /// </summary>        
+        /// </value>        
         public int InvType;
 
-        /// <summary>
+        /// <value>
         /// The folder this item is contained in
-        /// </summary>        
+        /// </value>        
         public UUID Folder;
 
         /// <value>
@@ -69,9 +69,9 @@ namespace OpenSim.Framework
         /// </value>
         public UUID CreatorIdAsUuid { get; private set; }       
 
-        /// <summary>
+        /// <value>
         /// The description of the inventory item (must be less than 64 characters)
-        /// </summary>
+        /// </value>
         public string Description = String.Empty;
 
         /// <value>
@@ -79,80 +79,69 @@ namespace OpenSim.Framework
         /// </value>          
         public uint NextPermissions;
 
-        /// <summary>
+        /// <value>
         /// A mask containing permissions for the current owner (cannot be enforced)
-        /// </summary>        
+        /// </value>        
         public uint CurrentPermissions;
 
-        /// <summary>
+        /// <value>
         ///
-        /// </summary>        
+        /// </value>        
         public uint BasePermissions;
 
-        /// <summary>
+        /// <value>
         ///
-        /// </summary>        
+        /// </value>        
         public uint EveryOnePermissions;
         
-        /// <summary>
+        /// <value>
         ///
-        /// </summary>        
+        /// </value>        
         public uint GroupPermissions;
 
-        /// <summary>
+        /// <value>
         /// This is an enumerated value determining the type of asset (eg Notecard, Sound, Object, etc)
-        /// </summary>        
+        /// </value>        
         public int AssetType;
 
-        /// <summary>
+        /// <value>
         /// The UUID of the associated asset on the asset server
-        /// </summary>        
+        /// </value>        
         public UUID AssetID;
 
-        /// <summary>
+        /// <value>
         ///
-        /// </summary>        
+        /// </value>        
         public UUID GroupID;
 
-        /// <summary>
+        /// <value>
         ///
-        /// </summary>        
+        /// </value>        
         public bool GroupOwned;
 
-        /// <summary>
+        /// <value>
         ///
-        /// </summary>        
+        /// </value>        
         public int SalePrice;
 
-        /// <summary>
+        /// <value>
         ///
-        /// </summary>        
+        /// </value>        
         public byte SaleType;
 
-        /// <summary>
+        /// <value>
         ///
-        /// </summary>        
+        /// </value>        
         public uint Flags;
 
-        /// <summary>
+        /// <value>
         ///
-        /// </summary>        
-        public int CreationDate;
-        
-        public InventoryItemBase()
-        {
-            CreationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-        }
+        /// </value>        
+        public int CreationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
 		
 		public object Clone()
 		{
-			InventoryItemBase clone = new InventoryItemBase();
-			clone.AssetID = AssetID;
-			clone.AssetType = AssetType;
-			clone.BasePermissions = BasePermissions;
-			clone.CreationDate = CreationDate;
-			clone.CreatorId = CreatorId;
-			
+			return MemberwiseClone();
 		}
     }
 }
