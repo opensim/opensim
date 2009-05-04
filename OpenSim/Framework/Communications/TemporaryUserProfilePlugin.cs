@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Communications
         
         public virtual void AddTemporaryUserProfile(UserProfileData userProfile)
         {
-            m_log.DebugFormat("[TEMP USER PROFILE]: Adding {0} {1}", userProfile.Name, userProfile.ID);
+            //m_log.DebugFormat("[TEMP USER PROFILE]: Adding {0} {1}", userProfile.Name, userProfile.ID);
             
             lock (m_profiles)
             {

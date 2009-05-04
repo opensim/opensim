@@ -117,11 +117,15 @@ namespace OpenSim.Framework.Communications
         // See IInventoryServices
         public virtual InventoryFolderBase RequestRootFolder(UUID userID)
         {
-            // FIXME: Probably doesn't do what was originally intended - only ever queries the first plugin
+            // Retrieve the first root folder we get from the list of plugins.
             foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                return plugin.getUserRootFolder(userID);
+                InventoryFolderBase rootFolder = plugin.getUserRootFolder(userID);
+                if (rootFolder != null)
+                    return rootFolder;
             }
+
+            // Return nothing if no plugin was able to supply a root folder
             return null;
         }
 
@@ -154,11 +158,13 @@ namespace OpenSim.Framework.Communications
 
         public List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
+            List<InventoryItemBase> activeGestures = new List<InventoryItemBase>();
             foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                return plugin.fetchActiveGestures(userId);
+                activeGestures.AddRange(plugin.fetchActiveGestures(userId));
             }
-            return new List<InventoryItemBase>();
+            
+            return activeGestures;
         }
 
         #endregion
@@ -168,21 +174,24 @@ namespace OpenSim.Framework.Communications
         public List<InventoryFolderBase> RequestSubFolders(UUID parentFolderID)
         {
             List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();
+            
             foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                return plugin.getInventoryFolders(parentFolderID);
+                inventoryList.AddRange(plugin.getInventoryFolders(parentFolderID));
             }
+            
             return inventoryList;
         }
 
         public List<InventoryItemBase> RequestFolderItems(UUID folderID)
         {
             List<InventoryItemBase> itemsList = new List<InventoryItemBase>();
+            
             foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                itemsList = plugin.getInventoryInFolder(folderID);
-                return itemsList;
+                itemsList.AddRange(plugin.getInventoryInFolder(folderID));
             }
+            
             return itemsList;
         }
 
@@ -284,9 +293,7 @@ namespace OpenSim.Framework.Communications
             {
                 InventoryItemBase result = plugin.queryInventoryItem(item.ID);
                 if (result != null)
-                {
                     return result;
-                }
             }
 
             return null;
@@ -298,9 +305,7 @@ namespace OpenSim.Framework.Communications
             {
                 InventoryFolderBase result = plugin.queryInventoryFolder(item.ID);
                 if (result != null)
-                {
                     return result;
-                }
             }
 
             return null;
@@ -353,7 +358,9 @@ namespace OpenSim.Framework.Communications
         {
             foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                return plugin.getInventoryItem(itemID);
+                InventoryItemBase item = plugin.getInventoryItem(itemID);
+                if (item != null)
+                    return item;
             }
 
             return null;
