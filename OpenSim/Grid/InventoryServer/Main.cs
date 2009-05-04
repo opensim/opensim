@@ -60,7 +60,7 @@ namespace OpenSim.Grid.InventoryServer
 
         public OpenInventory_Main()
         {
-            m_console = new ConsoleBase("Inventory");
+            m_console = new LocalConsole("Inventory");
             MainConsole.Instance = m_console;
         }
 

@@ -53,7 +53,7 @@ namespace OpenSim.Grid.GridServer.Modules
 
         protected IGridServiceCore m_core;
 
-        protected ConsoleBase m_console;
+        protected CommandConsole m_console;
 
         #region IGridPlugin Members
 

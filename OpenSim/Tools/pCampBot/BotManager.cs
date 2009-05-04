@@ -47,7 +47,7 @@ namespace pCampBot
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected ConsoleBase m_console;
+        protected CommandConsole m_console;
         protected List<PhysicsBot> m_lBot;
         protected Thread[] m_td;
         protected bool m_verbose = true;
@@ -206,9 +206,9 @@ namespace pCampBot
         /// Standard CreateConsole routine
         /// </summary>
         /// <returns></returns>
-        protected ConsoleBase CreateConsole()
+        protected CommandConsole CreateConsole()
         {
-            return new ConsoleBase("Region");
+            return new LocalConsole("Region");
         }
 
         private void HandleShutdown(string module, string[] cmd)

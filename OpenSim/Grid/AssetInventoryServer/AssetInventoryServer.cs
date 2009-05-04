@@ -55,7 +55,7 @@ namespace OpenSim.Grid.AssetInventoryServer
         {
             ConfigFile = config;
 
-            m_console = new ConsoleBase("AssetInventory");
+            m_console = new LocalConsole("AssetInventory");
             MainConsole.Instance = m_console;
         }
 

@@ -60,7 +60,7 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
 
-        protected ConsoleBase m_console;
+        protected CommandConsole m_console;
         protected OpenSimAppender m_consoleAppender;
 
         /// <summary>

@@ -84,7 +84,7 @@ namespace OpenSim.Grid.UserServer
 
         public OpenUser_Main()
         {
-            m_console = new ConsoleBase("User");
+            m_console = new LocalConsole("User");
             MainConsole.Instance = m_console;
         }
 
@@ -126,7 +126,7 @@ namespace OpenSim.Grid.UserServer
 
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
 
-            RegisterInterface<ConsoleBase>(m_console);
+            RegisterInterface<CommandConsole>(m_console);
             RegisterInterface<UserConfig>(Cfg);
 
             //Should be in modules?

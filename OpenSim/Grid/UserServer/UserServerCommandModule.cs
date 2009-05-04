@@ -49,7 +49,7 @@ namespace OpenSim.Grid.UserServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected ConsoleBase m_console;
+        protected CommandConsole m_console;
         protected UserConfig m_cfg;
 
         protected UserDataBaseService m_userDataBaseService;
@@ -88,8 +88,8 @@ namespace OpenSim.Grid.UserServer
                 m_loginService = loginService;
             }
 
-            ConsoleBase console;
-            if ((m_core.TryGet<ConsoleBase>(out console)) && (m_cfg != null)
+            CommandConsole console;
+            if ((m_core.TryGet<CommandConsole>(out console)) && (m_cfg != null)
                 && (m_userDataBaseService != null) && (m_loginService != null))
             {
                 RegisterConsoleCommands(console);
@@ -101,7 +101,7 @@ namespace OpenSim.Grid.UserServer
 
         }
 
-        private void RegisterConsoleCommands(ConsoleBase console)
+        private void RegisterConsoleCommands(CommandConsole console)
         {
             m_console = console;
             m_console.Commands.AddCommand("userserver", false, "create user",
