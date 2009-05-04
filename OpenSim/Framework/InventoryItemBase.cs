@@ -67,7 +67,19 @@ namespace OpenSim.Framework
         /// <value>
         /// The creator of this item expressed as a UUID
         /// </value>
-        public UUID CreatorIdAsUuid { get; private set; }       
+        public UUID CreatorIdAsUuid
+        {
+            get
+            {
+                UUID uuid = UUID.Zero;
+                UUID.TryParse(m_creatorId, out uuid);
+                return uuid;
+            }
+            private set
+            {
+                m_creatorId = value.ToString();
+            }
+        }       
 
         /// <value>
         /// The description of the inventory item (must be less than 64 characters)
