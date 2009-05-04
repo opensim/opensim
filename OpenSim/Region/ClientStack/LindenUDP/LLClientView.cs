@@ -140,6 +140,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_primTerseUpdateRate = 10;
         protected int m_primFullUpdateRate = 14;
 
+        protected int m_packetMTU = 1400;
+
         // LLClientView Only
         public delegate void BinaryGenericMessage(Object sender, string method, byte[][] args);
 
@@ -537,6 +539,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_primFullUpdateRate = clientConfig.GetInt("FullUpdateRate",
                                                                m_primFullUpdateRate);
 
+                    m_packetMTU = clientConfig.GetInt("PacketMTU", 1400);
                 }
             }
 
@@ -3013,9 +3016,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 outPacket.RegionData.TimeDilation =
                         (ushort)(Scene.TimeDilation * ushort.MaxValue);
 
-                int count = m_primFullUpdates.Count;
-                if (count > m_primFullUpdatesPerPacket)
-                    count = m_primFullUpdatesPerPacket;
+                int max = m_primFullUpdates.Count;
+                if (max > m_primFullUpdatesPerPacket)
+                    max = m_primFullUpdatesPerPacket;
+
+                int count = 0;
+                int size = 0;
+
+                byte[] zerobuffer = new byte[1024];
+                byte[] blockbuffer = new byte[1024];
+
+                for (count = 0 ; count < max ; count++)
+                {
+                    int length = 0;
+                    m_primFullUpdates[count].ToBytes(blockbuffer, ref length);
+                    length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
+                    if (size + length > m_packetMTU)
+                        break;
+                    size += length;
+                }
 
                 outPacket.ObjectData =
                         new ObjectUpdatePacket.ObjectDataBlock[count];
@@ -3083,9 +3102,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 outPacket.RegionData.TimeDilation =
                         (ushort)(Scene.TimeDilation * ushort.MaxValue);
 
-                int count = m_primTerseUpdates.Count;
-                if (count > m_primTerseUpdatesPerPacket)
-                    count = m_primTerseUpdatesPerPacket;
+                int max = m_primTerseUpdates.Count;
+                if (max > m_primTerseUpdatesPerPacket)
+                    max = m_primTerseUpdatesPerPacket;
+
+                int count = 0;
+                int size = 0;
+
+                byte[] zerobuffer = new byte[1024];
+                byte[] blockbuffer = new byte[1024];
+
+                for (count = 0 ; count < max ; count++)
+                {
+                    int length = 0;
+                    m_primTerseUpdates[count].ToBytes(blockbuffer, ref length);
+                    length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
+                    if (size + length > m_packetMTU)
+                        break;
+                    size += length;
+                }
 
                 outPacket.ObjectData =
                         new ImprovedTerseObjectUpdatePacket.

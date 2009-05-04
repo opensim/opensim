@@ -1285,3 +1285,5 @@
 	;FullUpdatesPerPacket=14
 	;TerseUpdateRate=10
 	;FullUpdateRate=14
+
+    ;PacketMTU = 1400
