@@ -140,10 +140,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
          * Agent-related communications 
          */
 
-        public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit)
+        public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit, out string reason)
         {
             // Try local first
-            if (m_localBackend.SendCreateChildAgent(regionHandle, aCircuit))
+            if (m_localBackend.SendCreateChildAgent(regionHandle, aCircuit, out reason))
                 return true;
 
             // else do the remote thing
@@ -154,7 +154,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
                 {
                     m_regionClient.SendUserInformation(regInfo, aCircuit);
 
-                    return m_regionClient.DoCreateChildAgentCall(regInfo, aCircuit, "None");
+                    return m_regionClient.DoCreateChildAgentCall(regInfo, aCircuit, "None", out reason);
                 }
                 //else
                 //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
@@ -431,12 +431,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
                 return;
             }
 
+            OSDMap resp = new OSDMap(2);
+            string reason = String.Empty;
+
             // This is the meaning of POST agent
             m_regionClient.AdjustUserInformation(aCircuit);
-            bool result = m_localBackend.SendCreateChildAgent(regionhandle, aCircuit);
+            bool result = m_localBackend.SendCreateChildAgent(regionhandle, aCircuit, out reason);
 
+            resp["reason"] = OSD.FromString(reason);
+            resp["success"] = OSD.FromBoolean(result);
+
+            // TODO: add reason if not String.Empty?
             responsedata["int_response_code"] = 200;
-            responsedata["str_response_string"] = result.ToString();
+            responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp);
         }
 
         protected virtual void DoAgentPut(Hashtable request, Hashtable responsedata)

@@ -201,7 +201,15 @@ namespace OpenSim.Client.Linden
 
             if (m_regionsConnector.RegionLoginsEnabled)
             {
-                return m_regionsConnector.NewUserConnection(regionInfo.RegionHandle, agent);
+                string reason;
+                bool success = m_regionsConnector.NewUserConnection(regionInfo.RegionHandle, agent, out reason);
+                if (!success)
+                {
+                    response.ErrorReason = "key";
+                    response.ErrorMessage = reason;
+                }
+                return success;
+                // return m_regionsConnector.NewUserConnection(regionInfo.RegionHandle, agent, out reason);
             }
 
             return false;

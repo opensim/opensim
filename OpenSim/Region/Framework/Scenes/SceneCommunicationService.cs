@@ -296,8 +296,10 @@ namespace OpenSim.Region.Framework.Scenes
             string capsPath = "http://" + reg.ExternalHostName + ":" + reg.HttpPort
                   + "/CAPS/" + a.CapsPath + "0000/";
 
+            string reason = String.Empty;
+
             //bool regionAccepted = m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, a);
-            bool regionAccepted = m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, a);
+            bool regionAccepted = m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, a, out reason);
 
             if (regionAccepted && newAgent)
             {
@@ -785,11 +787,14 @@ namespace OpenSim.Region.Framework.Scenes
                             agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
                         }
 
+                        string reason = String.Empty;
+
                         // Let's create an agent there if one doesn't exist yet. 
                         //if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))
-                        if (!m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, agentCircuit))
+                        if (!m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, agentCircuit, out reason))
                         {
-                            avatar.ControllingClient.SendTeleportFailed("Destination is not accepting teleports.");
+                            avatar.ControllingClient.SendTeleportFailed(String.Format("Destination is not accepting teleports: {0}",
+                                                                                      reason));
                             return;
                         }
 

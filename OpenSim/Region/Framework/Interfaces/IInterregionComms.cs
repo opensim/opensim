@@ -38,7 +38,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         #region Agents
 
-        bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit);
+        bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit, out string reason);
 
         /// <summary>
         /// Full child agent update.

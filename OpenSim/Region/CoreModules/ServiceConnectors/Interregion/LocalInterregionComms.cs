@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -112,19 +113,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
          * Agent-related communications 
          */
 
-        public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit)
+        public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit, out string reason)
         {            
             foreach (Scene s in m_sceneList)
             {                
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
 //                    m_log.DebugFormat("[LOCAL COMMS]: Found region {0} to send SendCreateChildAgent", regionHandle);
-                    s.NewUserConnection(aCircuit);
-                    return true;
+                    return s.NewUserConnection(aCircuit, out reason);
                 }
             }
             
 //            m_log.DebugFormat("[LOCAL COMMS]: Did not find region {0} for SendCreateChildAgent", regionHandle);
+            reason = "Did not find region.";
             return false;
         }
 

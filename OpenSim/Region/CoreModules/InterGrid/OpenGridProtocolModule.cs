@@ -545,7 +545,15 @@ namespace OpenSim.Region.CoreModules.InterGrid
             homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(userProfile);
 
             // Call 'new user' event handler
-            homeScene.NewUserConnection(agentData);
+            string reason;
+            if (!homeScene.NewUserConnection(agentData, out reason))
+            {
+                responseMap["connect"] = OSD.FromBoolean(false);
+                responseMap["message"] = OSD.FromString(String.Format("Connection refused: {0}", reason));
+                m_log.ErrorFormat("[OGP]: rez_avatar/request failed: {0}", reason);
+                return responseMap;
+            }
+
 
             //string raCap = string.Empty;
 

@@ -43,7 +43,7 @@ namespace OpenSim.Framework.Communications.Clients
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public bool DoCreateChildAgentCall(RegionInfo region, AgentCircuitData aCircuit, string authKey)
+        public bool DoCreateChildAgentCall(RegionInfo region, AgentCircuitData aCircuit, string authKey, out string reason)
         {
             // Eventually, we want to use a caps url instead of the agentID
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + aCircuit.AgentID + "/";
@@ -55,6 +55,8 @@ namespace OpenSim.Framework.Communications.Clients
             AgentCreateRequest.Timeout = 10000;
             //AgentCreateRequest.KeepAlive = false;
             AgentCreateRequest.Headers.Add("Authorization", authKey);
+
+            reason = String.Empty;
 
             // Fill it in
             OSDMap args = null;
@@ -98,7 +100,7 @@ namespace OpenSim.Framework.Communications.Clients
             catch
             {
                 //m_log.InfoFormat("[REST COMMS]: Bad send on ChildAgentUpdate {0}", ex.Message);
-
+                reason = "cannot contact remote region";
                 return false;
             }
 
@@ -112,13 +114,24 @@ namespace OpenSim.Framework.Communications.Clients
                 {
                     m_log.Info("[REST COMMS]: Null reply on DoCreateChildAgentCall post");
                 }
+                else
+                {
 
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                sr.Close();
-                //m_log.InfoFormat("[REST COMMS]: DoCreateChildAgentCall reply was {0} ", reply);
-
+                    StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                    string response = sr.ReadToEnd().Trim();
+                    sr.Close();
+                    m_log.InfoFormat("[REST COMMS]: DoCreateChildAgentCall reply was {0} ", response);
+                
+                    if (!String.IsNullOrEmpty(response))
+                    {
+                        // we assume we got an OSDMap back
+                        OSDMap r = GetOSDMap(response);
+                        bool success = r["success"].AsBoolean();
+                        reason = r["reason"].AsString();
+                        
+                        return success;
+                    }
+                }
             }
             catch (WebException ex)
             {

@@ -208,21 +208,22 @@ namespace OpenSim.Client.Linden
                     {
                         denyMess = "User is banned from this region";
                         m_log.InfoFormat(
-               "[CLIENT]: Denying access for user {0} {1} because user is banned",
-               agentData.firstname, agentData.lastname);
+                            "[CLIENT]: Denying access for user {0} {1} because user is banned",
+                            agentData.firstname, agentData.lastname);
                     }
                     else
                     {
-                        if (scene.NewUserConnection(agentData))
+                        string reason;
+                        if (scene.NewUserConnection(agentData, out reason))
                         {
                             success = true;
                         }
                         else
                         {
-                            denyMess = "Login refused by region";
+                            denyMess = String.Format("Login refused by region: {0}", reason);
                             m_log.InfoFormat(
-                   "[CLIENT]: Denying access for user {0} {1} because user connection was refused by the region",
-                   agentData.firstname, agentData.lastname);
+                                "[CLIENT]: Denying access for user {0} {1} because user connection was refused by the region",
+                                agentData.firstname, agentData.lastname);
                         }
                     }
                     

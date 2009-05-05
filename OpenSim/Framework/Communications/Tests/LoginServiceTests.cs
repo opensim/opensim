@@ -345,8 +345,9 @@ namespace OpenSim.Framework.Communications.Tests
             {
             }
 
-            public bool NewUserConnection(ulong regionHandle, AgentCircuitData agent)
+            public bool NewUserConnection(ulong regionHandle, AgentCircuitData agent, out string reason)
             {
+                reason = String.Empty;
                 lock (m_regionsList)
                 {
                     foreach (RegionInfo regInfo in m_regionsList)
@@ -355,6 +356,7 @@ namespace OpenSim.Framework.Communications.Tests
                             return true;
                     }
                 }
+                reason = "Region not found";
                 return false;
             }
 

@@ -946,13 +946,15 @@ namespace OpenSim.Framework.Communications.Services
             {
                 regionInfo = homeInfo;
                 theUser.CurrentAgent.Position = theUser.HomeLocation;
-                response.LookAt = "[r" + theUser.HomeLookAt.X.ToString() + ",r" + theUser.HomeLookAt.Y.ToString() + ",r" + theUser.HomeLookAt.Z.ToString() + "]";
+                response.LookAt = String.Format("[r{0},r{1},r{2}]", theUser.HomeLookAt.X.ToString(), 
+                                                theUser.HomeLookAt.Y.ToString(), theUser.HomeLookAt.Z.ToString());
             }
             else if (startLocationRequest == "last")
             {
                 UUID lastRegion = theUser.CurrentAgent.Region;
                 regionInfo = GetRegionInfo(lastRegion);
-                response.LookAt = "[r" + theUser.CurrentAgent.LookAt.X.ToString() + ",r" + theUser.CurrentAgent.LookAt.Y.ToString() + ",r" + theUser.CurrentAgent.LookAt.Z.ToString() + "]";
+                response.LookAt = String.Format("[r{0},r{1},r{2}]", theUser.CurrentAgent.LookAt.X.ToString(),
+                                                theUser.CurrentAgent.LookAt.Y.ToString(), theUser.CurrentAgent.LookAt.Z.ToString());
             }
             else
             {

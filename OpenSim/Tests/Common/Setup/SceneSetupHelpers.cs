@@ -245,9 +245,11 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static TestClient AddRootAgent(Scene scene, AgentCircuitData agentData)
         {
+            string reason;
+
             // We emulate the proper login sequence here by doing things in three stages
             // Stage 1: simulate login by telling the scene to expect a new user connection
-            scene.NewUserConnection(agentData);
+            scene.NewUserConnection(agentData, out reason);
 
             // Stage 2: add the new client as a child agent to the scene
             TestClient client = new TestClient(agentData, scene);

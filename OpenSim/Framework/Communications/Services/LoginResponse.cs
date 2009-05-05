@@ -320,7 +320,7 @@ namespace OpenSim.Framework.Communications.Services
         {
             return GenerateFailureResponseLLSD(
                 "key",
-                "Error connecting to grid. Could not percieve credentials from login XML.",
+                "Error connecting to grid. Could not perceive credentials from login XML.",
                 "false");
         }
 

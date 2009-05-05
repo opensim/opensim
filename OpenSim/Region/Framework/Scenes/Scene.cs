@@ -1859,87 +1859,46 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override void AddNewClient(IClientAPI client)
         {
-            bool welcome  = true;
+            SubscribeToClientEvents(client);
+            ScenePresence presence;
 
-            if (m_regInfo.EstateSettings.IsBanned(client.AgentId) && (!Permissions.IsGod(client.AgentId)))
+            if (m_restorePresences.ContainsKey(client.AgentId))
             {
-                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
-                                client.AgentId, client.FirstName, client.LastName, RegionInfo.RegionName);
-                client.SendAlertMessage("Denied access to region " + RegionInfo.RegionName + ". You have been banned from that region.");
-                welcome = false;
-            }
-            else if (!m_regInfo.EstateSettings.PublicAccess && !m_regInfo.EstateSettings.HasAccess(client.AgentId) && !Permissions.IsGod(client.AgentId))
-            {
-                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access",
-                                client.AgentId, client.FirstName, client.LastName, RegionInfo.RegionName);
-                client.SendAlertMessage("Denied access to private region " + RegionInfo.RegionName + ". You do not have access to this region.");
-                welcome = false;
-            }
-
-            if (!welcome)
-            {
-                try
+                m_log.DebugFormat("[SCENE]: Restoring agent {0} {1} in {2}", client.Name, client.AgentId, RegionInfo.RegionName);
+                
+                presence = m_restorePresences[client.AgentId];
+                m_restorePresences.Remove(client.AgentId);
+                
+                // This is one of two paths to create avatars that are
+                // used.  This tends to get called more in standalone
+                // than grid, not really sure why, but as such needs
+                // an explicity appearance lookup here.
+                AvatarAppearance appearance = null;
+                GetAvatarAppearance(client, out appearance);
+                presence.Appearance = appearance;
+                
+                presence.initializeScenePresence(client, RegionInfo, this);
+                
+                m_sceneGraph.AddScenePresence(presence);
+                
+                lock (m_restorePresences)
                 {
-                    IEventQueue eq = RequestModuleInterface<IEventQueue>();
-                    if (eq != null)
-                    {
-                        eq.DisableSimulator(RegionInfo.RegionHandle, client.AgentId);
-                    }
-                    else
-                        client.SendShutdownConnectionNotice();
-
-                    client.Close(false);
-                    CapsModule.RemoveCapsHandler(client.AgentId);
-                    m_authenticateHandler.RemoveCircuit(client.CircuitCode);
-                }
-                catch (Exception e)
-                {
-                    m_log.DebugFormat("[SCENE]: Exception while closing unwelcome client {0} {1}: {2}", client.FirstName, client.LastName, e.Message);
+                    Monitor.PulseAll(m_restorePresences);
                 }
             }
             else
             {
-                SubscribeToClientEvents(client);
-                ScenePresence presence;
-
-                if (m_restorePresences.ContainsKey(client.AgentId))
-                {
-                    m_log.DebugFormat("[SCENE]: Restoring agent {0} {1} in {2}", client.Name, client.AgentId, RegionInfo.RegionName);
-
-                    presence = m_restorePresences[client.AgentId];
-                    m_restorePresences.Remove(client.AgentId);
-
-                    // This is one of two paths to create avatars that are
-                    // used.  This tends to get called more in standalone
-                    // than grid, not really sure why, but as such needs
-                    // an explicity appearance lookup here.
-                    AvatarAppearance appearance = null;
-                    GetAvatarAppearance(client, out appearance);
-                    presence.Appearance = appearance;
-
-                    presence.initializeScenePresence(client, RegionInfo, this);
-
-                    m_sceneGraph.AddScenePresence(presence);
-
-                    lock (m_restorePresences)
-                    {
-                        Monitor.PulseAll(m_restorePresences);
-                    }
-                }
-                else
-                {
-                    m_log.DebugFormat(
-                        "[SCENE]: Adding new child agent for {0} in {1}",
-                        client.Name, RegionInfo.RegionName);
-
-                    CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
-
-                    CreateAndAddScenePresence(client);
-                }
-
-                m_LastLogin = Environment.TickCount;
-                EventManager.TriggerOnNewClient(client);
+                m_log.DebugFormat(
+                    "[SCENE]: Adding new child agent for {0} in {1}",
+                    client.Name, RegionInfo.RegionName);
+                
+                CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
+                
+                CreateAndAddScenePresence(client);
             }
+
+            m_LastLogin = Environment.TickCount;
+            EventManager.TriggerOnNewClient(client);
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
@@ -2404,7 +2363,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="agent"></param>
         public void HandleNewUserConnection(AgentCircuitData agent)
         {
-            NewUserConnection(agent);
+            string reason;
+            NewUserConnection(agent, out reason);
         }
 
         /// <summary>
@@ -2415,9 +2375,35 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agent"></param>
-        public bool NewUserConnection(AgentCircuitData agent)
+        /// <param name="reason"></param>
+        public bool NewUserConnection(AgentCircuitData agent, out string reason)
         {
             bool goodUserConnection = AuthenticateUser(agent);
+
+            reason = String.Empty;
+
+            if (goodUserConnection && 
+                m_regInfo.EstateSettings.IsBanned(agent.AgentID) && 
+                (!Permissions.IsGod(agent.AgentID)))
+            {
+                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
+                                agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+                reason = String.Format("Denied access to region {0}: You have been banned from that region.",
+                                       RegionInfo.RegionName);
+                goodUserConnection = false;
+            }
+            else if (goodUserConnection && 
+                     !m_regInfo.EstateSettings.PublicAccess && 
+                     !m_regInfo.EstateSettings.HasAccess(agent.AgentID) && 
+                     !Permissions.IsGod(agent.AgentID))
+            {
+                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access",
+                                agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+                reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.", 
+                                       RegionInfo.RegionName);
+                goodUserConnection = false;
+            }
+
 
             if (goodUserConnection)
             {
@@ -2431,7 +2417,7 @@ namespace OpenSim.Region.Framework.Scenes
                         agent.AgentID, RegionInfo.RegionName);
 
                     sp.AdjustKnownSeeds();
-
+                    
                     return true;
                 }
 
@@ -2440,13 +2426,13 @@ namespace OpenSim.Region.Framework.Scenes
                     "[CONNECTION BEGIN]: Region {0} told of incoming client {1} {2} {3} (circuit code {4})",
                     RegionInfo.RegionName, agent.firstname, agent.lastname, agent.AgentID, agent.circuitcode);
 
-                if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
-                {
-                    m_log.WarnFormat(
-                   "[CONNECTION BEGIN]: Incoming user {0} at {1} is on the region banlist",
-                   agent.AgentID, RegionInfo.RegionName);
-                    //return false;
-                }
+                // if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
+                // {
+                //     m_log.WarnFormat(
+                //    "[CONNECTION BEGIN]: Incoming user {0} at {1} is on the region banlist",
+                //    agent.AgentID, RegionInfo.RegionName);
+                //     //return false;
+                // }
 
                 CapsModule.AddCapsHandler(agent.AgentID);
 
@@ -2481,7 +2467,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_log.WarnFormat("[CONNECTION BEGIN]: failed to authenticate user {0} {1}. Denying connection.", agent.firstname, agent.lastname);
+                m_log.WarnFormat("[CONNECTION BEGIN]: failed to authenticate user {0} {1}: {2}. Denying connection.", 
+                                 agent.firstname, agent.lastname, reason);
+                if (String.IsNullOrEmpty(reason))
+                {
+                    reason = String.Format("Failed to authenticate user {0} {1}, access denied.", agent.firstname, agent.lastname);
+                }
                 return false;
             }
         }

@@ -160,8 +160,9 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             }
         }
 
-        public bool NewUserConnection(ulong regionHandle, AgentCircuitData agent)
+        public bool NewUserConnection(ulong regionHandle, AgentCircuitData agent, out string reason)
         {
+            reason = String.Empty;
             return true;
         }
 

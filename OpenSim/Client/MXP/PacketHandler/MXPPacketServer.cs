@@ -312,6 +312,8 @@ namespace OpenSim.Client.MXP.PacketHandler
                             {
                                 Scene scene = m_scenes[sceneId];
                                 UUID mxpSessionID = UUID.Random();
+                                
+                                string reason;
 
                                 m_log.Debug("[MXP ClientStack]: Session join request success: " + session.SessionId + " (" +
                                    (session.IsIncoming ? "from" : "to") + " " + session.RemoteEndPoint.Address + ":" +
@@ -321,7 +323,13 @@ namespace OpenSim.Client.MXP.PacketHandler
                                 AttachUserAgentToUserProfile(session, mxpSessionID, sceneId, user);
                                 m_log.Debug("[MXP ClientStack]: Attached UserAgent to UserProfile.");
                                 m_log.Debug("[MXP ClientStack]: Preparing Scene to Connection...");
-                                PrepareSceneForConnection(mxpSessionID, sceneId, user);
+                                if (!PrepareSceneForConnection(mxpSessionID, sceneId, user, out reason))
+                                {
+                                    m_log.DebugFormat("[MXP ClientStack]: Scene refused connection: {0}", reason);
+                                    DeclineConnection(session, joinRequestMessage);
+                                    tmpRemove.Add(session);
+                                    continue;
+                                }
                                 m_log.Debug("[MXP ClientStack]: Prepared Scene to Connection.");
                                 m_log.Debug("[MXP ClientStack]: Accepting connection...");
                                 AcceptConnection(session, joinRequestMessage, mxpSessionID, userId);
@@ -579,7 +587,7 @@ namespace OpenSim.Client.MXP.PacketHandler
             //userService.CommitAgent(ref userProfile);
         }
 
-        private void PrepareSceneForConnection(UUID sessionId, UUID sceneId, UserProfileData userProfile)
+        private bool PrepareSceneForConnection(UUID sessionId, UUID sceneId, UserProfileData userProfile, out string reason)
         {
             Scene scene = m_scenes[sceneId];
             CommunicationsManager commsManager = m_scenes[sceneId].CommsManager;
@@ -603,9 +611,8 @@ namespace OpenSim.Client.MXP.PacketHandler
                 m_log.WarnFormat("[INTER]: Appearance not found for {0} {1}. Creating default.", agent.firstname, agent.lastname);
                 agent.Appearance = new AvatarAppearance();
             }
-
-            scene.NewUserConnection(agent);
-
+            
+            return scene.NewUserConnection(agent, out reason);
         }
 
         public void PrintDebugInformation()
