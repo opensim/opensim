@@ -25,9 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
+using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Communications.Osp;
 using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Region.Communications.Local
@@ -39,12 +42,22 @@ namespace OpenSim.Region.Communications.Local
             NetworkServersInfo serversInfo,
             BaseHttpServer httpServer,
             IAssetCache assetCache,
-            LocalInventoryService inventoryService,
-            IGridServices gridService,
             LibraryRootFolder libraryRootFolder, 
             bool dumpAssetsToFile)
             : base(serversInfo, httpServer, assetCache, dumpAssetsToFile, libraryRootFolder)
         {
+            LocalInventoryService inventoryService = new LocalInventoryService();
+            List<IInventoryDataPlugin> plugins 
+                = DataPluginFactory.LoadDataPlugins<IInventoryDataPlugin>(
+                    configSettings.StandaloneInventoryPlugin, 
+                    configSettings.StandaloneInventorySource);
+
+            foreach (IInventoryDataPlugin plugin in plugins)
+            {
+                // Using the OSP wrapper plugin for database plugins should be made configurable at some point
+                inventoryService.AddPlugin(new OspInventoryWrapperPlugin(plugin, this));
+            }
+            
             AddInventoryService(inventoryService);
             m_defaultInventoryHost = inventoryService.Host;
             m_interServiceInventoryService = inventoryService;
@@ -58,8 +71,10 @@ namespace OpenSim.Region.Communications.Local
             m_userAdminService = lus;            
             m_avatarService = lus;
             m_messageService = lus;
-            
-            m_gridService = gridService;            
+
+            m_gridService = new LocalBackEndServices();
+
+            //LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, backendService);                      
         }
     }
 }

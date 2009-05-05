@@ -253,7 +253,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);            
             InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
             
-            Assert.That(foundItem.CreatorId, Is.EqualTo(user2Uuid.ToString()));            
+            Assert.That(foundItem.CreatorId, Is.EqualTo(item1.CreatorId));
+            Assert.That(foundItem.CreatorIdAsUuid, Is.EqualTo(user2Uuid));
             Assert.That(foundItem.Owner, Is.EqualTo(userUuid));            
             
             Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
@@ -321,8 +322,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);            
             InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
             
-            Assert.That(foundItem.CreatorId, Is.EqualTo(user2Profile.ID.ToString()));            
-            Assert.That(foundItem.Owner, Is.EqualTo(userUuid));            
+            Assert.That(foundItem.CreatorId, Is.EqualTo(item1.CreatorId));
+            Assert.That(
+                foundItem.CreatorIdAsUuid, Is.EqualTo(OspResolver.HashName(user2FirstName + " " + user2LastName)));
+            Assert.That(foundItem.Owner, Is.EqualTo(userUuid));
             
             Console.WriteLine("### Successfully completed {0} ###", MethodBase.GetCurrentMethod());
         }        

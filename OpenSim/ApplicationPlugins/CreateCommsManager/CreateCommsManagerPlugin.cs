@@ -166,26 +166,10 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         /// <param name="libraryRootFolder"></param>
         protected virtual void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
         {
-            LocalInventoryService inventoryService = new LocalInventoryService();
-            List<IInventoryDataPlugin> plugins 
-                = DataPluginFactory.LoadDataPlugins<IInventoryDataPlugin>(
-                    m_openSim.ConfigurationSettings.StandaloneInventoryPlugin, 
-                    m_openSim.ConfigurationSettings.StandaloneInventorySource);
-
-            foreach (IInventoryDataPlugin plugin in plugins)
-            {
-                // Using the OSP wrapper plugin for database plugins should be made configurable at some point
-                inventoryService.AddPlugin(new OspInventoryWrapperPlugin(plugin));
-            }
-
-            LocalBackEndServices backendService = new LocalBackEndServices();
-
-            //LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, backendService);
-
             m_commsManager
                 = new CommunicationsLocal(
                     m_openSim.ConfigurationSettings, m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache,
-                    inventoryService, backendService, libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);
+                    libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);
 
             CreateGridInfoService();
         }
@@ -202,22 +186,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         }
 
         protected virtual void InitialiseHGStandaloneServices(LibraryRootFolder libraryRootFolder)
-        {
-            // Standalone mode
-
-            HGInventoryServiceClient inventoryService 
-                = new HGInventoryServiceClient(m_openSim.NetServersInfo.InventoryURL, null, false);
-            List<IInventoryDataPlugin> plugins 
-                = DataPluginFactory.LoadDataPlugins<IInventoryDataPlugin>(
-                    m_openSim.ConfigurationSettings.StandaloneInventoryPlugin, 
-                    m_openSim.ConfigurationSettings.StandaloneInventorySource);
-
-            foreach (IInventoryDataPlugin plugin in plugins)
-            {
-                // Using the OSP wrapper plugin should be made configurable at some point
-                inventoryService.AddPlugin(new OspInventoryWrapperPlugin(plugin));
-            }        
-
+        {    
             HGGridServicesStandalone gridService 
                 = new HGGridServicesStandalone(
                     m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, m_openSim.SceneManager);                         
@@ -225,10 +194,9 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
             m_commsManager 
                 = new HGCommunicationsStandalone(
                     m_openSim.ConfigurationSettings, m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache,
-                    inventoryService, gridService, 
+                    gridService, 
                     libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);                        
-
-            inventoryService.UserProfileCache = m_commsManager.UserProfileCacheService;
+            
             HGServices = gridService;
 
             CreateGridInfoService();

@@ -48,38 +48,30 @@ namespace OpenSim.Framework
         /// <value>
         /// The creator of this item
         /// </value>        
-        public string CreatorId
-        {
-            get { return m_creatorId; }
-            set 
-            { 
-                m_creatorId = value;
-                UUID creatorIdAsUuid;
-
-                // For now, all IDs are UUIDs
-                UUID.TryParse(m_creatorId, out creatorIdAsUuid);
-                CreatorIdAsUuid = creatorIdAsUuid;
-            }
-        }
-
-        private string m_creatorId = String.Empty;        
+        public string CreatorId { get; set; }      
 
         /// <value>
-        /// The creator of this item expressed as a UUID
+        /// The creator of this item expressed as a UUID.  Database plugins don't need to set this, it will be set by
+        /// upstream code (or set by the get accessor if left unset).
         /// </value>
-        public UUID CreatorIdAsUuid
+        public UUID CreatorIdAsUuid 
         {
             get
             {
+                if (UUID.Zero == m_creatorIdAsUuid)
+                {
+                    UUID.TryParse(CreatorId, out m_creatorIdAsUuid);
+                }
+
                 return m_creatorIdAsUuid;
             }
+            
             set
             {
                 m_creatorIdAsUuid = value;
             }
-        }       
-
-        private UUID m_creatorIdAsUuid = UUID.Zero;
+        }     
+        protected UUID m_creatorIdAsUuid = UUID.Zero;
 
         /// <value>
         /// The description of the inventory item (must be less than 64 characters)

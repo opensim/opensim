@@ -37,10 +37,12 @@ namespace OpenSim.Framework.Communications.Osp
     public class OspInventoryWrapperPlugin : IInventoryDataPlugin
     {
         protected IInventoryDataPlugin m_wrappedPlugin;
+        protected CommunicationsManager m_commsManager;
 
-        public OspInventoryWrapperPlugin(IInventoryDataPlugin wrappedPlugin)
+        public OspInventoryWrapperPlugin(IInventoryDataPlugin wrappedPlugin, CommunicationsManager commsManager)
         {
             m_wrappedPlugin = wrappedPlugin;
+            m_commsManager = commsManager;
         }
             
         public string Name { get { return "OspInventoryWrapperPlugin"; } }
@@ -51,24 +53,23 @@ namespace OpenSim.Framework.Communications.Osp
 
         public InventoryItemBase getInventoryItem(UUID item)
         {
-            return m_wrappedPlugin.getInventoryItem(item);
-
-            // TODO: Need to post process here
+            return PostProcessItem(m_wrappedPlugin.getInventoryItem(item));
         }
 
         // XXX: Why on earth does this exist as it appears to duplicate getInventoryItem?
         public InventoryItemBase queryInventoryItem(UUID item)
         {
-            return m_wrappedPlugin.queryInventoryItem(item);
-
-            // TODO: Need to post process here
+            return PostProcessItem(m_wrappedPlugin.queryInventoryItem(item));
         }
         
         public List<InventoryItemBase> getInventoryInFolder(UUID folderID)
         {
-            return m_wrappedPlugin.getInventoryInFolder(folderID);
+            List<InventoryItemBase> items = m_wrappedPlugin.getInventoryInFolder(folderID);
             
-            // TODO: Need to post process here
+            foreach (InventoryItemBase item in items)
+                PostProcessItem(item);
+
+            return items;
         }
 
         public List<InventoryItemBase> fetchActiveGestures(UUID avatarID)
@@ -76,6 +77,12 @@ namespace OpenSim.Framework.Communications.Osp
             return m_wrappedPlugin.fetchActiveGestures(avatarID);
 
             // Presuming that no post processing is needed here as gestures don't refer to creator information (?)
+        }
+
+        protected InventoryItemBase PostProcessItem(InventoryItemBase item)
+        {            
+            item.CreatorIdAsUuid = OspResolver.ResolveOspa(item.CreatorId, m_commsManager);
+            return item;            
         }
         
         public List<InventoryFolderBase> getFolderHierarchy(UUID parentID) { return m_wrappedPlugin.getFolderHierarchy(parentID); }

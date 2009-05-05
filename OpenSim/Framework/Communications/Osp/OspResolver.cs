@@ -85,16 +85,15 @@ namespace OpenSim.Framework.Communications.Osp
         /// <param name="ospa"></param>
         /// <param name="commsManager"></param>
         /// <returns>
-        /// A suitable internal OpenSim identifier.  If the input string wasn't ospi data, then we simply
-        /// return that same string.  If the input string was ospi data but no valid profile information has been found,
-        /// then returns null.
+        /// A suitable UUID for use in Second Life client communication.  If the string was not a valid ospa, then UUID.Zero
+        /// is returned.
         /// </returns>
-        public static string ResolveOspa(string ospa, CommunicationsManager commsManager)
+        public static UUID ResolveOspa(string ospa, CommunicationsManager commsManager)
         {
             m_log.DebugFormat("[OSP RESOLVER]: Resolving {0}", ospa);
             
             if (!ospa.StartsWith(OSPA_PREFIX))
-                return ospa;
+                return UUID.Zero;
             
             string ospaMeat = ospa.Substring(OSPA_PREFIX.Length);            
             string[] ospaTuples = ospaMeat.Split(OSPA_TUPLE_SEPARATOR_ARRAY);
@@ -116,7 +115,7 @@ namespace OpenSim.Framework.Communications.Osp
                     return ResolveOspaName(value, commsManager);
             }
             
-            return null;
+            return UUID.Zero;
         }
         
         /// <summary>
@@ -138,14 +137,14 @@ namespace OpenSim.Framework.Communications.Osp
         /// <returns>
         /// An OpenSim internal identifier for the name given.  Returns null if the name was not valid
         /// </returns>
-        protected static string ResolveOspaName(string name, CommunicationsManager commsManager)
+        protected static UUID ResolveOspaName(string name, CommunicationsManager commsManager)
         {
             int nameSeparatorIndex = name.IndexOf(OSPA_NAME_VALUE_SEPARATOR);
             
             if (nameSeparatorIndex < 0)
             {
                 m_log.WarnFormat("[OSP RESOLVER]: Ignoring unseparated name {0}", name);
-                return null;
+                return UUID.Zero;
             }
             
             string firstName = name.Remove(nameSeparatorIndex).TrimEnd();
@@ -153,7 +152,7 @@ namespace OpenSim.Framework.Communications.Osp
             
             CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
             if (userInfo != null)
-                return userInfo.UserProfile.ID.ToString();
+                return userInfo.UserProfile.ID;
                         
             UserProfileData tempUserProfile = new UserProfileData();
             tempUserProfile.FirstName = firstName;
@@ -164,7 +163,7 @@ namespace OpenSim.Framework.Communications.Osp
                 "[OSP RESOLVER]: Adding temporary user profile for {0} {1}", tempUserProfile.Name, tempUserProfile.ID);            
             commsManager.UserService.AddTemporaryUserProfile(tempUserProfile);
             
-            return tempUserProfile.ID.ToString();
+            return tempUserProfile.ID;
         }
     }
 }

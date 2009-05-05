@@ -25,9 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
+using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Communications.Osp;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Communications.Local;
@@ -42,7 +45,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             NetworkServersInfo serversInfo,
             BaseHttpServer httpServer,
             IAssetCache assetCache,
-            LocalInventoryService inventoryService,
             HGGridServices gridService, 
             LibraryRootFolder libraryRootFolder, 
             bool dumpAssetsToFile)
@@ -52,10 +54,24 @@ namespace OpenSim.Region.Communications.Hypergrid
                 new LocalUserServices(
                     serversInfo.DefaultHomeLocX, serversInfo.DefaultHomeLocY, this);
             localUserService.AddPlugin(configSettings.StandaloneUserPlugin, configSettings.StandaloneUserSource); 
+
+            HGInventoryServiceClient inventoryService 
+                = new HGInventoryServiceClient(serversInfo.InventoryURL, null, false);
+            List<IInventoryDataPlugin> plugins 
+                = DataPluginFactory.LoadDataPlugins<IInventoryDataPlugin>(
+                    configSettings.StandaloneInventoryPlugin, 
+                    configSettings.StandaloneInventorySource);
+
+            foreach (IInventoryDataPlugin plugin in plugins)
+            {
+                // Using the OSP wrapper plugin should be made configurable at some point
+                inventoryService.AddPlugin(new OspInventoryWrapperPlugin(plugin, this));
+            }
             
             AddInventoryService(inventoryService);
             m_defaultInventoryHost = inventoryService.Host;
             m_interServiceInventoryService = inventoryService;
+            inventoryService.UserProfileCache = UserProfileCacheService;
                         
             m_assetCache = assetCache;
             // Let's swap to always be secure access to inventory

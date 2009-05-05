@@ -157,9 +157,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         // Don't use the item ID that's in the file
                         item.ID = UUID.Random();
 
-                        string ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_commsManager); 
-                        if (null != ospResolvedId)
-                            item.CreatorId = ospResolvedId;
+                        UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_commsManager); 
+                        if (UUID.Zero != ospResolvedId)
+                            item.CreatorIdAsUuid = ospResolvedId;
                         
                         item.Owner = m_userInfo.UserProfile.ID;
 
