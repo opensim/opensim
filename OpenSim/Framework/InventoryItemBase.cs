@@ -73,7 +73,7 @@ namespace OpenSim.Framework
             {
                 return m_creatorIdAsUuid;
             }
-            private set
+            set
             {
                 m_creatorIdAsUuid = value;
             }
