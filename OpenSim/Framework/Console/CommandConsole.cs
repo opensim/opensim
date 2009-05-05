@@ -430,7 +430,7 @@ namespace OpenSim.Framework.Console
 
             if (line != String.Empty)
             {
-                m_log.Info("Invalid command");
+                m_log.Info("[CONSOLE] Invalid command");
             }
         }
 
