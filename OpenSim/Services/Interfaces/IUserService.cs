@@ -1,6 +1,6 @@
 namespace OpenSim.Services.Interfaces
 {
-    public interface IUserServices
+    public interface IUserService
     {
     }
 }

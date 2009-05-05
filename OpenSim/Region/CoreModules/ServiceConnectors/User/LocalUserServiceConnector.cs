@@ -35,7 +35,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.User
 {
     public class LocalUserServicesConnector : INonSharedRegionModule
     {
-        private IUserServices m_UserServices;
+        private IUserService m_UserService;
 
         private bool m_Enabled = false;
 
@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.User
                 if (name == Name)
                 {
                     m_Enabled = true;
-                    m_UserServices = new UserService(source);
+                    m_UserService = new UserService(source);
                 }
             }
         }

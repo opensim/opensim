@@ -34,11 +34,11 @@ namespace OpenSim.Servers.UserServer
 {
     public class UserServiceConnector
     {
-        private IUserServices m_UserServices;
+        private IUserService m_UserService;
 
         public UserServiceConnector(IConfigSource config, IHttpServer server)
         {
-            m_UserServices = new UserService(config);
+            m_UserService = new UserService(config);
         }
     }
 }

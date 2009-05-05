@@ -33,10 +33,53 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Services.UserService
 {
-    public class UserService : UserServiceBase, IUserService
+    public class UserServiceBase
     {
-        public UserService(IConfigSource config) : base(config)
+        protected IUserDataPlugin m_Database = null;
+
+        public UserServiceBase(IConfigSource config)
         {
+            IConfig userConfig = config.Configs["UserService"];
+            if (userConfig == null)
+                throw new Exception("No userService configuration");
+
+            string dllName = userConfig.GetString("StorageProvider",
+                    String.Empty);
+
+            if (dllName == String.Empty)
+                throw new Exception("No StorageProvider configured");
+
+            string connString = userConfig.GetString("ConnectionString",
+                    String.Empty);
+
+            try
+            {
+                Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+
+                foreach (Type pluginType in pluginAssembly.GetTypes())
+                {
+                    if (pluginType.IsPublic)
+                    {
+                        Type typeInterface =
+                                pluginType.GetInterface("IUserDataPlugin", true);
+                        if (typeInterface != null)
+                        {
+                            IUserDataPlugin plug =
+                                    (IUserDataPlugin)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            plug.Initialise(connString);
+
+                            m_Database = plug;
+                        }
+                    }
+                }
+
+                if (m_Database == null)
+                    throw new Exception("Could not find a storage interface in the given module");
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Can't open database module: "+e.Message);
+            }
         }
     }
 }
