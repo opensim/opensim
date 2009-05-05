@@ -1845,8 +1845,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_rootPart == null)
                 return;
 
-            if ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0)
-                return;
+            // Even temporary objects take part in physics (e.g. temp-on-rez bullets)
+            //if ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0)
+            //    return;
 
             lock (m_parts)
             {
