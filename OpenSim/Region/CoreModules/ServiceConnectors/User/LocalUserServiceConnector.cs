@@ -33,7 +33,7 @@ using OpenSim.Services.UserService;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectors.User
 {
-    public class LocalUserServicesConnector : INonSharedRegionModule
+    public class LocalUserServicesConnector : ISharedRegionModule
     {
         private IUserService m_UserService;
 
@@ -56,6 +56,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.User
                     m_UserService = new UserService(source);
                 }
             }
+        }
+
+        public void PostInitialise()
+        {
+            if (!m_Enabled)
+                return;
         }
 
         public void Close()
