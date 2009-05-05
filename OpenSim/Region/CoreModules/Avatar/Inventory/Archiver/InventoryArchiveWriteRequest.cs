@@ -47,7 +47,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     public class InventoryArchiveWriteRequest
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         /// <value>
         /// Used to select all inventory nodes in a folder but not the folder itself
         /// </value>
@@ -58,12 +58,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private string m_invPath;        
         protected TarArchiveWriter m_archive;
         protected UuidGatherer m_assetGatherer;
-        
+
         /// <value>
         /// Used to collect the uuids of the assets that we need to save into the archive
         /// </value>
         protected Dictionary<UUID, int> m_assetUuids = new Dictionary<UUID, int>();
-        
+
         /// <value>
         /// Used to collect the uuids of the users that we need to save into the archive
         /// </value>
@@ -125,16 +125,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected void SaveInvItem(InventoryItemBase inventoryItem, string path)
         {
             string filename = string.Format("{0}{1}_{2}.xml", path, inventoryItem.Name, inventoryItem.ID);            
-			
+
             // Record the creator of this item for user record purposes (which might go away soon)
             m_userUuids[inventoryItem.CreatorIdAsUuid] = 1;
-			
+
             InventoryItemBase saveItem = (InventoryItemBase)inventoryItem.Clone();
             saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_module.CommsManager);
-			
+
             string serialization = UserInventoryItemSerializer.Serialize(saveItem);
             m_archive.WriteFile(filename, serialization);
-            
+
             m_assetGatherer.GatherAssetUuids(saveItem.AssetID, (AssetType)saveItem.AssetType, m_assetUuids);
         }
 
@@ -154,7 +154,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         inventoryFolder.Name,
                         ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR,
                         inventoryFolder.ID);
-                
+
                 // We need to make sure that we record empty folders            
                 m_archive.WriteDir(path);
             }
@@ -225,12 +225,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
 
             bool foundStar = false;
-            
+
             // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
             // itself (possibly at a small loss in efficiency).
             string[] components
                 = m_invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
-            
+
             int maxComponentIndex = components.Length - 1;
 
             // If the path terminates with a STAR then later on we want to archive all nodes in the folder but not the
@@ -240,7 +240,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 foundStar = true;
                 maxComponentIndex--;                
             }
-            
+
             m_invPath = String.Empty;
             for (int i = 0; i <= maxComponentIndex; i++)
             {
@@ -296,24 +296,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 //recurse through all dirs getting dirs and files
                 SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !foundStar);
             }
-            
+
             SaveUsers();
             new AssetsRequest(m_assetUuids.Keys, m_module.CommsManager.AssetCache, ReceivedAllAssets).Execute();
         }
-        
+
         /// <summary>
         /// Save information for the users that we've collected.
         /// </summary>
         protected void SaveUsers()
         {
             m_log.InfoFormat("[INVENTORY ARCHIVER]: Saving user information for {0} users", m_userUuids.Count);
-            
+
             foreach (UUID creatorId in m_userUuids.Keys)
             {
                 // Record the creator of this item
                 CachedUserInfo creator 
                     = m_module.CommsManager.UserProfileCacheService.GetUserDetails(creatorId);
-            
+
                 if (creator != null)
                 {
                     m_archive.WriteFile(

@@ -55,7 +55,7 @@ namespace OpenSim.Framework
             { 
                 m_creatorId = value;
                 UUID creatorIdAsUuid;
-                
+
                 // For now, all IDs are UUIDs
                 UUID.TryParse(m_creatorId, out creatorIdAsUuid);
                 CreatorIdAsUuid = creatorIdAsUuid;
@@ -63,7 +63,7 @@ namespace OpenSim.Framework
         }
 
         private string m_creatorId = String.Empty;        
-        
+
         /// <value>
         /// The creator of this item expressed as a UUID
         /// </value>
@@ -105,7 +105,7 @@ namespace OpenSim.Framework
         ///
         /// </value>        
         public uint EveryOnePermissions;
-        
+
         /// <value>
         ///
         /// </value>        
@@ -150,10 +150,10 @@ namespace OpenSim.Framework
         ///
         /// </value>        
         public int CreationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-		
-		public object Clone()
-		{
-			return MemberwiseClone();
-		}
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 }

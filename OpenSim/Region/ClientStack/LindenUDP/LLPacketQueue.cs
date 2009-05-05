@@ -248,7 +248,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Cancel(uint sequence)
         {
-            while(contents.Remove(sequence))
+            while (contents.Remove(sequence))
                 ;
         }
 

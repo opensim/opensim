@@ -210,7 +210,7 @@ namespace OpenSim.Framework
 
         public static T GetDataBlock<T>() where T: new()
         {
-            lock(DataBlocks)
+            lock (DataBlocks)
             {
                 if (DataBlocks.ContainsKey(typeof(T)) && DataBlocks[typeof(T)].Count > 0)
                 {

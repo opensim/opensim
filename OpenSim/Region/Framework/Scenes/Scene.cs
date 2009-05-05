@@ -1861,7 +1861,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool welcome  = true;
 
-            if(m_regInfo.EstateSettings.IsBanned(client.AgentId) && (!Permissions.IsGod(client.AgentId)))
+            if (m_regInfo.EstateSettings.IsBanned(client.AgentId) && (!Permissions.IsGod(client.AgentId)))
             {
                 m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
                                 client.AgentId, client.FirstName, client.LastName, RegionInfo.RegionName);
@@ -1876,7 +1876,7 @@ namespace OpenSim.Region.Framework.Scenes
                 welcome = false;
             }
 
-            if(!welcome)
+            if (!welcome)
             {
                 try
                 {
@@ -1899,46 +1899,46 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-				SubscribeToClientEvents(client);
-				ScenePresence presence;
+                SubscribeToClientEvents(client);
+                ScenePresence presence;
 
-				if (m_restorePresences.ContainsKey(client.AgentId))
-				{
-					m_log.DebugFormat("[SCENE]: Restoring agent {0} {1} in {2}", client.Name, client.AgentId, RegionInfo.RegionName);
+                if (m_restorePresences.ContainsKey(client.AgentId))
+                {
+                    m_log.DebugFormat("[SCENE]: Restoring agent {0} {1} in {2}", client.Name, client.AgentId, RegionInfo.RegionName);
 
-					presence = m_restorePresences[client.AgentId];
-					m_restorePresences.Remove(client.AgentId);
+                    presence = m_restorePresences[client.AgentId];
+                    m_restorePresences.Remove(client.AgentId);
 
-					// This is one of two paths to create avatars that are
-					// used.  This tends to get called more in standalone
-					// than grid, not really sure why, but as such needs
-					// an explicity appearance lookup here.
-					AvatarAppearance appearance = null;
-					GetAvatarAppearance(client, out appearance);
-					presence.Appearance = appearance;
+                    // This is one of two paths to create avatars that are
+                    // used.  This tends to get called more in standalone
+                    // than grid, not really sure why, but as such needs
+                    // an explicity appearance lookup here.
+                    AvatarAppearance appearance = null;
+                    GetAvatarAppearance(client, out appearance);
+                    presence.Appearance = appearance;
 
-					presence.initializeScenePresence(client, RegionInfo, this);
+                    presence.initializeScenePresence(client, RegionInfo, this);
 
-					m_sceneGraph.AddScenePresence(presence);
+                    m_sceneGraph.AddScenePresence(presence);
 
-					lock (m_restorePresences)
-					{
-						Monitor.PulseAll(m_restorePresences);
-					}
-				}
-				else
-				{
-					m_log.DebugFormat(
-						"[SCENE]: Adding new child agent for {0} in {1}",
-						client.Name, RegionInfo.RegionName);
+                    lock (m_restorePresences)
+                    {
+                        Monitor.PulseAll(m_restorePresences);
+                    }
+                }
+                else
+                {
+                    m_log.DebugFormat(
+                        "[SCENE]: Adding new child agent for {0} in {1}",
+                        client.Name, RegionInfo.RegionName);
 
-					CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
+                    CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
 
-					CreateAndAddScenePresence(client);
-				}
+                    CreateAndAddScenePresence(client);
+                }
 
-				m_LastLogin = Environment.TickCount;
-				EventManager.TriggerOnNewClient(client);
+                m_LastLogin = Environment.TickCount;
+                EventManager.TriggerOnNewClient(client);
             }
         }
 
