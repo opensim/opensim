@@ -2816,6 +2816,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -2824,7 +2825,7 @@
       <Reference name="log4net.dll"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true" />
       </Files>
     </Project>
 
