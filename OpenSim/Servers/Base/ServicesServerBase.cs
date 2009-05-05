@@ -53,7 +53,7 @@ namespace OpenSim.Servers.Base
 
         // Configuration
         //
-        IConfigSource m_Config = null;
+        protected IConfigSource m_Config = null;
 
         // Run flag
         //
