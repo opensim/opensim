@@ -26,14 +26,60 @@
  */
 
 using Nini.Config;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.UserService;
 
-namespace OpenSim.Services.UserService
+namespace OpenSim.Region.CoreModules.ServiceConnectors.User
 {
-    public class UserService : IUserServices
+    public class LocalUserServicesConnector : INonSharedRegionModule
     {
-        public UserService(IConfigSource config)
+        private IUserServices m_UserServices;
+
+        private bool m_Enabled = false;
+
+        public string Name
         {
+            get { return "LocalUserServicesConnector"; }
+        }
+
+        public void Initialise(IConfigSource source)
+        {
+            IConfig moduleConfig = source.Configs["Modules"];
+            if (moduleConfig != null)
+            {
+                string name = moduleConfig.GetString("UserServices", "");
+                if (name == Name)
+                {
+                    m_Enabled = true;
+                    m_UserServices = new UserService(source);
+                }
+            }
+        }
+
+        public void Close()
+        {
+            if (!m_Enabled)
+                return;
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
         }
     }
 }

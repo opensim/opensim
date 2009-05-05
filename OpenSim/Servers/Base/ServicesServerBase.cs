@@ -55,6 +55,11 @@ namespace OpenSim.Servers.Base
         //
         protected IConfigSource m_Config = null;
 
+        public IConfigSource Config
+        {
+            get { return m_Config; }
+        }
+
         // Run flag
         //
         private bool m_Running = true;

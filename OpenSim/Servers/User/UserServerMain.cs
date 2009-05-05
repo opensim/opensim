@@ -28,15 +28,20 @@
 using System;
 using OpenSim.Servers.Base;
 
-namespace OpenSim.Servers.Base
+namespace OpenSim.Servers.UserServer
 {
-    public class SimpleServer
+    public class UserServer
     {
-        protected static ServicesServerBase m_Server = null;
+        protected static HttpServerBase m_Server = null;
+
+        protected static UserServiceConnector m_UserServiceConnector;
 
         static int Main(string[] args)
         {
             m_Server = new HttpServerBase("User", args);
+
+            m_UserServiceConnector = new UserServiceConnector(m_Server.Config,
+                    m_Server.HttpServer);
 
             return m_Server.Run();
         }

@@ -47,6 +47,11 @@ namespace OpenSim.Servers.Base
         //
         protected BaseHttpServer m_HttpServer = null;
 
+        public IHttpServer HttpServer
+        {
+            get { return m_HttpServer; }
+        }
+
         // Handle all the automagical stuff
         //
         public HttpServerBase(string prompt, string[] args) : base(prompt, args)

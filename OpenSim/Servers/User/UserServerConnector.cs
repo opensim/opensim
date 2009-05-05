@@ -27,13 +27,18 @@
 
 using Nini.Config;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.UserService;
+using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Services.UserService
+namespace OpenSim.Servers.UserServer
 {
-    public class UserService : IUserServices
+    public class UserServiceConnector
     {
-        public UserService(IConfigSource config)
+        private IUserServices m_UserServices;
+
+        public UserServiceConnector(IConfigSource config, IHttpServer server)
         {
+            m_UserServices = new UserService(config);
         }
     }
 }
