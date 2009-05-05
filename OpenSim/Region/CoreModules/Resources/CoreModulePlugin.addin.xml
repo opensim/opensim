@@ -12,6 +12,7 @@
         <RegionModule id="WorldMapModule" type="OpenSim.Region.CoreModules.World.WorldMap.WorldMapModule" />
         <RegionModule id="HGWorldMapModule" type="OpenSim.Region.CoreModules.Hypergrid.HGWorldMapModule" />
         <RegionModule id="LocalUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectors.User.LocalUserServicesConnector" />
+        <RegionModule id="RemoteUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectors.User.RemoteUserServicesConnector" />
     </Extension>
 
     <Extension path = "/OpenSim/WindModule">
