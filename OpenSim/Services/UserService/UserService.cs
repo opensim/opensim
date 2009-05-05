@@ -26,12 +26,15 @@
  */
 
 using Nini.Config;
+using OpenSim.Data;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Services.UserService
 {
     public class UserService : IUserServices
     {
+        private UserDataBase m_DataBase = null;
+
         public UserService(IConfigSource config)
         {
         }
