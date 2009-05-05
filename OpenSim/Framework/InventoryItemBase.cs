@@ -38,12 +38,12 @@ namespace OpenSim.Framework
         /// <value>
         /// The inventory type of the item.  This is slightly different from the asset type in some situations.
         /// </value>        
-        public int InvType;
+        public int InvType { get; set; }
 
         /// <value>
         /// The folder this item is contained in
         /// </value>        
-        public UUID Folder;
+        public UUID Folder { get; set; }
 
         /// <value>
         /// The creator of this item
@@ -84,73 +84,79 @@ namespace OpenSim.Framework
         /// <value>
         /// The description of the inventory item (must be less than 64 characters)
         /// </value>
-        public string Description = String.Empty;
+        public string Description { get; set; }
 
         /// <value>
         ///
         /// </value>          
-        public uint NextPermissions;
+        public uint NextPermissions { get; set; }
 
         /// <value>
         /// A mask containing permissions for the current owner (cannot be enforced)
         /// </value>        
-        public uint CurrentPermissions;
+        public uint CurrentPermissions { get; set; }
 
         /// <value>
         ///
         /// </value>        
-        public uint BasePermissions;
+        public uint BasePermissions { get; set; }
 
         /// <value>
         ///
         /// </value>        
-        public uint EveryOnePermissions;
+        public uint EveryOnePermissions { get; set; }
 
         /// <value>
         ///
         /// </value>        
-        public uint GroupPermissions;
+        public uint GroupPermissions { get; set; }
 
         /// <value>
         /// This is an enumerated value determining the type of asset (eg Notecard, Sound, Object, etc)
         /// </value>        
-        public int AssetType;
+        public int AssetType { get; set; }
 
         /// <value>
         /// The UUID of the associated asset on the asset server
         /// </value>        
-        public UUID AssetID;
+        public UUID AssetID { get; set; }
 
         /// <value>
         ///
         /// </value>        
-        public UUID GroupID;
+        public UUID GroupID { get; set; }
 
         /// <value>
         ///
         /// </value>        
-        public bool GroupOwned;
+        public bool GroupOwned { get; set; }
 
         /// <value>
         ///
         /// </value>        
-        public int SalePrice;
+        public int SalePrice { get; set; }
 
         /// <value>
         ///
         /// </value>        
-        public byte SaleType;
+        public byte SaleType { get; set; }
 
         /// <value>
         ///
         /// </value>        
-        public uint Flags;
+        public uint Flags { get; set; }
 
         /// <value>
         ///
         /// </value>        
-        public int CreationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+        public int CreationDate { get; set; }
 
+        public InventoryItemBase()
+        {
+            Description = String.Empty;
+            CreationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+        }
+        
         public object Clone()
         {
             return MemberwiseClone();
