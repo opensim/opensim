@@ -205,6 +205,9 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     if (part != null)
                     {
                         ObjectRegionName = s.RegionInfo.RegionName;
+                        uint localX = (s.RegionInfo.RegionLocX * 256);
+                        uint localY = (s.RegionInfo.RegionLocY * 256);
+                        ObjectRegionName = ObjectRegionName + " (" + localX + ", " + localY + ")";
                         return part;
                     }
                 }
@@ -216,15 +219,24 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         private void resolveNamePositionRegionName(UUID objectID, out string ObjectName, out string ObjectAbsolutePosition, out string ObjectRegionName)
         {
             string m_ObjectRegionName;
+            int objectLocX;
+            int objectLocY;
+            int objectLocZ;
             SceneObjectPart part = findPrim(objectID, out m_ObjectRegionName);
             if (part != null)
             {
-                 ObjectAbsolutePosition = part.AbsolutePosition.ToString();
-                 ObjectName = part.Name;
-                 ObjectRegionName = m_ObjectRegionName;
-                 return;
+                objectLocX = (int)part.AbsolutePosition.X;
+                objectLocY = (int)part.AbsolutePosition.Y;
+                objectLocZ = (int)part.AbsolutePosition.Z;
+                ObjectAbsolutePosition = "(" + objectLocX + ", " + objectLocY + ", " + objectLocZ + ")";
+                ObjectName = part.Name;
+                ObjectRegionName = m_ObjectRegionName;
+                return;
             }
-            ObjectAbsolutePosition = part.AbsolutePosition.ToString();
+            objectLocX = (int)part.AbsolutePosition.X;
+            objectLocY = (int)part.AbsolutePosition.Y;
+            objectLocZ = (int)part.AbsolutePosition.Z;
+            ObjectAbsolutePosition = "(" + objectLocX + ", " + objectLocY + ", " + objectLocZ + ")";
             ObjectName = part.Name;
             ObjectRegionName = m_ObjectRegionName;
             return;
