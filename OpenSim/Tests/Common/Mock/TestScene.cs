@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -55,8 +56,9 @@ namespace OpenSim.Tests.Common.Mock
         /// 
         /// <param name="agent"></param>
         /// <returns></returns>
-        public override bool AuthenticateUser(AgentCircuitData agent)
+        public override bool AuthenticateUser(AgentCircuitData agent, out string reason)
         {
+            reason = String.Empty;
             return true;
         }        
             

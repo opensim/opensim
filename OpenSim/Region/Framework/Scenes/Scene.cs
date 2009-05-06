@@ -2378,110 +2378,103 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="reason"></param>
         public bool NewUserConnection(AgentCircuitData agent, out string reason)
         {
-            bool goodUserConnection = AuthenticateUser(agent);
+            // Don't disable this log message - it's too helpful
+            m_log.InfoFormat(
+                "[CONNECTION BEGIN]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5})",
+                RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname, 
+                agent.AgentID, agent.circuitcode);
 
             reason = String.Empty;
+            if (!AuthenticateUser(agent, out reason))
+                return false;
 
-            if (goodUserConnection && 
-                m_regInfo.EstateSettings.IsBanned(agent.AgentID) && 
+            if (!AuthorizeUser(agent, out reason))
+                return false;
+
+            CapsModule.NewUserConnection(agent);
+
+            ScenePresence sp = m_sceneGraph.GetScenePresence(agent.AgentID);
+            if (sp != null)
+            {
+                m_log.DebugFormat(
+                    "[SCENE]: Adjusting known seeds for existing agent {0} in {1}",
+                    agent.AgentID, RegionInfo.RegionName);
+                
+                sp.AdjustKnownSeeds();
+                
+                return true;
+            }
+            
+            CapsModule.AddCapsHandler(agent.AgentID);
+            
+            if (!agent.child)
+            {
+                // Honor parcel landing type and position.
+                ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
+                if (land != null)
+                {
+                    if (land.landData.LandingType == (byte)1 && land.landData.UserLocation != Vector3.Zero)
+                    {
+                        agent.startpos = land.landData.UserLocation;
+                    }
+                }
+            }
+            
+            m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+            
+            // rewrite session_id
+            CachedUserInfo userinfo = CommsManager.UserProfileCacheService.GetUserDetails(agent.AgentID);
+            if (userinfo != null)
+            {
+                userinfo.SessionID = agent.SessionID;
+            }
+            else
+            {
+                m_log.WarnFormat(
+                    "[CONNECTION BEGIN]: We couldn't find a User Info record for {0}.  This is usually an indication that the UUID we're looking up is invalid", agent.AgentID);
+            }
+            
+            return true;
+        }
+
+        public virtual bool AuthenticateUser(AgentCircuitData agent, out string reason)
+        {
+            reason = String.Empty;
+
+            bool result = CommsManager.UserService.VerifySession(agent.AgentID, agent.SessionID);
+            m_log.Debug("[CONNECTION BEGIN]: User authentication returned " + result);
+            if (!result) 
+                reason = String.Format("Failed to authenticate user {0} {1}, access denied.", agent.firstname, agent.lastname);
+
+            return result;
+        }
+
+        protected virtual bool AuthorizeUser(AgentCircuitData agent, out string reason)
+        {
+            reason = String.Empty;
+
+            if (m_regInfo.EstateSettings.IsBanned(agent.AgentID) && 
                 (!Permissions.IsGod(agent.AgentID)))
             {
                 m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
                                 agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
                 reason = String.Format("Denied access to region {0}: You have been banned from that region.",
                                        RegionInfo.RegionName);
-                goodUserConnection = false;
-            }
-            else if (goodUserConnection && 
-                     !m_regInfo.EstateSettings.PublicAccess && 
-                     !m_regInfo.EstateSettings.HasAccess(agent.AgentID) && 
-                     !Permissions.IsGod(agent.AgentID))
-            {
-                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access",
-                                agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-                reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.", 
-                                       RegionInfo.RegionName);
-                goodUserConnection = false;
-            }
-
-
-            if (goodUserConnection)
-            {
-                CapsModule.NewUserConnection(agent);
-
-                ScenePresence sp = m_sceneGraph.GetScenePresence(agent.AgentID);
-                if (sp != null)
-                {
-                    m_log.DebugFormat(
-                        "[SCENE]: Adjusting known seeds for existing agent {0} in {1}",
-                        agent.AgentID, RegionInfo.RegionName);
-
-                    sp.AdjustKnownSeeds();
-                    
-                    return true;
-                }
-
-                // Don't disable this log message - it's too helpful
-                m_log.InfoFormat(
-                    "[CONNECTION BEGIN]: Region {0} told of incoming client {1} {2} {3} (circuit code {4})",
-                    RegionInfo.RegionName, agent.firstname, agent.lastname, agent.AgentID, agent.circuitcode);
-
-                // if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
-                // {
-                //     m_log.WarnFormat(
-                //    "[CONNECTION BEGIN]: Incoming user {0} at {1} is on the region banlist",
-                //    agent.AgentID, RegionInfo.RegionName);
-                //     //return false;
-                // }
-
-                CapsModule.AddCapsHandler(agent.AgentID);
-
-                if (!agent.child)
-                {
-                    // Honor parcel landing type and position.
-                    ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
-                    if (land != null)
-                    {
-                        if (land.landData.LandingType == (byte)1 && land.landData.UserLocation != Vector3.Zero)
-                        {
-                            agent.startpos = land.landData.UserLocation;
-                        }
-                    }
-                }
-
-                m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
-
-                // rewrite session_id
-                CachedUserInfo userinfo = CommsManager.UserProfileCacheService.GetUserDetails(agent.AgentID);
-                if (userinfo != null)
-                {
-                    userinfo.SessionID = agent.SessionID;
-                }
-                else
-                {
-                    m_log.WarnFormat(
-                        "[CONNECTION BEGIN]: We couldn't find a User Info record for {0}.  This is usually an indication that the UUID we're looking up is invalid", agent.AgentID);
-                }
-
-                return true;
-            }
-            else
-            {
-                m_log.WarnFormat("[CONNECTION BEGIN]: failed to authenticate user {0} {1}: {2}. Denying connection.", 
-                                 agent.firstname, agent.lastname, reason);
-                if (String.IsNullOrEmpty(reason))
-                {
-                    reason = String.Format("Failed to authenticate user {0} {1}, access denied.", agent.firstname, agent.lastname);
-                }
                 return false;
             }
-        }
 
-        public virtual bool AuthenticateUser(AgentCircuitData agent)
-        {
-            bool result = CommsManager.UserService.VerifySession(agent.AgentID, agent.SessionID);
-            m_log.Debug("[CONNECTION BEGIN]: User authentication returned " + result);
-            return result;
+            if (!m_regInfo.EstateSettings.PublicAccess && 
+                !m_regInfo.EstateSettings.HasAccess(agent.AgentID) && 
+                !Permissions.IsGod(agent.AgentID))
+            {
+                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access",
+                                 agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+                reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.", 
+                                       RegionInfo.RegionName);
+                return false;
+            }
+
+            return true;
         }
 
         public void UpdateCircuitData(AgentCircuitData data)
