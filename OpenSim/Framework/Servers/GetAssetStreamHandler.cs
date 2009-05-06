@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Servers
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // private OpenAsset_Main m_assetManager;
-        private IAssetDataPlugin m_assetProvider;
+        private readonly IAssetDataPlugin m_assetProvider;
 
         /// <summary>
         /// Constructor.
@@ -58,7 +58,7 @@ namespace OpenSim.Framework.Servers
         public GetAssetStreamHandler(IAssetDataPlugin assetProvider)
             : base("GET", "/assets")
         {
-            m_log.Info("[REST]: In Get Request");
+            // m_log.Info("[REST]: In Get Request");
             // m_assetManager = assetManager;
             m_assetProvider = assetProvider;
         }
@@ -66,10 +66,9 @@ namespace OpenSim.Framework.Servers
         public override byte[] Handle(string path, Stream request,
                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            string param = GetParam(path);
             byte[] result = new byte[] { };
 
-            string[] p = param.Split(new char[] { '/', '?', '&' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] p = SplitParams(path);
 
             if (p.Length > 0)
             {
@@ -125,6 +124,13 @@ namespace OpenSim.Framework.Servers
             }
 
             return result;
+        }
+
+        public string[] SplitParams(string path)
+        {
+            string param = GetParam(path);
+
+            return param.Split(new char[] { '/', '?', '&' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         // private byte[] ProcessOutgoingAssetData(byte[] assetData)

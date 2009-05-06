@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Servers
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // private OpenAsset_Main m_assetManager;
-        private IAssetCache m_assetProvider;
+        private readonly IAssetCache m_assetProvider;
 
         /// <summary>
         /// Constructor.
@@ -58,7 +58,7 @@ namespace OpenSim.Framework.Servers
         public CachedGetAssetStreamHandler(IAssetCache assetProvider)
             : base("GET", "/assets")
         {
-            m_log.Info("[REST]: In Get Request");
+            // m_log.Info("[REST]: In Get Request");
             // m_assetManager = assetManager;
             m_assetProvider = assetProvider;
         }

@@ -29,7 +29,7 @@ using System;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
-    public class BaseRequestHandler
+    public abstract class BaseRequestHandler
     {
         public virtual string ContentType
         {
@@ -56,7 +56,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             get { return m_path; }
         }
 
-        protected string GetParam(string path)
+        public string GetParam(string path)
         {
             try
             {
