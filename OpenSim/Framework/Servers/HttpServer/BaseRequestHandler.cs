@@ -58,14 +58,22 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public string GetParam(string path)
         {
-            try
+            if (CheckParam(path))
             {
                 return path.Substring(m_path.Length);
             }
-            catch (Exception)
+
+            return String.Empty;
+        }
+
+        protected bool CheckParam(string path)
+        {
+            if(String.IsNullOrEmpty(path))
             {
-                return String.Empty;
+                return false;
             }
+
+            return path.StartsWith(Path);
         }
     }
 }
