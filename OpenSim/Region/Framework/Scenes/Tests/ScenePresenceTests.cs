@@ -42,6 +42,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.CoreModules.ServiceConnectors.Interregion;
 using OpenSim.Region.CoreModules.World.Serialiser;
+using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
 
@@ -99,7 +100,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T010_TestAddRootAgent()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
 
             string firstName = "testfirstname";
 
@@ -133,7 +134,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T011_TestRemoveRootAgent()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
 
             scene.RemoveClient(agent1);
 
@@ -145,7 +146,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T012_TestAddNeighbourRegion()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
 
             string reason;
             scene.NewUserConnection(acd1, out reason);
@@ -167,7 +168,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T013_TestRemoveNeighbourRegion()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
 
             ScenePresence presence = scene.GetScenePresence(agent1);
             presence.RemoveNeighbourRegion(region3);
@@ -184,7 +185,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T020_TestMakeRootAgent()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
 
             ScenePresence presence = scene.GetScenePresence(agent1);
             Assert.That(presence.IsChildAgent, Is.False, "Starts out as a root agent");
@@ -202,7 +203,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T021_TestCrossToNewRegion()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
 
             // Adding child agent to region 1001
             string reason;
@@ -295,7 +296,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T030_TestAddAttachments()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
 
             ScenePresence presence = scene.GetScenePresence(agent1);
 
@@ -310,7 +311,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T031_RemoveAttachments()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
 
             ScenePresence presence = scene.GetScenePresence(agent1);
             presence.RemoveAttachment(sog1);
@@ -322,7 +323,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T032_CrossAttachments()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
 
             ScenePresence presence = scene.GetScenePresence(agent1);
             ScenePresence presence2 = scene2.GetScenePresence(agent1);
@@ -342,7 +343,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
         public static string GetRandomCapsObjectPath()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
 
             UUID caps = UUID.Random();
             string capsPath = caps.ToString();

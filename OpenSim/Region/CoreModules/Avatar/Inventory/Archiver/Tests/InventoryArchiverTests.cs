@@ -68,6 +68,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestSaveIarV0p1()
         {
+            TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
@@ -201,6 +202,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarV0p1ExistingUsers()
         {   
+            TestHelper.InMethod();
             Console.WriteLine("Started {0}", MethodBase.GetCurrentMethod());
             
             //log4net.Config.XmlConfigurator.Configure();
@@ -267,6 +269,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarV0p1TempProfiles()
         {   
+            TestHelper.InMethod();
             Console.WriteLine("### Started {0} ###", MethodBase.GetCurrentMethod());
             
             log4net.Config.XmlConfigurator.Configure();
@@ -336,6 +339,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestReplicateArchivePathToUserInventory()
         {
+            TestHelper.InMethod();
             CommunicationsManager commsManager = new TestCommunicationsManager();            
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
             Dictionary <string, InventoryFolderImpl> foldersCreated = new Dictionary<string, InventoryFolderImpl>();

@@ -54,6 +54,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test, LongRunning]        
         public void TestSimpleNotNeighboursTeleport()
         {
+            TestHelper.InMethod();
+
             // Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
             
             log4net.Config.XmlConfigurator.Configure();

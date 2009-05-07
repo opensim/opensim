@@ -150,6 +150,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         [Test, LongRunning]        
         public void TestAddClient()
         {            
+            TestHelper.InMethod();
+
             uint myCircuitCode = 123456;
             UUID myAgentUuid   = UUID.Parse("00000000-0000-0000-0000-000000000001");
             UUID mySessionUuid = UUID.Parse("00000000-0000-0000-0000-000000000002");
@@ -196,6 +198,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         [Test]        
         public void TestRemoveClient()
         {
+            TestHelper.InMethod();
+
             uint myCircuitCode = 123457;     
             
             TestLLUDPServer testLLUDPServer;
@@ -218,6 +222,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         [Test]
         public void TestMalformedPacketSend()
         {
+            TestHelper.InMethod();
+
             uint myCircuitCode = 123458;
             EndPoint testEp = new IPEndPoint(IPAddress.Loopback, 1001);
             MockScene scene = new MockScene(); 
@@ -256,6 +262,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         [Test]
         public void TestExceptionOnBeginReceive()
         {
+            TestHelper.InMethod();
+
             MockScene scene = new MockScene();
             
             uint circuitCodeA = 130000;

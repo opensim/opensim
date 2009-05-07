@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
 using OpenSim.Data;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Servers.Tests
 {
@@ -12,12 +13,16 @@ namespace OpenSim.Framework.Servers.Tests
         [Test]
         public void TestConstructor()
         {
+            TestHelper.InMethod();
+
             GetAssetStreamHandler handler = new GetAssetStreamHandler( null );
         }
 
         [Test]
         public void TestGetParams()
         {
+            TestHelper.InMethod();
+
             GetAssetStreamHandler handler = new GetAssetStreamHandler(null);
 
             Assert.AreEqual("", handler.GetParam(null), "Failed on null path.");
@@ -36,6 +41,8 @@ namespace OpenSim.Framework.Servers.Tests
         [Test]
         public void TestSplitParams()
         {
+            TestHelper.InMethod();
+
             GetAssetStreamHandler handler = new GetAssetStreamHandler(null);
 
             Assert.AreEqual(new string[] { }, handler.SplitParams(null), "Failed on null.");
@@ -53,6 +60,8 @@ namespace OpenSim.Framework.Servers.Tests
         [Test]
         public void TestHandleNoParams()
         {
+            TestHelper.InMethod();
+
             byte[] emptyResult = new byte[] {};
             GetAssetStreamHandler handler = new GetAssetStreamHandler(null);
 
@@ -63,6 +72,8 @@ namespace OpenSim.Framework.Servers.Tests
         [Test]
         public void TestHandleMalformedGuid()
         {
+            TestHelper.InMethod();
+
             byte[] emptyResult = new byte[] {};
             GetAssetStreamHandler handler = new GetAssetStreamHandler(null);
 

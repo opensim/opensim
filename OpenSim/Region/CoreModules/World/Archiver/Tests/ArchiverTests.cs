@@ -79,6 +79,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestSaveOarV0p2()
         {
+            TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
             ArchiverModule archiverModule = new ArchiverModule();
@@ -202,6 +203,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestLoadOarV0p2()
         {
+            TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
             MemoryStream archiveWriteStream = new MemoryStream();
@@ -277,6 +279,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         //[Test]
         public void TestMergeOarV0p2()
         {
+            TestHelper.InMethod();
             //XmlConfigurator.Configure();
 
             MemoryStream archiveWriteStream = new MemoryStream();

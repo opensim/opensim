@@ -38,6 +38,7 @@ using OpenSim.Framework.Communications.Services;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Client.Linden;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Communications.Tests
 {
@@ -45,6 +46,7 @@ namespace OpenSim.Framework.Communications.Tests
     /// Test the login service.  For now, most of this will be done through the LocalLoginService as LoginService
     /// is abstract
     /// </summary>
+
     [TestFixture]
     public class LoginServiceTests
     {
@@ -83,6 +85,7 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void T010_TestUnauthenticatedLogin()
         {
+            TestHelper.InMethod();
             // We want to use our own LoginService for this test, one that
             // doesn't require authentication.
             LoginService loginService = new LLStandaloneLoginService((UserManagerBase)m_commsManager.UserService, "Hello folks", m_commsManager.InterServiceInventoryService,
@@ -119,6 +122,7 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void T011_TestAuthenticatedLoginSuccess()
         {
+            TestHelper.InMethod();
             // TODO: Not check inventory part of response yet.
             // TODO: Not checking all of login response thoroughly yet.
 
@@ -168,6 +172,7 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void T012_TestAuthenticatedLoginForBuddies()
         {
+            TestHelper.InMethod();
             // 1.1) Test for budddies!
             m_localUserServices.AddUser("Friend","Number1","boingboing","abc@ftw.com",42,43);
             m_localUserServices.AddUser("Friend","Number2","boingboing","abc@ftw.com",42,43);
@@ -207,6 +212,7 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void T020_TestAuthenticatedLoginBadUsername()
         {
+            TestHelper.InMethod();
 
             // 2) Test for negative authentication
             //
@@ -234,6 +240,8 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void T021_TestAuthenticatedLoginBadPassword()
         {
+            TestHelper.InMethod();
+
             string error_auth_message = "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.";
             // 2.2) Test for wrong password
             Hashtable loginParams = new Hashtable();
@@ -257,6 +265,8 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void T022_TestAuthenticatedLoginBadXml()
         {
+            TestHelper.InMethod();
+
             string error_xml_message = "Error connecting to grid. Could not percieve credentials from login XML.";
             // 2.3) Bad XML
             Hashtable loginParams = new Hashtable();
@@ -280,6 +290,8 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void T023_TestAuthenticatedLoginAlreadyLoggedIn()
         {
+            TestHelper.InMethod();
+
             //Console.WriteLine("Starting T023_TestAuthenticatedLoginAlreadyLoggedIn()");            
             //log4net.Config.XmlConfigurator.Configure();
             

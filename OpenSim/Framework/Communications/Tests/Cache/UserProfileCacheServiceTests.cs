@@ -34,6 +34,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Communications.Tests
 {
@@ -43,6 +44,8 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestGetUserDetails()
         {
+            TestHelper.InMethod();
+
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000002");
             string firstName = "Bill";
             string lastName = "Bailey";            
@@ -109,6 +112,8 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestFetchInventory()
         {
+            TestHelper.InMethod();
+
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
 
@@ -118,6 +123,8 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestGetChildFolder()
         {
+            TestHelper.InMethod();
+
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
 
@@ -132,6 +139,8 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestCreateFolder()
         {
+            TestHelper.InMethod();
+
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
             IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
 
@@ -159,6 +168,8 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestUpdateFolder()
         {
+            TestHelper.InMethod();
+
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
             IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
 
@@ -213,6 +224,8 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestMoveFolder()
         {
+            TestHelper.InMethod();
+
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
             IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
 
@@ -244,6 +257,7 @@ namespace OpenSim.Framework.Communications.Tests
         [Test]
         public void TestPurgeFolder()
         {
+            TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
             TestCommunicationsManager commsManager = new TestCommunicationsManager();

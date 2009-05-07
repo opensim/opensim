@@ -53,8 +53,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test, LongRunning]
         public void TestAddSceneObject()
         {              
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-            
+            TestHelper.InMethod();
+
             Scene scene = SceneSetupHelpers.SetupScene();
             SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
@@ -70,7 +70,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeleteSceneObject()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
             
             TestScene scene = SceneSetupHelpers.SetupScene();         
             SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
@@ -86,7 +86,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeleteSceneObjectAsync()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
             
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
@@ -115,7 +115,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeleteSceneObjectAsyncToUserInventory()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());            
+            TestHelper.InMethod();            
             //log4net.Config.XmlConfigurator.Configure();                  
             
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");

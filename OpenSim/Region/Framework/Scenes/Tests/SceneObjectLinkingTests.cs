@@ -35,6 +35,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
 using log4net;
@@ -52,7 +53,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestLinkDelink2SceneObjects()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
             
             bool debugtest = false; 
 
@@ -130,7 +131,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestLinkDelink2groups4SceneObjects()
         {
-            Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
+            TestHelper.InMethod();
             
             bool debugtest = false;
 

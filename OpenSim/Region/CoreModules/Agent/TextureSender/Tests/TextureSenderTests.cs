@@ -30,6 +30,7 @@ using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.CoreModules.Agent.TextureSender
@@ -76,6 +77,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         [Test]
         public void T010_SendPkg()
         {
+            TestHelper.InMethod();
             // Normal sending
             AssetBase abase = new AssetBase(uuid1, "asset one");
             byte[] abdata = new byte[testsize];
@@ -95,6 +97,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         [Test]
         public void T011_UpdateReq()
         {
+            TestHelper.InMethod();
             // Test packet number start
             AssetBase abase = new AssetBase(uuid2, "asset two");
             byte[] abdata = new byte[testsize];
@@ -143,6 +146,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         [Test]
         public void T999_FinishStatus()
         {
+            TestHelper.InMethod();
             // Of the 4 assets "sent", only 2 sent the first part.
             Assert.That(client.sentdatapkt.Count,Is.EqualTo(2));
 
