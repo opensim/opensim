@@ -71,8 +71,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Timer m_clientPingTimer;
 
         private Timer m_avatarTerseUpdateTimer;
-        private Dictionary<uint, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates = new Dictionary<uint, ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
-        private ushort m_terseTimeDilationLast = 0;
+        private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
 
         private Timer m_primTerseUpdateTimer;
         private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_primTerseUpdates = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
@@ -2770,39 +2769,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Send a terse positional/rotation/velocity update about an avatar to the client.  This avatar can be that of
-        /// the client itself.
+        /// Send a terse positional/rotation/velocity update about an avatar
+        /// to the client.  This avatar can be that of the client itself.
         /// </summary>
-        public virtual void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
-                                          Vector3 velocity, Quaternion rotation, UUID agentid)
+        public virtual void SendAvatarTerseUpdate(ulong regionHandle,
+                ushort timeDilation, uint localID, Vector3 position,
+                Vector3 velocity, Quaternion rotation, UUID agentid)
         {
-            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
+            if (rotation.X == rotation.Y &&
+                rotation.Y == rotation.Z &&
+                rotation.Z == rotation.W && rotation.W == 0)
                 rotation = Quaternion.Identity;
 
-            //m_log.DebugFormat("[CLIENT]: Sending rotation {0} for {1} to {2}", rotation, localID, Name);
-
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock =
-                CreateAvatarImprovedBlock(localID, position, velocity, rotation);
+                CreateAvatarImprovedBlock(localID, position, velocity,rotation);
                 
-            bool sendpacketnow = false;
             lock (m_avatarTerseUpdates)
             {
-                // Only one update per avatar per packet. No need to send old ones so just overwrite them.
-                m_avatarTerseUpdates[localID] = terseBlock;
-                m_terseTimeDilationLast = timeDilation;
+                m_avatarTerseUpdates.Add(terseBlock);
 
                 // If packet is full or own movement packet, send it.
-                if (agentid == m_agentId || m_avatarTerseUpdates.Count >= m_avatarTerseUpdatesPerPacket)
+                if (m_avatarTerseUpdates.Count >= m_avatarTerseUpdatesPerPacket)
                 {
-                    m_avatarTerseUpdateTimer.Stop();
-                    sendpacketnow = true;
+                    ProcessAvatarTerseUpdates(this, null);
                 }
                 else if (m_avatarTerseUpdates.Count == 1)
+                {
                     m_avatarTerseUpdateTimer.Start();                
+                }
             }
-            // Call ProcessAvatarTerseUpdates outside the lock
-            if (sendpacketnow)
-                ProcessAvatarTerseUpdates(this, null);
         }
 
         private void ProcessAvatarTerseUpdates(object sender, ElapsedEventArgs e)
@@ -2810,22 +2805,47 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             lock (m_avatarTerseUpdates)
             {
                 ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
-                terse.RegionData.RegionHandle = Scene.RegionInfo.RegionHandle;
-                terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[m_avatarTerseUpdates.Count];
 
-                int i = 0;
-                foreach (KeyValuePair<uint, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> dbe in m_avatarTerseUpdates)
+                terse.RegionData = new ImprovedTerseObjectUpdatePacket.RegionDataBlock();
+
+                terse.RegionData.RegionHandle = Scene.RegionInfo.RegionHandle;
+                terse.RegionData.TimeDilation =
+                        (ushort)(Scene.TimeDilation * ushort.MaxValue);
+
+                int max = m_avatarTerseUpdatesPerPacket;
+                if (max > m_avatarTerseUpdates.Count)
+                    max = m_avatarTerseUpdates.Count;
+
+                int count = 0;
+                int size = 0;
+
+                byte[] zerobuffer = new byte[1024];
+                byte[] blockbuffer = new byte[1024];
+
+                for (count = 0 ; count < max ; count++)
                 {
-                    terse.ObjectData[i] = dbe.Value;
-                    i++;
+                    int length = 0;
+                    m_avatarTerseUpdates[count].ToBytes(blockbuffer, ref length);
+                    length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
+                    if (size + length > m_packetMTU)
+                        break;
+                    size += length;
                 }
-                terse.RegionData.TimeDilation = m_terseTimeDilationLast;
+
+                terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[count];
+
+                for (int i = 0 ; i < count ; i++)
+                {
+                    terse.ObjectData[i] = m_avatarTerseUpdates[0];
+                    m_avatarTerseUpdates.RemoveAt(0);
+                }
 
                 terse.Header.Reliable = false;
                 terse.Header.Zerocoded = true;
                 OutPacket(terse, ThrottleOutPacketType.Task);
 
-                m_avatarTerseUpdates.Clear();
+                if (m_avatarTerseUpdates.Count == 0)
+                    m_avatarTerseUpdateTimer.Stop();
             }
         }
 
@@ -3150,6 +3170,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             while (m_primTerseUpdates.Count > 0)
             {
                 ProcessPrimTerseUpdates(this, null);
+            }
+            while (m_avatarTerseUpdates.Count > 0)
+            {
+                ProcessAvatarTerseUpdates(this, null);
             }
         }
 
