@@ -89,11 +89,11 @@ namespace OpenSim.Framework.Communications.Osp
         /// is returned.
         /// </returns>
         public static UUID ResolveOspa(string ospa, CommunicationsManager commsManager)
-        {
-            m_log.DebugFormat("[OSP RESOLVER]: Resolving {0}", ospa);
-            
+        {                       
             if (!ospa.StartsWith(OSPA_PREFIX))
                 return UUID.Zero;
+
+            m_log.DebugFormat("[OSP RESOLVER]: Resolving {0}", ospa);
             
             string ospaMeat = ospa.Substring(OSPA_PREFIX.Length);            
             string[] ospaTuples = ospaMeat.Split(OSPA_TUPLE_SEPARATOR_ARRAY);
