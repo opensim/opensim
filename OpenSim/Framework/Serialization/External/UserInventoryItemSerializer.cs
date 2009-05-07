@@ -40,8 +40,6 @@ namespace OpenSim.Framework.Serialization.External
     /// XXX: Please do not use yet.
     public class UserInventoryItemSerializer
     {
-        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
-        
         /// <summary>
         /// Deserialize item
         /// </summary>
@@ -50,7 +48,7 @@ namespace OpenSim.Framework.Serialization.External
         /// <exception cref="System.Xml.XmlException"></exception>
         public static InventoryItemBase Deserialize(byte[] serialization)
         {
-            return Deserialize(m_asciiEncoding.GetString(serialization, 0, serialization.Length));
+            return Deserialize(Encoding.ASCII.GetString(serialization, 0, serialization.Length));
         }
         
         /// <summary>
