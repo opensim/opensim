@@ -252,9 +252,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             {
                 scene.EventManager.OnOarFileLoaded += LoadCompleted;
                 archiverModule.DearchiveRegion(archiveReadStream);
-                
-                // Load occurs asynchronously right now
-                //Monitor.Wait(this, 60000);
             }            
             
             Assert.That(m_lastErrorMessage, Is.Null);
