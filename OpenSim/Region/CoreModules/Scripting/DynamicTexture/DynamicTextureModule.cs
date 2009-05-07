@@ -246,10 +246,21 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             /// </summary>
             public void DataReceived(byte[] data, Scene scene)
             {
+
                 SceneObjectPart part = scene.GetSceneObjectPart(PrimID);
+
+                if (data == null)
+                {
+                    string msg = 
+                        String.Format("DynamicTextureModule: Error preparing image using URL {0}", Url);
+                    scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Say,
+                                  0, part.ParentGroup.RootPart.AbsolutePosition, part.Name, part.UUID, false);
+                    return;
+                }
+
                 byte[] assetData;
                 AssetBase oldAsset = null;
-
+                
                 if (BlendWithOldTexture)
                 {
                     UUID lastTextureID = part.Shape.Textures.DefaultTexture.TextureID;
@@ -295,11 +306,11 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 // remove the old asset from the cache
                 UUID oldID = tmptex.DefaultTexture.TextureID;
-
+                
                 tmptex.DefaultTexture.TextureID = asset.FullID;
                 // I'm pretty sure we always want to force this to true
-                               // I'm pretty sure noone whats to set fullbright true if it wasn't true before.
-//                tmptex.DefaultTexture.Fullbright = true;
+                // I'm pretty sure noone whats to set fullbright true if it wasn't true before.
+                // tmptex.DefaultTexture.Fullbright = true;
 
                 part.Shape.Textures = tmptex;
                 part.ScheduleFullUpdate();
