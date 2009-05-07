@@ -36,7 +36,7 @@ using OpenSim.Region.Framework.Scenes;
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
     /// <summary>
-    /// This module loads and saves OpenSimulator archives
+    /// This module loads and saves OpenSimulator region archives
     /// </summary>
     public class ArchiverModule : IRegionModule, IRegionArchiverModule
     {
