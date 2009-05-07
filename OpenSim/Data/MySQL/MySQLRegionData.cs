@@ -282,7 +282,7 @@ namespace OpenSim.Data.MySQL
                 cmd.CommandText = "select UUID from prims where "+
                         "SceneGroupID= ?UUID";
 
-                cmd.Parameters.AddWithValue("UUID", Util.ToRawUuidString(obj));
+                cmd.Parameters.AddWithValue("UUID", obj.ToString());
 
                 List<UUID> uuids = new List<UUID>();
 
@@ -365,7 +365,7 @@ namespace OpenSim.Data.MySQL
 
                 for (int i = 0; i < uuids.Count; i++)
                 {
-                    cmd.Parameters.AddWithValue("UUID" + i, Util.ToRawUuidString(uuids[i]));
+                    cmd.Parameters.AddWithValue("UUID" + i, uuids[i].ToString());
                 }
 
                 ExecuteNonQuery(cmd);
@@ -426,8 +426,7 @@ namespace OpenSim.Data.MySQL
                         "where RegionUUID = ?RegionUUID " +
                         "order by SceneGroupID asc, sort asc, LinkNumber asc";
                 
-                cmd.Parameters.AddWithValue("RegionUUID",
-                        Util.ToRawUuidString(regionUUID));
+                cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
 
                 IDataReader reader = ExecuteReader(cmd);
 
@@ -549,8 +548,7 @@ namespace OpenSim.Data.MySQL
 
                 cmd.CommandText = "delete from terrain where " +
                         "RegionUUID = ?RegionUUID";
-                cmd.Parameters.AddWithValue("RegionUUID",
-                        Util.ToRawUuidString(regionID));
+                cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
 
                 ExecuteNonQuery(cmd);
                 
@@ -576,7 +574,7 @@ namespace OpenSim.Data.MySQL
                 cmd.CommandText = "select RegionUUID, Revision, Heightfield " +
                         "from terrain where RegionUUID = ?RegionUUID "+
                         "order by Revision desc limit 1";
-                cmd.Parameters.AddWithValue("RegionUUID", Util.ToRawUuidString(regionID));
+                cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
 
                 IDataReader reader = ExecuteReader(cmd);
 
@@ -621,7 +619,7 @@ namespace OpenSim.Data.MySQL
 
                 cmd.CommandText = "delete from land where UUID = ?UUID";
 
-                cmd.Parameters.AddWithValue("UUID", Util.ToRawUuidString(globalID));
+                cmd.Parameters.AddWithValue("UUID", globalID.ToString());
 
                 ExecuteNonQuery(cmd);
                 cmd.Dispose();
@@ -775,8 +773,7 @@ namespace OpenSim.Data.MySQL
                 cmd.CommandText = "select * from land where " +
                         "RegionUUID = ?RegionUUID";
 
-                cmd.Parameters.AddWithValue("RegionUUID",
-                        Util.ToRawUuidString(regionUUID));
+                cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
 
                 IDataReader reader = ExecuteReader(cmd);
 
@@ -800,8 +797,7 @@ namespace OpenSim.Data.MySQL
                     cmd.CommandText = "select * from landaccesslist " +
                             "where LandUUID = ?LandUUID";
 
-                    cmd.Parameters.AddWithValue("LandUUID",
-                            Util.ToRawUuidString(land.GlobalID));
+                    cmd.Parameters.AddWithValue("LandUUID", land.GlobalID.ToString());
 
                     reader = ExecuteReader(cmd);
 
@@ -1157,11 +1153,11 @@ namespace OpenSim.Data.MySQL
         /// <param name="regionUUID"></param>
         private void FillPrimCommand(MySqlCommand cmd, SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
-            cmd.Parameters.AddWithValue("UUID", Util.ToRawUuidString(prim.UUID));
-            cmd.Parameters.AddWithValue("RegionUUID", Util.ToRawUuidString(regionUUID));
+            cmd.Parameters.AddWithValue("UUID", prim.UUID.ToString());
+            cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
             cmd.Parameters.AddWithValue("CreationDate", prim.CreationDate);
             cmd.Parameters.AddWithValue("Name", prim.Name);
-            cmd.Parameters.AddWithValue("SceneGroupID", Util.ToRawUuidString(sceneGroupID));
+            cmd.Parameters.AddWithValue("SceneGroupID", sceneGroupID.ToString());
                 // the UUID of the root part for this SceneObjectGroup
             // various text fields
             cmd.Parameters.AddWithValue("Text", prim.Text);
@@ -1174,10 +1170,10 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("TouchName", prim.TouchName);
             // permissions
             cmd.Parameters.AddWithValue("ObjectFlags", prim.ObjectFlags);
-            cmd.Parameters.AddWithValue("CreatorID", Util.ToRawUuidString(prim.CreatorID));
-            cmd.Parameters.AddWithValue("OwnerID", Util.ToRawUuidString(prim.OwnerID));
-            cmd.Parameters.AddWithValue("GroupID", Util.ToRawUuidString(prim.GroupID));
-            cmd.Parameters.AddWithValue("LastOwnerID", Util.ToRawUuidString(prim.LastOwnerID));
+            cmd.Parameters.AddWithValue("CreatorID", prim.CreatorID.ToString());
+            cmd.Parameters.AddWithValue("OwnerID", prim.OwnerID.ToString());
+            cmd.Parameters.AddWithValue("GroupID", prim.GroupID.ToString());
+            cmd.Parameters.AddWithValue("LastOwnerID", prim.LastOwnerID.ToString());
             cmd.Parameters.AddWithValue("OwnerMask", prim.OwnerMask);
             cmd.Parameters.AddWithValue("NextOwnerMask", prim.NextOwnerMask);
             cmd.Parameters.AddWithValue("GroupMask", prim.GroupMask);
@@ -1361,8 +1357,8 @@ namespace OpenSim.Data.MySQL
         /// <param name="regionUUID"></param>
         private static void FillLandCommand(MySqlCommand cmd, LandData land, UUID regionUUID)
         {
-            cmd.Parameters.AddWithValue("UUID", Util.ToRawUuidString(land.GlobalID));
-            cmd.Parameters.AddWithValue("RegionUUID", Util.ToRawUuidString(regionUUID));
+            cmd.Parameters.AddWithValue("UUID", land.GlobalID.ToString());
+            cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
             cmd.Parameters.AddWithValue("LocalLandID", land.LocalID);
 
             // Bitmap is a byte[512]
@@ -1370,25 +1366,25 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("Name", land.Name);
             cmd.Parameters.AddWithValue("Description", land.Description);
-            cmd.Parameters.AddWithValue("OwnerUUID", Util.ToRawUuidString(land.OwnerID));
+            cmd.Parameters.AddWithValue("OwnerUUID", land.OwnerID.ToString());
             cmd.Parameters.AddWithValue("IsGroupOwned", land.IsGroupOwned);
             cmd.Parameters.AddWithValue("Area", land.Area);
             cmd.Parameters.AddWithValue("AuctionID", land.AuctionID); //Unemplemented
             cmd.Parameters.AddWithValue("Category", land.Category); //Enum libsecondlife.Parcel.ParcelCategory
             cmd.Parameters.AddWithValue("ClaimDate", land.ClaimDate);
             cmd.Parameters.AddWithValue("ClaimPrice", land.ClaimPrice);
-            cmd.Parameters.AddWithValue("GroupUUID", Util.ToRawUuidString(land.GroupID));
+            cmd.Parameters.AddWithValue("GroupUUID", land.GroupID.ToString());
             cmd.Parameters.AddWithValue("SalePrice", land.SalePrice);
             cmd.Parameters.AddWithValue("LandStatus", land.Status); //Enum. libsecondlife.Parcel.ParcelStatus
             cmd.Parameters.AddWithValue("LandFlags", land.Flags);
             cmd.Parameters.AddWithValue("LandingType", land.LandingType);
             cmd.Parameters.AddWithValue("MediaAutoScale", land.MediaAutoScale);
-            cmd.Parameters.AddWithValue("MediaTextureUUID", Util.ToRawUuidString(land.MediaID));
+            cmd.Parameters.AddWithValue("MediaTextureUUID", land.MediaID.ToString());
             cmd.Parameters.AddWithValue("MediaURL", land.MediaURL);
             cmd.Parameters.AddWithValue("MusicURL", land.MusicURL);
             cmd.Parameters.AddWithValue("PassHours", land.PassHours);
             cmd.Parameters.AddWithValue("PassPrice", land.PassPrice);
-            cmd.Parameters.AddWithValue("SnapshotUUID", Util.ToRawUuidString(land.SnapshotID));
+            cmd.Parameters.AddWithValue("SnapshotUUID", land.SnapshotID.ToString());
             cmd.Parameters.AddWithValue("UserLocationX", land.UserLocation.X);
             cmd.Parameters.AddWithValue("UserLocationY", land.UserLocation.Y);
             cmd.Parameters.AddWithValue("UserLocationZ", land.UserLocation.Z);
@@ -1408,8 +1404,8 @@ namespace OpenSim.Data.MySQL
         /// <param name="parcelID"></param>
         private static void FillLandAccessCommand(MySqlCommand cmd, ParcelManager.ParcelAccessEntry entry, UUID parcelID)
         {
-            cmd.Parameters.AddWithValue("LandUUID", Util.ToRawUuidString(parcelID));
-            cmd.Parameters.AddWithValue("AccessUUID", Util.ToRawUuidString(entry.AgentID));
+            cmd.Parameters.AddWithValue("LandUUID", parcelID.ToString());
+            cmd.Parameters.AddWithValue("AccessUUID", entry.AgentID.ToString());
             cmd.Parameters.AddWithValue("Flags", entry.Flags);
         }
 
@@ -1465,7 +1461,7 @@ namespace OpenSim.Data.MySQL
         private void FillShapeCommand(MySqlCommand cmd, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
-            cmd.Parameters.AddWithValue("UUID", Util.ToRawUuidString(prim.UUID));
+            cmd.Parameters.AddWithValue("UUID", prim.UUID.ToString());
             // shape is an enum
             cmd.Parameters.AddWithValue("Shape", 0);
             // vectors
@@ -1533,6 +1529,7 @@ namespace OpenSim.Data.MySQL
 
                     ExecuteNonQuery(cmd);
                 }
+                
                 cmd.Dispose();
             }
         }
