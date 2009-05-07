@@ -184,8 +184,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 UUID regionID = new UUID((string) requestData["regionID"]);
 
-                responseData["accepted"] = "true";
-                responseData["success"] = "true";
+                responseData["accepted"] = true;
+                responseData["success"] = true;
                 response.Value = responseData;
 
                 Scene rebootedScene;
@@ -193,7 +193,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (!m_app.SceneManager.TryGetScene(regionID, out rebootedScene))
                     throw new Exception("region not found");
 
-                responseData["rebooting"] = "true";
+                responseData["rebooting"] = true;
                 response.Value = responseData;
                 rebootedScene.Restart(30);
             }
@@ -201,9 +201,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 m_log.ErrorFormat("[RADMIN]: Restart region: failed: {0}", e.Message);
                 m_log.DebugFormat("[RADMIN]: Restart region: failed: {0}", e.ToString());
-                responseData["accepted"] = "false";
-                responseData["success"] = "false";
-                responseData["rebooting"] = "false";
+                responseData["accepted"] = false;
+                responseData["success"] = false;
+                responseData["rebooting"] = false;
                 responseData["error"] = e.Message;
                 response.Value = responseData;
             }
@@ -232,8 +232,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 string message = (string) requestData["message"];
                 m_log.InfoFormat("[RADMIN]: Broadcasting: {0}", message);
 
-                responseData["accepted"] = "true";
-                responseData["success"] = "true";
+                responseData["accepted"] = true;
+                responseData["success"] = true;
                 response.Value = responseData;
 
                 m_app.SceneManager.ForEachScene(
@@ -249,8 +249,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 m_log.ErrorFormat("[RADMIN]: Broadcasting: failed: {0}", e.Message);
                 m_log.DebugFormat("[RADMIN]: Broadcasting: failed: {0}", e.ToString());
 
-                responseData["accepted"] = "false";
-                responseData["success"] = "false";
+                responseData["accepted"] = false;
+                responseData["success"] = false;
                 responseData["error"] = e.Message;
                 response.Value = responseData;
             }
@@ -287,7 +287,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 UUID regionID = (UUID) (string) requestData["regionid"];
                 m_log.InfoFormat("[RADMIN]: Terrain Loading: {0}", file);
 
-                responseData["accepted"] = "true";
+                responseData["accepted"] = true;
 
                 Scene region = null;
 
@@ -298,7 +298,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (null == terrainModule) throw new Exception("terrain module not available");
                 terrainModule.LoadFromFile(file);
 
-                responseData["success"] = "true";
+                responseData["success"] = false;
 
                 response.Value = responseData;
             }
@@ -307,7 +307,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 m_log.ErrorFormat("[RADMIN] Terrain Loading: failed: {0}", e.Message);
                 m_log.DebugFormat("[RADMIN] Terrain Loading: failed: {0}", e.ToString());
 
-                responseData["success"] = "false";
+                responseData["success"] = false;
                 responseData["error"] = e.Message;
             }
 
@@ -332,7 +332,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     (!requestData.Contains("password") || (string) requestData["password"] != m_requiredPassword))
                     throw new Exception("wrong password");
 
-                responseData["accepted"] = "true";
+                responseData["accepted"] = true;
                 response.Value = responseData;
 
                 int timeout = 2000;
@@ -367,14 +367,14 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
                 shutdownTimer.Start();
 
-                responseData["success"] = "true";
+                responseData["success"] = true;
             }
             catch (Exception e)
             {
                 m_log.ErrorFormat("[RADMIN] Shutdown: failed: {0}", e.Message);
                 m_log.DebugFormat("[RADMIN] Shutdown: failed: {0}", e.ToString());
 
-                responseData["accepted"] = "false";
+                responseData["accepted"] = false;
                 responseData["error"] = e.Message;
 
                 response.Value = responseData;
@@ -631,7 +631,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         }
                     }
 
-                    responseData["success"] = "true";
+                    responseData["success"] = true;
                     responseData["region_name"] = region.RegionName;
                     responseData["region_uuid"] = region.RegionID.ToString();
 
@@ -642,7 +642,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_log.ErrorFormat("[RADMIN] CreateRegion: failed {0}", e.Message);
                     m_log.DebugFormat("[RADMIN] CreateRegion: failed {0}", e.ToString());
 
-                    responseData["success"] = "false";
+                    responseData["success"] = false;
                     responseData["error"] = e.Message;
 
                     response.Value = responseData;
@@ -699,7 +699,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     m_app.RemoveRegion(scene, true);
 
-                    responseData["success"] = "true";
+                    responseData["success"] = true;
                     responseData["region_name"] = regionName;
 
                     response.Value = responseData;
@@ -709,7 +709,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_log.ErrorFormat("[RADMIN] DeleteRegion: failed {0}", e.Message);
                     m_log.DebugFormat("[RADMIN] DeleteRegion: failed {0}", e.ToString());
 
-                    responseData["success"] = "false";
+                    responseData["success"] = false;
                     responseData["error"] = e.Message;
 
                     response.Value = responseData;
@@ -795,7 +795,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         }
                     }
 
-                    responseData["success"] = "true";
+                    responseData["success"] = true;
                     responseData["region_name"] = regionName;
 
                     response.Value = responseData;
@@ -805,7 +805,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_log.ErrorFormat("[RADMIN] ModifyRegion: failed {0}", e.Message);
                     m_log.DebugFormat("[RADMIN] ModifyRegion: failed {0}", e.ToString());
 
-                    responseData["success"] = "false";
+                    responseData["success"] = false;
                     responseData["error"] = e.Message;
 
                     response.Value = responseData;
@@ -907,7 +907,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     updateUserAppearance(responseData, requestData, userID);
 
-                    responseData["success"] = "true";
+                    responseData["success"] = true;
                     responseData["avatar_uuid"] = userID.ToString();
 
                     response.Value = responseData;
@@ -919,7 +919,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_log.ErrorFormat("[RADMIN] CreateUser: failed: {0}", e.Message);
                     m_log.DebugFormat("[RADMIN] CreateUser: failed: {0}", e.ToString());
 
-                    responseData["success"] = "false";
+                    responseData["success"] = false;
                     responseData["avatar_uuid"] = UUID.Zero.ToString();
                     responseData["error"] = e.Message;
 
@@ -994,7 +994,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 m_log.ErrorFormat("[RADMIN] UserExists: failed: {0}", e.Message);
                 m_log.DebugFormat("[RADMIN] UserExists: failed: {0}", e.ToString());
 
-                responseData["success"] = "false";
+                responseData["success"] = false;
                 responseData["error"] = e.Message;
 
                 response.Value = responseData;
@@ -1140,7 +1140,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
                         throw new Exception("did not manage to update user profile");
 
-                    responseData["success"] = "true";
+                    responseData["success"] = true;
 
                     response.Value = responseData;
 
@@ -1153,7 +1153,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_log.ErrorFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.Message);
                     m_log.DebugFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.ToString());
 
-                    responseData["success"] = "false";
+                    responseData["success"] = false;
                     responseData["error"] = e.Message;
 
                     response.Value = responseData;
@@ -1747,7 +1747,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     else
                         throw new Exception("Archiver module not present for scene");
 
-                    responseData["loaded"] = "true";
+                    responseData["loaded"] = true;
 
                     response.Value = responseData;
                 }
@@ -1756,7 +1756,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_log.InfoFormat("[RADMIN] LoadOAR: {0}", e.Message);
                     m_log.DebugFormat("[RADMIN] LoadOAR: {0}", e.ToString());
 
-                    responseData["loaded"] = "false";
+                    responseData["loaded"] = false;
                     responseData["error"] = e.Message;
 
                     response.Value = responseData;
@@ -1844,7 +1844,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 else
                     throw new Exception("Archiver module not present for scene");
 
-                responseData["saved"] = "true";
+                responseData["saved"] = true;
 
                 response.Value = responseData;
             }
@@ -1853,7 +1853,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 m_log.InfoFormat("[RADMIN] SaveOAR: {0}", e.Message);
                 m_log.DebugFormat("[RADMIN] SaveOAR: {0}", e.ToString());
 
-                responseData["saved"] = "false";
+                responseData["saved"] = false;
                 responseData["error"] = e.Message;
 
                 response.Value = responseData;
@@ -1905,7 +1905,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     }
                     else throw new Exception("neither region_name nor region_uuid given");
 
-                    responseData["switched"] = "true";
+                    responseData["switched"] = true;
 
                     string xml_version = "1";
                     if (requestData.Contains("xml_version"))
@@ -1927,7 +1927,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             throw new Exception(String.Format("unknown Xml{0} format", xml_version));
                     }
 
-                    responseData["loaded"] = "true";
+                    responseData["loaded"] = true;
                     response.Value = responseData;
                 }
                 catch (Exception e)
@@ -1935,8 +1935,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_log.InfoFormat("[RADMIN] LoadXml: {0}", e.Message);
                     m_log.DebugFormat("[RADMIN] LoadXml: {0}", e.ToString());
 
-                    responseData["loaded"] = "false";
-                    responseData["switched"] = "false";
+                    responseData["loaded"] = false;
+                    responseData["switched"] = false;
                     responseData["error"] = e.Message;
 
                     response.Value = responseData;
@@ -1988,7 +1988,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 }
                 else throw new Exception("neither region_name nor region_uuid given");
 
-                responseData["switched"] = "true";
+                responseData["switched"] = true;
 
                 string xml_version = "1";
                 if (requestData.Contains("xml_version"))
@@ -2010,7 +2010,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         throw new Exception(String.Format("unknown Xml{0} format", xml_version));
                 }
 
-                responseData["saved"] = "true";
+                responseData["saved"] = true;
 
                 response.Value = responseData;
             }
@@ -2019,8 +2019,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 m_log.InfoFormat("[RADMIN] SaveXml: {0}", e.Message);
                 m_log.DebugFormat("[RADMIN] SaveXml: {0}", e.ToString());
 
-                responseData["saved"] = "false";
-                responseData["switched"] = "false";
+                responseData["saved"] = false;
+                responseData["switched"] = false;
                 responseData["error"] = e.Message;
 
                 response.Value = responseData;
@@ -2038,7 +2038,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             try
             {
-                responseData["success"] = "true";
+                responseData["success"] = true;
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
@@ -2076,7 +2076,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 m_log.InfoFormat("[RADMIN] RegionQuery: {0}", e.Message);
 
-                responseData["success"] = "false";
+                responseData["success"] = false;
                 responseData["error"] = e.Message;
 
                 response.Value = responseData;
@@ -2094,7 +2094,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             try
             {
-                responseData["success"] = "true";
+                responseData["success"] = true;
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
@@ -2114,7 +2114,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 m_log.InfoFormat("[RADMIN] ConsoleCommand: {0}", e.Message);
 
-                responseData["success"] = "false";
+                responseData["success"] = false;
                 responseData["error"] = e.Message;
 
                 response.Value = responseData;
@@ -2133,7 +2133,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             try
             {
-                responseData["success"] = "true";
+                responseData["success"] = true;
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
@@ -2166,7 +2166,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 m_log.InfoFormat("[RADMIN] Access List Clear Request: {0}", e.Message);
 
-                responseData["success"] = "false";
+                responseData["success"] = false;
                 responseData["error"] = e.Message;
 
             }
@@ -2188,7 +2188,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             try
             {
-                responseData["success"] = "true";
+                responseData["success"] = true;
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
@@ -2249,7 +2249,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 m_log.InfoFormat("[RADMIN] Access List Add Request: {0}", e.Message);
 
-                responseData["success"] = "false";
+                responseData["success"] = false;
                 responseData["error"] = e.Message;
 
             }
@@ -2271,7 +2271,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             try
             {
-                responseData["success"] = "true";
+                responseData["success"] = true;
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
@@ -2333,7 +2333,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 m_log.InfoFormat("[RADMIN] Access List Remove Request: {0}", e.Message);
 
-                responseData["success"] = "false";
+                responseData["success"] = false;
                 responseData["error"] = e.Message;
 
             }
@@ -2355,7 +2355,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             try
             {
-                responseData["success"] = "true";
+                responseData["success"] = true;
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
@@ -2400,7 +2400,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 m_log.InfoFormat("[RADMIN] Acces List List: {0}", e.Message);
 
-                responseData["success"] = "false";
+                responseData["success"] = false;
                 responseData["error"] = e.Message;
 
             }
