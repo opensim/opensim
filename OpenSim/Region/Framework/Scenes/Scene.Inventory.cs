@@ -2265,7 +2265,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                             string xmlData = Utils.BytesToString(rezAsset.Data);
                             SceneObjectGroup group 
-                                = SceneObjectSerializer.DeserializeOriginalXmlFormat(itemId, xmlData);
+                                = SceneObjectSerializer.FromOriginalXmlFormat(itemId, xmlData);
 
                             if (!Permissions.CanRezObject(
                                 group.Children.Count, remoteClient.AgentId, pos)
@@ -2421,7 +2421,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (rezAsset != null)
                 {
                     string xmlData = Utils.BytesToString(rezAsset.Data);
-                    SceneObjectGroup group = SceneObjectSerializer.DeserializeOriginalXmlFormat(xmlData);
+                    SceneObjectGroup group = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
 
                     if (!Permissions.CanRezObject(group.Children.Count, ownerID, pos))
                     {

@@ -255,7 +255,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             if ((asset != null) && ((AssetType)asset.Type == AssetType.Object))
             {
                 string ass_str = Utils.BytesToString(asset.Data);
-                SceneObjectGroup sog = SceneObjectSerializer.DeserializeOriginalXmlFormat(ass_str);
+                SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(ass_str);
 
                 SniffTextureUUIDs(uuids, sog);
 

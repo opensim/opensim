@@ -264,7 +264,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (null != objectAsset)
             {
                 string xml = Utils.BytesToString(objectAsset.Data);
-                SceneObjectGroup sog = SceneObjectSerializer.DeserializeOriginalXmlFormat(xml);
+                SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(xml);
                 GatherAssetUuids(sog, assetUuids);
             }
         }       

@@ -49,9 +49,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// </summary>
         /// <param name="serialization"></param>
         /// <returns></returns>
-        public static SceneObjectGroup DeserializeOriginalXmlFormat(string serialization)
+        public static SceneObjectGroup FromOriginalXmlFormat(string serialization)
         {
-            return DeserializeOriginalXmlFormat(UUID.Zero, serialization);
+            return FromOriginalXmlFormat(UUID.Zero, serialization);
         }
         
         /// <summary>
@@ -59,7 +59,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// </summary>
         /// <param name="serialization"></param>
         /// <returns></returns>
-        public static SceneObjectGroup DeserializeOriginalXmlFormat(UUID fromUserInventoryItemID, string serialization)
+        public static SceneObjectGroup FromOriginalXmlFormat(UUID fromUserInventoryItemID, string serialization)
         {
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
             //int time = System.Environment.TickCount;

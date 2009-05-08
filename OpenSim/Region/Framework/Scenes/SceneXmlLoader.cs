@@ -59,7 +59,7 @@ namespace OpenSim.Region.Framework.Scenes
                 rootNode = doc.FirstChild;
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {
-                    SceneObjectGroup obj = SceneObjectSerializer.DeserializeOriginalXmlFormat(aPrimNode.OuterXml);
+                    SceneObjectGroup obj = SceneObjectSerializer.FromOriginalXmlFormat(aPrimNode.OuterXml);
 
                     if (newIDS)
                     {
