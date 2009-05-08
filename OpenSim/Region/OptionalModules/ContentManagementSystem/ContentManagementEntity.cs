@@ -25,15 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#region Header
-
-// ContentManagementEntity.cs
-// User: bongiojp
-//
-//
-
-#endregion Header
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -45,6 +36,7 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
@@ -87,7 +79,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         public ContentManagementEntity(string objectXML, Scene scene,  bool physics)
             : base(objectXML, scene, false)
         {
-            m_UnchangedEntity = new SceneObjectGroup(objectXML);
+            m_UnchangedEntity = SceneObjectSerializer.FromXml2Format(objectXML);
         }
 
         #endregion Constructors

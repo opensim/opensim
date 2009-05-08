@@ -25,16 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#region Header
-
-// MetaEntity.cs
-// User: bongiojp
-//
-// TODO:
-//    Create a physics manager to the meta object if there isn't one or the object knows of no scene but the user wants physics enabled.
-
-#endregion Header
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -46,6 +36,7 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
@@ -98,7 +89,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         /// </summary>
         public MetaEntity(string objectXML, Scene scene, bool physics)
         {
-            m_Entity = new SceneObjectGroup(objectXML);
+            m_Entity = SceneObjectSerializer.FromXml2Format(objectXML);
             m_Entity.SetScene(scene);
             Initialize(physics);
         }

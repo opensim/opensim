@@ -59,7 +59,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// </summary>
         /// <param name="serialization"></param>
         /// <returns></returns>
-        public static SceneObjectGroup FromOriginalXmlFormat(UUID fromUserInventoryItemID, string serialization)
+        public static SceneObjectGroup FromOriginalXmlFormat(UUID fromUserInventoryItemID, string xmlData)
         {
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
             //int time = System.Environment.TickCount;
@@ -67,12 +67,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             SceneObjectGroup sceneObject = new SceneObjectGroup();            
 
             // libomv.types changes UUID to Guid
-            serialization = serialization.Replace("<UUID>", "<Guid>");
-            serialization = serialization.Replace("</UUID>", "</Guid>");
+            xmlData = xmlData.Replace("<UUID>", "<Guid>");
+            xmlData = xmlData.Replace("</UUID>", "</Guid>");
 
             // Handle Nested <UUID><UUID> property
-            serialization = serialization.Replace("<Guid><Guid>", "<UUID><Guid>");
-            serialization = serialization.Replace("</Guid></Guid>", "</Guid></UUID>");
+            xmlData = xmlData.Replace("<Guid><Guid>", "<UUID><Guid>");
+            xmlData = xmlData.Replace("</Guid></Guid>", "</Guid></UUID>");
 
             try
             {
@@ -83,7 +83,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 int           linkNum;
 
                 doc = new XmlDocument();
-                doc.LoadXml(serialization);
+                doc.LoadXml(xmlData);
                 parts = doc.GetElementsByTagName("RootPart");
 
                 if (parts.Count == 0)
@@ -122,13 +122,77 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[SERIALIZER]: Deserialization of xml failed with {0}.  xml was {1}", e, serialization);
+                    "[SERIALIZER]: Deserialization of xml failed with {0}.  xml was {1}", e, xmlData);
             }
 
             //m_log.DebugFormat("[SERIALIZER]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
 
             return sceneObject;
         }
+
+        /// <summary>
+        /// Deserialize a scene object from the 'xml2' format
+        /// </summary>
+        /// <param name="serialization"></param>
+        /// <returns></returns>        
+        public static SceneObjectGroup FromXml2Format(string xmlData)
+        {
+            //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
+            //int time = System.Environment.TickCount;
+
+            SceneObjectGroup sceneObject = new SceneObjectGroup();
+            
+            // libomv.types changes UUID to Guid
+            xmlData = xmlData.Replace("<UUID>", "<Guid>");
+            xmlData = xmlData.Replace("</UUID>", "</Guid>");
+
+            // Handle Nested <UUID><UUID> property
+            xmlData = xmlData.Replace("<Guid><Guid>", "<UUID><Guid>");
+            xmlData = xmlData.Replace("</Guid></Guid>", "</Guid></UUID>");
+
+            try
+            {
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(xmlData);
+
+                XmlNodeList parts = doc.GetElementsByTagName("SceneObjectPart");
+
+                // Process the root part first
+                if (parts.Count > 0)
+                {
+                    StringReader      sr = new StringReader(parts[0].OuterXml);
+                    XmlTextReader reader = new XmlTextReader(sr);
+                    sceneObject.SetRootPart(SceneObjectPart.FromXml(reader));
+                    reader.Close();
+                    sr.Close();
+                }
+
+                // Then deal with the rest
+                for (int i = 1; i < parts.Count; i++)
+                {
+                    StringReader      sr = new StringReader(parts[i].OuterXml);
+                    XmlTextReader reader = new XmlTextReader(sr);
+                    SceneObjectPart part = SceneObjectPart.FromXml(reader);
+                    sceneObject.AddPart(part);
+                    part.StoreUndoState();
+                    reader.Close();
+                    sr.Close();
+                }
+
+                // Script state may, or may not, exist. Not having any, is NOT
+                // ever a problem.
+
+                sceneObject.LoadScriptState(doc);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[SERIALIZER]: Deserialization of xml failed with {0}.  xml was {1}", e, xmlData);
+            }
+
+            //m_log.DebugFormat("[SERIALIZER]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
+
+            return sceneObject;
+        }        
 
         /// <summary>
         /// Serialize a scene object to the original xml format

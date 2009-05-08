@@ -25,15 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#region Header
-
-// CMModel.cs
-// User: bongiojp
-//
-//
-
-#endregion Header
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -45,6 +36,7 @@ using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
@@ -211,14 +203,15 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
 
             foreach (string xml in xmllist)
             {
-                try{
-                    temp = new SceneObjectGroup(xml);
+                try
+                {
+                    temp = SceneObjectSerializer.FromXml2Format(xml);
                     temp.SetScene(scene);
                     foreach (SceneObjectPart part in temp.Children.Values)
                         part.RegionHandle = scene.RegionInfo.RegionHandle;
                     ReplacementList.Add(temp.UUID, (EntityBase)temp);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     m_log.Info("[CMMODEL]: Error while creating replacement list for rollback: " + e);
                 }

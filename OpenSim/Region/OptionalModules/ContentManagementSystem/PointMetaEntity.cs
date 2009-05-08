@@ -25,16 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#region Header
-
-// PointMetaEntity.cs created with MonoDevelop
-// User: bongiojp at 3:03 PM 8/6/2008
-//
-// To change standard headers go to Edit->Preferences->Coding->Standard Headers
-//
-
-#endregion Header
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;

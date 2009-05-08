@@ -41,6 +41,7 @@ using OpenSim.Framework.Communications.Clients;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
 {
@@ -641,7 +642,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
             SceneObjectGroup sog = null; 
             try
             {
-                sog = new SceneObjectGroup(sogXmlStr);
+                sog = SceneObjectSerializer.FromXml2Format(sogXmlStr);
                 sog.ExtraFromXmlString(extraStr);
             }
             catch (Exception ex)

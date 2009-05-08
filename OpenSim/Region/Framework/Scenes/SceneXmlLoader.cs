@@ -125,14 +125,14 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {
                     // There is only ever one prim.  This oddity should be removeable post 0.5.9
-                    return new SceneObjectGroup(aPrimNode.OuterXml);
+                    return SceneObjectSerializer.FromXml2Format(aPrimNode.OuterXml);
                 }
 
                 return null;
             }
             else
             {
-                return new SceneObjectGroup(rootNode.OuterXml);
+                return SceneObjectSerializer.FromXml2Format(rootNode.OuterXml);
             }
         }
 
@@ -193,7 +193,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>The scene object created.  null if the scene object already existed</returns>
         protected static SceneObjectGroup CreatePrimFromXml2(Scene scene, string xmlData)
         {
-            SceneObjectGroup obj = new SceneObjectGroup(xmlData);
+            SceneObjectGroup obj = SceneObjectSerializer.FromXml2Format(xmlData);
 
             if (scene.AddRestoredSceneObject(obj, true, false))
                 return obj;
