@@ -46,8 +46,8 @@ namespace OpenSim.Framework
 
         private readonly Dictionary<PacketType, Stack<Packet>> pool = new Dictionary<PacketType, Stack<Packet>>();
 
-        private static Dictionary<Type, List<Object>> DataBlocks =
-                new Dictionary<Type, List<Object>>();
+        private static Dictionary<Type, Stack<Object>> DataBlocks =
+                new Dictionary<Type, Stack<Object>>();
 
         static PacketPool()
         {
@@ -212,18 +212,18 @@ namespace OpenSim.Framework
         {
             lock (DataBlocks)
             {
-                if (DataBlocks.ContainsKey(typeof(T)) && DataBlocks[typeof(T)].Count > 0)
+                Stack<Object> s;
+
+                if (DataBlocks.TryGetValue(typeof(T), out s))
                 {
-                    T block = (T)DataBlocks[typeof(T)][0];
-                    DataBlocks[typeof(T)].RemoveAt(0);
-                    if (block == null)
-                        return new T();
-                    return block;
+                    if (s.Count > 0)
+                        return (T)s.Pop();
                 }
                 else
                 {
-                    return new T();
+                    DataBlocks[typeof(T)] = new Stack<Object>();
                 }
+                return new T();
             }
         }
 
@@ -234,17 +234,7 @@ namespace OpenSim.Framework
 
             lock (DataBlocks)
             {
-                if (!DataBlocks.ContainsKey(typeof(T)))
-                {
-                    List<Object> l = new List<Object>();
-                    l.Add(block);
-                    DataBlocks.Add(typeof(T), l);
-                }
-                else
-                {
-                    if (DataBlocks[typeof(T)].Count < 500)
-                        DataBlocks[typeof(T)].Add(block);
-                }
+                DataBlocks[typeof(T)].Push(block);
             }
         }
     }
