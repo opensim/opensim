@@ -203,8 +203,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                 m_capsHandlers["UpdateScriptAgentInventory"] = m_capsHandlers["UpdateNotecardAgentInventory"];
                 m_capsHandlers["UpdateScriptAgent"] = m_capsHandlers["UpdateScriptAgentInventory"];
                 
-                // rob smart
-                // adding handling for WebFetchInventoryDescendents which appears in RC 1.22.9
+                // As of RC 1.22.9 of the Linden client this is supported
                 m_capsHandlers["WebFetchInventoryDescendents"] =new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryDescendentsRequest);
 
                 // justincc: I've disabled the CAPS service for now to fix problems with selecting textures, and
@@ -471,7 +470,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                     contents.items.Array.Add(ConvertInventoryItem(invItem));
                 }
             }
-            /* Rob Smart The following block i removed as it ALWAYS sends the error to the client because the RC 1.22.9 client tries to 
+            /* The following block is removed as it ALWAYS sends the error to the client because the RC 1.22.9 client tries to 
                 find items that have become dissasociated with a paret folder and have parent of 00000000-0000-00000....
             else
             {
