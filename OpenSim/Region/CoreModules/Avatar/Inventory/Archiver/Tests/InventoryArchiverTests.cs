@@ -202,6 +202,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarV0p1ExistingUsers()
         {   
+            Assert.Ignore();
             TestHelper.InMethod();
             Console.WriteLine("Started {0}", MethodBase.GetCurrentMethod());
             
@@ -269,6 +270,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarV0p1TempProfiles()
         {   
+            Assert.Ignore();
             TestHelper.InMethod();
             Console.WriteLine("### Started {0} ###", MethodBase.GetCurrentMethod());
             
