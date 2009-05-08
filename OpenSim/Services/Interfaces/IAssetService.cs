@@ -9,7 +9,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSim Project nor the
+ *     * Neither the name of the OpenSimulator Project nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
@@ -25,40 +25,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Reflection;
-using Nini.Config;
-using OpenSim.Data;
-using OpenSim.Services.Interfaces;
-using OpenSim.Services.Base;
+using OpenSim.Framework;
 
-namespace OpenSim.Services.UserService
+namespace OpenSim.Services.Interfaces
 {
-    public class UserServiceBase: ServiceBase
+    public interface IAssetService
     {
-        protected IUserDataPlugin m_Database = null;
+        // Three different ways to retrieve an asset
+        //
+        AssetBase Get(string id);
+        AssetMetadata GetMetadata(string id);
+        byte[] GetData(string id);
 
-        public UserServiceBase(IConfigSource config) : base(config)
-        {
-            IConfig userConfig = config.Configs["UserService"];
-            if (userConfig == null)
-                throw new Exception("No UserService configuration");
+        // Creates a new asset
+        // Returns a random ID if none is passed into it
+        //
+        string Store(AssetBase asset);
 
-            string dllName = userConfig.GetString("StorageProvider",
-                    String.Empty);
+        // Attachments and bare scripts need this!!
+        //
+        bool UpdateContent(string id, byte[] data);
 
-            if (dllName == String.Empty)
-                throw new Exception("No StorageProvider configured");
-
-            string connString = userConfig.GetString("ConnectionString",
-                    String.Empty);
-
-            m_Database = LoadPlugin<IUserDataPlugin>(dllName);
-
-            if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
-
-            m_Database.Initialise(connString);
-        }
+        // Kill an asset
+        //
+        bool Delete(string id);
     }
 }

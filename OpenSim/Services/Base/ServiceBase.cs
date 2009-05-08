@@ -28,37 +28,47 @@
 using System;
 using System.Reflection;
 using Nini.Config;
-using OpenSim.Data;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.Base;
 
-namespace OpenSim.Services.UserService
+namespace OpenSim.Services.Base
 {
-    public class UserServiceBase: ServiceBase
+    public class ServiceBase
     {
-        protected IUserDataPlugin m_Database = null;
-
-        public UserServiceBase(IConfigSource config) : base(config)
+        public T LoadPlugin<T>(string dllName) where T:class
         {
-            IConfig userConfig = config.Configs["UserService"];
-            if (userConfig == null)
-                throw new Exception("No UserService configuration");
+            string interfaceName = typeof(T).ToString();
 
-            string dllName = userConfig.GetString("StorageProvider",
-                    String.Empty);
+            try
+            {
+                Assembly pluginAssembly = Assembly.LoadFrom(dllName);
 
-            if (dllName == String.Empty)
-                throw new Exception("No StorageProvider configured");
+                foreach (Type pluginType in pluginAssembly.GetTypes())
+                {
+                    if (pluginType.IsPublic)
+                    {
+                        Type typeInterface =
+                                pluginType.GetInterface(interfaceName, true);
+                        if (typeInterface != null)
+                        {
+                            T plug = (T)Activator.CreateInstance(
+                                    pluginAssembly.GetType(
+                                    pluginType.ToString()));
 
-            string connString = userConfig.GetString("ConnectionString",
-                    String.Empty);
+                            return plug;
+                        }
+                    }
+                }
 
-            m_Database = LoadPlugin<IUserDataPlugin>(dllName);
+                return null;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
 
-            if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
-
-            m_Database.Initialise(connString);
+        public ServiceBase(IConfigSource config)
+        {
         }
     }
 }

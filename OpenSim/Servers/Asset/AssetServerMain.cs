@@ -26,39 +26,24 @@
  */
 
 using System;
-using System.Reflection;
-using Nini.Config;
-using OpenSim.Data;
-using OpenSim.Services.Interfaces;
-using OpenSim.Services.Base;
+using OpenSim.Servers.Base;
 
-namespace OpenSim.Services.UserService
+namespace OpenSim.Servers.AssetServer
 {
-    public class UserServiceBase: ServiceBase
+    public class AssetServer
     {
-        protected IUserDataPlugin m_Database = null;
+        protected static HttpServerBase m_Server = null;
 
-        public UserServiceBase(IConfigSource config) : base(config)
+        protected static AssetServiceConnector m_AssetServiceConnector;
+
+        static int Main(string[] args)
         {
-            IConfig userConfig = config.Configs["UserService"];
-            if (userConfig == null)
-                throw new Exception("No UserService configuration");
+            m_Server = new HttpServerBase("Asset", args);
 
-            string dllName = userConfig.GetString("StorageProvider",
-                    String.Empty);
+            m_AssetServiceConnector = new AssetServiceConnector(m_Server.Config,
+                    m_Server.HttpServer);
 
-            if (dllName == String.Empty)
-                throw new Exception("No StorageProvider configured");
-
-            string connString = userConfig.GetString("ConnectionString",
-                    String.Empty);
-
-            m_Database = LoadPlugin<IUserDataPlugin>(dllName);
-
-            if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
-
-            m_Database.Initialise(connString);
+            return m_Server.Run();
         }
     }
 }

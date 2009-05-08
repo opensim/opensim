@@ -28,37 +28,67 @@
 using System;
 using System.Reflection;
 using Nini.Config;
+using log4net;
+using OpenSim.Framework;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.Base;
 
-namespace OpenSim.Services.UserService
+namespace OpenSim.Services.AssetService
 {
-    public class UserServiceBase: ServiceBase
+    public class AssetService : AssetServiceBase, IAssetService
     {
-        protected IUserDataPlugin m_Database = null;
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
 
-        public UserServiceBase(IConfigSource config) : base(config)
+        public AssetService(IConfigSource config) : base(config)
         {
-            IConfig userConfig = config.Configs["UserService"];
-            if (userConfig == null)
-                throw new Exception("No UserService configuration");
+            if (m_AssetLoader != null)
+            {
+                IConfig assetConfig = config.Configs["AssetService"];
+                if (assetConfig == null)
+                    throw new Exception("No AssetService configuration");
 
-            string dllName = userConfig.GetString("StorageProvider",
-                    String.Empty);
+                string loaderArgs = assetConfig.GetString("AssetLoaderArgs",
+                        String.Empty);
 
-            if (dllName == String.Empty)
-                throw new Exception("No StorageProvider configured");
+                m_log.InfoFormat("[ASSET]: Loading default asset set from {0}", loaderArgs);
+                m_AssetLoader.ForEachDefaultXmlAsset(loaderArgs,
+                        delegate(AssetBase a)
+                        {
+                            Store(a);
+                        });
+            }
+        }
 
-            string connString = userConfig.GetString("ConnectionString",
-                    String.Empty);
+        public AssetBase Get(string id)
+        {
+            return null;
+        }
 
-            m_Database = LoadPlugin<IUserDataPlugin>(dllName);
+        public AssetMetadata GetMetadata(string id)
+        {
+            return null;
+        }
 
-            if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
+        public byte[] GetData(string id)
+        {
+            return null;
+        }
 
-            m_Database.Initialise(connString);
+        public string Store(AssetBase asset)
+        {
+            return String.Empty;
+        }
+
+        public bool UpdateContent(string id, byte[] data)
+        {
+            return false;
+        }
+
+        public bool Delete(string id)
+        {
+            return false;
         }
     }
 }

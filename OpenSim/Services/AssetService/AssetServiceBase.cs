@@ -28,37 +28,49 @@
 using System;
 using System.Reflection;
 using Nini.Config;
+using OpenSim.Framework;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Base;
 
-namespace OpenSim.Services.UserService
+namespace OpenSim.Services.AssetService
 {
-    public class UserServiceBase: ServiceBase
+    public class AssetServiceBase : ServiceBase
     {
-        protected IUserDataPlugin m_Database = null;
+        protected IAssetDataPlugin m_Database = null;
+        protected IAssetLoader m_AssetLoader = null;
 
-        public UserServiceBase(IConfigSource config) : base(config)
+        public AssetServiceBase(IConfigSource config) : base(config)
         {
-            IConfig userConfig = config.Configs["UserService"];
-            if (userConfig == null)
-                throw new Exception("No UserService configuration");
+            IConfig assetConfig = config.Configs["AssetService"];
+            if (assetConfig == null)
+                throw new Exception("No AssetService configuration");
 
-            string dllName = userConfig.GetString("StorageProvider",
+            string dllName = assetConfig.GetString("StorageProvider",
                     String.Empty);
 
             if (dllName == String.Empty)
                 throw new Exception("No StorageProvider configured");
 
-            string connString = userConfig.GetString("ConnectionString",
+            string connString = assetConfig.GetString("ConnectionString",
                     String.Empty);
 
-            m_Database = LoadPlugin<IUserDataPlugin>(dllName);
-
+            m_Database = LoadPlugin<IAssetDataPlugin>(dllName);
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module");
 
             m_Database.Initialise(connString);
+
+            string loaderName = assetConfig.GetString("DefaultAssetLoader",
+                    String.Empty);
+
+            if (loaderName != String.Empty)
+            {
+                m_AssetLoader = LoadPlugin<IAssetLoader>(loaderName);
+
+                if (m_AssetLoader == null)
+                    throw new Exception("Asset loader could not be loaded");
+            }
         }
     }
 }

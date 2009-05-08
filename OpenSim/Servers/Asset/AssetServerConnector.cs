@@ -25,40 +25,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Reflection;
 using Nini.Config;
-using OpenSim.Data;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.Base;
+using OpenSim.Services.AssetService;
+using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Services.UserService
+namespace OpenSim.Servers.AssetServer
 {
-    public class UserServiceBase: ServiceBase
+    public class AssetServiceConnector
     {
-        protected IUserDataPlugin m_Database = null;
+        private IAssetService m_AssetService;
 
-        public UserServiceBase(IConfigSource config) : base(config)
+        public AssetServiceConnector(IConfigSource config, IHttpServer server)
         {
-            IConfig userConfig = config.Configs["UserService"];
-            if (userConfig == null)
-                throw new Exception("No UserService configuration");
-
-            string dllName = userConfig.GetString("StorageProvider",
-                    String.Empty);
-
-            if (dllName == String.Empty)
-                throw new Exception("No StorageProvider configured");
-
-            string connString = userConfig.GetString("ConnectionString",
-                    String.Empty);
-
-            m_Database = LoadPlugin<IUserDataPlugin>(dllName);
-
-            if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
-
-            m_Database.Initialise(connString);
+            m_AssetService = new AssetService(config);
         }
     }
 }
