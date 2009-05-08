@@ -64,7 +64,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
             //int time = System.Environment.TickCount;
 
-            SceneObjectGroup so = new SceneObjectGroup();            
+            SceneObjectGroup sceneObject = new SceneObjectGroup();            
 
             // libomv.types changes UUID to Guid
             serialization = serialization.Replace("<UUID>", "<Guid>");
@@ -94,7 +94,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 {
                     sr = new StringReader(parts[0].InnerXml);
                     reader = new XmlTextReader(sr);
-                    so.SetRootPart(SceneObjectPart.FromXml(fromUserInventoryItemID, reader));
+                    sceneObject.SetRootPart(SceneObjectPart.FromXml(fromUserInventoryItemID, reader));
                     reader.Close();
                     sr.Close();
                 }
@@ -107,7 +107,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     reader = new XmlTextReader(sr);
                     SceneObjectPart part = SceneObjectPart.FromXml(reader);
                     linkNum = part.LinkNum;
-                    so.AddPart(part);
+                    sceneObject.AddPart(part);
                     part.LinkNum = linkNum;
                     part.TrimPermissions();
                     part.StoreUndoState();
@@ -117,7 +117,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
-                so.LoadScriptState(doc);
+                sceneObject.LoadScriptState(doc);
             }
             catch (Exception e)
             {
@@ -127,7 +127,61 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             //m_log.DebugFormat("[SERIALIZER]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
 
-            return so;
-        }            
+            return sceneObject;
+        }
+
+        /// <summary>
+        /// Serialize a scene object to the original xml format
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <returns></returns>        
+        public static string ToOriginalXmlFormat(SceneObjectGroup sceneObject)
+        {
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                {
+                    ToOriginalXmlFormat(sceneObject, writer);
+                }
+
+                return sw.ToString();
+            }
+        }                
+
+        /// <summary>
+        /// Serialize a scene object to the original xml format
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <returns></returns>            
+        public static void ToOriginalXmlFormat(SceneObjectGroup sceneObject, XmlTextWriter writer)
+        {
+            //m_log.DebugFormat("[SERIALIZER]: Starting serialization of {0}", Name);
+            //int time = System.Environment.TickCount;
+
+            writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
+            writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
+            sceneObject.RootPart.ToXml(writer);
+            writer.WriteEndElement();
+            writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
+
+            lock (sceneObject.Children)
+            {
+                foreach (SceneObjectPart part in sceneObject.Children.Values)
+                {
+                    if (part.UUID != sceneObject.RootPart.UUID)
+                    {
+                        writer.WriteStartElement(String.Empty, "Part", String.Empty);
+                        part.ToXml(writer);
+                        writer.WriteEndElement();
+                    }
+                }
+            }
+
+            writer.WriteEndElement(); // OtherParts
+            sceneObject.SaveScriptedState(writer);
+            writer.WriteEndElement(); // SceneObjectGroup
+
+            //m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
+        }        
     }
 }

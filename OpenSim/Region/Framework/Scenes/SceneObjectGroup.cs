@@ -655,50 +655,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        public string ToXmlString()
-        {
-            using (StringWriter sw = new StringWriter())
-            {
-                using (XmlTextWriter writer = new XmlTextWriter(sw))
-                {
-                    ToXml(writer);
-                }
-
-                return sw.ToString();
-            }
-        }
-
-        public void ToXml(XmlTextWriter writer)
-        {
-            //m_log.DebugFormat("[SOG]: Starting serialization of {0}", Name);
-            //int time = System.Environment.TickCount;
-
-            writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
-            writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
-            m_rootPart.ToXml(writer);
-            writer.WriteEndElement();
-            writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
-
-            lock (m_parts)
-            {
-                foreach (SceneObjectPart part in m_parts.Values)
-                {
-                    if (part.UUID != m_rootPart.UUID)
-                    {
-                        writer.WriteStartElement(String.Empty, "Part", String.Empty);
-                        part.ToXml(writer);
-                        writer.WriteEndElement();
-                    }
-                }
-            }
-
-            writer.WriteEndElement(); // OtherParts
-            SaveScriptedState(writer);
-            writer.WriteEndElement(); // SceneObjectGroup
-
-            //m_log.DebugFormat("[SOG]: Finished serialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
-        }
-
         public string ToXmlString2()
         {
             using (StringWriter sw = new StringWriter())
@@ -714,7 +670,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ToXml2(XmlTextWriter writer)
         {
-
             //m_log.DebugFormat("[SOG]: Starting serialization of SOG {0} to XML2", Name);
             //int time = System.Environment.TickCount;
 
@@ -738,12 +693,10 @@ namespace OpenSim.Region.Framework.Scenes
             writer.WriteEndElement(); // End of SceneObjectGroup
 
             //m_log.DebugFormat("[SOG]: Finished serialization of SOG {0} to XML2, {1}ms", Name, System.Environment.TickCount - time);
-
         }
 
-        private void SaveScriptedState(XmlTextWriter writer)
+        public void SaveScriptedState(XmlTextWriter writer)
         {
-
             XmlDocument doc = new XmlDocument();
             Dictionary<UUID,string> states = new Dictionary<UUID,string>();
 
@@ -774,7 +727,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 writer.WriteEndElement(); // End of GroupScriptStates
             }
-
         }
 
         /// <summary>

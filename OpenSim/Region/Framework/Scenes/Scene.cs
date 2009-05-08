@@ -44,6 +44,7 @@ using OpenSim.Framework.Communications.Clients;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Scripting;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Physics.Manager;
 using Timer=System.Timers.Timer;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
@@ -3383,7 +3384,7 @@ namespace OpenSim.Region.Framework.Scenes
                 break;
 
             case 2: // Sell a copy
-                string sceneObjectXml = group.ToXmlString();
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
 
                 CachedUserInfo userInfo =
                     CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);

@@ -90,7 +90,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    stream.WriteLine(((SceneObjectGroup) ent).ToXmlString());
+                    stream.WriteLine(SceneObjectSerializer.ToOriginalXmlFormat((SceneObjectGroup)ent));
                     primCount++;
                 }
             }

@@ -1816,7 +1816,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             UUID assetID = UUID.Zero;
 
-            string sceneObjectXml = objectGroup.ToXmlString();
+            string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(objectGroup);
 
             // Get the user info of the item destination
             //
@@ -2040,7 +2040,7 @@ namespace OpenSim.Region.Framework.Scenes
                     "[ATTACHMENT]: Updating asset for attachment {0}, attachpoint {1}",
                     grp.UUID, grp.GetAttachmentPoint());
 
-                string sceneObjectXml = objectGroup.ToXmlString();
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(objectGroup);
 
                 CachedUserInfo userInfo =
                     CommsManager.UserProfileCacheService.GetUserDetails(agentID);
@@ -2111,7 +2111,7 @@ namespace OpenSim.Region.Framework.Scenes
             itemID = UUID.Zero;
             if (grp != null)
             {
-                string sceneObjectXml = grp.ToXmlString();
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
 
                 CachedUserInfo userInfo =
                     CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
