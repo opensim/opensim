@@ -75,5 +75,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             return path.StartsWith(Path);
         }
+
+        public string[] SplitParams(string path)
+        {
+            string param = GetParam(path);
+
+            return param.Split(new char[] { '/', '?', '&' }, StringSplitOptions.RemoveEmptyEntries);
+        }
     }
 }

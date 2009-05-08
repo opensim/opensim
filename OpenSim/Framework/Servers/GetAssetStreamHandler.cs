@@ -126,13 +126,6 @@ namespace OpenSim.Framework.Servers
             return result;
         }
 
-        public string[] SplitParams(string path)
-        {
-            string param = GetParam(path);
-
-            return param.Split(new char[] { '/', '?', '&' }, StringSplitOptions.RemoveEmptyEntries);
-        }
-
         // private byte[] ProcessOutgoingAssetData(byte[] assetData)
         // {
         //     string data = Encoding.ASCII.GetString(assetData);
