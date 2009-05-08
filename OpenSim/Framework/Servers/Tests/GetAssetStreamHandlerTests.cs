@@ -11,7 +11,6 @@ namespace OpenSim.Framework.Servers.Tests
     [TestFixture]
     public class GetAssetStreamHandlerTests
     {
-        private static byte[] EmptyByteArray = new byte[] {};
         private const string ASSETS_PATH = "/assets";
 
         [Test]
@@ -47,8 +46,7 @@ namespace OpenSim.Framework.Servers.Tests
 
             GetAssetStreamHandler handler = new GetAssetStreamHandler(null);
 
-            Assert.AreEqual(EmptyByteArray, handler.Handle(ASSETS_PATH, null, null, null), "Failed on empty params.");
-            Assert.AreEqual(EmptyByteArray, handler.Handle(ASSETS_PATH + "/", null, null, null), "Failed on single slash.");
+            BaseRequestHandlerTestHelper.BaseTestHandleNoParams(handler, ASSETS_PATH);
         }
 
         [Test]
@@ -58,13 +56,12 @@ namespace OpenSim.Framework.Servers.Tests
 
             GetAssetStreamHandler handler = new GetAssetStreamHandler(null);
 
-            Assert.AreEqual(EmptyByteArray, handler.Handle(ASSETS_PATH + "/badGuid", null, null, null), "Failed on bad guid.");
+            BaseRequestHandlerTestHelper.BaseTestHandleMalformedGuid(handler, ASSETS_PATH);
         }
 
         //[Test]
         //public void TestHandleFetchMissingAsset()
         //{
-
         //    byte[] emptyResult = new byte[] { };
         //    GetAssetStreamHandler handler = new GetAssetStreamHandler(null);
 

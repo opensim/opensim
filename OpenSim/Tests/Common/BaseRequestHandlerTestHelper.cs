@@ -40,5 +40,18 @@ namespace OpenSim.Tests.Common
             Assert.AreEqual(new string[] { "c", "d" }, handler.SplitParams(assetsPath + "/c/d"), "Failed on second segment.");
             Assert.AreEqual(new string[] { "e", "f" }, handler.SplitParams(assetsPath + "/e/f/"), "Failed on trailing slash.");
         }
+
+        public static byte[] EmptyByteArray = new byte[] {};
+
+        public static void BaseTestHandleNoParams(BaseGetAssetStreamHandler handler, string assetsPath)
+        {
+            Assert.AreEqual(EmptyByteArray, handler.Handle(assetsPath, null, null, null), "Failed on empty params.");
+            Assert.AreEqual(EmptyByteArray, handler.Handle(assetsPath + "/", null, null, null), "Failed on single slash.");
+        }
+
+        public static void BaseTestHandleMalformedGuid(BaseGetAssetStreamHandler handler, string assetsPath)
+        {
+            Assert.AreEqual(EmptyByteArray, handler.Handle(assetsPath + "/badGuid", null, null, null), "Failed on bad guid.");
+        }
     }
 }
