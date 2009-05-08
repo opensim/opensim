@@ -376,6 +376,24 @@ namespace PrimMesher
                 calcVertexNormals(sculptType, width, height);
         }
 
+        /// <summary>
+        /// Duplicates a SculptMesh object. All object properties are copied by value, including lists.
+        /// </summary>
+        /// <returns></returns>
+        public SculptMesh Copy()
+        {
+            return new SculptMesh(this);
+        }
+
+        public SculptMesh(SculptMesh sm)
+        {
+            coords = new List<Coord>(sm.coords);
+            faces = new List<Face>(sm.faces);
+            viewerFaces = new List<ViewerFace>(sm.viewerFaces);
+            normals = new List<Coord>(sm.normals);
+            uvs = new List<UVCoord>(sm.uvs);
+        }
+
         private void calcVertexNormals(SculptType sculptType, int xSize, int ySize)
         {  // compute vertex normals by summing all the surface normals of all the triangles sharing
             // each vertex and then normalizing

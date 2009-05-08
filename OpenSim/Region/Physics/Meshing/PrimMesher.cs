@@ -945,33 +945,33 @@ namespace PrimMesher
                 this.faceUVs.Add(new UVCoord(1.0f - (0.5f + c.X), 1.0f - (0.5f - c.Y)));
         }
 
-        internal Profile Clone()
+        internal Profile Copy()
         {
-            return this.Clone(true);
+            return this.Copy(true);
         }
 
-        internal Profile Clone(bool needFaces)
+        internal Profile Copy(bool needFaces)
         {
-            Profile clone = new Profile();
+            Profile copy = new Profile();
 
-            clone.coords.AddRange(this.coords);
-            clone.faceUVs.AddRange(this.faceUVs);
+            copy.coords.AddRange(this.coords);
+            copy.faceUVs.AddRange(this.faceUVs);
 
             if (needFaces)
-                clone.faces.AddRange(this.faces);
-            if ((clone.calcVertexNormals = this.calcVertexNormals) == true)
+                copy.faces.AddRange(this.faces);
+            if ((copy.calcVertexNormals = this.calcVertexNormals) == true)
             {
-                clone.vertexNormals.AddRange(this.vertexNormals);
-                clone.faceNormal = this.faceNormal;
-                clone.cutNormal1 = this.cutNormal1;
-                clone.cutNormal2 = this.cutNormal2;
-                clone.us.AddRange(this.us);
-                clone.faceNumbers.AddRange(this.faceNumbers);
+                copy.vertexNormals.AddRange(this.vertexNormals);
+                copy.faceNormal = this.faceNormal;
+                copy.cutNormal1 = this.cutNormal1;
+                copy.cutNormal2 = this.cutNormal2;
+                copy.us.AddRange(this.us);
+                copy.faceNumbers.AddRange(this.faceNumbers);
             }
-            clone.numOuterVerts = this.numOuterVerts;
-            clone.numHollowVerts = this.numHollowVerts;
+            copy.numOuterVerts = this.numOuterVerts;
+            copy.numHollowVerts = this.numHollowVerts;
 
-            return clone;
+            return copy;
         }
 
         internal void AddPos(Coord v)
@@ -1344,7 +1344,7 @@ namespace PrimMesher
             bool done = false;
             while (!done)
             {
-                Profile newLayer = profile.Clone();
+                Profile newLayer = profile.Copy();
 
                 if (this.taperX == 0.0f)
                     xProfileScale = 1.0f;
@@ -1730,8 +1730,8 @@ namespace PrimMesher
                 if (angle <= startAngle + .01f || angle >= endAngle - .01f)
                     isEndLayer = true;
 
-                //Profile newLayer = profile.Clone(isEndLayer && needEndFaces);
-                Profile newLayer = profile.Clone();
+                //Profile newLayer = profile.Copy(isEndLayer && needEndFaces);
+                Profile newLayer = profile.Copy();
 
                 float xProfileScale = (1.0f - Math.Abs(this.skew)) * this.holeSizeX;
                 float yProfileScale = this.holeSizeY;
@@ -2033,6 +2033,43 @@ namespace PrimMesher
                 throw new Exception("faceIndex out of range");
 
             return SurfaceNormal(this.faces[faceIndex]);
+        }
+
+        /// <summary>
+        /// Duplicates a PrimMesh object. All object properties are copied by value, including lists.
+        /// </summary>
+        /// <returns></returns>
+        public PrimMesh Copy()
+        {
+            PrimMesh copy = new PrimMesh(this.sides, this.profileStart, this.profileEnd, this.hollow, this.hollowSides);
+            copy.twistBegin = this.twistBegin;
+            copy.twistEnd = this.twistEnd;
+            copy.topShearX = this.topShearX;
+            copy.topShearY = this.topShearY;
+            copy.pathCutBegin = this.pathCutBegin;
+            copy.pathCutEnd = this.pathCutEnd;
+            copy.dimpleBegin = this.dimpleBegin;
+            copy.dimpleEnd = this.dimpleEnd;
+            copy.skew = this.skew;
+            copy.holeSizeX = this.holeSizeX;
+            copy.holeSizeY = this.holeSizeY;
+            copy.taperX = this.taperX;
+            copy.taperY = this.taperY;
+            copy.radius = this.radius;
+            copy.revolutions = this.revolutions;
+            copy.stepsPerRevolution = this.stepsPerRevolution;
+            copy.calcVertexNormals = this.calcVertexNormals;
+            copy.normalsProcessed = this.normalsProcessed;
+            copy.viewerMode = this.viewerMode;
+            copy.numPrimFaces = this.numPrimFaces;
+            copy.errorMessage = this.errorMessage;
+
+            copy.coords = new List<Coord>(this.coords);
+            copy.faces = new List<Face>(this.faces);
+            copy.viewerFaces = new List<ViewerFace>(this.viewerFaces);
+            copy.normals = new List<Coord>(this.normals);
+
+            return copy;
         }
 
         /// <summary>
