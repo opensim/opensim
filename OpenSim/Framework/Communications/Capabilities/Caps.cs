@@ -88,7 +88,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         //private static readonly string m_requestTexture = "0003/";
         private static readonly string m_notecardUpdatePath = "0004/";
         private static readonly string m_notecardTaskUpdatePath = "0005/";
-        // private static readonly string m_fetchInventoryPath = "0006/";
+        private static readonly string m_fetchInventoryPath = "0006/";
 
         // The following entries are in a module, however, they are also here so that we don't re-assign
         // the path to another cap by mistake.
@@ -202,6 +202,10 @@ namespace OpenSim.Framework.Communications.Capabilities
                     new RestStreamHandler("POST", capsBase + m_notecardUpdatePath, NoteCardAgentInventory);
                 m_capsHandlers["UpdateScriptAgentInventory"] = m_capsHandlers["UpdateNotecardAgentInventory"];
                 m_capsHandlers["UpdateScriptAgent"] = m_capsHandlers["UpdateScriptAgentInventory"];
+                
+                // rob smart
+                // adding handling for WebFetchInventoryDescendents which appears in RC 1.22.9
+                m_capsHandlers["WebFetchInventoryDescendents"] =new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryDescendentsRequest);
 
                 // justincc: I've disabled the CAPS service for now to fix problems with selecting textures, and
                 // subsequent inventory breakage, in the edit object pane (such as mantis 1085).  This requires
@@ -360,6 +364,76 @@ namespace OpenSim.Framework.Communications.Capabilities
             return response;
         }
 
+        public string FetchInventoryDescendentsRequest(string request, string path, string param,OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        {
+            m_log.Debug("[CAPS]: FetchInventoryDescendentsRequest in region: " + m_regionName + "request is "+request);
+
+            // nasty temporary hack here, the linden client falsely identifies the uuid 00000000-0000-0000-0000-000000000000 as a string which breaks us
+            // correctly mark it as a uuid
+            request = request.Replace("<string>00000000-0000-0000-0000-000000000000</string>", "<uuid>00000000-0000-0000-0000-000000000000</uuid>");
+            
+            // another hack <integer>1</integer> results in a System.ArgumentException: Object type System.Int32 cannot be converted to target type: System.Boolean
+            request = request.Replace("<key>fetch_folders</key><integer>0</integer>", "<key>fetch_folders</key><boolean>0</boolean>");
+            request = request.Replace("<key>fetch_folders</key><integer>1</integer>", "<key>fetch_folders</key><boolean>1</boolean>");
+            Hashtable hash = new Hashtable();
+            try
+            {
+                hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
+            }
+            catch (LLSD.LLSDParseException pe)
+            {
+                m_log.Error("[AGENT INVENTORY]: Fetch error: " + pe.Message);
+                m_log.Error("Request: " + request.ToString());
+            }
+
+            ArrayList foldersrequested = (ArrayList)hash["folders"];
+
+            string response = "";
+            for (int i = 0; i < foldersrequested.Count; i++)
+            {
+                string inventoryitemstr = "";
+                Hashtable inventoryhash = (Hashtable)foldersrequested[i];
+
+                LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
+                
+                try{
+                LLSDHelpers.DeserialiseOSDMap(inventoryhash, llsdRequest);
+                }
+                catch(Exception e)
+                {
+                    m_log.Debug("[CAPS]: caught exception doing OSD deserialize" + e);
+                }
+                LLSDInventoryDescendents reply = FetchInventoryReply(llsdRequest);
+
+                inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
+                inventoryitemstr = inventoryitemstr.Replace("<llsd><map><key>folders</key><array>", "");
+                inventoryitemstr = inventoryitemstr.Replace("</array></map></llsd>", "");
+
+                response += inventoryitemstr;
+            }
+            
+            
+            if (response.Length == 0)
+            {
+                // Ter-guess: If requests fail a lot, the client seems to stop requesting descendants.
+                // Therefore, I'm concluding that the client only has so many threads available to do requests
+                // and when a thread stalls..   is stays stalled.
+                // Therefore we need to return something valid
+                response = "<llsd><map><key>folders</key><array /></map></llsd>";
+            }
+            else
+            {
+                response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
+            }
+
+            m_log.DebugFormat("[CAPS]: Replying to CAPS fetch inventory request with following xml");
+            m_log.Debug("[CAPS] "+response);
+
+            return response;
+        }
+        
+
+
         /// <summary>
         /// Construct an LLSD reply packet to a CAPS inventory request
         /// </summary>
@@ -369,9 +443,9 @@ namespace OpenSim.Framework.Communications.Capabilities
         {
             LLSDInventoryDescendents reply = new LLSDInventoryDescendents();
             LLSDInventoryFolderContents contents = new LLSDInventoryFolderContents();
-            contents.agent___id = m_agentID;
-            contents.owner___id =  invFetch.owner_id;
-            contents.folder___id = invFetch.folder_id;
+            contents.agent_id = m_agentID;
+            contents.owner_id =  invFetch.owner_id;
+            contents.folder_id = invFetch.folder_id;
 
             // The version number being sent back was originally 1.
             // Unfortunately, on 1.19.1.4, this means that we see a problem where on subsequent logins
@@ -397,6 +471,8 @@ namespace OpenSim.Framework.Communications.Capabilities
                     contents.items.Array.Add(ConvertInventoryItem(invItem));
                 }
             }
+            /* Rob Smart The following block i removed as it ALWAYS sends the error to the client because the RC 1.22.9 client tries to 
+                find items that have become dissasociated with a paret folder and have parent of 00000000-0000-00000....
             else
             {
                 IClientAPI client = GetClient(m_agentID);
@@ -416,7 +492,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                         "[AGENT INVENTORY]: Could not lookup controlling client for {0} in order to notify them of the inventory service failure",
                         m_agentID);
                 }
-            }
+            }*/
 
             contents.descendents = contents.items.Array.Count;
             return reply;

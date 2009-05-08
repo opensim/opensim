@@ -87,11 +87,11 @@ namespace OpenSim.Framework.Communications.Capabilities
     [OSDMap]
     public class LLSDInventoryFolderContents
     {
-        public UUID agent___id; // the (three "_") "___" so the serialising knows to change this to a "-"
+        public UUID agent_id; 
         public int descendents;
-        public UUID folder___id; //as LL can't decide if they are going to use "_" or "-" to separate words in the field names
+        public UUID folder_id; 
         public OSDArray items = new OSDArray();
-        public UUID owner___id; // and of course we can't have field names with "-" in
+        public UUID owner_id; 
         public int version;
     }
 }
