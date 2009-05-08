@@ -306,7 +306,16 @@ namespace OpenSim.Data.MySQL
             try
             {
                 InventoryItemBase item = new InventoryItemBase();
-                item.CreatorId = (string)reader["creatorID"];
+
+                // TODO: this is to handle a case where NULLs creep in there, which we are not sure is indemic to the system, or legacy.  It would be nice to live fix these.
+                if (reader["creatorID"] == null) 
+                {
+                    item.CreatorId  = UUID.Zero.ToString();
+                }
+                else
+                {
+                    item.CreatorId = (string)reader["creatorID"];
+                }
                 
                 // Be a bit safer in parsing these because the
                 // database doesn't enforce them to be not null, and
