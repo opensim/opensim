@@ -625,7 +625,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
                     ReadUUID(reader, "Folder", out dummyUUID);
                     item.Folder = dummyUUID;
 
-                    item.CreatorId = reader.ReadElementContentAsString("Creator", String.Empty);
+                    item.CreatorId = reader.ReadElementContentAsString("CreatorId", String.Empty);
                     item.Description = reader.ReadElementContentAsString("Description", String.Empty);
 
                     uint dummyUInt;
