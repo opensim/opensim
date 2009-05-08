@@ -37,6 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -2263,7 +2264,8 @@ namespace OpenSim.Region.Framework.Scenes
                             }
 
                             string xmlData = Utils.BytesToString(rezAsset.Data);
-                            SceneObjectGroup group = new SceneObjectGroup(itemId, xmlData, true);
+                            SceneObjectGroup group 
+                                = SceneObjectSerializer.DeserializeOriginalXmlFormat(itemId, xmlData);
 
                             if (!Permissions.CanRezObject(
                                 group.Children.Count, remoteClient.AgentId, pos)
@@ -2419,7 +2421,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (rezAsset != null)
                 {
                     string xmlData = Utils.BytesToString(rezAsset.Data);
-                    SceneObjectGroup group = new SceneObjectGroup(xmlData, true);
+                    SceneObjectGroup group = SceneObjectSerializer.DeserializeOriginalXmlFormat(xmlData);
 
                     if (!Permissions.CanRezObject(group.Children.Count, ownerID, pos))
                     {

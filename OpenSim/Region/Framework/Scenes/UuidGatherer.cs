@@ -33,6 +33,7 @@ using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -263,7 +264,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (null != objectAsset)
             {
                 string xml = Utils.BytesToString(objectAsset.Data);
-                SceneObjectGroup sog = new SceneObjectGroup(xml, true);
+                SceneObjectGroup sog = SceneObjectSerializer.DeserializeOriginalXmlFormat(xml);
                 GatherAssetUuids(sog, assetUuids);
             }
         }       

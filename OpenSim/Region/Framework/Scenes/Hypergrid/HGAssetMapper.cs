@@ -34,6 +34,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Clients;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 //using HyperGrid.Framework;
 //using OpenSim.Region.Communications.Hypergrid;
@@ -254,13 +255,12 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             if ((asset != null) && ((AssetType)asset.Type == AssetType.Object))
             {
                 string ass_str = Utils.BytesToString(asset.Data);
-                SceneObjectGroup sog = new SceneObjectGroup(ass_str, true);
+                SceneObjectGroup sog = SceneObjectSerializer.DeserializeOriginalXmlFormat(ass_str);
 
                 SniffTextureUUIDs(uuids, sog);
 
                 // We need to sniff further...
                 SniffTaskInventoryUUIDs(uuids, sog);
-
             }
 
             return uuids;

@@ -33,6 +33,7 @@ using System.Xml;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -58,7 +59,7 @@ namespace OpenSim.Region.Framework.Scenes
                 rootNode = doc.FirstChild;
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {
-                    SceneObjectGroup obj = new SceneObjectGroup(aPrimNode.OuterXml, true);
+                    SceneObjectGroup obj = SceneObjectSerializer.DeserializeOriginalXmlFormat(aPrimNode.OuterXml);
 
                     if (newIDS)
                     {

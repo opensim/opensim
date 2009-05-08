@@ -406,96 +406,6 @@ namespace OpenSim.Region.Framework.Scenes
             SetRootPart(part);
         }
 
-        public SceneObjectGroup(string xmlData, bool isOriginalXmlFormat)
-            : this(UUID.Zero, xmlData, isOriginalXmlFormat)
-        {
-        }
-
-        /// <summary>
-        /// Create an object using serialized data in OpenSim's original xml format.
-        /// </summary>
-        /// <param name="fromUserInventoryItemID">
-        /// If applicable, the user inventory item id from which this object was rezzed.  If not applicable then this
-        /// should be UUID.Zero
-        /// </param>
-        /// <param name="xmlData"></param>
-        /// <param name="isOriginalXmlFormat">
-        /// This parameter only exists to separate the two different xml constructors.  In the future, versions should
-        /// be specified within the xml itself.
-        /// </param>
-        public SceneObjectGroup(UUID fromUserInventoryItemID, string xmlData, bool isOriginalXmlFormat)
-        {
-
-            if (!isOriginalXmlFormat)
-                throw new Exception("This constructor must specify the xml is in OpenSim's original format");
-
-            //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
-            //int time = System.Environment.TickCount;
-
-            // libomv.types changes UUID to Guid
-            xmlData = xmlData.Replace("<UUID>", "<Guid>");
-            xmlData = xmlData.Replace("</UUID>", "</Guid>");
-
-            // Handle Nested <UUID><UUID> property
-            xmlData = xmlData.Replace("<Guid><Guid>", "<UUID><Guid>");
-            xmlData = xmlData.Replace("</Guid></Guid>", "</Guid></UUID>");
-
-            try
-            {
-
-                StringReader  sr;
-                XmlTextReader reader;
-                XmlNodeList   parts;
-                XmlDocument   doc;
-                int           linkNum;
-
-                doc = new XmlDocument();
-                doc.LoadXml(xmlData);
-                parts = doc.GetElementsByTagName("RootPart");
-
-                if (parts.Count == 0)
-                {
-                    throw new Exception("[SCENE] Invalid Xml format - no root part");
-                }
-                else
-                {
-                    sr = new StringReader(parts[0].InnerXml);
-                    reader = new XmlTextReader(sr);
-                    SetRootPart(SceneObjectPart.FromXml(fromUserInventoryItemID, reader));
-                    reader.Close();
-                    sr.Close();
-                }
-
-                parts = doc.GetElementsByTagName("Part");
-
-                for (int i=0; i<parts.Count ; i++)
-                {
-                    sr = new StringReader(parts[i].InnerXml);
-                    reader = new XmlTextReader(sr);
-                    SceneObjectPart part = SceneObjectPart.FromXml(reader);
-                    linkNum = part.LinkNum;
-                    AddPart(part);
-                    part.LinkNum = linkNum;
-                    part.TrimPermissions();
-                    part.StoreUndoState();
-                    reader.Close();
-                    sr.Close();
-                }
-
-                // Script state may, or may not, exist. Not having any, is NOT
-                // ever a problem.
-
-                LoadScriptState(doc);
-
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[SCENE]: Deserialization of xml failed with {0}.  xml was {1}", e, xmlData);
-            }
-
-            //m_log.DebugFormat("[SOG]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
-        }
-
         /// <summary>
         /// Create an object using serialized data in OpenSim's xml2 format.
         /// </summary>
@@ -585,7 +495,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
         }
 
-        private void LoadScriptState(XmlDocument doc)
+        public void LoadScriptState(XmlDocument doc)
         {
             XmlNodeList nodes = doc.GetElementsByTagName("SavedScriptState");
             if (nodes.Count > 0)
@@ -744,7 +654,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #endregion
-
 
         public string ToXmlString()
         {
