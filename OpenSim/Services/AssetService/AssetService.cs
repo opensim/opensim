@@ -32,6 +32,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
+using OpenMetaverse;
 
 namespace OpenSim.Services.AssetService
 {
@@ -63,7 +64,12 @@ namespace OpenSim.Services.AssetService
 
         public AssetBase Get(string id)
         {
-            return null;
+            UUID assetID;
+
+            if (!UUID.TryParse(id, out assetID))
+                return null;
+
+            return m_Database.FetchAsset(assetID);
         }
 
         public AssetMetadata GetMetadata(string id)

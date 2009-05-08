@@ -39,6 +39,8 @@ namespace OpenSim.Servers.AssetServer
         public AssetServiceConnector(IConfigSource config, IHttpServer server)
         {
             m_AssetService = new AssetService(config);
+
+            server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
         }
     }
 }
