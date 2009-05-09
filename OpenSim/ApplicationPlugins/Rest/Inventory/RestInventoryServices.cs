@@ -2045,7 +2045,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // good as having type be specified in the XML.
 
             if (ic.Item.AssetType == (int) AssetType.Unknown ||
-                ic.Item.InvType   == (int) AssetType.Unknown)
+                ic.Item.InvType   == (int) InventoryType.Unknown)
             {
                 Rest.Log.DebugFormat("{0} Attempting to infer item type", MsgId);
 
@@ -2078,8 +2078,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                              MsgId, parts[parts.Length-1]);
                         if (ic.Item.AssetType == (int) AssetType.Unknown)
                             ic.Item.AssetType = (int) AssetType.ImageJPEG;
-                        if (ic.Item.InvType == (int) AssetType.Unknown)
-                            ic.Item.InvType   = (int) AssetType.ImageJPEG;
+                        if (ic.Item.InvType == (int) InventoryType.Unknown)
+                            ic.Item.InvType   = (int) InventoryType.Texture;
                         break;
                     case "jpg" :
                     case "jpeg" :
@@ -2087,8 +2087,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                              MsgId, parts[parts.Length - 1]);
                         if (ic.Item.AssetType == (int) AssetType.Unknown)
                             ic.Item.AssetType = (int) AssetType.ImageJPEG;
-                        if (ic.Item.InvType == (int) AssetType.Unknown)
-                            ic.Item.InvType   = (int) AssetType.ImageJPEG;
+                        if (ic.Item.InvType == (int) InventoryType.Unknown)
+                            ic.Item.InvType   = (int) InventoryType.Texture;
                         break;
                     case "tga" :
                         if (parts[parts.Length - 2].IndexOf("_texture") != -1)
@@ -2096,14 +2096,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                             if (ic.Item.AssetType == (int) AssetType.Unknown)
                                 ic.Item.AssetType = (int) AssetType.TextureTGA;
                             if (ic.Item.InvType == (int) AssetType.Unknown)
-                                ic.Item.InvType   = (int) AssetType.TextureTGA;
+                                ic.Item.InvType   = (int) InventoryType.Texture;
                         }
                         else
                         {
                             if (ic.Item.AssetType == (int) AssetType.Unknown)
                                 ic.Item.AssetType = (int) AssetType.ImageTGA;
-                            if (ic.Item.InvType == (int) AssetType.Unknown)
-                                ic.Item.InvType   = (int) AssetType.ImageTGA;
+                            if (ic.Item.InvType == (int) InventoryType.Unknown)
+                                ic.Item.InvType   = (int) InventoryType.Snapshot;
                         }
                         break;
                     default :

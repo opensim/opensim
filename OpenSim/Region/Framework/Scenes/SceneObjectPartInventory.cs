@@ -776,7 +776,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                if (item.InvType != 6)
+                if (item.InvType != (int)InventoryType.Object)
                 {
                     if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Copy) == 0)
                         mask &= ~((uint)PermissionMask.Copy >> 13);
@@ -809,7 +809,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                if (item.InvType == 6 && (item.CurrentPermissions & 7) != 0)
+                if (item.InvType == (int)InventoryType.Object && (item.CurrentPermissions & 7) != 0)
                 {
                     if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
                         item.CurrentPermissions &= ~(uint)PermissionMask.Copy;
@@ -840,7 +840,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                if (item.InvType == 10)
+                if (item.InvType == (int)InventoryType.LSL)
                 {
                     return true;
                 }
@@ -866,7 +866,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                if (item.InvType == 10)
+                if (item.InvType == (int)InventoryType.LSL)
                 {
                     foreach (IScriptModule e in engines)
                     {
@@ -890,7 +890,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                if (item.InvType == 10)
+                if (item.InvType == (int)InventoryType.LSL)
                 {
                     foreach (IScriptModule e in engines)
                     {

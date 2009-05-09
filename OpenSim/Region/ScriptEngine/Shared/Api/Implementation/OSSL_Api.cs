@@ -1351,8 +1351,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             taskItem.CreationDate = (uint)Util.UnixTimeSinceEpoch();
             taskItem.Name = asset.Name;
             taskItem.Description = asset.Description;
-            taskItem.Type = 7;
-            taskItem.InvType = 7;
+            taskItem.Type = (int)AssetType.Notecard;
+            taskItem.InvType = (int)InventoryType.Notecard;
             taskItem.OwnerID = m_host.OwnerID;
             taskItem.CreatorID = m_host.OwnerID;
             taskItem.BasePermissions = (uint)PermissionMask.All;

@@ -490,7 +490,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (Permissions.PropagatePermissions())
                         {
-                            if (item.InvType == 6)
+                            if (item.InvType == (int)InventoryType.Object)
                             {
                                 itemCopy.BasePermissions &= ~(uint)(PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
                                 itemCopy.BasePermissions |= (item.CurrentPermissions & 7) << 13;
@@ -899,7 +899,7 @@ namespace OpenSim.Region.Framework.Scenes
                     TryGetAvatar(remoteClient.AgentId, out presence);
                     byte[] data = null;
 
-                    if (invType == 3 && presence != null) // OpenMetaverse.asset.assettype.landmark = 3 - needs to be turned into an enum
+                    if (invType == (sbyte)InventoryType.Landmark && presence != null)
                     {
                         Vector3 pos = presence.AbsolutePosition;
                         string strdata = String.Format(
@@ -1098,7 +1098,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
             {
-                if (taskItem.InvType == 6)
+                if (taskItem.InvType == (int)InventoryType.Object)
                     agentItem.BasePermissions = taskItem.BasePermissions & ((taskItem.CurrentPermissions & 7) << 13);
                 else
                     agentItem.BasePermissions = taskItem.BasePermissions;

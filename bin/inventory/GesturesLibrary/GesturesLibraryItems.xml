@@ -6,7 +6,7 @@
 		<Key Name="description" Value="2008-10-03 14:10:00 gesture" />
 		<Key Name="name" Value="can we move along?" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -19,7 +19,7 @@
 		<Key Name="description" Value="2008-10-03 14:17:16 gesture" />
 		<Key Name="name" Value="me!" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -32,7 +32,7 @@
 		<Key Name="description" Value="2008-10-03 14:29:00 gesture" />
 		<Key Name="name" Value="clap" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -45,7 +45,7 @@
 		<Key Name="description" Value="2008-10-03 14:10:03 gesture" />
 		<Key Name="name" Value="no" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -58,7 +58,7 @@
 		<Key Name="description" Value="2008-10-03 14:17:13 gesture" />
 		<Key Name="name" Value="suprised" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -71,7 +71,7 @@
 		<Key Name="description" Value="2008-10-03 14:33:04 gesture" />
 		<Key Name="name" Value="dance2" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -84,7 +84,7 @@
 		<Key Name="description" Value="2008-10-03 14:09:55 gesture" />
 		<Key Name="name" Value="definitely YES" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -97,7 +97,7 @@
 		<Key Name="description" Value="2008-10-03 14:01:58 gesture" />
 		<Key Name="name" Value="Wave" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -110,7 +110,7 @@
 		<Key Name="description" Value="2008-10-03 14:09:45 gesture" />
 		<Key Name="name" Value="take it outside" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -123,7 +123,7 @@
 		<Key Name="description" Value="2008-10-03 14:10:06 gesture" />
 		<Key Name="name" Value="whoohoo!" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -136,7 +136,7 @@
 		<Key Name="description" Value="2008-10-03 14:03:01 gesture" />
 		<Key Name="name" Value="raise hand" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -149,7 +149,7 @@
 		<Key Name="description" Value="2008-10-03 14:09:57 gesture" />
 		<Key Name="name" Value="LOL" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -162,7 +162,7 @@
 		<Key Name="description" Value="2008-10-03 14:32:33 gesture" />
 		<Key Name="name" Value="dance1" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -175,7 +175,7 @@
 		<Key Name="description" Value="2008-10-03 14:17:09 gesture" />
 		<Key Name="name" Value="wink!" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -188,7 +188,7 @@
 		<Key Name="description" Value="2008-10-03 14:10:09 gesture" />
 		<Key Name="name" Value="not sure" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />
@@ -201,7 +201,7 @@
 		<Key Name="description" Value="2008-10-03 14:33:41 gesture" />
 		<Key Name="name" Value="dance3" />
 		<Key Name="assetType" Value="21"/>
-		<Key Name="inventoryType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
 		<Key Name="currentPermissions" Value="2147483647"/>
 		<Key Name="nextPermissions" Value="2147483647"/>
 		<Key Name="everyonePermissions" Value="2147483647" />

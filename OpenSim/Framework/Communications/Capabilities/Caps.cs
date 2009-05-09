@@ -365,7 +365,7 @@ namespace OpenSim.Framework.Communications.Capabilities
 
         public string FetchInventoryDescendentsRequest(string request, string path, string param,OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            m_log.Debug("[CAPS]: FetchInventoryDescendentsRequest in region: " + m_regionName + "request is "+request);
+            m_log.Debug("[CAPS]: FetchInventoryDescendentsRequest in region: " + m_regionName + " request is "+request);
 
             // nasty temporary hack here, the linden client falsely identifies the uuid 00000000-0000-0000-0000-000000000000 as a string which breaks us
             // correctly mark it as a uuid
@@ -512,8 +512,16 @@ namespace OpenSim.Framework.Communications.Capabilities
             llsdItem.item_id = invItem.ID;
             llsdItem.name = invItem.Name;
             llsdItem.parent_id = invItem.Folder;
-            llsdItem.type = Enum.GetName(typeof(AssetType), invItem.AssetType).ToLower();
-            llsdItem.inv_type = Enum.GetName(typeof(InventoryType), invItem.InvType).ToLower();
+            try
+            {
+                // TODO reevaluate after upgrade to libomv >= r2566. Probably should use UtilsConversions.
+                llsdItem.type = TaskInventoryItem.Types[invItem.AssetType];
+                llsdItem.inv_type = TaskInventoryItem.InvTypes[invItem.InvType];
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[CAPS]: Problem setting asset/inventory type while converting inventory item " + invItem.Name + " to LLSD:", e);
+            }
             llsdItem.permissions = new LLSDPermissions();
             llsdItem.permissions.creator_id = invItem.CreatorIdAsUuid;
             llsdItem.permissions.base_mask = (int)invItem.CurrentPermissions;
