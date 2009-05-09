@@ -28,7 +28,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
+using log4net;
 using OpenSim.Region.OptionalModules.Scripting.Minimodule.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
@@ -54,7 +56,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 while (m_threads.Count > 0 && i < count)
                 {
                     i++;
+
                     bool running = m_threads[i%m_threads.Count].MoveNext();
+
 
                     if (!running)
                         m_threads.Remove(m_threads[i%m_threads.Count]);

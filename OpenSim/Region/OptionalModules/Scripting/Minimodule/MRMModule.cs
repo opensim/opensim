@@ -142,7 +142,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                     m_scene.Broadcast(delegate(IClientAPI user)
                                           {
                                               user.SendAlertMessage(
-                                                  "MiniRegionModule Compilation and Initialisation failed: " + e);
+                                                  "Compile error while building MRM script, check OpenSim console for more information.");
                                           });
                 }
             }
@@ -256,6 +256,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             }
 
             libraries.Add("OpenSim.Region.OptionalModules.dll");
+            libraries.Add("OpenMetaverseTypes.dll");
             libraries.Add("log4net.dll");
 
             foreach (string library in libraries)
