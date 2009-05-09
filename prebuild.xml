@@ -1405,7 +1405,6 @@
       <Reference name="OpenSim.Servers.Base"/>
       <Reference name="OpenSim.Services.Base" />
       <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="OpenSim.Services.AssetService"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
 
@@ -1439,6 +1438,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Region.Framework" />
+      <Reference name="OpenSim.Servers.Base" />
       <Reference name="OpenSim.Services.Base" />
       <Reference name="OpenSim.Services.Interfaces" />
       <Reference name="OpenSim.Services.UserService" />

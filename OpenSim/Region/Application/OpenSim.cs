@@ -80,7 +80,9 @@ namespace OpenSim
                     {
                         log4net.Appender.FileAppender appender =
                                 (log4net.Appender.FileAppender)m_logFileAppender;
-                        appender.File = startupConfig.GetString("LogFile", "OpenSim.log");
+                        string fileName = startupConfig.GetString("LogFile", String.Empty);
+                        if (fileName != String.Empty)
+                            appender.File = fileName;
                         m_log.InfoFormat("[LOGGING] Logging started to file {0}", appender.File);
                     }
                 }

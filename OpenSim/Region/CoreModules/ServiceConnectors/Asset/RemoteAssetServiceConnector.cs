@@ -25,37 +25,63 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using Nini.Config;
-using OpenSim.Servers.Base;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Servers.AssetServer
+namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 {
-    public class AssetServiceConnector
+    public class RemoteAssetServicesConnector : ISharedRegionModule
     {
-        private IAssetService m_AssetService;
+        private bool m_Enabled = false;
 
-        public AssetServiceConnector(IConfigSource config, IHttpServer server)
+        public string Name
         {
-            IConfig serverConfig = config.Configs["AssetService"];
-            if (serverConfig == null)
-                throw new Exception("No section 'Server' in config file");
+            get { return "RemoteAssetServicesConnector"; }
+        }
 
-            string assetService = serverConfig.GetString("Module",
-                    String.Empty);
+        public void Initialise(IConfigSource source)
+        {
+            IConfig moduleConfig = source.Configs["Modules"];
+            if (moduleConfig != null)
+            {
+                string name = moduleConfig.GetString("AssetServices", "");
+                if (name == Name)
+                {
+                    m_Enabled = true;
+                }
+            }
+        }
 
-            if (assetService == String.Empty)
-                throw new Exception("No AssetService in config file");
+        public void PostInitialise()
+        {
+            if (!m_Enabled)
+                return;
+        }
 
-            Object[] args = new Object[] { config };
-            m_AssetService =
-                    ServerUtils.LoadPlugin<IAssetService>(assetService, args);
+        public void Close()
+        {
+            if (!m_Enabled)
+                return;
+        }
 
-            server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
-            server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
-            server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService));
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
         }
     }
 }

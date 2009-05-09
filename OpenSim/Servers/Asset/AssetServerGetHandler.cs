@@ -26,8 +26,10 @@
  */
 
 using Nini.Config;
+using log4net;
 using System;
 using System.IO;
+using System.Reflection;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -35,7 +37,6 @@ using System.Xml;
 using System.Xml.Serialization;
 using OpenSim.Servers.Base;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.AssetService;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 
@@ -43,6 +44,10 @@ namespace OpenSim.Servers.AssetServer
 {
     public class AssetServerGetHandler : BaseStreamHandler
     {
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
         private IAssetService m_AssetService;
 
         public AssetServerGetHandler(IAssetService service) :

@@ -26,7 +26,9 @@
  */
 
 using Nini.Config;
+using log4net;
 using System;
+using System.Reflection;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -35,7 +37,6 @@ using System.Xml;
 using System.Xml.Serialization;
 using OpenSim.Servers.Base;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.AssetService;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 
@@ -43,6 +44,10 @@ namespace OpenSim.Servers.AssetServer
 {
     public class AssetServerPostHandler : BaseStreamHandler
     {
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
         private IAssetService m_AssetService;
 
         public AssetServerPostHandler(IAssetService service) :
@@ -54,10 +59,18 @@ namespace OpenSim.Servers.AssetServer
         public override byte[] Handle(string path, Stream request,
                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            byte[] result = new byte[0];
-
             XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
             AssetBase asset = (AssetBase) xs.Deserialize(request);
+
+            string[] p = SplitParams(path);
+            if (p.Length > 1)
+            {
+                bool result =
+                        m_AssetService.UpdateContent(asset.ID, asset.Data);
+
+                xs = new XmlSerializer(typeof(bool));
+                return ServerUtils.SerializeResult(xs, result);
+            }
 
             string id = m_AssetService.Store(asset);
 

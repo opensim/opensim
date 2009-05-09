@@ -27,11 +27,12 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Text;
 
-namespace OpenSim.Servers.AssetServer
+namespace OpenSim.Servers.Base
 {
     public static class ServerUtils
     {
@@ -91,6 +92,38 @@ namespace OpenSim.Servers.AssetServer
             Array.Resize<byte>(ref ret, (int)ms.Length);
 
             return ret;
+        }
+
+        public static T LoadPlugin<T>(string dllName, Object[] args) where T:class
+        {
+            string interfaceName = typeof(T).ToString();
+
+            try
+            {
+                Assembly pluginAssembly = Assembly.LoadFrom(dllName);
+
+                foreach (Type pluginType in pluginAssembly.GetTypes())
+                {
+                    if (pluginType.IsPublic)
+                    {
+                        Type typeInterface =
+                                pluginType.GetInterface(interfaceName, true);
+                        if (typeInterface != null)
+                        {
+                            T plug = (T)Activator.CreateInstance(pluginType,
+                                    args);
+
+                            return plug;
+                        }
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
     }
 }
