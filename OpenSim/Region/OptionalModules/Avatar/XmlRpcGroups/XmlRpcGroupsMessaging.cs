@@ -496,7 +496,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private void DebugGridInstantMessage(GridInstantMessage im)
         {
-            if (m_debugEnabled)
+            // Don't log any normal IMs (privacy!)
+            if (m_debugEnabled && im.dialog != (byte)InstantMessageDialog.MessageFromAgent)
             {
                 m_log.WarnFormat("[GROUPS-MESSAGING]: IM: fromGroup({0})", im.fromGroup ? "True" : "False");
                 m_log.WarnFormat("[GROUPS-MESSAGING]: IM: Dialog({0})", ((InstantMessageDialog)im.dialog).ToString());
