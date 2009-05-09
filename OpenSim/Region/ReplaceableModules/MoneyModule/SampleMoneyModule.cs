@@ -42,7 +42,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.Avatar.Currency.SampleMoney
+namespace OpenSim.Region.ReplaceableModules.MoneyModule
 {
     /// <summary>
     /// Demo Economy/Money Module.  This is not a production quality money/economy module!
