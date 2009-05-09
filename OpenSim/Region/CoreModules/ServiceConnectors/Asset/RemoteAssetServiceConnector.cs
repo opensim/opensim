@@ -27,12 +27,15 @@
 
 using log4net;
 using System;
+using System.IO;
 using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Communications;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 {
@@ -76,6 +79,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
                     }
                     m_Enabled = true;
                     m_ServerURI = serviceURI;
+
+                    m_log.Info("[ASSET CONNECTOR]: Remote assets enabled");
                 }
             }
         }
@@ -106,31 +111,74 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public AssetBase Get(string id)
         {
-            return null;
+            string uri = m_ServerURI + "/assets/" + id;
+
+            AssetBase asset = SynchronousRestObjectPoster.
+                    BeginPostObject<int, AssetBase>("GET", uri, 0);
+            return asset;
         }
 
         public AssetMetadata GetMetadata(string id)
         {
-            return null;
+            string uri = m_ServerURI + "/assets/" + id + "/metadata";
+
+            AssetMetadata asset = SynchronousRestObjectPoster.
+                    BeginPostObject<int, AssetMetadata>("GET", uri, 0);
+            return asset;
         }
 
         public byte[] GetData(string id)
         {
-            return new byte[0];
+            RestClient rc = new RestClient(m_ServerURI);
+            rc.AddResourcePath("assets");
+            rc.AddResourcePath(id);
+            rc.AddResourcePath("data");
+
+            rc.RequestMethod = "GET";
+
+            Stream s = rc.Request();
+
+            if (s == null)
+                return null;
+
+            if (s.Length > 0)
+            {
+                byte[] ret = new byte[s.Length];
+                s.Read(ret, 0, (int)s.Length);
+
+                return ret;
+            }
+
+            return null;
         }
 
         public string Store(AssetBase asset)
         {
-            return String.Empty;
+            string uri = m_ServerURI + "/assets/";
+
+            string newID = SynchronousRestObjectPoster.
+                    BeginPostObject<AssetBase, string>("POST", uri, asset);
+            return newID;
         }
 
         public bool UpdateContent(string id, byte[] data)
         {
-            return false;
+            AssetBase asset = new AssetBase();
+            asset.ID = id;
+            asset.Data = data;
+
+            string uri = m_ServerURI + "/assets/" + id;
+
+            return SynchronousRestObjectPoster.
+                    BeginPostObject<AssetBase, bool>("POST", uri, asset);
         }
 
         public bool Delete(string id)
         {
+            string uri = m_ServerURI + "/assets/" + id;
+
+            return SynchronousRestObjectPoster.
+                    BeginPostObject<int, bool>("DELETE", uri, 0);
             return false;
         }
     }

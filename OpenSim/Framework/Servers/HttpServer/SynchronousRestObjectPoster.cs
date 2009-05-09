@@ -52,30 +52,42 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
-            request.ContentType = "text/xml";
 
-            MemoryStream buffer = new MemoryStream();
-
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Encoding = Encoding.UTF8;
-
-            using (XmlWriter writer = XmlWriter.Create(buffer, settings))
+            if (verb == "POST")
             {
-                XmlSerializer serializer = new XmlSerializer(type);
-                serializer.Serialize(writer, obj);
-                writer.Flush();
+                request.ContentType = "text/xml";
+
+                MemoryStream buffer = new MemoryStream();
+
+                XmlWriterSettings settings = new XmlWriterSettings();
+                settings.Encoding = Encoding.UTF8;
+
+                using (XmlWriter writer = XmlWriter.Create(buffer, settings))
+                {
+                    XmlSerializer serializer = new XmlSerializer(type);
+                    serializer.Serialize(writer, obj);
+                    writer.Flush();
+                }
+
+                int length = (int) buffer.Length;
+                request.ContentLength = length;
+
+                Stream requestStream = request.GetRequestStream();
+                requestStream.Write(buffer.ToArray(), 0, length);
             }
 
-            int length = (int) buffer.Length;
-            request.ContentLength = length;
-
-            Stream requestStream = request.GetRequestStream();
-            requestStream.Write(buffer.ToArray(), 0, length);
             TResponse deserial = default(TResponse);
-            using (WebResponse resp = request.GetResponse())
+            try
             {
-                XmlSerializer deserializer = new XmlSerializer(typeof (TResponse));
-                deserial = (TResponse) deserializer.Deserialize(resp.GetResponseStream());
+                using (WebResponse resp = request.GetResponse())
+                {
+                    XmlSerializer deserializer = new XmlSerializer(typeof (TResponse));
+                    deserial = (TResponse) deserializer.Deserialize(resp.GetResponseStream());
+                }
+            }
+            catch (System.InvalidOperationException)
+            {
+                // This is what happens when there is invalid XML
             }
             return deserial;
         }

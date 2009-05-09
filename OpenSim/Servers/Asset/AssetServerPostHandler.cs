@@ -66,7 +66,7 @@ namespace OpenSim.Servers.AssetServer
             if (p.Length > 1)
             {
                 bool result =
-                        m_AssetService.UpdateContent(asset.ID, asset.Data);
+                        m_AssetService.UpdateContent(p[1], asset.Data);
 
                 xs = new XmlSerializer(typeof(bool));
                 return ServerUtils.SerializeResult(xs, result);
