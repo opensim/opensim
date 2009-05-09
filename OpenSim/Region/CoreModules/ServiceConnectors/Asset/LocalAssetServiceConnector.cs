@@ -109,14 +109,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public void RemoveRegion(Scene scene)
         {
-            if (!m_Enabled)
-                return;
         }
 
         public void RegionLoaded(Scene scene)
         {
-            if (!m_Enabled)
-                return;
         }
     }
 }

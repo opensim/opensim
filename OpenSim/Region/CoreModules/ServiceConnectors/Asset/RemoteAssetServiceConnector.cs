@@ -25,16 +25,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using log4net;
+using System;
+using System.Reflection;
 using Nini.Config;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 {
-    public class RemoteAssetServicesConnector : ISharedRegionModule
+    public class RemoteAssetServicesConnector :
+            ISharedRegionModule, IAssetService
     {
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
         private bool m_Enabled = false;
+        private string m_ServerURI = String.Empty;
 
         public string Name
         {
@@ -49,39 +59,79 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
                 string name = moduleConfig.GetString("AssetServices", "");
                 if (name == Name)
                 {
+                    IConfig assetConfig = source.Configs["AssetService"];
+                    if (assetConfig == null)
+                    {
+                        m_log.Error("[ASSET CONNECTOR]: AssetService missing from OpanSim.ini");
+                        return;
+                    }
+
+                    string serviceURI = assetConfig.GetString("AssetServerURI",
+                            String.Empty);
+
+                    if (serviceURI == String.Empty)
+                    {
+                        m_log.Error("[ASSET CONNECTOR]: No Server URI named in section AssetService");
+                        return;
+                    }
                     m_Enabled = true;
+                    m_ServerURI = serviceURI;
                 }
             }
         }
 
         public void PostInitialise()
         {
-            if (!m_Enabled)
-                return;
         }
 
         public void Close()
         {
-            if (!m_Enabled)
-                return;
         }
 
         public void AddRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
+
+            scene.RegisterModuleInterface<IAssetService>(this);
         }
 
         public void RemoveRegion(Scene scene)
         {
-            if (!m_Enabled)
-                return;
         }
 
         public void RegionLoaded(Scene scene)
         {
-            if (!m_Enabled)
-                return;
+        }
+
+        public AssetBase Get(string id)
+        {
+            return null;
+        }
+
+        public AssetMetadata GetMetadata(string id)
+        {
+            return null;
+        }
+
+        public byte[] GetData(string id)
+        {
+            return new byte[0];
+        }
+
+        public string Store(AssetBase asset)
+        {
+            return String.Empty;
+        }
+
+        public bool UpdateContent(string id, byte[] data)
+        {
+            return false;
+        }
+
+        public bool Delete(string id)
+        {
+            return false;
         }
     }
 }
