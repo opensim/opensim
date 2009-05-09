@@ -5713,9 +5713,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     handlerUpdateExtraParams = OnUpdateExtraParams;
                     if (handlerUpdateExtraParams != null)
                     {
-                        handlerUpdateExtraParams(m_agentId, extraPar.ObjectData[0].ObjectLocalID,
-                                                 extraPar.ObjectData[0].ParamType,
-                                                 extraPar.ObjectData[0].ParamInUse, extraPar.ObjectData[0].ParamData);
+                        for (int i = 0 ; i <  extraPar.ObjectData.Length ; i++)
+                        {
+                            handlerUpdateExtraParams(m_agentId, extraPar.ObjectData[i].ObjectLocalID,
+                                                     extraPar.ObjectData[i].ParamType,
+                                                     extraPar.ObjectData[i].ParamInUse, extraPar.ObjectData[i].ParamData);
+                        }
                     }
                     break;
                 case PacketType.ObjectDuplicate:
