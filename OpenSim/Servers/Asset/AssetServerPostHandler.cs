@@ -41,12 +41,12 @@ using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Servers.AssetServer
 {
-    public class AssetServerGetHandler : BaseStreamHandler
+    public class AssetServerPostHandler : BaseStreamHandler
     {
         private IAssetService m_AssetService;
 
-        public AssetServerGetHandler(IAssetService service) :
-                base("GET", "/assets")
+        public AssetServerPostHandler(IAssetService service) :
+                base("POST", "/assets")
         {
             m_AssetService = service;
         }
@@ -56,50 +56,13 @@ namespace OpenSim.Servers.AssetServer
         {
             byte[] result = new byte[0];
 
-            string[] p = SplitParams(path);
+            XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
+            AssetBase asset = (AssetBase) xs.Deserialize(request);
 
-            if (p.Length == 0)
-                return result;
+            string id = m_AssetService.Store(asset);
 
-            if (p.Length > 1 && p[1] == "data")
-            {
-                result = m_AssetService.GetData(p[0]);
-                if (result == null)
-                    result = new byte[0];
-
-                httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                httpResponse.ContentType = "application/octet-stream";
-            }
-            else if(p.Length > 1 && p[1] == "metadata")
-            {
-                AssetMetadata metadata = m_AssetService.GetMetadata(p[0]);
-
-                if (metadata != null)
-                {
-                    XmlSerializer xs =
-                            new XmlSerializer(typeof(AssetMetadata));
-                    result = ServerUtils.SerializeResult(xs, metadata);
-
-                    httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                    httpResponse.ContentType =
-                            ServerUtils.SLAssetTypeToContentType(metadata.Type);
-                }
-            }
-            else
-            {
-                AssetBase asset = m_AssetService.Get(p[0]);
-
-                if (asset != null)
-                {
-                    XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
-                    result = ServerUtils.SerializeResult(xs, asset);
-
-                    httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                    httpResponse.ContentType =
-                            ServerUtils.SLAssetTypeToContentType(asset.Type);
-                }
-            }
-            return result;
+            xs = new XmlSerializer(typeof(string));
+            return ServerUtils.SerializeResult(xs, id);
         }
     }
 }

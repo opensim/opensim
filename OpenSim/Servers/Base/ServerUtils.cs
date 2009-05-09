@@ -25,6 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.IO;
+using System.Xml;
+using System.Xml.Serialization;
+using System.Text;
+
 namespace OpenSim.Servers.AssetServer
 {
     public static class ServerUtils
@@ -70,6 +76,21 @@ namespace OpenSim.Servers.AssetServer
                 default:
                     return "application/octet-stream";
             }
+        }
+
+        public static  byte[] SerializeResult(XmlSerializer xs, object data)
+        {
+            MemoryStream ms = new MemoryStream();
+            XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
+            xw.Formatting = Formatting.Indented;
+            xs.Serialize(xw, data);
+            xw.Flush();
+
+            ms.Seek(0, SeekOrigin.Begin);
+            byte[] ret = ms.GetBuffer();
+            Array.Resize<byte>(ref ret, (int)ms.Length);
+
+            return ret;
         }
     }
 }

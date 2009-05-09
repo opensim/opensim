@@ -74,17 +74,31 @@ namespace OpenSim.Services.AssetService
 
         public AssetMetadata GetMetadata(string id)
         {
-            return null;
+            UUID assetID;
+
+            if (!UUID.TryParse(id, out assetID))
+                return null;
+
+            AssetBase asset = m_Database.FetchAsset(assetID);
+            return asset.Metadata;
         }
 
         public byte[] GetData(string id)
         {
-            return null;
+            UUID assetID;
+
+            if (!UUID.TryParse(id, out assetID))
+                return null;
+
+            AssetBase asset = m_Database.FetchAsset(assetID);
+            return asset.Data;
         }
 
         public string Store(AssetBase asset)
         {
-            return String.Empty;
+            m_Database.CreateAsset(asset);
+
+            return asset.ID;
         }
 
         public bool UpdateContent(string id, byte[] data)
