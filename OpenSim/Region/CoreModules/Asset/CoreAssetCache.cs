@@ -45,8 +45,6 @@ namespace OpenSim.Region.CoreModules.Asset
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
-        private Dictionary<Scene, IAssetService> m_AssetService =
-                new Dictionary<Scene, IAssetService>();
 
         public string Name
         {
@@ -85,10 +83,6 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void AddRegion(Scene scene)
         {
-            if (!m_Enabled)
-                return;
-
-            scene.RegisterModuleInterface<IImprovedAssetCache>(this);
         }
 
         public void RemoveRegion(Scene scene)
@@ -97,15 +91,27 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void RegionLoaded(Scene scene)
         {
-            if (!m_Enabled)
-                return;
+        }
 
-            m_AssetService[scene] =
-                    scene.RequestModuleInterface<IAssetService>();
+        ////////////////////////////////////////////////////////////
+        // IImprovedAssetCache
+        //
 
-            if (m_AssetService[scene] != null)
-                m_log.InfoFormat("[ASSET CACHE]: Enabled for region {0}",
-                        scene.RegionInfo.RegionName);
+        public void Cache(AssetBase asset)
+        {
+        }
+
+        public AssetBase Get(string id)
+        {
+            return null;
+        }
+
+        public void Expire(string id)
+        {
+        }
+
+        public void Clear()
+        {
         }
     }
 }

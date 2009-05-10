@@ -28,6 +28,7 @@
 using log4net;
 using Nini.Config;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Servers.Base;
 using OpenSim.Region.Framework.Interfaces;
@@ -41,6 +42,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
+
+        private Dictionary<Scene, IImprovedAssetCache> m_AssetCache =
+                new Dictionary<Scene, IImprovedAssetCache>();
 
         private IAssetService m_AssetService;
 
@@ -109,10 +113,29 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public void RemoveRegion(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
+            m_AssetCache.Remove(scene);
         }
 
         public void RegionLoaded(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
+            m_AssetCache[scene] =
+                    scene.RequestModuleInterface<IImprovedAssetCache>();
+
+            m_log.InfoFormat("[ASSET CONNECTOR]: Enabled local assets for region {0}", scene.RegionInfo.RegionName);
+
+            m_AssetCache[scene] =
+                    scene.RequestModuleInterface<IImprovedAssetCache>();
+            
+            if (m_AssetCache[scene] != null)
+            {
+                m_log.InfoFormat("[ASSET CONNECTOR]: Enabled asset caching for region {0}", scene.RegionInfo.RegionName);
+            }
         }
     }
 }

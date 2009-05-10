@@ -25,9 +25,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenSim.Framework;
+
 namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IImprovedAssetCache
     {
+        void Cache(AssetBase asset);
+        AssetBase Get(string id);
+        void Expire(string id);
+        void Clear();
     }
 }

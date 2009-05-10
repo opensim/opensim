@@ -1302,7 +1302,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (parcelID == UUID.Zero)
                 return;
 
-            ExtendedLandData data = (ExtendedLandData)parcelInfoCache.Get(parcelID, delegate(UUID parcel) {
+            ExtendedLandData data = (ExtendedLandData)parcelInfoCache.Get(parcelID.ToString(), delegate(string id) {
+                UUID parcel = UUID.Zero;
+                UUID.TryParse(id, out parcel);
                 // assume we've got the parcelID we just computed in RemoteParcelRequest
                 ExtendedLandData extLandData = new ExtendedLandData();
                 Util.ParseFakeParcelID(parcel, out extLandData.regionHandle, out extLandData.x, out extLandData.y);

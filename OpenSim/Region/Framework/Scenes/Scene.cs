@@ -2825,8 +2825,12 @@ namespace OpenSim.Region.Framework.Scenes
             objectCapacity = objects;
         }
         
-        public List<FriendListItem> GetFriendList(UUID avatarID)
+        public List<FriendListItem> GetFriendList(string id)
         {
+            UUID avatarID;
+            if (!UUID.TryParse(id, out avatarID))
+                return new List<FriendListItem>();
+
             return CommsManager.GetUserFriendList(avatarID);
         }
 

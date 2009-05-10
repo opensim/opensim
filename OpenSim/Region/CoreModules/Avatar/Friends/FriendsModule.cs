@@ -624,8 +624,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // a new friend was added in the initiator's and friend's data, so the cache entries are wrong now.
             lock (m_friendLists)
             {
-                m_friendLists.Invalidate(fromAgentID);
-                m_friendLists.Invalidate(toAgentID);
+                m_friendLists.Invalidate(fromAgentID.ToString());
+                m_friendLists.Invalidate(toAgentID.ToString());
             }
 
             // now send presence update and add a calling card for the new friend
@@ -664,8 +664,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // The cache entries aren't valid anymore either, as we just added a friend to both sides.
             lock (m_friendLists)
             {
-                m_friendLists.Invalidate(agentID);
-                m_friendLists.Invalidate(friendID);
+                m_friendLists.Invalidate(agentID.ToString());
+                m_friendLists.Invalidate(friendID.ToString());
             }
 
             // if it's a local friend, we don't have to do the lookup
@@ -782,8 +782,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // clean up cache: FriendList is wrong now...
             lock (m_friendLists)
             {
-                m_friendLists.Invalidate(agentID);
-                m_friendLists.Invalidate(exfriendID);
+                m_friendLists.Invalidate(agentID.ToString());
+                m_friendLists.Invalidate(exfriendID.ToString());
             }
         }
 
@@ -1070,7 +1070,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             List<FriendListItem> fl;
             lock (m_friendLists)
             {
-                fl = (List<FriendListItem>)m_friendLists.Get(agent.ControllingClient.AgentId,
+                fl = (List<FriendListItem>)m_friendLists.Get(agent.ControllingClient.AgentId.ToString(),
                                                              m_initialScene.GetFriendList);
             }
 
@@ -1083,7 +1083,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             List<FriendListItem> fl;
             lock (m_friendLists)
             {
-                fl = (List<FriendListItem>)m_friendLists.Get(remoteClient.AgentId,
+                fl = (List<FriendListItem>)m_friendLists.Get(remoteClient.AgentId.ToString(),
                                                              m_initialScene.GetFriendList);
             }
 
