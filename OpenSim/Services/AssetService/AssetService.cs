@@ -94,6 +94,20 @@ namespace OpenSim.Services.AssetService
             return asset.Data;
         }
 
+        public bool Get(string id, Object sender, AssetRetrieved handler)
+        {
+            UUID assetID;
+
+            if (!UUID.TryParse(id, out assetID))
+                return false;
+
+            AssetBase asset = m_Database.FetchAsset(assetID);
+
+            handler(id, sender, asset);
+
+            return true;
+        }
+
         public string Store(AssetBase asset)
         {
             m_Database.CreateAsset(asset);

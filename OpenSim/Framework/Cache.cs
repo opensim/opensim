@@ -529,5 +529,11 @@ namespace OpenSim.Framework
             m_Lookup.Remove(uuid);
             m_Index.Remove(item);
         }
+
+        public void Clear()
+        {
+            m_Index.Clear();
+            m_Lookup.Clear();
+        }
     }
 }

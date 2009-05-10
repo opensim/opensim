@@ -25,10 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using OpenSim.Framework;
 
 namespace OpenSim.Services.Interfaces
 {
+    public delegate void AssetRetrieved(string id, Object sender, AssetBase asset);
+
     public interface IAssetService
     {
         // Three different ways to retrieve an asset
@@ -36,6 +39,8 @@ namespace OpenSim.Services.Interfaces
         AssetBase Get(string id);
         AssetMetadata GetMetadata(string id);
         byte[] GetData(string id);
+
+        bool Get(string id, Object sender, AssetRetrieved handler);
 
         // Creates a new asset
         // Returns a random ID if none is passed into it

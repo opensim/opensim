@@ -30,6 +30,7 @@ using Nini.Config;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using OpenSim.Framework;
 using OpenSim.Servers.Base;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -37,14 +38,14 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 {
-    public class LocalAssetServicesConnector : ISharedRegionModule
+    public class LocalAssetServicesConnector :
+            ISharedRegionModule, IAssetService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<Scene, IImprovedAssetCache> m_AssetCache =
-                new Dictionary<Scene, IImprovedAssetCache>();
+        private IImprovedAssetCache m_Cache = null;
 
         private IAssetService m_AssetService;
 
@@ -108,15 +109,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
             if (!m_Enabled)
                 return;
 
-            scene.RegisterModuleInterface<IAssetService>(m_AssetService);
+            scene.RegisterModuleInterface<IAssetService>(this);
         }
 
         public void RemoveRegion(Scene scene)
         {
-            if (!m_Enabled)
-                return;
-
-            m_AssetCache.Remove(scene);
         }
 
         public void RegionLoaded(Scene scene)
@@ -124,18 +121,113 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
             if (!m_Enabled)
                 return;
 
-            m_AssetCache[scene] =
-                    scene.RequestModuleInterface<IImprovedAssetCache>();
+            if (m_Cache == null)
+            {
+                m_Cache = scene.RequestModuleInterface<IImprovedAssetCache>();
+
+                if (!(m_Cache is ISharedRegionModule))
+                    m_Cache = null;
+            }
 
             m_log.InfoFormat("[ASSET CONNECTOR]: Enabled local assets for region {0}", scene.RegionInfo.RegionName);
 
-            m_AssetCache[scene] =
-                    scene.RequestModuleInterface<IImprovedAssetCache>();
-            
-            if (m_AssetCache[scene] != null)
+            if (m_Cache != null)
             {
                 m_log.InfoFormat("[ASSET CONNECTOR]: Enabled asset caching for region {0}", scene.RegionInfo.RegionName);
             }
+            else
+            {
+                // Short-circuit directly to storage layer
+                //
+                scene.UnregisterModuleInterface<IAssetService>(this);
+                scene.RegisterModuleInterface<IAssetService>(m_AssetService);
+            }
+        }
+
+        public AssetBase Get(string id)
+        {
+            AssetBase asset = m_Cache.Get(id);
+
+            if (asset == null)
+                return m_AssetService.Get(id);
+            return asset;
+        }
+
+        public AssetMetadata GetMetadata(string id)
+        {
+            AssetBase asset = m_Cache.Get(id);
+
+            if (asset != null)
+                return asset.Metadata;
+
+            asset = m_AssetService.Get(id);
+            if (asset != null)
+            {
+                m_Cache.Cache(asset);
+                return asset.Metadata;
+            }
+
+            return null;
+        }
+
+        public byte[] GetData(string id)
+        {
+            AssetBase asset = m_Cache.Get(id);
+
+            if (asset != null)
+                return asset.Data;
+
+            asset = m_AssetService.Get(id);
+            if (asset != null)
+            {
+                m_Cache.Cache(asset);
+                return asset.Data;
+            }
+
+            return null;
+        }
+
+        public bool Get(string id, Object sender, AssetRetrieved handler)
+        {
+            AssetBase asset = m_Cache.Get(id);
+
+            if (asset != null)
+            {
+                handler(id, sender, asset);
+                return true;
+            }
+
+            return m_AssetService.Get(id, sender, delegate (string assetID, Object s, AssetBase a)
+            {
+                if (a != null)
+                    m_Cache.Cache(a);
+                handler(assetID, s, a);
+            });
+        }
+
+        public string Store(AssetBase asset)
+        {
+            m_Cache.Cache(asset);
+            return m_AssetService.Store(asset);
+        }
+
+        public bool UpdateContent(string id, byte[] data)
+        {
+            AssetBase asset = m_Cache.Get(id);
+            if (asset != null)
+            {
+                asset.Data = data;
+                m_Cache.Cache(asset);
+            }
+
+            return m_AssetService.UpdateContent(id, data);
+        }
+
+        public bool Delete(string id)
+        {
+            m_Cache.Expire(id);
+
+            return m_AssetService.Delete(id);
         }
     }
 }

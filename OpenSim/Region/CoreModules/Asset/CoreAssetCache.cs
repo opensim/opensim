@@ -45,6 +45,9 @@ namespace OpenSim.Region.CoreModules.Asset
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
+        private Cache m_Cache = new Cache(CacheMedium.Memory,
+                                          CacheStrategy.Aggressive,
+                                          CacheFlags.AllowUpdate);
 
         public string Name
         {
@@ -69,6 +72,8 @@ namespace OpenSim.Region.CoreModules.Asset
                     m_Enabled = true;
 
                     m_log.Info("[ASSET CACHE]: Core asset cache enabled");
+
+                    m_Cache.Size = 32768;
                 }
             }
         }
@@ -99,19 +104,22 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void Cache(AssetBase asset)
         {
+            m_Cache.Store(asset.ID, asset);
         }
 
         public AssetBase Get(string id)
         {
-            return null;
+            return (AssetBase)m_Cache.Get(id);
         }
 
         public void Expire(string id)
         {
+            m_Cache.Invalidate(id);
         }
 
         public void Clear()
         {
+            m_Cache.Clear();
         }
     }
 }

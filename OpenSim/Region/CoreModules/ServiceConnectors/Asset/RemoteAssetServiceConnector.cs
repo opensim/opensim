@@ -49,8 +49,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         private bool m_Enabled = false;
         private string m_ServerURI = String.Empty;
-        private Dictionary<Scene, IImprovedAssetCache> m_AssetCache =
-                new Dictionary<Scene, IImprovedAssetCache>();
+        private IImprovedAssetCache m_Cache = null;
 
         public string Name
         {
@@ -106,10 +105,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public void RemoveRegion(Scene scene)
         {
-            if (!m_Enabled)
-                return;
-
-            m_AssetCache.Remove(scene);
         }
 
         public void RegionLoaded(Scene scene)
@@ -117,12 +112,20 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
             if (!m_Enabled)
                 return;
 
-            m_AssetCache[scene] =
-                    scene.RequestModuleInterface<IImprovedAssetCache>();
+            if (m_Cache == null)
+            {
+                m_Cache = scene.RequestModuleInterface<IImprovedAssetCache>();
+
+                // Since we are a shared module and scene data is not
+                // available for every method, the cache must be shared, too
+                //
+                if (!(m_Cache is ISharedRegionModule))
+                    m_Cache = null;
+            }
 
             m_log.InfoFormat("[ASSET CONNECTOR]: Enabled remote assets for region {0}", scene.RegionInfo.RegionName);
 
-            if (m_AssetCache[scene] != null)
+            if (m_Cache != null)
             {
                 m_log.InfoFormat("[ASSET CONNECTOR]: Enabled asset caching for region {0}", scene.RegionInfo.RegionName);
             }
@@ -132,13 +135,31 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
         {
             string uri = m_ServerURI + "/assets/" + id;
 
-            AssetBase asset = SynchronousRestObjectPoster.
-                    BeginPostObject<int, AssetBase>("GET", uri, 0);
+            AssetBase asset = null;
+            if (m_Cache != null)
+                asset = m_Cache.Get(id);
+
+            if (asset == null)
+            {
+                asset = SynchronousRestObjectPoster.
+                        BeginPostObject<int, AssetBase>("GET", uri, 0);
+
+                if (m_Cache != null)
+                    m_Cache.Cache(asset);
+            }
             return asset;
         }
 
         public AssetMetadata GetMetadata(string id)
         {
+            if (m_Cache != null)
+            {
+                AssetBase fullAsset = m_Cache.Get(id);
+
+                if (fullAsset != null)
+                    return fullAsset.Metadata;
+            }
+
             string uri = m_ServerURI + "/assets/" + id + "/metadata";
 
             AssetMetadata asset = SynchronousRestObjectPoster.
@@ -148,6 +169,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public byte[] GetData(string id)
         {
+            if (m_Cache != null)
+            {
+                AssetBase fullAsset = m_Cache.Get(id);
+
+                if (fullAsset != null)
+                    return fullAsset.Data;
+            }
+
             RestClient rc = new RestClient(m_ServerURI);
             rc.AddResourcePath("assets");
             rc.AddResourcePath(id);
@@ -171,33 +200,70 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
             return null;
         }
 
+        public bool Get(string id, Object sender, AssetRetrieved handler)
+        {
+            AssetBase asset = Get(id);
+            handler(id, sender, asset);
+            return true;
+        }
         public string Store(AssetBase asset)
         {
             string uri = m_ServerURI + "/assets/";
 
             string newID = SynchronousRestObjectPoster.
                     BeginPostObject<AssetBase, string>("POST", uri, asset);
+
+            if (newID != String.Empty)
+            {
+                if (m_Cache != null)
+                    m_Cache.Cache(asset);
+            }
             return newID;
         }
 
         public bool UpdateContent(string id, byte[] data)
         {
-            AssetBase asset = new AssetBase();
-            asset.ID = id;
+            AssetBase asset = null;
+
+            if (m_Cache != null)
+                asset = m_Cache.Get(id);
+
+            if (asset == null)
+            {
+                AssetMetadata metadata = GetMetadata(id);
+                if (metadata == null)
+                    return false;
+
+                asset = new AssetBase();
+                asset.Metadata = metadata;
+            }
             asset.Data = data;
 
             string uri = m_ServerURI + "/assets/" + id;
 
-            return SynchronousRestObjectPoster.
-                    BeginPostObject<AssetBase, bool>("POST", uri, asset);
+            if (SynchronousRestObjectPoster.
+                    BeginPostObject<AssetBase, bool>("POST", uri, asset))
+            {
+                if (m_Cache != null)
+                    m_Cache.Cache(asset);
+
+                return true;
+            }
+            return false;
         }
 
         public bool Delete(string id)
         {
             string uri = m_ServerURI + "/assets/" + id;
 
-            return SynchronousRestObjectPoster.
-                    BeginPostObject<int, bool>("DELETE", uri, 0);
+            if (SynchronousRestObjectPoster.
+                    BeginPostObject<int, bool>("DELETE", uri, 0))
+            {
+                if (m_Cache != null)
+                    m_Cache.Expire(id);
+
+                return true;
+            }
             return false;
         }
     }
