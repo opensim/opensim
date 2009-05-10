@@ -365,7 +365,7 @@ namespace OpenSim.Framework.Communications.Capabilities
 
         public string FetchInventoryDescendentsRequest(string request, string path, string param,OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            m_log.Debug("[CAPS]: FetchInventoryDescendentsRequest in region: " + m_regionName + " request is "+request);
+            // m_log.Debug("[CAPS]: FetchInventoryDescendentsRequest in region: " + m_regionName + "request is "+request);
 
             // nasty temporary hack here, the linden client falsely identifies the uuid 00000000-0000-0000-0000-000000000000 as a string which breaks us
             // correctly mark it as a uuid
@@ -425,8 +425,8 @@ namespace OpenSim.Framework.Communications.Capabilities
                 response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
             }
 
-            m_log.DebugFormat("[CAPS]: Replying to CAPS fetch inventory request with following xml");
-            m_log.Debug("[CAPS] "+response);
+            //m_log.DebugFormat("[CAPS]: Replying to CAPS fetch inventory request with following xml");
+            //m_log.Debug("[CAPS] "+response);
 
             return response;
         }
