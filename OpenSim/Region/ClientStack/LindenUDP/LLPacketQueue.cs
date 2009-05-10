@@ -243,8 +243,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return item;
                 lock (contents)
                 {
-                    if (contents.Remove(item.Sequence))
-                        return item;
+                    if (contents.Contains(item.Sequence))
+                        if (contents.Remove(item.Sequence))
+                            return item;
                 }
             }
         }
