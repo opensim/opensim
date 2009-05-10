@@ -66,7 +66,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                         FieldInfo[] fields = myType.GetFields();
                         for (int i = 0; i < fields.Length; i++)
                         {
-                            try
+                            if (fields[i] != null && fields[i].GetValue(obj) != null)
                             {
                                 object fieldValue = fields[i].GetValue(obj);
                                 LLSDType[] fieldAttributes =
@@ -91,12 +91,12 @@ namespace OpenSim.Framework.Communications.Capabilities
                                     // OpenMetaverse.StructuredData.LLSDParser.SerializeXmlElement(
                                     //    writer, OpenMetaverse.StructuredData.OSD.FromObject(fieldValue));
                                 }
-                            } catch(NullReferenceException e)
+                            }
+                            else
                             {
-                                System.Console.WriteLine("-----------NRE-------------");
-                                System.Console.WriteLine("Type: " + fields[i].GetValue(obj).GetType().FullName);
-                                System.Console.WriteLine("-----------NRE-------------");
-                                throw;
+                                // TODO from ADAM: There is a nullref being caused by fields[i] being null
+                                // on some computers. Unsure what is causing this, but would appreciate
+                                // if sdague could take a look at this.
                             }
                         }
                         writer.WriteEndElement();
