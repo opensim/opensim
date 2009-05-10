@@ -124,12 +124,19 @@ namespace OpenSim.Framework.Communications.Clients
                 
                     if (!String.IsNullOrEmpty(response))
                     {
-                        // we assume we got an OSDMap back
-                        OSDMap r = GetOSDMap(response);
-                        bool success = r["success"].AsBoolean();
-                        reason = r["reason"].AsString();
-                        
-                        return success;
+                        try
+                        {
+                            // we assume we got an OSDMap back
+                            OSDMap r = GetOSDMap(response);
+                            bool success = r["success"].AsBoolean();
+                            reason = r["reason"].AsString();
+                            return success;
+                        }
+                        catch (NullReferenceException e)
+                        {
+                            m_log.InfoFormat("[REST COMMS]: exception on reply of DoCreateChildAgentCall {0}", e.Message);
+                            return false;
+                        }
                     }
                 }
             }
