@@ -28,6 +28,7 @@
 using log4net;
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
