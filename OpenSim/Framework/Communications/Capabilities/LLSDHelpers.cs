@@ -66,28 +66,37 @@ namespace OpenSim.Framework.Communications.Capabilities
                         FieldInfo[] fields = myType.GetFields();
                         for (int i = 0; i < fields.Length; i++)
                         {
-                            object fieldValue = fields[i].GetValue(obj);
-                            LLSDType[] fieldAttributes =
-                                (LLSDType[]) fieldValue.GetType().GetCustomAttributes(typeof (LLSDType), false);
-                            if (fieldAttributes.Length > 0)
+                            try
                             {
-                                writer.WriteStartElement(String.Empty, "key", String.Empty);
-                                string fieldName = fields[i].Name;
-                                fieldName = fieldName.Replace("___", "-");
-                                writer.WriteString(fieldName);
-                                writer.WriteEndElement();
-                                SerializeOSDType(writer, fieldValue);
-                            }
-                            else
+                                object fieldValue = fields[i].GetValue(obj);
+                                LLSDType[] fieldAttributes =
+                                    (LLSDType[]) fieldValue.GetType().GetCustomAttributes(typeof (LLSDType), false);
+                                if (fieldAttributes.Length > 0)
+                                {
+                                    writer.WriteStartElement(String.Empty, "key", String.Empty);
+                                    string fieldName = fields[i].Name;
+                                    fieldName = fieldName.Replace("___", "-");
+                                    writer.WriteString(fieldName);
+                                    writer.WriteEndElement();
+                                    SerializeOSDType(writer, fieldValue);
+                                }
+                                else
+                                {
+                                    writer.WriteStartElement(String.Empty, "key", String.Empty);
+                                    string fieldName = fields[i].Name;
+                                    fieldName = fieldName.Replace("___", "-");
+                                    writer.WriteString(fieldName);
+                                    writer.WriteEndElement();
+                                    LLSD.LLSDWriteOne(writer, fieldValue);
+                                    // OpenMetaverse.StructuredData.LLSDParser.SerializeXmlElement(
+                                    //    writer, OpenMetaverse.StructuredData.OSD.FromObject(fieldValue));
+                                }
+                            } catch(NullReferenceException e)
                             {
-                                writer.WriteStartElement(String.Empty, "key", String.Empty);
-                                string fieldName = fields[i].Name;
-                                fieldName = fieldName.Replace("___", "-");
-                                writer.WriteString(fieldName);
-                                writer.WriteEndElement();
-                                LLSD.LLSDWriteOne(writer, fieldValue);
-                                // OpenMetaverse.StructuredData.LLSDParser.SerializeXmlElement(
-                                //    writer, OpenMetaverse.StructuredData.OSD.FromObject(fieldValue));
+                                System.Console.WriteLine("-----------NRE-------------");
+                                System.Console.WriteLine("Type: " + fields[i].GetValue(obj).GetType().FullName);
+                                System.Console.WriteLine("-----------NRE-------------");
+                                throw;
                             }
                         }
                         writer.WriteEndElement();
