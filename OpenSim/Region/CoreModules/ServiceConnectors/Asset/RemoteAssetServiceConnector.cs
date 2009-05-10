@@ -141,8 +141,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
             if (asset == null)
             {
-                asset = SynchronousRestObjectPoster.
-                        BeginPostObject<int, AssetBase>("GET", uri, 0);
+                asset = SynchronousRestObjectRequester.
+                        MakeRequest<int, AssetBase>("GET", uri, 0);
 
                 if (m_Cache != null)
                     m_Cache.Cache(asset);
@@ -162,8 +162,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
             string uri = m_ServerURI + "/assets/" + id + "/metadata";
 
-            AssetMetadata asset = SynchronousRestObjectPoster.
-                    BeginPostObject<int, AssetMetadata>("GET", uri, 0);
+            AssetMetadata asset = SynchronousRestObjectRequester.
+                    MakeRequest<int, AssetMetadata>("GET", uri, 0);
             return asset;
         }
 
@@ -202,16 +202,38 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
-            AssetBase asset = Get(id);
-            handler(id, sender, asset);
+            string uri = m_ServerURI + "/assets/" + id;
+
+            AssetBase asset = null;
+            if (m_Cache != null)
+                asset = m_Cache.Get(id);
+
+            if (asset == null)
+            {
+                AsynchronousRestObjectRequester.
+                        MakeRequest<int, AssetBase>("GET", uri, 0,
+                        delegate(AssetBase a)
+                        {
+                            if (m_Cache != null)
+                                m_Cache.Cache(a);
+                            handler(id, sender, a);
+                        });
+
+            }
+            else
+            {
+                handler(id, sender, asset);
+            }
+
             return true;
         }
+
         public string Store(AssetBase asset)
         {
             string uri = m_ServerURI + "/assets/";
 
-            string newID = SynchronousRestObjectPoster.
-                    BeginPostObject<AssetBase, string>("POST", uri, asset);
+            string newID = SynchronousRestObjectRequester.
+                    MakeRequest<AssetBase, string>("POST", uri, asset);
 
             if (newID != String.Empty)
             {
@@ -241,8 +263,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
             string uri = m_ServerURI + "/assets/" + id;
 
-            if (SynchronousRestObjectPoster.
-                    BeginPostObject<AssetBase, bool>("POST", uri, asset))
+            if (SynchronousRestObjectRequester.
+                    MakeRequest<AssetBase, bool>("POST", uri, asset))
             {
                 if (m_Cache != null)
                     m_Cache.Cache(asset);
@@ -256,8 +278,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
         {
             string uri = m_ServerURI + "/assets/" + id;
 
-            if (SynchronousRestObjectPoster.
-                    BeginPostObject<int, bool>("DELETE", uri, 0))
+            if (SynchronousRestObjectRequester.
+                    MakeRequest<int, bool>("DELETE", uri, 0))
             {
                 if (m_Cache != null)
                     m_Cache.Expire(id);
