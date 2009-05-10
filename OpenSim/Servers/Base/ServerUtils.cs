@@ -96,6 +96,20 @@ namespace OpenSim.Servers.Base
 
         public static T LoadPlugin<T>(string dllName, Object[] args) where T:class
         {
+            string[] parts = dllName.Split(new char[] {':'});
+
+            dllName = parts[0];
+
+            string className = String.Empty;
+
+            if (parts.Length > 1)
+                className = parts[1];
+
+            return LoadPlugin<T>(dllName, className, args);
+        }
+
+        public static T LoadPlugin<T>(string dllName, string className, Object[] args) where T:class
+        {
             string interfaceName = typeof(T).ToString();
 
             try
@@ -106,6 +120,11 @@ namespace OpenSim.Servers.Base
                 {
                     if (pluginType.IsPublic)
                     {
+                        if (className != String.Empty &&
+                                pluginType.ToString() !=
+                                pluginType.Namespace + "." + className)
+                            continue;
+
                         Type typeInterface =
                                 pluginType.GetInterface(interfaceName, true);
                         if (typeInterface != null)
