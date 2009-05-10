@@ -36,6 +36,15 @@ namespace OpenSim.Framework.Servers.HttpServer
 {
     public class SynchronousRestObjectPoster
     {
+        [Obsolete]
+        public static TResponse BeginPostObject<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
+        {
+            return SynchronousRestObjectRequester.MakeRequest<TRequest, TResponse>(verb, requestUrl, obj);
+        }
+    }
+
+    public class SynchronousRestObjectRequester
+    {
         /// <summary>
         /// Perform a synchronous REST request.
         /// </summary>
@@ -46,7 +55,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         ///
         /// <exception cref="System.Net.WebException">Thrown if we encounter a network issue while posting
         /// the request.  You'll want to make sure you deal with this as they're not uncommon</exception>
-        public static TResponse BeginPostObject<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
+        public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
         {
             Type type = typeof (TRequest);
 
