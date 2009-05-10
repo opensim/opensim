@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
                     m_log.Info("[ASSET CACHE]: Core asset cache enabled");
 
-                    m_Cache.Size = 32768;
+                    m_Cache.Size = assetConfig.GetInt("CacheBuckets", 32768);
                 }
             }
         }
