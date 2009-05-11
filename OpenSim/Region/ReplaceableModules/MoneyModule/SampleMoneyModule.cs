@@ -819,7 +819,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
                 UUID sessionID, UUID groupID, UUID categoryID,
                 uint localID, byte saleType, int salePrice)
         {
-            
+            remoteClient.SendBlueBoxMessage(UUID.Zero, "", "Buying is not implemented in this version");
         }
     }
 
