@@ -634,6 +634,33 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Services.Interfaces" path="OpenSim/Services/Interfaces" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Region.Framework" path="OpenSim/Region/Framework" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1203,33 +1230,6 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Services.Interfaces" path="OpenSim/Services/Interfaces" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
 
       <Files>
