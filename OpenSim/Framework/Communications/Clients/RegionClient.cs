@@ -135,6 +135,11 @@ namespace OpenSim.Framework.Communications.Clients
                         catch (NullReferenceException e)
                         {
                             m_log.InfoFormat("[REST COMMS]: exception on reply of DoCreateChildAgentCall {0}", e.Message);
+
+                            // check for old style response
+                            if (response.ToLower().StartsWith("true"))
+                                return true;
+
                             return false;
                         }
                     }
