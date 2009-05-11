@@ -25,11 +25,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenMetaverse;
+
 namespace OpenSim.Framework.Client
 {
     public interface IClientCore
     {
         bool TryGet<T>(out T iface);
         T Get<T>();
+
+        // Basic Interfaces
+        UUID AgentId { get; }
+
+        void Disconnect(string reason);
+        void Disconnect();
+
     }
 }

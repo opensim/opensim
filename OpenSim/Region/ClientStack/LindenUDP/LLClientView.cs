@@ -54,7 +54,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything
     /// </summary>
-    public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IStatsCollector
+    public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IClientIPEndpoint, IStatsCollector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -10478,6 +10478,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             RegisterInterface<IClientIM>(this);
             RegisterInterface<IClientChat>(this);
+            RegisterInterface<IClientIPEndpoint>(this);
         }
 
         public bool TryGet<T>(out T iface)
@@ -10495,6 +10496,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             return (T)m_clientInterfaces[typeof(T)];
         }
+
+        public void Disconnect(string reason)
+        {
+            Kick(reason);
+            Thread.Sleep(1000);
+            Close(true);
+        }
+
+        public void Disconnect()
+        {
+            Close(true);
+        }
+
 
         #endregion
 
@@ -10587,5 +10601,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             return  "";
         }
+
+        #region IClientIPEndpoint Members
+
+        public IPAddress EndPoint
+        {
+            get
+            {
+                if(m_userEndPoint is IPEndPoint)
+                {
+                    IPEndPoint ep = (IPEndPoint)m_userEndPoint;
+
+                    return ep.Address;
+                }
+                return null;
+            }
+        }
+
+        #endregion
     }
 }

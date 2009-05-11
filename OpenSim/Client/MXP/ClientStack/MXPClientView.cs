@@ -1605,6 +1605,17 @@ namespace OpenSim.Client.MXP.ClientStack
             return default(T);
         }
 
+        public void Disconnect(string reason)
+        {
+            Kick(reason);
+            Close(true);
+        }
+
+        public void Disconnect()
+        {
+            Close(true);
+        }
+
         #endregion
     
         public void SendCreateGroupReply(UUID groupID, bool success, string message)
