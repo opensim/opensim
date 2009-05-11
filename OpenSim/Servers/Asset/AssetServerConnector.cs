@@ -43,7 +43,7 @@ namespace OpenSim.Servers.AssetServer
             if (serverConfig == null)
                 throw new Exception("No section 'Server' in config file");
 
-            string assetService = serverConfig.GetString("Module",
+            string assetService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
 
             if (assetService == String.Empty)
