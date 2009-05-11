@@ -64,6 +64,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
         private bool gridmode = false;
         // private ObjectPaid handerOnObjectPaid;
         private bool m_enabled = true;
+        private bool m_sellEnabled = false;
 
         private IConfigSource m_gConfig;
 
@@ -244,13 +245,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
                 PriceObjectScaleFactor = startupConfig.GetFloat("PriceObjectScaleFactor", 10);
                 PriceParcelRent = startupConfig.GetInt("PriceParcelRent", 1);
                 PriceGroupCreate = startupConfig.GetInt("PriceGroupCreate", -1);
-                // string EBA = startupConfig.GetString("EconomyBaseAccount", UUID.Zero.ToString());
-                // Helpers.TryParse(EBA, out EconomyBaseAccount);
-
-                // UserLevelPaysFees = startupConfig.GetInt("UserLevelPaysFees", -1);
-                m_stipend = startupConfig.GetInt("UserStipend", 1000);
-                
-                // m_LandAddress = startupConfig.GetString("LandServer", String.Empty);
+                m_sellEnabled = startupConfig.GetBoolean("SellEnabled", false);
             }
 
             // Send ObjectCapacity to Scene..  Which sends it to the SimStatsReporter.
@@ -819,7 +814,26 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
                 UUID sessionID, UUID groupID, UUID categoryID,
                 uint localID, byte saleType, int salePrice)
         {
-            remoteClient.SendBlueBoxMessage(UUID.Zero, "", "Buying is not implemented in this version");
+            if (!m_sellEnabled)
+            {
+                remoteClient.SendBlueBoxMessage(UUID.Zero, "", "Buying is not implemented in this version");
+                return;
+            }
+
+            if (salePrice != 0)
+            {
+                remoteClient.SendBlueBoxMessage(UUID.Zero, "", "Buying anything for a price other than zero is not implemented");
+                return;
+            }
+
+            Scene s = LocateSceneClientIn(remoteClient.AgentId);
+            SceneObjectPart part = s.GetSceneObjectPart(localID);
+            if (part == null)
+            {
+                remoteClient.SendAgentAlertMessage("Unable to buy now. The object was not found.", false);
+                return;
+            }
+            s.PerformObjectBuy(remoteClient, categoryID, localID, saleType);
         }
     }
 
