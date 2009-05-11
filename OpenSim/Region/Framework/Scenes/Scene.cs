@@ -38,6 +38,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
+using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Clients;
@@ -124,6 +125,19 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public IXfer XferManager;
+
+        protected IAssetService m_AssetService = null;
+
+        public IAssetService AssetService
+        {
+            get
+            {
+                if (m_AssetService == null)
+                    m_AssetService = RequestModuleInterface<IAssetService>();
+
+                return m_AssetService;
+            }
+        }
 
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
