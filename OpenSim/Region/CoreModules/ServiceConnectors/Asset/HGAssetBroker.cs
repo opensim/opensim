@@ -38,7 +38,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 {
-    public class LocalAssetServicesConnector :
+    public class HGAssetBroker :
             ISharedRegionModule, IAssetService
     {
         private static readonly ILog m_log =
@@ -46,14 +46,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private IImprovedAssetCache m_Cache = null;
-
-        private IAssetService m_AssetService;
+        private IAssetService m_LocalService;
+        private IAssetService m_HGService;
 
         private bool m_Enabled = false;
 
         public string Name
         {
-            get { return "LocalAssetServicesConnector"; }
+            get { return "HGAssetBroker"; }
         }
 
         public void Initialise(IConfigSource source)
@@ -71,27 +71,45 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
                         return;
                     }
 
-                    string serviceDll = assetConfig.GetString("LocalServiceModule",
+                    string localDll = assetConfig.GetString("LocalModule",
+                            String.Empty);
+                    string HGDll = assetConfig.GetString("HypergridModule",
                             String.Empty);
 
-                    if (serviceDll == String.Empty)
+                    if (localDll == String.Empty)
                     {
-                        m_log.Error("[ASSET CONNECTOR]: No LocalServiceModule named in section AssetService");
+                        m_log.Error("[ASSET CONNECTOR]: No LocalModule named in section AssetService");
+                        return;
+                    }
+
+                    if (HGDll == String.Empty)
+                    {
+                        m_log.Error("[ASSET CONNECTOR]: No HypergridModule named in section AssetService");
                         return;
                     }
 
                     Object[] args = new Object[] { source };
-                    m_AssetService =
-                            ServerUtils.LoadPlugin<IAssetService>(serviceDll,
+                    m_LocalService =
+                            ServerUtils.LoadPlugin<IAssetService>(localDll,
                             args);
 
-                    if (m_AssetService == null)
+                    m_HGService =
+                            ServerUtils.LoadPlugin<IAssetService>(HGDll,
+                            args);
+
+                    if (m_LocalService == null)
                     {
-                        m_log.Error("[ASSET CONNECTOR]: Can't load asset service");
+                        m_log.Error("[ASSET CONNECTOR]: Can't load local asset service");
                         return;
                     }
+                    if (m_HGService == null)
+                    {
+                        m_log.Error("[ASSET CONNECTOR]: Can't load hypergrid asset service");
+                        return;
+                    }
+
                     m_Enabled = true;
-                    m_log.Info("[ASSET CONNECTOR]: Local asset connector enabled");
+                    m_log.Info("[ASSET CONNECTOR]: HG asset broker enabled");
                 }
             }
         }
@@ -129,58 +147,96 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
                     m_Cache = null;
             }
 
-            m_log.InfoFormat("[ASSET CONNECTOR]: Enabled local assets for region {0}", scene.RegionInfo.RegionName);
+            m_log.InfoFormat("[ASSET CONNECTOR]: Enabled hypergrid asset broker for region {0}", scene.RegionInfo.RegionName);
 
             if (m_Cache != null)
             {
                 m_log.InfoFormat("[ASSET CONNECTOR]: Enabled asset caching for region {0}", scene.RegionInfo.RegionName);
             }
-            else
-            {
-                // Short-circuit directly to storage layer
-                //
-                scene.UnregisterModuleInterface<IAssetService>(this);
-                scene.RegisterModuleInterface<IAssetService>(m_AssetService);
-            }
+        }
+
+        private bool IsHG(string id)
+        {
+            Uri assetUri;
+
+            if (Uri.TryCreate(id, UriKind.Absolute, out assetUri) &&
+                    assetUri.Scheme == Uri.UriSchemeHttp)
+                return true;
+
+            return false;
         }
 
         public AssetBase Get(string id)
         {
-            AssetBase asset = m_Cache.Get(id);
+            AssetBase asset = null;
+            
+            if (m_Cache != null)
+            {
+                m_Cache.Get(id);
 
-            if (asset == null)
-                return m_AssetService.Get(id);
+                if (asset != null)
+                    return asset;
+            }
+
+            if (IsHG(id))
+                asset = m_HGService.Get(id);
+            else
+                asset = m_LocalService.Get(id);
+
+            if (asset != null)
+            {
+                if (m_Cache != null)
+                    m_Cache.Cache(asset);
+            }
+
             return asset;
         }
 
         public AssetMetadata GetMetadata(string id)
         {
-            AssetBase asset = m_Cache.Get(id);
-
-            if (asset != null)
-                return asset.Metadata;
-
-            asset = m_AssetService.Get(id);
-            if (asset != null)
+            AssetBase asset = null;
+            
+            if (m_Cache != null)
             {
-                m_Cache.Cache(asset);
-                return asset.Metadata;
+                if (m_Cache != null)
+                    m_Cache.Get(id);
+
+                if (asset != null)
+                    return asset.Metadata;
             }
 
-            return null;
+            AssetMetadata metadata;
+
+            if (IsHG(id))
+                metadata = m_HGService.GetMetadata(id);
+            else
+                metadata = m_LocalService.GetMetadata(id);
+
+            return metadata;
         }
 
         public byte[] GetData(string id)
         {
-            AssetBase asset = m_Cache.Get(id);
+            AssetBase asset = null;
+            
+            if (m_Cache != null)
+            {
+                if (m_Cache != null)
+                    m_Cache.Get(id);
 
-            if (asset != null)
-                return asset.Data;
+                if (asset != null)
+                    return asset.Data;
+            }
 
-            asset = m_AssetService.Get(id);
+            if (IsHG(id))
+                asset = m_HGService.Get(id);
+            else
+                asset = m_LocalService.Get(id);
+
             if (asset != null)
             {
-                m_Cache.Cache(asset);
+                if (m_Cache != null)
+                    m_Cache.Cache(asset);
                 return asset.Data;
             }
 
@@ -189,7 +245,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
-            AssetBase asset = m_Cache.Get(id);
+            AssetBase asset = null;
+            
+            if (m_Cache != null)
+                asset = m_Cache.Get(id);
 
             if (asset != null)
             {
@@ -197,37 +256,65 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
                 return true;
             }
 
-            return m_AssetService.Get(id, sender, delegate (string assetID, Object s, AssetBase a)
+            if (IsHG(id))
             {
-                if (a != null)
-                    m_Cache.Cache(a);
-                handler(assetID, s, a);
-            });
+                return m_HGService.Get(id, sender, delegate (string assetID, Object s, AssetBase a)
+                {
+                    if (a != null && m_Cache != null)
+                        m_Cache.Cache(a);
+                    handler(assetID, s, a);
+                });
+            }
+            else
+            {
+                return m_LocalService.Get(id, sender, delegate (string assetID, Object s, AssetBase a)
+                {
+                    if (a != null && m_Cache != null)
+                        m_Cache.Cache(a);
+                    handler(assetID, s, a);
+                });
+            }
         }
 
         public string Store(AssetBase asset)
         {
-            m_Cache.Cache(asset);
-            return m_AssetService.Store(asset);
+            if (m_Cache != null)
+                m_Cache.Cache(asset);
+
+            if (IsHG(asset.ID))
+                return m_HGService.Store(asset);
+            else
+                return m_LocalService.Store(asset);
         }
 
         public bool UpdateContent(string id, byte[] data)
         {
-            AssetBase asset = m_Cache.Get(id);
+            AssetBase asset = null;
+            
+            if (m_Cache != null)
+                asset = m_Cache.Get(id);
+
             if (asset != null)
             {
                 asset.Data = data;
                 m_Cache.Cache(asset);
             }
 
-            return m_AssetService.UpdateContent(id, data);
+            if (IsHG(id))
+                return m_HGService.UpdateContent(id, data);
+            else
+                return m_LocalService.UpdateContent(id, data);
         }
 
         public bool Delete(string id)
         {
-            m_Cache.Expire(id);
+            if (m_Cache != null)
+                m_Cache.Expire(id);
 
-            return m_AssetService.Delete(id);
+            if (IsHG(id))
+                return m_HGService.Delete(id);
+            else
+                return m_LocalService.Delete(id);
         }
     }
 }

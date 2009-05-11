@@ -59,6 +59,8 @@ namespace OpenSim.Services.AssetService
                         {
                             Store(a);
                         });
+                
+                m_log.Info("[ASSET CONNECTOR]: Local asset service enabled");
             }
         }
 

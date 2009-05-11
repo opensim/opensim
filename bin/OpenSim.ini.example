@@ -1297,10 +1297,13 @@
     ; Choose one
     ;AssetServices = "LocalAssetServicesConnector"
     ;AssetServices = "RemoteAssetServicesConnector"
+    ;AssetServices = "HGAssetBroker"
+
+    ;AssetCaching = "CoreAssetCache"
 
 [AssetService]
     ; Parameters for local assets
-    ;Module = "OpenSim.Services.AssetService.dll"
+    ;LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
     ;StorageProvider = "OpenSim.Data.MySQL.dll"
     ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim;"
     ;DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
@@ -1308,3 +1311,13 @@
 
     ; Parameters for remote assets
     ;AssetServerURI = "http://localhost:8003/"
+
+    ; Paremeters for the Hypergrid connector
+    
+    ; Parameters for the HG Broker
+    ;LocalModule = "OpenSim.Services.AssetService.dll:AssetService"
+    ;HypergridModule = "OpenSim.Services.AssetService.dll:HGAssetService"
+
+[AssetCache]
+    ; Number of buckets for assets
+    ;CacheBuckets = 32768

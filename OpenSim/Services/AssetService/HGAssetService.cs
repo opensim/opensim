@@ -28,91 +28,33 @@
 using log4net;
 using Nini.Config;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework;
-using OpenSim.Servers.Base;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 {
-    public class HGAssetServicesConnector :
-            ISharedRegionModule, IAssetService
+    public class HGAssetService : IAssetService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IImprovedAssetCache m_Cache = null;
-
-        private bool m_Enabled = false;
-
-        public string Name
-        {
-            get { return "HGAssetServicesConnector"; }
-        }
-
-        public void Initialise(IConfigSource source)
+        public HGAssetService(IConfigSource source)
         {
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
                 string name = moduleConfig.GetString("AssetServices", "");
-                if (name == Name)
+
+                IConfig assetConfig = source.Configs["AssetService"];
+                if (assetConfig == null)
                 {
-                    IConfig assetConfig = source.Configs["AssetService"];
-                    if (assetConfig == null)
-                    {
-                        m_log.Error("[ASSET CONNECTOR]: AssetService missing from OpanSim.ini");
-                        return;
-                    }
-
-                    m_Enabled = true;
-                    m_log.Info("[ASSET CONNECTOR]: HG asset connector enabled");
+                    m_log.Error("[ASSET CONNECTOR]: AssetService missing from OpanSim.ini");
+                    return;
                 }
-            }
-        }
 
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
-        }
-
-        public void AddRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-            scene.RegisterModuleInterface<IAssetService>(this);
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-            if (m_Cache == null)
-            {
-                m_Cache = scene.RequestModuleInterface<IImprovedAssetCache>();
-
-                if (!(m_Cache is ISharedRegionModule))
-                    m_Cache = null;
-            }
-
-            m_log.InfoFormat("[ASSET CONNECTOR]: Enabled local assets for region {0}", scene.RegionInfo.RegionName);
-
-            if (m_Cache != null)
-            {
-                m_log.InfoFormat("[ASSET CONNECTOR]: Enabled asset caching for region {0}", scene.RegionInfo.RegionName);
+                m_log.Info("[ASSET CONNECTOR]: HG asset service enabled");
             }
         }
 
