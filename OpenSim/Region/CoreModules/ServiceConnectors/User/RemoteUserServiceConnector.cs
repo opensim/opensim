@@ -29,7 +29,6 @@ using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.UserService;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectors.User
 {

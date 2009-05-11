@@ -25,16 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Reflection;
+using log4net;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Servers.Base;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.UserService;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectors.User
 {
     public class LocalUserServicesConnector : ISharedRegionModule
     {
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
         private IUserService m_UserService;
 
         private bool m_Enabled = false;
@@ -52,8 +59,34 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.User
                 string name = moduleConfig.GetString("UserServices", "");
                 if (name == Name)
                 {
+                    IConfig userConfig = source.Configs["UserService"];
+                    if (userConfig == null)
+                    {
+                        m_log.Error("[USER CONNECTOR]: UserService missing from OpenSim.ini");
+                        return;
+                    }
+
+                    string serviceDll = userConfig.GetString("LocalServiceModule",
+                            String.Empty);
+
+                    if (serviceDll == String.Empty)
+                    {
+                        m_log.Error("[USER CONNECTOR]: No LocalServiceModule named in section UserService");
+                        return;
+                    }
+
+                    Object[] args = new Object[] { source };
+                    m_UserService =
+                            ServerUtils.LoadPlugin<IUserService>(serviceDll,
+                            args);
+
+                    if (m_UserService == null)
+                    {
+                        m_log.Error("[USER CONNECTOR]: Can't load user service");
+                        return;
+                    }
                     m_Enabled = true;
-                    m_UserService = new UserService(source);
+                    m_log.Info("[USER CONNECTOR]: Local user connector enabled");
                 }
             }
         }

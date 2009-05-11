@@ -2,5 +2,6 @@
 port = 8002
 
 [UserService]
+LocalServiceModule = "OpenSim.Services.UserService.dll:UserService"
 StorageProvider = "OpenSim.Data.MySQL.dll"
 ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim;"

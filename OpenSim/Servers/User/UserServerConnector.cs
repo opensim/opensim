@@ -25,9 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using Nini.Config;
+using OpenSim.Servers.Base;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.UserService;
 using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Servers.UserServer
@@ -38,7 +39,19 @@ namespace OpenSim.Servers.UserServer
 
         public UserServiceConnector(IConfigSource config, IHttpServer server)
         {
-            m_UserService = new UserService(config);
+            IConfig serverConfig = config.Configs["UserService"];
+            if (serverConfig == null)
+                throw new Exception("No section 'Server' in config file");
+
+            string userService = serverConfig.GetString("LocalServiceModule",
+                    String.Empty);
+
+            if (userService == String.Empty)
+                throw new Exception("No UserService in config file");
+            
+            Object[] args = new Object[] { config };
+            m_UserService =
+                    ServerUtils.LoadPlugin<IUserService>(userService, args);
         }
     }
 }

@@ -1277,6 +1277,11 @@
 
     ;AssetCaching = "CoreAssetCache"
 
+    ; Choose one
+    ;UserServices = "LocalUserServicesConnector"
+    ;UserServices = "RemoteUserServicesConnector"
+
+
 [AssetService]
     ; Parameters for local assets
     ;LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
@@ -1297,3 +1302,6 @@
 [AssetCache]
     ; Number of buckets for assets
     ;CacheBuckets = 32768
+
+[UserService]
+    ;LocalServiceModule = "OpenSim.Services.UserService.dll:UserService"
