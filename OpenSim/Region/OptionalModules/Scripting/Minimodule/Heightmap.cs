@@ -29,7 +29,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public class Heightmap : IHeightmap
+    public class Heightmap : System.MarshalByRefObject, IHeightmap
     {
         private readonly Scene m_scene;
 

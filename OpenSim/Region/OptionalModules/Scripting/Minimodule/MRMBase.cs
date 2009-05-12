@@ -29,7 +29,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public abstract class MRMBase
+    public abstract class MRMBase : System.MarshalByRefObject
     {
         private IWorld m_world;
         private IHost m_host;

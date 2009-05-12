@@ -35,7 +35,7 @@ using IEnumerable=System.Collections.IEnumerable;
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
 
-    internal class IObjEnum : IEnumerator<IObject>
+    internal class IObjEnum : System.MarshalByRefObject, IEnumerator<IObject>
     {
         private readonly Scene m_scene;
         private readonly IEnumerator<EntityBase> m_sogEnum;
@@ -75,7 +75,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         }
     }
 
-    public class ObjectAccessor : IObjectAccessor
+    public class ObjectAccessor : System.MarshalByRefObject, IObjectAccessor
     {
         private readonly Scene m_scene;
 

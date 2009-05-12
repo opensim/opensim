@@ -32,7 +32,7 @@ using OpenSim.Region.OptionalModules.Scripting.Minimodule.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class Host : IHost
+    class Host : System.MarshalByRefObject, IHost
     {
         private readonly IObject m_obj;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

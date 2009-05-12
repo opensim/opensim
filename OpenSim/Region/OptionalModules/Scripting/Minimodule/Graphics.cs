@@ -33,7 +33,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class Graphics : IGraphics
+    class Graphics : System.MarshalByRefObject, IGraphics
     {
         private readonly Scene m_scene;
 

@@ -31,7 +31,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class SOPObjectMaterial : IObjectMaterial
+    class SOPObjectMaterial : System.MarshalByRefObject, IObjectMaterial
     {
         private readonly int m_face;
         private readonly SceneObjectPart m_parent;

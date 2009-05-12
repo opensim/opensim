@@ -31,7 +31,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class SPAvatar : IAvatar
+    class SPAvatar : System.MarshalByRefObject, IAvatar
     {
         private readonly Scene m_rootScene;
         private readonly UUID m_ID;

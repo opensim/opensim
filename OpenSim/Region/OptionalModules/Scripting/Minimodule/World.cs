@@ -32,7 +32,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public class World : IWorld 
+    public class World : System.MarshalByRefObject, IWorld 
     {
         private readonly Scene m_internalScene;
         private readonly Heightmap m_heights;

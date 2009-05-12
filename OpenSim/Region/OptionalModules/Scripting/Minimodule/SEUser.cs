@@ -32,7 +32,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class SEUser : ISocialEntity
+    class SEUser : System.MarshalByRefObject, ISocialEntity
     {
         private readonly UUID m_uuid;
         private readonly string m_name;

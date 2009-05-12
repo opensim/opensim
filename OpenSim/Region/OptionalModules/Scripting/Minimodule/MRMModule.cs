@@ -108,15 +108,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 try
                 {
                     m_log.Info("[MRM] Found C# MRM");
-                    IWorld m_world = new World(m_scene);
-                    IHost m_host = new Host(new SOPObject(m_scene, localID), m_scene, new ExtensionHandler(m_extensions),
-                                            m_microthreads);
 
                     MRMBase mmb = (MRMBase)AppDomain.CurrentDomain.CreateInstanceFromAndUnwrap(
                                                 CompileFromDotNetText(script, itemID.ToString()),
                                                 "OpenSim.MiniModule");
-                    m_log.Info("[MRM] Created MRM Instance");
-                    mmb.InitMiniModule(m_world, m_host, itemID);
+
+                    InitializeMRM(mmb, localID, itemID);
+
                     m_scripts[itemID] = mmb;
 
                     m_log.Info("[MRM] Starting MRM");
@@ -146,6 +144,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                                           });
                 }
             }
+        }
+
+        public void InitializeMRM(MRMBase mmb, uint localID, UUID itemID)
+        {
+
+            m_log.Info("[MRM] Created MRM Instance");
+
+            IWorld m_world = new World(m_scene);
+            IHost m_host = new Host(new SOPObject(m_scene, localID), m_scene, new ExtensionHandler(m_extensions),
+                                    m_microthreads);
+
+            mmb.InitMiniModule(m_world, m_host, itemID);
+
         }
 
         public void PostInitialise()

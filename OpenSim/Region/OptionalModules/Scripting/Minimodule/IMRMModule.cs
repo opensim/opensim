@@ -25,10 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenMetaverse;
+
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
     public interface IMRMModule
     {
         void RegisterExtension<T>(T instance);
+        void InitializeMRM(MRMBase mmb, uint localID, UUID itemID);
     }
 }

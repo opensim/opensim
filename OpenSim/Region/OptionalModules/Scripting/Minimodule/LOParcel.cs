@@ -30,7 +30,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class LOParcel : IParcel
+    class LOParcel : System.MarshalByRefObject, IParcel
     {
         private readonly Scene m_scene;
         private readonly int m_parcelID;
