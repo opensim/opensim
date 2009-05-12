@@ -1066,6 +1066,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     else
                         land.landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                     land.landData.ClaimDate = Util.UnixTimeSinceEpoch();
+                    land.landData.IsGroupOwned = false;
                     m_scene.Broadcast(SendParcelOverlay);
                     land.sendLandUpdateToClient(remote_client);
                 }
