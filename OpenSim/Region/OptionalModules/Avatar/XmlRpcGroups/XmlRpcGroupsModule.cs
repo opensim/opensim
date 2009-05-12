@@ -1291,6 +1291,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
         }
 
+        public void NotifyChange(UUID groupID)
+        {
+            // Notify all group members of a chnge in group roles and/or
+            // permissions
+            //
+        }
+
         #endregion
     }
 

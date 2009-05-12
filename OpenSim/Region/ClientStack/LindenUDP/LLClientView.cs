@@ -8991,6 +8991,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                            d.Powers,
                                                            d.UpdateType);
                         }
+                        m_GroupsModule.NotifyChange(groupRoleUpdate.AgentData.GroupID);
                     }
                     break;
 
@@ -9018,6 +9019,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                             d.MemberID,
                                                             d.Change);
                         }
+                        m_GroupsModule.NotifyChange(groupRoleChanges.AgentData.GroupID);
                     }
                     break;
 
