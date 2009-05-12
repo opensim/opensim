@@ -2147,6 +2147,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             ScenePresence avatar = m_sceneGraph.CreateAndAddChildScenePresence(client, appearance);
             //avatar.KnownRegions = GetChildrenSeeds(avatar.UUID);
+
+            m_eventManager.TriggerOnNewPresence(avatar);
+
             return avatar;
         }
 
