@@ -1015,6 +1015,24 @@ namespace OpenSim.Region.Framework.Scenes
             SendTerseUpdateToAllClients();
         }
 
+        public void TeleportWithMomentum(Vector3 pos)
+        {
+            bool isFlying = false;
+            if (m_physicsActor != null)
+                isFlying = m_physicsActor.Flying;
+
+            RemoveFromPhysicalScene();
+            AbsolutePosition = pos;
+            AddToPhysicalScene(isFlying);
+            if (m_appearance != null)
+            {
+                if (m_appearance.AvatarHeight > 0)
+                    SetHeight(m_appearance.AvatarHeight);
+            }
+
+            SendTerseUpdateToAllClients();
+        }
+
         /// <summary>
         ///
         /// </summary>
