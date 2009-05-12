@@ -115,6 +115,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Timer m_report = new Timer();
 
+        private IEstateModule estateModule;
 
         public SimStatsReporter(Scene scene)
         {
@@ -151,7 +152,8 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 try
                 {
-                    IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
+                    if (estateModule == null)
+                        estateModule = m_scene.RequestModuleInterface<IEstateModule>();
                     regionFlags = estateModule != null ? estateModule.GetRegionFlags() : (uint) 0;
                 }
                 catch (Exception)
