@@ -107,6 +107,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.User
         {
             if (!m_Enabled)
                 return;
+
+            scene.RegisterModuleInterface<IUserService>(m_UserService);
         }
 
         public void RemoveRegion(Scene scene)

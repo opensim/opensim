@@ -368,19 +368,24 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="mod"></param>
         public void RegisterModuleInterface<M>(M mod)
         {
-            if (!ModuleInterfaces.ContainsKey(typeof(M)))
+            List<Object> l = null;
+            if (!ModuleInterfaces.TryGetValue(typeof(M), out l))
             {
-                List<Object> l = new List<Object>();
-                l.Add(mod);
+                l = new List<Object>();
                 ModuleInterfaces.Add(typeof(M), l);
+            }
 
-                if (mod is IEntityCreator)
+            if (l.Count > 0)
+                return;
+
+            l.Add(mod);
+
+            if (mod is IEntityCreator)
+            {
+                IEntityCreator entityCreator = (IEntityCreator)mod;
+                foreach (PCode pcode in entityCreator.CreationCapabilities)
                 {
-                    IEntityCreator entityCreator = (IEntityCreator)mod;
-                    foreach (PCode pcode in entityCreator.CreationCapabilities)
-                    {
-                        m_entityCreators[pcode] = entityCreator;
-                    }
+                    m_entityCreators[pcode] = entityCreator;
                 }
             }
         }
