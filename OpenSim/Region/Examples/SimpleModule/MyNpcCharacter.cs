@@ -1074,6 +1074,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void RefreshGroupMembership()
+        {
+        }
+
         public void SendUseCachedMuteList()
         {
         }

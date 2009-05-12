@@ -1074,6 +1074,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public void RefreshGroupMembership()
+        {
+        }
+
         public void SendUseCachedMuteList()
         {
         }

@@ -1116,6 +1116,10 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
+        public void RefreshGroupMembership()
+        {
+        }
+
         public void SendUseCachedMuteList()
         {
         }

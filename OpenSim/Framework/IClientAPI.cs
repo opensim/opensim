@@ -1141,6 +1141,7 @@ namespace OpenSim.Framework
         void SendClassifiedInfoReply(UUID classifiedID, UUID creatorID, uint creationDate, uint expirationDate, uint category, string name, string description, UUID parcelID, uint parentEstate, UUID snapshotID, string simName, Vector3 globalPos, string parcelName, byte classifiedFlags, int price);
 
         void SendAgentDropGroup(UUID groupID);
+        void RefreshGroupMembership();
         void SendAvatarNotesReply(UUID targetID, string text);
         void SendAvatarPicksReply(UUID targetID, Dictionary<UUID, string> picks);
         void SendPickInfoReply(UUID pickID,UUID creatorID, bool topPick, UUID parcelID, string name, string desc, UUID snapshotID, string user, string originalName, string simName, Vector3 posGlobal, int sortOrder, bool enabled);

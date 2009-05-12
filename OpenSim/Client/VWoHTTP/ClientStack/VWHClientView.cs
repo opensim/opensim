@@ -1077,6 +1077,11 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             throw new System.NotImplementedException();
         }
 
+        public void RefreshGroupMembership()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public void SendAvatarNotesReply(UUID targetID, string text)
         {
             throw new System.NotImplementedException();

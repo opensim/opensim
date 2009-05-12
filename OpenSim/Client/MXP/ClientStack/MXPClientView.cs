@@ -1622,6 +1622,10 @@ namespace OpenSim.Client.MXP.ClientStack
         {
         }
 
+        public void RefreshGroupMembership()
+        {
+        }
+
         public void SendUseCachedMuteList()
         {
         }

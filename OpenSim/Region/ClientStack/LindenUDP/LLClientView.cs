@@ -10512,7 +10512,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion
 
-        private void RefreshGroupMembership()
+        public void RefreshGroupMembership()
         {
             if (m_GroupsModule != null)
             {
