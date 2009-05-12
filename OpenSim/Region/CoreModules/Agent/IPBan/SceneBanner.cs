@@ -27,18 +27,25 @@ namespace OpenSim.Region.CoreModules.Agent.IPBan
             {
                 IPAddress end = ipEndpoint.EndPoint;
 
-                IPHostEntry rDNS = Dns.GetHostEntry(end);
-                foreach (string ban in bans)
+                try
                 {
-                    if (rDNS.HostName.Contains(ban) ||
-                        end.ToString().StartsWith(ban))
+                    IPHostEntry rDNS = Dns.GetHostEntry(end);
+                    foreach (string ban in bans)
                     {
-                        client.Disconnect("Banned - network \"" + ban + "\" is not allowed to connect to this server.");
-                        m_log.Warn("[IPBAN] Disconnected '" + end + "' due to '" + ban + "' ban.");
-                        return;
+                        if (rDNS.HostName.Contains(ban) ||
+                            end.ToString().StartsWith(ban))
+                        {
+                            client.Disconnect("Banned - network \"" + ban + "\" is not allowed to connect to this server.");
+                            m_log.Warn("[IPBAN] Disconnected '" + end + "' due to '" + ban + "' ban.");
+                            return;
+                        }
                     }
                 }
-                m_log.Warn("[IPBAN] User '" + end + "' not in any ban lists. Allowing connection.");
+                catch (System.Net.Sockets.SocketException sex)
+                {
+                    m_log.WarnFormat("[IPBAN] IP address \"{0}\" cannot be resolved via DNS", end);
+                }
+                m_log.WarnFormat("[IPBAN] User \"{0}\" not in any ban lists. Allowing connection.", end);
             }
         }
     }
