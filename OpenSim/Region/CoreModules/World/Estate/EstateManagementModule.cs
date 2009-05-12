@@ -114,8 +114,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             if (matureLevel <= 13)
                 m_scene.RegionInfo.RegionSettings.Maturity = 0;
-            else
+            else if (matureLevel <= 21)
                 m_scene.RegionInfo.RegionSettings.Maturity = 1;
+            else
+                m_scene.RegionInfo.RegionSettings.Maturity = 2;
 
             if (restrictPushObject)
                 m_scene.RegionInfo.RegionSettings.RestrictPushing = true;
@@ -580,11 +582,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
            args.redirectGridX = m_scene.RegionInfo.EstateSettings.RedirectGridX;
            args.redirectGridY = m_scene.RegionInfo.EstateSettings.RedirectGridY;
            args.regionFlags = GetRegionFlags();
-           byte mature = 13;
-           if (m_scene.RegionInfo.RegionSettings.Maturity == 1)
-              mature = 21;
-           args.simAccess = mature;
-
+           args.simAccess = m_scene.RegionInfo.AccessLevel;
            args.sunHour = (float)m_scene.RegionInfo.RegionSettings.SunPosition;
            args.terrainLowerLimit = (float)m_scene.RegionInfo.RegionSettings.TerrainLowerLimit;
            args.terrainRaiseLimit = (float)m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit;
@@ -730,12 +728,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
             args.terrainHeightRange2 = (float)m_scene.RegionInfo.RegionSettings.Elevation2SE;
             args.terrainStartHeight3 = (float)m_scene.RegionInfo.RegionSettings.Elevation1NE;
             args.terrainHeightRange3 = (float)m_scene.RegionInfo.RegionSettings.Elevation2NE;
-            byte mature = 13;
-            if (m_scene.RegionInfo.RegionSettings.Maturity == 1)
-                mature = 21;
-            args.simAccess = mature;
+            args.simAccess = m_scene.RegionInfo.AccessLevel;
             args.waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
-
             args.regionFlags = GetRegionFlags();
             args.regionName = m_scene.RegionInfo.RegionName;
             if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)

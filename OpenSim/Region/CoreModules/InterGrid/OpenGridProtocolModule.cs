@@ -458,7 +458,19 @@ namespace OpenSim.Region.CoreModules.InterGrid
             responseMap["region_x"] = OSD.FromInteger(reg.RegionLocX * (uint)Constants.RegionSize); // LLX
             responseMap["region_y"] = OSD.FromInteger(reg.RegionLocY * (uint)Constants.RegionSize); // LLY
             responseMap["region_id"] = OSD.FromUUID(reg.originRegionID);
-            responseMap["sim_access"] = OSD.FromString((reg.RegionSettings.Maturity == 1) ? "Mature" : "PG");
+
+            if (reg.RegionSettings.Maturity == 1)
+            {
+                responseMap["sim_access"] = OSD.FromString("Mature");
+            }
+            else if (reg.RegionSettings.Maturity == 2)
+            {
+                responseMap["sim_access"] = OSD.FromString("Adult");
+            }
+            else
+            {
+                responseMap["sim_access"] = OSD.FromString("PG");
+            }
 
             // Generate a dummy agent for the user so we can get back a CAPS path
             AgentCircuitData agentData = new AgentCircuitData();

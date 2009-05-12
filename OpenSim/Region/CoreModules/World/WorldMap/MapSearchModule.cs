@@ -126,7 +126,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 {
                     data = new MapBlockData();
                     data.Agents = 0;
-                    data.Access = 21; // TODO what's this?
+                    data.Access = info.AccessLevel;
                     data.MapImageId = info.RegionSettings.TerrainImageID;
                     data.Name = info.RegionName;
                     data.RegionFlags = 0; // TODO not used?

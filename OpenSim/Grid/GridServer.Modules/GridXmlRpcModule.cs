@@ -551,6 +551,19 @@ namespace OpenSim.Grid.GridServer.Modules
             sim.httpServerURI = "http://" + sim.serverIP + ":" + sim.httpPort + "/";
 
             sim.regionName = (string)requestData["sim_name"];
+
+
+            try
+            {
+
+                sim.maturity = Convert.ToUInt32((string)requestData["maturity"]);
+            }
+            catch (KeyNotFoundException)
+            {
+                //older region not providing this key - so default to Mature
+                sim.maturity = 1; 
+            }
+
             return sim;
         }
 
@@ -725,7 +738,7 @@ namespace OpenSim.Grid.GridServer.Modules
                     simProfileBlock["y"] = aSim.regionLocY.ToString();
                     //m_log.DebugFormat("[MAP]: Sending neighbour info for {0},{1}", aSim.regionLocX, aSim.regionLocY);
                     simProfileBlock["name"] = aSim.regionName;
-                    simProfileBlock["access"] = 21;
+                    simProfileBlock["access"] = aSim.AccessLevel;
                     simProfileBlock["region-flags"] = 512;
                     simProfileBlock["water-height"] = 0;
                     simProfileBlock["agents"] = 1;
@@ -760,7 +773,7 @@ namespace OpenSim.Grid.GridServer.Modules
                             simProfileBlock["x"] = x;
                             simProfileBlock["y"] = y;
                             simProfileBlock["name"] = simProfile.regionName;
-                            simProfileBlock["access"] = 0;
+                            simProfileBlock["access"] = simProfile.AccessLevel;
                             simProfileBlock["region-flags"] = 0;
                             simProfileBlock["water-height"] = 20;
                             simProfileBlock["agents"] = 1;

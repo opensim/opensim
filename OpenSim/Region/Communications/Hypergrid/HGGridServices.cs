@@ -335,7 +335,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                     //                    m_log.Debug("ImgID: " + map.MapImageId);
                     map.Agents = 1;
                     map.RegionFlags = 72458694;
-                    map.Access = 13;
+                    map.Access = regInfo.AccessLevel;
                     neighbours.Add(map);
                 }
             }

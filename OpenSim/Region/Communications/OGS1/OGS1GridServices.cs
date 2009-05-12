@@ -140,6 +140,8 @@ namespace OpenSim.Region.Communications.OGS1
             else
                 GridParams["master_avatar_uuid"] = regionInfo.EstateSettings.EstateOwner.ToString();
 
+            GridParams["maturity"] = regionInfo.RegionSettings.Maturity.ToString();
+
             // Package into an XMLRPC Request
             ArrayList SendParams = new ArrayList();
             SendParams.Add(GridParams);

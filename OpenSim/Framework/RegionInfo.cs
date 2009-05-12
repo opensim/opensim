@@ -334,6 +334,11 @@ namespace OpenSim.Framework
             get { return m_objectCapacity; }
         }
 
+        public byte AccessLevel
+        {
+            get { return (byte)Util.ConvertMaturityToAccessLevel((uint)m_regionSettings.Maturity); }
+        }
+
         public void SetEndPoint(string ipaddr, int port)
         {
             IPAddress tmpIP = IPAddress.Parse(ipaddr);
@@ -691,5 +696,6 @@ namespace OpenSim.Framework
             regionInfo.ServerURI = serverURI;
             return regionInfo;
         }
+
     }
 }

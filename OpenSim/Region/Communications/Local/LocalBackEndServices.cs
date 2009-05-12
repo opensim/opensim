@@ -269,7 +269,7 @@ namespace OpenSim.Region.Communications.Local
                     map.MapImageId = regInfo.RegionSettings.TerrainImageID;
                     map.Agents = 1;
                     map.RegionFlags = 72458694;
-                    map.Access = 13;
+                    map.Access = regInfo.AccessLevel;
                     mapBlocks.Add(map);
                 }
             }

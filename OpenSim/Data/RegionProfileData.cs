@@ -131,6 +131,11 @@ namespace OpenSim.Data
         /// </summary>
         public UUID originUUID;
 
+        /// <summary>
+        /// The Maturity rating of the region
+        /// </summary>
+        public uint maturity;
+
 
         //Data Wrappers        
         public string RegionName
@@ -279,6 +284,17 @@ namespace OpenSim.Data
             get { return originUUID; }
             set { originUUID = value; }
         }
+        public uint Maturity
+        {
+            get { return maturity; }
+            set { maturity = value; }
+        }
+
+        public byte AccessLevel
+        {
+            get { return Util.ConvertMaturityToAccessLevel(maturity); }
+        }
+
 
         public RegionInfo ToRegionInfo()
         {
@@ -295,10 +311,10 @@ namespace OpenSim.Data
             return Create(regionInfo.RegionID, regionInfo.RegionName, regionInfo.RegionLocX,
                           regionInfo.RegionLocY, regionInfo.ExternalHostName,
                           (uint) regionInfo.ExternalEndPoint.Port, regionInfo.HttpPort, regionInfo.RemotingPort,
-                          regionInfo.ServerURI);
+                          regionInfo.ServerURI, regionInfo.AccessLevel);
         }
 
-        public static RegionProfileData Create(UUID regionID, string regionName, uint locX, uint locY, string externalHostName, uint regionPort, uint httpPort, uint remotingPort, string serverUri)
+        public static RegionProfileData Create(UUID regionID, string regionName, uint locX, uint locY, string externalHostName, uint regionPort, uint httpPort, uint remotingPort, string serverUri, byte access)
         {
             RegionProfileData regionProfile;
             regionProfile = new RegionProfileData();
@@ -315,6 +331,7 @@ namespace OpenSim.Data
             regionProfile.httpServerURI = "http://" + externalHostName + ":" + httpPort + "/";
             regionProfile.UUID = regionID;
             regionProfile.regionName = regionName;
+            regionProfile.maturity = access;
             return regionProfile;
         }
     }

@@ -7995,6 +7995,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             reply = "PG";
                         else if (access == 1)
                             reply = "MATURE";
+                        else if (access == 2)
+                            reply = "ADULT";
                         else
                             reply = "UNKNOWN";
                         break;

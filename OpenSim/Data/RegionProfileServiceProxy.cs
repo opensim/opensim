@@ -65,8 +65,9 @@ namespace OpenSim.Data
                 string serverUri = (string)responseData["server_uri"];
                 UUID regionID = new UUID((string)responseData["region_UUID"]);
                 string regionName = (string)responseData["region_name"];
+                byte access = Convert.ToByte((string)responseData["access"]);
 
-                simData = RegionProfileData.Create(regionID, regionName, locX, locY, externalHostName, simPort, httpPort, remotingPort, serverUri);
+                simData = RegionProfileData.Create(regionID, regionName, locX, locY, externalHostName, simPort, httpPort, remotingPort, serverUri, access);
             }
 
             return simData;

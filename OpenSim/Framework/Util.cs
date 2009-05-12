@@ -1045,5 +1045,29 @@ namespace OpenSim.Framework
 
             return guid;
         }
+
+        public static byte ConvertMaturityToAccessLevel(uint maturity)
+        {
+            byte retVal = 0;
+            switch (maturity)
+            {
+                case 0: //PG
+                    retVal = 13;
+                    break;
+                case 1: //Mature
+                    retVal = 21;
+                    break;
+                case 2: // Adult
+                    retVal = 42;
+                    break;
+            }
+
+            return retVal;
+
+        }
+
+
+
+
     }
 }

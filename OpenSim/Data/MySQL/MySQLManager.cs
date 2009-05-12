@@ -436,6 +436,7 @@ namespace OpenSim.Data.MySQL
                 // World Map Addition
                 UUID.TryParse((string)reader["regionMapTexture"], out retval.regionMapTextureID);
                 UUID.TryParse((string)reader["owner_uuid"], out retval.owner_uuid);
+                retval.maturity = Convert.ToUInt32(reader["access"]);
             }
             else
             {
@@ -976,13 +977,13 @@ namespace OpenSim.Data.MySQL
             // server for the UUID of the region's owner (master avatar). It consists of the addition of the column and value to the relevant sql,
             // as well as the related parameterization
             sql +=
-                "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey, regionMapTexture, serverHttpPort, serverRemotingPort, owner_uuid, originUUID) VALUES ";
+                "regionAssetSendKey, regionUserURI, regionUserRecvKey, regionUserSendKey, regionMapTexture, serverHttpPort, serverRemotingPort, owner_uuid, originUUID, access) VALUES ";
 
             sql += "(?regionHandle, ?regionName, ?uuid, ?regionRecvKey, ?regionSecret, ?regionSendKey, ?regionDataURI, ";
             sql +=
                 "?serverIP, ?serverPort, ?serverURI, ?locX, ?locY, ?locZ, ?eastOverrideHandle, ?westOverrideHandle, ?southOverrideHandle, ?northOverrideHandle, ?regionAssetURI, ?regionAssetRecvKey, ";
             sql +=
-                "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort, ?owner_uuid, ?originUUID)";
+                "?regionAssetSendKey, ?regionUserURI, ?regionUserRecvKey, ?regionUserSendKey, ?regionMapTexture, ?serverHttpPort, ?serverRemotingPort, ?owner_uuid, ?originUUID, ?access)";
 
             if (GRID_ONLY_UPDATE_NECESSARY_DATA)
             {
@@ -1023,6 +1024,7 @@ namespace OpenSim.Data.MySQL
             parameters["?serverRemotingPort"] = regiondata.remotingPort.ToString();
             parameters["?owner_uuid"] = regiondata.owner_uuid.ToString();
             parameters["?originUUID"] = regiondata.originUUID.ToString();
+            parameters["?access"] = regiondata.maturity.ToString();
 
             bool returnval = false;
 
