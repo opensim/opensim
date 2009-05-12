@@ -226,6 +226,9 @@ namespace OpenSim
             m_console.Commands.AddCommand("region", false, "show queues",
                                           "show queues",
                                           "Show queue data", HandleShow);
+            m_console.Commands.AddCommand("region", false, "show ratings",
+                                          "show ratings",
+                                          "Show rating data", HandleShow);
 
             m_console.Commands.AddCommand("region", false, "backup",
                                           "backup",
@@ -856,6 +859,28 @@ namespace OpenSim
 
                 case "queues":
                     Notice(GetQueuesReport());
+                    break;
+
+                case "ratings":
+                    m_sceneManager.ForEachScene(
+                    delegate(Scene scene)
+                    {
+                        string rating = "";
+                        if (scene.RegionInfo.RegionSettings.Maturity == 1)
+                        {
+                            rating = "MATURE";
+                        }
+                        else if (scene.RegionInfo.RegionSettings.Maturity == 2)
+                        {
+                            rating = "ADULT";
+                        }
+                        else
+                        {
+                            rating = "PG";
+                        }
+                        m_console.Notice("Region Name: " + scene.RegionInfo.RegionName + " , Region Rating: " +
+                                         rating);
+                    });
                     break;
             }
         }
