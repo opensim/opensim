@@ -1135,7 +1135,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     // establish "Default Female". Specifying a specific model can
                     // establish a specific appearance without regard for gender.
 
-                    updateUserAppearance(responseData, requestData, userProfile.ID);
+                    // TODO: need to add code to do this only when
+                    // requested
+                    if (requestData.ContainsKey("model"))
+                        updateUserAppearance(responseData, requestData, userProfile.ID);
 
                     if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
                         throw new Exception("did not manage to update user profile");
@@ -1177,39 +1180,40 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             m_log.DebugFormat("[RADMIN] updateUserAppearance");
 
-            string dmale   = m_config.GetString("default_male", "Default Male");
-            string dfemale = m_config.GetString("default_female", "Default Female");
-            string dneut   = m_config.GetString("default_female", "Default Default");
-            string dmodel  = dneut;
-            string model   = dneut;
+            // string dmale   = m_config.GetString("default_male", "Default Male");
+            // string dfemale = m_config.GetString("default_female", "Default Female");
+            // string dneut   = m_config.GetString("default_female", "Default Default");
+            // string dmodel  = dneut;
+            // string model   = dneut;
+            // string dmodel  = String.Empty;
+            string model   = String.Empty;
 
             // Has a gender preference been supplied?
 
-            if (requestData.Contains("gender"))
-            {
-                if ((string)requestData["gender"] == "f")
-                    dmodel = dmale;
-                else
-                    dmodel = dfemale;
-            }
-            else
-                dmodel = dneut;
+            // if (requestData.Contains("gender"))
+            // {
+            //     if ((string)requestData["gender"] == "f")
+            //         dmodel = dmale;
+            //     else
+            //         dmodel = dfemale;
+            // }
+            // else
+            //     dmodel = dneut;
             
             // Has an explicit model been specified?
 
-            if (requestData.Contains("model"))
-                model = (string)requestData["model"];
-            else
-                model = dmodel;
+            if (!requestData.Contains("model"))
+                return;
+            model = (string)requestData["model"];
 
             m_log.DebugFormat("[RADMIN] Setting appearance for avatar {0}, using model {1}", userid, model);
 
             string[] nomens = model.Split();
             if (nomens.Length != 2)
             {
-                m_log.WarnFormat("[RADMIN] User appearance not set for {0}. Invalid model name : <{1}>",
-                    userid, model);
-                nomens = dmodel.Split();
+                m_log.WarnFormat("[RADMIN] User appearance not set for {0}. Invalid model name : <{1}>", userid, model);
+                // nomens = dmodel.Split();
+                return;
             }
 
             UserProfileData mprof = m_app.CommunicationsManager.UserService.GetUserProfile(nomens[0], nomens[1]);
@@ -1217,39 +1221,34 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             // Is this the first time one of the default models has been used? Create it if that is the case
             // otherwise default to male.
 
-            if (mprof == null)
-            {
-                if(model != dmale && model != dfemale)
-                {
-                    m_log.WarnFormat("[RADMIN] Requested model ({0}) not found. Default appearance assumed",
-                        model);
-                    nomens = dmodel.Split();
-                }
-                if (createDefaultAvatars())
-                {
-                    mprof = m_app.CommunicationsManager.UserService.GetUserProfile(nomens[0], nomens[1]);
-                }
-            }
+            // if (mprof == null)
+            // {
+            //     if (model != dmale && model != dfemale)
+            //     {
+            //         m_log.WarnFormat("[RADMIN] Requested model ({0}) not found. Default appearance assumed",
+            //             model);
+            //         nomens = dmodel.Split();
+            //     }
+            //     if (createDefaultAvatars())
+            //     {
+            //         mprof = m_app.CommunicationsManager.UserService.GetUserProfile(nomens[0], nomens[1]);
+            //     }
+            // }
 
             if (mprof == null)
             {
-                m_log.WarnFormat("[RADMIN] User appearance not set for {0}. Model avatar not found : <{1}>",
-                    userid, model);
-            }
-            else
-            {
-
-                // Set current user's appearance. This bit is easy. The appearance structure is populated with 
-                // actual asset ids, however to complete the magic we need to populate the inventory with the
-                // assets in question.
-
-                establishAppearance(userid, mprof.ID);
-
+                m_log.WarnFormat("[RADMIN] User appearance not set for {0}. Model avatar not found : <{1}>", userid, model);
+                return;
             }
 
+            // Set current user's appearance. This bit is easy. The appearance structure is populated with 
+            // actual asset ids, however to complete the magic we need to populate the inventory with the
+            // assets in question.
+            
+            establishAppearance(userid, mprof.ID);
+            
             m_log.DebugFormat("[RADMIN] Finished setting appearance for avatar {0}, using model {1}",
-                userid, model);
-
+                              userid, model);
         }
 
         /// <summary>
@@ -1258,7 +1257,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// is known to exist, as is the target avatar.
         /// </summary>
 
-        private AvatarAppearance establishAppearance(UUID dest, UUID srca)
+        private void establishAppearance(UUID dest, UUID srca)
         {
 
             m_log.DebugFormat("[RADMIN] Initializing inventory for {0} from {1}", dest, srca);
@@ -1267,10 +1266,13 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             // If the model has no associated appearance we're done.
 
-            if (ava == null)
-            {
-                return new AvatarAppearance();
-            }
+            // if (ava == null) 
+            // {
+            //     return new AvatarAppearance();
+            // }
+
+            if (ava == null) 
+                return;
 
             UICallback sic  = new UICallback();
             UICallback dic  = new UICallback();
@@ -1358,12 +1360,14 @@ namespace OpenSim.ApplicationPlugins.RemoteController
            catch (Exception e)
             {
                 m_log.WarnFormat("[RADMIN] Error transferring inventory for {0} : {1}",
-                    dest, e.Message);
-                return new AvatarAppearance();
+                                 dest, e.Message);
+                // return new AvatarAppearance();
+                return;
             }
-
+            
             m_app.CommunicationsManager.AvatarService.UpdateUserAppearance(dest, ava);
-            return ava;
+            // return ava;
+            return;
 
         }
 
