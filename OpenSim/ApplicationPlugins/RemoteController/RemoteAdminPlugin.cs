@@ -904,8 +904,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                                           firstname, lastname));
 
                     // Establish the avatar's initial appearance
-
-                    updateUserAppearance(responseData, requestData, userID);
+                    // TODO: need to add code to do this only when requested
+                    // updateUserAppearance(responseData, requestData, userID);
 
                     responseData["success"] = true;
                     responseData["avatar_uuid"] = userID.ToString();
@@ -1180,31 +1180,39 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             m_log.DebugFormat("[RADMIN] updateUserAppearance");
 
-            // string dmale   = m_config.GetString("default_male", "Default Male");
-            // string dfemale = m_config.GetString("default_female", "Default Female");
-            // string dneut   = m_config.GetString("default_female", "Default Default");
-            // string dmodel  = dneut;
-            // string model   = dneut;
-            // string dmodel  = String.Empty;
+            string dmale   = m_config.GetString("default_male", "Default Male");
+            string dfemale = m_config.GetString("default_female", "Default Female");
+            string dneut   = m_config.GetString("default_female", "Default Default");
             string model   = String.Empty;
 
             // Has a gender preference been supplied?
 
-            // if (requestData.Contains("gender"))
-            // {
-            //     if ((string)requestData["gender"] == "f")
-            //         dmodel = dmale;
-            //     else
-            //         dmodel = dfemale;
-            // }
-            // else
-            //     dmodel = dneut;
+            if (requestData.Contains("gender"))
+            {
+                switch((string)requestData["gender"])
+                {
+                    case "m" :
+                        model = dmale;
+                        break;
+                    case "f" :
+                        model = dfemale;
+                        break;
+                    case "n" :
+                    default :
+                        model = dneut;
+                        break;
+                }
+            }
             
             // Has an explicit model been specified?
 
-            if (!requestData.Contains("model"))
+            if (requestData.Contains("model"))
+                model = (string)requestData["model"];
+
+            // No appearance attributes were set
+
+            if (model == String.Empty)
                 return;
-            model = (string)requestData["model"];
 
             m_log.DebugFormat("[RADMIN] Setting appearance for avatar {0}, using model {1}", userid, model);
 
@@ -1221,23 +1229,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             // Is this the first time one of the default models has been used? Create it if that is the case
             // otherwise default to male.
 
-            // if (mprof == null)
-            // {
-            //     if (model != dmale && model != dfemale)
-            //     {
-            //         m_log.WarnFormat("[RADMIN] Requested model ({0}) not found. Default appearance assumed",
-            //             model);
-            //         nomens = dmodel.Split();
-            //     }
-            //     if (createDefaultAvatars())
-            //     {
-            //         mprof = m_app.CommunicationsManager.UserService.GetUserProfile(nomens[0], nomens[1]);
-            //     }
-            // }
-
             if (mprof == null)
             {
-                m_log.WarnFormat("[RADMIN] User appearance not set for {0}. Model avatar not found : <{1}>", userid, model);
+                m_log.WarnFormat("[RADMIN] Requested model ({0}) not found. Appearance unchanged", model);
                 return;
             }
 
@@ -1250,7 +1244,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             m_log.DebugFormat("[RADMIN] Finished setting appearance for avatar {0}, using model {1}",
                               userid, model);
         }
-
+        
         /// <summary>
         /// This method is called by updateAvatarAppearance once any specified model has been
         /// ratified, or an appropriate default value has been adopted. The intended prototype
@@ -1280,6 +1274,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             try
             {
+
                 Dictionary<UUID,UUID> imap = new Dictionary<UUID,UUID>();
 
                 iserv.RequestInventoryForUser(dest, dic.callback);
@@ -1356,17 +1351,17 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     throw new Exception("Unable to load both inventories");
                 }
+
+                m_app.CommunicationsManager.AvatarService.UpdateUserAppearance(dest, ava);
+
             }
-           catch (Exception e)
+            catch (Exception e)
             {
                 m_log.WarnFormat("[RADMIN] Error transferring inventory for {0} : {1}",
                                  dest, e.Message);
-                // return new AvatarAppearance();
                 return;
             }
             
-            m_app.CommunicationsManager.AvatarService.UpdateUserAppearance(dest, ava);
-            // return ava;
             return;
 
         }
