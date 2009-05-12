@@ -128,6 +128,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnGenerateClientFlags += GenerateClientFlags;
             m_scene.Permissions.OnAbandonParcel += CanAbandonParcel;
             m_scene.Permissions.OnReclaimParcel += CanReclaimParcel;
+            m_scene.Permissions.OnDeedParcel += CanDeedParcel;
             m_scene.Permissions.OnIsGod += IsGod;
             m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
             m_scene.Permissions.OnDeleteObject += CanDeleteObject; //MAYBE FULLY IMPLEMENTED
@@ -679,6 +680,23 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return GenericParcelPermission(user, parcel);
+        }
+
+        private bool CanDeedParcel(UUID user, ILandObject parcel, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (parcel.landData.OwnerID != user) // Only the owner can deed!
+                return false;
+
+            ScenePresence sp = scene.GetScenePresence(user);
+            IClientAPI client = sp.ControllingClient;
+
+            if ((client.GetGroupPowers(parcel.landData.GroupID) & (long)GroupPowers.LandDeed) == 0)
+                return false;
 
             return GenericParcelPermission(user, parcel);
         }
