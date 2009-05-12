@@ -100,7 +100,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             if (script.StartsWith("//MRM:C#"))
             {
-                if (m_scene.GetSceneObjectPart(localID).OwnerID != m_scene.RegionInfo.MasterAvatarAssignedUUID)
+                if (m_scene.GetSceneObjectPart(localID).OwnerID != m_scene.RegionInfo.MasterAvatarAssignedUUID
+                    ||
+                    m_scene.GetSceneObjectPart(localID).CreatorID != m_scene.RegionInfo.MasterAvatarAssignedUUID)
                     return;
 
                 script = ConvertMRMKeywords(script);
