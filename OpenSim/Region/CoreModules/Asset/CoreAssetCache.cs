@@ -88,6 +88,8 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void AddRegion(Scene scene)
         {
+            if (m_Enabled)
+                scene.RegisterModuleInterface<IImprovedAssetCache>(this);
         }
 
         public void RemoveRegion(Scene scene)
