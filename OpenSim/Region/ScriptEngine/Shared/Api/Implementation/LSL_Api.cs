@@ -7953,6 +7953,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 //            wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
         }
 
+        public LSL_String llRequestSecureURL();
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llRequestSecureURL");
+            return UUID.Zero.ToString();
+        }
+
         public LSL_String llRequestSimulatorData(string simulator, int data)
         {
             IOSSL_Api ossl = (IOSSL_Api)m_ScriptEngine.GetApi(m_itemID, "OSSL");
@@ -8029,7 +8036,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llRequestURL()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRequestURLe");
+            NotImplemented("llRequestURL");
             return UUID.Zero.ToString();
         }
 

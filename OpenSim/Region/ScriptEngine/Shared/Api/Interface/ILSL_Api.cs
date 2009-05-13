@@ -273,6 +273,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
            LSL_Key llRequestAgentData(string id, int data);
            LSL_Key llRequestInventoryData(string name);
               void llRequestPermissions(string agent, int perm);
+        LSL_String llRequestSecureURL();
            LSL_Key llRequestSimulatorData(string simulator, int data);
            LSL_Key llRequestURL();
               void llResetLandBanList();

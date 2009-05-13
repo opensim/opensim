@@ -1224,6 +1224,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llRequestPermissions(agent, perm);
         }
 
+        public LSL_String llRequestSecureURL()
+        {
+            return m_LSL_Functions.llRequestSecureURL();
+        }
+
         public LSL_Key llRequestSimulatorData(string simulator, int data)
         {
             return m_LSL_Functions.llRequestSimulatorData(simulator, data);
