@@ -82,6 +82,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private bool m_automaticLinkPermission=false;
         private IMessageTransferModule m_TransferModule = null;
         private int m_notecardLineReadCharsMax = 255;
+        private IUrlModule m_UrlModule = null;
 
         //private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -107,6 +108,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_TransferModule =
                     m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
+            m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
+
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
 
@@ -2700,7 +2703,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llReleaseURL(string url)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llReleaseURL");
+            if (m_UrlModule != null)
+                m_UrlModule.ReleaseURL(url);
         }
 
         public void llAttachToAvatar(int attachment)
@@ -8030,7 +8034,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llRequestSecureURL()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRequestSecureURL");
+            if (m_UrlModule != null)
+                return m_UrlModule.RequestSecureURL(m_ScriptEngine.ScriptModule, m_host, m_itemID).ToString();
             return UUID.Zero.ToString();
         }
 
@@ -8110,7 +8115,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llRequestURL()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRequestURL");
+
+            if (m_UrlModule != null)
+                return m_UrlModule.RequestURL(m_ScriptEngine.ScriptModule, m_host, m_itemID).ToString();
             return UUID.Zero.ToString();
         }
 

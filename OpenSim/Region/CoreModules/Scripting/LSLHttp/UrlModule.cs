@@ -92,12 +92,14 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         {
         }
 
-        public void RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID)
+        public UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID)
         {
+            return UUID.Zero;
         }
 
-        public void RequestSecureURL(IScriptModule engine, SceneObjectPart host, UUID itemID)
+        public UUID RequestSecureURL(IScriptModule engine, SceneObjectPart host, UUID itemID)
         {
+            return UUID.Zero;
         }
 
         public void ReleaseURL(string url)
@@ -111,6 +113,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public string GetHttpHeader(UUID request, string header)
         {
             return String.Empty;
+        }
+
+        public int GetFreeUrls()
+        {
+            return 0;
         }
     }
 }

@@ -34,10 +34,11 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IUrlModule
     {
-        void RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID);
-        void RequestSecureURL(IScriptModule engine, SceneObjectPart host, UUID itemID);
+        UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID);
+        UUID RequestSecureURL(IScriptModule engine, SceneObjectPart host, UUID itemID);
         void ReleaseURL(string url);
         void HttpResponse(UUID request, int status, string body);
         string GetHttpHeader(UUID request, string header);
+        int GetFreeUrls();
     }
 }
