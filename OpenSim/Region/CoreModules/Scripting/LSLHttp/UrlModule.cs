@@ -121,7 +121,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
                     return urlcode;
                 }
-                string url = "http://"+System.Environment.MachineName+":"+m_HttpServer.Port.ToString()+"/lslhttp/"+urlcode.ToString();
+                string url = "http://"+System.Environment.MachineName+":"+m_HttpServer.Port.ToString()+"/lslhttp/"+urlcode.ToString()+"/";
 
                 UrlData urlData = new UrlData();
                 urlData.hostID = host.UUID;
@@ -133,13 +133,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                 m_UrlMap[url] = urlData;
 
-                m_HttpServer.AddHTTPHandler("/lslhttp/"+urlcode.ToString(), HttpRequestHandler);
+                m_HttpServer.AddHTTPHandler("/lslhttp/"+urlcode.ToString()+"/", HttpRequestHandler);
 
-                m_log.DebugFormat("Posting event http_request to script with url {0}", url);
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }
-
-            m_log.DebugFormat("Returning {0} to LSL", urlcode.ToString());
 
             return urlcode;
         }
@@ -230,7 +227,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         private void RemoveUrl(UrlData data)
         {
-            m_HttpServer.RemoveHTTPHandler("", "/lslhttp/"+data.urlcode.ToString());
+            m_HttpServer.RemoveHTTPHandler("", "/lslhttp/"+data.urlcode.ToString()+"/");
         }
 
         private Hashtable HttpRequestHandler(Hashtable request)
