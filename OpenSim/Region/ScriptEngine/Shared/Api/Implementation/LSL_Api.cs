@@ -7646,6 +7646,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return DateTime.UtcNow.TimeOfDay.TotalSeconds;
         }
 
+        public LSL_String llGetHTTPHeader(LSL_Key request_id, string header)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llGetHTTPHeader");
+            return String.Empty;
+        }
+
+
         public LSL_String llGetSimulatorHostname()
         {
             m_host.AddScriptLPS(1);

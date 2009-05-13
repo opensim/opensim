@@ -474,6 +474,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetGMTclock();
         }
 
+        public LSL_String llGetHTTPHeader(LSL_Key request_id, string header)
+        {
+            return m_LSL_Functions.llGetHTTPHeader(request_id, header);
+        }
+
         public LSL_Key llGetInventoryCreator(string item)
         {
             return m_LSL_Functions.llGetInventoryCreator(item);

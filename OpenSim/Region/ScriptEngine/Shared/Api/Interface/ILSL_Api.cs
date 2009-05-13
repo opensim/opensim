@@ -123,6 +123,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer llGetFreeURLs();
         LSL_Vector llGetGeometricCenter();
          LSL_Float llGetGMTclock();
+        LSL_String llGetHTTPHeader(LSL_Key request_id, string header);
            LSL_Key llGetInventoryCreator(string item);
            LSL_Key llGetInventoryKey(string name);
         LSL_String llGetInventoryName(int type, int number);
