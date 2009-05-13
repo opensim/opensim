@@ -861,8 +861,10 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// Handler to supply the current extended status of this sim
+        /// Handler to supply the current extended status of this sim to a user configured URI
         /// Sends the statistical data in a json serialization 
+        /// If the request contains a key, "callback" the response will be wrappend in the 
+        /// associated value for jsonp used with ajax/javascript
         /// </summary>
         public class UXSimStatusHandler : IStreamedRequestHandler
         {
@@ -894,7 +896,7 @@ namespace OpenSim
 
             public string Path
             {   
-                // This is for the OpenSim instance and is the osSecret hashed
+                // This is for the OpenSim instance and is the user provided URI 
                 get { return "/" + osUXStatsURI + "/"; }
             }
         }
