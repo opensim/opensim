@@ -459,6 +459,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetFreeMemory();
         }
 
+        public LSL_Integer llGetFreeURLs()
+        {
+            return m_LSL_Functions.llGetFreeURLs();
+        }
+
         public LSL_Vector llGetGeometricCenter()
         {
             return m_LSL_Functions.llGetGeometricCenter();

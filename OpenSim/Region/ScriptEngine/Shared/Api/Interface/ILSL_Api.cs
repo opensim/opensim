@@ -120,6 +120,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_Float llGetEnergy();
         LSL_Vector llGetForce();
        LSL_Integer llGetFreeMemory();
+       LSL_Integer llGetFreeURLs();
         LSL_Vector llGetGeometricCenter();
          LSL_Float llGetGMTclock();
            LSL_Key llGetInventoryCreator(string item);

@@ -5557,6 +5557,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 16384;
         }
 
+        public LSL_Integer llGetFreeURLs()
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llGetFreeURLs");
+            return new LSL_Integer(0);
+        }
+
+
         public LSL_String llGetRegionName()
         {
             m_host.AddScriptLPS(1);
