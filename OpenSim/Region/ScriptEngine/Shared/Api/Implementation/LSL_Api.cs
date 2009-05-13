@@ -8878,6 +8878,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return null;
         }
 
+
+        public void llHTTPResponse(string url, int status, string body)
+        {
+            // Partial implementation: support for parameter flags needed
+            //   see http://wiki.secondlife.com/wiki/llHTTPResponse
+
+            m_host.AddScriptLPS(1);
+            NotImplemented("llHTTPResponse");
+        }
+        
         public void llResetLandBanList()
         {
             m_host.AddScriptLPS(1);
