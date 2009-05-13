@@ -336,7 +336,7 @@ namespace OpenSim.Framework
 
         public byte AccessLevel
         {
-            get { return (byte)Util.ConvertMaturityToAccessLevel((uint)m_regionSettings.Maturity); }
+            get { return (byte)Util.ConvertMaturityToAccessLevel((uint)RegionSettings.Maturity); }
         }
 
         public void SetEndPoint(string ipaddr, int port)
