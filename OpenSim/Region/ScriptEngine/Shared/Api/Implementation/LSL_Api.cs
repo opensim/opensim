@@ -2697,6 +2697,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public void llReleaseURL(string url)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llReleaseURL");
+        }
+
         public void llAttachToAvatar(int attachment)
         {
             m_host.AddScriptLPS(1);
@@ -7953,7 +7959,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 //            wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
         }
 
-        public LSL_String llRequestSecureURL();
+        public LSL_String llRequestSecureURL()
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llRequestSecureURL");

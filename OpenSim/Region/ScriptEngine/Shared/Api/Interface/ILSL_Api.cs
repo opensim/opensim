@@ -262,6 +262,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llRegionSay(int channelID, string text);
               void llReleaseCamera(string avatar);
               void llReleaseControls();
+              void llReleaseURL(string url);
               void llRemoteDataReply(string channel, string message_id, string sdata, int idata);
               void llRemoteDataSetRegion();
               void llRemoteLoadScript(string target, string name, int running, int start_param);
