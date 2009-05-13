@@ -203,8 +203,10 @@ namespace OpenSim.Framework.Communications.Capabilities
                 m_capsHandlers["UpdateScriptAgentInventory"] = m_capsHandlers["UpdateNotecardAgentInventory"];
                 m_capsHandlers["UpdateScriptAgent"] = m_capsHandlers["UpdateScriptAgentInventory"];
                 
-                // As of RC 1.22.9 of the Linden client this is supported
-                m_capsHandlers["WebFetchInventoryDescendents"] =new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryDescendentsRequest);
+                // As of RC 1.22.9 of the Linden client this is
+                // supported
+
+                // m_capsHandlers["WebFetchInventoryDescendents"] =new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryDescendentsRequest);
 
                 // justincc: I've disabled the CAPS service for now to fix problems with selecting textures, and
                 // subsequent inventory breakage, in the edit object pane (such as mantis 1085).  This requires
