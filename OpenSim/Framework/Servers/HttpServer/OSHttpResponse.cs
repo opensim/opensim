@@ -45,7 +45,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// Setting this property will also set IsContentTypeSet to
         /// true.
         /// </remarks>
-        public string ContentType
+        public virtual string ContentType
         {
             get
             {
@@ -226,7 +226,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <summary>
         /// HTTP status code.
         /// </summary>
-        public int StatusCode
+        public virtual int StatusCode
         {
             get
             {

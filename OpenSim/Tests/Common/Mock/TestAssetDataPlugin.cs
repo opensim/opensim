@@ -37,40 +37,15 @@ namespace OpenSim.Tests.Common.Mock
     /// mono addin plugin system starts co-operating with the unit test system.  Currently no locking since unit
     /// tests are single threaded.
     /// </summary>
-    public class TestAssetDataPlugin : IAssetDataPlugin
+    public class TestAssetDataPlugin : BaseAssetRepository, IAssetDataPlugin
     {        
         public string Version { get { return "0"; } }
         public string Name { get { return "TestAssetDataPlugin"; } }
-                
-        protected Dictionary<UUID, AssetBase> Assets = new Dictionary<UUID, AssetBase>();        
 
         public void Initialise() {}
         public void Initialise(string connect) {}
         public void Dispose() {}
 
-        public AssetBase FetchAsset(UUID uuid) 
-        {
-            if (ExistsAsset(uuid))
-                return Assets[uuid];
-            else
-                return null;
-        }
-        
-        public void CreateAsset(AssetBase asset) 
-        {
-            Assets[asset.FullID] = asset;
-        }
-        
-        public void UpdateAsset(AssetBase asset) 
-        {
-            CreateAsset(asset);
-        }
-        
-        public bool ExistsAsset(UUID uuid) 
-        { 
-            return Assets.ContainsKey(uuid); 
-        }
-        
         public List<AssetMetadata> FetchAssetMetadataSet(int start, int count) { return new List<AssetMetadata>(count); }        
     }
 }

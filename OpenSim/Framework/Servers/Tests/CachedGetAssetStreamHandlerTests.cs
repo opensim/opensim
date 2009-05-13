@@ -4,7 +4,10 @@ using System.Text;
 using NUnit.Framework;
 using OpenSim.Data;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
+using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Framework.Servers.Tests
 {
@@ -59,14 +62,34 @@ namespace OpenSim.Framework.Servers.Tests
             BaseRequestHandlerTestHelper.BaseTestHandleMalformedGuid(handler, ASSETS_PATH);
         }
 
-        //[Test]
-        //public void TestHandleFetchMissingAsset()
-        //{
+        [Test]
+        public void TestHandleFetchMissingAsset()
+        {
+            IAssetCache assetCache = new TestAssetCache();
+            CachedGetAssetStreamHandler handler = new CachedGetAssetStreamHandler(assetCache);
 
-        //    byte[] emptyResult = new byte[] { };
-        //    CachedGetAssetStreamHandler handler = new CachedGetAssetStreamHandler(null);
+            GetAssetStreamHandlerTestHelpers.BaseFetchMissingAsset(handler);
+        }
 
-        //    Assert.AreEqual(new string[] { }, handler.Handle("/assets/badGuid", null, null, null), "Failed on bad guid.");
-        //}
+        [Test]
+        public void TestHandleFetchExistingAssetData()
+        {
+            CachedGetAssetStreamHandler handler;
+            OSHttpResponse response;
+            AssetBase asset = CreateTestEnvironment(out handler, out response);
+
+            GetAssetStreamHandlerTestHelpers.BaseFetchExistingAssetDataTest(asset, handler, response);
+        }
+
+        private static AssetBase CreateTestEnvironment(out CachedGetAssetStreamHandler handler, out OSHttpResponse response)
+        {
+            AssetBase asset = GetAssetStreamHandlerTestHelpers.CreateCommonTestResources(out response);
+
+            IAssetCache assetDataPlugin = new TestAssetCache();
+            handler = new CachedGetAssetStreamHandler(assetDataPlugin);
+
+            assetDataPlugin.AddAsset(asset);
+            return asset;
+        }
     }
 }

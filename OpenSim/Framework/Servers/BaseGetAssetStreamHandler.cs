@@ -60,7 +60,7 @@ namespace OpenSim.Framework.Servers
 
             if (p.Length > 0)
             {
-                UUID assetID = UUID.Zero;
+                UUID assetID;
 
                 if (!UUID.TryParse(p[0], out assetID))
                 {
@@ -70,16 +70,14 @@ namespace OpenSim.Framework.Servers
                 }
 
                 if (StatsManager.AssetStats != null)
+                {
                     StatsManager.AssetStats.AddRequest();
+                }
 
                 AssetBase asset = GetAsset(assetID); 
 
                 if (asset != null)
                 {
-//                    if (asset.ContainsReferences)
-//                    {                       
-//                        asset.Data = ProcessOutgoingAssetData(asset.Data);
-//                    }
                     if (p.Length > 1 && p[1] == "data")
                     {
                         httpResponse.StatusCode = (int)HttpStatusCode.OK;
@@ -88,30 +86,39 @@ namespace OpenSim.Framework.Servers
                     }
                     else
                     {
-                        XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
-                        MemoryStream ms = new MemoryStream();
-                        XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
-                        xw.Formatting = Formatting.Indented;
-                        xs.Serialize(xw, asset);
-                        xw.Flush();
-
-                        ms.Seek(0, SeekOrigin.Begin);
-                        //StreamReader sr = new StreamReader(ms);
-
-                        result = ms.GetBuffer();
-
-                        Array.Resize<byte>(ref result, (int)ms.Length);
+                        result = GetXml(asset);
                     }
                 }
                 else
                 {
                     if (StatsManager.AssetStats != null)
+                    {
                         StatsManager.AssetStats.AddNotFoundRequest();
+                    }
 
                     m_log.InfoFormat("[REST]: GET:/asset failed to find {0}", assetID);
                 }
             }
 
+            return result;
+        }
+
+        public static byte[] GetXml(AssetBase asset)
+        {
+            byte[] result;
+            XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
+            MemoryStream ms = new MemoryStream();
+            XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
+            xw.Formatting = Formatting.Indented;
+            xs.Serialize(xw, asset);
+            xw.Flush();
+
+            ms.Seek(0, SeekOrigin.Begin);
+            //StreamReader sr = new StreamReader(ms);
+
+            result = ms.GetBuffer();
+
+            Array.Resize<byte>(ref result, (int)ms.Length);
             return result;
         }
 
