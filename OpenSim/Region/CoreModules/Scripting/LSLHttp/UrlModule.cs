@@ -59,6 +59,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
     public class UrlModule : ISharedRegionModule, IUrlModule
     {
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
         private Dictionary<UUID, UrlData> m_RequestMap =
                 new Dictionary<UUID, UrlData>();
 
@@ -90,6 +94,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 //
                 m_HttpServer = scene.CommsManager.HttpServer;
             }
+
+            scene.RegisterModuleInterface<IUrlModule>(this);
         }
 
         public void RegionLoaded(Scene scene)
@@ -115,7 +121,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
                     return urlcode;
                 }
-                string url = "http://"+System.Environment.MachineName+"/"+urlcode.ToString();
+                string url = "http://"+System.Environment.MachineName+"/lslhttp/"+urlcode.ToString();
 
                 UrlData urlData = new UrlData();
                 urlData.hostID = host.UUID;
@@ -129,8 +135,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                 m_HttpServer.AddHTTPHandler("/lslhttp/"+urlcode.ToString(), HttpRequestHandler);
 
+                m_log.DebugFormat("Posting event http_request to script with url {0}", url);
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }
+
+            m_log.DebugFormat("Returning {0} to LSL", urlcode.ToString());
 
             return urlcode;
         }
@@ -226,6 +235,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         private Hashtable HttpRequestHandler(Hashtable request)
         {
+            foreach (KeyValuePair<string, Object> kvp in request)
+            {
+                m_log.DebugFormat("{0} = {1}", kvp.Key, kvp.Value.ToString());
+            }
             Hashtable response = new Hashtable();
             response["int_response_code"] = 404;
 
