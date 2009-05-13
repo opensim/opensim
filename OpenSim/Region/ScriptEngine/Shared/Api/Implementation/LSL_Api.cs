@@ -2712,7 +2712,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llDetachFromAvatar()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetachFromAvatar");
+
+            if (m_host.ParentGroup.RootPart.AttachmentPoint == 0)
+                return;
+
+            TaskInventoryItem item;
+
+            lock (m_host.TaskInventory)
+            {
+                if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
+                    return;
+                else
+                    item = m_host.TaskInventory[InventorySelf()];
+            }
+            
+            if (item.PermsGranter != m_host.OwnerID)
+                return;
+
+            if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
+            {
+                SceneObjectGroup grp = m_host.ParentGroup;
+                UUID itemID = grp.GetFromAssetID();
+
+                ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+
+                m_ScriptEngine.World.DetachSingleAttachmentToInv(itemID,
+                        presence.ControllingClient);
+            }
         }
 
         public void llTakeCamera(string avatar)
