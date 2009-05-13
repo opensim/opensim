@@ -2706,7 +2706,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llAttachToAvatar(int attachment)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llAttachToAvatar");
+
+            if (m_host.ParentGroup.RootPart.AttachmentPoint == 0)
+                return;
+
+            TaskInventoryItem item;
+
+            lock (m_host.TaskInventory)
+            {
+                if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
+                    return;
+                else
+                    item = m_host.TaskInventory[InventorySelf()];
+            }
+            
+            if (item.PermsGranter != m_host.OwnerID)
+                return;
+
+            if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
+            {
+                SceneObjectGroup grp = m_host.ParentGroup;
+
+                ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+
+                m_ScriptEngine.World.AttachObject(presence.ControllingClient,
+                        grp.LocalId, (uint)attachment, Quaternion.Identity,
+                        Vector3.Zero, false);
+            }
         }
 
         public void llDetachFromAvatar()
