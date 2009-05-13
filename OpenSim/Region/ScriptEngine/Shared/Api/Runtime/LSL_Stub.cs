@@ -1164,6 +1164,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llReleaseCamera(avatar);
         }
 
+        public void llReleaseURL(string url)
+        {
+            m_LSL_Functions.llReleaseURL(url);
+        }
+
         public void llReleaseControls()
         {
             m_LSL_Functions.llReleaseControls();
