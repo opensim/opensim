@@ -109,6 +109,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_TransferModule =
                     m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
+            if (m_UrlModule != null)
+            {
+                m_ScriptEngine.OnScriptRemoved += m_UrlModule.ScriptRemoved;
+                m_ScriptEngine.OnObjectRemoved += m_UrlModule.ObjectRemoved;
+            }
 
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
@@ -5616,7 +5621,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetFreeURLs()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetFreeURLs");
+            if (m_UrlModule != null)
+                return new LSL_Integer(m_UrlModule.GetFreeUrls());
             return new LSL_Integer(0);
         }
 

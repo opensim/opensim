@@ -26,11 +26,14 @@
  */
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
+using System.Collections;
 using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -40,17 +43,18 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
     {
         public UUID hostID;
         public UUID itemID;
-        Scene scene;
-        IScriptModule engine;
-        string url;
-        Dictionary<UUID, RequestData> requests;
+        public IScriptModule engine;
+        public string url;
+        public UUID urlcode;
+        public Dictionary<UUID, RequestData> requests;
     }
 
     public class RequestData
     {
-        UUID requestID;
-        Dictionary<string, string> headers;
-        string body;
+        public UUID requestID;
+        public Dictionary<string, string> headers;
+        public string body;
+        public ManualResetEvent ev;
     }
 
     public class UrlModule : ISharedRegionModule, IUrlModule
@@ -61,7 +65,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         private Dictionary<string, UrlData> m_UrlMap =
                 new Dictionary<string, UrlData>();
 
-        private int m_TotalUrls = 0;
+        private int m_TotalUrls = 100;
+
+        private IHttpServer m_HttpServer = null;
 
         public string Name
         {
@@ -78,6 +84,12 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public void AddRegion(Scene scene)
         {
+            if (m_HttpServer == null)
+            {
+                // There can only be one
+                //
+                m_HttpServer = scene.CommsManager.HttpServer;
+            }
         }
 
         public void RegionLoaded(Scene scene)
@@ -94,16 +106,59 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID)
         {
-            return UUID.Zero;
+            UUID urlcode = UUID.Random();
+
+            lock (m_UrlMap)
+            {
+                if (m_UrlMap.Count >= m_TotalUrls)
+                {
+                    engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
+                    return urlcode;
+                }
+                string url = "http://"+System.Environment.MachineName+"/"+urlcode.ToString();
+
+                UrlData urlData = new UrlData();
+                urlData.hostID = host.UUID;
+                urlData.itemID = itemID;
+                urlData.engine = engine;
+                urlData.url = url;
+                urlData.urlcode = urlcode;
+                urlData.requests = new Dictionary<UUID, RequestData>();
+
+                m_UrlMap[url] = urlData;
+
+                m_HttpServer.AddHTTPHandler("/lslhttp/"+urlcode.ToString(), HttpRequestHandler);
+
+                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
+            }
+
+            return urlcode;
         }
 
         public UUID RequestSecureURL(IScriptModule engine, SceneObjectPart host, UUID itemID)
         {
-            return UUID.Zero;
+            UUID urlcode = UUID.Random();
+
+            engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
+
+            return urlcode;
         }
 
         public void ReleaseURL(string url)
         {
+            lock (m_UrlMap)
+            {
+                UrlData data;
+
+                if (!m_UrlMap.TryGetValue(url, out data))
+                    return;
+
+                foreach (UUID req in data.requests.Keys)
+                    m_RequestMap.Remove(req);
+
+                RemoveUrl(data);
+                m_UrlMap.Remove(url);
+            }
         }
 
         public void HttpResponse(UUID request, int status, string body)
@@ -117,7 +172,64 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public int GetFreeUrls()
         {
-            return 0;
+            return m_TotalUrls - m_UrlMap.Count;
+        }
+
+        public void ScriptRemoved(UUID itemID)
+        {
+            lock(m_UrlMap)
+            {
+                List<string> removeURLs = new List<string>();
+
+                foreach(KeyValuePair<string, UrlData> url in m_UrlMap)
+                {
+                    if (url.Value.itemID == itemID)
+                    {
+                        RemoveUrl(url.Value);
+                        removeURLs.Add(url.Key);
+                        foreach (UUID req in url.Value.requests.Keys)
+                            m_RequestMap.Remove(req);
+                    }
+                }
+
+                foreach (string urlname in removeURLs)
+                    m_UrlMap.Remove(urlname);
+            }
+        }
+
+        public void ObjectRemoved(UUID objectID)
+        {
+            lock(m_UrlMap)
+            {
+                List<string> removeURLs = new List<string>();
+
+                foreach(KeyValuePair<string, UrlData> url in m_UrlMap)
+                {
+                    if (url.Value.hostID == objectID)
+                    {
+                        RemoveUrl(url.Value);
+                        removeURLs.Add(url.Key);
+                        foreach (UUID req in url.Value.requests.Keys)
+                            m_RequestMap.Remove(req);
+                    }
+                }
+
+                foreach (string urlname in removeURLs)
+                    m_UrlMap.Remove(urlname);
+            }
+        }
+
+        private void RemoveUrl(UrlData data)
+        {
+            m_HttpServer.RemoveHTTPHandler("", "/lslhttp/"+data.urlcode.ToString());
+        }
+
+        private Hashtable HttpRequestHandler(Hashtable request)
+        {
+            Hashtable response = new Hashtable();
+            response["int_response_code"] = 404;
+
+            return response;
         }
     }
 }
