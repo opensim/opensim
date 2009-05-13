@@ -1,3 +1,10 @@
+[Startup]
+; These are also available as command line options
+
+; console = "local" ; Use "basic" to use this on a pipe
+; inifile = "OpenSim.Servers.AssetServer.ini"
+; logfile = "AssetServer.log" ; Also read from application config file
+
 [Network]
 port = 8003
 
