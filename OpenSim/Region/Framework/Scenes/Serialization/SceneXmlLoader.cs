@@ -33,10 +33,10 @@ using System.Xml;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
 
-namespace OpenSim.Region.Framework.Scenes
+namespace OpenSim.Region.Framework.Scenes.Serialization
 {
     /// <summary>
     /// Static methods to serialize and deserialize scene objects to and from XML
