@@ -68,7 +68,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public void Initialise()
         {
-            m_log.Info("[LOADREGIONS]: " + Name + " cannot be default-initialized!");
+            m_log.Error("[LOADREGIONS]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException(Name);
         }
 
@@ -80,17 +80,17 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public void PostInitialise()
         {
-            m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");
+            //m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");
 
             IRegionLoader regionLoader;
             if (m_openSim.ConfigSource.Source.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
             {
-                m_log.Info("[LOADREGIONS]: Loading Region Info from filesystem");
+                m_log.Info("[LOADREGIONS]: Loading region configurations from filesystem");
                 regionLoader = new RegionLoaderFileSystem();
             }
             else
             {
-                m_log.Info("[LOADREGIONSPLUGIN]: Loading Region Info from web");
+                m_log.Info("[LOADREGIONSPLUGIN]: Loading region configurations from web");
                 regionLoader = new RegionLoaderWebServer();
             }
 
@@ -142,38 +142,33 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         /// <returns>True if we're sane, false if we're insane</returns>
         private bool CheckRegionsForSanity(RegionInfo[] regions)
         {
-            if (regions.Length <= 0)
+            if (regions.Length <= 1)
                 return true;
 
-            List<RegionInfo> checkedRegions = new List<RegionInfo>();
-            checkedRegions.Add(regions[0]);
-
-            for (int i = 1; i < regions.Length; i++)
+            for (int i = 0; i < regions.Length - 1; i++)
             {
-                RegionInfo region = regions[i];
-
-                foreach (RegionInfo checkedRegion in checkedRegions)
+                for (int j = i + 1; j < regions.Length; j++)
                 {
-                    if (region.RegionID == checkedRegion.RegionID)
+                    if (regions[i].RegionID == regions[j].RegionID)
                     {
                         m_log.ErrorFormat(
                             "[LOADREGIONS]: Regions {0} and {1} have the same UUID {2}",
-                            region.RegionName, checkedRegion.RegionName, region.RegionID);
+                            regions[i].RegionName, regions[j].RegionName, regions[i].RegionID);
                         return false;
                     }
-                    else if (region.RegionLocX == checkedRegion.RegionLocX &&
-                             region.RegionLocY == checkedRegion.RegionLocY)
+                    else if (
+                        regions[i].RegionLocX == regions[j].RegionLocX && regions[i].RegionLocY == regions[j].RegionLocY)
                     {
                         m_log.ErrorFormat(
-                            "[LOADREGIONS]: Regions {0} and {1} have the same location {2} {3}",
-                            region.RegionName, checkedRegion.RegionName, region.RegionLocX, region.RegionLocY);
+                            "[LOADREGIONS]: Regions {0} and {1} have the same grid location ({2}, {3})",
+                            regions[i].RegionName, regions[j].RegionName, regions[i].RegionLocX, regions[i].RegionLocY);
                         return false;
                     }
-                    else if (region.InternalEndPoint.Port == checkedRegion.InternalEndPoint.Port)
+                    else if (regions[i].InternalEndPoint.Port == regions[j].InternalEndPoint.Port)
                     {
                         m_log.ErrorFormat(
                             "[LOADREGIONS]: Regions {0} and {1} have the same internal IP port {2}",
-                            region.RegionName, checkedRegion.RegionName, region.InternalEndPoint.Port);
+                            regions[i].RegionName, regions[j].RegionName, regions[i].InternalEndPoint.Port);
                         return false;
                     }
                 }
