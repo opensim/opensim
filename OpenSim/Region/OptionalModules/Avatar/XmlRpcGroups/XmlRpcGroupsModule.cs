@@ -541,7 +541,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         #region IGroupsModule Members
 
         public event NewGroupNotice OnNewGroupNotice;
-        public event GroupChange OnGroupChange;
 
         public GroupRecord GetGroupRecord(UUID GroupID)
         {

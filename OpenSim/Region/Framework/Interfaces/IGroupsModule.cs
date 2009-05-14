@@ -32,12 +32,10 @@ using OpenSim.Framework;
 namespace OpenSim.Region.Framework.Interfaces
 {
     public delegate void NewGroupNotice(UUID groupID, UUID noticeID);
-    public delegate void GroupChange(UUID groupID);
 
     public interface IGroupsModule
     {
         event NewGroupNotice OnNewGroupNotice;
-        event GroupChange OnGroupChange;
 
         void ActivateGroup(IClientAPI remoteClient, UUID groupID);
         List<GroupTitlesData> GroupTitlesRequest(IClientAPI remoteClient, UUID groupID);
