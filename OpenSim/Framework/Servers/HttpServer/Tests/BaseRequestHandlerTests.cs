@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
-using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Framework.Servers.HttpServer.Tests
 {
