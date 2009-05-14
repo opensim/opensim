@@ -28,35 +28,32 @@
 using log4net;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Servers.Connectors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-using OpenSim.Framework.Communications;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 {
     public class RemoteAssetServicesConnector :
-            ISharedRegionModule, IAssetService
+            AssetServicesConnector, ISharedRegionModule, IAssetService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
-        private string m_ServerURI = String.Empty;
-        private IImprovedAssetCache m_Cache = null;
+        private IImprovedAssetCache m_Cache;
 
         public string Name
         {
             get { return "RemoteAssetServicesConnector"; }
         }
 
-        public void Initialise(IConfigSource source)
+        public override void Initialise(IConfigSource source)
         {
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
@@ -71,16 +68,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
                         return;
                     }
 
-                    string serviceURI = assetConfig.GetString("AssetServerURI",
-                            String.Empty);
-
-                    if (serviceURI == String.Empty)
-                    {
-                        m_log.Error("[ASSET CONNECTOR]: No Server URI named in section AssetService");
-                        return;
-                    }
                     m_Enabled = true;
-                    m_ServerURI = serviceURI;
+
+                    base.Initialise(source);
 
                     m_log.Info("[ASSET CONNECTOR]: Remote assets enabled");
                 }
@@ -121,6 +111,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
                 //
                 if (!(m_Cache is ISharedRegionModule))
                     m_Cache = null;
+                else
+                    SetCache(m_Cache);
+
             }
 
             m_log.InfoFormat("[ASSET CONNECTOR]: Enabled remote assets for region {0}", scene.RegionInfo.RegionName);
@@ -129,174 +122,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
             {
                 m_log.InfoFormat("[ASSET CONNECTOR]: Enabled asset caching for region {0}", scene.RegionInfo.RegionName);
             }
-        }
-
-        public AssetBase Get(string id)
-        {
-            string uri = m_ServerURI + "/assets/" + id;
-
-            AssetBase asset = null;
-            if (m_Cache != null)
-                asset = m_Cache.Get(id);
-
-            if (asset == null)
-            {
-                asset = SynchronousRestObjectRequester.
-                        MakeRequest<int, AssetBase>("GET", uri, 0);
-
-                if (m_Cache != null)
-                    m_Cache.Cache(asset);
-            }
-            return asset;
-        }
-
-        public AssetMetadata GetMetadata(string id)
-        {
-            if (m_Cache != null)
-            {
-                AssetBase fullAsset = m_Cache.Get(id);
-
-                if (fullAsset != null)
-                    return fullAsset.Metadata;
-            }
-
-            string uri = m_ServerURI + "/assets/" + id + "/metadata";
-
-            AssetMetadata asset = SynchronousRestObjectRequester.
-                    MakeRequest<int, AssetMetadata>("GET", uri, 0);
-            return asset;
-        }
-
-        public byte[] GetData(string id)
-        {
-            if (m_Cache != null)
-            {
-                AssetBase fullAsset = m_Cache.Get(id);
-
-                if (fullAsset != null)
-                    return fullAsset.Data;
-            }
-
-            RestClient rc = new RestClient(m_ServerURI);
-            rc.AddResourcePath("assets");
-            rc.AddResourcePath(id);
-            rc.AddResourcePath("data");
-
-            rc.RequestMethod = "GET";
-
-            Stream s = rc.Request();
-
-            if (s == null)
-                return null;
-
-            if (s.Length > 0)
-            {
-                byte[] ret = new byte[s.Length];
-                s.Read(ret, 0, (int)s.Length);
-
-                return ret;
-            }
-
-            return null;
-        }
-
-        public bool Get(string id, Object sender, AssetRetrieved handler)
-        {
-            string uri = m_ServerURI + "/assets/" + id;
-
-            AssetBase asset = null;
-            if (m_Cache != null)
-                asset = m_Cache.Get(id);
-
-            if (asset == null)
-            {
-                AsynchronousRestObjectRequester.
-                        MakeRequest<int, AssetBase>("GET", uri, 0,
-                        delegate(AssetBase a)
-                        {
-                            if (m_Cache != null)
-                                m_Cache.Cache(a);
-                            handler(id, sender, a);
-                        });
-
-            }
-            else
-            {
-                handler(id, sender, asset);
-            }
-
-            return true;
-        }
-
-        public string Store(AssetBase asset)
-        {
-            if (asset.Temporary || asset.Local)
-            {
-                if (m_Cache != null)
-                    m_Cache.Cache(asset);
-
-                return asset.ID;
-            }
-
-            string uri = m_ServerURI + "/assets/";
-
-            string newID = SynchronousRestObjectRequester.
-                    MakeRequest<AssetBase, string>("POST", uri, asset);
-
-            if (newID != String.Empty)
-            {
-                asset.ID = newID;
-
-                if (m_Cache != null)
-                    m_Cache.Cache(asset);
-            }
-            return newID;
-        }
-
-        public bool UpdateContent(string id, byte[] data)
-        {
-            AssetBase asset = null;
-
-            if (m_Cache != null)
-                asset = m_Cache.Get(id);
-
-            if (asset == null)
-            {
-                AssetMetadata metadata = GetMetadata(id);
-                if (metadata == null)
-                    return false;
-
-                asset = new AssetBase();
-                asset.Metadata = metadata;
-            }
-            asset.Data = data;
-
-            string uri = m_ServerURI + "/assets/" + id;
-
-            if (SynchronousRestObjectRequester.
-                    MakeRequest<AssetBase, bool>("POST", uri, asset))
-            {
-                if (m_Cache != null)
-                    m_Cache.Cache(asset);
-
-                return true;
-            }
-            return false;
-        }
-
-        public bool Delete(string id)
-        {
-            string uri = m_ServerURI + "/assets/" + id;
-
-            if (SynchronousRestObjectRequester.
-                    MakeRequest<int, bool>("DELETE", uri, 0))
-            {
-                if (m_Cache != null)
-                    m_Cache.Expire(id);
-
-                return true;
-            }
-            return false;
         }
     }
 }

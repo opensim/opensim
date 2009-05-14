@@ -27,7 +27,7 @@
 
 using OpenSim.Framework;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Framework
 {
     public interface IImprovedAssetCache
     {
