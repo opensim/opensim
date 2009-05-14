@@ -39,6 +39,7 @@ using OpenSim.Framework.Serialization;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Setup;
 
@@ -242,7 +243,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 part1Name,
                 Math.Round(groupPosition.X), Math.Round(groupPosition.Y), Math.Round(groupPosition.Z),
                 part1.UUID);
-            tar.WriteFile(ArchiveConstants.OBJECTS_PATH + object1FileName, object1.ToXmlString2());
+            tar.WriteFile(ArchiveConstants.OBJECTS_PATH + object1FileName, SceneObjectSerializer.ToXml2Format(object1));
             
             tar.Close();
 

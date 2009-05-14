@@ -31,6 +31,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Xml;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.CoreModules.World.Serialiser
 {
@@ -86,7 +87,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
             {
                 if (ent is SceneObjectGroup)
                 {
-                    EntityXml.Add(((SceneObjectGroup) ent).ToXmlString2());
+                    EntityXml.Add(SceneObjectSerializer.ToXml2Format((SceneObjectGroup)ent));
                 }
             }
             EntityXml.Sort();

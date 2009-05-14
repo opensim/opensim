@@ -101,7 +101,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public static string SaveGroupToXml2(SceneObjectGroup grp)
         {
-            return grp.ToXmlString2();
+            return SceneObjectSerializer.ToXml2Format(grp);
         }
 
         public static SceneObjectGroup DeserializeGroupFromXml2(string xmlString)
@@ -278,7 +278,7 @@ namespace OpenSim.Region.Framework.Scenes
                             continue;
                     }
 
-                    stream.WriteLine(g.ToXmlString2());
+                    stream.WriteLine(SceneObjectSerializer.ToXml2Format(g));
                     primCount++;
                 }
             }

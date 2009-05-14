@@ -44,6 +44,7 @@ using OpenSim.Framework.Communications.Osp;
 using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
@@ -108,7 +109,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             AssetBase asset1 = new AssetBase();
             asset1.FullID = asset1Id;
-            asset1.Data = Encoding.ASCII.GetBytes(object1.ToXmlString2());
+            asset1.Data = Encoding.ASCII.GetBytes(SceneObjectSerializer.ToXml2Format(object1));
             cm.AssetCache.AddAsset(asset1);
 
             // Create item

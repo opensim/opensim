@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Xml;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -33,7 +34,7 @@ namespace OpenSim.Framework
     {
         UUID UUID { get; }
         ISceneObject CloneForNewScene();
-        string ToXmlString2();
+        void ToXml2(XmlTextWriter writer);
         string ExtraToXmlString();
         void ExtraFromXmlString(string xmlstr);
         string GetStateSnapshot();

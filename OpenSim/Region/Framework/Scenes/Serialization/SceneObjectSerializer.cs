@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Xml;
 using log4net;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Scenes.Serialization
@@ -246,6 +247,24 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteEndElement(); // SceneObjectGroup
 
             //m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
+        }
+
+        /// <summary>
+        /// Serialize a scene object to the 'xml2' format.
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <returns></returns>               
+        public static string ToXml2Format(ISceneObject sceneObject)
+        {
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                {
+                    sceneObject.ToXml2(writer);
+                }
+
+                return sw.ToString();
+            }
         }        
     }
 }

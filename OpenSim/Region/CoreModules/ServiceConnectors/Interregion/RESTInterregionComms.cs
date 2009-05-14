@@ -276,7 +276,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
                 RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
-                    return m_regionClient.DoCreateObjectCall(regInfo, sog, m_aScene.m_allowScriptCrossings);
+                    return m_regionClient.DoCreateObjectCall(
+                        regInfo, sog, SceneObjectSerializer.ToXml2Format(sog), m_aScene.m_allowScriptCrossings);
                 }
                 //else
                 //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);

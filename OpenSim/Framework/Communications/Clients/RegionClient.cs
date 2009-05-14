@@ -362,10 +362,12 @@ namespace OpenSim.Framework.Communications.Clients
             return true;
         }
 
-        public bool DoCreateObjectCall(RegionInfo region, ISceneObject sog, bool allowScriptCrossing)
+        public bool DoCreateObjectCall(RegionInfo region, ISceneObject sog, string sogXml2, bool allowScriptCrossing)
         {
             ulong regionHandle = GetRegionHandle(region.RegionHandle);
-            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/object/" + sog.UUID + "/" + regionHandle.ToString() + "/";
+            string uri 
+                = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort 
+                    + "/object/" + sog.UUID + "/" + regionHandle.ToString() + "/";
             //m_log.Debug("   >>> DoCreateChildAgentCall <<< " + uri);
 
             WebRequest ObjectCreateRequest = WebRequest.Create(uri);
@@ -374,7 +376,7 @@ namespace OpenSim.Framework.Communications.Clients
             ObjectCreateRequest.Timeout = 10000;
 
             OSDMap args = new OSDMap(2);
-            args["sog"] = OSD.FromString(sog.ToXmlString2());
+            args["sog"] = OSD.FromString(sogXml2);
             args["extra"] = OSD.FromString(sog.ExtraToXmlString());
             if (allowScriptCrossing)
             {

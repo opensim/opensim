@@ -583,19 +583,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        public string ToXmlString2()
-        {
-            using (StringWriter sw = new StringWriter())
-            {
-                using (XmlTextWriter writer = new XmlTextWriter(sw))
-                {
-                    ToXml2(writer);
-                }
-
-                return sw.ToString();
-            }
-        }
-
         public void ToXml2(XmlTextWriter writer)
         {
             //m_log.DebugFormat("[SOG]: Starting serialization of SOG {0} to XML2", Name);
