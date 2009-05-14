@@ -25,37 +25,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using Nini.Config;
+using log4net;
+using System;
+using System.Reflection;
+using System.IO;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Serialization;
 using OpenSim.Servers.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Servers.AssetServer
+namespace OpenSim.Servers.AssetServer.Handlers
 {
-    public class AssetServiceConnector
+    public class AssetServerPostHandler : BaseStreamHandler
     {
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
         private IAssetService m_AssetService;
 
-        public AssetServiceConnector(IConfigSource config, IHttpServer server)
+        public AssetServerPostHandler(IAssetService service) :
+                base("POST", "/assets")
         {
-            IConfig serverConfig = config.Configs["AssetService"];
-            if (serverConfig == null)
-                throw new Exception("No section 'Server' in config file");
+            m_AssetService = service;
+        }
 
-            string assetService = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
+        public override byte[] Handle(string path, Stream request,
+                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        {
+            XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
+            AssetBase asset = (AssetBase) xs.Deserialize(request);
 
-            if (assetService == String.Empty)
-                throw new Exception("No AssetService in config file");
+            string[] p = SplitParams(path);
+            if (p.Length > 1)
+            {
+                bool result =
+                        m_AssetService.UpdateContent(p[1], asset.Data);
 
-            Object[] args = new Object[] { config };
-            m_AssetService =
-                    ServerUtils.LoadPlugin<IAssetService>(assetService, args);
+                xs = new XmlSerializer(typeof(bool));
+                return ServerUtils.SerializeResult(xs, result);
+            }
 
-            server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
-            server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
-            server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService));
+            string id = m_AssetService.Store(asset);
+
+            xs = new XmlSerializer(typeof(string));
+            return ServerUtils.SerializeResult(xs, id);
         }
     }
 }

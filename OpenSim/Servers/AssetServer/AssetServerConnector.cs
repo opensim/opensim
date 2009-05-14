@@ -25,51 +25,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using Nini.Config;
-using log4net;
 using System;
-using System.Reflection;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml;
-using System.Xml.Serialization;
+using Nini.Config;
 using OpenSim.Servers.Base;
+using OpenSim.Servers.AssetServer.Handlers;
 using OpenSim.Services.Interfaces;
-using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Servers.AssetServer
 {
-    public class AssetServerDeleteHandler : BaseStreamHandler
+    public class AssetServiceConnector
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
-
         private IAssetService m_AssetService;
 
-        public AssetServerDeleteHandler(IAssetService service) :
-                base("DELETE", "/assets")
+        public AssetServiceConnector(IConfigSource config, IHttpServer server)
         {
-            m_AssetService = service;
-        }
+            IConfig serverConfig = config.Configs["AssetService"];
+            if (serverConfig == null)
+                throw new Exception("No section 'Server' in config file");
 
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-        {
-            bool result = false;
+            string assetService = serverConfig.GetString("LocalServiceModule",
+                    String.Empty);
 
-            string[] p = SplitParams(path);
+            if (assetService == String.Empty)
+                throw new Exception("No AssetService in config file");
 
-            if (p.Length > 0)
-            {
-                result = m_AssetService.Delete(p[0]);
-            }
+            Object[] args = new Object[] { config };
+            m_AssetService =
+                    ServerUtils.LoadPlugin<IAssetService>(assetService, args);
 
-            XmlSerializer xs = new XmlSerializer(typeof(bool));
-            return ServerUtils.SerializeResult(xs, result);
+            server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
+            server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
+            server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService));
         }
     }
 }

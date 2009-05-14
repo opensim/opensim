@@ -1382,7 +1382,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Servers.UserServer" path="OpenSim/Servers/User" type="Exe">
+    <Project name="OpenSim.Servers.UserServer" path="OpenSim/Servers/UserServer" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1412,7 +1412,38 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Servers.AssetServer" path="OpenSim/Servers/Asset" type="Exe">
+    <Project name="OpenSim.Servers.AssetServer.Handlers" path="OpenSim/Servers/AssetServer/Handlers" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Servers.Base"/>
+      <Reference name="OpenSim.Services.Base" />
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Servers.AssetServer" path="OpenSim/Servers/AssetServer" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1433,13 +1464,14 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Servers.Base"/>
+      <Reference name="OpenSim.Servers.AssetServer.Handlers"/>
       <Reference name="OpenSim.Services.Base" />
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="false"/>
       </Files>
     </Project>
 

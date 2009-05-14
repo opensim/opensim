@@ -28,8 +28,8 @@
 using Nini.Config;
 using log4net;
 using System;
-using System.IO;
 using System.Reflection;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -40,9 +40,9 @@ using OpenSim.Services.Interfaces;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Servers.AssetServer
+namespace OpenSim.Servers.AssetServer.Handlers
 {
-    public class AssetServerGetHandler : BaseStreamHandler
+    public class AssetServerDeleteHandler : BaseStreamHandler
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -50,8 +50,8 @@ namespace OpenSim.Servers.AssetServer
 
         private IAssetService m_AssetService;
 
-        public AssetServerGetHandler(IAssetService service) :
-                base("GET", "/assets")
+        public AssetServerDeleteHandler(IAssetService service) :
+                base("DELETE", "/assets")
         {
             m_AssetService = service;
         }
@@ -59,52 +59,17 @@ namespace OpenSim.Servers.AssetServer
         public override byte[] Handle(string path, Stream request,
                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            byte[] result = new byte[0];
+            bool result = false;
 
             string[] p = SplitParams(path);
 
-            if (p.Length == 0)
-                return result;
-
-            if (p.Length > 1 && p[1] == "data")
+            if (p.Length > 0)
             {
-                result = m_AssetService.GetData(p[0]);
-                if (result == null)
-                    result = new byte[0];
-
-                httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                httpResponse.ContentType = "application/octet-stream";
+                result = m_AssetService.Delete(p[0]);
             }
-            else if(p.Length > 1 && p[1] == "metadata")
-            {
-                AssetMetadata metadata = m_AssetService.GetMetadata(p[0]);
 
-                if (metadata != null)
-                {
-                    XmlSerializer xs =
-                            new XmlSerializer(typeof(AssetMetadata));
-                    result = ServerUtils.SerializeResult(xs, metadata);
-
-                    httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                    httpResponse.ContentType =
-                            ServerUtils.SLAssetTypeToContentType(metadata.Type);
-                }
-            }
-            else
-            {
-                AssetBase asset = m_AssetService.Get(p[0]);
-
-                if (asset != null)
-                {
-                    XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
-                    result = ServerUtils.SerializeResult(xs, asset);
-
-                    httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                    httpResponse.ContentType =
-                            ServerUtils.SLAssetTypeToContentType(asset.Type);
-                }
-            }
-            return result;
+            XmlSerializer xs = new XmlSerializer(typeof(bool));
+            return ServerUtils.SerializeResult(xs, result);
         }
     }
 }
