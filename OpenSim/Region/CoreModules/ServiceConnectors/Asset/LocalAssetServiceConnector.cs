@@ -208,6 +208,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
         public string Store(AssetBase asset)
         {
             m_Cache.Cache(asset);
+            if (asset.Temporary || asset.Local)
+                return asset.ID;
             return m_AssetService.Store(asset);
         }
 

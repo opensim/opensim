@@ -230,6 +230,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public string Store(AssetBase asset)
         {
+            if (asset.Temporary || asset.Local)
+            {
+                if (m_Cache != null)
+                    m_Cache.Cache(asset);
+
+                return asset.ID;
+            }
+
             string uri = m_ServerURI + "/assets/";
 
             string newID = SynchronousRestObjectRequester.
@@ -237,6 +245,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
             if (newID != String.Empty)
             {
+                asset.ID = newID;
+
                 if (m_Cache != null)
                     m_Cache.Cache(asset);
             }
