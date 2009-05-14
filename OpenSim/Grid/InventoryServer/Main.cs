@@ -84,7 +84,7 @@ namespace OpenSim.Grid.InventoryServer
 
             m_log.Info("[" + LogName + "]: Started HTTP server");
 
-            //m_directInventoryService = new HGInventoryService(m_inventoryService, config.AssetServerURL, config.UserServerURL, m_httpServer, config.InventoryServerURL);
+            new HGInventoryService(m_inventoryService, config.AssetServerURL, config.UserServerURL, m_httpServer, config.InventoryServerURL);
 
             base.StartupSpecific();
 
