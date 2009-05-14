@@ -66,7 +66,6 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         protected OpenSimBase m_openSim;
 
-
         public void Initialise()
         {
             m_log.Info("[LOADREGIONS]: " + Name + " cannot be default-initialized!");

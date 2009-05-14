@@ -220,7 +220,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
          * Object-related communications 
          */
 
-        public bool SendCreateObject(ulong regionHandle, ISceneObject sog, bool isLocalCall)
+        public bool SendCreateObject(ulong regionHandle, SceneObjectGroup sog, bool isLocalCall)
         {
             foreach (Scene s in m_sceneList)
             {

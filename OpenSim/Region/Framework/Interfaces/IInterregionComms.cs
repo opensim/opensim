@@ -35,7 +35,6 @@ namespace OpenSim.Region.Framework.Interfaces
 
     public interface IInterregionCommsOut
     {
-
         #region Agents
 
         bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit, out string reason);
@@ -87,7 +86,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="sog"></param>
         /// <param name="isLocalCall"></param>
         /// <returns></returns>
-        bool SendCreateObject(ulong regionHandle, ISceneObject sog, bool isLocalCall);
+        bool SendCreateObject(ulong regionHandle, SceneObjectGroup sog, bool isLocalCall);
 
         /// <summary>
         /// Create an object from the user's inventory in the destination region. 

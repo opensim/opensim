@@ -129,13 +129,62 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             //m_log.DebugFormat("[SERIALIZER]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
 
             return sceneObject;
-        }
+        }      
 
         /// <summary>
-        /// Deserialize a scene object from the 'xml2' format
+        /// Serialize a scene object to the original xml format
         /// </summary>
-        /// <param name="serialization"></param>
+        /// <param name="sceneObject"></param>
         /// <returns></returns>        
+        public static string ToOriginalXmlFormat(SceneObjectGroup sceneObject)
+        {
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                {
+                    ToOriginalXmlFormat(sceneObject, writer);
+                }
+
+                return sw.ToString();
+            }
+        }                
+
+        /// <summary>
+        /// Serialize a scene object to the original xml format
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <returns></returns>            
+        public static void ToOriginalXmlFormat(SceneObjectGroup sceneObject, XmlTextWriter writer)
+        {
+            //m_log.DebugFormat("[SERIALIZER]: Starting serialization of {0}", Name);
+            //int time = System.Environment.TickCount;
+
+            writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
+            writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
+            sceneObject.RootPart.ToXml(writer);
+            writer.WriteEndElement();
+            writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
+
+            lock (sceneObject.Children)
+            {
+                foreach (SceneObjectPart part in sceneObject.Children.Values)
+                {
+                    if (part.UUID != sceneObject.RootPart.UUID)
+                    {
+                        writer.WriteStartElement(String.Empty, "Part", String.Empty);
+                        part.ToXml(writer);
+                        writer.WriteEndElement();
+                    }
+                }
+            }
+
+            writer.WriteEndElement(); // OtherParts
+            sceneObject.SaveScriptedState(writer);
+            writer.WriteEndElement(); // SceneObjectGroup
+
+            //m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
+        }
+        
         public static SceneObjectGroup FromXml2Format(string xmlData)
         {
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
@@ -193,40 +242,38 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             //m_log.DebugFormat("[SERIALIZER]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
 
             return sceneObject;
-        }        
+        }         
 
         /// <summary>
-        /// Serialize a scene object to the original xml format
+        /// Serialize a scene object to the 'xml2' format.
         /// </summary>
         /// <param name="sceneObject"></param>
-        /// <returns></returns>        
-        public static string ToOriginalXmlFormat(SceneObjectGroup sceneObject)
+        /// <returns></returns>               
+        public static string ToXml2Format(SceneObjectGroup sceneObject)
         {
             using (StringWriter sw = new StringWriter())
             {
                 using (XmlTextWriter writer = new XmlTextWriter(sw))
                 {
-                    ToOriginalXmlFormat(sceneObject, writer);
+                    ToXml2Format(sceneObject, writer);
                 }
 
                 return sw.ToString();
             }
-        }                
+        }
 
         /// <summary>
-        /// Serialize a scene object to the original xml format
+        /// Serialize a scene object to the 'xml2' format.
         /// </summary>
         /// <param name="sceneObject"></param>
-        /// <returns></returns>            
-        public static void ToOriginalXmlFormat(SceneObjectGroup sceneObject, XmlTextWriter writer)
+        /// <returns></returns>          
+        public static void ToXml2Format(SceneObjectGroup sceneObject, XmlTextWriter writer)
         {
-            //m_log.DebugFormat("[SERIALIZER]: Starting serialization of {0}", Name);
+            //m_log.DebugFormat("[SERIALIZER]: Starting serialization of SOG {0} to XML2", Name);
             //int time = System.Environment.TickCount;
 
             writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
-            writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
             sceneObject.RootPart.ToXml(writer);
-            writer.WriteEndElement();
             writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
 
             lock (sceneObject.Children)
@@ -235,36 +282,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 {
                     if (part.UUID != sceneObject.RootPart.UUID)
                     {
-                        writer.WriteStartElement(String.Empty, "Part", String.Empty);
                         part.ToXml(writer);
-                        writer.WriteEndElement();
                     }
                 }
             }
 
-            writer.WriteEndElement(); // OtherParts
+            writer.WriteEndElement(); // End of OtherParts
             sceneObject.SaveScriptedState(writer);
-            writer.WriteEndElement(); // SceneObjectGroup
+            writer.WriteEndElement(); // End of SceneObjectGroup
 
-            //m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
-        }
-
-        /// <summary>
-        /// Serialize a scene object to the 'xml2' format.
-        /// </summary>
-        /// <param name="sceneObject"></param>
-        /// <returns></returns>               
-        public static string ToXml2Format(ISceneObject sceneObject)
-        {
-            using (StringWriter sw = new StringWriter())
-            {
-                using (XmlTextWriter writer = new XmlTextWriter(sw))
-                {
-                    sceneObject.ToXml2(writer);
-                }
-
-                return sw.ToString();
-            }
-        }        
+            //m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0} to XML2, {1}ms", Name, System.Environment.TickCount - time);
+        }   
     }
 }

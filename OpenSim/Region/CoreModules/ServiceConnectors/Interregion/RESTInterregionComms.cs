@@ -261,7 +261,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
          * Object-related communications 
          */
 
-        public bool SendCreateObject(ulong regionHandle, ISceneObject sog, bool isLocalCall)
+        public bool SendCreateObject(ulong regionHandle, SceneObjectGroup sog, bool isLocalCall)
         {
             // Try local first
             if (m_localBackend.SendCreateObject(regionHandle, sog, true))
