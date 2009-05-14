@@ -46,6 +46,7 @@ namespace OpenSim.Region.Communications.OGS1
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private bool m_useRemoteRegionCache = true;
         /// <summary>
         /// Encapsulate local backend services for manipulation of local regions
         /// </summary>
@@ -372,7 +373,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
 
             regionInfo = buildRegionInfo(responseData, String.Empty);
-            if (requestData.ContainsKey("regionHandle"))
+            if ((m_useRemoteRegionCache) && (requestData.ContainsKey("regionHandle")))
             {
                 m_remoteRegionInfoCache.Add(Convert.ToUInt64((string) requestData["regionHandle"]), regionInfo);
             }
@@ -394,7 +395,7 @@ namespace OpenSim.Region.Communications.OGS1
                 return regionInfo;
             }
 
-            if (!m_remoteRegionInfoCache.TryGetValue(regionHandle, out regionInfo))
+            if((!m_useRemoteRegionCache) || (!m_remoteRegionInfoCache.TryGetValue(regionHandle, out regionInfo)))
             {
                 try
                 {
@@ -437,11 +438,14 @@ namespace OpenSim.Region.Communications.OGS1
                     //IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
                     regionInfo = RegionInfo.Create(regionID, regionName, regX, regY, externalHostName, httpPort, simPort, remotingPort, simURI );
 
-                    lock (m_remoteRegionInfoCache)
+                    if (m_useRemoteRegionCache)
                     {
-                        if (!m_remoteRegionInfoCache.ContainsKey(regionHandle))
+                        lock (m_remoteRegionInfoCache)
                         {
-                            m_remoteRegionInfoCache.Add(regionHandle, regionInfo);
+                            if (!m_remoteRegionInfoCache.ContainsKey(regionHandle))
+                            {
+                                m_remoteRegionInfoCache.Add(regionHandle, regionInfo);
+                            }
                         }
                     }
                 }
@@ -481,10 +485,13 @@ namespace OpenSim.Region.Communications.OGS1
 
         public RegionInfo RequestClosestRegion(string regionName)
         {
-            foreach (RegionInfo ri in m_remoteRegionInfoCache.Values)
+            if (m_useRemoteRegionCache)
             {
-                if (ri.RegionName == regionName)
-                    return ri;
+                foreach (RegionInfo ri in m_remoteRegionInfoCache.Values)
+                {
+                    if (ri.RegionName == regionName)
+                        return ri;
+                }
             }
 
             RegionInfo regionInfo = null;
@@ -508,7 +515,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                 regionInfo = buildRegionInfo(responseData, "");
 
-                if (!m_remoteRegionInfoCache.ContainsKey(regionInfo.RegionHandle))
+                if ((m_useRemoteRegionCache) && (!m_remoteRegionInfoCache.ContainsKey(regionInfo.RegionHandle)))
                     m_remoteRegionInfoCache.Add(regionInfo.RegionHandle, regionInfo);
             }
             catch
