@@ -102,12 +102,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             IConfig groupsConfig = config.Configs["Groups"];
 
-            m_log.Info("[GROUPS]: Initializing XmlRpcGroups");
-
             if (groupsConfig == null)
             {
                 // Do not run this module by default.
-                m_log.Info("[GROUPS]: No config found in OpenSim.ini -- not enabling XmlRpcGroups");
                 return;
             }
             else
@@ -115,17 +112,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_groupsEnabled = groupsConfig.GetBoolean("Enabled", false);
                 if (!m_groupsEnabled)
                 {
-                    m_log.Info("[GROUPS]: Groups disabled in configuration");
                     return;
                 }
 
                 if (groupsConfig.GetString("Module", "Default") != "XmlRpcGroups")
                 {
-                    m_log.Info("[GROUPS]: Config Groups Module not set to XmlRpcGroups");
                     m_groupsEnabled = false;
 
                     return;
                 }
+
+                m_log.Info("[GROUPS]: Initializing XmlRpcGroups");
 
                 string ServiceURL = groupsConfig.GetString("XmlRpcServiceURL", m_defaultXmlRpcServiceURL);
                 bool DisableKeepAlive = groupsConfig.GetBoolean("XmlRpcDisableKeepAlive", false);

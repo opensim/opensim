@@ -72,25 +72,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             IConfig groupsConfig = config.Configs["Groups"];
 
-            m_log.Info("[GROUPS-MESSAGING]: Initializing XmlRpcGroupsMessaging");
-
             if (groupsConfig == null)
             {
                 // Do not run this module by default.
-                m_log.Info("[GROUPS-MESSAGING]: No config found in OpenSim.ini -- not enabling XmlRpcGroupsMessaging");
                 return;
             }
             else
             {
                 if (!groupsConfig.GetBoolean("Enabled", false))
                 {
-                    m_log.Info("[GROUPS-MESSAGING]: Groups disabled in configuration");
                     return;
                 }
 
                 if (groupsConfig.GetString("Module", "Default") != "XmlRpcGroups")
                 {
-                    m_log.Info("[GROUPS-MESSAGING]: Config Groups Module not set to XmlRpcGroups");
                     m_groupMessagingEnabled = false;
 
                     return;
@@ -100,9 +95,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 if (!m_groupMessagingEnabled)
                 {
-                    m_log.Info("[GROUPS-MESSAGING]: XmlRpcGroups Messaging disabled.");
                     return;
                 }
+
+                m_log.Info("[GROUPS-MESSAGING]: Initializing XmlRpcGroupsMessaging");
 
                 m_debugEnabled = groupsConfig.GetBoolean("XmlRpcDebugEnabled", true);
             }
