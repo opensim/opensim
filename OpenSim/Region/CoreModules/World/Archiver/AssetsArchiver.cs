@@ -46,114 +46,106 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <value>
         /// Post a message to the log every x assets as a progress bar
         /// </value>
-        private static int LOG_ASSET_LOAD_NOTIFICATION_INTERVAL = 50;
+        protected static int LOG_ASSET_LOAD_NOTIFICATION_INTERVAL = 50;
 
-        /// <summary>
-        /// Archive assets
-        /// </summary>
-        protected IDictionary<UUID, AssetBase> m_assets;
+        /// <value>
+        /// Keep a count of the number of assets written so that we can provide status updates
+        /// </value>
+        protected int m_assetsWritten; 
+        
+        protected TarArchiveWriter m_archiveWriter;
 
-        public AssetsArchiver(IDictionary<UUID, AssetBase> assets)
+        public AssetsArchiver(TarArchiveWriter archiveWriter)
         {
-            m_assets = assets;
+            m_archiveWriter = archiveWriter;
         }
 
         /// <summary>
         /// Archive the assets given to this archiver to the given archive.
         /// </summary>
         /// <param name="archive"></param>
-        public void Archive(TarArchiveWriter archive)
-        {
+        public void WriteAsset(AssetBase asset)
+        {            
             //WriteMetadata(archive);
-            WriteData(archive);
+            WriteData(asset);
         }
 
         /// <summary>
         /// Write an assets metadata file to the given archive
         /// </summary>
         /// <param name="archive"></param>
-        protected void WriteMetadata(TarArchiveWriter archive)
-        {
-            StringWriter sw = new StringWriter();
-            XmlTextWriter xtw = new XmlTextWriter(sw);
-
-            xtw.Formatting = Formatting.Indented;
-            xtw.WriteStartDocument();
-
-            xtw.WriteStartElement("assets");
-
-            foreach (UUID uuid in m_assets.Keys)
-            {
-                AssetBase asset = m_assets[uuid];
-
-                if (asset != null)
-                {
-                    xtw.WriteStartElement("asset");
-
-                    string extension = string.Empty;
-
-                    if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
-                    {
-                        extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
-                    }
-
-                    xtw.WriteElementString("filename", uuid.ToString() + extension);
-
-                    xtw.WriteElementString("name", asset.Name);
-                    xtw.WriteElementString("description", asset.Description);
-                    xtw.WriteElementString("asset-type", asset.Type.ToString());
-
-                    xtw.WriteEndElement();
-                }
-            }
-
-            xtw.WriteEndElement();
-
-            xtw.WriteEndDocument();
-
-            archive.WriteFile("assets.xml", sw.ToString());
-        }
+//        protected void WriteMetadata(TarArchiveWriter archive)
+//        {
+//            StringWriter sw = new StringWriter();
+//            XmlTextWriter xtw = new XmlTextWriter(sw);
+//
+//            xtw.Formatting = Formatting.Indented;
+//            xtw.WriteStartDocument();
+//
+//            xtw.WriteStartElement("assets");
+//
+//            foreach (UUID uuid in m_assets.Keys)
+//            {
+//                AssetBase asset = m_assets[uuid];
+//
+//                if (asset != null)
+//                {
+//                    xtw.WriteStartElement("asset");
+//
+//                    string extension = string.Empty;
+//
+//                    if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
+//                    {
+//                        extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
+//                    }
+//
+//                    xtw.WriteElementString("filename", uuid.ToString() + extension);
+//
+//                    xtw.WriteElementString("name", asset.Name);
+//                    xtw.WriteElementString("description", asset.Description);
+//                    xtw.WriteElementString("asset-type", asset.Type.ToString());
+//
+//                    xtw.WriteEndElement();
+//                }
+//            }
+//
+//            xtw.WriteEndElement();
+//
+//            xtw.WriteEndDocument();
+//
+//            archive.WriteFile("assets.xml", sw.ToString());
+//        }
 
         /// <summary>
         /// Write asset data files to the given archive
         /// </summary>
-        /// <param name="archive"></param>
-        protected void WriteData(TarArchiveWriter archive)
+        /// <param name="asset"></param>
+        protected void WriteData(AssetBase asset)
         {
             // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
             //archive.AddDir("assets");
 
-            int assetsAdded = 0;
+            string extension = string.Empty;
 
-            foreach (UUID uuid in m_assets.Keys)
+            if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
             {
-                AssetBase asset = m_assets[uuid];
-
-                string extension = string.Empty;
-
-                if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
-                {
-                    extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
-                }
-                else
-                {
-                    m_log.ErrorFormat(
-                        "[ARCHIVER]: Unrecognized asset type {0} with uuid {1}.  This asset will be saved but not reloaded",
-                        asset.Type, asset.ID);
-                }
-
-                archive.WriteFile(
-                    ArchiveConstants.ASSETS_PATH + uuid.ToString() + extension,
-                    asset.Data);
-
-                assetsAdded++;
-
-                if (assetsAdded % LOG_ASSET_LOAD_NOTIFICATION_INTERVAL == 0)
-                    m_log.InfoFormat("[ARCHIVER]: Added {0} assets to archive", assetsAdded);
+                extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[ARCHIVER]: Unrecognized asset type {0} with uuid {1}.  This asset will be saved but not reloaded",
+                    asset.Type, asset.ID);
             }
 
-            if (assetsAdded % LOG_ASSET_LOAD_NOTIFICATION_INTERVAL != 0)
-                m_log.InfoFormat("[ARCHIVER]: Added {0} assets to archive", assetsAdded);
+            m_archiveWriter.WriteFile(
+                ArchiveConstants.ASSETS_PATH + asset.FullID.ToString() + extension,
+                asset.Data);
+
+            m_assetsWritten++;
+
+            if (m_assetsWritten % LOG_ASSET_LOAD_NOTIFICATION_INTERVAL == 0)
+                m_log.InfoFormat("[ARCHIVER]: Added {0} assets to archive", m_assetsWritten);
         }
     }
 }

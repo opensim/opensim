@@ -35,6 +35,7 @@ using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Serialization;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -126,6 +127,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (regionSettings.TerrainTexture4 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_4)
                 assetUuids[regionSettings.TerrainTexture4] = 1;
 
+            TarArchiveWriter archiveWriter = new TarArchiveWriter(m_saveStream);
+            
             // Asynchronously request all the assets required to perform this archive operation
             ArchiveWriteRequestExecution awre
                 = new ArchiveWriteRequestExecution(
@@ -133,10 +136,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     m_scene.RequestModuleInterface<ITerrainModule>(),
                     m_scene.RequestModuleInterface<IRegionSerialiserModule>(),
                     m_scene,
-                    m_saveStream,
-                    m_requestId);
+                    archiveWriter,
+                    m_requestId);           
             
-            new AssetsRequest(assetUuids.Keys, m_scene.CommsManager.AssetCache, awre.ReceivedAllAssets).Execute();
+            new AssetsRequest(
+                new AssetsArchiver(archiveWriter), assetUuids.Keys, 
+                m_scene.CommsManager.AssetCache, awre.ReceivedAllAssets).Execute();
         }
     }
 }

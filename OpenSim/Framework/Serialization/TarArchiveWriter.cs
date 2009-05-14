@@ -109,10 +109,14 @@ namespace OpenSim.Framework.Serialization
 
             // Write two consecutive 0 blocks to end the archive
             byte[] finalZeroPadding = new byte[1024];
-            m_bw.Write(finalZeroPadding);
 
-            m_bw.Flush();
-            m_bw.Close();
+            lock (m_bw)
+            {
+                m_bw.Write(finalZeroPadding);
+    
+                m_bw.Flush();
+                m_bw.Close();
+            }
         }
 
         public static byte[] ConvertDecimalToPaddedOctalBytes(int d, int padding)
@@ -197,20 +201,23 @@ namespace OpenSim.Framework.Serialization
 
             header[154] = 0;
 
-            // Write out header
-            m_bw.Write(header);
-
-            // Write out data
-            m_bw.Write(data);
-
-            if (data.Length % 512 != 0)
+            lock (m_bw)
             {
-                int paddingRequired = 512 - (data.Length % 512);
-
-                //m_log.DebugFormat("[TAR ARCHIVE WRITER]: Padding data with {0} bytes", paddingRequired);
-
-                byte[] padding = new byte[paddingRequired];
-                m_bw.Write(padding);
+                // Write out header
+                m_bw.Write(header);
+    
+                // Write out data
+                m_bw.Write(data);
+    
+                if (data.Length % 512 != 0)
+                {
+                    int paddingRequired = 512 - (data.Length % 512);
+    
+                    //m_log.DebugFormat("[TAR ARCHIVE WRITER]: Padding data with {0} bytes", paddingRequired);
+    
+                    byte[] padding = new byte[paddingRequired];
+                    m_bw.Write(padding);
+                }
             }
         }
     }

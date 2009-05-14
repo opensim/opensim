@@ -32,6 +32,7 @@ using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Serialization;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -42,39 +43,43 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
+        /// <value>
         /// uuids to request
-        /// </summary>
+        /// </value>
         protected ICollection<UUID> m_uuids;
 
-        /// <summary>
+        /// <value>
         /// Callback used when all the assets requested have been received.
-        /// </summary>
+        /// </value>
         protected AssetsRequestCallback m_assetsRequestCallback;
 
-        /// <summary>
-        /// Assets retrieved in this request
-        /// </summary>
-        protected Dictionary<UUID, AssetBase> m_assets = new Dictionary<UUID, AssetBase>();
-
-        /// <summary>
+        /// <value>
+        /// List of assets that were found.  This will be passed back to the requester.
+        /// </value>
+        protected List<UUID> m_foundAssetUuids = new List<UUID>();
+        
+        /// <value>
         /// Maintain a list of assets that could not be found.  This will be passed back to the requester.
-        /// </summary>
+        /// </value>
         protected List<UUID> m_notFoundAssetUuids = new List<UUID>();
 
-        /// <summary>
+        /// <value>
         /// Record the number of asset replies required so we know when we've finished
-        /// </summary>
+        /// </value>
         private int m_repliesRequired;
 
-        /// <summary>
+        /// <value>
         /// Asset cache used to request the assets
-        /// </summary>
+        /// </value>
         protected IAssetCache m_assetCache;
 
+        protected AssetsArchiver m_assetsArchiver;
+
         protected internal AssetsRequest(
-            ICollection<UUID> uuids, IAssetCache assetCache, AssetsRequestCallback assetsRequestCallback)
+            AssetsArchiver assetsArchiver, ICollection<UUID> uuids, 
+            IAssetCache assetCache, AssetsRequestCallback assetsRequestCallback)
         {
+            m_assetsArchiver = assetsArchiver;
             m_uuids = uuids;
             m_assetsRequestCallback = assetsRequestCallback;
             m_assetCache = assetCache;
@@ -87,7 +92,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             
             // We can stop here if there are no assets to fetch
             if (m_repliesRequired == 0)
-                m_assetsRequestCallback(m_assets, m_notFoundAssetUuids);
+                m_assetsRequestCallback(m_foundAssetUuids, m_notFoundAssetUuids);
 
             foreach (UUID uuid in m_uuids)
             {
@@ -106,21 +111,25 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             
             if (asset != null)
             {
+                // Make sure that we don't run out of memory by hogging assets in the cache
                 m_assetCache.ExpireAsset(assetID);
-                m_assets[assetID] = asset;                
+                
+                m_foundAssetUuids.Add(assetID);
+                m_assetsArchiver.WriteAsset(asset);
             }
             else
             {
                 m_notFoundAssetUuids.Add(assetID);
             }
 
-            if (m_assets.Count + m_notFoundAssetUuids.Count == m_repliesRequired)
+            if (m_foundAssetUuids.Count + m_notFoundAssetUuids.Count == m_repliesRequired)
             {
                 m_log.DebugFormat(
                     "[ARCHIVER]: Successfully received {0} assets and notification of {1} missing assets", 
-                    m_assets.Count, m_notFoundAssetUuids.Count);
+                    m_foundAssetUuids.Count, m_notFoundAssetUuids.Count);
                 
-                // We want to stop using the asset cache thread asap as we now need to do the actual work of producing the archive
+                // We want to stop using the asset cache thread asap 
+                // as we now need to do the work of producing the rest of the archive
                 Thread newThread = new Thread(PerformAssetsRequestCallback);
                 newThread.Name = "OpenSimulator archiving thread post assets receipt";
                 newThread.Start();
@@ -134,7 +143,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             try
             {
-                m_assetsRequestCallback(m_assets, m_notFoundAssetUuids);
+                m_assetsRequestCallback(m_foundAssetUuids, m_notFoundAssetUuids);
             }
             catch (Exception e)
             {

@@ -56,7 +56,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private InventoryArchiverModule m_module;
         private CachedUserInfo m_userInfo;
         private string m_invPath;        
-        protected TarArchiveWriter m_archive;
+        protected TarArchiveWriter m_archiveWriter;
         protected UuidGatherer m_assetGatherer;
 
         /// <value>
@@ -100,17 +100,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_assetGatherer = new UuidGatherer(m_module.CommsManager.AssetCache);
         }
 
-        protected void ReceivedAllAssets(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids)
+        protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
         {
-            AssetsArchiver assetsArchiver = new AssetsArchiver(assetsFound);
-            assetsArchiver.Archive(m_archive);
-
             Exception reportedException = null;
             bool succeeded = true;
 
             try
             {
-                m_archive.Close();
+                m_archiveWriter.Close();
             }
             catch (IOException e)
             {
@@ -133,7 +130,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_module.CommsManager);
 
             string serialization = UserInventoryItemSerializer.Serialize(saveItem);
-            m_archive.WriteFile(filename, serialization);
+            m_archiveWriter.WriteFile(filename, serialization);
 
             m_assetGatherer.GatherAssetUuids(saveItem.AssetID, (AssetType)saveItem.AssetType, m_assetUuids);
         }
@@ -156,7 +153,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         inventoryFolder.ID);
 
                 // We need to make sure that we record empty folders            
-                m_archive.WriteDir(path);
+                m_archiveWriter.WriteDir(path);
             }
 
             List<InventoryFolderImpl> childFolders = inventoryFolder.RequestListOfFolderImpls();
@@ -265,7 +262,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 inventoryItem = m_userInfo.RootFolder.FindItemByPath(m_invPath);
             }
 
-            m_archive = new TarArchiveWriter(m_saveStream);
+            m_archiveWriter = new TarArchiveWriter(m_saveStream);
 
             if (null == inventoryFolder)
             {
@@ -298,7 +295,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
 
             SaveUsers();
-            new AssetsRequest(m_assetUuids.Keys, m_module.CommsManager.AssetCache, ReceivedAllAssets).Execute();
+            new AssetsRequest(
+                new AssetsArchiver(m_archiveWriter), m_assetUuids.Keys, 
+                m_module.CommsManager.AssetCache, ReceivedAllAssets).Execute();
         }
 
         /// <summary>
@@ -316,7 +315,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 if (creator != null)
                 {
-                    m_archive.WriteFile(
+                    m_archiveWriter.WriteFile(
                         ArchiveConstants.USERS_PATH + creator.UserProfile.Name + ".xml",
                         UserProfileSerializer.Serialize(creator.UserProfile));
                 }
