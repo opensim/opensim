@@ -33,6 +33,7 @@ namespace OpenSim.Grid.GridServer
     public interface IGridPlugin : IPlugin
     {
         void Initialise(GridServerBase gridServer);
+        void PostInitialise();
     }
 
     public class GridPluginInitialiser : PluginInitialiserBase
