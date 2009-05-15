@@ -97,15 +97,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             foreach (UUID uuid in m_uuids)
             {
-                m_assetCache.Get(uuid.ToString(), this, AssetReceived);
-            }
-        }
-
-        protected void AssetReceived(string id, object sender, AssetBase asset)
-        {
-            if (asset != null)
-            {
-                AssetRequestCallback(asset.FullID, asset);
+                m_assetCache.Get(uuid.ToString(), this, AssetRequestCallback);
             }
         }
 
@@ -114,24 +106,24 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         /// <param name="assetID"></param>
         /// <param name="asset"></param>
-        public void AssetRequestCallback(UUID assetID, AssetBase asset)
+        public void AssetRequestCallback(string id, object sender, AssetBase asset)
         {
             //m_log.DebugFormat("[ARCHIVER]: Received callback for asset {0}", assetID);
             
             if (asset != null)
             {                
-                m_foundAssetUuids.Add(assetID);
+                m_foundAssetUuids.Add(asset.FullID);
                 m_assetsArchiver.WriteAsset(asset);
             }
             else
             {
-                m_notFoundAssetUuids.Add(assetID);
+                m_notFoundAssetUuids.Add(new UUID(id));
             }
 
             if (m_foundAssetUuids.Count + m_notFoundAssetUuids.Count == m_repliesRequired)
             {
                 m_log.DebugFormat(
-                    "[ARCHIVER]: Successfully received {0} assets and notification of {1} missing assets", 
+                    "[ARCHIVER]: Successfully added {0} assets ({1} assets missing)", 
                     m_foundAssetUuids.Count, m_notFoundAssetUuids.Count);
                 
                 // We want to stop using the asset cache thread asap 

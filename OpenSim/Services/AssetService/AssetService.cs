@@ -98,6 +98,8 @@ namespace OpenSim.Services.AssetService
 
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
+            //m_log.DebugFormat("[AssetService]: Got request for {0}", id);
+            
             UUID assetID;
 
             if (!UUID.TryParse(id, out assetID))
@@ -105,6 +107,8 @@ namespace OpenSim.Services.AssetService
 
             AssetBase asset = m_Database.FetchAsset(assetID);
 
+            //m_log.DebugFormat("[AssetService]: Got asset {0}", asset);
+            
             handler(id, sender, asset);
 
             return true;

@@ -85,9 +85,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_log.DebugFormat("[ARCHIVER]: Could not find asset {0}", uuid);
             }
 
-            m_log.InfoFormat(
-                "[ARCHIVER]: Received {0} of {1} assets requested",
-                assetsFoundUuids.Count, assetsFoundUuids.Count + assetsNotFoundUuids.Count);
+//            m_log.InfoFormat(
+//                "[ARCHIVER]: Received {0} of {1} assets requested",
+//                assetsFoundUuids.Count, assetsFoundUuids.Count + assetsNotFoundUuids.Count);
 
             m_log.InfoFormat("[ARCHIVER]: Creating archive file.  This may take some time.");
 

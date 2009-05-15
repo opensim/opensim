@@ -150,6 +150,11 @@ namespace OpenSim.Framework
             get { return m_metadata; }
             set { m_metadata = value; }
         }
+
+        public override string ToString()
+        {
+            return FullID.ToString();
+        }
     }
 
     public class AssetMetadata

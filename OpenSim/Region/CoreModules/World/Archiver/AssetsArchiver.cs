@@ -144,8 +144,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             m_assetsWritten++;
 
+            //m_log.DebugFormat("[ARCHIVER]: Added asset {0}", m_assetsWritten);
+            
             if (m_assetsWritten % LOG_ASSET_LOAD_NOTIFICATION_INTERVAL == 0)
-                m_log.InfoFormat("[ARCHIVER]: Added {0} assets to archive", m_assetsWritten);
+                m_log.InfoFormat("[ARCHIVER]: Added {0} assets to archive", m_assetsWritten);            
         }
     }
 }
