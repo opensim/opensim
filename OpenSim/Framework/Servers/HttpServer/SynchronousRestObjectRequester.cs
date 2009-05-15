@@ -90,8 +90,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 using (WebResponse resp = request.GetResponse())
                 {
-                    XmlSerializer deserializer = new XmlSerializer(typeof (TResponse));
-                    deserial = (TResponse) deserializer.Deserialize(resp.GetResponseStream());
+                    if (resp.ContentLength > 0)
+                    {
+                        XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
+                        deserial = (TResponse)deserializer.Deserialize(resp.GetResponseStream());
+                    }
                 }
             }
             catch (System.InvalidOperationException)
