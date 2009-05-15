@@ -45,7 +45,7 @@ namespace PrimMesher
         public List<UVCoord> uvs;
 
         public enum SculptType { sphere = 1, torus = 2, plane = 3, cylinder = 4 };
-        private const float pixScale = 0.00390625f; // 1.0 / 256
+        private static float pixScale = 1.0f / 255;
 
         private Bitmap ScaleImage(Bitmap srcImage, float scale)
         {
@@ -73,7 +73,7 @@ namespace PrimMesher
             scaledImage.SetResolution(96.0f, 96.0f);
 
             Graphics grPhoto = Graphics.FromImage(scaledImage);
-            grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bilinear;
+            grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
 
             grPhoto.DrawImage(srcImage,
                 new Rectangle(destX, destY, destWidth, destHeight),
@@ -217,7 +217,6 @@ namespace PrimMesher
                 if (sculptType == SculptType.plane)
                     invert = !invert;
 
-            //float sourceScaleFactor = (float)lod / (float)Math.Max(sculptBitmap.Width, sculptBitmap.Height);
             float sourceScaleFactor = (float)(lod) / (float)Math.Sqrt(sculptBitmap.Width * sculptBitmap.Height);
             bool scaleSourceImage = sourceScaleFactor < 1.0f ? true : false;
 
@@ -242,26 +241,12 @@ namespace PrimMesher
             int imageX, imageY;
 
             if (sculptType == SculptType.sphere)
-            { // average the top and bottom row pixel values so the resulting vertices appear to converge
+            {
                 int lastRow = height - 1;
-                int r1 = 0, g1 = 0, b1 = 0;
-                int r2 = 0, g2 = 0, b2 = 0;
-                for (imageX = 0; imageX < width; imageX++)
-                {
-                    Color c1 = bitmap.GetPixel(imageX, 0);
-                    Color c2 = bitmap.GetPixel(imageX, lastRow);
 
-                    r1 += c1.R;
-                    g1 += c1.G;
-                    b1 += c1.B;
-
-                    r2 += c2.R;
-                    g2 += c2.G;
-                    b2 += c2.B;
-                }
-
-                Color newC1 = Color.FromArgb(r1 / width, g1 / width, b1 / width);
-                Color newC2 = Color.FromArgb(r2 / width, g2 / width, b2 / width);
+                // poles of sphere mesh are the center pixels of the top and bottom rows
+                Color newC1 = bitmap.GetPixel(width / 2, 0);
+                Color newC2 = bitmap.GetPixel(width / 2, lastRow);
 
                 for (imageX = 0; imageX < width; imageX++)
                 {
@@ -272,8 +257,8 @@ namespace PrimMesher
             }
 
 
+            int pixelsDown = sculptType == SculptType.plane ? height : height + 1;
             int pixelsAcross = sculptType == SculptType.plane ? width : width + 1;
-            int pixelsDown = sculptType == SculptType.sphere || sculptType == SculptType.cylinder ? height + 1 : height;
 
             for (imageY = 0; imageY < pixelsDown; imageY++)
             {
