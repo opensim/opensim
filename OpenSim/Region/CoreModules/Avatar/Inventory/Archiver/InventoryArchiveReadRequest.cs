@@ -41,6 +41,7 @@ using OpenSim.Framework.Communications.Osp;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.CoreModules.World.Archiver;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 {
@@ -59,24 +60,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private Stream m_loadStream;
 
         protected CommunicationsManager m_commsManager;
+        protected IAssetService m_assetService;
 
         public InventoryArchiveReadRequest(
-            CachedUserInfo userInfo, string invPath, string loadPath, CommunicationsManager commsManager)
+            CachedUserInfo userInfo, string invPath, string loadPath, CommunicationsManager commsManager, IAssetService assetService)
             : this(
                 userInfo,
                 invPath,
                 new GZipStream(new FileStream(loadPath, FileMode.Open), CompressionMode.Decompress),
-                commsManager)
+                commsManager, assetService)
         {
         }
 
         public InventoryArchiveReadRequest(
-            CachedUserInfo userInfo, string invPath, Stream loadStream, CommunicationsManager commsManager)
+            CachedUserInfo userInfo, string invPath, Stream loadStream, CommunicationsManager commsManager, IAssetService assetService)
         {
             m_userInfo = userInfo;
             m_invPath = invPath;
             m_loadStream = loadStream;
             m_commsManager = commsManager;
+            m_assetService = assetService;
         }
 
         /// <summary>
@@ -356,7 +359,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 asset.Type = assetType;
                 asset.Data = data;
 
-                m_commsManager.AssetCache.AddAsset(asset);
+                m_assetService.Store(asset);
 
                 return true;
             }

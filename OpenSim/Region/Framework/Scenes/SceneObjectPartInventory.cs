@@ -252,9 +252,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_part.ScheduleFullUpdate();
                     return;
                 }
-                IAssetCache cache = m_part.ParentGroup.Scene.CommsManager.AssetCache;
 
-                cache.GetAsset(item.AssetID, delegate(UUID assetID, AssetBase asset)
+                m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString(), this, delegate(string id, object sender, AssetBase asset)
                                {
                                    if (null == asset)
                                    {
@@ -275,7 +274,7 @@ namespace OpenSim.Region.Framework.Scenes
                                        m_part.ParentGroup.AddActiveScriptCount(1);
                                        m_part.ScheduleFullUpdate();
                                    }
-                               }, false);
+                               });
             }
         }
 

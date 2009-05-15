@@ -774,7 +774,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     imgstream = new MemoryStream();
 
                     // non-async because we know we have the asset immediately.
-                    AssetBase mapasset = m_scene.CommsManager.AssetCache.GetAsset(m_scene.RegionInfo.lastMapUUID, true);
+                    AssetBase mapasset = m_scene.AssetService.Get(m_scene.RegionInfo.lastMapUUID.ToString());
 
                     // Decode image to System.Drawing.Image
                     if (OpenJPEG.DecodeToImage(mapasset.Data, out managedImage, out image))
@@ -872,7 +872,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             foreach (MapBlockData mapBlock in mapBlocks)
             {
-                AssetBase texAsset = m_scene.CommsManager.AssetCache.GetAsset(mapBlock.MapImageId, true);
+                AssetBase texAsset = m_scene.AssetService.Get(mapBlock.MapImageId.ToString());
 
                 if (texAsset != null)
                 {
@@ -880,7 +880,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 }
                 else
                 {
-                    texAsset = m_scene.CommsManager.AssetCache.GetAsset(mapBlock.MapImageId, true);
+                    texAsset = m_scene.AssetService.Get(mapBlock.MapImageId.ToString());
                     if (texAsset != null)
                     {
                         textures.Add(texAsset);
@@ -1029,7 +1029,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             asset.Type = 0;
             asset.Temporary = temporary;
-            m_scene.CommsManager.AssetCache.AddAsset(asset);
+            m_scene.AssetService.Store(asset);
         }
 
         private void MakeRootAgent(ScenePresence avatar)

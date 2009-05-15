@@ -98,7 +98,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             acm = new AgentCircuitManager();
                                     
             uint port = 666;            
-            testLLUDPServer.Initialise(null, ref port, 0, false, configSource, null, acm);
+            testLLUDPServer.Initialise(null, ref port, 0, false, configSource, acm);
             testPacketServer = new TestLLPacketServer(testLLUDPServer, userSettings);
             testLLUDPServer.LocalScene = scene;            
         }        

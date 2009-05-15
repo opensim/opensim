@@ -170,7 +170,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         //   will wait anyway)
         private Bitmap fetchTexture(UUID id)
         {
-            AssetBase asset = m_scene.CommsManager.AssetCache.GetAsset(id, true);
+            AssetBase asset = m_scene.AssetService.Get(id.ToString());
             m_log.DebugFormat("Fetched texture {0}, found: {1}", id, asset != null);
             if (asset == null) return null;
 

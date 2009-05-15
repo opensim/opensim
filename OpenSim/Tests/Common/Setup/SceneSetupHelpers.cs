@@ -40,6 +40,8 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.Agent.Capabilities;
 using OpenSim.Region.CoreModules.Avatar.Gods;
+using OpenSim.Region.CoreModules.ServiceConnectors.Asset;
+using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Tests.Common.Setup
@@ -122,6 +124,18 @@ namespace OpenSim.Tests.Common.Setup
             IRegionModule godsModule = new GodsModule();
             godsModule.Initialise(testScene, new IniConfigSource());
             testScene.AddModule(godsModule.Name, godsModule);
+
+            ISharedRegionModule assetService = new LocalAssetServicesConnector();
+            IniConfigSource config = new IniConfigSource();
+            config.AddConfig("ServiceConnectors");
+            config.AddConfig("AssetService");
+            config.Configs["ServiceConnectors"].Set("AssetServices", "LocalAssetServicesConnector");
+            config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Services.AssetService.dll:AssetService");
+            config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
+            assetService.Initialise(config); 
+            assetService.AddRegion(testScene);
+            assetService.RegionLoaded(testScene);
+            //testScene.RegisterModuleInterface<IAssetService>((IAssetService)assetService);
             
             testScene.SetModuleInterfaces();
 

@@ -33,6 +33,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -71,13 +72,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <value>
         /// Asset cache used to request the assets
         /// </value>
-        protected IAssetCache m_assetCache;
+        protected IAssetService m_assetCache;
 
         protected AssetsArchiver m_assetsArchiver;
 
         protected internal AssetsRequest(
             AssetsArchiver assetsArchiver, ICollection<UUID> uuids, 
-            IAssetCache assetCache, AssetsRequestCallback assetsRequestCallback)
+            IAssetService assetCache, AssetsRequestCallback assetsRequestCallback)
         {
             m_assetsArchiver = assetsArchiver;
             m_uuids = uuids;
@@ -96,7 +97,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             foreach (UUID uuid in m_uuids)
             {
-                m_assetCache.GetAsset(uuid, AssetRequestCallback, true);
+                m_assetCache.Get(uuid.ToString(), this, AssetReceived);
+            }
+        }
+
+        protected void AssetReceived(string id, object sender, AssetBase asset)
+        {
+            if (asset != null)
+            {
+                AssetRequestCallback(asset.FullID, asset);
             }
         }
 
@@ -110,10 +119,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             //m_log.DebugFormat("[ARCHIVER]: Received callback for asset {0}", assetID);
             
             if (asset != null)
-            {
-                // Make sure that we don't run out of memory by hogging assets in the cache
-                m_assetCache.ExpireAsset(assetID);
-                
+            {                
                 m_foundAssetUuids.Add(assetID);
                 m_assetsArchiver.WriteAsset(asset);
             }

@@ -34,6 +34,8 @@ using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Services.Interfaces;
+using IUserService = OpenSim.Framework.Communications.IUserService;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
@@ -110,9 +112,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             get { return Comms.AvatarService; }
         }
 
-        internal static IAssetCache AssetServices
+        internal static IAssetService AssetServices
         {
-            get { return Comms.AssetCache; }
+            get { return main.SceneManager.CurrentOrFirstScene.AssetService; }
         }
 
         /// <summary>

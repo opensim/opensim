@@ -31,6 +31,7 @@ using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Services.Interfaces;
 using log4net;
 using System.Reflection;
 
@@ -50,7 +51,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public sbyte m_requestedDiscardLevel;
         public UUID m_requestedUUID;
         public IJ2KDecoder m_j2kDecodeModule;
-        public IAssetCache m_assetCache;
+        public IAssetService m_assetCache;
         public OpenJPEG.J2KLayerInfo[] Layers = new OpenJPEG.J2KLayerInfo[0];
         public AssetBase m_MissingSubstitute = null;
         public bool m_decoded = false;
@@ -129,6 +130,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_asset = asset;              
             }
             RunUpdate();
+        }
+
+        protected void AssetReceived(string id, Object sender, AssetBase asset)
+        {
+            if (asset != null)
+                AssetDataCallback(asset.FullID, asset);
         }
 
         private int GetPacketForBytePosition(int bytePosition)
@@ -301,7 +308,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!m_asset_requested)
                 {
                     m_asset_requested = true;
-                    m_assetCache.GetAsset(m_requestedUUID, AssetDataCallback, true);
+                    m_assetCache.Get(m_requestedUUID.ToString(), this, AssetReceived);
 
                 }
 

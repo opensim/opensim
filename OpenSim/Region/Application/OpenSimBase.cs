@@ -673,7 +673,7 @@ namespace OpenSim
                 clientServer
                     = m_clientStackManager.CreateServer(
                         listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, configSource,
-                        m_assetCache, circuitManager);
+                        circuitManager);
             }
             else
             {

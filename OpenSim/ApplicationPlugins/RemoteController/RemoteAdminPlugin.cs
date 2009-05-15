@@ -47,6 +47,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.ApplicationPlugins.RemoteController
 {
@@ -1421,7 +1422,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     UICallback uic;
                     IInventoryServices iserv = m_app.CommunicationsManager.InventoryService;
-                    IAssetCache        aserv = m_app.CommunicationsManager.AssetCache;
+                    IAssetService      aserv = m_app.SceneManager.CurrentOrFirstScene.AssetService;
 
                     doc.LoadXml(File.ReadAllText(dafn));
 
@@ -1437,7 +1438,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         rass.Local       = Boolean.Parse(GetStringAttribute(asset,"local",""));
                         rass.Temporary   = Boolean.Parse(GetStringAttribute(asset,"temporary",""));
                         rass.Data        = Convert.FromBase64String(asset.InnerText);
-                        aserv.AddAsset(rass);
+                        aserv.Store(rass);
                     }
 
                     avatars = doc.GetElementsByTagName("Avatar");

@@ -3782,8 +3782,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         World.RegionInfo.RegionLocY * Constants.RegionSize,
                         0);
 
-                    World.CommsManager.AssetCache.GetAsset(item.AssetID,
-                        delegate(UUID i, AssetBase a)
+                    World.AssetService.Get(item.AssetID.ToString(), this,
+                        delegate(string i, object sender, AssetBase a)
                         {
                             AssetLandmark lm = new AssetLandmark(a);
 
@@ -3795,7 +3795,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             AsyncCommands.
                                 DataserverPlugin.DataserverReply(i.ToString(),
                                                              reply);
-                        }, false);
+                        });
 
                     // ScriptSleep(1000);
                     return tid.ToString();
@@ -9311,7 +9311,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public delegate void AssetRequestCallback(UUID assetID, AssetBase asset);
         private void WithNotecard(UUID assetID, AssetRequestCallback cb)
         {
-            World.CommsManager.AssetCache.GetAsset(assetID, delegate(UUID i, AssetBase a) { cb(i, a); }, false);
+            World.AssetService.Get(assetID.ToString(), this, 
+                delegate(string i, object sender, AssetBase a) 
+                {
+                    UUID uuid = UUID.Zero;
+                    UUID.TryParse(i, out uuid);
+                    cb(uuid, a); 
+                });
         }
 
         public LSL_String llGetNumberOfNotecardLines(string name)

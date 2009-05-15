@@ -310,7 +310,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 asset.Type = assetType;
                 asset.Data = data;
 
-                m_scene.CommsManager.AssetCache.AddAsset(asset);
+                m_scene.AssetService.Store(asset);
 
                 /**
                  * Create layers on decode for image assets.  This is likely to significantly increase the time to load archives so

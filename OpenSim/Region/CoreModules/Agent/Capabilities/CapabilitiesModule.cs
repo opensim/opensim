@@ -86,7 +86,7 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
 
             Caps caps
                 = new Caps(
-                    m_scene.CommsManager.AssetCache, m_scene.CommsManager.HttpServer, m_scene.RegionInfo.ExternalHostName, 
+                    m_scene.AssetService, m_scene.CommsManager.HttpServer, m_scene.RegionInfo.ExternalHostName, 
                     m_scene.CommsManager.HttpServer.Port,
                     capsObjectPath, agentId, m_scene.DumpAssetsToFile, m_scene.RegionInfo.RegionName);
             

@@ -56,10 +56,14 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void Initialise(IConfigSource source)
         {
-            IConfig moduleConfig = source.Configs["Modules"];
+            IConfig moduleConfig = source.Configs["ServiceConnectors"];
+            m_log.DebugFormat("[XXX] moduleConfig null? {0}", ((moduleConfig == null) ? "yes" : "no"));
+
             if (moduleConfig != null)
             {
                 string name = moduleConfig.GetString("AssetCaching", "CoreAssetCache");
+                m_log.DebugFormat("[XXX] name = {0} (this module's name: {1}", name, Name);
+
                 if (name == Name)
                 {
                     IConfig assetConfig = source.Configs["AssetCache"];

@@ -1979,7 +1979,7 @@ namespace OpenSim.Region.Framework.Scenes
             //BinBVHAnimation bbvhanim = new BinBVHAnimation(Animasset.Data);
 
 
-            m_scene.CommsManager.AssetCache.AddAsset(Animasset);
+            m_scene.AssetService.Store(Animasset);
             AddAnimation(Animasset.FullID, UUID);
             return anim;
         }

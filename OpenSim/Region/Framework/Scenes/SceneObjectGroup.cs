@@ -2967,12 +2967,22 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (part.Shape.SculptEntry && part.Shape.SculptTexture != UUID.Zero)
                             {
-                                m_scene.CommsManager.AssetCache.GetAsset(
-                                    part.Shape.SculptTexture, part.SculptTextureCallback, true);
+                                m_scene.AssetService.Get(
+                                    part.Shape.SculptTexture.ToString(), part, AssetReceived); 
                             }
                         }
                     }
                 }
+            }
+        }
+
+        protected void AssetReceived(string id, Object sender, AssetBase asset)
+        {
+            if (asset != null)
+            {
+                SceneObjectPart sop = (SceneObjectPart)sender;
+                if (sop != null)
+                    sop.SculptTextureCallback(asset.FullID, asset);
             }
         }
 

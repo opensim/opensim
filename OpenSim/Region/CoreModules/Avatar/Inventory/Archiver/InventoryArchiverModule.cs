@@ -37,6 +37,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 {          
@@ -62,11 +63,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// All scenes that this module knows about
         /// </value>
         private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
-        
+        private Scene m_aScene;
         /// <value>
         /// The comms manager we will use for all comms requests
         /// </value>
         protected internal CommunicationsManager CommsManager;
+        protected internal IAssetService AssetService;
 
         public void Initialise(Scene scene, IConfigSource source)
         {            
@@ -84,13 +86,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 scene.AddCommand(
                     this, "save iar",
                     "save iar <first> <last> <inventory path> [<archive path>]",
-                    "Save user inventory archive.  EXPERIMENTAL, PLEASE DO NOT USE YET", HandleSaveInvConsoleCommand);           
+                    "Save user inventory archive.  EXPERIMENTAL, PLEASE DO NOT USE YET", HandleSaveInvConsoleCommand);
+
+                m_aScene = scene;
             }
                         
             m_scenes[scene.RegionInfo.RegionID] = scene;            
         }
         
-        public void PostInitialise() {}
+        public void PostInitialise() 
+        {
+            AssetService = m_aScene.AssetService;
+        }
 
         public void Close() {}
         
@@ -114,7 +121,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (userInfo != null)
                 {
                     InventoryArchiveReadRequest request = 
-                        new InventoryArchiveReadRequest(userInfo, invPath, loadStream, CommsManager);                
+                        new InventoryArchiveReadRequest(userInfo, invPath, loadStream, CommsManager, AssetService);                
                     UpdateClientWithLoadedNodes(userInfo, request.Execute());
                 }
             }            
@@ -140,7 +147,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (userInfo != null)
                 {
                     InventoryArchiveReadRequest request = 
-                        new InventoryArchiveReadRequest(userInfo, invPath, loadPath, CommsManager);                
+                        new InventoryArchiveReadRequest(userInfo, invPath, loadPath, CommsManager, AssetService);                
                     UpdateClientWithLoadedNodes(userInfo, request.Execute());
                 }
             }                

@@ -264,7 +264,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 if (BlendWithOldTexture)
                 {
                     UUID lastTextureID = part.Shape.Textures.DefaultTexture.TextureID;
-                    oldAsset = scene.CommsManager.AssetCache.GetAsset(lastTextureID, true);
+                    oldAsset = scene.AssetService.Get(lastTextureID.ToString());
                     if (oldAsset != null)
                     {
                         assetData = BlendTextures(data, oldAsset.Data, SetNewFrontAlpha, FrontAlpha);
@@ -290,7 +290,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 asset.Description = "dynamic image";
                 asset.Local = false;
                 asset.Temporary = true;
-                scene.CommsManager.AssetCache.AddAsset(asset);
+                scene.AssetService.Store(asset);
 
                 LastAssetID = asset.FullID;
 
@@ -315,7 +315,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 part.Shape.Textures = tmptex;
                 part.ScheduleFullUpdate();
 
-                scene.CommsManager.AssetCache.ExpireAsset(oldID);
             }
 
             private byte[] BlendTextures(byte[] frontImage, byte[] backImage, bool setNewAlpha, byte newAlpha)

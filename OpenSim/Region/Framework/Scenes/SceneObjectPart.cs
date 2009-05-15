@@ -1414,8 +1414,7 @@ if (m_shape != null) {
             {
                 if (dupe.m_shape.SculptEntry && dupe.m_shape.SculptTexture != UUID.Zero)
                 {
-                    m_parentGroup.Scene.CommsManager.AssetCache.GetAsset(
-                        dupe.m_shape.SculptTexture, dupe.SculptTextureCallback, true);
+                    m_parentGroup.Scene.AssetService.Get(dupe.m_shape.SculptTexture.ToString(), dupe, AssetReceived); 
                 }
                 
                 bool UsePhysics = ((dupe.ObjectFlags & (uint)PrimFlags.Physics) != 0);
@@ -1423,6 +1422,16 @@ if (m_shape != null) {
             }
             
             return dupe;
+        }
+
+        protected void AssetReceived(string id, Object sender, AssetBase asset)
+        {
+            if (asset != null)
+            {
+                SceneObjectPart sop = (SceneObjectPart)sender;
+                if (sop != null)
+                    sop.SculptTextureCallback(asset.FullID, asset);
+            }
         }
 
         public static SceneObjectPart Create()
@@ -3147,8 +3156,7 @@ if (m_shape != null) {
             {
                 if (m_shape.SculptEntry && m_shape.SculptTexture != UUID.Zero)
                 {
-                    m_parentGroup.Scene.CommsManager.AssetCache.GetAsset(
-                        m_shape.SculptTexture, SculptTextureCallback, true);
+                    m_parentGroup.Scene.AssetService.Get(m_shape.SculptTexture.ToString(), this, AssetReceived);
                 }
             }
 

@@ -83,7 +83,7 @@ namespace OpenSim.Client.Linden
                 m_clientServer
                    = m_clientStackManager.CreateServer(endPoint.Address,
                      ref port, m_scene.RegionInfo.ProxyOffset, m_scene.RegionInfo.m_allow_alternate_ports, m_source,
-                       m_scene.CommsManager.AssetCache, m_scene.AuthenticateHandler);
+                       m_scene.AuthenticateHandler);
 
                 m_clientServer.AddScene(m_scene);
 

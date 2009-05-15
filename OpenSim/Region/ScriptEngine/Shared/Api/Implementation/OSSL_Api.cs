@@ -1341,7 +1341,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             + textLength.ToString() + "\n" + notecardData + "}\n";
 
             asset.Data = Encoding.ASCII.GetBytes(notecardData);
-            World.CommsManager.AssetCache.AddAsset(asset);
+            World.AssetService.Store(asset);
 
             // Create Task Entry
             TaskInventoryItem taskItem=new TaskInventoryItem();
@@ -1402,7 +1402,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!NotecardCache.IsCached(assetID))
             {
-                AssetBase a = World.CommsManager.AssetCache.GetAsset(assetID, false);
+                AssetBase a = World.AssetService.Get(assetID.ToString());
                 if (a != null)
                 {
                     System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
@@ -1455,7 +1455,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!NotecardCache.IsCached(assetID))
             {
-                AssetBase a = World.CommsManager.AssetCache.GetAsset(assetID, false);
+                AssetBase a = World.AssetService.Get(assetID.ToString());
                 if (a != null)
                 {
                     System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
@@ -1512,7 +1512,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!NotecardCache.IsCached(assetID))
             {
-                AssetBase a = World.CommsManager.AssetCache.GetAsset(assetID, false);
+                AssetBase a = World.AssetService.Get(assetID.ToString());
                 if (a != null)
                 {
                     System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();

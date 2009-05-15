@@ -40,6 +40,7 @@ using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 using LLSDHelpers = OpenSim.Framework.Communications.Capabilities.LLSDHelpers;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Services.Interfaces;
 
 using OpenMetaverse.StructuredData;
 
@@ -58,7 +59,7 @@ namespace OpenSim.Framework.Communications.Services
 
         // These two used for local access, standalone mode
         private UserManagerBase m_userService = null;
-        IAssetDataPlugin m_assetProvider = null;
+        IAssetService m_assetProvider = null;
 
         // These two used for remote access
         //string m_UserServerURL = string.Empty;
@@ -77,7 +78,7 @@ namespace OpenSim.Framework.Communications.Services
         }
 
         // Constructor for standalone mode
-        public HGInventoryService(InventoryServiceBase invService, IAssetDataPlugin assetService, UserManagerBase userService, IHttpServer httpserver, string thisurl)
+        public HGInventoryService(InventoryServiceBase invService, IAssetService assetService, UserManagerBase userService, IHttpServer httpserver, string thisurl)
         {
             m_userService = userService;
             m_assetProvider = assetService;
@@ -708,7 +709,7 @@ namespace OpenSim.Framework.Communications.Services
                 return m_AssetClient.SyncGetAsset(assetID, isTexture);
             // local call
             else
-                return m_assetProvider.FetchAsset(assetID);
+                return m_assetProvider.Get(assetID.ToString());
         }
 
         void StoreAsset(AssetBase asset)
@@ -718,7 +719,7 @@ namespace OpenSim.Framework.Communications.Services
                 m_AssetClient.StoreAsset(asset);
             // local call
             else
-                m_assetProvider.CreateAsset(asset);
+                m_assetProvider.Store(asset);
         }
 
         #endregion Local vs Remote

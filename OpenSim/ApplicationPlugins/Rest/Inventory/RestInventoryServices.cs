@@ -476,7 +476,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     {
                         Rest.Log.DebugFormat("{0} Rest asset: {1} {2} {3}",
                                              MsgId, asset.ID, asset.Type, asset.Name);
-                        Rest.AssetServices.AddAsset(asset);
+                        Rest.AssetServices.Store(asset);
 
                         created = true;
                         rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>",
@@ -682,7 +682,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     // The asset was validated during the collection process
 
-                    Rest.AssetServices.AddAsset(asset);
+                    Rest.AssetServices.Store(asset);
 
                     created = true;
                     rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Name, asset.ID));

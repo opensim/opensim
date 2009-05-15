@@ -649,7 +649,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             for (int i=0;i<arrassets.Length;i++)
             {
-                AssetBase ab = sn.CommsManager.AssetCache.GetAsset(arrassets[i], true);
+                AssetBase ab = sn.AssetService.Get(arrassets[i].ToString());
                 if (ab != null && ab.Data != null)
                 {
                     j2kdecode.syncdecode(arrassets[i], ab.Data);

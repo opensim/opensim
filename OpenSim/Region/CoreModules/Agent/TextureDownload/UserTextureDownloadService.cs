@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -152,7 +153,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
                         TextureSender.TextureSender requestHandler = new TextureSender.TextureSender(m_client, e.DiscardLevel, e.PacketNumber);
                         m_textureSenders.Add(e.RequestedAssetID, requestHandler);
 
-                        m_scene.CommsManager.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback, true);
+                        m_scene.AssetService.Get(e.RequestedAssetID.ToString(), this, TextureReceived);
                     }
                 }
             }
@@ -166,6 +167,12 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
                     }
                 }
             }
+        }
+
+        protected void TextureReceived(string id, Object sender, AssetBase asset)
+        {
+            if (asset != null)
+                TextureCallback(asset.FullID, asset);
         }
 
         /// <summary>

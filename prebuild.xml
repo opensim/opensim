@@ -617,6 +617,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Statistics"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
       <!-- FIXME: The OpenMetaverse.dll reference can be dropped when the TransferRequestPacket reference is removed from the code -->
@@ -1160,6 +1161,7 @@
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="log4net.dll"/>
       <Reference name="XMLRPC.dll"/>
@@ -1589,6 +1591,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="Mono.Addins.dll" />
 
       <!-- For scripting in funny languages by default -->
@@ -1600,6 +1603,40 @@
       <Reference name="DotNetOpenMail.dll"/>
 
 	  
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.SimulatorServices" path="OpenSim/SimulatorServices" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer" />
+      <Reference name="OpenSim.Region.Framework" />
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Servers.AssetServer.Handlers"/>
+      <Reference name="Mono.Addins.dll" />
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+
       <Files>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests" />
@@ -1709,6 +1746,7 @@
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
@@ -1928,6 +1966,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="log4net.dll"/>
 
       <Files>
@@ -2042,6 +2081,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenSim.ApplicationPlugins.Rest"/>
       <Reference name="log4net.dll"/>
 
@@ -2169,6 +2209,7 @@
 	  <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Files>
@@ -2203,6 +2244,7 @@
       <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Files>
@@ -2406,6 +2448,7 @@
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="Nini.dll" />
@@ -2514,6 +2557,7 @@
       <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime"/>
       <Reference name="Nini.dll" />
@@ -3501,7 +3545,8 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
-
+      <Reference name="OpenSim.Services.Interfaces"/>
+      
       <!-- Unit tests -->
       <!-- <Reference name="OpenSim.Tests.Common"/> -->
       <Reference name="OpenSim.Tests.Common"/>

@@ -57,14 +57,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             asset.Description = "MRM Image";
             asset.Local = false;
             asset.Temporary = temporary;
-            m_scene.CommsManager.AssetCache.AddAsset(asset);
+            m_scene.AssetService.Store(asset);
 
             return asset.FullID;
         }
 
         public Bitmap LoadBitmap(UUID assetID)
         {
-            AssetBase bmp = m_scene.CommsManager.AssetCache.GetAsset(assetID, true);
+            AssetBase bmp = m_scene.AssetService.Get(assetID.ToString());
             ManagedImage outimg;
             Image img;
             OpenJPEG.DecodeToImage(bmp.Data, out outimg, out img);

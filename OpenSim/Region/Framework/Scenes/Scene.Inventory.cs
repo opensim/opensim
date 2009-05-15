@@ -193,7 +193,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         AssetBase asset =
                             CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data);
-                        CommsManager.AssetCache.AddAsset(asset);
+                        AssetService.Store(asset);
 
                         item.AssetID = asset.FullID;
                         userInfo.UpdateItem(item);
@@ -279,7 +279,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data);
-            CommsManager.AssetCache.AddAsset(asset);
+            AssetService.Store(asset);
 
             if (isScriptRunning)
             {
@@ -688,9 +688,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            AssetBase asset
-                = CommsManager.AssetCache.GetAsset(
-                    item.AssetID, (item.AssetType == (int)AssetType.Texture ? true : false));
+            AssetBase asset = AssetService.Get(item.AssetID.ToString());
 
             if (asset != null)
             {
@@ -911,7 +909,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     AssetBase asset = CreateAsset(name, description, assetType, data);
-                    CommsManager.AssetCache.AddAsset(asset);
+                    AssetService.Store(asset);
 
                     CreateNewInventoryItem(remoteClient, folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
                 }
@@ -1538,7 +1536,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
 
                 AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType, Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"));
-                CommsManager.AssetCache.AddAsset(asset);
+                AssetService.Store(asset);
 
                 TaskInventoryItem taskItem = new TaskInventoryItem();
 
@@ -1959,7 +1957,7 @@ namespace OpenSim.Region.Framework.Scenes
                 objectGroup.GetPartDescription(objectGroup.RootPart.LocalId),
                 (sbyte)AssetType.Object,
                 Utils.StringToBytes(sceneObjectXml));
-            CommsManager.AssetCache.AddAsset(asset);
+            AssetService.Store(asset);
             assetID = asset.FullID;
 
             if (DeRezAction.SaveToExistingUserInventoryItem == action)
@@ -2085,7 +2083,7 @@ namespace OpenSim.Region.Framework.Scenes
                             objectGroup.GetPartDescription(objectGroup.LocalId),
                             (sbyte)AssetType.Object,
                             Utils.StringToBytes(sceneObjectXml));
-                        CommsManager.AssetCache.AddAsset(asset);
+                        AssetService.Store(asset);
 
                         item.AssetID = asset.FullID;
                         item.Description = asset.Description;
@@ -2123,7 +2121,7 @@ namespace OpenSim.Region.Framework.Scenes
                         grp.GetPartDescription(grp.LocalId),
                         (sbyte)AssetType.Object,
                         Utils.StringToBytes(sceneObjectXml));
-                    CommsManager.AssetCache.AddAsset(asset);
+                    AssetService.Store(asset);
 
                     InventoryItemBase item = new InventoryItemBase();
                     item.CreatorId = grp.RootPart.CreatorID.ToString();
@@ -2247,7 +2245,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (item != null)
                     {
-                        AssetBase rezAsset = CommsManager.AssetCache.GetAsset(item.AssetID, false);
+                        AssetBase rezAsset = AssetService.Get(item.AssetID.ToString());
 
                         if (rezAsset != null)
                         {
@@ -2416,7 +2414,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 UUID ownerID = item.OwnerID;
 
-                AssetBase rezAsset = CommsManager.AssetCache.GetAsset(item.AssetID, false);
+                AssetBase rezAsset = AssetService.Get(item.AssetID.ToString());
 
                 if (rezAsset != null)
                 {

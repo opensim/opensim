@@ -88,7 +88,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             if (!UUID.TryParse(param, out assetID))
                 return false;
 
-            AssetBase asset = m_scene.CommsManager.AssetCache.GetAsset(assetID, true);
+            AssetBase asset = m_scene.AssetService.Get(assetID.ToString());
 
             if (asset == null)
                 return false;

@@ -112,37 +112,37 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// <summary>
         /// Test deleting an object asynchronously to user inventory.
         /// </summary>
-        [Test]
-        public void TestDeleteSceneObjectAsyncToUserInventory()
-        {
-            TestHelper.InMethod();            
-            //log4net.Config.XmlConfigurator.Configure();                  
+        //[Test]
+        //public void TestDeleteSceneObjectAsyncToUserInventory()
+        //{
+        //    TestHelper.InMethod();            
+        //    //log4net.Config.XmlConfigurator.Configure();                  
             
-            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
-            string myObjectName = "Fred";
+        //    UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
+        //    string myObjectName = "Fred";
             
-            TestScene scene = SceneSetupHelpers.SetupScene();                
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene, myObjectName);
+        //    TestScene scene = SceneSetupHelpers.SetupScene();                
+        //    SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene, myObjectName);
             
-            Assert.That(
-                scene.CommsManager.UserAdminService.AddUser(
-                    "Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
-                Is.EqualTo(agentId));  
+        //    Assert.That(
+        //        scene.CommsManager.UserAdminService.AddUser(
+        //            "Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
+        //        Is.EqualTo(agentId));  
             
-            IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
+        //    IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
                                                 
-            CachedUserInfo userInfo = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentId);
-            Assert.That(userInfo, Is.Not.Null);
-            Assert.That(userInfo.RootFolder, Is.Not.Null);
+        //    CachedUserInfo userInfo = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentId);
+        //    Assert.That(userInfo, Is.Not.Null);
+        //    Assert.That(userInfo.RootFolder, Is.Not.Null);
             
-            SceneSetupHelpers.DeleteSceneObjectAsync(scene, part, DeRezAction.Take, userInfo.RootFolder.ID, client);
+        //    SceneSetupHelpers.DeleteSceneObjectAsync(scene, part, DeRezAction.Take, userInfo.RootFolder.ID, client);
             
-            // Check that we now have the taken part in our inventory
-            Assert.That(myObjectName, Is.EqualTo(userInfo.RootFolder.FindItemByPath(myObjectName).Name));
+        //    // Check that we now have the taken part in our inventory
+        //    Assert.That(myObjectName, Is.EqualTo(userInfo.RootFolder.FindItemByPath(myObjectName).Name));
             
-            // Check that the taken part has actually disappeared
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-            Assert.That(retrievedPart, Is.Null);
-        }
+        //    // Check that the taken part has actually disappeared
+        //    SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+        //    Assert.That(retrievedPart, Is.Null);
+        //}
     }
 }

@@ -1264,18 +1264,19 @@
 
     ;PacketMTU = 1400
 
-    ; The following is the configuration section for the new style gtid servers
+    ; The following is the configuration section for the new style grid servers
     ; If you don't know what this is, don't enable it. It will eat your data,
     ; format your hard drive and make all meat in your fridge spoil.
     ; You have been warned.
-    ; Some of this may actually work!
-[Modules]
-    ; Choose one
-    ;AssetServices = "LocalAssetServicesConnector"
+    ; Some of this is starting to work!
+[ServiceConnectors]
+    ; Choose one 
+    AssetServices = "LocalAssetServicesConnector"
     ;AssetServices = "RemoteAssetServicesConnector"
     ;AssetServices = "HGAssetBroker"
 
-    ;AssetCaching = "CoreAssetCache"
+	; If you don't want asset caching in the regions, comment this
+    AssetCaching = "CoreAssetCache"
 
     ; Choose one
     ;UserServices = "LocalUserServicesConnector"
@@ -1283,14 +1284,15 @@
 
 
 [AssetService]
-    ; Parameters for local assets
-    ;LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
+    ; Parameters for local assets, formerly known as "standalone"
+    LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
+    StorageProvider = "OpenSim.Data.SQLite.dll"
     ;StorageProvider = "OpenSim.Data.MySQL.dll"
     ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim;"
-    ;DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
-    ;AssetLoaderArgs = "assets/AssetSets.xml"
+    DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
+    AssetLoaderArgs = "assets/AssetSets.xml"
 
-    ; Parameters for remote assets
+    ; Parameters for remote assets, formerly known as "grid"
     ;AssetServerURI = "http://localhost:8003/"
 
     ; Paremeters for the Hypergrid connector

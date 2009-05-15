@@ -97,7 +97,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_userInfo = userInfo;
             m_invPath = invPath;
             m_saveStream = saveStream;
-            m_assetGatherer = new UuidGatherer(m_module.CommsManager.AssetCache);
+            m_assetGatherer = new UuidGatherer(m_module.AssetService);
         }
 
         protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
@@ -297,7 +297,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             SaveUsers();
             new AssetsRequest(
                 new AssetsArchiver(m_archiveWriter), m_assetUuids.Keys, 
-                m_module.CommsManager.AssetCache, ReceivedAllAssets).Execute();
+                m_module.AssetService, ReceivedAllAssets).Execute();
         }
 
         /// <summary>

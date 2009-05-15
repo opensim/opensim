@@ -34,6 +34,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Services.Interfaces;
 
 // using OpenSim.Region.Framework.Interfaces;
 
@@ -100,7 +101,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         //private string eventQueue = "0100/";
         private IHttpServer m_httpListener;
         private UUID m_agentID;
-        private IAssetCache m_assetCache;
+        private IAssetService m_assetCache;
         private int m_eventQueueCount = 1;
         private Queue<string> m_capsEventQueue = new Queue<string>();
         private bool m_dumpAssetsToFile;
@@ -128,7 +129,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         public FetchInventoryDescendentsCAPS CAPSFetchInventoryDescendents = null;
         public GetClientDelegate GetClient = null;
 
-        public Caps(IAssetCache assetCache, IHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
+        public Caps(IAssetService assetCache, IHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     UUID agent, bool dumpAssetsToFile, string regionName)
         {
             m_assetCache = assetCache;
@@ -870,7 +871,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             if (AddNewAsset != null)
                 AddNewAsset(asset);
             else if (m_assetCache != null)
-                m_assetCache.AddAsset(asset);
+                m_assetCache.Store(asset);
 
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = m_agentID;

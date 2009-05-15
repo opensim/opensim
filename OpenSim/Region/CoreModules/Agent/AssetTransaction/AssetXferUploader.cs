@@ -153,7 +153,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
             else if (m_storeLocal)
             {
-                m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
+                m_userTransactions.Manager.MyScene.AssetService.Store(m_asset);
             }
 
             m_log.DebugFormat("[ASSET TRANSACTIONS]: Uploaded asset data for transaction {0}", TransactionID);
@@ -213,7 +213,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
         private void DoCreateItem(uint callbackID)
         {
-            m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
+            m_userTransactions.Manager.MyScene.AssetService.Store(m_asset);
             CachedUserInfo userInfo =
                 m_userTransactions.Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(
                     ourClient.AgentId);

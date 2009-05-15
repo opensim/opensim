@@ -86,10 +86,10 @@ namespace OpenSim.Region.ClientStack
         /// <returns></returns>
         public IClientNetworkServer CreateServer(
             IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port,
-            IAssetCache assetCache, AgentCircuitManager authenticateClass)
+            AgentCircuitManager authenticateClass)
         {    
             return CreateServer(
-                _listenIP, ref port, proxyPortOffset, allow_alternate_port, null, assetCache, authenticateClass);                                               
+                _listenIP, ref port, proxyPortOffset, allow_alternate_port, null, authenticateClass);                                               
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace OpenSim.Region.ClientStack
         /// <returns></returns>        
         public IClientNetworkServer CreateServer(
             IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, IConfigSource configSource,
-            IAssetCache assetCache, AgentCircuitManager authenticateClass)
+            AgentCircuitManager authenticateClass)
         {            
             if (plugin != null)
             {
@@ -116,7 +116,7 @@ namespace OpenSim.Region.ClientStack
                 
                 server.Initialise(
                     _listenIP, ref port, proxyPortOffset, allow_alternate_port, 
-                    configSource, assetCache, authenticateClass);
+                    configSource, authenticateClass);
                 
                 return server;
             }

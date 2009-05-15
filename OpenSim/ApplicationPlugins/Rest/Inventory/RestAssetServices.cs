@@ -190,14 +190,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void DoGet(AssetRequestData rdata)
         {
-            bool istexture = false;
-
             Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
 
             if (rdata.Parameters.Length == 1)
             {
                 UUID uuid = new UUID(rdata.Parameters[0]);
-                AssetBase asset = Rest.AssetServices.GetAsset(uuid, istexture);
+                AssetBase asset = Rest.AssetServices.Get(uuid.ToString());
 
                 if (asset != null)
                 {
@@ -258,7 +256,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 }
 
                 UUID uuid = new UUID(rdata.Parameters[0]);
-                asset = Rest.AssetServices.GetAsset(uuid, false);
+                asset = Rest.AssetServices.Get(uuid.ToString());
 
                 modified = (asset != null);
                 created  = !modified;
@@ -278,7 +276,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                         MsgId, rdata.Parameters[0], asset.ID);
                 }
 
-                Rest.AssetServices.AddAsset(asset);
+                Rest.AssetServices.Store(asset);
 
             }
             else
@@ -338,7 +336,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             UUID uuid = new UUID(xml.GetAttribute("id"));
-            AssetBase asset = Rest.AssetServices.GetAsset(uuid, false);
+            AssetBase asset = Rest.AssetServices.Get(uuid.ToString());
 
             modified = (asset != null);
             created  = !modified;
@@ -352,7 +350,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             asset.Temporary   = Int32.Parse(xml.GetAttribute("temporary")) != 0;
             asset.Data        = Convert.FromBase64String(xml.ReadElementContentAsString("Asset", ""));
 
-            Rest.AssetServices.AddAsset(asset);
+            Rest.AssetServices.Store(asset);
 
             if (created)
             {

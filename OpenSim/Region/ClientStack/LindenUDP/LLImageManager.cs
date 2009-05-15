@@ -31,6 +31,7 @@ using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Services.Interfaces;
 using log4net;
 using System.Reflection;
 
@@ -50,7 +51,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private long m_lastloopprocessed = 0;
 
         private LLClientView m_client; //Client we're assigned to
-        private IAssetCache m_assetCache; //Asset Cache
+        private IAssetService m_assetCache; //Asset Cache
         private IJ2KDecoder m_j2kDecodeModule; //Our J2K module
 
         private readonly AssetBase m_missingsubstitute; //Sustitute for bad decodes
@@ -62,7 +63,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public int m_outstandingtextures = 0;
         //Constructor
-        public LLImageManager(LLClientView client, IAssetCache pAssetCache, IJ2KDecoder pJ2kDecodeModule)
+        public LLImageManager(LLClientView client, IAssetService pAssetCache, IJ2KDecoder pJ2kDecodeModule)
         {
             
             m_imagestore = new Dictionary<UUID,J2KImage>();
@@ -71,7 +72,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_client = client;
             m_assetCache = pAssetCache;
             if (pAssetCache != null)
-                m_missingsubstitute = pAssetCache.GetAsset(UUID.Parse("5748decc-f629-461c-9a36-a35a221fe21f"), true);
+                m_missingsubstitute = pAssetCache.Get("5748decc-f629-461c-9a36-a35a221fe21f");
             else
                 m_log.Error("[ClientView] - couldn't set missing image, all manner of things will probably break");
             m_j2kDecodeModule = pJ2kDecodeModule;

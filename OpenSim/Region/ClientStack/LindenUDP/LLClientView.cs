@@ -43,6 +43,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 using Timer=System.Timers.Timer;
 using Nini.Config;
 
@@ -66,7 +67,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private int m_debugPacketLevel;
 
-        private readonly IAssetCache m_assetCache;
+        //private readonly IAssetCache m_assetCache;
         private int m_cachedTextureSerial;
         private Timer m_clientPingTimer;
 
@@ -140,6 +141,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_primFullUpdateRate = 14;
 
         protected int m_packetMTU = 1400;
+
+        protected IAssetService m_assetService;
 
         // LLClientView Only
         public delegate void BinaryGenericMessage(Object sender, string method, byte[][] args);
@@ -490,7 +493,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             InitDefaultAnimations();
 
             m_scene = scene;
-            m_assetCache = assetCache;
+            //m_assetCache = assetCache;
+
+            m_assetService = m_scene.RequestModuleInterface<IAssetService>();
+            m_log.Debug("[XXX] m_assetService is null? " + ((m_assetService == null) ? "yes" : "no"));
 
             m_networkServer = packServer;
 
@@ -543,7 +549,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             RegisterLocalPacketHandlers();
-            m_imageManager = new LLImageManager(this, m_assetCache,Scene.RequestModuleInterface<IJ2KDecoder>());
+            m_imageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
         }
 
         public void SetDebugPacketLevel(int newDebugPacketLevel)
@@ -6451,7 +6457,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
 
-                    m_assetCache.AddAssetRequest(this, transfer);
+                    //m_assetCache.AddAssetRequest(this, transfer);
+
+                    MakeAssetRequest(transfer);
+
                     /* RequestAsset = OnRequestAsset;
                          if (RequestAsset != null)
                          {
@@ -7115,7 +7124,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     AssetLandmark lm;
                     if (lmid != UUID.Zero)
                     {
-                        AssetBase lma = m_assetCache.GetAsset(lmid, false);
+                        //AssetBase lma = m_assetCache.GetAsset(lmid, false);
+                        AssetBase lma = m_assetService.Get(lmid.ToString());
 
                         if (lma == null)
                         {
@@ -10603,6 +10613,93 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             return  "";
         }
+
+        public void MakeAssetRequest(TransferRequestPacket transferRequest)
+        {
+            UUID requestID = UUID.Zero;
+            if (transferRequest.TransferInfo.SourceType == 2)
+            {
+                //direct asset request
+                requestID = new UUID(transferRequest.TransferInfo.Params, 0);
+            }
+            else if (transferRequest.TransferInfo.SourceType == 3)
+            {
+                //inventory asset request
+                requestID = new UUID(transferRequest.TransferInfo.Params, 80);
+                //m_log.Debug("asset request " + requestID);
+            }
+
+            //check to see if asset is in local cache, if not we need to request it from asset server.
+            //m_log.Debug("asset request " + requestID);
+            
+            m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
+
+        }
+
+        protected void AssetReceived(string id, Object sender, AssetBase asset)
+        {
+            TransferRequestPacket transferRequest = (TransferRequestPacket)sender;
+
+            UUID requestID = UUID.Zero;
+            byte source = 2;
+            if (transferRequest.TransferInfo.SourceType == 2)
+            {
+                //direct asset request
+                requestID = new UUID(transferRequest.TransferInfo.Params, 0);
+            }
+            else if (transferRequest.TransferInfo.SourceType == 3)
+            {
+                //inventory asset request
+                requestID = new UUID(transferRequest.TransferInfo.Params, 80);
+                source = 3;
+                //m_log.Debug("asset request " + requestID);
+            }
+
+            // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
+            if (null == asset)
+            {
+                //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
+                return;
+            }
+
+            // Scripts cannot be retrieved by direct request
+            if (transferRequest.TransferInfo.SourceType == 2 && asset.Type == 10)
+                return;
+
+            // The asset is known to exist and is in our cache, so add it to the AssetRequests list
+            AssetRequestToClient req = new AssetRequestToClient();
+            req.AssetInf = asset;
+            req.AssetRequestSource = source;
+            req.IsTextureRequest = false;
+            req.NumPackets = CalculateNumPackets(asset.Data);
+            req.Params = transferRequest.TransferInfo.Params;
+            req.RequestAssetID = requestID;
+            req.TransferRequestID = transferRequest.TransferInfo.TransferID;
+
+            SendAsset(req);
+        }
+
+        /// <summary>
+        /// Calculate the number of packets required to send the asset to the client.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private static int CalculateNumPackets(byte[] data)
+        {
+            const uint m_maxPacketSize = 600;
+            int numPackets = 1;
+
+            if (data.LongLength > m_maxPacketSize)
+            {
+                // over max number of bytes so split up file
+                long restData = data.LongLength - m_maxPacketSize;
+                int restPackets = (int)((restData + m_maxPacketSize - 1) / m_maxPacketSize);
+                numPackets += restPackets;
+            }
+
+            return numPackets;
+        }
+
 
         #region IClientIPEndpoint Members
 

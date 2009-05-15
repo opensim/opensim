@@ -34,6 +34,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -52,7 +53,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Asset cache used for gathering assets
         /// </summary>
-        protected IAssetCache m_assetCache;
+        protected IAssetService m_assetCache;
         
         /// <summary>
         /// Used as a temporary store of an asset which represents an object.  This can be a null if no appropriate
@@ -65,7 +66,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected bool m_waitingForObjectAsset;
                 
-        public UuidGatherer(IAssetCache assetCache)
+        public UuidGatherer(IAssetService assetCache)
         {
             m_assetCache = assetCache;
         }
@@ -174,6 +175,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        protected void AssetReceived(string id, Object sender, AssetBase asset)
+        {
+            if (asset != null)
+                AssetRequestCallback(asset.FullID, asset);
+        }
+
         /// <summary>
         /// Get an asset synchronously, potentially using an asynchronous callback.  If the
         /// asynchronous callback is used, we will wait for it to complete.
@@ -183,7 +190,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected AssetBase GetAsset(UUID uuid)
         {
             m_waitingForObjectAsset = true;
-            m_assetCache.GetAsset(uuid, AssetRequestCallback, true);
+            m_assetCache.Get(uuid.ToString(), this, AssetReceived);
 
             // The asset cache callback can either
             //

@@ -32,6 +32,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
@@ -177,7 +178,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     asset.Type = (sbyte)item.Type;
                     item.AssetID = asset.FullID;
 
-                    Manager.MyScene.CommsManager.AssetCache.AddAsset(asset);
+                    Manager.MyScene.AssetService.Store(asset);
 
                     if (part.Inventory.UpdateInventoryItem(item))
                         part.GetProperties(remoteClient);
@@ -198,9 +199,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 {
                     UUID assetID = UUID.Combine(transactionID, remoteClient.SecureSessionId);
 
-                    AssetBase asset
-                        = Manager.MyScene.CommsManager.AssetCache.GetAsset(
-                            assetID, (item.AssetType == (int)AssetType.Texture ? true : false));
+                    AssetBase asset = Manager.MyScene.AssetService.Get(assetID.ToString());
 
                     if (asset == null)
                     {
@@ -216,7 +215,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                         asset.Type = (sbyte)item.AssetType;
                         item.AssetID = asset.FullID;
 
-                        Manager.MyScene.CommsManager.AssetCache.AddAsset(asset);
+                        Manager.MyScene.AssetService.Store(asset);
                     }
 
                     userInfo.UpdateItem(item);
