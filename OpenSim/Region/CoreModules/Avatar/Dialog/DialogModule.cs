@@ -31,6 +31,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -106,16 +107,28 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                     presence.ControllingClient.SendAlertMessage(message);
             }
         }    
-        
+
         public void SendDialogToUser(
-            UUID avatarID, string objectName, UUID objectID, UUID ownerID, 
+            UUID avatarID, string objectName, UUID objectID, UUID ownerID,
             string message, UUID textureID, int ch, string[] buttonlabels)
         {
+            CachedUserInfo info = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(ownerID);
+            string ownerFirstName, ownerLastName;
+            if (info != null)
+            {
+                ownerFirstName = info.UserProfile.FirstName;
+                ownerLastName = info.UserProfile.SurName;
+            }
+            else
+            {
+                ownerFirstName = "(unknown";
+                ownerLastName = "user)";
+            }
+
             ScenePresence sp = m_scene.GetScenePresence(avatarID);
-            
             if (sp != null)
-                sp.ControllingClient.SendDialog(objectName, objectID, ownerID, message, textureID, ch, buttonlabels);
-        }        
+                sp.ControllingClient.SendDialog(objectName, objectID, ownerFirstName, ownerLastName, message, textureID, ch, buttonlabels);
+        }
 
         public void SendUrlToUser(
             UUID avatarID, string objectName, UUID objectID, UUID ownerID, bool groupOwned, string message, string url)

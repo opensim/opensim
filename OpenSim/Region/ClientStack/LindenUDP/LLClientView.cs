@@ -2474,13 +2474,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(loadURL, ThrottleOutPacketType.Task);
         }
 
-        public void SendDialog(string objectname, UUID objectID, UUID ownerID, string msg, UUID textureID, int ch, string[] buttonlabels)
+        public void SendDialog(string objectname, UUID objectID, string ownerFirstName, string ownerLastName, string msg, UUID textureID, int ch, string[] buttonlabels)
         {
             ScriptDialogPacket dialog = (ScriptDialogPacket)PacketPool.Instance.GetPacket(PacketType.ScriptDialog);
             dialog.Data.ObjectID = objectID;
             dialog.Data.ObjectName = Utils.StringToBytes(objectname);
-            dialog.Data.FirstName = Utils.StringToBytes(FirstName);
-            dialog.Data.LastName = Utils.StringToBytes(LastName);
+            // this is the username of the *owner*
+            dialog.Data.FirstName = Utils.StringToBytes(ownerFirstName);
+            dialog.Data.LastName = Utils.StringToBytes(ownerLastName);
             dialog.Data.Message = Utils.StringToBytes(msg);
             dialog.Data.ImageID = textureID;
             dialog.Data.ChatChannel = ch;

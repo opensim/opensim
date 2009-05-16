@@ -1146,7 +1146,7 @@ namespace OpenSim.Client.MXP.ClientStack
             SendChatMessage("Please visit: " + url, 0, Vector3.Zero, objectname, UUID.Zero, 0, 0);
         }
 
-        public void SendDialog(string objectname, UUID objectID, UUID ownerID, string msg, UUID textureID, int ch, string[] buttonlabels)
+        public void SendDialog(string objectname, UUID objectID, string ownerFirstName, string ownerLastName, string msg, UUID textureID, int ch, string[] buttonlabels)
         {
             // TODO: Probably can do this better
             SendChatMessage("Dialog: " + msg, 0, Vector3.Zero, objectname, UUID.Zero, 0, 0);
