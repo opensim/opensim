@@ -193,9 +193,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                         AssetBase asset =
                             CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data);
+                        item.AssetID = asset.FullID;
                         AssetService.Store(asset);
 
-                        item.AssetID = asset.FullID;
                         userInfo.UpdateItem(item);
 
                         // remoteClient.SendInventoryItemCreateUpdate(item);
