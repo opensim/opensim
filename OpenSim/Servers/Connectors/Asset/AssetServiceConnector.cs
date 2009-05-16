@@ -197,7 +197,7 @@ namespace OpenSim.Servers.Connectors
             {
                 // Placing this here, so that this work with old asset servers that don't send any reply back
                 // SynchronousRestObjectRequester returns somethins that is not an empty string
-                if (!"00000000-0000-0000-0000-000000000000".Equals(newID))
+                if (newID != null)
                     asset.ID = newID;
 
                 if (m_Cache != null)
