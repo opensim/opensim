@@ -108,7 +108,7 @@ namespace OpenSim.Data.MSSQL
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@RegionID", regionID));
 
-                using (IDataReader reader = cmd.ExecuteReader())
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
@@ -323,7 +323,7 @@ namespace OpenSim.Data.MSSQL
                 idParameter.Value = es.EstateID;
                 cmd.Parameters.Add(idParameter);
 
-                using (IDataReader reader = cmd.ExecuteReader())
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
@@ -351,7 +351,7 @@ namespace OpenSim.Data.MSSQL
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@EstateID", estateID));
 
-                using (IDataReader reader = cmd.ExecuteReader())
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
@@ -385,11 +385,8 @@ namespace OpenSim.Data.MSSQL
                 foreach (EstateBan b in es.EstateBans)
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("@EstateID", es.EstateID));
-
                     cmd.Parameters.Add(_Database.CreateParameter("@bannedUUID", b.BannedUserID));
-
                     cmd.ExecuteNonQuery();
-
                     cmd.Parameters.Clear();
                 }
             }

@@ -69,7 +69,6 @@ namespace OpenSim.Data.MSSQL
         /// <remarks>use mssql_connection.ini</remarks>
         override public void Initialise(string connect)
         {
-
             if (!string.IsNullOrEmpty(connect))
             {
                 database = new MSSQLManager(connect);
@@ -106,11 +105,12 @@ namespace OpenSim.Data.MSSQL
         /// <returns>A user profile</returns>
         override public UserProfileData GetUserByName(string user, string last)
         {
-            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM " + m_usersTableName + " WHERE username = @first AND lastname = @second"))
+            string sql = string.Format(@"SELECT * FROM {0} 
+                                         WHERE username = @first AND lastname = @second", m_usersTableName);
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("first", user));
                 command.Parameters.Add(database.CreateParameter("second", last));
-
                 try
                 {
                     using (SqlDataReader reader = command.ExecuteReader())
@@ -120,7 +120,7 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[USER DB] Error getting user profile, error: " + e.Message);
+                    m_log.ErrorFormat("[USER DB] Error getting user profile for {0} {1}: {2}", user, last, e.Message);
                     return null;
                 }
             }
@@ -133,20 +133,20 @@ namespace OpenSim.Data.MSSQL
         /// <returns></returns>
         override public UserProfileData GetUserByUUID(UUID uuid)
         {
-            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM " + m_usersTableName + " WHERE UUID = @uuid"))
+            string sql = string.Format("SELECT * FROM {0} WHERE UUID = @uuid", m_usersTableName);
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("uuid", uuid));
-
                 try
                 {
-                    using (IDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = command.ExecuteReader())
                     {
                         return ReadUserRow(reader);
                     }
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[USER DB] Error getting user profile by UUID, error: " + e.Message);
+                    m_log.ErrorFormat("[USER DB] Error getting user profile by UUID {0}, error: {1}", uuid, e.Message);
                     return null;
                 }
             }
@@ -173,7 +173,7 @@ namespace OpenSim.Data.MSSQL
             }
             catch (Exception e)
             {
-                m_log.Error("[USER DB] Error adding new profile, error: " + e.Message);
+                m_log.ErrorFormat("[USER DB] Error adding new profile, error: {0}", e.Message);
             }
         }
 
@@ -184,36 +184,37 @@ namespace OpenSim.Data.MSSQL
         /// <returns></returns>
         override public bool UpdateUserProfile(UserProfileData user)
         {
-            using (AutoClosingSqlCommand command = database.Query("UPDATE " + m_usersTableName + " set UUID = @uuid, " +
-                                                                  "username = @username, " +
-                                                                  "lastname = @lastname," +
-                                                                  "email = @email," +
-                                                                  "passwordHash = @passwordHash," +
-                                                                  "passwordSalt = @passwordSalt," +
-                                                                  "homeRegion = @homeRegion," +
-                                                                  "homeLocationX = @homeLocationX," +
-                                                                  "homeLocationY = @homeLocationY," +
-                                                                  "homeLocationZ = @homeLocationZ," +
-                                                                  "homeLookAtX = @homeLookAtX," +
-                                                                  "homeLookAtY = @homeLookAtY," +
-                                                                  "homeLookAtZ = @homeLookAtZ," +
-                                                                  "created = @created," +
-                                                                  "lastLogin = @lastLogin," +
-                                                                  "userInventoryURI = @userInventoryURI," +
-                                                                  "userAssetURI = @userAssetURI," +
-                                                                  "profileCanDoMask = @profileCanDoMask," +
-                                                                  "profileWantDoMask = @profileWantDoMask," +
-                                                                  "profileAboutText = @profileAboutText," +
-                                                                  "profileFirstText = @profileFirstText," +
-                                                                  "profileImage = @profileImage," +
-                                                                  "profileFirstImage = @profileFirstImage, " +
-                                                                  "webLoginKey = @webLoginKey, " +
-                                                                  "homeRegionID = @homeRegionID, " +
-                                                                  "userFlags = @userFlags, " +
-                                                                  "godLevel = @godLevel, " +
-                                                                  "customType = @customType, " +
-                                                                  "partner = @partner where " +
-                                                                  "UUID = @keyUUUID;"))
+            string sql = string.Format(@"UPDATE {0} 
+                                        SET UUID = @uuid,
+                                        username = @username, 
+                                        lastname = @lastname,
+                                        email = @email,
+                                        passwordHash = @passwordHash,
+                                        passwordSalt = @passwordSalt,
+                                        homeRegion = @homeRegion,
+                                        homeLocationX = @homeLocationX,
+                                        homeLocationY = @homeLocationY,
+                                        homeLocationZ = @homeLocationZ,
+                                        homeLookAtX = @homeLookAtX,
+                                        homeLookAtY = @homeLookAtY,
+                                        homeLookAtZ = @homeLookAtZ,
+                                        created = @created,
+                                        lastLogin = @lastLogin,
+                                        userInventoryURI = @userInventoryURI,
+                                        userAssetURI = @userAssetURI,
+                                        profileCanDoMask = @profileCanDoMask,
+                                        profileWantDoMask = @profileWantDoMask,
+                                        profileAboutText = @profileAboutText,
+                                        profileFirstText = @profileFirstText,
+                                        profileImage = @profileImage,
+                                        profileFirstImage = @profileFirstImage, 
+                                        webLoginKey = @webLoginKey, 
+                                        homeRegionID = @homeRegionID,
+                                        userFlags = @userFlags,
+                                        godLevel = @godLevel, 
+                                        customType = @customType, 
+                                        partner = @partner WHERE UUID = @keyUUUID;",m_usersTableName);
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("uuid", user.ID));
                 command.Parameters.Add(database.CreateParameter("username", user.FirstName));
@@ -239,7 +240,6 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(database.CreateParameter("profileImage", user.Image));
                 command.Parameters.Add(database.CreateParameter("profileFirstImage", user.FirstLifeImage));
                 command.Parameters.Add(database.CreateParameter("webLoginKey", user.WebLoginKey));
-                //
                 command.Parameters.Add(database.CreateParameter("homeRegionID", user.HomeRegionID));
                 command.Parameters.Add(database.CreateParameter("userFlags", user.UserFlags));
                 command.Parameters.Add(database.CreateParameter("godLevel", user.GodLevel));
@@ -254,7 +254,7 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[USER DB] Error updating profile, error: " + e.Message);
+                    m_log.ErrorFormat("[USER DB] Error updating profile, error: {0}", e.Message);
                 }
             }
             return false;
@@ -293,7 +293,8 @@ namespace OpenSim.Data.MSSQL
         /// <returns>The users session</returns>
         override public UserAgentData GetAgentByUUID(UUID uuid)
         {
-            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM " + m_agentsTableName + " WHERE UUID = @uuid"))
+            string sql = string.Format("SELECT * FROM {0} WHERE UUID = @uuid", m_agentsTableName);
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("uuid", uuid));
                 try
@@ -305,7 +306,7 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[USER DB] Error updating agentdata by UUID, error: " + e.Message);
+                    m_log.ErrorFormat("[USER DB] Error updating agentdata by UUID, error: {0}", e.Message);
                     return null;
                 }
             }
@@ -323,7 +324,7 @@ namespace OpenSim.Data.MSSQL
             }
             catch (Exception e)
             {
-                m_log.Error("[USER DB] Error adding new agentdata, error: " + e.Message);
+                m_log.ErrorFormat("[USER DB] Error adding new agentdata, error: {0}", e.Message);
             }
         }
 
@@ -340,12 +341,11 @@ namespace OpenSim.Data.MSSQL
         override public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
             int dtvalue = Util.UnixTimeSinceEpoch();
-
-            using (AutoClosingSqlCommand command = database.Query(
-                "INSERT INTO " + m_userFriendsTableName + " " +
-                "(ownerID,friendID,friendPerms,datetimestamp) " +
-                "VALUES " +
-                "(@ownerID,@friendID,@friendPerms,@datetimestamp)"))
+            string sql = string.Format(@"INSERT INTO {0}
+                                            (ownerID,friendID,friendPerms,datetimestamp) 
+                                         VALUES
+                                            (@ownerID,@friendID,@friendPerms,@datetimestamp)", m_userFriendsTableName);
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("ownerID", friendlistowner));
                 command.Parameters.Add(database.CreateParameter("friendID", friend));
@@ -355,14 +355,16 @@ namespace OpenSim.Data.MSSQL
 
                 try
                 {
-                    command.CommandText = string.Format("INSERT INTO {0} (ownerID,friendID,friendPerms,datetimestamp) VALUES (@friendID,@ownerID,@friendPerms,@datetimestamp)",
-                            m_userFriendsTableName);
-
+                    sql = string.Format(@"INSERT INTO {0}
+                                            (ownerID,friendID,friendPerms,datetimestamp) 
+                                          VALUES 
+                                            (@friendID,@ownerID,@friendPerms,@datetimestamp)", m_userFriendsTableName);
+                    command.CommandText = sql;
                     command.ExecuteNonQuery();
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[USER DB] Error adding new userfriend, error: " + e.Message);
+                    m_log.ErrorFormat("[USER DB] Error adding new userfriend, error: {0}", e.Message);
                     return;
                 }
             }
@@ -375,21 +377,25 @@ namespace OpenSim.Data.MSSQL
         /// <param name="friend">UUID of the not-so-friendly user to remove from the list</param>
         override public void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
-            using (AutoClosingSqlCommand command = database.Query("delete from " + m_userFriendsTableName + " where ownerID = @ownerID and friendID = @friendID"))
+            string sql = string.Format(@"DELETE from {0} 
+                                         WHERE ownerID = @ownerID 
+                                            AND friendID = @friendID", m_userFriendsTableName);
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("@ownerID", friendlistowner));
                 command.Parameters.Add(database.CreateParameter("@friendID", friend));
                 command.ExecuteNonQuery();
-
-                command.CommandText = "delete from " + m_userFriendsTableName +
-                                      " where ownerID = @friendID and friendID = @ownerID";
+                sql = string.Format(@"DELETE from {0} 
+                                         WHERE ownerID = @friendID 
+                                            AND friendID = @ownerID", m_userFriendsTableName);
+                command.CommandText = sql;
                 try
                 {
                     command.ExecuteNonQuery();
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[USER DB] Error removing userfriend, error: " + e.Message);
+                    m_log.ErrorFormat("[USER DB] Error removing userfriend, error: {0}", e.Message);
                 }
             }
         }
@@ -402,10 +408,10 @@ namespace OpenSim.Data.MSSQL
         /// <param name="perms">new permission flag</param>
         override public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
-            using (AutoClosingSqlCommand command = database.Query(
-                "update " + m_userFriendsTableName +
-                " SET friendPerms = @friendPerms " +
-                "where ownerID = @ownerID and friendID = @friendID"))
+            string sql = string.Format(@"UPDATE {0} SET friendPerms = @friendPerms 
+                                         WHERE ownerID = @ownerID 
+                                            AND friendID = @friendID", m_userFriendsTableName);
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("@ownerID", friendlistowner));
                 command.Parameters.Add(database.CreateParameter("@friendID", friend));
@@ -417,7 +423,7 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[USER DB] Error updating userfriend, error: " + e.Message);
+                    m_log.ErrorFormat("[USER DB] Error updating userfriend, error: {0}", e.Message);
                 }
             }
         }
@@ -432,15 +438,17 @@ namespace OpenSim.Data.MSSQL
             List<FriendListItem> friendList = new List<FriendListItem>();
 
             //Left Join userfriends to itself
-            using (AutoClosingSqlCommand command = database.Query(
-                "select a.ownerID,a.friendID,a.friendPerms,b.friendPerms as ownerperms from " + m_userFriendsTableName + " as a, " + m_userFriendsTableName + " as b" +
-                " where a.ownerID = @ownerID and b.ownerID = a.friendID and b.friendID = a.ownerID"))
+            string sql = string.Format(@"SELECT a.ownerID, a.friendID, a.friendPerms, b.friendPerms AS ownerperms 
+                                        FROM {0} as a, {0} as b
+                                        WHERE a.ownerID = @ownerID 
+                                        AND b.ownerID = a.friendID 
+                                        AND b.friendID = a.ownerID", m_userFriendsTableName);
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("@ownerID", friendlistowner));
-
                 try
                 {
-                    using (IDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
@@ -451,17 +459,15 @@ namespace OpenSim.Data.MSSQL
 
                             // This is not a real column in the database table, it's a joined column from the opposite record
                             fli.FriendListOwnerPerms = (uint)Convert.ToInt32(reader["ownerperms"]);
-
                             friendList.Add(fli);
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[USER DB] Error updating userfriend, error: " + e.Message);
+                    m_log.ErrorFormat("[USER DB] Error updating userfriend, error: {0}", e.Message);
                 }
             }
-
             return friendList;
         }
 
@@ -472,12 +478,12 @@ namespace OpenSim.Data.MSSQL
             {
                 foreach (UUID uuid in uuids)
                 {
-                    using (AutoClosingSqlCommand command = database.Query(
-                        "select agentOnline,currentHandle from " + m_agentsTableName + " where UUID = @uuid"))
+                    string sql = string.Format(@"SELECT agentOnline,currentHandle 
+                                                 FROM {0} WHERE UUID = @uuid", m_agentsTableName);
+                    using (AutoClosingSqlCommand command = database.Query(sql))
                     {
                         command.Parameters.Add(database.CreateParameter("@uuid", uuid));
-
-                        using (IDataReader reader = command.ExecuteReader())
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
                             {
@@ -541,11 +547,11 @@ namespace OpenSim.Data.MSSQL
             try
             {
                 AvatarAppearance appearance = new AvatarAppearance();
-
-                using (AutoClosingSqlCommand command = database.Query("SELECT * FROM avatarappearance WHERE owner = @UUID"))
+                string sql = "SELECT * FROM avatarappearance WHERE owner = @UUID";
+                using (AutoClosingSqlCommand command = database.Query(sql))
                 {
                     command.Parameters.Add(database.CreateParameter("@UUID", user));
-                    using (IDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = command.ExecuteReader())
                     {
                         if (reader.Read())
                             appearance = readUserAppearance(reader);
@@ -564,11 +570,10 @@ namespace OpenSim.Data.MSSQL
             }
             catch (Exception e)
             {
-                m_log.Error("[USER DB] Error updating userfriend, error: " + e.Message);
+                m_log.ErrorFormat("[USER DB] Error updating userfriend, error: {0}", e.Message);
             }
             return null;
         }
-
 
         /// <summary>
         /// Update a user appearence into database
@@ -577,20 +582,23 @@ namespace OpenSim.Data.MSSQL
         /// <param name="appearance">the appearence</param>
         override public void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
-            m_log.Error("[USER DB] updating user appearance for user ID " + user.Guid);
-            string sql = String.Empty;
-            sql += "DELETE FROM avatarappearance WHERE owner=@owner ";
-            sql += "INSERT INTO avatarappearance ";
-            sql += "(owner, serial, visual_params, texture, avatar_height, ";
-            sql += "body_item, body_asset, skin_item, skin_asset, hair_item, hair_asset, eyes_item, eyes_asset, ";
-            sql += "shirt_item, shirt_asset, pants_item, pants_asset, shoes_item, shoes_asset, socks_item, socks_asset, ";
-            sql += "jacket_item, jacket_asset, gloves_item, gloves_asset, undershirt_item, undershirt_asset, underpants_item, underpants_asset, ";
-            sql += "skirt_item, skirt_asset) values (";
-            sql += "@owner, @serial, @visual_params, @texture, @avatar_height, ";
-            sql += "@body_item, @body_asset, @skin_item, @skin_asset, @hair_item, @hair_asset, @eyes_item, @eyes_asset, ";
-            sql += "@shirt_item, @shirt_asset, @pants_item, @pants_asset, @shoes_item, @shoes_asset, @socks_item, @socks_asset, ";
-            sql += "@jacket_item, @jacket_asset, @gloves_item, @gloves_asset, @undershirt_item, @undershirt_asset, @underpants_item, @underpants_asset, ";
-            sql += "@skirt_item, @skirt_asset)";
+            string sql = @"DELETE FROM avatarappearance WHERE owner=@owner; 
+                        INSERT INTO avatarappearance 
+                           (owner, serial, visual_params, texture, avatar_height, 
+                            body_item, body_asset, skin_item, skin_asset, hair_item, 
+                            hair_asset, eyes_item, eyes_asset, shirt_item, shirt_asset, 
+                            pants_item, pants_asset, shoes_item, shoes_asset, socks_item, 
+                            socks_asset, jacket_item, jacket_asset, gloves_item, gloves_asset, 
+                            undershirt_item, undershirt_asset, underpants_item, underpants_asset, 
+                            skirt_item, skirt_asset) 
+                        VALUES
+                           (@owner, @serial, @visual_params, @texture, @avatar_height, 
+                            @body_item, @body_asset, @skin_item, @skin_asset, @hair_item, 
+                            @hair_asset, @eyes_item, @eyes_asset, @shirt_item, @shirt_asset, 
+                            @pants_item, @pants_asset, @shoes_item, @shoes_asset, @socks_item, 
+                            @socks_asset, @jacket_item, @jacket_asset, @gloves_item, @gloves_asset, 
+                            @undershirt_item, @undershirt_asset, @underpants_item, @underpants_asset, 
+                            @skirt_item, @skirt_asset)";
 
             using (AutoClosingSqlCommand cmd = database.Query(sql))
             {
@@ -632,10 +640,9 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[USER DB] Error updating user appearance, error: " + e.Message);
+                    m_log.ErrorFormat("[USER DB] Error updating user appearance, error: {0}", e.Message);
                 }
             }
-
             UpdateUserAttachments(user, appearance.GetAttachments());
         }
 
@@ -651,7 +658,8 @@ namespace OpenSim.Data.MSSQL
         public Hashtable GetUserAttachments(UUID agentID)
         {
             Hashtable returnTable = new Hashtable();
-            using (AutoClosingSqlCommand command = database.Query("select attachpoint, item, asset from avatarattachments where UUID = @uuid", database.CreateParameter("@uuid", agentID)))
+            string sql = "select attachpoint, item, asset from avatarattachments where UUID = @uuid";
+            using (AutoClosingSqlCommand command = database.Query(sql, database.CreateParameter("@uuid", agentID)))
             {
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
@@ -678,7 +686,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="data">data with all items on attachmentpoints</param>
         public void UpdateUserAttachments(UUID agentID, Hashtable data)
         {
-            string sql = "delete from avatarattachments where UUID = @uuid";
+            string sql = "DELETE FROM avatarattachments WHERE UUID = @uuid";
 
             using (AutoClosingSqlCommand command = database.Query(sql))
             {
@@ -688,7 +696,8 @@ namespace OpenSim.Data.MSSQL
             if (data == null)
                 return;
 
-            sql = "insert into avatarattachments (UUID, attachpoint, item, asset) values (@uuid, @attachpoint, @item, @asset)";
+            sql = @"INSERT INTO avatarattachments (UUID, attachpoint, item, asset) 
+                    VALUES (@uuid, @attachpoint, @item, @asset)";
 
             using (AutoClosingSqlCommand command = database.Query(sql))
             {
@@ -730,7 +739,8 @@ namespace OpenSim.Data.MSSQL
         /// <param name="agentID">agentID.</param>
         override public void ResetAttachments(UUID agentID)
         {
-            using (AutoClosingSqlCommand command = database.Query("update avatarattachments set asset = '00000000-0000-0000-0000-000000000000' where UUID = @uuid"))
+            string sql = "UPDATE avatarattachments SET asset = '00000000-0000-0000-0000-000000000000' WHERE UUID = @uuid";
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("uuid", agentID));
                 command.ExecuteNonQuery();
@@ -759,12 +769,14 @@ namespace OpenSim.Data.MSSQL
             {
                 try
                 {
-                    using (AutoClosingSqlCommand command = database.Query("SELECT UUID,username,lastname FROM " + m_usersTableName + " WHERE username LIKE @first AND lastname LIKE @second"))
+                    string sql = string.Format(@"SELECT UUID,username,lastname FROM {0} 
+                                                 WHERE username LIKE @first AND lastname LIKE @second", m_usersTableName);
+                    using (AutoClosingSqlCommand command = database.Query(sql))
                     {
                         //Add wildcard to the search
                         command.Parameters.Add(database.CreateParameter("first", querysplit[0] + "%"));
                         command.Parameters.Add(database.CreateParameter("second", querysplit[1] + "%"));
-                        using (IDataReader reader = command.ExecuteReader())
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
                             {
@@ -786,11 +798,13 @@ namespace OpenSim.Data.MSSQL
             {
                 try
                 {
-                    using (AutoClosingSqlCommand command = database.Query("SELECT UUID,username,lastname FROM " + m_usersTableName + " WHERE username LIKE @first OR lastname LIKE @first"))
+                    string sql = string.Format(@"SELECT UUID,username,lastname FROM {0} 
+                                                 WHERE username LIKE @first OR lastname LIKE @first", m_usersTableName);
+                    using (AutoClosingSqlCommand command = database.Query(sql))
                     {
                         command.Parameters.Add(database.CreateParameter("first", querysplit[0] + "%"));
 
-                        using (IDataReader reader = command.ExecuteReader())
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
                             {
@@ -822,7 +836,6 @@ namespace OpenSim.Data.MSSQL
             UserProfileData user = GetUserByUUID(AgentID);
             user.WebLoginKey = WebLoginKey;
             UpdateUserProfile(user);
-
         }
 
         /// <summary>
@@ -852,7 +865,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="reader">The SQL Result</param>
         /// <returns>the item read</returns>
-        private static AvatarAppearance readUserAppearance(IDataReader reader)
+        private static AvatarAppearance readUserAppearance(SqlDataReader reader)
         {
             try
             {
@@ -962,7 +975,7 @@ ELSE
         /// </summary>
         /// <param name="reader">An active database reader</param>
         /// <returns>A user session agent</returns>
-        private UserAgentData readAgentRow(IDataReader reader)
+        private UserAgentData readAgentRow(SqlDataReader reader)
         {
             UserAgentData retval = new UserAgentData();
 
@@ -1038,18 +1051,20 @@ ELSE
                                    UUID profileImage, UUID firstImage, UUID webLoginKey, UUID homeRegionID,
                                    int godLevel, int userFlags, string customType, UUID partnerID)
         {
-            string sql = "INSERT INTO " + m_usersTableName;
-            sql += " ([UUID], [username], [lastname], [email], [passwordHash], [passwordSalt], [homeRegion], ";
-            sql += "[homeLocationX], [homeLocationY], [homeLocationZ], [homeLookAtX], [homeLookAtY], [homeLookAtZ], [created], ";
-            sql += "[lastLogin], [userInventoryURI], [userAssetURI], [profileCanDoMask], [profileWantDoMask], [profileAboutText], ";
-            sql += "[profileFirstText], [profileImage], [profileFirstImage], [webLoginKey], ";
-            sql += "[homeRegionID], [userFlags], [godLevel], [customType], [partner]) VALUES ";
-
-            sql += "(@UUID, @username, @lastname, @email, @passwordHash, @passwordSalt, @homeRegion, ";
-            sql += "@homeLocationX, @homeLocationY, @homeLocationZ, @homeLookAtX, @homeLookAtY, @homeLookAtZ, @created, ";
-            sql += "@lastLogin, @userInventoryURI, @userAssetURI, @profileCanDoMask, @profileWantDoMask, @profileAboutText, ";
-            sql += "@profileFirstText, @profileImage, @profileFirstImage, @webLoginKey, ";
-            sql += "@homeRegionID, @userFlags, @godLevel, @customType, @partner)";
+            string sql = string.Format(@"INSERT INTO {0} 
+                ([UUID], [username], [lastname], [email], [passwordHash], [passwordSalt], 
+                 [homeRegion], [homeLocationX], [homeLocationY], [homeLocationZ], [homeLookAtX], 
+                 [homeLookAtY], [homeLookAtZ], [created], [lastLogin], [userInventoryURI], 
+                 [userAssetURI], [profileCanDoMask], [profileWantDoMask], [profileAboutText], 
+                 [profileFirstText], [profileImage], [profileFirstImage], [webLoginKey], 
+                 [homeRegionID], [userFlags], [godLevel], [customType], [partner]) 
+                VALUES 
+                (@UUID, @username, @lastname, @email, @passwordHash, @passwordSalt, 
+                 @homeRegion, @homeLocationX, @homeLocationY, @homeLocationZ, @homeLookAtX, 
+                 @homeLookAtY, @homeLookAtZ, @created, @lastLogin, @userInventoryURI, 
+                 @userAssetURI, @profileCanDoMask, @profileWantDoMask, @profileAboutText,
+                 @profileFirstText, @profileImage, @profileFirstImage, @webLoginKey, 
+                 @homeRegionID, @userFlags, @godLevel, @customType, @partner)", m_usersTableName);
 
             try
             {
@@ -1079,13 +1094,11 @@ ELSE
                     command.Parameters.Add(database.CreateParameter("profileImage", profileImage));
                     command.Parameters.Add(database.CreateParameter("profileFirstImage", firstImage));
                     command.Parameters.Add(database.CreateParameter("webLoginKey", webLoginKey));
-                    //
                     command.Parameters.Add(database.CreateParameter("homeRegionID", homeRegionID));
                     command.Parameters.Add(database.CreateParameter("userFlags", userFlags));
                     command.Parameters.Add(database.CreateParameter("godLevel", godLevel));
                     command.Parameters.Add(database.CreateParameter("customType", customType));
                     command.Parameters.Add(database.CreateParameter("partner", partnerID));
-
                     
                     command.ExecuteNonQuery();
                     return;
@@ -1096,7 +1109,6 @@ ELSE
                 m_log.Error(e.ToString());
                 return;
             }
-
         }
 
         /// <summary>
@@ -1104,7 +1116,7 @@ ELSE
         /// </summary>
         /// <param name="reader">An active database reader</param>
         /// <returns>A user profile</returns>
-        private static UserProfileData ReadUserRow(IDataReader reader)
+        private static UserProfileData ReadUserRow(SqlDataReader reader)
         {
             UserProfileData retval = new UserProfileData();
 
@@ -1149,7 +1161,6 @@ ELSE
             }
             return retval;
         }
-
         #endregion
     }
 

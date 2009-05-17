@@ -27,6 +27,7 @@
 
 using System;
 using System.Data;
+using System.Data.SqlClient;
 using System.Reflection;
 using System.Collections.Generic;
 using OpenMetaverse;
@@ -124,10 +125,11 @@ namespace OpenSim.Data.MSSQL
         /// <returns></returns>
         override protected AssetBase FetchStoredAsset(UUID assetID)
         {
-            using (AutoClosingSqlCommand command = m_database.Query("SELECT * FROM assets WHERE id = @id"))
+            string sql = "SELECT * FROM assets WHERE id = @id";
+            using (AutoClosingSqlCommand command = m_database.Query(sql))
             {
                 command.Parameters.Add(m_database.CreateParameter("id", assetID));
-                using (IDataReader reader = command.ExecuteReader())
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
                     if (reader.Read())
                     {
@@ -157,11 +159,13 @@ namespace OpenSim.Data.MSSQL
             {
                 return;
             }
-
-            using (AutoClosingSqlCommand command = m_database.Query(
-                    "INSERT INTO assets ([id], [name], [description], [assetType], [local], [temporary], [create_time], [access_time], [data])" +
-                    " VALUES " +
-                    "(@id, @name, @description, @assetType, @local, @temporary, @create_time, @access_time, @data)"))
+            string sql = @"INSERT INTO assets
+                            ([id], [name], [description], [assetType], [local], 
+                             [temporary], [create_time], [access_time], [data])
+                           VALUES
+                            (@id, @name, @description, @assetType, @local, 
+                             @temporary, @create_time, @access_time, @data)";
+            using (AutoClosingSqlCommand command = m_database.Query(sql))
             {
                 int now = (int)((System.DateTime.Now.Ticks - m_ticksToEpoch) / 10000000);
                 command.Parameters.Add(m_database.CreateParameter("id", asset.FullID));
@@ -184,14 +188,10 @@ namespace OpenSim.Data.MSSQL
         /// <param name="asset">the asset</param>
         override public void UpdateAsset(AssetBase asset)
         {
-            using (AutoClosingSqlCommand command = m_database.Query("UPDATE assets set id = @id, " +
-                                                "name = @name, " +
-                                                "description = @description," +
-                                                "assetType = @assetType," +
-                                                "local = @local," +
-                                                "temporary = @temporary," +
-                                                "data = @data where " +
-                                                "id = @keyId;"))
+            string sql = @"UPDATE assets set id = @id, name = @name, description = @description, assetType = @assetType,
+                            local = @local, temporary = @temporary, data = @data
+                           WHERE id = @keyId;";
+            using (AutoClosingSqlCommand command = m_database.Query(sql))
             {
                 command.Parameters.Add(m_database.CreateParameter("id", asset.FullID));
                 command.Parameters.Add(m_database.CreateParameter("name", asset.Name));
@@ -257,18 +257,19 @@ namespace OpenSim.Data.MSSQL
         public override List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
         {
             List<AssetMetadata> retList = new List<AssetMetadata>(count);
-
-            using (AutoClosingSqlCommand command = m_database.Query("SELECT (name,description,assetType,temporary,id), Row = ROW_NUMBER() OVER (ORDER BY (some column to order by)) WHERE Row >= @Start AND Row < @Start + @Count"))
+            string sql = @"SELECT (name,description,assetType,temporary,id), Row = ROW_NUMBER() 
+                            OVER (ORDER BY (some column to order by)) 
+                            WHERE Row >= @Start AND Row < @Start + @Count";
+            using (AutoClosingSqlCommand command = m_database.Query(sql))
             {
                 command.Parameters.Add(m_database.CreateParameter("start", start));
                 command.Parameters.Add(m_database.CreateParameter("count", count));
 
-                using (IDataReader reader = command.ExecuteReader())
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
                         AssetMetadata metadata = new AssetMetadata();
-                        // Region Main
                         metadata.FullID = new UUID((Guid)reader["id"]);
                         metadata.Name = (string)reader["name"];
                         metadata.Description = (string)reader["description"];
