@@ -28,17 +28,21 @@
 using log4net;
 using Nini.Config;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework;
+using OpenSim.Servers.Connectors;
 using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
+namespace OpenSim.Services.AssetService
 {
     public class HGAssetService : IAssetService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
+
+        private Dictionary<string, AssetServicesConnector> m_connectors = new Dictionary<string, AssetServicesConnector>();
 
         public HGAssetService(IConfigSource source)
         {
@@ -50,27 +54,68 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
                 IConfig assetConfig = source.Configs["AssetService"];
                 if (assetConfig == null)
                 {
-                    m_log.Error("[ASSET CONNECTOR]: AssetService missing from OpanSim.ini");
+                    m_log.Error("[HG ASSET SERVICE]: AssetService missing from OpanSim.ini");
                     return;
                 }
 
-                m_log.Info("[ASSET CONNECTOR]: HG asset service enabled");
+                m_log.Info("[HG ASSET SERVICE]: HG asset service enabled");
             }
         }
 
-        //
-        // Note to Diva:
-        //
-        // This is not the broker!
-        // This module is not supposed to route anything anywhere. This is where
-        // the code to access remote assets (by URL) goes. It can be assumed
-        // that the ID is a URL. The broker makes sure of that.
-        //
-        // This is a disposable comment :) Feel free to remove it
-        //
+        private bool StringToUrlAndAssetID(string id, out string url, out string assetID)
+        {
+            url = String.Empty;
+            assetID = String.Empty;
+
+            Uri assetUri;
+
+            if (Uri.TryCreate(id, UriKind.Absolute, out assetUri) &&
+                    assetUri.Scheme == Uri.UriSchemeHttp)
+            {
+                url = "http://" + assetUri.Authority;
+                assetID = assetUri.LocalPath;
+                return true;
+            }
+
+            return false;
+        }
+
+        private IAssetService GetConnector(string url)
+        {
+            AssetServicesConnector connector = null;
+            lock (m_connectors)
+            {
+                if (m_connectors.ContainsKey(url))
+                {
+                    connector = m_connectors[url];
+                }
+                else
+                {
+                    // We're instantiating this class explicitly, but this won't
+                    // work in general, because the remote grid may be running
+                    // an asset server that has a different protocol.
+                    // Eventually we will want a piece of meta-protocol asking
+                    // the remote server about its kind, and even asking it
+                    // to send its own connector, which we would instantiate
+                    // dynamically. Definitely coo, thing to do!
+                    connector = new AssetServicesConnector(url);
+                    m_connectors.Add(url, connector);
+                }
+            }
+            return connector;
+        }
 
         public AssetBase Get(string id)
         {
+            string url = string.Empty;
+            string assetID = string.Empty;
+
+            if (StringToUrlAndAssetID(id, out url, out assetID))
+            {
+                IAssetService connector = GetConnector(url);
+                return connector.Get(assetID);
+            }
+
             return null;
         }
 
@@ -86,6 +131,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
+            string url = string.Empty;
+            string assetID = string.Empty;
+
+            if (StringToUrlAndAssetID(id, out url, out assetID))
+            {
+                IAssetService connector = GetConnector(url);
+                return connector.Get(assetID, sender, handler);
+            }
+
             return false;
         }
 

@@ -66,6 +66,7 @@ namespace OpenSim.Services.AssetService
 
         public AssetBase Get(string id)
         {
+            m_log.DebugFormat("[ASSET SERVICE]: Get asset {0}", id);
             UUID assetID;
 
             if (!UUID.TryParse(id, out assetID))

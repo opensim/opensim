@@ -1297,9 +1297,12 @@
 
     ; Paremeters for the Hypergrid connector
     
-    ; Parameters for the HG Broker
-    ;LocalModule = "OpenSim.Services.AssetService.dll:AssetService"
-    ;HypergridModule = "OpenSim.Services.AssetService.dll:HGAssetService"
+    ;; Parameters for the HG Broker
+    ; Use this one if you have a standalone grid
+    LocalGridAssetService = "OpenSim.Services.AssetService.dll:AssetService"
+    ; Use this one if this sim is connected to a grid-wide asset server
+    ;LocalGridAssetService = "OpenSim.Servers.Connectors.dll:AssetServiceConnector"
+    HypergridAssetService = "OpenSim.Services.AssetService.dll:HGAssetService"
 
 [AssetCache]
     ; Number of buckets for assets

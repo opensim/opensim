@@ -108,50 +108,16 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             return m_assetMap.ContainsKey(uuid);
         }
 
-        private bool FetchAsset(GridAssetClient asscli, UUID assetID, bool isTexture)
+        private AssetBase FetchAsset(string url, UUID assetID, bool isTexture)
         {
-            // I'm not going over 3 seconds since this will be blocking processing of all the other inbound
-            // packets from the client.
-            int pollPeriod = 200;
-            int maxPolls = 15;
+            AssetBase asset = m_scene.AssetService.Get(url + "/" + assetID.ToString());
 
-            AssetBase asset;
-
-            // Maybe it came late, and it's already here. Check first.
-            if (m_scene.CommsManager.AssetCache.TryGetCachedAsset(assetID, out asset))
+            if (asset != null)
             {
-                m_log.Debug("[HGScene]: Asset already in asset cache. " + assetID);
-                return true;
+                m_log.Debug("[HGScene]: Asset made it to asset cache. " + asset.Name + " " + assetID);
+                return asset;
             }
-
-
-            asscli.RequestAsset(assetID, isTexture);
-
-            do
-            {
-                Thread.Sleep(pollPeriod);
-
-                if (m_scene.CommsManager.AssetCache.TryGetCachedAsset(assetID, out asset) && (asset != null))
-                {
-                    m_log.Debug("[HGScene]: Asset made it to asset cache. " + asset.Name + " " + assetID);
-                    // I think I need to store it in the asset DB too.
-                    // For now, let me just do it for textures and scripts
-                    if (((AssetType)asset.Type == AssetType.Texture) ||
-                        ((AssetType)asset.Type == AssetType.LSLBytecode) ||
-                        ((AssetType)asset.Type == AssetType.LSLText))
-                    {
-                        AssetBase asset1 = new AssetBase();
-                        Copy(asset, asset1);
-                        m_scene.CommsManager.AssetCache.AssetServer.StoreAsset(asset1);
-                    }
-                    return true;
-                }
-            } while (--maxPolls > 0);
-
-            m_log.WarnFormat("[HGScene]: {0} {1} was not received before the retrieval timeout was reached",
-                             isTexture ? "texture" : "asset", assetID.ToString());
-
-            return false;
+            return null;
         }
 
         private bool PostAsset(GridAssetClient asscli, UUID assetID, bool isTexture)
@@ -291,39 +257,25 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         public void Get(UUID assetID, UUID ownerID)
         {
-            if (!IsInAssetMap(assetID) && !IsLocalUser(ownerID))
+            if (!IsLocalUser(ownerID))
             {
                 // Get the item from the remote asset server onto the local AssetCache
                 // and place an entry in m_assetMap
 
-                GridAssetClient asscli = null;
                 string userAssetURL = UserAssetURL(ownerID);
                 if (userAssetURL != null)
                 {
-                    m_assetServers.TryGetValue(userAssetURL, out asscli);
-                    if (asscli == null)
-                    {
-                        m_log.Debug("[HGScene]: Starting new GridAssetClient for " + userAssetURL);
-                        asscli = new GridAssetClient(userAssetURL);
-                        asscli.SetReceiver(m_scene.CommsManager.AssetCache); // Straight to the asset cache!
-                        m_assetServers.Add(userAssetURL, asscli);
-                        asscli.Start();
-                    }
-
                     m_log.Debug("[HGScene]: Fetching object " + assetID + " to asset server " + userAssetURL);
-                    bool success = FetchAsset(asscli, assetID, false); // asscli.RequestAsset(item.ItemID, false);
+                    AssetBase asset = FetchAsset(userAssetURL, assetID, false); 
 
-                    // OK, now fetch the inside.
-                    Dictionary<UUID, bool> ids = SniffUUIDs(assetID);
-                    Dump(ids);
-                    foreach (KeyValuePair<UUID, bool> kvp in ids)
-                        FetchAsset(asscli, kvp.Key, kvp.Value);
-
-
-                    if (success)
+                    if (asset != null)
                     {
                         m_log.Debug("[HGScene]: Successfully fetched item from remote asset server " + userAssetURL);
-                        m_assetMap.Add(assetID, asscli);
+                        // OK, now fetch the inside.
+                        Dictionary<UUID, bool> ids = SniffUUIDs(asset);
+                        Dump(ids);
+                        foreach (KeyValuePair<UUID, bool> kvp in ids)
+                            FetchAsset(userAssetURL, kvp.Key, kvp.Value);
                     }
                     else
                         m_log.Warn("[HGScene]: Could not fetch asset from remote asset server " + userAssetURL);

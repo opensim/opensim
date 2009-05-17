@@ -51,6 +51,11 @@ namespace OpenSim.Servers.Connectors
         {
         }
 
+        public AssetServicesConnector(string serverURI)
+        {
+            m_ServerURI = serverURI;
+        }
+
         public AssetServicesConnector(IConfigSource source)
         {
             Initialise(source);
