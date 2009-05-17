@@ -1269,7 +1269,7 @@
     ; format your hard drive and make all meat in your fridge spoil.
     ; You have been warned.
     ; Some of this is starting to work!
-[ServiceConnectors]
+[Modules]
     ; Choose one 
     AssetServices = "LocalAssetServicesConnector"
     ;AssetServices = "RemoteAssetServicesConnector"

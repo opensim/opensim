@@ -127,9 +127,9 @@ namespace OpenSim.Tests.Common.Setup
 
             ISharedRegionModule assetService = new LocalAssetServicesConnector();
             IniConfigSource config = new IniConfigSource();
-            config.AddConfig("ServiceConnectors");
+            config.AddConfig("Modules");
             config.AddConfig("AssetService");
-            config.Configs["ServiceConnectors"].Set("AssetServices", "LocalAssetServicesConnector");
+            config.Configs["Modules"].Set("AssetServices", "LocalAssetServicesConnector");
             config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Services.AssetService.dll:AssetService");
             config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
             assetService.Initialise(config); 

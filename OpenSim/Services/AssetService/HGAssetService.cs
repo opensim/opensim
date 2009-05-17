@@ -46,7 +46,7 @@ namespace OpenSim.Services.AssetService
 
         public HGAssetService(IConfigSource source)
         {
-            IConfig moduleConfig = source.Configs["ServiceConnectors"];
+            IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
                 string name = moduleConfig.GetString("AssetServices", "");
@@ -95,9 +95,7 @@ namespace OpenSim.Services.AssetService
                     // work in general, because the remote grid may be running
                     // an asset server that has a different protocol.
                     // Eventually we will want a piece of meta-protocol asking
-                    // the remote server about its kind, and even asking it
-                    // to send its own connector, which we would instantiate
-                    // dynamically. Definitely coo, thing to do!
+                    // the remote server about its kind. Definitely cool thing to do!
                     connector = new AssetServicesConnector(url);
                     m_connectors.Add(url, connector);
                 }
@@ -121,6 +119,15 @@ namespace OpenSim.Services.AssetService
 
         public AssetMetadata GetMetadata(string id)
         {
+            string url = string.Empty;
+            string assetID = string.Empty;
+
+            if (StringToUrlAndAssetID(id, out url, out assetID))
+            {
+                IAssetService connector = GetConnector(url);
+                return connector.GetMetadata(assetID);
+            }
+
             return null;
         }
 

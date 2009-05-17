@@ -43,7 +43,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.User
 
         public void Initialise(IConfigSource source)
         {
-            IConfig moduleConfig = source.Configs["ServiceConnectors"];
+            IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
                 string name = moduleConfig.GetString("UserServices", "");

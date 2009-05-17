@@ -59,7 +59,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public void Initialise(IConfigSource source)
         {
-            IConfig moduleConfig = source.Configs["ServiceConnectors"];
+            IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
                 string name = moduleConfig.GetString("AssetServices", "");

@@ -56,8 +56,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void Initialise(IConfigSource source)
         {
-            IConfig moduleConfig = source.Configs["ServiceConnectors"];
-            m_log.DebugFormat("[XXX] moduleConfig null? {0}", ((moduleConfig == null) ? "yes" : "no"));
+            IConfig moduleConfig = source.Configs["Modules"];
 
             if (moduleConfig != null)
             {
