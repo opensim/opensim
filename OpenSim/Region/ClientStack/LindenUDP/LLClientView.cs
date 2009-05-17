@@ -496,7 +496,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //m_assetCache = assetCache;
 
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
-            m_log.Debug("[XXX] m_assetService is null? " + ((m_assetService == null) ? "yes" : "no"));
 
             m_networkServer = packServer;
 
