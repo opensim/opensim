@@ -906,7 +906,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
                 ushort x = (ushort)((mapBlocks[i].X - m_scene.RegionInfo.RegionLocX) + 10);
                 ushort y = (ushort)((mapBlocks[i].Y - m_scene.RegionInfo.RegionLocY) + 10);
-                g.DrawImage(bitImages[i], (x * 128), (y * 128), 128, 128);
+                g.DrawImage(bitImages[i], (x * 128), 2560 - (y * 128), 128, 128); // y origin is top
             }
 
             mapTexture.Save(exportPath, ImageFormat.Jpeg);
