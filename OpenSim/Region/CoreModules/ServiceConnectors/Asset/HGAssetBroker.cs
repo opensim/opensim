@@ -178,8 +178,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
                 if (asset != null)
                     return asset;
-                else
-                    m_log.DebugFormat("[HG ASSSET CONNECTOR]: Requested asset is not in cache. This shouldn't happen.");
             }
 
             if (IsHG(id))
@@ -295,7 +293,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public string Store(AssetBase asset)
         {
-            if (m_Cache != null)
+            bool isHG = IsHG(asset.ID);
+
+            if ((m_Cache != null) && !isHG)
+                // Don't store it in the cache if the asset is to 
+                // be sent to the other grid, because this is already
+                // a copy of the local asset.
                 m_Cache.Cache(asset);
 
             if (asset.Temporary || asset.Local)

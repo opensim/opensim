@@ -120,25 +120,30 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             return null;
         }
 
-        private bool PostAsset(GridAssetClient asscli, UUID assetID, bool isTexture)
+        private bool PostAsset(string url, AssetBase asset)
         {
-            AssetBase asset1;
-            //m_scene.CommsManager.AssetCache.TryGetCachedAsset(assetID, out asset1);
-            asset1 = m_scene.CommsManager.AssetCache.GetAsset(assetID, isTexture);
-
-            if (asset1 != null)
+            if (asset != null)
             {
                 // See long comment in AssetCache.AddAsset
-                if (!asset1.Temporary || asset1.Local)
+                if (!asset.Temporary || asset.Local)
                 {
-                    // The asset cache returns instances of subclasses of AssetBase:
-                    // TextureImage or AssetInfo. So in passing them to the remote
-                    // server we first need to convert this to instances of AssetBase,
-                    // which is the serializable class for assets.
-                    AssetBase asset = new AssetBase();
-                    Copy(asset1, asset);
+                    // We need to copy the asset into a new asset, because
+                    // we need to set its ID to be URL+UUID, so that the
+                    // HGAssetService dispatches it to the remote grid.
+                    // It's not pretty, but the best that can be done while
+                    // not having a global naming infrastructure
+                    AssetBase asset1 = new AssetBase();
+                    Copy(asset, asset1);
+                    try
+                    {
+                        asset1.ID = url + "/" + asset.ID;
+                    }
+                    catch
+                    {
+                        m_log.Warn("[HGScene]: This won't work until Melanie kills a few more dragons");
+                    }
 
-                    asscli.StoreAsset(asset);
+                    m_scene.AssetService.Store(asset1);
                 }
                 return true;
            }
@@ -315,46 +320,35 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
         {
             if (!IsLocalUser(ownerID))
             {
-                // Post the item from the local AssetCache ontp the remote asset server
+                // Post the item from the local AssetCache onto the remote asset server
                 // and place an entry in m_assetMap
 
-                GridAssetClient asscli = null;
                 string userAssetURL = UserAssetURL(ownerID);
                 if (userAssetURL != null)
                 {
-                    m_assetServers.TryGetValue(userAssetURL, out asscli);
-                    if (asscli == null)
-                    {
-                        m_log.Debug("[HGScene]: Starting new GridAssetClient for " + userAssetURL);
-                        asscli = new GridAssetClient(userAssetURL);
-                        asscli.SetReceiver(m_scene.CommsManager.AssetCache); // Straight to the asset cache!
-                        m_assetServers.Add(userAssetURL, asscli);
-                    }
                     m_log.Debug("[HGScene]: Posting object " + assetID + " to asset server " + userAssetURL);
-                    AssetBase ass1 = null;
-                    m_scene.CommsManager.AssetCache.TryGetCachedAsset(assetID, out ass1);
+                    AssetBase ass1 = m_scene.AssetService.Get(assetID.ToString());
                     if (ass1 != null)
                     {
-                        bool success = PostAsset(asscli, assetID, (ass1.Type == (sbyte)AssetType.Texture));
+                        bool success = PostAsset(userAssetURL, ass1);
 
                         // Now the inside
                         Dictionary<UUID, bool> ids = SniffUUIDs(assetID);
                         Dump(ids);
                         foreach (KeyValuePair<UUID, bool> kvp in ids)
-                            PostAsset(asscli, kvp.Key, kvp.Value);
+                        {
+                            ass1 = m_scene.AssetService.Get(kvp.Key.ToString());
+                            PostAsset(userAssetURL, ass1);
+                        }
 
                         if (success)
-                        {
-                            m_log.Debug("[HGScene]: Successfully posted item to remote asset server " + userAssetURL);
-                            if (!m_assetMap.ContainsKey(assetID))
-                                m_assetMap.Add(assetID, asscli);
-                        }
+                            m_log.DebugFormat("[HGScene]: Successfully posted item {0} to remote asset server {1}", assetID, userAssetURL);
                         else
-                            m_log.Warn("[HGScene]: Could not post asset to remote asset server " + userAssetURL);
+                            m_log.WarnFormat("[HGScene]: Could not post asset {0} to remote asset server {1}", assetID, userAssetURL);
 
                     }
                     else
-                        m_log.Debug("[HGScene]: Something wrong with asset");
+                        m_log.Debug("[HGScene]: Something wrong with asset, it could not be found");
                 }
                 else
                     m_log.Warn("[HGScene]: Unable to locate foreign user's asset server");

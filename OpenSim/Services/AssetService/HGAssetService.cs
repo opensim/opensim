@@ -94,7 +94,7 @@ namespace OpenSim.Services.AssetService
                     // We're instantiating this class explicitly, but this won't
                     // work in general, because the remote grid may be running
                     // an asset server that has a different protocol.
-                    // Eventually we will want a piece of meta-protocol asking
+                    // Eventually we will want a piece of protocol asking
                     // the remote server about its kind. Definitely cool thing to do!
                     connector = new AssetServicesConnector(url);
                     m_connectors.Add(url, connector);
@@ -152,6 +152,17 @@ namespace OpenSim.Services.AssetService
 
         public string Store(AssetBase asset)
         {
+            string url = string.Empty;
+            string assetID = string.Empty;
+
+            if (StringToUrlAndAssetID(asset.ID, out url, out assetID))
+            {
+                IAssetService connector = GetConnector(url);
+                // Restore the assetID to a simple UUID
+                asset.ID = assetID;
+                return connector.Store(asset);
+            }
+
             return String.Empty;
         }
 
