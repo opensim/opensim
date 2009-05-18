@@ -2246,9 +2246,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         string[] parts = name.Split();
                         CachedUserInfo udata = ups.GetUserDetails(parts[0],parts[1]);
-                       if (udata != null)
+                        if (udata != null)
                         {
                             uuids.Add(udata.UserProfile.ID);
+                            m_log.DebugFormat("[RADMIN] adding \"{0}\" to ACL for \"{1}\"", name, s.RegionInfo.RegionName);
                         }
                     }
                     List<UUID> acl = new List<UUID>(s.RegionInfo.EstateSettings.EstateAccess);
