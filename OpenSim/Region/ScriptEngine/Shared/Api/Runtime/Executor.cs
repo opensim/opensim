@@ -37,7 +37,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
     public class Executor : MarshalByRefObject
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Contains the script to execute functions in.
@@ -173,7 +173,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                 }
                 catch
                 {
-                    m_log.Error("Event "+EventName+" not found.");
+                    // m_log.Error("Event "+EventName+" not found.");
                     // Event name not found, cache it as not found
                     Events.Add(EventName, null);
                 }

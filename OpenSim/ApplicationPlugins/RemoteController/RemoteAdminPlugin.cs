@@ -33,6 +33,7 @@ using System.Xml;
 using System.Net;
 using System.Reflection;
 using System.Timers;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -57,6 +58,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
         private static bool daload = false;
         private static Object   rslock = new Object();
+        private static Object   SOLock = new Object();
 
         private OpenSimBase m_app;
         private BaseHttpServer m_httpd;
@@ -367,7 +369,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         });
 
                 // Perform shutdown
-                Timer shutdownTimer = new Timer(timeout); // Wait before firing
+                System.Timers.Timer shutdownTimer = new System.Timers.Timer(timeout); // Wait before firing
                 shutdownTimer.AutoReset = false;
                 shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
                 shutdownTimer.Start();
@@ -1843,14 +1845,23 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 else throw new Exception("neither region_name nor region_uuid given");
 
                 IRegionArchiverModule archiver = scene.RequestModuleInterface<IRegionArchiverModule>();
+
+
                 if (archiver != null)
+                {
+                    scene.EventManager.OnOarFileSaved += RemoteAdminOarSaveCompleted;
                     archiver.ArchiveRegion(filename);
+                    lock(SOLock) Monitor.Wait(SOLock,5000);
+                    scene.EventManager.OnOarFileSaved -= RemoteAdminOarSaveCompleted;
+                }
                 else
                     throw new Exception("Archiver module not present for scene");
+
 
                 responseData["saved"] = true;
 
                 response.Value = responseData;
+
             }
             catch (Exception e)
             {
@@ -1865,6 +1876,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             m_log.Info("[RADMIN]: Save OAR Administrator Request complete");
             return response;
+        }
+
+        private void RemoteAdminOarSaveCompleted(Guid uuid, string name)
+        {
+            m_log.DebugFormat("[RADMIN] File processing complete for {0}", name);
+            lock(SOLock) Monitor.Pulse(SOLock);
         }
 
         public XmlRpcResponse XmlRpcLoadXMLMethod(XmlRpcRequest request)
