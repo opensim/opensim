@@ -31,8 +31,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework;
-using OpenSim.Servers.Connectors;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.Connectors;
 
 namespace OpenSim.Services.AssetService
 {

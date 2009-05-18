@@ -36,7 +36,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Servers.Connectors
+namespace OpenSim.Services.Connectors
 {
     public class AssetServicesConnector : IAssetService
     {

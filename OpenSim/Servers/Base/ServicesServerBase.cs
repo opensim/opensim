@@ -125,7 +125,10 @@ namespace OpenSim.Servers.Base
 
             // Refresh the startupConfig post merge
             //
-            startupConfig = argvConfig.Configs["Startup"];
+            if (m_Config.Configs["Startup"] != null)
+            {
+                startupConfig = m_Config.Configs["Startup"];
+            }
 
             // Allow derived classes to load config before the console is
             // opened.
