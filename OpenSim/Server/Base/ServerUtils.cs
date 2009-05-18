@@ -31,11 +31,14 @@ using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Text;
+using log4net;
 
 namespace OpenSim.Server.Base
 {
     public static class ServerUtils
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         public static string SLAssetTypeToContentType(int assetType)
         {
             switch (assetType)
@@ -114,6 +117,9 @@ namespace OpenSim.Server.Base
 
             try
             {
+                //m_log.DebugFormat("[PLUGINS]: Loading plugins from {0}", System.IO.Directory.GetCurrentDirectory());
+                //m_log.DebugFormat("[PLUGINS]: Trying to load {0}", dllName);
+                
                 Assembly pluginAssembly = Assembly.LoadFrom(dllName);
 
                 foreach (Type pluginType in pluginAssembly.GetTypes())
@@ -141,6 +147,7 @@ namespace OpenSim.Server.Base
             }
             catch (Exception e)
             {
+                m_log.ErrorFormat("Error loading plugin from {0}, exception {1}", dllName, e);
                 return null;
             }
         }

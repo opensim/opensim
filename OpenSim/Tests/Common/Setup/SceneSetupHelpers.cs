@@ -131,11 +131,11 @@ namespace OpenSim.Tests.Common.Setup
             config.AddConfig("AssetService");
             config.Configs["Modules"].Set("AssetServices", "LocalAssetServicesConnector");
             config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Services.AssetService.dll:AssetService");
-            config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
+            config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
             assetService.Initialise(config); 
             assetService.AddRegion(testScene);
             assetService.RegionLoaded(testScene);
-            //testScene.RegisterModuleInterface<IAssetService>((IAssetService)assetService);
+            testScene.AddRegionModule(assetService.Name, assetService);
             
             testScene.SetModuleInterfaces();
 
