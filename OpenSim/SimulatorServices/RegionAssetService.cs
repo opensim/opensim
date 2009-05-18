@@ -32,7 +32,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Servers.AssetServer.Handlers;
+using OpenSim.Server.Handlers.Asset;
 
 namespace OpenSim.Region.SimulatorServices
 {

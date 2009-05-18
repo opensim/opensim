@@ -1387,19 +1387,19 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Servers.AssetServer.Handlers" path="OpenSim/Servers/AssetServer/Handlers" type="Library">
+    <Project name="OpenSim.Server.Handlers" path="OpenSim/Server/Handlers" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../bin/</ReferencePath>
+      <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
@@ -1439,7 +1439,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Server.Base"/>
-      <Reference name="OpenSim.Server.AssetServer.Handlers"/>
+      <Reference name="OpenSim.Server.Handlers"/>
       <Reference name="OpenSim.Services.Base" />
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="Nini.dll" />
@@ -1603,7 +1603,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="OpenSim.Servers.AssetServer.Handlers"/>
+      <Reference name="OpenSim.Server.Handlers"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="XMLRPC.dll"/>
       <Reference name="Nini.dll" />

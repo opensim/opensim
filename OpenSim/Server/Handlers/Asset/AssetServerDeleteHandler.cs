@@ -35,12 +35,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
-using OpenSim.Servers.Base;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Servers.AssetServer.Handlers
+namespace OpenSim.Server.Handlers.Asset
 {
     public class AssetServerDeleteHandler : BaseStreamHandler
     {

@@ -27,12 +27,11 @@
 
 using System;
 using Nini.Config;
-using OpenSim.Servers.Base;
-using OpenSim.Servers.AssetServer.Handlers;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Servers.AssetServer.Handlers
+namespace OpenSim.Server.Handlers.Asset
 {
     public class AssetServiceConnector
     {
