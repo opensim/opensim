@@ -77,6 +77,7 @@ namespace pCampBot
             cs.AddSwitch("Startup", "lastname");
             cs.AddSwitch("Startup", "password");
             cs.AddSwitch("Startup", "help","h");
+            cs.AddSwitch("Startup", "wear");
 
             IConfig ol = cs.Configs["Startup"];
             return ol;
@@ -84,6 +85,10 @@ namespace pCampBot
 
         private static void Help()
         {
+            // Added the wear command. This allows the bot to wear real clothes instead of default locked ones.
+            // You can either say no, to not load anything, yes, to load one of the default wearables, a folder
+            // name, to load an specific folder, or save, to save an avatar with some already existing wearables
+            // worn to the folder MyAppearance/FirstName_LastName, and the load it.
             Console.WriteLine(
                                      "usage: pCampBot <-loginuri loginuri> [OPTIONS]\n" +
                                      "Spawns a set of bots to test an OpenSim region\n\n" +
@@ -92,6 +97,7 @@ namespace pCampBot
                                      "  -firstname         first name for the bot(s) (default: random string)\n" +
                                      "  -lastname          lastname for the bot(s) (default: random string)\n" +
                                      "  -password          password for the bots(s) (default: random string)\n" +
+                                     "  -wear              set appearance folder to load from (default: no)\n" +
                                      "  -h, -help          show this message"
                                      );
         }

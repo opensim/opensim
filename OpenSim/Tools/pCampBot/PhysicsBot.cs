@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.IO;
 using System.Threading;
 using System.Timers;
@@ -47,13 +48,14 @@ namespace pCampBot
         public string lastname;
         public string password;
         public string loginURI;
+        public string saveDir;
+        public string wear;
 
         public event AnEvent OnConnected;
         public event AnEvent OnDisconnected;
 
         protected Timer m_action; // Action Timer
         protected List<uint> objectIDs = new List<uint>();
-
 
         protected Random somthing = new Random(Environment.TickCount);// We do stuff randomly here
 
@@ -79,9 +81,6 @@ namespace pCampBot
         {
             while (true)
             {
-                //client.Appearance.ForceRebakeAvatarTextures();
-                //client.Appearance.SetPreviousAppearance();
-
                 int walkorrun = somthing.Next(4); // Randomize between walking and running. The greater this number,
                                                   // the greater the bot's chances to walk instead of run.
                 client.Self.Jump(false);
@@ -98,14 +97,6 @@ namespace pCampBot
                 Vector3 newpos = new Vector3(somthing.Next(255), somthing.Next(255), somthing.Next(255));
                 client.Self.Movement.TurnToward(newpos);
 
-                /*
-                // Why does it need to keep setting it true? Changing to just let it walk =)
-                for (int i = 0; i < 2000; i++)
-                {
-                    client.Self.Movement.AtPos = true;
-                    Thread.Sleep(somthing.Next(25, 75)); // Makes sure the bots keep walking for this time.
-                }
-                */
                 client.Self.Movement.AtPos = true;
                 Thread.Sleep(somthing.Next(3000,13000));
                 client.Self.Movement.AtPos = false;
@@ -128,6 +119,7 @@ namespace pCampBot
             lastname = startupConfig.GetString("lastname", "random");
             password = startupConfig.GetString("password", "12345");
             loginURI = startupConfig.GetString("loginuri");
+            wear = startupConfig.GetString("wear","no");
         }
 
         /// <summary>
@@ -163,6 +155,7 @@ namespace pCampBot
             client.Network.OnDisconnected += new NetworkManager.DisconnectedCallback(this.Network_OnDisconnected);
             client.Objects.OnNewPrim += Objects_NewPrim;
             client.Assets.OnImageReceived += Asset_TextureCallback;
+            client.Assets.OnAssetReceived += Asset_ReceivedCallback;
             if (client.Network.Login(firstname, lastname, password, "pCampBot", "Your name"))
             {
                 if (OnConnected != null)
@@ -173,6 +166,15 @@ namespace pCampBot
                     m_action.Elapsed += new ElapsedEventHandler(m_action_Elapsed);
                     m_action.Start();
                     OnConnected(this, EventType.CONNECTED);
+                    if (wear == "save")
+                    {
+                        client.Appearance.SetPreviousAppearance();
+                        SaveDefaultAppearance();
+                    }
+                    else if (wear != "no")
+                    {
+                        MakeDefaultAppearance(wear);
+                    }
                     client.Self.Jump(true);
                 }
             }
@@ -184,6 +186,167 @@ namespace pCampBot
                     OnDisconnected(this, EventType.DISCONNECTED);
                 }
             }
+        }
+
+        public void SaveDefaultAppearance()
+        {
+            saveDir = "MyAppearance/" + firstname + "_" + lastname;
+            if (!Directory.Exists(saveDir))
+            {
+                Directory.CreateDirectory(saveDir);
+            }
+
+            Array wtypes = Enum.GetValues(typeof(WearableType));
+            foreach (WearableType wtype in wtypes)
+            {
+                UUID wearable = client.Appearance.GetWearableAsset(wtype);
+                if (wearable != UUID.Zero)
+                {
+                    client.Assets.RequestAsset(wearable, AssetType.Clothing, false);
+                    client.Assets.RequestAsset(wearable, AssetType.Bodypart, false);
+                }
+            }
+        }
+
+        public void SaveAsset(AssetWearable asset)
+        {
+            if (asset != null)
+            {
+                try
+                {
+                    if (asset.Decode())
+                    {
+                       File.WriteAllBytes(Path.Combine(saveDir, String.Format("{1}.{0}",
+                        asset.AssetType.ToString().ToLower(),
+                        asset.WearableType)), asset.AssetData);
+                    }
+                    else
+                    {
+                        MainConsole.Instance.Error(String.Format("Failed to decode {0} asset {1}", asset.AssetType, asset.AssetID));
+                    }
+                }
+                catch (Exception e)
+                {
+                    MainConsole.Instance.Error(String.Format("Exception: {0}",e.ToString()));
+                }
+            }
+        }
+
+        public WearableType GetWearableType(string path)
+        {
+            string type = ((((path.Split('/'))[2]).Split('.'))[0]).Trim();
+            switch(type)
+            {
+                case "Eyes":
+                    return WearableType.Eyes;
+                case "Hair":
+                    return WearableType.Hair;
+                case "Pants":
+                    return WearableType.Pants;
+                case "Shape":
+                    return WearableType.Shape;
+                case "Shirt":
+                    return WearableType.Shirt;
+                case "Skin":
+                    return WearableType.Skin;
+                default:
+                    return WearableType.Shape;
+            }
+        }
+
+        public void MakeDefaultAppearance(string wear)
+        {
+            try
+            {
+                if (wear == "yes")
+                {
+                    //TODO: Implement random outfit picking
+                    MainConsole.Instance.Notice("Picks a random outfit. Not yet implemented.");
+                }
+                else if (wear != "save")
+                    saveDir = "MyAppearance/" + wear;
+                saveDir = saveDir + "/";
+
+                string[] clothing = Directory.GetFiles(saveDir, "*.clothing", SearchOption.TopDirectoryOnly);
+                string[] bodyparts = Directory.GetFiles(saveDir, "*.bodypart", SearchOption.TopDirectoryOnly);
+                InventoryFolder clothfolder = FindClothingFolder();
+                UUID transid = UUID.Random();
+                List<InventoryBase> listwearables = new List<InventoryBase>();
+                
+                for (int i = 0; i < clothing.Length; i++)
+                {
+                    UUID assetID = UUID.Random();
+                    AssetClothing asset = new AssetClothing(assetID, File.ReadAllBytes(clothing[i]));
+                    asset.Decode();
+                    asset.Owner = client.Self.AgentID;
+                    asset.WearableType = GetWearableType(clothing[i]);
+                    asset.Encode();
+                    transid = client.Assets.RequestUpload(asset,true);
+                    client.Inventory.RequestCreateItem(clothfolder.UUID, "MyClothing" + i.ToString(), "MyClothing", AssetType.Clothing,
+                         transid, InventoryType.Wearable, asset.WearableType, PermissionMask.All, delegate(bool success, InventoryItem item)
+                    {
+                        if (success)
+                        {
+                            listwearables.Add(item);
+                        }
+                        else
+                            MainConsole.Instance.Error(String.Format("Failed to create item {0}",item.Name));
+                    }
+                    );
+                }
+
+                for (int i = 0; i < bodyparts.Length; i++)
+                {
+                    UUID assetID = UUID.Random();
+                    AssetBodypart asset = new AssetBodypart(assetID, File.ReadAllBytes(bodyparts[i]));
+                    asset.Decode();
+                    asset.Owner = client.Self.AgentID;
+                    asset.WearableType = GetWearableType(bodyparts[i]);
+                    asset.Encode();
+                    transid = client.Assets.RequestUpload(asset,true);
+                    client.Inventory.RequestCreateItem(clothfolder.UUID, "MyBodyPart" + i.ToString(), "MyBodyPart", AssetType.Bodypart,
+                         transid, InventoryType.Wearable, asset.WearableType, PermissionMask.All, delegate(bool success, InventoryItem item)
+                    {
+                        if (success)
+                        {
+                            listwearables.Add(item);
+                        }
+                        else
+                            MainConsole.Instance.Error(String.Format("Failed to create item {0}",item.Name));
+                    }
+                    );
+                }
+
+                Thread.Sleep(1000);
+
+                if (listwearables == null || listwearables.Count == 0)
+                    MainConsole.Instance.Notice("Nothing to send on this folder!");
+                else
+                {
+                    MainConsole.Instance.Notice(String.Format("Sending {0} wearables...",listwearables.Count));
+                    client.Appearance.WearOutfit(listwearables, false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+        public InventoryFolder FindClothingFolder()
+        {
+            UUID rootfolder = client.Inventory.Store.RootFolder.UUID;
+            List<InventoryBase> listfolders = client.Inventory.Store.GetContents(rootfolder);
+            InventoryFolder clothfolder = new InventoryFolder(UUID.Random());
+            foreach (InventoryBase folder in listfolders)
+            {
+                if (folder.Name == "Clothing")
+                {
+                    clothfolder = (InventoryFolder)folder;
+                    break;
+                }
+            }
+            return clothfolder;
         }
 
         public void Network_OnConnected(object sender)
@@ -237,6 +400,15 @@ namespace pCampBot
         }
         public void Asset_TextureCallback(ImageDownload image, AssetTexture asset)
         {
+            //TODO: Implement texture saving and applying
+        }
+
+        public void Asset_ReceivedCallback(AssetDownload transfer,Asset asset)
+        {
+            if (wear == "save")
+            {
+                SaveAsset((AssetWearable) asset);
+            }
         }
 
         public string[] readexcuses()
