@@ -1418,7 +1418,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Server" path="OpenSim/Server" type="Exe">
+    <Project name="OpenSim.Services" path="OpenSim/Server" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
