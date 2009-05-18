@@ -1107,32 +1107,21 @@ namespace OpenSim
         /// <param name="cmdparams"></param>
         protected void LoadOar(string module, string[] cmdparams)
         {
-            if (cmdparams.Length > 2)
-            {
-                try
+            try
+            {            
+                if (cmdparams.Length > 2)
                 {
-                    m_sceneManager.LoadArchiveToCurrentScene(cmdparams[2]);
+                    m_sceneManager.LoadArchiveToCurrentScene(cmdparams[2]);             
                 }
-                catch (FileNotFoundException)
+                else
                 {
-                    m_console.Error("Specified oar file not found.");
-                }
-                catch (DirectoryNotFoundException)
-                {
-                    m_console.Error("Specified directory not found.");
+                    m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);              
                 }
             }
-            else
+            catch (Exception e)
             {
-                try
-                {
-                    m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);
-                }
-                catch (FileNotFoundException)
-                {
-                    m_console.Error("Default oar file not found.");
-                }                
-            }
+                m_console.Error(e.Message);
+            }   
         }
 
         /// <summary>

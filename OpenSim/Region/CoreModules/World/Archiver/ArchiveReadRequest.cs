@@ -449,7 +449,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             catch (Exception e)
             {
-                throw new Exception(String.Format("Unable to create file input stream for {0}: {1}", path, e));
+                throw new Exception(String.Format("Unable to create file input stream for {0}: {1}", path, e.Message));
             }
         }
 
