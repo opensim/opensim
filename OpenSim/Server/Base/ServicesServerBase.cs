@@ -37,7 +37,7 @@ using log4net.Core;
 using log4net.Repository;
 using Nini.Config;
 
-namespace OpenSim.Servers.Base
+namespace OpenSim.Server.Base
 {
     public class ServicesServerBase
     {

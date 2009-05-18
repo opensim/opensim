@@ -1359,7 +1359,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Servers.Base" path="OpenSim/Servers/Base" type="Library">
+    <Project name="OpenSim.Server.Base" path="OpenSim/Server/Base" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1407,7 +1407,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Servers.Base"/>
+      <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Services.Base" />
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="Nini.dll" />
@@ -1418,7 +1418,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Servers.AssetServer" path="OpenSim/Servers/AssetServer" type="Exe">
+    <Project name="OpenSim.Server.AssetServer" path="OpenSim/Server/AssetServer" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1438,8 +1438,8 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Servers.Base"/>
-      <Reference name="OpenSim.Servers.AssetServer.Handlers"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenSim.Server.AssetServer.Handlers"/>
       <Reference name="OpenSim.Services.Base" />
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="Nini.dll" />
@@ -1475,7 +1475,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Region.Framework" />
-      <Reference name="OpenSim.Servers.Base" />
+      <Reference name="OpenSim.Server.Base" />
       <Reference name="OpenSim.Services.Connectors" />
       <Reference name="OpenSim.Services.Base" />
       <Reference name="OpenSim.Services.Interfaces" />

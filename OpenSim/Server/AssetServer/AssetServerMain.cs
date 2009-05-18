@@ -26,61 +26,25 @@
  */
 
 using System;
-using System.Threading;
-using System.Reflection;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Servers.HttpServer;
-using log4net;
-using Nini.Config;
+using OpenSim.Server.Base;
+using OpenSim.Server.AssetServer.Handlers;
 
-namespace OpenSim.Servers.Base
+namespace OpenSim.Server.AssetServer
 {
-    public class HttpServerBase : ServicesServerBase
+    public class AssetServer
     {
-        // Logger
-        //
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        protected static HttpServerBase m_Server = null;
 
-        // The http server instance
-        //
-        protected BaseHttpServer m_HttpServer = null;
+        protected static AssetServiceConnector m_AssetServiceConnector;
 
-        public IHttpServer HttpServer
+        static int Main(string[] args)
         {
-            get { return m_HttpServer; }
-        }
+            m_Server = new HttpServerBase("Asset", args);
 
-        // Handle all the automagical stuff
-        //
-        public HttpServerBase(string prompt, string[] args) : base(prompt, args)
-        {
-        }
+            m_AssetServiceConnector = new AssetServiceConnector(m_Server.Config,
+                    m_Server.HttpServer);
 
-        protected override void ReadConfig()
-        {
-            IConfig networkConfig = m_Config.Configs["Network"];
-
-            if (networkConfig == null)
-            {
-                System.Console.WriteLine("Section 'Network' not found, server can't start");
-                Thread.CurrentThread.Abort();
-            }
-            uint port = (uint)networkConfig.GetInt("port", 0);
-
-            if (port == 0)
-            {
-                System.Console.WriteLine("Port number not specified or 0, server can't start");
-                Thread.CurrentThread.Abort();
-            }
-
-            m_HttpServer = new BaseHttpServer(port);
-        }
-
-        protected override void Initialise()
-        {
-            m_HttpServer.Start();
+            return m_Server.Run();
         }
     }
 }

@@ -26,25 +26,61 @@
  */
 
 using System;
-using OpenSim.Servers.Base;
-using OpenSim.Servers.AssetServer.Handlers;
+using System.Threading;
+using System.Reflection;
+using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers.HttpServer;
+using log4net;
+using Nini.Config;
 
-namespace OpenSim.Servers.AssetServer
+namespace OpenSim.Server.Base
 {
-    public class AssetServer
+    public class HttpServerBase : ServicesServerBase
     {
-        protected static HttpServerBase m_Server = null;
+        // Logger
+        //
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected static AssetServiceConnector m_AssetServiceConnector;
+        // The http server instance
+        //
+        protected BaseHttpServer m_HttpServer = null;
 
-        static int Main(string[] args)
+        public IHttpServer HttpServer
         {
-            m_Server = new HttpServerBase("Asset", args);
+            get { return m_HttpServer; }
+        }
 
-            m_AssetServiceConnector = new AssetServiceConnector(m_Server.Config,
-                    m_Server.HttpServer);
+        // Handle all the automagical stuff
+        //
+        public HttpServerBase(string prompt, string[] args) : base(prompt, args)
+        {
+        }
 
-            return m_Server.Run();
+        protected override void ReadConfig()
+        {
+            IConfig networkConfig = m_Config.Configs["Network"];
+
+            if (networkConfig == null)
+            {
+                System.Console.WriteLine("Section 'Network' not found, server can't start");
+                Thread.CurrentThread.Abort();
+            }
+            uint port = (uint)networkConfig.GetInt("port", 0);
+
+            if (port == 0)
+            {
+                System.Console.WriteLine("Port number not specified or 0, server can't start");
+                Thread.CurrentThread.Abort();
+            }
+
+            m_HttpServer = new BaseHttpServer(port);
+        }
+
+        protected override void Initialise()
+        {
+            m_HttpServer.Start();
         }
     }
 }

@@ -32,7 +32,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Text;
 
-namespace OpenSim.Servers.Base
+namespace OpenSim.Server.Base
 {
     public static class ServerUtils
     {
