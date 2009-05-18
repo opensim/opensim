@@ -1255,7 +1255,10 @@
 [LLClient]
     ; Resend packets markes as reliable until they are received
     ;ReliableIsImportant = false
-	
+
+    ; Maximum number of times to resend packets marked reliable
+    ;MaxReliableResends = 3
+
 	; Configures how ObjectUpdates are compressed.
 	;TerseUpdatesPerPacket=10
 	;FullUpdatesPerPacket=14

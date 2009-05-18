@@ -532,7 +532,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_PacketHandler.ReliableIsImportant =
                         clientConfig.GetBoolean("ReliableIsImportant",
                                                 false);
-
+                    m_PacketHandler.MaxReliableResends = clientConfig.GetInt("MaxReliableResends",
+                                                                             m_PacketHandler.MaxReliableResends);
                     m_primTerseUpdatesPerPacket = clientConfig.GetInt("TerseUpdatesPerPacket",
                                                                       m_primTerseUpdatesPerPacket);
                     m_primFullUpdatesPerPacket = clientConfig.GetInt("FullUpdatesPerPacket",
