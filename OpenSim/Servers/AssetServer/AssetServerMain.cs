@@ -27,6 +27,7 @@
 
 using System;
 using OpenSim.Servers.Base;
+using OpenSim.Servers.AssetServer.Handlers;
 
 namespace OpenSim.Servers.AssetServer
 {

@@ -32,7 +32,7 @@ using OpenSim.Servers.AssetServer.Handlers;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Servers.AssetServer
+namespace OpenSim.Servers.AssetServer.Handlers
 {
     public class AssetServiceConnector
     {
