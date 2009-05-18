@@ -33,6 +33,14 @@ namespace OpenSim.ApplicationPlugins.Rest
 {
     public class RestXmlWriter: XmlTextWriter
     {
+        private StringWriter m_sw = null;
+
+        public RestXmlWriter(StringWriter sw) : base(sw)
+        {
+            m_sw = sw;
+            Formatting = Formatting.Indented;
+        }
+
         public RestXmlWriter(TextWriter textWriter) : base(textWriter)
         {
         }
@@ -51,6 +59,14 @@ namespace OpenSim.ApplicationPlugins.Rest
 
         public override void WriteStartDocument(bool standalone)
         {
+        }
+
+        public override string ToString()
+        {
+            WriteEndElement();
+            Flush();
+            Close();
+            return m_sw.ToString();
         }
     }
 }

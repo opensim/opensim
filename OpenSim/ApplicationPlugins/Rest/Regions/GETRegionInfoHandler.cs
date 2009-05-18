@@ -66,78 +66,78 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
 
         public string GetRegionInfoHandlerRegions(OSHttpResponse httpResponse)
         {
+            RestXmlWriter rxw = new RestXmlWriter(new StringWriter());
+
             // regions info
-            XmlWriter.WriteStartElement(String.Empty, "regions", String.Empty);
+            rxw.WriteStartElement(String.Empty, "regions", String.Empty);
             {
                 // regions info: number of regions
-                XmlWriter.WriteStartAttribute(String.Empty, "number", String.Empty);
-                XmlWriter.WriteValue(App.SceneManager.Scenes.Count);
-                XmlWriter.WriteEndAttribute();
+                rxw.WriteStartAttribute(String.Empty, "number", String.Empty);
+                rxw.WriteValue(App.SceneManager.Scenes.Count);
+                rxw.WriteEndAttribute();
 
                 // regions info: max number of regions
-                XmlWriter.WriteStartAttribute(String.Empty, "max", String.Empty);
+                rxw.WriteStartAttribute(String.Empty, "max", String.Empty);
                 if (App.ConfigSource.Source.Configs["RemoteAdmin"] != null)
                 {
-                    XmlWriter.WriteValue(App.ConfigSource.Source.Configs["RemoteAdmin"].GetInt("region_limit", -1));
+                    rxw.WriteValue(App.ConfigSource.Source.Configs["RemoteAdmin"].GetInt("region_limit", -1));
                 }
                 else
                 {
-                    XmlWriter.WriteValue(-1);
+                    rxw.WriteValue(-1);
                 }
-                XmlWriter.WriteEndAttribute();
+                rxw.WriteEndAttribute();
                 
                 // regions info: region
                 foreach (Scene s in App.SceneManager.Scenes)
                 {
-                    XmlWriter.WriteStartElement(String.Empty, "region", String.Empty);
+                    rxw.WriteStartElement(String.Empty, "region", String.Empty);
                     
-                    XmlWriter.WriteStartAttribute(String.Empty, "uuid", String.Empty);
-                    XmlWriter.WriteString(s.RegionInfo.RegionID.ToString());
-                    XmlWriter.WriteEndAttribute();
+                    rxw.WriteStartAttribute(String.Empty, "uuid", String.Empty);
+                    rxw.WriteString(s.RegionInfo.RegionID.ToString());
+                    rxw.WriteEndAttribute();
                     
-                    XmlWriter.WriteStartAttribute(String.Empty, "name", String.Empty);
-                    XmlWriter.WriteString(s.RegionInfo.RegionName);
-                    XmlWriter.WriteEndAttribute();
+                    rxw.WriteStartAttribute(String.Empty, "name", String.Empty);
+                    rxw.WriteString(s.RegionInfo.RegionName);
+                    rxw.WriteEndAttribute();
                     
-                    XmlWriter.WriteStartAttribute(String.Empty, "x", String.Empty);
-                    XmlWriter.WriteValue(s.RegionInfo.RegionLocX);
-                    XmlWriter.WriteEndAttribute();
+                    rxw.WriteStartAttribute(String.Empty, "x", String.Empty);
+                    rxw.WriteValue(s.RegionInfo.RegionLocX);
+                    rxw.WriteEndAttribute();
                     
-                    XmlWriter.WriteStartAttribute(String.Empty, "y", String.Empty);
-                    XmlWriter.WriteValue(s.RegionInfo.RegionLocY);
-                    XmlWriter.WriteEndAttribute();
+                    rxw.WriteStartAttribute(String.Empty, "y", String.Empty);
+                    rxw.WriteValue(s.RegionInfo.RegionLocY);
+                    rxw.WriteEndAttribute();
                     
-                    XmlWriter.WriteStartAttribute(String.Empty, "external_hostname", String.Empty);
-                    XmlWriter.WriteString(s.RegionInfo.ExternalHostName);
-                    XmlWriter.WriteEndAttribute();
+                    rxw.WriteStartAttribute(String.Empty, "external_hostname", String.Empty);
+                    rxw.WriteString(s.RegionInfo.ExternalHostName);
+                    rxw.WriteEndAttribute();
                     
-                    XmlWriter.WriteStartAttribute(String.Empty, "master_name", String.Empty);
-                    XmlWriter.WriteString(String.Format("{0} {1}", s.RegionInfo.MasterAvatarFirstName, s.RegionInfo.MasterAvatarLastName));
-                    XmlWriter.WriteEndAttribute();
+                    rxw.WriteStartAttribute(String.Empty, "master_name", String.Empty);
+                    rxw.WriteString(String.Format("{0} {1}", s.RegionInfo.MasterAvatarFirstName, s.RegionInfo.MasterAvatarLastName));
+                    rxw.WriteEndAttribute();
                     
-                    XmlWriter.WriteStartAttribute(String.Empty, "master_uuid", String.Empty);
-                    XmlWriter.WriteString(s.RegionInfo.MasterAvatarAssignedUUID.ToString());
-                    XmlWriter.WriteEndAttribute();
+                    rxw.WriteStartAttribute(String.Empty, "master_uuid", String.Empty);
+                    rxw.WriteString(s.RegionInfo.MasterAvatarAssignedUUID.ToString());
+                    rxw.WriteEndAttribute();
                     
-                    XmlWriter.WriteStartAttribute(String.Empty, "ip", String.Empty);
-                    XmlWriter.WriteString(s.RegionInfo.InternalEndPoint.ToString());
-                    XmlWriter.WriteEndAttribute();
+                    rxw.WriteStartAttribute(String.Empty, "ip", String.Empty);
+                    rxw.WriteString(s.RegionInfo.InternalEndPoint.ToString());
+                    rxw.WriteEndAttribute();
                     
                     int users = s.GetAvatars().Count;
-                    XmlWriter.WriteStartAttribute(String.Empty, "avatars", String.Empty);
-                    XmlWriter.WriteValue(users);
-                    XmlWriter.WriteEndAttribute();
+                    rxw.WriteStartAttribute(String.Empty, "avatars", String.Empty);
+                    rxw.WriteValue(users);
+                    rxw.WriteEndAttribute();
                     
-                    XmlWriter.WriteStartAttribute(String.Empty, "objects", String.Empty);
-                    XmlWriter.WriteValue(s.Entities.Count - users);
-                    XmlWriter.WriteEndAttribute();
+                    rxw.WriteStartAttribute(String.Empty, "objects", String.Empty);
+                    rxw.WriteValue(s.Entities.Count - users);
+                    rxw.WriteEndAttribute();
                     
-                    XmlWriter.WriteEndElement();
+                    rxw.WriteEndElement();
                 }
             }
-            XmlWriter.WriteEndElement();
-
-            return XmlWriterResult;
+            return rxw.ToString();
         }
         #endregion GET methods
     }

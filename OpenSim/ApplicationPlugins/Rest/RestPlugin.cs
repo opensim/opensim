@@ -53,8 +53,8 @@ namespace OpenSim.ApplicationPlugins.Rest
         private string _prefix; // URL prefix below
         // which all REST URLs
         // are living
-        private StringWriter _sw = null;
-        private RestXmlWriter _xw = null;
+        // private StringWriter _sw = null;
+        // private RestXmlWriter _xw = null;
 
         private string _godkey;
         private int _reqk;
@@ -149,31 +149,31 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// </summary>
         public abstract string ConfigName { get; }
 
-        public XmlTextWriter XmlWriter
-        {
-            get
-            {
-                if (null == _xw)
-                {
-                    _sw = new StringWriter();
-                    _xw = new RestXmlWriter(_sw);
-                    _xw.Formatting = Formatting.Indented;
-                }
-                return _xw;
-            }
-        }
+        // public XmlTextWriter XmlWriter
+        // {
+        //     get
+        //     {
+        //         if (null == _xw)
+        //         {
+        //             _sw = new StringWriter();
+        //             _xw = new RestXmlWriter(_sw);
+        //             _xw.Formatting = Formatting.Indented;
+        //         }
+        //         return _xw;
+        //     }
+        // }
 
-        public string XmlWriterResult
-        {
-            get
-            {
-                _xw.Flush();
-                _xw.Close();
-                _xw = null;
+        // public string XmlWriterResult
+        // {
+        //     get
+        //     {
+        //         _xw.Flush();
+        //         _xw.Close();
+        //         _xw = null;
 
-                return _sw.ToString();
-            }
-        }
+        //         return _sw.ToString();
+        //     }
+        // }
 
         #endregion properties
 

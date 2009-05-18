@@ -65,29 +65,33 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
 
         public string GetHandlerRegions(OSHttpResponse httpResponse)
         {
-            XmlWriter.WriteStartElement(String.Empty, "regions", String.Empty);
+            RestXmlWriter rxw = new RestXmlWriter(new StringWriter());
+
+            rxw.WriteStartElement(String.Empty, "regions", String.Empty);
             foreach (Scene s in App.SceneManager.Scenes)
             {
-                XmlWriter.WriteStartElement(String.Empty, "uuid", String.Empty);
-                XmlWriter.WriteString(s.RegionInfo.RegionID.ToString());
-                XmlWriter.WriteEndElement();
+                rxw.WriteStartElement(String.Empty, "uuid", String.Empty);
+                rxw.WriteString(s.RegionInfo.RegionID.ToString());
+                rxw.WriteEndElement();
             }
-            XmlWriter.WriteEndElement();
+            rxw.WriteEndElement();
 
-            return XmlWriterResult;
+            return rxw.ToString();
         }
 
         protected string ShortRegionInfo(string key, string value)
         {
+            RestXmlWriter rxw = new RestXmlWriter(new StringWriter());
+
             if (String.IsNullOrEmpty(value) ||
                 String.IsNullOrEmpty(key)) return null;
 
-            XmlWriter.WriteStartElement(String.Empty, "region", String.Empty);
-            XmlWriter.WriteStartElement(String.Empty, key, String.Empty);
-            XmlWriter.WriteString(value);
-            XmlWriter.WriteEndDocument();
+            rxw.WriteStartElement(String.Empty, "region", String.Empty);
+            rxw.WriteStartElement(String.Empty, key, String.Empty);
+            rxw.WriteString(value);
+            rxw.WriteEndDocument();
 
-            return XmlWriterResult;
+            return rxw.ToString();
         }
 
         public string GetHandlerRegion(OSHttpResponse httpResponse, string param)
@@ -114,9 +118,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             if (1 == comps.Length)
             {
                 // complete region details requested
+                RestXmlWriter rxw = new RestXmlWriter(new StringWriter());
                 XmlSerializer xs = new XmlSerializer(typeof(RegionDetails));
-                xs.Serialize(XmlWriter, details, _xmlNs);
-                return XmlWriterResult;
+                xs.Serialize(rxw, details, _xmlNs);
+                return rxw.ToString();
             }
 
             if (2 == comps.Length)
@@ -185,20 +190,22 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             int users = scene.GetAvatars().Count;
             int objects = scene.Entities.Count - users;
 
-            XmlWriter.WriteStartElement(String.Empty, "region", String.Empty);
-            XmlWriter.WriteStartElement(String.Empty, "stats", String.Empty);
+            RestXmlWriter rxw = new RestXmlWriter(new StringWriter());
 
-            XmlWriter.WriteStartElement(String.Empty, "users", String.Empty);
-            XmlWriter.WriteString(users.ToString());
-            XmlWriter.WriteEndElement();
+            rxw.WriteStartElement(String.Empty, "region", String.Empty);
+            rxw.WriteStartElement(String.Empty, "stats", String.Empty);
 
-            XmlWriter.WriteStartElement(String.Empty, "objects", String.Empty);
-            XmlWriter.WriteString(objects.ToString());
-            XmlWriter.WriteEndElement();
+            rxw.WriteStartElement(String.Empty, "users", String.Empty);
+            rxw.WriteString(users.ToString());
+            rxw.WriteEndElement();
 
-            XmlWriter.WriteEndDocument();
+            rxw.WriteStartElement(String.Empty, "objects", String.Empty);
+            rxw.WriteString(objects.ToString());
+            rxw.WriteEndElement();
 
-            return XmlWriterResult;
+            rxw.WriteEndDocument();
+
+            return rxw.ToString();
         }
 
         protected string RegionPrims(OSHttpResponse httpResponse, Scene scene, Vector3 min, Vector3 max)

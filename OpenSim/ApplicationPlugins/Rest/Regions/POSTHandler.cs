@@ -94,16 +94,18 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
 
         public string CreateRegion(OSHttpRequest request, OSHttpResponse response)
         {
-            XmlWriter.WriteStartElement(String.Empty, "regions", String.Empty);
+            RestXmlWriter rxw = new RestXmlWriter(new StringWriter());
+
+            rxw.WriteStartElement(String.Empty, "regions", String.Empty);
             foreach (Scene s in App.SceneManager.Scenes)
             {
-                XmlWriter.WriteStartElement(String.Empty, "uuid", String.Empty);
-                XmlWriter.WriteString(s.RegionInfo.RegionID.ToString());
-                XmlWriter.WriteEndElement();
+                rxw.WriteStartElement(String.Empty, "uuid", String.Empty);
+                rxw.WriteString(s.RegionInfo.RegionID.ToString());
+                rxw.WriteEndElement();
             }
-            XmlWriter.WriteEndElement();
+            rxw.WriteEndElement();
 
-            return XmlWriterResult;
+            return rxw.ToString();
         }
 
         public string LoadPrims(string requestBody, OSHttpRequest request, OSHttpResponse response, Scene scene)
