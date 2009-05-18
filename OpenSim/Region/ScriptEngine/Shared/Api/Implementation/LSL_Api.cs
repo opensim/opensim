@@ -66,7 +66,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// </summary>
     public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
         protected uint m_localID;
@@ -8114,7 +8114,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             catch(Exception e)
             {
-                m_log.Error("[LSL_API]: llRequestSimulatorData" + e.ToString());
+                //m_log.Error("[LSL_API]: llRequestSimulatorData" + e.ToString());
                 return UUID.Zero.ToString();
             }
         }
