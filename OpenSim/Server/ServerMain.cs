@@ -25,25 +25,69 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using Nini.Config;
+using log4net;
+using System.Reflection;
 using System;
+using System.Collections.Generic;
 using OpenSim.Server.Base;
+using OpenSim.Server.Handlers.Base;
 using OpenSim.Server.Handlers.Asset;
 
-namespace OpenSim.Server.AssetServer
+namespace OpenSim.Server
 {
-    public class AssetServer
+    public class OpenSimServer
     {
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
         protected static HttpServerBase m_Server = null;
 
-        protected static AssetServiceConnector m_AssetServiceConnector;
+        protected static List<IServiceConnector> m_ServiceConnectors =
+                new List<IServiceConnector>();
 
         static int Main(string[] args)
         {
             m_Server = new HttpServerBase("Asset", args);
 
-            m_AssetServiceConnector = new AssetServiceConnector(m_Server.Config,
-                    m_Server.HttpServer);
+            IConfig serverConfig = m_Server.Config.Configs["Startup"];
+            if (serverConfig == null)
+            {
+                System.Console.WriteLine("Startup config section missing in .ini file");
+                throw new Exception("Configuration error");
+            }
 
+            string connList = serverConfig.GetString("ServiceConnectors", String.Empty);
+            string[] conns = connList.Split(new char[] {',', ' '});
+
+            foreach (string conn in conns)
+            {
+                if (conn == String.Empty)
+                    continue;
+
+                string[] parts = conn.Split(new char[] {':'});
+                string friendlyName = parts[0];
+                if (parts.Length > 1)
+                    friendlyName = parts[1];
+
+                m_log.InfoFormat("[SERVER]: Loading {0}", friendlyName);
+
+                Object[] modargs = new Object[] { m_Server.Config, m_Server.HttpServer };
+                IServiceConnector connector =
+                        ServerUtils.LoadPlugin<IServiceConnector>(conn,
+                        modargs);
+
+                if (connector != null)
+                {
+                    m_ServiceConnectors.Add(connector);
+                    m_log.InfoFormat("[SERVER]: {0} loaded successfully", friendlyName);
+                }
+                else
+                {
+                    m_log.InfoFormat("[SERVER]: Failed to load {0}", conn);
+                }
+            }
             return m_Server.Run();
         }
     }

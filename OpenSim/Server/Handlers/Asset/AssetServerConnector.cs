@@ -30,14 +30,16 @@ using Nini.Config;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Base;
 
 namespace OpenSim.Server.Handlers.Asset
 {
-    public class AssetServiceConnector
+    public class AssetServiceConnector : ServiceConnector
     {
         private IAssetService m_AssetService;
 
-        public AssetServiceConnector(IConfigSource config, IHttpServer server)
+        public AssetServiceConnector(IConfigSource config, IHttpServer server) :
+                base(config, server)
         {
             IConfig serverConfig = config.Configs["AssetService"];
             if (serverConfig == null)

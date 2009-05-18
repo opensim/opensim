@@ -5,6 +5,9 @@
 ; inifile = "OpenSim.Servers.AssetServer.ini"
 ; logfile = "AssetServer.log" ; Also read from application config file
 
+; Connectors, comma separated
+ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector"
+
 [Network]
 port = 8003
 
