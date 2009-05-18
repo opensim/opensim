@@ -1304,7 +1304,7 @@
     ; Use this one if you have a standalone grid
     LocalGridAssetService = "OpenSim.Services.AssetService.dll:AssetService"
     ; Use this one if this sim is connected to a grid-wide asset server
-    ;LocalGridAssetService = "OpenSim.Servers.Connectors.dll:AssetServiceConnector"
+    ;LocalGridAssetService = "OpenSim.Services.Connectors.dll:AssetServiceConnector"
     HypergridAssetService = "OpenSim.Services.AssetService.dll:HGAssetService"
 
 [AssetCache]
