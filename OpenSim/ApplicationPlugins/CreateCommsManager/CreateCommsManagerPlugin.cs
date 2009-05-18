@@ -169,7 +169,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
             m_commsManager
                 = new CommunicationsLocal(
                     m_openSim.ConfigurationSettings, m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache,
-                    libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);
+                    libraryRootFolder, false);
 
             CreateGridInfoService();
         }
@@ -195,7 +195,7 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
                 = new HGCommunicationsStandalone(
                     m_openSim.ConfigurationSettings, m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache,
                     gridService, 
-                    libraryRootFolder, m_openSim.ConfigurationSettings.DumpAssetsToFile);                        
+                    libraryRootFolder, false);                        
             
             HGServices = gridService;
 

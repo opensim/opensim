@@ -281,7 +281,6 @@ namespace OpenSim
             // Called from base.StartUp()
 
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
-            InitialiseAssetCache();
             m_sceneManager.OnRestartSim += handleRestartRegion;
         }
 
@@ -296,167 +295,6 @@ namespace OpenSim
         /// returns an IAssetCache implementation, if possible. This is a virtual
         /// method.
         /// </summary>
-        protected virtual void InitialiseAssetCache()
-        {
-            LegacyAssetClientPluginInitialiser linit = null;
-            CryptoAssetClientPluginInitialiser cinit = null;
-            AssetClientPluginInitialiser init = null;
-
-            IAssetServer assetServer = null;
-            string mode = m_configSettings.AssetStorage;
-
-            if (mode == null | mode == String.Empty)
-                mode = "default";
-
-            // If "default" is specified, then the value is adjusted
-            // according to whether or not the server is running in
-            // standalone mode.
-            if (mode.ToLower() == "default")
-            {
-                if (m_configSettings.Standalone == false)
-                    mode = "grid";
-                else
-                    mode = "local";
-            }
-
-            switch (mode.ToLower())
-            {
-                    // If grid is specified then the grid server is chose regardless 
-                    // of whether the server is standalone.
-                case "grid":
-                    linit = new LegacyAssetClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL);
-                    assetServer = loadAssetServer("Grid", linit);
-                    break;
-
-                    // If cryptogrid is specified then the cryptogrid server is chose regardless 
-                    // of whether the server is standalone.
-                case "cryptogrid":
-                    cinit = new CryptoAssetClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL,
-                                                                   Environment.CurrentDirectory, true);
-                    assetServer = loadAssetServer("Crypto", cinit);
-                    break;
-
-                    // If cryptogrid_eou is specified then the cryptogrid_eou server is chose regardless 
-                    // of whether the server is standalone.
-                case "cryptogrid_eou":
-                    cinit = new CryptoAssetClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL,
-                                                                   Environment.CurrentDirectory, false);
-                    assetServer = loadAssetServer("Crypto", cinit);
-                    break;
-
-                    // If file is specified then the file server is chose regardless 
-                    // of whether the server is standalone.
-                case "file":
-                    linit = new LegacyAssetClientPluginInitialiser(m_configSettings, m_networkServersInfo.AssetURL);
-                    assetServer = loadAssetServer("File", linit);
-                    break;
-
-                    // If local is specified then we're going to use the local SQL server
-                    // implementation. We drop through, because that will be the fallback
-                    // for the following default clause too.
-                case "local":
-                    break;
-
-                    // If the asset_database value is none of the previously mentioned strings, then we
-                    // try to load a turnkey plugin that matches this value. If not we drop through to 
-                    // a local default.
-                default:
-                    try
-                    {
-                        init = new AssetClientPluginInitialiser(m_configSettings);
-                        assetServer = loadAssetServer(m_configSettings.AssetStorage, init);
-                        break;
-                    }
-                    catch
-                    {
-                    }
-                    m_log.Info("[OPENSIMBASE]: Default assetserver will be used");                
-                    break;
-            }
-
-            // Open the local SQL-based database asset server
-            if (assetServer == null)
-            {
-                init = new AssetClientPluginInitialiser(m_configSettings);
-                SQLAssetServer sqlAssetServer = (SQLAssetServer) loadAssetServer("SQL", init);
-                sqlAssetServer.LoadDefaultAssets(m_configSettings.AssetSetsXMLFile);
-                assetServer = sqlAssetServer;
-            }
-
-            // Initialize the asset cache, passing a reference to the selected
-            // asset server interface.
-            m_assetCache = ResolveAssetCache(assetServer);
-            
-            assetServer.Start();
-        }
-
-        // This method loads the identified asset server, passing an approrpiately
-        // initialized Initialise wrapper. There should to be exactly one match,
-        // if not, then the first match is used.
-        private IAssetServer loadAssetServer(string id, PluginInitialiserBase pi)
-        {
-            if (id != null && id != String.Empty)
-            {
-                m_log.DebugFormat("[OPENSIMBASE] Attempting to load asset server id={0}", id);
-
-                try
-                {
-                    PluginLoader<IAssetServer> loader = new PluginLoader<IAssetServer>(pi);
-                    loader.AddFilter(PLUGIN_ASSET_SERVER_CLIENT, new PluginProviderFilter(id));
-                    loader.Load(PLUGIN_ASSET_SERVER_CLIENT);
-
-                    if (loader.Plugins.Count > 0)
-                    {
-                        m_log.DebugFormat("[OPENSIMBASE] Asset server {0} loaded", id);
-                        return (IAssetServer) loader.Plugins[0];
-                    }
-                }
-                catch (Exception e)
-                {
-                    m_log.DebugFormat("[OPENSIMBASE] Asset server {0} not loaded ({1})", id, e.Message);
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Attempt to instantiate an IAssetCache implementation, using the
-        /// provided IAssetServer reference.
-        /// An asset cache implementation must provide a constructor that
-        /// accepts two parameters;
-        ///   [1] A ConfigSettings reference.
-        ///   [2] An IAssetServer reference.
-        /// The AssetCache value is obtained from the 
-        /// [StartUp]/AssetCache value in the configuration file.
-        /// </summary>
-        protected virtual IAssetCache ResolveAssetCache(IAssetServer assetServer)
-        {
-            IAssetCache assetCache = null;
-            if (m_configSettings.AssetCache != null && m_configSettings.AssetCache != String.Empty)
-            {
-                m_log.DebugFormat("[OPENSIMBASE]: Attempting to load asset cache id = {0}", m_configSettings.AssetCache);
-                
-                try
-                {
-                    PluginInitialiserBase init = new AssetCachePluginInitialiser(m_configSettings, assetServer);
-                    PluginLoader<IAssetCache> loader = new PluginLoader<IAssetCache>(init);
-                    loader.AddFilter(PLUGIN_ASSET_CACHE, new PluginProviderFilter(m_configSettings.AssetCache));
-
-                    loader.Load(PLUGIN_ASSET_CACHE);
-                    if (loader.Plugins.Count > 0)
-                        assetCache = (IAssetCache) loader.Plugins[0];
-                }
-                catch (Exception e)
-                {
-                    m_log.Error("[OPENSIMBASE]: ResolveAssetCache failed");
-                    m_log.Error(e);
-                }
-            }
-
-            // If everything else fails, we force load the built-in asset cache
-            return (IAssetCache) ((assetCache != null) ? assetCache : new AssetCache(assetServer));
-        }
-
         public void ProcessLogin(bool LoginEnabled)
         {
             if (LoginEnabled)
@@ -755,7 +593,7 @@ namespace OpenSim
 
             return new Scene(
                 regionInfo, circuitManager, m_commsManager, sceneGridService,
-                storageManager, m_moduleLoader, m_configSettings.DumpAssetsToFile, m_configSettings.PhysicalPrim,
+                storageManager, m_moduleLoader, false, m_configSettings.PhysicalPrim,
                 m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }
 

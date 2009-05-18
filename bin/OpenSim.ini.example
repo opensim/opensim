@@ -110,19 +110,6 @@
     ; grid asset server.  If you select local in grid mode, then you will use a database as specified in asset_plugin to store assets
     ; locally.  This will mean you won't be able to take items using your assets to other people's regions.
     
-    ; asset_database can be default, local or grid.  This controls where assets (textures, scripts, etc.) are stored for your region
-    ; 
-    ; If set to default, then
-    ;   In standalone mode the local database based asset service will be used
-    ;   In grid mode the grid asset service will be used for asset storage
-    ;   This is probably the setting that you want.
-    ;
-    ; If set to local then the local database based asset service will be used in standalone and grid modes
-    ; If set to grid then the grid based asset service will be used in standalone and grid modes
-    ; All other values will cause a search for a matching assembly that contains an asset server client.
-    ; See also: AssetCache
-    asset_database = "default"   
-
     ; Persistence of changed objects happens during regular sweeps. The following control that behaviour to
     ; prevent frequently changing objects from heavily loading the region data store.
     ; If both of these values are set to zero then persistence of all changed objects will happen on every sweep.
@@ -220,18 +207,6 @@
     ;XmlRpcRouterModule = "XmlRpcRouterModule"
 
     ; ##
-    ; ## Customized Cache Implementation
-    ; ##
-    ;
-    ; The AssetCache value allows the name of an alternative caching
-    ; implementation to be specified. This can normally be omitted.
-    ; This value corresponds to the provider value associated with the
-    ; intended cache implementation plugin.
-    ; See also: asset_database
-
-    ; AssetCache = "OpenSim.Framework.Communications.Cache.AssetCache"
-
-    ; ##
     ; ## EMAIL MODULE
     ; ##
 
@@ -281,19 +256,6 @@
     accounts_authenticate = true
     welcome_message = "Welcome to OpenSimulator"
 
-    ; Asset database provider
-    asset_plugin = "OpenSim.Data.SQLite.dll"
-    ; asset_plugin = "OpenSim.Data.MySQL.dll" ; for mysql
-    ; asset_plugin = "OpenSim.Data.NHibernate.dll" ; for nhibernate
-
-    ; the Asset DB source.  This only works for sqlite, mysql, and nhibernate for now
-    ; Asset source SQLite example
-    asset_source = "URI=file:Asset.db,version=3"
-    ; Asset Source NHibernate example (DIALECT;DRIVER;CONNECTSTRING)
-    ; asset_source = "SQLiteDialect;SqliteClientDriver;URI=file:Asset.db,version=3"
-    ; Asset Source MySQL example
-    ;asset_source = "Data Source=localhost;Database=opensim;User ID=opensim;Password=****;"
-
     ; Inventory database provider
     inventory_plugin = "OpenSim.Data.SQLite.dll"
     ; inventory_plugin = "OpenSim.Data.MySQL.dll"
@@ -329,13 +291,6 @@
     ; Default is ./inventory/Libraries.xml
     LibrariesXMLFile="./inventory/Libraries.xml"
     
-    ; Specifies the location and filename of the inventory library assets control file.  The path can be relative or absolute
-    ; Setting is optional. Default is ./assets/AssetSets.xml
-    AssetSetsXMLFile="./assets/AssetSets.xml"
-
-    dump_assets_to_file = false
-
-
 [Network]
     http_listener_port = 9000
     default_location_x = 1000

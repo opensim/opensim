@@ -43,51 +43,6 @@ namespace OpenSim.Framework.Communications.Tests
     [TestFixture] 
     public class AssetCacheTests
     {
-        protected UUID m_assetIdReceived;
-        protected AssetBase m_assetReceived;
-                
-        /// <summary>
-        /// Test the 'asynchronous' get asset mechanism (though this won't be done asynchronously within this test)
-        /// </summary>
-        [Test]        
-        public void TestGetAsset()
-        {
-            UUID assetId = UUID.Parse("00000000-0000-0000-0000-000000000001");
-            byte[] assetData = new byte[] { 3, 2, 1 }; 
-            
-            AssetBase asset = new AssetBase();
-            asset.FullID = assetId;
-            asset.Data = assetData;
-            
-            TestAssetDataPlugin assetPlugin = new TestAssetDataPlugin();
-            assetPlugin.CreateAsset(asset);
-            
-            SQLAssetServer assetServer = new SQLAssetServer(assetPlugin);
-            IAssetCache assetCache = new AssetCache(assetServer);
-            
-            assetCache.GetAsset(assetId, AssetRequestCallback, false);
-            
-            // Manually pump the asset server
-            while (assetServer.HasWaitingRequests())
-                assetServer.ProcessNextRequest();
-            
-            Assert.That(
-                assetId, Is.EqualTo(m_assetIdReceived), "Asset id stored differs from asset id received");
-            Assert.That(
-                assetData, Is.EqualTo(m_assetReceived.Data), "Asset data stored differs from asset data received");
-        }
-
-        private void AssetRequestCallback(UUID assetId, AssetBase asset)
-        {
-            m_assetIdReceived = assetId;
-            m_assetReceived = asset;
-
-            lock (this)
-            {
-                Monitor.PulseAll(this);
-            }
-        }
-
         private class FakeUserService : IUserService
         {
             public void AddTemporaryUserProfile(UserProfileData userProfile)
@@ -109,7 +64,7 @@ namespace OpenSim.Framework.Communications.Tests
             {
                 UserProfileData userProfile = new UserProfileData();
 
-                userProfile.ID = new UUID( Util.GetHashGuid( uri.ToString(), AssetCache.AssetInfo.Secret ));
+//                userProfile.ID = new UUID( Util.GetHashGuid( uri.ToString(), AssetCache.AssetInfo.Secret ));
 
                 return userProfile;
             }
@@ -188,20 +143,6 @@ namespace OpenSim.Framework.Communications.Tests
             {
                 return true;
             }
-        }
-
-        [Test]
-        public void TestProcessAssetData()
-        {
-            string url = "http://host/dir/";
-            string creatorData = " creator_url " + url + " ";
-            string ownerData = " owner_url " + url + " ";
-
-            AssetCache assetCache = new AssetCache();
-            FakeUserService fakeUserService = new FakeUserService();
-
-            Assert.AreEqual(" creator_id " + Util.GetHashGuid(url, AssetCache.AssetInfo.Secret) + " ", assetCache.ProcessAssetDataString(creatorData, fakeUserService));
-            Assert.AreEqual(" owner_id " + Util.GetHashGuid(url, AssetCache.AssetInfo.Secret) + " ", assetCache.ProcessAssetDataString(ownerData, fakeUserService));
         }
     }
 }

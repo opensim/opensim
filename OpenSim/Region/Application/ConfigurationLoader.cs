@@ -219,7 +219,6 @@ namespace OpenSim
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
                 config.Set("DefaultScriptEngine", "XEngine");
-                config.Set("asset_database", "default");
                 config.Set("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
                 // life doesn't really work without this
                 config.Set("EventQueue", true);
@@ -237,11 +236,7 @@ namespace OpenSim
                 config.Set("inventory_source", "");
                 config.Set("userDatabase_plugin", "OpenSim.Data.SQLite.dll");
                 config.Set("user_source", "");
-                config.Set("asset_plugin", "OpenSim.Data.SQLite.dll");
-                config.Set("asset_source", "URI=file:Asset.db,version=3");
                 config.Set("LibrariesXMLFile", string.Format(".{0}inventory{0}Libraries.xml", Path.DirectorySeparatorChar));
-                config.Set("AssetSetsXMLFile", string.Format(".{0}assets{0}AssetSets.xml", Path.DirectorySeparatorChar));
-                config.Set("dump_assets_to_file", false);
             }
 
             {
@@ -292,10 +287,6 @@ namespace OpenSim
                     = startupConfig.GetString("storage_connection_string");
                 m_configSettings.EstateConnectionString 
                     = startupConfig.GetString("estate_connection_string", m_configSettings.StorageConnectionString);
-                m_configSettings.AssetStorage 
-                    = startupConfig.GetString("asset_database");
-                m_configSettings.AssetCache 
-                    = startupConfig.GetString("AssetCache", "OpenSim.Framework.Communications.Cache.AssetCache");
                 m_configSettings.ClientstackDll 
                     = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
@@ -310,13 +301,8 @@ namespace OpenSim
                 m_configSettings.StandaloneInventorySource = standaloneConfig.GetString("inventory_source");
                 m_configSettings.StandaloneUserPlugin = standaloneConfig.GetString("userDatabase_plugin");
                 m_configSettings.StandaloneUserSource = standaloneConfig.GetString("user_source");
-                m_configSettings.StandaloneAssetPlugin = standaloneConfig.GetString("asset_plugin");
-                m_configSettings.StandaloneAssetSource = standaloneConfig.GetString("asset_source");
 
                 m_configSettings.LibrariesXMLFile = standaloneConfig.GetString("LibrariesXMLFile");
-                m_configSettings.AssetSetsXMLFile = standaloneConfig.GetString("AssetSetsXMLFile");
-
-                m_configSettings.DumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }
 
             m_networkServersInfo.loadFromConfiguration(m_config.Source);

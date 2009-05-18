@@ -72,24 +72,11 @@ namespace OpenSim.Framework.Communications
         }
         protected UserProfileCacheService m_userProfileCacheService;
 
-        // protected AgentAssetTransactionsManager m_transactionsManager;
-
-        // public AgentAssetTransactionsManager TransactionsManager
-        // {
-        //     get { return m_transactionsManager; }
-        // }
-
         public IAvatarService AvatarService
         {
             get { return m_avatarService; }
         }
         protected IAvatarService m_avatarService;
-
-        public IAssetCache AssetCache
-        {
-            get { return m_assetCache; }
-        }
-        protected IAssetCache m_assetCache;
 
         public IInterServiceInventoryServices InterServiceInventoryService
         {
@@ -132,7 +119,6 @@ namespace OpenSim.Framework.Communications
                                      bool dumpAssetsToFile, LibraryRootFolder libraryRootFolder)
         {
             m_networkServersInfo = serversInfo;
-            m_assetCache = assetCache;
             m_userProfileCacheService = new UserProfileCacheService(this, libraryRootFolder);
             m_httpServer = httpServer;
         }

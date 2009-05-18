@@ -70,24 +70,6 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                 scene.EventManager.OnNewClient += NewClient;
             }
-
-            if (m_scene == null)
-            {
-                m_scene = scene;
-                if (config.Configs["StandAlone"] != null)
-                {
-                    try
-                    {
-                        m_dumpAssetsToFile = config.Configs["StandAlone"].GetBoolean("dump_assets_to_file", false);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-                else
-                {
-                }
-            }
         }
 
         public void PostInitialise()

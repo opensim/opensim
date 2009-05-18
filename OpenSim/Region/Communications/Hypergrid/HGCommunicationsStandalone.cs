@@ -73,7 +73,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             m_interServiceInventoryService = inventoryService;
             inventoryService.UserProfileCache = UserProfileCacheService;
                         
-            m_assetCache = assetCache;
             // Let's swap to always be secure access to inventory
             AddSecureInventoryService((ISecureInventoryService)inventoryService);
             m_inventoryServices = null;

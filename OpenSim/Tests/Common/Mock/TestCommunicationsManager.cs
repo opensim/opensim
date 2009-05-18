@@ -57,9 +57,6 @@ namespace OpenSim.Tests.Common.Mock
         public TestCommunicationsManager(NetworkServersInfo serversInfo)
             : base(serversInfo, new BaseHttpServer(666), null, false, null)
         {                        
-            SQLAssetServer assetService = new SQLAssetServer(new TestAssetDataPlugin());  
-            m_assetCache = new AssetCache(assetService);            
-            
             LocalInventoryService lis = new LocalInventoryService();
             m_inventoryDataPlugin = new TestInventoryDataPlugin();
             lis.AddPlugin(m_inventoryDataPlugin);
@@ -75,14 +72,6 @@ namespace OpenSim.Tests.Common.Mock
 
             LocalBackEndServices gs = new LocalBackEndServices();
             m_gridService = gs;
-        }
-        
-        /// <summary>
-        /// Start services that take care of business using their own threads.
-        /// </summary>
-        public void StartServices()
-        {
-            m_assetCache.AssetServer.Start();            
         }
     }
 }

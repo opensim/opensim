@@ -147,9 +147,6 @@ namespace OpenSim.Tests.Common.Setup
             testScene.PhysicsScene
                 = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", configSource, "test");
 
-            if (startServices)
-                cm.StartServices();
-            
             return testScene;
         }
 
