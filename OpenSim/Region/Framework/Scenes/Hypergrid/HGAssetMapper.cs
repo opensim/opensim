@@ -241,8 +241,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
         {
             //Dictionary<UUID, bool> uuids = new Dictionary<UUID, bool>();
 
-            AssetBase asset;
-            m_scene.CommsManager.AssetCache.TryGetCachedAsset(assetID, out asset);
+            AssetBase asset = m_scene.AssetService.Get(assetID.ToString());
 
             return SniffUUIDs(asset);
         }
