@@ -1279,7 +1279,7 @@
     ;AssetServices = "HGAssetBroker"
 
 	; If you don't want asset caching in the regions, comment this
-    AssetCaching = "CoreAssetCache"
+    AssetCache = "CoreAssetCache"
 
     ; Choose one
     ;UserServices = "LocalUserServicesConnector"

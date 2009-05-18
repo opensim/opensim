@@ -109,7 +109,8 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void Cache(AssetBase asset)
         {
-            m_Cache.Store(asset.ID, asset);
+            if (asset != null)
+                m_Cache.Store(asset.ID, asset);
         }
 
         public AssetBase Get(string id)
