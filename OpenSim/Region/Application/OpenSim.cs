@@ -1115,7 +1115,11 @@ namespace OpenSim
                 }
                 catch (FileNotFoundException)
                 {
-                    m_console.Error("Specified oar not found. Usage: load oar <filename>");
+                    m_console.Error("Specified oar file not found.");
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    m_console.Error("Specified directory not found.");
                 }
             }
             else
@@ -1126,8 +1130,8 @@ namespace OpenSim
                 }
                 catch (FileNotFoundException)
                 {
-                    m_console.Error("Default oar not found. Usage: load oar <filename>");
-                }
+                    m_console.Error("Default oar file not found.");
+                }                
             }
         }
 

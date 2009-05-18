@@ -67,10 +67,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// Test saving a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet).
         /// </summary>
         //[Test]
-        public void TestSaveIarV0p1()
+        public void TestSaveIarV0_1()
         {
             TestHelper.InMethod();
-            //log4net.Config.XmlConfigurator.Configure();
+            log4net.Config.XmlConfigurator.Configure();
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
 
@@ -198,11 +198,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// an account exists with the creator name.
         /// </summary>
         [Test]
-        public void TestLoadIarV0p1ExistingUsers()
+        public void TestLoadIarV0_1ExistingUsers()
         {   
             Assert.Ignore();
             TestHelper.InMethod();
-            Console.WriteLine("Started {0}", MethodBase.GetCurrentMethod());
             
             //log4net.Config.XmlConfigurator.Configure();
             
@@ -266,7 +265,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// no account exists with the creator name 
         /// </summary>
         [Test]
-        public void TestLoadIarV0p1TempProfiles()
+        public void TestLoadIarV0_1TempProfiles()
         {   
             Assert.Ignore();
             TestHelper.InMethod();
