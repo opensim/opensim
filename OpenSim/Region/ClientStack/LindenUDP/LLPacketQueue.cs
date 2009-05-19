@@ -189,7 +189,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             if (item.Sequence != 0)
-                contents.Add(item.Sequence);
+                lock(contents) contents.Add(item.Sequence);
 
             lock (this)
             {
@@ -241,7 +241,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 item.TickCount = System.Environment.TickCount;
                 if (item.Sequence == 0)
                     return item;
-                lock (contents)
+                lock(contents)
                 {
                     if (contents.Contains(item.Sequence))
                         if (contents.Remove(item.Sequence))
@@ -252,13 +252,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Cancel(uint sequence)
         {
-            while (contents.Remove(sequence))
+            lock(contents) while (contents.Remove(sequence))
                 ;
         }
 
         public bool Contains(uint sequence)
         {
-            return contents.Contains(sequence);
+            lock(contents) return contents.Contains(sequence);
         }
 
         public void Flush()
@@ -318,7 +318,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 TextureOutgoingPacketQueue.Clear();
                 AssetOutgoingPacketQueue.Clear();
                 SendQueue.Clear();
-                contents.Clear();
+                lock(contents) contents.Clear();
             }
         }
 
