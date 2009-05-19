@@ -211,6 +211,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                     }
 
                     m_textureManager.ReturnData(state.RequestID, imageJ2000);
+                    return;
                 }
             }
             catch (WebException)
