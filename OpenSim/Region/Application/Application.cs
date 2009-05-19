@@ -122,7 +122,7 @@ namespace OpenSim
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("Caught exception from command: {0}", e);
+                        m_log.ErrorFormat("Command error: {0}", e);
                     }
                 }
             }
