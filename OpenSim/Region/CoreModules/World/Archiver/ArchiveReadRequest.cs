@@ -423,15 +423,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         private Stream GetStream(string path)
         {
-            try
+            if (File.Exists(path))
             {
-                if (File.Exists(path))
+                return new FileStream(path, FileMode.Open, FileAccess.Read);
+            }
+            else
+            {
+                try
                 {
-                    return new FileStream(path, FileMode.Open, FileAccess.Read);
-                }
-                else
-                {
-                    Uri uri = new Uri(path); // throw exception if not valid URI
+                    Uri uri = new Uri(path);
                     if (uri.Scheme == "file")
                     {
                         return new FileStream(uri.AbsolutePath, FileMode.Open, FileAccess.Read);
@@ -446,16 +446,18 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         return URIFetch(uri);
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                throw new Exception(String.Format("Unable to create file input stream for {0}: {1}", path, e.Message));
+                catch (UriFormatException)
+                {
+                    // In many cases the user will put in a plain old filename that cannot be found so assume that
+                    // this is the problem rather than confusing the issue with a UriFormatException
+                    throw new Exception(String.Format("Cannot find file {0}", path));
+                }
             }
         }
 
         private static Stream URIFetch(Uri uri)
         {
-            HttpWebRequest request  = (HttpWebRequest)  WebRequest.Create(uri);
+            HttpWebRequest request  = (HttpWebRequest)WebRequest.Create(uri);
 
             // request.Credentials = credentials;
 
