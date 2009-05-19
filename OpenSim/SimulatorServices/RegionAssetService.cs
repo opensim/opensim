@@ -25,51 +25,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Reflection;
+using System.Collections.Generic;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Server.Handlers.Asset;
+using OpenSim.Server.Base;
+using OpenSim.Server.Handlers.Base;
 
 namespace OpenSim.Region.SimulatorServices
 {
-    public class RegionAssetService : IRegionModule
+    public class RegionAssetService : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static bool initialized = false;
         private static bool enabled = false;
         
-        private bool m_gridMode = false;
-        Scene m_scene;
+        private IConfigSource m_Config;
+        bool m_Registered = false;
 
         #region IRegionModule interface
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            if (!initialized)
-            {
-                initialized = true;
-                m_scene = scene;
-
-                // This module is only on for standalones in hypergrid mode
-                enabled = ((!config.Configs["Startup"].GetBoolean("gridmode", true)) &&
-                    config.Configs["Startup"].GetBoolean("hypergrid", true)) ||
-                    ((config.Configs["MXP"] != null) && config.Configs["MXP"].GetBoolean("Enabled", true));
-                m_gridMode = config.Configs["Startup"].GetBoolean("gridmode", true);
-            }
+            // This module is only on for standalones in hypergrid mode
+            enabled = ((!config.Configs["Startup"].GetBoolean("gridmode", true)) &&
+                config.Configs["Startup"].GetBoolean("hypergrid", true)) ||
+                ((config.Configs["MXP"] != null) && config.Configs["MXP"].GetBoolean("Enabled", true));
         }
 
         public void PostInitialise()
         {
-            if (enabled)
-            {
-                m_log.Info("[RegionAssetService]: Starting...");
-
-                new AssetService(m_scene,m_gridMode);
-            }
         }
 
         public void Close()
@@ -81,43 +70,32 @@ namespace OpenSim.Region.SimulatorServices
             get { return "RegionAssetService"; }
         }
 
-        public bool IsSharedModule
+        public void AddRegion(Scene scene)
         {
-            get { return true; }
+            if (!enabled)
+                return;
+
+            if (!m_Registered)
+            {
+                m_Registered = true;
+
+                m_log.Info("[RegionAssetService]: Starting...");
+
+                Object[] args = new Object[] { m_Config, scene.CommsManager.HttpServer };
+
+                ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:AssetServiceConnector", args);
+            }
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
         }
 
         #endregion
 
-    }
-
-    public class AssetService
-    {
-        private bool m_doLookup = false;
-        private bool m_gridMode = false;
-
-        public bool DoLookup
-        {
-            get { return m_doLookup; }
-            set { m_doLookup = value; }
-        }
-//        private static readonly ILog m_log
-//            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        public AssetService(Scene m_scene, bool gridMode)
-        {
-            m_gridMode = gridMode;
-            AddHttpHandlers(m_scene);
-        }
-
-        protected void AddHttpHandlers(Scene m_scene)
-        {
-            IHttpServer httpServer = m_scene.CommsManager.HttpServer;
-            
-            httpServer.AddStreamHandler(new AssetServerGetHandler(m_scene.AssetService));
-            httpServer.AddStreamHandler(new AssetServerPostHandler(m_scene.AssetService));
-            httpServer.AddStreamHandler(new AssetServerDeleteHandler(m_scene.AssetService));
-
-
-        }
     }
 }

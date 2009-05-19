@@ -1603,6 +1603,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Server.Handlers"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="XMLRPC.dll"/>
