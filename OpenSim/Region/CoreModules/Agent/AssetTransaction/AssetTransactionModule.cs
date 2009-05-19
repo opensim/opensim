@@ -41,6 +41,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private bool m_dumpAssetsToFile = false;
         private Scene m_scene = null;
 
+        [Obsolete]
         public Scene MyScene
         {
             get{ return m_scene;}
@@ -70,6 +71,12 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                 scene.EventManager.OnNewClient += NewClient;
             }
+
+            // EVIL HACK!
+            // This needs killing!
+            //
+            if (m_scene == null)
+                m_scene = scene;
         }
 
         public void PostInitialise()
