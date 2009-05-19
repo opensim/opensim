@@ -45,7 +45,6 @@ namespace PrimMesher
         public List<UVCoord> uvs;
 
         public enum SculptType { sphere = 1, torus = 2, plane = 3, cylinder = 4 };
-        private static float pixScale = 1.0f / 255;
 
         private Bitmap ScaleImage(Bitmap srcImage, float scale)
         {
@@ -73,7 +72,7 @@ namespace PrimMesher
             scaledImage.SetResolution(96.0f, 96.0f);
 
             Graphics grPhoto = Graphics.FromImage(scaledImage);
-            grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
 
             grPhoto.DrawImage(srcImage,
                 new Rectangle(destX, destY, destWidth, destHeight),
@@ -149,7 +148,6 @@ namespace PrimMesher
                     *   p3-----p4
                     */
 
-
                     p4 = rowOffset + x;
                     p3 = p4 - 1;
 
@@ -206,6 +204,62 @@ namespace PrimMesher
             _SculptMesh(sculptBitmap, sculptType, lod, viewerMode, mirror, invert);
         }
 
+        /// <summary>
+        /// converts a bitmap to a list lists of coords, while scaling the image.
+        /// the scaling is done in floating point so as to allow for reduced vertex position
+        /// quantization as the position will be averaged between pixel values. this routine will
+        /// likely fail if the bitmap width and height are not powers of 2.
+        /// </summary>
+        /// <param name="bitmap"></param>
+        /// <param name="scale"></param>
+        /// <param name="mirror"></param>
+        /// <returns></returns>
+        private List<List<Coord>> bitmap2Coords(Bitmap bitmap, int scale, bool mirror)
+        {
+            int numRows = bitmap.Height / scale;
+            int numCols = bitmap.Width / scale;
+            List<List<Coord>> rows = new List<List<Coord>>(numRows);
+
+            float pixScale = 1.0f / (scale * scale);
+            pixScale /= 255;
+
+            int imageX, imageY = 0;
+
+            int rowNdx, colNdx;
+
+            for (rowNdx = 0; rowNdx < numRows; rowNdx++)
+            {
+                List<Coord> row = new List<Coord>(numCols);
+                for (colNdx = 0; colNdx < numCols; colNdx++)
+                {
+                    imageX = colNdx * scale;
+                    int imageYStart = rowNdx * scale;
+                    int imageYEnd = imageYStart + scale;
+                    int imageXEnd = imageX + scale;
+                    float rSum = 0.0f;
+                    float gSum = 0.0f;
+                    float bSum = 0.0f;
+                    for (; imageX < imageXEnd; imageX++)
+                    {
+                        for (imageY = imageYStart; imageY < imageYEnd; imageY++)
+                        {
+                            Color c = bitmap.GetPixel(imageX, imageY);
+                            rSum += c.R;
+                            gSum += c.G;
+                            bSum += c.B;
+                        }
+                    }
+                    if (mirror)
+                        row.Add(new Coord(-(rSum * pixScale - 0.5f), gSum * pixScale - 0.5f, bSum * pixScale - 0.5f));
+                    else
+                        row.Add(new Coord(rSum * pixScale - 0.5f, gSum * pixScale - 0.5f, bSum * pixScale - 0.5f));
+
+                }
+                rows.Add(row);
+            }
+            return rows;
+        }
+
         void _SculptMesh(Bitmap sculptBitmap, SculptType sculptType, int lod, bool viewerMode, bool mirror, bool invert)
         {
             coords = new List<Coord>();
@@ -213,58 +267,65 @@ namespace PrimMesher
             normals = new List<Coord>();
             uvs = new List<UVCoord>();
 
+            sculptType = (SculptType)(((int)sculptType) & 0x07);
+
             if (mirror)
                 if (sculptType == SculptType.plane)
                     invert = !invert;
 
             float sourceScaleFactor = (float)(lod) / (float)Math.Sqrt(sculptBitmap.Width * sculptBitmap.Height);
-            bool scaleSourceImage = sourceScaleFactor < 1.0f ? true : false;
 
-            Bitmap bitmap;
-            if (scaleSourceImage)
-                bitmap = ScaleImage(sculptBitmap, sourceScaleFactor);
-            else
-                bitmap = sculptBitmap;
+            int scale = (int)(1.0f / sourceScaleFactor);
+            if (scale < 1) scale = 1;
+
+            List<List<Coord>> rows = bitmap2Coords(sculptBitmap, scale, mirror);
 
             viewerFaces = new List<ViewerFace>();
 
-            int width = bitmap.Width;
-            int height = bitmap.Height;
-
-            float widthUnit = 1.0f / width;
-            float heightUnit = 1.0f / (height - 1);
+            int width = sculptBitmap.Width / scale;
+            int height = sculptBitmap.Height / scale;
 
             int p1, p2, p3, p4;
-            Color color;
-            float x, y, z;
 
             int imageX, imageY;
 
-            if (sculptType == SculptType.sphere)
+            if (sculptType != SculptType.plane)
             {
-                int lastRow = height - 1;
-
-                // poles of sphere mesh are the center pixels of the top and bottom rows
-                Color newC1 = bitmap.GetPixel(width / 2, 0);
-                Color newC2 = bitmap.GetPixel(width / 2, lastRow);
-
-                for (imageX = 0; imageX < width; imageX++)
-                {
-                    bitmap.SetPixel(imageX, 0, newC1);
-                    bitmap.SetPixel(imageX, lastRow, newC2);
-                }
-
+                for (int rowNdx = 0; rowNdx < rows.Count; rowNdx++)
+                    rows[rowNdx].Add(rows[rowNdx][0]);
             }
 
+            Coord topPole = rows[0][width / 2];
+            Coord bottomPole = rows[rows.Count - 1][width / 2];
 
-            int pixelsDown = sculptType == SculptType.plane ? height : height + 1;
-            int pixelsAcross = sculptType == SculptType.plane ? width : width + 1;
-
-            for (imageY = 0; imageY < pixelsDown; imageY++)
+            if (sculptType == SculptType.sphere)
             {
-                int rowOffset = imageY * width;
+                int count = rows[0].Count;
+                List<Coord> topPoleRow = new List<Coord>(count);
+                List<Coord> bottomPoleRow = new List<Coord>(count);
 
-                for (imageX = 0; imageX < pixelsAcross; imageX++)
+                for (int i = 0; i < count; i++)
+                {
+                    topPoleRow.Add(topPole);
+                    bottomPoleRow.Add(bottomPole);
+                }
+                rows.Insert(0, topPoleRow);
+                rows.Add(bottomPoleRow);
+            }
+            else if (sculptType == SculptType.torus)
+                rows.Add(rows[0]);
+
+            int coordsDown = rows.Count;
+            int coordsAcross = rows[0].Count;
+
+            float widthUnit = 1.0f / (coordsAcross - 1);
+            float heightUnit = 1.0f / (coordsDown - 1);
+
+            for (imageY = 0; imageY < coordsDown; imageY++)
+            {
+                int rowOffset = imageY * coordsAcross;
+
+                for (imageX = 0; imageX < coordsAcross; imageX++)
                 {
                     /*
                     *   p1-----p2
@@ -274,29 +335,13 @@ namespace PrimMesher
                     *   p3-----p4
                     */
 
-                    if (imageX < width)
-                    {
-                        p4 = rowOffset + imageX;
-                        p3 = p4 - 1;
-                    }
-                    else
-                    {
-                        p4 = rowOffset; // wrap around to beginning
-                        p3 = rowOffset + imageX - 1;
-                    }
+                    p4 = rowOffset + imageX;
+                    p3 = p4 - 1;
 
-                    p2 = p4 - width;
-                    p1 = p3 - width;
+                    p2 = p4 - coordsAcross;
+                    p1 = p3 - coordsAcross;
 
-                    color = bitmap.GetPixel(imageX == width ? 0 : imageX, imageY == height ? height - 1 : imageY);
-
-                    x = (color.R - 128) * pixScale;
-                    if (mirror) x = -x;
-                    y = (color.G - 128) * pixScale;
-                    z = (color.B - 128) * pixScale;
-
-                    Coord c = new Coord(x, y, z);
-                    this.coords.Add(c);
+                    this.coords.Add(rows[imageY][imageX]);
                     if (viewerMode)
                     {
                         this.normals.Add(new Coord());
@@ -354,11 +399,8 @@ namespace PrimMesher
                 }
             }
 
-            if (scaleSourceImage)
-                bitmap.Dispose();
-
             if (viewerMode)
-                calcVertexNormals(sculptType, width, height);
+                calcVertexNormals(sculptType, coordsAcross, coordsDown);
         }
 
         /// <summary>
@@ -398,10 +440,9 @@ namespace PrimMesher
 
             if (sculptType != SculptType.plane)
             { // blend the vertex normals at the cylinder seam
-                int pixelsAcross = xSize + 1;
                 for (int y = 0; y < ySize; y++)
                 {
-                    int rowOffset = y * pixelsAcross;
+                    int rowOffset = y * xSize;
 
                     this.normals[rowOffset] = this.normals[rowOffset + xSize - 1] = (this.normals[rowOffset] + this.normals[rowOffset + xSize - 1]).Normalize();
                 }
@@ -458,7 +499,6 @@ namespace PrimMesher
         {
             int i;
             int numVerts = this.coords.Count;
-            //Coord vert;
 
             Coord m = new Coord(x, y, z);
             for (i = 0; i < numVerts; i++)
