@@ -60,8 +60,9 @@ namespace OpenSim.Framework.Console
             m_Server = server;
         }
 
-        public override void Output(string text)
+        public override void Output(string text, string level)
         {
+            System.Console.Write(text);
         }
 
         public override string ReadLine(string p, bool isCommand, bool e)

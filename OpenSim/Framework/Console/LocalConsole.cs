@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using log4net;
 
@@ -49,6 +50,28 @@ namespace OpenSim.Framework.Console
         private StringBuilder cmdline = new StringBuilder();
         private bool echo = true;
         private List<string> history = new List<string>();
+
+        private static readonly ConsoleColor[] Colors = {
+            // the dark colors don't seem to be visible on some black background terminals like putty :(
+            //ConsoleColor.DarkBlue,
+            //ConsoleColor.DarkGreen,
+            //ConsoleColor.DarkCyan,
+            //ConsoleColor.DarkMagenta,
+            //ConsoleColor.DarkYellow,
+            ConsoleColor.Gray,
+            //ConsoleColor.DarkGray,
+            ConsoleColor.Blue,
+            ConsoleColor.Green,
+            ConsoleColor.Cyan,
+            ConsoleColor.Magenta,
+            ConsoleColor.Yellow
+        };
+
+        private static ConsoleColor DeriveColor(string input)
+        {
+            // it is important to do Abs, hash values can be negative
+            return Colors[(Math.Abs(input.ToUpper().GetHashCode()) % Colors.Length)];
+        }
 
         public LocalConsole(string defaultPrompt) : base(defaultPrompt)
         {
@@ -158,13 +181,72 @@ namespace OpenSim.Framework.Console
             Monitor.Exit(cmdline);
         }
 
+        private void WriteColorText(ConsoleColor color, string sender)
+        {
+            try
+            {
+                lock (this)
+                {
+                    try
+                    {
+                        System.Console.ForegroundColor = color;
+                        System.Console.Write(sender);
+                        System.Console.ResetColor();
+                    }
+                    catch (ArgumentNullException)
+                    {
+                        // Some older systems dont support coloured text.
+                        System.Console.WriteLine(sender);
+                    }
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
+
+        private void WriteLocalText(string text, string level)
+        {
+            string regex = @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)";
+
+            Regex RE = new Regex(regex, RegexOptions.Multiline);
+            MatchCollection matches = RE.Matches(text);
+
+            string outText = text;
+            ConsoleColor color = ConsoleColor.White;
+
+            if (matches.Count == 1)
+            {
+                outText = matches[0].Groups["End"].Value;
+                System.Console.Write(matches[0].Groups["Front"].Value);
+
+                System.Console.Write("[");
+                WriteColorText(DeriveColor(matches[0].Groups["Category"].Value),
+                        matches[0].Groups["Category"].Value);
+                System.Console.Write("]:");
+            }
+
+            if (level == "error")
+                color = ConsoleColor.Red;
+            else if (level == "warn")
+                color = ConsoleColor.Yellow;
+
+            WriteColorText(color, outText);
+            System.Console.WriteLine();
+        }
+
         public override void Output(string text)
+        {
+            Output(text, "normal");
+        }
+
+        public override void Output(string text, string level)
         {
             lock (cmdline)
             {
                 if (y == -1)
                 {
-                    System.Console.WriteLine(text);
+                    WriteLocalText(text, level);
 
                     return;
                 }
@@ -180,7 +262,7 @@ namespace OpenSim.Framework.Console
                 y = SetCursorTop(y);
                 System.Console.CursorLeft = 0;
 
-                System.Console.WriteLine(text);
+                WriteLocalText(text, level);
 
                 y = System.Console.CursorTop;
 

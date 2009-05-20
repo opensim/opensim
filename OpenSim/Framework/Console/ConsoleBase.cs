@@ -66,9 +66,14 @@ namespace OpenSim.Framework.Console
         {
         }
 
+        public virtual void Output(string text, string level)
+        {
+            Output(text);
+        }
+
         public virtual void Output(string text)
         {
-            System.Console.WriteLine(text);
+            System.Console.Write(text);
         }
 
         public string CmdPrompt(string p)
