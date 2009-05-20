@@ -46,6 +46,10 @@ namespace OpenSim.Framework.Console
         private IHttpServer m_Server = null;
         private IConfigSource m_Config = null;
 
+        private List<string> m_Scrollback = new List<string>();
+        private ManualResetEvent m_DataEvent = new ManualResetEvent(false);
+        private List<string> m_InputData = new List<string>();
+
         public RemoteConsole(string defaultPrompt) : base(defaultPrompt)
         {
         }
@@ -62,12 +66,52 @@ namespace OpenSim.Framework.Console
 
         public override void Output(string text, string level)
         {
+            lock (m_Scrollback)
+            {
+                while (m_Scrollback.Count >= 1000)
+                    m_Scrollback.RemoveAt(0);
+                m_Scrollback.Add(level+":"+text);
+            }
             System.Console.Write(text);
         }
 
         public override string ReadLine(string p, bool isCommand, bool e)
         {
-            return String.Empty;
+            System.Console.Write("{0}", prompt);
+            
+            m_DataEvent.WaitOne();
+
+            lock(m_InputData)
+            {
+                if (m_InputData.Count == 0)
+                {
+                    m_DataEvent.Reset();
+                    return "";
+                }
+
+                string cmdinput = m_InputData[0];
+                m_InputData.RemoveAt(0);
+                if (m_InputData.Count == 0)
+                    m_DataEvent.Reset();
+
+                if (isCommand)
+                {
+                    string[] cmd = Commands.Resolve(Parser.Parse(cmdinput));
+
+                    if (cmd.Length != 0)
+                    {
+                        int i;
+
+                        for (i=0 ; i < cmd.Length ; i++)
+                        {
+                            if (cmd[i].Contains(" "))
+                                cmd[i] = "\"" + cmd[i] + "\"";
+                        }
+                        return String.Empty;
+                    }
+                }
+                return cmdinput;
+            }
         }
     }
 }
