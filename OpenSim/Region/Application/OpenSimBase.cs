@@ -604,10 +604,11 @@ namespace OpenSim
             // Shutting down the client server
             bool foundClientServer = false;
             int clientServerElement = 0;
+            Location location = new Location(whichRegion.RegionHandle);
 
             for (int i = 0; i < m_clientServers.Count; i++)
             {
-                if (m_clientServers[i].HandlesRegion(new Location(whichRegion.RegionHandle)))
+                if (m_clientServers[i].HandlesRegion(location))
                 {
                     clientServerElement = i;
                     foundClientServer = true;
