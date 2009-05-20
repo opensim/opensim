@@ -62,19 +62,6 @@ namespace OpenSim.Framework.Console
             history.Add(text);
         }
 
-        /// <summary>
-        /// derive an ansi color from a string, ignoring the darker colors.
-        /// This is used to help automatically bin component tags with colors
-        /// in various print functions.
-        /// </summary>
-        /// <param name="input">arbitrary string for input</param>
-        /// <returns>an ansii color</returns>
-        protected override ConsoleColor DeriveColor(string input)
-        {
-            int colIdx = (input.ToUpper().GetHashCode() % 6) + 9;
-            return (ConsoleColor) colIdx;
-        }
-
         private int SetCursorTop(int top)
         {
             if (top >= 0 && top < System.Console.BufferHeight)
@@ -98,117 +85,6 @@ namespace OpenSim.Framework.Console
             else
             {
                 return System.Console.CursorLeft;
-            }
-        }
-
-        protected override void WriteNewLine(ConsoleColor senderColor, string sender, ConsoleColor color, string format, params object[] args)
-        {
-            lock (cmdline)
-            {
-                if (y != -1)
-                {
-                    y=SetCursorTop(y);
-                    System.Console.CursorLeft = 0;
-
-                    int count = cmdline.Length;
-
-                    System.Console.Write("  ");
-                    while (count-- > 0)
-                        System.Console.Write(" ");
-
-                    y=SetCursorTop(y);
-                    System.Console.CursorLeft = 0;
-                }
-                WritePrefixLine(senderColor, sender);
-                WriteConsoleLine(color, format, args);
-                if (y != -1)
-                    y = System.Console.CursorTop;
-            }
-        }
-
-        protected override void WriteNewLine(ConsoleColor color, string format, params object[] args)
-        {
-            lock (cmdline)
-            {
-                if (y != -1)
-                {
-                    y=SetCursorTop(y);
-                    System.Console.CursorLeft = 0;
-
-                    int count = cmdline.Length;
-
-                    System.Console.Write("  ");
-                    while (count-- > 0)
-                        System.Console.Write(" ");
-
-                    y=SetCursorTop(y);
-                    System.Console.CursorLeft = 0;
-                }
-                WriteConsoleLine(color, format, args);
-                if (y != -1)
-                    y = System.Console.CursorTop;
-            }
-        }
-
-        protected override void WriteConsoleLine(ConsoleColor color, string format, params object[] args)
-        {
-            try
-            {
-                lock (m_syncRoot)
-                {
-                    try
-                    {
-                        if (color != ConsoleColor.White)
-                            System.Console.ForegroundColor = color;
-
-                        System.Console.WriteLine(format, args);
-                        System.Console.ResetColor();
-                    }
-                    catch (ArgumentNullException)
-                    {
-                        // Some older systems dont support coloured text.
-                        System.Console.WriteLine(format, args);
-                    }
-                    catch (FormatException)
-                    {
-                        System.Console.WriteLine(args);
-                    }
-                }
-            }
-            catch (ObjectDisposedException)
-            {
-            }
-        }
-
-        protected override void WritePrefixLine(ConsoleColor color, string sender)
-        {
-            try
-            {
-                lock (m_syncRoot)
-                {
-                    sender = sender.ToUpper();
-
-                    System.Console.WriteLine("[" + sender + "] ");
-
-                    System.Console.Write("[");
-
-                    try
-                    {
-                        System.Console.ForegroundColor = color;
-                        System.Console.Write(sender);
-                        System.Console.ResetColor();
-                    }
-                    catch (ArgumentNullException)
-                    {
-                        // Some older systems dont support coloured text.
-                        System.Console.WriteLine(sender);
-                    }
-
-                    System.Console.Write("] \t");
-                }
-            }
-            catch (ObjectDisposedException)
-            {
             }
         }
 

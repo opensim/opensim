@@ -76,7 +76,7 @@ namespace OpenSim.Grid.MessagingServer
 
         private void Work()
         {
-            m_console.Notice("Enter help for a list of commands\n");
+            m_console.Output("Enter help for a list of commands\n");
 
             while (true)
             {
@@ -120,7 +120,7 @@ namespace OpenSim.Grid.MessagingServer
                 m_httpServer.Stop();
                 m_httpServer = null;
             }
-            m_console.Notice("[SERVER]: Deregistered from userserver.");
+            m_console.Output("[SERVER]: Deregistered from userserver.");
         }
 
         protected override void StartupSpecific()
@@ -192,7 +192,7 @@ namespace OpenSim.Grid.MessagingServer
         private void HandleClearCache(string module, string[] cmd)
         {
             int entries = m_regionModule.ClearRegionCache();
-            m_console.Notice("Region cache cleared! Cleared " +
+            m_console.Output("Region cache cleared! Cleared " +
                     entries.ToString() + " entries");
         }
 

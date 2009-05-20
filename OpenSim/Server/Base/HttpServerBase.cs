@@ -76,6 +76,10 @@ namespace OpenSim.Server.Base
             }
 
             m_HttpServer = new BaseHttpServer(port);
+            if (MainConsole.Instance is RemoteConsole)
+            {
+                ((RemoteConsole)MainConsole.Instance).SetServer(m_HttpServer);
+            }
         }
 
         protected override void Initialise()

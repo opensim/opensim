@@ -180,7 +180,7 @@ namespace pCampBot
             }
             else
             {
-                MainConsole.Instance.Error(firstname + " " + lastname, "Can't login: " + client.Network.LoginMessage);
+                MainConsole.Instance.Output(firstname + " " + lastname + " Can't login: " + client.Network.LoginMessage);
                 if (OnDisconnected != null)
                 {
                     OnDisconnected(this, EventType.DISCONNECTED);
@@ -222,12 +222,12 @@ namespace pCampBot
                     }
                     else
                     {
-                        MainConsole.Instance.Error(String.Format("Failed to decode {0} asset {1}", asset.AssetType, asset.AssetID));
+                        MainConsole.Instance.Output(String.Format("Failed to decode {0} asset {1}", asset.AssetType, asset.AssetID));
                     }
                 }
                 catch (Exception e)
                 {
-                    MainConsole.Instance.Error(String.Format("Exception: {0}",e.ToString()));
+                    MainConsole.Instance.Output(String.Format("Exception: {0}",e.ToString()));
                 }
             }
         }
@@ -261,7 +261,7 @@ namespace pCampBot
                 if (wear == "yes")
                 {
                     //TODO: Implement random outfit picking
-                    MainConsole.Instance.Notice("Picks a random outfit. Not yet implemented.");
+                    MainConsole.Instance.Output("Picks a random outfit. Not yet implemented.");
                 }
                 else if (wear != "save")
                     saveDir = "MyAppearance/" + wear;
@@ -290,7 +290,7 @@ namespace pCampBot
                             listwearables.Add(item);
                         }
                         else
-                            MainConsole.Instance.Error(String.Format("Failed to create item {0}",item.Name));
+                            MainConsole.Instance.Output(String.Format("Failed to create item {0}",item.Name));
                     }
                     );
                 }
@@ -312,7 +312,7 @@ namespace pCampBot
                             listwearables.Add(item);
                         }
                         else
-                            MainConsole.Instance.Error(String.Format("Failed to create item {0}",item.Name));
+                            MainConsole.Instance.Output(String.Format("Failed to create item {0}",item.Name));
                     }
                     );
                 }
@@ -320,10 +320,10 @@ namespace pCampBot
                 Thread.Sleep(1000);
 
                 if (listwearables == null || listwearables.Count == 0)
-                    MainConsole.Instance.Notice("Nothing to send on this folder!");
+                    MainConsole.Instance.Output("Nothing to send on this folder!");
                 else
                 {
-                    MainConsole.Instance.Notice(String.Format("Sending {0} wearables...",listwearables.Count));
+                    MainConsole.Instance.Output(String.Format("Sending {0} wearables...",listwearables.Count));
                     client.Appearance.WearOutfit(listwearables, false);
                 }
             }

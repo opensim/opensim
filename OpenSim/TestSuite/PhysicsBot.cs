@@ -147,7 +147,7 @@ namespace OpenSim.TestSuite
             }
             else
             {
-                MainConsole.Instance.Error(firstname + " " + lastname, "Can't login: " + client.Network.LoginMessage);
+                MainConsole.Instance.Output(firstname + " " + lastname + "Can't login: " + client.Network.LoginMessage);
                 if (OnDisconnected != null)
                 {
                     OnDisconnected(this, EventType.DISCONNECTED);

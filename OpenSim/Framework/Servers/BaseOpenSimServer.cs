@@ -411,7 +411,7 @@ namespace OpenSim.Framework.Servers
         {
             if (m_console != null)
             {
-                m_console.Notice(msg);
+                m_console.Output(msg);
             }
         }
 

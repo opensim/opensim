@@ -119,7 +119,7 @@ namespace OpenSim.Grid.AssetInventoryServer
 
         public void Work()
         {
-            m_console.Notice("Enter help for a list of commands");
+            m_console.Output("Enter help for a list of commands");
 
             while (true)
             {

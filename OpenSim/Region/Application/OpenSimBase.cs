@@ -273,7 +273,7 @@ namespace OpenSim
             //
             ICommander moduleCommander = SceneManager.CurrentOrFirstScene.GetCommander(cmd[1]);
             if (moduleCommander != null)
-                m_console.Notice(moduleCommander.Help);
+                m_console.Output(moduleCommander.Help);
         }
 
         protected override void Initialize()

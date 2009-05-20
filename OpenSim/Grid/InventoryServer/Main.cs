@@ -164,7 +164,7 @@ namespace OpenSim.Grid.InventoryServer
 
         private void Work()
         {
-            m_console.Notice("Enter help for a list of commands\n");
+            m_console.Output("Enter help for a list of commands\n");
 
             while (true)
             {

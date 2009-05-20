@@ -145,6 +145,11 @@ namespace OpenSim.Server.Base
             {
                 MainConsole.Instance = new CommandConsole(prompt);
             }
+            else if (consoleType == "rest")
+            {
+                MainConsole.Instance = new RemoteConsole(prompt);
+                ((RemoteConsole)MainConsole.Instance).ReadConfig(Config);
+            }
             else
             {
                 MainConsole.Instance = new LocalConsole(prompt);

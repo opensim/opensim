@@ -91,7 +91,7 @@ namespace OpenSim.Grid.UserServer
 
         public void Work()
         {
-            m_console.Notice("Enter help for a list of commands\n");
+            m_console.Output("Enter help for a list of commands\n");
 
             while (true)
             {
@@ -280,7 +280,7 @@ namespace OpenSim.Grid.UserServer
 
         public void TestResponse(List<InventoryFolderBase> resp)
         {
-            m_console.Notice("response got");
+            m_console.Output("response got");
         }
     }
 }

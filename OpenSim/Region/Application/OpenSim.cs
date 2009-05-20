@@ -357,7 +357,7 @@ namespace OpenSim
                 if (presence.Firstname.ToLower().Contains(cmdparams[2].ToLower()) &&
                     presence.Lastname.ToLower().Contains(cmdparams[3].ToLower()))
                 {
-                    m_console.Notice(
+                    m_log.Info(
                         String.Format(
                             "Kicking user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
                             presence.Firstname, presence.Lastname, presence.UUID, regionInfo.RegionName));
@@ -372,7 +372,7 @@ namespace OpenSim
                     presence.Scene.IncomingCloseAgent(presence.UUID);
                 }
             }
-            m_console.Notice("");
+            m_log.Info("");
         }
 
         /// <summary>
@@ -418,7 +418,7 @@ namespace OpenSim
 
         private void HandleForceUpdate(string module, string[] args)
         {
-            m_console.Notice("Updating all clients");
+            m_log.Info("Updating all clients");
             m_sceneManager.ForceCurrentSceneClientUpdate();
         }
 
@@ -430,7 +430,7 @@ namespace OpenSim
             }
             else
             {
-                m_console.Notice("Argument error: edit scale <prim name> <x> <y> <z>");
+                m_log.Info("Argument error: edit scale <prim name> <x> <y> <z>");
             }
         }
 
@@ -438,7 +438,7 @@ namespace OpenSim
         {
             if (cmd.Length < 4 || !cmd[3].EndsWith(".xml"))
             {
-                m_console.Error("Usage: create region <region name> <region_file.xml>");
+                m_log.Error("Usage: create region <region name> <region_file.xml>");
                 return;
             }
 
@@ -485,8 +485,8 @@ namespace OpenSim
                     case "set":
                         if (cmdparams.Length < 4)
                         {
-                            m_console.Error(n, "SYNTAX: " + n + " SET SECTION KEY VALUE");
-                            m_console.Error(n, "EXAMPLE: " + n + " SET ScriptEngine.DotNetEngine NumberOfScriptThreads 5");
+                            m_log.Error("SYNTAX: " + n + " SET SECTION KEY VALUE");
+                            m_log.Error("EXAMPLE: " + n + " SET ScriptEngine.DotNetEngine NumberOfScriptThreads 5");
                         }
                         else
                         {
@@ -502,7 +502,7 @@ namespace OpenSim
                                 c.Set(cmdparams[2], _value);
                                 m_config.Source.Merge(source);
 
-                                m_console.Error(n, n + " " + n + " " + cmdparams[1] + " " + cmdparams[2] + " " +
+                                m_log.Error(n + " " + n + " " + cmdparams[1] + " " + cmdparams[2] + " " +
                                                    _value);
                             }
                         }
@@ -511,20 +511,20 @@ namespace OpenSim
                     case "get":
                         if (cmdparams.Length < 3)
                         {
-                            m_console.Error(n, "SYNTAX: " + n + " GET SECTION KEY");
-                            m_console.Error(n, "EXAMPLE: " + n + " GET ScriptEngine.DotNetEngine NumberOfScriptThreads");
+                            m_log.Error("SYNTAX: " + n + " GET SECTION KEY");
+                            m_log.Error("EXAMPLE: " + n + " GET ScriptEngine.DotNetEngine NumberOfScriptThreads");
                         }
                         else
                         {
                             IConfig c = m_config.Source.Configs[cmdparams[1]]; // DefaultConfig().Configs[cmdparams[1]];
                             if (c == null)
                             {
-                                m_console.Notice(n, "Section \"" + cmdparams[1] + "\" does not exist.");
+                                m_log.Info("Section \"" + cmdparams[1] + "\" does not exist.");
                                 break;
                             }
                             else
                             {
-                                m_console.Notice(n + " GET " + cmdparams[1] + " " + cmdparams[2] + ": " +
+                                m_log.Info(n + " GET " + cmdparams[1] + " " + cmdparams[2] + ": " +
                                                  c.GetString(cmdparams[2]));
                             }
                         }
@@ -532,7 +532,7 @@ namespace OpenSim
                         break;
 
                     case "save":
-                        m_console.Notice("Saving configuration file: " + Application.iniFilePath);
+                        m_log.Info("Saving configuration file: " + Application.iniFilePath);
                         m_config.Save(Application.iniFilePath);
                         break;
                 }
@@ -552,7 +552,7 @@ namespace OpenSim
                     case "list":
                         foreach (IRegionModule irm in m_moduleLoader.GetLoadedSharedModules)
                         {
-                            m_console.Notice("Shared region module: " + irm.Name);
+                            m_log.Info("Shared region module: " + irm.Name);
                         }
                         break;
                     case "unload":
@@ -562,7 +562,7 @@ namespace OpenSim
                             {
                                 if (rm.Name.ToLower() == cmdparams[1].ToLower())
                                 {
-                                    m_console.Notice("Unloading module: " + rm.Name);
+                                    m_log.Info("Unloading module: " + rm.Name);
                                     m_moduleLoader.UnloadModule(rm);
                                 }
                             }
@@ -573,7 +573,7 @@ namespace OpenSim
                         {
                             foreach (Scene s in new ArrayList(m_sceneManager.Scenes))
                             {
-                                m_console.Notice("Loading module: " + cmdparams[1]);
+                                m_log.Info("Loading module: " + cmdparams[1]);
                                 m_moduleLoader.LoadRegionModules(cmdparams[1], s);
                             }
                         }
@@ -618,7 +618,7 @@ namespace OpenSim
                     if (m_sceneManager.TryGetScene(regRemoveName, out removeScene))
                         RemoveRegion(removeScene, false);
                     else
-                        m_console.Error("no region with that name");
+                        m_log.Error("no region with that name");
                     break;
 
                 case "delete-region":
@@ -628,7 +628,7 @@ namespace OpenSim
                     if (m_sceneManager.TryGetScene(regDeleteName, out killScene))
                         RemoveRegion(killScene, true);
                     else
-                        m_console.Error("no region with that name");
+                        m_log.Error("no region with that name");
                     break;
 
                 case "restart":
@@ -672,15 +672,15 @@ namespace OpenSim
                 string newRegionName = CombineParams(cmdparams, 2);
 
                 if (!m_sceneManager.TrySetCurrentScene(newRegionName))
-                    m_console.Error("Couldn't select region " + newRegionName);
+                    m_log.Error("Couldn't select region " + newRegionName);
             }
             else
             {
-                m_console.Error("Usage: change region <region name>");
+                m_log.Error("Usage: change region <region name>");
             }
 
             string regionName = (m_sceneManager.CurrentScene == null ? "root" : m_sceneManager.CurrentScene.RegionInfo.RegionName);
-            m_console.Notice(String.Format("Currently selected region is {0}", regionName));
+            m_log.Info(String.Format("Currently selected region is {0}", regionName));
             m_console.DefaultPrompt = String.Format("Region ({0}) ", regionName);
             m_console.ConsoleScene = m_sceneManager.CurrentScene;
         }
@@ -697,7 +697,7 @@ namespace OpenSim
             }
             else
             {
-                m_console.Notice("Create user is not available in grid mode, use the user server.");
+                m_log.Info("Create user is not available in grid mode, use the user server.");
             }
         }
 
@@ -713,7 +713,7 @@ namespace OpenSim
             }
             else
             {
-                m_console.Notice("Reset user password is not available in grid mode, use the user-server.");
+                m_log.Info("Reset user password is not available in grid mode, use the user-server.");
             }
         }
 
@@ -738,9 +738,9 @@ namespace OpenSim
                         }
                         else
                         {
-                            m_console.Error("packet debug should be 0..255");
+                            m_log.Error("packet debug should be 0..255");
                         }
-                        m_console.Notice("New packet debug: " + newDebug.ToString());
+                        m_log.Info("New packet debug: " + newDebug.ToString());
                     }
 
                     break;
@@ -750,7 +750,7 @@ namespace OpenSim
                     {
                         if (m_sceneManager.CurrentScene == null)
                         {
-                            m_console.Notice("Please use 'change region <regioname>' first");
+                            m_log.Info("Please use 'change region <regioname>' first");
                         }
                         else
                         {
@@ -759,8 +759,7 @@ namespace OpenSim
                             bool physicsOn = !Convert.ToBoolean(args[4]);
                             m_sceneManager.CurrentScene.SetSceneCoreDebug(scriptingOn, collisionsOn, physicsOn);
 
-                            m_console.Notice(
-                                "CONSOLE",
+                            m_log.Info(
                                 String.Format(
                                     "Set debug scene scripting = {0}, collisions = {1}, physics = {2}",
                                     !scriptingOn, !collisionsOn, !physicsOn));
@@ -768,13 +767,13 @@ namespace OpenSim
                     }
                     else
                     {
-                        m_console.Error("debug scene <scripting> <collisions> <physics> (where inside <> is true/false)");
+                        m_log.Error("debug scene <scripting> <collisions> <physics> (where inside <> is true/false)");
                     }
 
                     break;
 
                 default:
-                    m_console.Error("Unknown debug");
+                    m_log.Error("Unknown debug");
                     break;
             }
         }
@@ -805,9 +804,9 @@ namespace OpenSim
                         agents = m_sceneManager.GetCurrentSceneAvatars();
                     }
 
-                    m_console.Notice(String.Format("\nAgents connected: {0}\n", agents.Count));
+                    m_log.Info(String.Format("\nAgents connected: {0}\n", agents.Count));
 
-                    m_console.Notice(
+                    m_log.Info(
                         String.Format("{0,-16}{1,-16}{2,-37}{3,-11}{4,-16}", "Firstname", "Lastname",
                                       "Agent ID", "Root/Child", "Region"));
 
@@ -825,7 +824,7 @@ namespace OpenSim
                             regionName = regionInfo.RegionName;
                         }
 
-                        m_console.Notice(
+                        m_log.Info(
                             String.Format(
                                 "{0,-16}{1,-16}{2,-37}{3,-11}{4,-16}",
                                 presence.Firstname,
@@ -835,14 +834,14 @@ namespace OpenSim
                                 regionName));
                     }
 
-                    m_console.Notice("");
+                    m_log.Info("");
                     break;
 
                 case "modules":
-                    m_console.Notice("The currently loaded shared modules are:");
+                    m_log.Info("The currently loaded shared modules are:");
                     foreach (IRegionModule module in m_moduleLoader.GetLoadedSharedModules)
                     {
-                        m_console.Notice("Shared Module: " + module.Name);
+                        m_log.Info("Shared Module: " + module.Name);
                     }
                     break;
 
@@ -850,7 +849,7 @@ namespace OpenSim
                     m_sceneManager.ForEachScene(
                         delegate(Scene scene)
                             {
-                                m_console.Notice("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " +
+                                m_log.Info("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " +
                                                  scene.RegionInfo.RegionLocX + " , Region YLoc: " +
                                                  scene.RegionInfo.RegionLocY + " , Region Port: " +
                                                  scene.RegionInfo.InternalEndPoint.Port.ToString());
@@ -878,7 +877,7 @@ namespace OpenSim
                         {
                             rating = "PG";
                         }
-                        m_console.Notice("Region Name: " + scene.RegionInfo.RegionName + " , Region Rating: " +
+                        m_log.Info("Region Name: " + scene.RegionInfo.RegionName + " , Region Rating: " +
                                          rating);
                     });
                     break;
@@ -1044,7 +1043,7 @@ namespace OpenSim
                         {
                             loadOffset.Z = (float) Convert.ToDecimal(cmdparams[6]);
                         }
-                        m_console.Error("loadOffsets <X,Y,Z> = <" + loadOffset.X + "," + loadOffset.Y + "," +
+                        m_log.Error("loadOffsets <X,Y,Z> = <" + loadOffset.X + "," + loadOffset.Y + "," +
                                         loadOffset.Z + ">");
                     }
                 }
@@ -1058,7 +1057,7 @@ namespace OpenSim
                 }
                 catch (FileNotFoundException)
                 {
-                    m_console.Error("Default xml not found. Usage: load-xml <filename>");
+                    m_log.Error("Default xml not found. Usage: load-xml <filename>");
                 }
             }
         }
@@ -1085,7 +1084,7 @@ namespace OpenSim
                 }
                 catch (FileNotFoundException)
                 {
-                    m_console.Error("Specified xml not found. Usage: load xml2 <filename>");
+                    m_log.Error("Specified xml not found. Usage: load xml2 <filename>");
                 }
             }
             else
@@ -1096,7 +1095,7 @@ namespace OpenSim
                 }
                 catch (FileNotFoundException)
                 {
-                    m_console.Error("Default xml not found. Usage: load xml2 <filename>");
+                    m_log.Error("Default xml not found. Usage: load xml2 <filename>");
                 }
             }
         }
@@ -1120,7 +1119,7 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                m_console.Error(e.Message);
+                m_log.Error(e.Message);
             }   
         }
 
