@@ -183,11 +183,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public void ScriptRemoved(UUID itemID)
         {
-            lock(m_UrlMap)
+            lock (m_UrlMap)
             {
                 List<string> removeURLs = new List<string>();
 
-                foreach(KeyValuePair<string, UrlData> url in m_UrlMap)
+                foreach (KeyValuePair<string, UrlData> url in m_UrlMap)
                 {
                     if (url.Value.itemID == itemID)
                     {
@@ -205,11 +205,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public void ObjectRemoved(UUID objectID)
         {
-            lock(m_UrlMap)
+            lock (m_UrlMap)
             {
                 List<string> removeURLs = new List<string>();
 
-                foreach(KeyValuePair<string, UrlData> url in m_UrlMap)
+                foreach (KeyValuePair<string, UrlData> url in m_UrlMap)
                 {
                     if (url.Value.hostID == objectID)
                     {

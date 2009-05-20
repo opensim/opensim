@@ -395,7 +395,7 @@ namespace OpenSim.Region.Communications.OGS1
                 return regionInfo;
             }
 
-            if((!m_useRemoteRegionCache) || (!m_remoteRegionInfoCache.TryGetValue(regionHandle, out regionInfo)))
+            if ((!m_useRemoteRegionCache) || (!m_remoteRegionInfoCache.TryGetValue(regionHandle, out regionInfo)))
             {
                 try
                 {

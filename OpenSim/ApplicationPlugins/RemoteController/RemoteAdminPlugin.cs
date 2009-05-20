@@ -1191,7 +1191,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             if (requestData.Contains("gender"))
             {
-                switch((string)requestData["gender"])
+                switch ((string)requestData["gender"])
                 {
                     case "m" :
                         model = dmale;
@@ -1215,7 +1215,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             // No appearance attributes were set
 
-            if(model == String.Empty)
+            if (model == String.Empty)
             {
                 m_log.DebugFormat("[RADMIN] Appearance update not requested");
                 return;
@@ -1430,7 +1430,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     // Load up any included assets. Duplicates will be ignored
                     assets = doc.GetElementsByTagName("RequiredAsset");
-                    foreach(XmlNode asset in assets)
+                    foreach (XmlNode asset in assets)
                     {
                         AssetBase rass   = new AssetBase();
                         rass.FullID      = UUID.Random();
@@ -1851,7 +1851,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     scene.EventManager.OnOarFileSaved += RemoteAdminOarSaveCompleted;
                     archiver.ArchiveRegion(filename);
-                    lock(SOLock) Monitor.Wait(SOLock,5000);
+                    lock (SOLock) Monitor.Wait(SOLock,5000);
                     scene.EventManager.OnOarFileSaved -= RemoteAdminOarSaveCompleted;
                 }
                 else
@@ -1881,7 +1881,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private void RemoteAdminOarSaveCompleted(Guid uuid, string name)
         {
             m_log.DebugFormat("[RADMIN] File processing complete for {0}", name);
-            lock(SOLock) Monitor.Pulse(SOLock);
+            lock (SOLock) Monitor.Pulse(SOLock);
         }
 
         public XmlRpcResponse XmlRpcLoadXMLMethod(XmlRpcRequest request)

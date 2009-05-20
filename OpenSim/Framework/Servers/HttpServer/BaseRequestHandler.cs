@@ -68,7 +68,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         protected bool CheckParam(string path)
         {
-            if(String.IsNullOrEmpty(path))
+            if (String.IsNullOrEmpty(path))
             {
                 return false;
             }

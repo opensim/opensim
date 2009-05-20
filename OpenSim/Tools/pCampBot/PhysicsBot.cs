@@ -235,7 +235,7 @@ namespace pCampBot
         public WearableType GetWearableType(string path)
         {
             string type = ((((path.Split('/'))[2]).Split('.'))[0]).Trim();
-            switch(type)
+            switch (type)
             {
                 case "Eyes":
                     return WearableType.Eyes;

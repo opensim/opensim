@@ -10708,7 +10708,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             get
             {
-                if(m_userEndPoint is IPEndPoint)
+                if (m_userEndPoint is IPEndPoint)
                 {
                     IPEndPoint ep = (IPEndPoint)m_userEndPoint;
 

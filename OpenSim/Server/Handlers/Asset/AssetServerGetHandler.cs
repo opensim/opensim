@@ -75,7 +75,7 @@ namespace OpenSim.Server.Handlers.Asset
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
                 httpResponse.ContentType = "application/octet-stream";
             }
-            else if(p.Length > 1 && p[1] == "metadata")
+            else if (p.Length > 1 && p[1] == "metadata")
             {
                 AssetMetadata metadata = m_AssetService.GetMetadata(p[0]);
 
