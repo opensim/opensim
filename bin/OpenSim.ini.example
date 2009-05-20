@@ -1233,8 +1233,8 @@
     ;AssetServices = "RemoteAssetServicesConnector"
     ;AssetServices = "HGAssetBroker"
 
-	; If you don't want asset caching in the regions, comment this
-    AssetCache = "CoreAssetCache"
+	; Leave this commented out, the cache is not helping performance
+    ;AssetCache = "CoreAssetCache"
 
     ; Choose one
     ;UserServices = "LocalUserServicesConnector"
