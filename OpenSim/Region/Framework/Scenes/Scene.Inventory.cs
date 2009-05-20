@@ -2262,6 +2262,12 @@ namespace OpenSim.Region.Framework.Scenes
                                     itemId = item.ID;
                                 }
                             }
+                            else
+                            {
+                                // Brave new fullperm world
+                                //
+                                itemId = item.ID;
+                            }
 
                             string xmlData = Utils.BytesToString(rezAsset.Data);
                             SceneObjectGroup group 
