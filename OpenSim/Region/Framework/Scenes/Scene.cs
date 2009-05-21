@@ -147,6 +147,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected IInterregionCommsOut m_interregionCommsOut;
         protected IInterregionCommsIn m_interregionCommsIn;
         protected IDialogModule m_dialogModule;
+        protected ITeleportModule m_teleportModule;
 
         protected ICapabilitiesModule m_capsModule;
         public ICapabilitiesModule CapsModule
@@ -808,6 +809,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_interregionCommsIn = RequestModuleInterface<IInterregionCommsIn>();
             m_dialogModule = RequestModuleInterface<IDialogModule>();
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
+            m_teleportModule = RequestModuleInterface<ITeleportModule>();
         }
 
         #endregion
@@ -2819,8 +2821,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (sp != null)
             {
-                m_sceneGridService.RequestTeleportToLocation(sp, regionHandle,
-                                                             position, lookAt, teleportFlags);
+                if (m_teleportModule != null)
+                {
+                    m_teleportModule.RequestTeleportToLocation(sp, regionHandle,
+                                                                 position, lookAt, teleportFlags);
+                }
+                else
+                {
+                    m_sceneGridService.RequestTeleportToLocation(sp, regionHandle,
+                                                                 position, lookAt, teleportFlags);
+                }
             }
         }
 
@@ -2841,17 +2851,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            ScenePresence sp = null;
-            lock (m_scenePresences)
-            {
-                if (m_scenePresences.ContainsKey(remoteClient.AgentId))
-                    sp = m_scenePresences[remoteClient.AgentId];
-            }
-            if (sp != null)
-            {
-                m_sceneGridService.RequestTeleportToLocation(sp, info.RegionHandle,
-                    position, Vector3.Zero, (uint)(TPFlags.SetLastToTarget | TPFlags.ViaLandmark));
-            }
+            RequestTeleportLocation(remoteClient, info.RegionHandle, position, Vector3.Zero, (uint)(TPFlags.SetLastToTarget | TPFlags.ViaLandmark));
         }
 
         public void CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
