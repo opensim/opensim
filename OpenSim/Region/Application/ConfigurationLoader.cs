@@ -160,6 +160,10 @@ namespace OpenSim
                 Environment.Exit(1);
             }
 
+            // Make sure command line options take precedence
+            //
+            m_config.Source.Merge(argvSource);
+
             ReadConfigSettings();
 
             return m_config;
