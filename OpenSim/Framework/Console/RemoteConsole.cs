@@ -49,6 +49,7 @@ namespace OpenSim.Framework.Console
         private List<string> m_Scrollback = new List<string>();
         private ManualResetEvent m_DataEvent = new ManualResetEvent(false);
         private List<string> m_InputData = new List<string>();
+        private uint m_LineNumber = 1;
 
         public RemoteConsole(string defaultPrompt) : base(defaultPrompt)
         {
@@ -70,7 +71,8 @@ namespace OpenSim.Framework.Console
             {
                 while (m_Scrollback.Count >= 1000)
                     m_Scrollback.RemoveAt(0);
-                m_Scrollback.Add(level+":"+text);
+                m_Scrollback.Add(String.Format("{0}", m_LineNumber)+":"+level+":"+text);
+                m_LineNumber++;
             }
             System.Console.Write(text);
         }

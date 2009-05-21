@@ -490,9 +490,6 @@ namespace OpenSim
                         }
                         else
                         {
-                            // IConfig c = DefaultConfig().Configs[cmdparams[1]];
-                            // if (c == null)
-                            //     c = DefaultConfig().AddConfig(cmdparams[1]);
                             IConfig c;
                             IConfigSource source = new IniConfigSource();
                             c = source.AddConfig(cmdparams[1]);
@@ -516,7 +513,7 @@ namespace OpenSim
                         }
                         else
                         {
-                            IConfig c = m_config.Source.Configs[cmdparams[1]]; // DefaultConfig().Configs[cmdparams[1]];
+                            IConfig c = m_config.Source.Configs[cmdparams[1]];
                             if (c == null)
                             {
                                 m_log.Info("Section \"" + cmdparams[1] + "\" does not exist.");
