@@ -2223,6 +2223,7 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 

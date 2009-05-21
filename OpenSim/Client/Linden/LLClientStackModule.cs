@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -41,7 +41,7 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Client.Linden
 {
-    public class LLClientStackModule : IRegionModule
+    public class LLClientStackModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -55,11 +55,10 @@ namespace OpenSim.Client.Linden
 
         protected string m_clientStackDll = "OpenSim.Region.ClientStack.LindenUDP.dll";
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
             if (m_scene == null)
             {
-                m_scene = scene;
                 m_source = source;
 
                 IConfig startupConfig = m_source.Configs["Startup"];
@@ -70,8 +69,23 @@ namespace OpenSim.Client.Linden
             }
         }
 
-        public void PostInitialise()
+        public void AddRegion(Scene scene)
         {
+
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+
+        }
+        
+        public void RegionLoaded(Scene scene)
+        {
+            if (m_scene == null)
+            {
+                m_scene = scene;
+            }
+
             if ((m_scene != null) && (m_createClientStack))
             {
                 m_log.Info("[LLClientStackModule] Starting up LLClientStack.");

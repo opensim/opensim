@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -48,7 +48,7 @@ namespace OpenSim.Client.Linden
     /// <summary>
     /// Handles login user (expect user) and logoff user messages from the remote LL login server
     /// </summary>
-    public class LLProxyLoginModule : IRegionModule
+    public class LLProxyLoginModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -74,17 +74,20 @@ namespace OpenSim.Client.Linden
 
         #region IRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
+        {
+            IConfig startupConfig = source.Configs["Startup"];
+            if (startupConfig != null)
+            {
+                m_enabled = startupConfig.GetBoolean("gridmode", false);
+            }
+        }
+
+        public void AddRegion(Scene scene)
         {
             if (m_firstScene == null)
             {
                 m_firstScene = scene;
-
-                IConfig startupConfig = source.Configs["Startup"];
-                if (startupConfig != null)
-                {
-                    m_enabled = startupConfig.GetBoolean("gridmode", false);
-                }
 
                 if (m_enabled)
                 {
@@ -96,6 +99,15 @@ namespace OpenSim.Client.Linden
             {
                 AddScene(scene);
             }
+
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (m_enabled)
+            {
+                RemoveScene(scene);
+            }
         }
 
         public void PostInitialise()
@@ -104,6 +116,11 @@ namespace OpenSim.Client.Linden
         }
 
         public void Close()
+        {
+
+        }
+
+        public void RegionLoaded(Scene scene)
         {
 
         }
@@ -137,6 +154,17 @@ namespace OpenSim.Client.Linden
                 if (!m_scenes.Contains(scene))
                 {
                     m_scenes.Add(scene);
+                }
+            }
+        }
+
+        protected void RemoveScene(Scene scene)
+        {
+            lock (m_scenes)
+            {
+                if (m_scenes.Contains(scene))
+                {
+                    m_scenes.Remove(scene);
                 }
             }
         }
@@ -200,7 +228,7 @@ namespace OpenSim.Client.Linden
             {
                 bool success = false;
                 string denyMess = "";
-        
+
                 Scene scene;
                 if (TryGetRegion(regionHandle, out scene))
                 {
@@ -226,7 +254,7 @@ namespace OpenSim.Client.Linden
                                 agentData.firstname, agentData.lastname);
                         }
                     }
-                    
+
                 }
                 else
                 {

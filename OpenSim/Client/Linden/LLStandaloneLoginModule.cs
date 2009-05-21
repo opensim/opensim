@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -44,7 +44,7 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Client.Linden
 {
-    public class LLStandaloneLoginModule : IRegionModule, ILoginServiceToRegionsConnector
+    public class LLStandaloneLoginModule : ISharedRegionModule, ILoginServiceToRegionsConnector
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -53,6 +53,8 @@ namespace OpenSim.Client.Linden
 
         protected bool m_enabled = false; // Module is only enabled if running in standalone mode
 
+        protected bool authenticate;
+        protected string welcomeMessage;
 
         public bool RegionLoginsEnabled
         {
@@ -68,38 +70,44 @@ namespace OpenSim.Client.Linden
                 }
             }
         }
-       
+
         protected LLStandaloneLoginService m_loginService;
 
         #region IRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
+        {
+            IConfig startupConfig = source.Configs["Startup"];
+            if (startupConfig != null)
+            {
+                m_enabled = !startupConfig.GetBoolean("gridmode", false);
+            }
+
+            if (m_enabled)
+            {
+                authenticate = true;
+                welcomeMessage = "Welcome to OpenSim";
+                IConfig standaloneConfig = source.Configs["StandAlone"];
+                if (standaloneConfig != null)
+                {
+                    authenticate = standaloneConfig.GetBoolean("accounts_authenticate", true);
+                    welcomeMessage = standaloneConfig.GetString("welcome_message");
+                }
+            }
+        }
+
+        public void AddRegion(Scene scene)
         {
             if (m_firstScene == null)
             {
                 m_firstScene = scene;
 
-                IConfig startupConfig = source.Configs["Startup"];
-                if (startupConfig != null)
-                {
-                    m_enabled = !startupConfig.GetBoolean("gridmode", false);
-                }
-
                 if (m_enabled)
                 {
-                    bool authenticate = true;
-                    string welcomeMessage = "Welcome to OpenSim";
-                    IConfig standaloneConfig = source.Configs["StandAlone"];
-                    if (standaloneConfig != null)
-                    {
-                        authenticate = standaloneConfig.GetBoolean("accounts_authenticate", true);
-                        welcomeMessage = standaloneConfig.GetString("welcome_message");
-                    }
-
                     //TODO: fix casting.
-                    LibraryRootFolder rootFolder 
+                    LibraryRootFolder rootFolder
                         = m_firstScene.CommsManager.UserProfileCacheService.LibraryRoot as LibraryRootFolder;
-                   
+
                     IHttpServer httpServer = m_firstScene.CommsManager.HttpServer;
 
                     //TODO: fix the casting of the user service, maybe by registering the userManagerBase with scenes, or refactoring so we just need a IUserService reference
@@ -121,12 +129,25 @@ namespace OpenSim.Client.Linden
             }
         }
 
+        public void RemoveRegion(Scene scene)
+        {
+            if (m_enabled)
+            {
+                RemoveScene(scene);
+            }
+        }
+
         public void PostInitialise()
         {
 
         }
 
         public void Close()
+        {
+
+        }
+
+        public void RegionLoaded(Scene scene)
         {
 
         }
@@ -150,6 +171,17 @@ namespace OpenSim.Client.Linden
                 if (!m_scenes.Contains(scene))
                 {
                     m_scenes.Add(scene);
+                }
+            }
+        }
+
+        protected void RemoveScene(Scene scene)
+        {
+            lock (m_scenes)
+            {
+                if (m_scenes.Contains(scene))
+                {
+                    m_scenes.Remove(scene);
                 }
             }
         }
