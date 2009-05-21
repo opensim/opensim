@@ -181,8 +181,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
 
         protected string RegionTerrain(OSHttpResponse httpResponse, Scene scene)
         {
-            return Failure(httpResponse, OSHttpStatusCode.ServerErrorNotImplemented,
-                           "GET", "terrain not implemented");
+            httpResponse.SendChunked = true;
+            httpResponse.ContentType = "text/xml";
+
+            return scene.Heightmap.SaveToXmlString();
+            //return Failure(httpResponse, OSHttpStatusCode.ServerErrorNotImplemented,
+            //               "GET", "terrain not implemented");
         }
 
         protected string RegionStats(OSHttpResponse httpResponse, Scene scene)
