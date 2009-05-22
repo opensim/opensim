@@ -427,6 +427,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return UUID.Zero.ToString();
         }
 
+        public string osSetDynamicTextureURLBlendFace(string dynamicID, string contentType, string url, string extraParams,
+                                             bool blend, int timer, int alpha, int face)
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureURLBlendFace");
+
+            m_host.AddScriptLPS(1);
+            if (dynamicID == String.Empty)
+            {
+                IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
+                UUID createdTexture =
+                    textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
+                                                        extraParams, timer, blend, (byte) alpha, face);
+                return createdTexture.ToString();
+            }
+            else
+            {
+                //TODO update existing dynamic textures
+            }
+
+            return UUID.Zero.ToString();
+        }
+
         public string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams,
                                            int timer)
         {
@@ -474,6 +496,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
                                                             extraParams, timer, true, (byte) alpha);
+                    return createdTexture.ToString();
+                }
+            }
+            else
+            {
+                //TODO update existing dynamic textures
+            }
+
+            return UUID.Zero.ToString();
+        }
+
+        public string osSetDynamicTextureDataBlendFace(string dynamicID, string contentType, string data, string extraParams,
+                                          bool blend, int timer, int alpha, int face)
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureDataBlendFace");
+
+            m_host.AddScriptLPS(1);
+            if (dynamicID == String.Empty)
+            {
+                IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
+                if (textureManager != null)
+                {
+                    if (extraParams == String.Empty)
+                    {
+                        extraParams = "256";
+                    }
+                    UUID createdTexture =
+                        textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
+                                                            extraParams, timer, blend, (byte) alpha, face);
                     return createdTexture.ToString();
                 }
             }

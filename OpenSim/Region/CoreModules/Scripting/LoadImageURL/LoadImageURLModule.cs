@@ -162,62 +162,80 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         private void HttpRequestReturn(IAsyncResult result)
         {
+
             RequestState state = (RequestState) result.AsyncState;
             WebRequest request = (WebRequest) state.Request;
+            Stream stream = null;
+			byte[] imageJ2000 = new byte[0];
+
             try
             {
                 HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(result);
-                if (response.StatusCode == HttpStatusCode.OK)
+                if (response != null && response.StatusCode == HttpStatusCode.OK)
                 {
-                    Bitmap image = new Bitmap(response.GetResponseStream());
-                    Size newsize;
+                    stream = response.GetResponseStream();
+                    if(stream != null)
+                    {
+						Bitmap image = new Bitmap(stream);
+						Size newsize;
 
-                    // TODO: make this a bit less hard coded
-                    if ((image.Height < 64) && (image.Width < 64))
-                    {
-                        newsize = new Size(32, 32);
-                    }
-                    else if ((image.Height < 128) && (image.Width < 128))
-                    {
-                        newsize = new Size(64, 64);
-                    }
-                    else if ((image.Height < 256) && (image.Width < 256))
-                    {
-                        newsize = new Size(128, 128);
-                    }
-                    else if ((image.Height < 512 && image.Width < 512))
-                    {
-                        newsize = new Size(256, 256);
-                    }
-                    else if ((image.Height < 1024 && image.Width < 1024))
-                    {
-                        newsize = new Size(512, 512);
+						// TODO: make this a bit less hard coded
+						if ((image.Height < 64) && (image.Width < 64))
+						{
+							newsize = new Size(32, 32);
+						}
+						else if ((image.Height < 128) && (image.Width < 128))
+						{
+							newsize = new Size(64, 64);
+						}
+						else if ((image.Height < 256) && (image.Width < 256))
+						{
+							newsize = new Size(128, 128);
+						}
+						else if ((image.Height < 512 && image.Width < 512))
+						{
+							newsize = new Size(256, 256);
+						}
+						else if ((image.Height < 1024 && image.Width < 1024))
+						{
+							newsize = new Size(512, 512);
+						}
+						else
+						{
+							newsize = new Size(1024, 1024);
+						}
+
+						Bitmap resize = new Bitmap(image, newsize);
+						
+						try
+						{
+							imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
+						} 
+						catch (Exception)
+						{
+							m_log.Error("[LOADIMAGEURLMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
+						}
                     }
                     else
                     {
-                        newsize = new Size(1024, 1024);
+						m_log.WarnFormat("[LOADIMAGEURLMODULE] No data returned");
                     }
-
-                    Bitmap resize = new Bitmap(image, newsize);
-                    byte[] imageJ2000 = new byte[0];
-                    
-                    try
-                    {
-                        imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
-                    } 
-                    catch (Exception)
-                    {
-                        m_log.Error("[LOADIMAGEURLMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
-                    }
-
-                    m_textureManager.ReturnData(state.RequestID, imageJ2000);
-                    return;
                 }
             }
             catch (WebException)
             {
                 
             }
+            finally
+            {
+                if(stream != null)
+                {
+                    stream.Close();
+                }
+            }
+            m_log.DebugFormat("[LOADIMAGEURLMODULE] Returning {0} bytes of image data for request {1}",
+                                       imageJ2000.Length, state.RequestID);
+            m_textureManager.ReturnData(state.RequestID, imageJ2000);
         }
 
         #region Nested type: RequestState

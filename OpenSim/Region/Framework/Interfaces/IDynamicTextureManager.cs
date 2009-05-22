@@ -39,10 +39,14 @@ namespace OpenSim.Region.Framework.Interfaces
                                     int updateTimer);
         UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams,
                                    int updateTimer, bool SetBlending, byte AlphaValue);
+        UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams,
+                                   int updateTimer, bool SetBlending, byte AlphaValue, int face);
         UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
                                      int updateTimer);
         UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
                                     int updateTimer, bool SetBlending, byte AlphaValue);
+        UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
+                                    int updateTimer, bool SetBlending, byte AlphaValue, int face);
         void GetDrawStringSize(string contentType, string text, string fontName, int fontSize,
                                out double xSize, out double ySize);
     }

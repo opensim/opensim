@@ -58,9 +58,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams, int timer);
         string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
                                            int timer, int alpha);
+        string osSetDynamicTextureURLBlendFace(string dynamicID, string contentType, string url, string extraParams,
+                                           bool blend, int timer, int alpha, int face);
         string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams, int timer);
         string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
                                             int timer, int alpha);
+        string osSetDynamicTextureDataBlendFace(string dynamicID, string contentType, string data, string extraParams,
+                                            bool blend, int timer, int alpha, int face);
 
         LSL_Float osTerrainGetHeight(int x, int y);
         LSL_Integer osTerrainSetHeight(int x, int y, double val);
