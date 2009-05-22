@@ -1233,7 +1233,7 @@
     ;AssetServices = "RemoteAssetServicesConnector"
     ;AssetServices = "HGAssetBroker"
 
-	; Leave this commented out, the cache is not helping performance
+	; Leave this commented out, the cache is under investigation
     ;AssetCache = "CoreAssetCache"
 
     ; Choose one
@@ -1266,5 +1266,3 @@
     ; Number of buckets for assets
     ;CacheBuckets = 32768
 
-[UserService]
-    ;LocalServiceModule = "OpenSim.Services.UserService.dll:UserService"
