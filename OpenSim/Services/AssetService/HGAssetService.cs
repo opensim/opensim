@@ -73,7 +73,7 @@ namespace OpenSim.Services.AssetService
                     assetUri.Scheme == Uri.UriSchemeHttp)
             {
                 url = "http://" + assetUri.Authority;
-                assetID = assetUri.LocalPath;
+                assetID = assetUri.LocalPath.Trim(new char[] {'/'});
                 return true;
             }
 
