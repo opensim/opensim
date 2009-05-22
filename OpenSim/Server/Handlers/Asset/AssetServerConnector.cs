@@ -55,6 +55,7 @@ namespace OpenSim.Server.Handlers.Asset
             m_AssetService =
                     ServerUtils.LoadPlugin<IAssetService>(assetService, args);
 
+            //System.Console.WriteLine("XXXXXXXXXXXXXXXXXXX m_AssetSetvice == null? " + ((m_AssetService == null) ? "yes" : "no"));
             server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
             server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
             server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService));

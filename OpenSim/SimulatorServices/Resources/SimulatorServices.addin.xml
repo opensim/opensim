@@ -1,0 +1,14 @@
+<Addin id="OpenSim.SimulatorServices" version="0.2">
+    <Runtime>
+        <Import assembly="OpenSim.SimulatorServices.dll"/>
+    </Runtime>
+
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+    </Dependencies>
+
+    <Extension path = "/OpenSim/RegionModules">
+        <RegionModule id="RegionAssetService" type="OpenSim.SimulatorServices.RegionAssetService" />
+    </Extension>
+
+</Addin>

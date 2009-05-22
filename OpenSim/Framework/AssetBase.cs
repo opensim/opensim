@@ -160,6 +160,8 @@ namespace OpenSim.Framework
     public class AssetMetadata
     {
         private UUID m_fullid;
+        // m_id added as a dirty hack to transition from FullID to ID
+        private string m_id;
         private string m_name = String.Empty;
         private string m_description = String.Empty;
         private DateTime m_creation_date;
@@ -174,13 +176,25 @@ namespace OpenSim.Framework
         public UUID FullID
         {
             get { return m_fullid; }
-            set { m_fullid = value; }
+            set { m_fullid = value; m_id = m_fullid.ToString(); }
         }
 
         public string ID
         {
-            get { return m_fullid.ToString(); }
-            set { m_fullid = new UUID(value); }
+            //get { return m_fullid.ToString(); }
+            //set { m_fullid = new UUID(value); }
+            get { return m_id; }
+            set
+            {
+                UUID uuid = UUID.Zero;
+                if (UUID.TryParse(value, out uuid))
+                {
+                    m_fullid = uuid;
+                    m_id = m_fullid.ToString();
+                }
+                else
+                    m_id = value;
+            }
         }
 
         public string Name

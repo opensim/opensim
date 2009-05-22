@@ -37,7 +37,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Region.SimulatorServices
+namespace OpenSim.SimulatorServices
 {
     public class RegionAssetService : ISharedRegionModule
     {
@@ -55,6 +55,8 @@ namespace OpenSim.Region.SimulatorServices
             enabled = ((!config.Configs["Startup"].GetBoolean("gridmode", true)) &&
                 config.Configs["Startup"].GetBoolean("hypergrid", true)) ||
                 ((config.Configs["MXP"] != null) && config.Configs["MXP"].GetBoolean("Enabled", true));
+            m_log.DebugFormat("[RegionAssetService]: enabled? {0}", enabled);
+            m_Config = config;
         }
 
         public void PostInitialise()

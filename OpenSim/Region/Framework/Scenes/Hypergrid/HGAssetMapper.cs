@@ -46,12 +46,6 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
         #region Fields
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // This maps between asset server URLs and asset server clients
-        private Dictionary<string, GridAssetClient> m_assetServers = new Dictionary<string, GridAssetClient>();
-
-        // This maps between asset UUIDs and asset servers
-        private Dictionary<UUID, GridAssetClient> m_assetMap = new Dictionary<UUID, GridAssetClient>();
-
         // This maps between inventory server urls and inventory server clients
         private Dictionary<string, InventoryClient> m_inventoryServers = new Dictionary<string, InventoryClient>();
 
@@ -101,11 +95,6 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
             m_log.Debug("[HGScene]: Foreign user " + uinfo.UserProfile.FirstName + " " + uinfo.UserProfile.SurName);
             return false;
-        }
-
-        private bool IsInAssetMap(UUID uuid)
-        {
-            return m_assetMap.ContainsKey(uuid);
         }
 
         private AssetBase FetchAsset(string url, UUID assetID, bool isTexture)
