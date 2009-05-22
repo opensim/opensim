@@ -2347,8 +2347,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     s.RegionInfo.EstateSettings.EstateAccess = acl.ToArray();
                 }
 
-                responseData["added"] = remk;
-
+                responseData["removed"] = remk;
 
             }
             catch (Exception e)

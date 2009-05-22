@@ -260,10 +260,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // Note that inventory retrieval is an asynchronous event, we use the rdata
             // class instance as the basis for our synchronization.
             //
-            // TODO
-            // If something went wrong in inventory processing the thread could stall here
-            // indefinitely. There should be a watchdog timer to fail the request if the
-            // response is not received in a timely fashion.
 
             rdata.uuid = rdata.userProfile.ID;
 
