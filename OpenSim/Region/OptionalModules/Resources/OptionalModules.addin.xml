@@ -1,4 +1,4 @@
-<Addin id="OpenSim.Region.OptionalModules" version="0.1">
+<Addin id="OpenSim.Region.OptionalModules" version="0.2">
     <Runtime>
         <Import assembly="OpenSim.Region.OptionalModules.dll"/>
     </Runtime>
@@ -8,6 +8,7 @@
     </Dependencies>
 
     <Extension path = "/OpenSim/RegionModules">
+      <RegionModule id="IRCBridge"             type="OpenSim.Region.OptionalModules.Avatar.Chat.IRCBridgeModule" />
       <RegionModule id="XmlRpcGroups"          type="OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.XmlRpcGroupsModule" />
       <RegionModule id="XmlRpcGroupsMessaging" type="OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.XmlRpcGroupsMessaging" />
     </Extension>

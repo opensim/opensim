@@ -38,87 +38,61 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Chat
 {
-    public class IRCBridgeModule : IRegionModule
+    public class IRCBridgeModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        internal static bool   configured = false;
-        internal static bool   enabled    = false;
-        internal static IConfig m_config  = null;
+        internal static bool m_pluginEnabled = false;
+        internal static IConfig m_config = null;
 
         internal static List<ChannelState> m_channels = new List<ChannelState>();
         internal static List<RegionState>  m_regions  = new List<RegionState>();
 
-        internal static string password = String.Empty;
+        internal static string m_password = String.Empty;
+        internal RegionState m_region = null;
 
-        internal RegionState region = null;
-
-        #region IRegionModule Members
+        #region INonSharedRegionModule Members
 
         public string Name
         {
             get { return "IRCBridgeModule"; }
         }
 
-        public bool IsSharedModule
+        public void Initialise(IConfigSource config)
         {
-            get { return false; }
-        }
-
-        public void Initialise(Scene scene, IConfigSource config)
-        {
-            // Do a once-only scan of the configuration file to make
-            // sure it's basically intact.
-
-            if (!configured)
+            m_config = config.Configs["IRC"];
+            if (m_config == null)
             {
-                configured = true;
-
-                try
-                {
-                    if ((m_config = config.Configs["IRC"]) == null)
-                    {
-                        m_log.InfoFormat("[IRC-Bridge] module not configured");
-                        return;
-                    }
-
-                    if (!m_config.GetBoolean("enabled", false))
-                    {
-                        m_log.InfoFormat("[IRC-Bridge] module disabled in configuration");
-                        return;
-                    }
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[IRC-Bridge] configuration failed : {0}", e.Message);
-                    return;
-                }
-
-                enabled = true;
-
-                if (config.Configs["RemoteAdmin"] != null)
-                {
-                    password = config.Configs["RemoteAdmin"].GetString("access_password", password);
-                    scene.CommsManager.HttpServer.AddXmlRPCHandler("irc_admin", XmlRpcAdminMethod, false);
-                }
+                m_log.InfoFormat("[IRC-Bridge] module not configured");
+                return;
             }
 
-            // Iff the IRC bridge is enabled, then each new region may be 
-            // connected to IRC. But it should NOT be obligatory (and it 
-            // is not).
-            // We have to do ALL of the startup here because PostInitialize
-            // is not called when a region gets created in-flight from the
-            // command line.
-             
-            if (enabled)
+            if (!m_config.GetBoolean("enabled", false))
+            {
+                m_log.InfoFormat("[IRC-Bridge] module disabled in configuration");
+                return;
+            }
+
+            if (config.Configs["RemoteAdmin"] != null)
+            {
+                m_password = config.Configs["RemoteAdmin"].GetString("access_password", m_password);
+            }
+
+            m_pluginEnabled = true;
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (m_pluginEnabled)
             {
                 try
                 {
                     m_log.InfoFormat("[IRC-Bridge] Connecting region {0}", scene.RegionInfo.RegionName);
-                    region = new RegionState(scene, m_config);
-                    lock (m_regions) m_regions.Add(region);
-                    region.Open();
+                    if (!String.IsNullOrEmpty(m_password))
+                        scene.CommsManager.HttpServer.AddXmlRPCHandler("irc_admin", XmlRpcAdminMethod, false);
+                    m_region = new RegionState(scene, m_config);
+                    lock (m_regions) m_regions.Add(m_region);
+                    m_region.Open();
                 }
                 catch (Exception e)
                 {
@@ -132,34 +106,33 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             }
         }
 
-        // This module can be called in-flight in which case PostInitialize
-        // is not called following Initialize. So no use is made of this
-        // call.
 
-        public void PostInitialise()
+        public void RegionLoaded(Scene scene)
         {
         }
 
-        // Called immediately before the region module is unloaded. Cleanup
-        // the region.
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_pluginEnabled)
+                return;
+
+            if (m_region == null)
+                return;
+
+            if (!String.IsNullOrEmpty(m_password))
+                scene.CommsManager.HttpServer.RemoveXmlRPCHandler("irc_admin");
+
+            m_region.Close();
+
+            if (m_regions.Contains(m_region))
+            {
+                lock (m_regions) m_regions.Remove(m_region);
+            }
+        }
 
         public void Close()
         {
-            if (!enabled)
-                return;
-
-            if (region == null)
-                return;
-
-            region.Close();
-
-            if (m_regions.Contains(region))
-            {
-                lock (m_regions) m_regions.Remove(region);
-            }
-
         }
-
         #endregion
 
         public static XmlRpcResponse XmlRpcAdminMethod(XmlRpcRequest request)
@@ -175,11 +148,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                 bool    found = false;
                 string region = String.Empty;
 
-                if (password != String.Empty)
+                if (m_password != String.Empty)
                 {
                     if (!requestData.ContainsKey("password"))
                         throw new Exception("Invalid request");
-                    if ((string)requestData["password"] != password)
+                    if ((string)requestData["password"] != m_password)
                         throw new Exception("Invalid request");
                 }
 
