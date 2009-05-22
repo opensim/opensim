@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// <summary>
         /// Test saving a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet).
         /// </summary>
-        //[Test]
+        [Test]
         public void TestSaveIarV0_1()
         {
             TestHelper.InMethod();
@@ -127,10 +127,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             lock (this)
             {
                 archiverModule.ArchiveInventory(userFirstName, userLastName, "Objects", archiveWriteStream);
-                //AssetServerBase assetServer = (AssetServerBase)scene.CommsManager.AssetCache.AssetServer;
-                //while (assetServer.HasWaitingRequests())
-                //    assetServer.ProcessNextRequest();
-                
                 Monitor.Wait(this, 60000);
             }
 
@@ -160,9 +156,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string filePath;
             TarArchiveReader.TarEntryType tarEntryType;
 
+            Console.WriteLine("Reading archive");
+            
             while (tar.ReadEntry(out filePath, out tarEntryType) != null)
             {
-                //Console.WriteLine("Got {0}", filePath);
+                Console.WriteLine("Got {0}", filePath);
 
 //                if (ArchiveConstants.CONTROL_FILE_PATH == filePath)
 //                {
@@ -171,13 +169,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 
                 if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH) && filePath.EndsWith(".xml"))
                 {
-                    string fileName = filePath.Remove(0, "Objects/".Length);
-
-                    if (fileName.StartsWith(part1.Name))
-                    {
+//                    string fileName = filePath.Remove(0, "Objects/".Length);
+//
+//                    if (fileName.StartsWith(part1.Name))
+//                    {
                         Assert.That(filePath, Is.EqualTo(expectedObject1FilePath));
                         gotObject1File = true;
-                    }
+//                    }
 //                    else if (fileName.StartsWith(part2.Name))
 //                    {
 //                        Assert.That(fileName, Is.EqualTo(expectedObject2FileName));

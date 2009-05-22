@@ -136,6 +136,7 @@ namespace OpenSim.Tests.Common.Setup
             assetService.AddRegion(testScene);
             assetService.RegionLoaded(testScene);
             testScene.AddRegionModule(assetService.Name, assetService);
+            assetService.PostInitialise();
             
             testScene.SetModuleInterfaces();
 
@@ -176,6 +177,7 @@ namespace OpenSim.Tests.Common.Setup
                     IRegionModule m = (IRegionModule)module;
                     m.Initialise(scene, config);
                     scene.AddModule(m.Name, m);
+                    m.PostInitialise();
                 }
                 else if (module is IRegionModuleBase)
                 {
