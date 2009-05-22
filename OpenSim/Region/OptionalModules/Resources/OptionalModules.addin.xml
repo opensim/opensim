@@ -9,6 +9,7 @@
 
     <Extension path = "/OpenSim/RegionModules">
       <RegionModule id="IRCBridge"             type="OpenSim.Region.OptionalModules.Avatar.Chat.IRCBridgeModule" />
+      <RegionModule id="Concierge"             type="OpenSim.Region.OptionalModules.Avatar.Concierge.ConciergeModule" />
       <RegionModule id="XmlRpcGroups"          type="OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.XmlRpcGroupsModule" />
       <RegionModule id="XmlRpcGroupsMessaging" type="OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.XmlRpcGroupsMessaging" />
     </Extension>

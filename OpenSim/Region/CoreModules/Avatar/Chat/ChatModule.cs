@@ -37,7 +37,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Chat
 {
-    public class ChatModule : IRegionModule
+    public class ChatModule : ISharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -50,27 +50,39 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         private int m_whisperdistance = 10;
         private List<Scene> m_scenes = new List<Scene>();
 
-        internal object m_syncInit = new object();
+        internal object m_syncy = new object();
 
-        #region IRegionModule Members
-        public virtual void Initialise(Scene scene, IConfigSource config)
+        internal IConfig m_config;
+
+        #region ISharedRegionModule Members
+        public virtual void Initialise(IConfigSource config)
         {
-            // wrap this in a try block so that defaults will work if
-            // the config file doesn't specify otherwise.
-            try
-            {
-                m_enabled = config.Configs["Chat"].GetBoolean("enabled", m_enabled);
-                if (!m_enabled) return;
 
-                m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
-                m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
-                m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
-            }
-            catch (Exception)
+            m_config = config.Configs["Chat"];
+
+            if (null == m_config)
             {
+                m_log.Info("[CHAT]: no config found, plugin disabled");
+                return;
             }
 
-            lock (m_syncInit)
+            if (!m_config.GetBoolean("enabled", false))
+            {
+                m_log.Info("[CHAT]: plugin disabled by configuration");
+                return;
+            }
+            m_enabled = true;
+
+            m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
+            m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
+            m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
+        }
+
+        public virtual void AddRegion(Scene scene)
+        {
+            if (!m_enabled) return;
+
+            lock (m_syncy)
             {
                 if (!m_scenes.Contains(scene))
                 {
@@ -84,23 +96,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             m_log.InfoFormat("[CHAT]: Initialized for {0} w:{1} s:{2} S:{3}", scene.RegionInfo.RegionName,
                              m_whisperdistance, m_saydistance, m_shoutdistance);
         }
-        
-        public virtual void PostInitialise()
+
+        public virtual void RegionLoaded(Scene scene)
         {
         }
 
+        public virtual void RemoveRegion(Scene scene)
+        {
+            if (!m_enabled) return;
+
+            lock (m_syncy)
+            {
+                if (m_scenes.Contains(scene))
+                {
+                    scene.EventManager.OnNewClient -= OnNewClient;
+                    scene.EventManager.OnChatFromWorld -= OnChatFromWorld;
+                    scene.EventManager.OnChatBroadcast -= OnChatBroadcast;
+                    m_scenes.Remove(scene);
+                }
+            }            
+        }
+        
         public virtual void Close()
+        {
+        }
+
+        public virtual void PostInitialise()
         {
         }
 
         public virtual string Name
         {
             get { return "ChatModule"; }
-        }
-
-        public virtual bool IsSharedModule
-        {
-            get { return true; }
         }
 
         #endregion

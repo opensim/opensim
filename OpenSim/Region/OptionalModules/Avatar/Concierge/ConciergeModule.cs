@@ -47,7 +47,7 @@ using OpenSim.Region.CoreModules.Avatar.Chat;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Concierge
 {
-    public class ConciergeModule : ChatModule, IRegionModule
+    public class ConciergeModule : ChatModule, ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -76,28 +76,26 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
 
         internal object m_syncy = new object();
 
-        #region IRegionModule Members
-        public override void Initialise(Scene scene, IConfigSource config)
-        {
-            try
-            {
-                if ((m_config = config.Configs["Concierge"]) == null)
-                {
-                    //_log.InfoFormat("[Concierge]: no configuration section [Concierge] in OpenSim.ini: module not configured");
-                    return;
-                }
+        internal bool m_enabled = false;
 
-                if (!m_config.GetBoolean("enabled", false))
-                {
-                    //_log.InfoFormat("[Concierge]: module disabled by OpenSim.ini configuration");
-                    return;
-                }
-            }
-            catch (Exception)
+        #region ISharedRegionModule Members
+        public override void Initialise(IConfigSource config)
+        {
+            m_config = config.Configs["Concierge"];
+
+            if (null == m_config)
             {
-                m_log.Info("[Concierge]: module not configured");
+                m_log.Info("[Concierge]: no config found, plugin disabled");
                 return;
             }
+
+            if (!m_config.GetBoolean("enabled", false))
+            {
+                m_log.Info("[Concierge]: plugin disabled by configuration");
+                return;
+            }
+            m_enabled = true;
+
 
             // check whether ChatModule has been disabled: if yes,
             // then we'll "stand in"
@@ -140,6 +138,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                     m_regions = new Regex(@regions, RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 }
             }
+        }
+
+
+        public override void AddRegion(Scene scene)
+        {
+            if (!m_enabled) return;
 
             scene.CommsManager.HttpServer.AddXmlRPCHandler("concierge_update_welcome", XmlRpcUpdateWelcomeMethod, false);
 
@@ -169,6 +173,40 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             m_log.InfoFormat("[Concierge]: initialized for {0}", scene.RegionInfo.RegionName);
         }
 
+        public override void RemoveRegion(Scene scene)
+        {
+            if (!m_enabled) return;
+
+            scene.CommsManager.HttpServer.RemoveXmlRPCHandler("concierge_update_welcome");
+
+            lock (m_syncy)
+            {
+                // unsubscribe from NewClient events
+                scene.EventManager.OnNewClient -= OnNewClient;
+
+                // unsubscribe from *Chat events
+                scene.EventManager.OnChatFromWorld -= OnChatFromWorld;
+                if (!m_replacingChatModule)
+                    scene.EventManager.OnChatFromClient -= OnChatFromClient;
+                scene.EventManager.OnChatBroadcast -= OnChatBroadcast;
+
+                // unsubscribe from agent change events
+                scene.EventManager.OnMakeRootAgent -= OnMakeRootAgent;
+                scene.EventManager.OnMakeChildAgent -= OnMakeChildAgent;
+
+                if (m_scenes.Contains(scene))
+                {
+                    m_scenes.Remove(scene);
+                }
+
+                if (m_conciergedScenes.Contains(scene))
+                {
+                    m_conciergedScenes.Remove(scene);
+                }
+            }
+            m_log.InfoFormat("[Concierge]: removed {0}", scene.RegionInfo.RegionName);
+        }
+
         public override void PostInitialise()
         {
         }
@@ -181,12 +219,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         {
             get { return "ConciergeModule"; }
         }
-
-        public override bool IsSharedModule
-        {
-            get { return true; }
-        }
-
         #endregion
 
         #region ISimChat Members
