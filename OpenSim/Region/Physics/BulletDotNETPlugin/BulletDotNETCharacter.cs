@@ -60,7 +60,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private btQuaternion m_bodyOrientation;
         private btDefaultMotionState m_bodyMotionState;
         private btGeneric6DofConstraint m_aMotor;
-        private PhysicsVector m_movementComparision;
+        // private PhysicsVector m_movementComparision;
         private PhysicsVector m_position;
         private PhysicsVector m_zeroPosition;
         private bool m_zeroFlag = false;
@@ -95,15 +95,15 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         public bool m_tainted_isPhysical = false; // set when the physical status is tainted (false=not existing in physics engine, true=existing)
         private float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes. 
         private bool m_taintRemove = false;
-        private bool m_taintedPosition = false;
-        private PhysicsVector m_taintedPosition_value;
+        // private bool m_taintedPosition = false;
+        // private PhysicsVector m_taintedPosition_value;
         private PhysicsVector m_taintedForce;
 
         private float m_buoyancy = 0f;
 
         // private CollisionLocker ode;
 
-        private string m_name = String.Empty;
+        // private string m_name = String.Empty;
 
         private bool[] m_colliderarr = new bool[11];
         private bool[] m_colliderGroundarr = new bool[11];
@@ -113,7 +113,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private BulletDotNETScene m_parent_scene;
 
         public int m_eventsubscription = 0;
-        private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
+        // private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
 
         public BulletDotNETCharacter(string avName, BulletDotNETScene parent_scene, PhysicsVector pos, PhysicsVector size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
         {
@@ -147,7 +147,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
             m_parent_scene.AddPhysicsActorTaint(this);
             
-            m_name = avName;
+            // m_name = avName;
             tempVector1 = new btVector3(0, 0, 0);
             tempVector2 = new btVector3(0, 0, 0);
             tempVector3 = new btVector3(0, 0, 0);
@@ -159,7 +159,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
             tempQuat1 = new btQuaternion(0, 0, 0, 1);
             tempTrans1 = new btTransform(tempQuat1, tempVector1);
-            m_movementComparision = new PhysicsVector(0, 0, 0);
+            // m_movementComparision = new PhysicsVector(0, 0, 0);
             m_CapsuleOrientationAxis = new btVector3(1, 0, 1);
             
             
@@ -327,9 +327,9 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             get { return m_position; }
             set
             {
-                m_taintedPosition_value = value;
+                // m_taintedPosition_value = value;
                 m_position = value;
-                m_taintedPosition = true;
+                // m_taintedPosition = true;
             }
         }
 
@@ -772,7 +772,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
                     tempQuat1 = new btQuaternion(0, 0, 0, 1);
                     tempTrans1 = new btTransform(tempQuat1, tempVector1);
-                    m_movementComparision = new PhysicsVector(0, 0, 0);
+                    // m_movementComparision = new PhysicsVector(0, 0, 0);
                     m_CapsuleOrientationAxis = new btVector3(1, 0, 1);
                 }
 
@@ -803,7 +803,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
                     tempQuat1 = new btQuaternion(0, 0, 0, 1);
                     tempTrans1 = new btTransform(tempQuat1, tempVector1);
-                    m_movementComparision = new PhysicsVector(0, 0, 0);
+                    // m_movementComparision = new PhysicsVector(0, 0, 0);
                     m_CapsuleOrientationAxis = new btVector3(1, 0, 1);
 
                     AvatarGeomAndBodyCreation(m_position.X, m_position.Y,

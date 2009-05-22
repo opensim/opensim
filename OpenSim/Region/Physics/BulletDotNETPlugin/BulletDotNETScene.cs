@@ -44,7 +44,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_sceneIdentifier = string.Empty;
+        // private string m_sceneIdentifier = string.Empty;
         
         private List<BulletDotNETCharacter> m_characters = new List<BulletDotNETCharacter>();
         private List<BulletDotNETPrim> m_prims = new List<BulletDotNETPrim>();
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private float avMovementDivisorWalk = 1.8f;
         private float avMovementDivisorRun = 0.8f;
 
-        private float minimumGroundFlightOffset = 3f;
+        // private float minimumGroundFlightOffset = 3f;
 
         public bool meshSculptedPrim = true;
 
@@ -98,7 +98,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private float[] _origheightmap;    // Used for Fly height. Kitto Flora
         private bool usingGImpactAlgorithm = false;
 
-        private IConfigSource m_config;
+        // private IConfigSource m_config;
         private readonly btVector3 worldAabbMin = new btVector3(-10f, -10f, 0);
         private readonly btVector3 worldAabbMax = new btVector3((int)Constants.RegionSize + 10f, (int)Constants.RegionSize + 10f, 9000);
 
@@ -107,7 +107,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         public BulletDotNETScene(string sceneIdentifier)
         {
-            m_sceneIdentifier = sceneIdentifier;
+            // m_sceneIdentifier = sceneIdentifier;
             VectorZero = new btVector3(0, 0, 0);
             QuatIdentity = new btQuaternion(0, 0, 0, 1);
             TransZero = new btTransform(QuatIdentity, VectorZero);
@@ -119,7 +119,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
             mesher = meshmerizer;
-            m_config = config;
+            // m_config = config;
             /*
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {

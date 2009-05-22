@@ -1038,7 +1038,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 if (p2.PhysicsActorType == (int)ActorTypes.Prim && p1.PhysicsActorType == (int)ActorTypes.Prim)
                                 {
                                     // prim prim contact
-                                    int pj294950 = 0;
+                                    // int pj294950 = 0;
                                     int movintYN = 0;
                                     // prim terrain contact
                                     if (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f)

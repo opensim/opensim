@@ -46,42 +46,42 @@ namespace PrimMesher
 
         public enum SculptType { sphere = 1, torus = 2, plane = 3, cylinder = 4 };
 
-        private Bitmap ScaleImage(Bitmap srcImage, float scale)
-        {
-            int sourceWidth = srcImage.Width;
-            int sourceHeight = srcImage.Height;
-            int sourceX = 0;
-            int sourceY = 0;
+        // private Bitmap ScaleImage(Bitmap srcImage, float scale)
+        // {
+        //     int sourceWidth = srcImage.Width;
+        //     int sourceHeight = srcImage.Height;
+        //     int sourceX = 0;
+        //     int sourceY = 0;
 
-            int destX = 0;
-            int destY = 0;
-            int destWidth = (int)(srcImage.Width * scale);
-            int destHeight = (int)(srcImage.Height * scale);
+        //     int destX = 0;
+        //     int destY = 0;
+        //     int destWidth = (int)(srcImage.Width * scale);
+        //     int destHeight = (int)(srcImage.Height * scale);
 
-            if (srcImage.PixelFormat == PixelFormat.Format32bppArgb)
-                for (int y = 0; y < srcImage.Height; y++)
-                    for (int x = 0; x < srcImage.Width; x++)
-                    {
-                        Color c = srcImage.GetPixel(x, y);
-                        srcImage.SetPixel(x, y, Color.FromArgb(255, c.R, c.G, c.B));
-                    }
+        //     if (srcImage.PixelFormat == PixelFormat.Format32bppArgb)
+        //         for (int y = 0; y < srcImage.Height; y++)
+        //             for (int x = 0; x < srcImage.Width; x++)
+        //             {
+        //                 Color c = srcImage.GetPixel(x, y);
+        //                 srcImage.SetPixel(x, y, Color.FromArgb(255, c.R, c.G, c.B));
+        //             }
 
-            Bitmap scaledImage = new Bitmap(destWidth, destHeight,
-                                     PixelFormat.Format24bppRgb);
+        //     Bitmap scaledImage = new Bitmap(destWidth, destHeight,
+        //                              PixelFormat.Format24bppRgb);
 
-            scaledImage.SetResolution(96.0f, 96.0f);
+        //     scaledImage.SetResolution(96.0f, 96.0f);
 
-            Graphics grPhoto = Graphics.FromImage(scaledImage);
-            grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
+        //     Graphics grPhoto = Graphics.FromImage(scaledImage);
+        //     grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
 
-            grPhoto.DrawImage(srcImage,
-                new Rectangle(destX, destY, destWidth, destHeight),
-                new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight),
-                GraphicsUnit.Pixel);
+        //     grPhoto.DrawImage(srcImage,
+        //         new Rectangle(destX, destY, destWidth, destHeight),
+        //         new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight),
+        //         GraphicsUnit.Pixel);
 
-            grPhoto.Dispose();
-            return scaledImage;
-        }
+        //     grPhoto.Dispose();
+        //     return scaledImage;
+        // }
 
         public SculptMesh SculptMeshFromFile(string fileName, SculptType sculptType, int lod, bool viewerMode)
         {
@@ -283,7 +283,7 @@ namespace PrimMesher
             viewerFaces = new List<ViewerFace>();
 
             int width = sculptBitmap.Width / scale;
-            int height = sculptBitmap.Height / scale;
+            // int height = sculptBitmap.Height / scale;
 
             int p1, p2, p3, p4;
 

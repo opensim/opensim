@@ -305,7 +305,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 Primitive.TextureEntry tmptex = part.Shape.Textures;
 
                 // remove the old asset from the cache
-                UUID oldID = tmptex.DefaultTexture.TextureID;
+                // UUID oldID = tmptex.DefaultTexture.TextureID;
                 
                 tmptex.DefaultTexture.TextureID = asset.FullID;
                 // I'm pretty sure we always want to force this to true

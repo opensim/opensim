@@ -50,39 +50,39 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         private int frcount = 0;
-        private float frmod = 3.0f;
+        // private float frmod = 3.0f;
 
         private Vehicle m_type = Vehicle.TYPE_NONE;
-        private OdeScene m_parentScene = null;
+        // private OdeScene m_parentScene = null;
         private IntPtr m_body = IntPtr.Zero;
         private IntPtr m_jointGroup = IntPtr.Zero;
         private IntPtr m_aMotor = IntPtr.Zero;
         private IntPtr m_lMotor1 = IntPtr.Zero;
-        private IntPtr m_lMotor2 = IntPtr.Zero;
-        private IntPtr m_lMotor3 = IntPtr.Zero;
+        // private IntPtr m_lMotor2 = IntPtr.Zero;
+        // private IntPtr m_lMotor3 = IntPtr.Zero;
 
         // Vehicle properties
-        private Quaternion m_referenceFrame = Quaternion.Identity;
+        // private Quaternion m_referenceFrame = Quaternion.Identity;
         private Vector3 m_angularFrictionTimescale = Vector3.Zero;
         private Vector3 m_angularMotorDirection = Vector3.Zero;
         private Vector3 m_angularMotorDirectionLASTSET = Vector3.Zero;
         private Vector3 m_linearFrictionTimescale = Vector3.Zero;
         private Vector3 m_linearMotorDirection = Vector3.Zero;
         private Vector3 m_linearMotorDirectionLASTSET = Vector3.Zero;
-        private Vector3 m_linearMotorOffset = Vector3.Zero;
-        private float m_angularDeflectionEfficiency = 0;
-        private float m_angularDeflectionTimescale = 0;
+        // private Vector3 m_linearMotorOffset = Vector3.Zero;
+        // private float m_angularDeflectionEfficiency = 0;
+        // private float m_angularDeflectionTimescale = 0;
         private float m_angularMotorDecayTimescale = 0;
         private float m_angularMotorTimescale = 0;
-        private float m_bankingEfficiency = 0;
-        private float m_bankingMix = 0;
-        private float m_bankingTimescale = 0;
-        private float m_buoyancy = 0;
-        private float m_hoverHeight = 0;
-        private float m_hoverEfficiency = 0;
-        private float m_hoverTimescale = 0;
-        private float m_linearDeflectionEfficiency = 0;
-        private float m_linearDeflectionTimescale = 0;
+        // private float m_bankingEfficiency = 0;
+        // private float m_bankingMix = 0;
+        // private float m_bankingTimescale = 0;
+        // private float m_buoyancy = 0;
+        // private float m_hoverHeight = 0;
+        // private float m_hoverEfficiency = 0;
+        // private float m_hoverTimescale = 0;
+        // private float m_linearDeflectionEfficiency = 0;
+        // private float m_linearDeflectionTimescale = 0;
         private float m_linearMotorDecayTimescale = 0;
         private float m_linearMotorTimescale = 0;
         private float m_verticalAttractionEfficiency = 0;
@@ -91,7 +91,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 m_lastAngularVelocityVector = Vector3.Zero;
         private VehicleFlag m_flags = (VehicleFlag) 0;
 
-        private bool m_LinearMotorSetLastFrame = false;
+        // private bool m_LinearMotorSetLastFrame = false;
         
 
 
@@ -102,11 +102,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 case Vehicle.ANGULAR_DEFLECTION_EFFICIENCY:
                     if (pValue < 0.01f) pValue = 0.01f;
-                    m_angularDeflectionEfficiency = pValue;
+                    // m_angularDeflectionEfficiency = pValue;
                     break;
                 case Vehicle.ANGULAR_DEFLECTION_TIMESCALE:
                     if (pValue < 0.01f) pValue = 0.01f;
-                    m_angularDeflectionTimescale = pValue;
+                    // m_angularDeflectionTimescale = pValue;
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
                     if (pValue < 0.01f) pValue = 0.01f;
@@ -118,36 +118,36 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
                 case Vehicle.BANKING_EFFICIENCY:
                     if (pValue < 0.01f) pValue = 0.01f;
-                    m_bankingEfficiency = pValue;
+                    // m_bankingEfficiency = pValue;
                     break;
                 case Vehicle.BANKING_MIX:
                     if (pValue < 0.01f) pValue = 0.01f;
-                    m_bankingMix = pValue;
+                    // m_bankingMix = pValue;
                     break;
                 case Vehicle.BANKING_TIMESCALE:
                     if (pValue < 0.01f) pValue = 0.01f;
-                    m_bankingTimescale = pValue;
+                    // m_bankingTimescale = pValue;
                     break;
                 case Vehicle.BUOYANCY:
-                    m_buoyancy = pValue;
+                    // m_buoyancy = pValue;
                     break;
                 case Vehicle.HOVER_EFFICIENCY:
-                    m_hoverEfficiency = pValue;
+                    // m_hoverEfficiency = pValue;
                     break;
                 case Vehicle.HOVER_HEIGHT:
-                    m_hoverHeight = pValue;
+                    // m_hoverHeight = pValue;
                     break;
                 case Vehicle.HOVER_TIMESCALE:
                     if (pValue < 0.01f) pValue = 0.01f;
-                    m_hoverTimescale = pValue;
+                    // m_hoverTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_DEFLECTION_EFFICIENCY:
                     if (pValue < 0.01f) pValue = 0.01f;
-                    m_linearDeflectionEfficiency = pValue;
+                    // m_linearDeflectionEfficiency = pValue;
                     break;
                 case Vehicle.LINEAR_DEFLECTION_TIMESCALE:
                     if (pValue < 0.01f) pValue = 0.01f;
-                    m_linearDeflectionTimescale = pValue;
+                    // m_linearDeflectionTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
                     if (pValue < 0.01f) pValue = 0.01f;
@@ -183,7 +183,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearMotorDirectionLASTSET = new Vector3(pValue, pValue, pValue);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
-                    m_linearMotorOffset = new Vector3(pValue, pValue, pValue);
+                    // m_linearMotorOffset = new Vector3(pValue, pValue, pValue);
                     break;
 
             }
@@ -209,7 +209,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearMotorDirectionLASTSET = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
-                    m_linearMotorOffset = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    // m_linearMotorOffset = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
             }
             Reset();
@@ -220,7 +220,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             switch (pParam)
             {
                 case Vehicle.REFERENCE_FRAME:
-                    m_referenceFrame = pValue;
+                    // m_referenceFrame = pValue;
                     break;
             }
             Reset();
@@ -265,7 +265,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
 
             m_body = pBody;
-            m_parentScene = pParentScene;
+            // m_parentScene = pParentScene;
             if (m_jointGroup == IntPtr.Zero)
                 m_jointGroup = d.JointGroupCreate(3);
             
@@ -341,18 +341,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularMotorDirection = Vector3.Zero;
                     m_angularMotorTimescale = 1000;
                     m_angularMotorDecayTimescale = 120;
-                    m_hoverHeight = 0;
-                    m_hoverEfficiency = 10;
-                    m_hoverTimescale = 10;
-                    m_buoyancy = 0;
-                    m_linearDeflectionEfficiency = 1;
-                    m_linearDeflectionTimescale = 1;
-                    m_angularDeflectionEfficiency = 1;
-                    m_angularDeflectionTimescale = 1000;
-                    m_bankingEfficiency = 0;
-                    m_bankingMix = 1;
-                    m_bankingTimescale = 10;
-                    m_referenceFrame = Quaternion.Identity;
+                    // m_hoverHeight = 0;
+                    // m_hoverEfficiency = 10;
+                    // m_hoverTimescale = 10;
+                    // m_buoyancy = 0;
+                    // m_linearDeflectionEfficiency = 1;
+                    // m_linearDeflectionTimescale = 1;
+                    // m_angularDeflectionEfficiency = 1;
+                    // m_angularDeflectionTimescale = 1000;
+                    // m_bankingEfficiency = 0;
+                    // m_bankingMix = 1;
+                    // m_bankingTimescale = 10;
+                    // m_referenceFrame = Quaternion.Identity;
                     m_flags &=
                         ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY |
                           VehicleFlag.HOVER_GLOBAL_HEIGHT | VehicleFlag.HOVER_UP_ONLY);
@@ -367,20 +367,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularMotorDirection = Vector3.Zero;
                     m_angularMotorTimescale = 1;
                     m_angularMotorDecayTimescale = 0.8f;
-                    m_hoverHeight = 0;
-                    m_hoverEfficiency = 0;
-                    m_hoverTimescale = 1000;
-                    m_buoyancy = 0;
-                    m_linearDeflectionEfficiency = 1;
-                    m_linearDeflectionTimescale = 2;
-                    m_angularDeflectionEfficiency = 0;
-                    m_angularDeflectionTimescale = 10;
+                    // m_hoverHeight = 0;
+                    // // m_hoverEfficiency = 0;
+                    // // m_hoverTimescale = 1000;
+                    // // m_buoyancy = 0;
+                    // // m_linearDeflectionEfficiency = 1;
+                    // // m_linearDeflectionTimescale = 2;
+                    // // m_angularDeflectionEfficiency = 0;
+                    // m_angularDeflectionTimescale = 10;
                     m_verticalAttractionEfficiency = 1;
                     m_verticalAttractionTimescale = 10;
-                    m_bankingEfficiency = -0.2f;
-                    m_bankingMix = 1;
-                    m_bankingTimescale = 1;
-                    m_referenceFrame = Quaternion.Identity;
+                    // m_bankingEfficiency = -0.2f;
+                    // m_bankingMix = 1;
+                    // m_bankingTimescale = 1;
+                    // m_referenceFrame = Quaternion.Identity;
                     m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT);
                     m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.LIMIT_ROLL_ONLY | VehicleFlag.HOVER_UP_ONLY |
                                 VehicleFlag.LIMIT_MOTOR_UP);
@@ -394,20 +394,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularMotorDirection = Vector3.Zero;
                     m_angularMotorTimescale = 4;
                     m_angularMotorDecayTimescale = 4;
-                    m_hoverHeight = 0;
-                    m_hoverEfficiency = 0.5f;
-                    m_hoverTimescale = 2;
-                    m_buoyancy = 1;
-                    m_linearDeflectionEfficiency = 0.5f;
-                    m_linearDeflectionTimescale = 3;
-                    m_angularDeflectionEfficiency = 0.5f;
-                    m_angularDeflectionTimescale = 5;
+                    // m_hoverHeight = 0;
+                    // m_hoverEfficiency = 0.5f;
+                    // m_hoverTimescale = 2;
+                    // m_buoyancy = 1;
+                    // m_linearDeflectionEfficiency = 0.5f;
+                    // m_linearDeflectionTimescale = 3;
+                    // m_angularDeflectionEfficiency = 0.5f;
+                    // m_angularDeflectionTimescale = 5;
                     m_verticalAttractionEfficiency = 0.5f;
                     m_verticalAttractionTimescale = 5;
-                    m_bankingEfficiency = -0.3f;
-                    m_bankingMix = 0.8f;
-                    m_bankingTimescale = 1;
-                    m_referenceFrame = Quaternion.Identity;
+                    // m_bankingEfficiency = -0.3f;
+                    // m_bankingMix = 0.8f;
+                    // m_bankingTimescale = 1;
+                    // m_referenceFrame = Quaternion.Identity;
                     m_flags &= ~( VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.LIMIT_ROLL_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT);
                     m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_UP_ONLY |
                                 VehicleFlag.LIMIT_MOTOR_UP);
@@ -421,20 +421,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularMotorDirection = Vector3.Zero;
                     m_angularMotorTimescale = 4;
                     m_angularMotorDecayTimescale = 4;
-                    m_hoverHeight = 0;
-                    m_hoverEfficiency = 0.5f;
-                    m_hoverTimescale = 1000;
-                    m_buoyancy = 0;
-                    m_linearDeflectionEfficiency = 0.5f;
-                    m_linearDeflectionTimescale = 3;
-                    m_angularDeflectionEfficiency = 1;
-                    m_angularDeflectionTimescale = 2;
+                    // m_hoverHeight = 0;
+                    // m_hoverEfficiency = 0.5f;
+                    // m_hoverTimescale = 1000;
+                    // m_buoyancy = 0;
+                    // m_linearDeflectionEfficiency = 0.5f;
+                    // m_linearDeflectionTimescale = 3;
+                    // m_angularDeflectionEfficiency = 1;
+                    // m_angularDeflectionTimescale = 2;
                     m_verticalAttractionEfficiency = 0.9f;
                     m_verticalAttractionTimescale = 2;
-                    m_bankingEfficiency = 1;
-                    m_bankingMix = 0.7f;
-                    m_bankingTimescale = 2;
-                    m_referenceFrame = Quaternion.Identity;
+                    // m_bankingEfficiency = 1;
+                    // m_bankingMix = 0.7f;
+                    // m_bankingTimescale = 2;
+                    // m_referenceFrame = Quaternion.Identity;
                     m_flags &= ~(VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY |
                         VehicleFlag.HOVER_GLOBAL_HEIGHT | VehicleFlag.HOVER_UP_ONLY | VehicleFlag.LIMIT_MOTOR_UP);
                     m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY);
@@ -448,20 +448,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularMotorDirection = Vector3.Zero;
                     m_angularMotorTimescale = 6;
                     m_angularMotorDecayTimescale = 10;
-                    m_hoverHeight = 5;
-                    m_hoverEfficiency = 0.8f;
-                    m_hoverTimescale = 10;
-                    m_buoyancy = 1;
-                    m_linearDeflectionEfficiency = 0;
-                    m_linearDeflectionTimescale = 5;
-                    m_angularDeflectionEfficiency = 0;
-                    m_angularDeflectionTimescale = 5;
+                    // m_hoverHeight = 5;
+                    // m_hoverEfficiency = 0.8f;
+                    // m_hoverTimescale = 10;
+                    // m_buoyancy = 1;
+                    // m_linearDeflectionEfficiency = 0;
+                    // m_linearDeflectionTimescale = 5;
+                    // m_angularDeflectionEfficiency = 0;
+                    // m_angularDeflectionTimescale = 5;
                     m_verticalAttractionEfficiency = 1;
                     m_verticalAttractionTimescale = 1000;
-                    m_bankingEfficiency = 0;
-                    m_bankingMix = 0.7f;
-                    m_bankingTimescale = 5;
-                    m_referenceFrame = Quaternion.Identity;
+                    // m_bankingEfficiency = 0;
+                    // m_bankingMix = 0.7f;
+                    // m_bankingTimescale = 5;
+                    // m_referenceFrame = Quaternion.Identity;
                     m_flags = (VehicleFlag)0;
                     break;
 

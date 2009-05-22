@@ -79,7 +79,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
         /// </summary>
         private Dictionary<ulong, Scene> m_scenel = new Dictionary<ulong, Scene>();
 
-        private int m_stipend = 1000;
+        // private int m_stipend = 1000;
 
         private int ObjectCapacity = 45000;
         private int ObjectCount = 0;
@@ -471,8 +471,8 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
 
         public XmlRpcResponse quote_func(XmlRpcRequest request)
         {
-            Hashtable requestData = (Hashtable) request.Params[0];
-            UUID agentId = UUID.Zero;
+            // Hashtable requestData = (Hashtable) request.Params[0];
+            // UUID agentId = UUID.Zero;
             int amount = 0;
             Hashtable quoteResponse = new Hashtable();
             XmlRpcResponse returnval = new XmlRpcResponse();
@@ -495,9 +495,9 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
 
         public XmlRpcResponse buy_func(XmlRpcRequest request)
         {
-            Hashtable requestData = (Hashtable) request.Params[0];
-            UUID agentId = UUID.Zero;
-            int amount = 0;
+            // Hashtable requestData = (Hashtable) request.Params[0];
+            // UUID agentId = UUID.Zero;
+            // int amount = 0;
            
             XmlRpcResponse returnval = new XmlRpcResponse();
             Hashtable returnresp = new Hashtable();
@@ -545,10 +545,10 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
         {
             XmlRpcResponse ret = new XmlRpcResponse();
             Hashtable retparam = new Hashtable();
-            Hashtable requestData = (Hashtable) request.Params[0];
+            // Hashtable requestData = (Hashtable) request.Params[0];
 
-            UUID agentId = UUID.Zero;
-            int amount = 0;
+            // UUID agentId = UUID.Zero;
+            // int amount = 0;
            
             retparam.Add("success", true);
             ret.Value = retparam;
@@ -581,10 +581,10 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
             return returnfunds;
         }
 
-        private void SetLocalFundsForAgentID(UUID AgentID, int amount)
-        {
+        // private void SetLocalFundsForAgentID(UUID AgentID, int amount)
+        // {
             
-        }
+        // }
 
         #endregion
 

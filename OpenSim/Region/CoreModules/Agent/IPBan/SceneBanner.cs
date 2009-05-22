@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -38,13 +38,13 @@ namespace OpenSim.Region.CoreModules.Agent.IPBan
                     = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private List<string> bans;
-        private SceneBase m_scene;
+        // private SceneBase m_scene;
         public SceneBanner(SceneBase scene, List<string> banList)
         {
             scene.EventManager.OnClientConnect += EventManager_OnClientConnect;
 
             bans = banList;
-            m_scene = scene;
+            // m_scene = scene;
         }
 
         void EventManager_OnClientConnect(IClientCore client)

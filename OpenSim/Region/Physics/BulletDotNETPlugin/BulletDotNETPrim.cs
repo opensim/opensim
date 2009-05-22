@@ -62,7 +62,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private Quaternion m_taintrot;
         private PhysicsVector m_angularlock = new PhysicsVector(1f, 1f, 1f);
         private PhysicsVector m_taintAngularLock = new PhysicsVector(1f, 1f, 1f);
-        private btGeneric6DofConstraint Amotor;
+        // private btGeneric6DofConstraint Amotor;
 
         private PhysicsVector m_PIDTarget = new PhysicsVector(0, 0, 0);
         private float m_PIDTau = 0f;
@@ -75,8 +75,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private float m_waterHeight = 0f;
         private float PID_D = 35f;
         private float PID_G = 25f;
-        private float m_tensor = 5f;
-        private int body_autodisable_frames = 20;
+        // private float m_tensor = 5f;
+        // private int body_autodisable_frames = 20;
         private IMesh primMesh = null;
 
         private bool m_usePID = false;
@@ -90,15 +90,15 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         private bool m_taintshape = false;
         private bool m_taintPhysics = false;
-        private bool m_collidesLand = true;
+        // private bool m_collidesLand = true;
         private bool m_collidesWater = false;
         public bool m_returnCollisions = false;
 
         // Default we're a Geometry
-        private CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
+        // private CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
 
         // Default, Collide with Other Geometries, spaces and Bodies
-        private CollisionCategories m_collisionFlags = m_default_collisionFlags;
+        // private CollisionCategories m_collisionFlags = m_default_collisionFlags;
 
         public bool m_taintremove = false;
         public bool m_taintdisable = false;
@@ -110,7 +110,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         public uint m_localID = 0;
 
         //public GCHandle gc;
-        private CollisionLocker ode;
+        // private CollisionLocker ode;
 
         private bool m_taintforce = false;
         private bool m_taintaddangularforce = false;
@@ -136,7 +136,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         internal bool m_isVolumeDetect = false; // If true, this prim only detects collisions but doesn't collide actively
 
         private bool m_throttleUpdates = false;
-        private int throttleCounter = 0;
+        // private int throttleCounter = 0;
         public int m_interpenetrationcount = 0;
         public float m_collisionscore = 0;
         public int m_roundsUnderMotionThreshold = 0;
@@ -155,7 +155,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private PhysicsVector _target_velocity;
 
         public int m_eventsubscription = 0;
-        private CollisionEventUpdate CollisionEventsThisFrame = null;
+        // private CollisionEventUpdate CollisionEventsThisFrame = null;
 
         public volatile bool childPrim = false;
 
@@ -226,8 +226,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             PID_D = parent_scene.bodyPIDD;
             PID_G = parent_scene.bodyPIDG;
             m_density = parent_scene.geomDefaultDensity;
-            m_tensor = parent_scene.bodyMotorJointMaxforceTensor;
-            body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
+            // m_tensor = parent_scene.bodyMotorJointMaxforceTensor;
+            // body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
 
             prim_geom = null;
             Body = null;
@@ -2146,7 +2146,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             }
             else
             {
-                bool hasTrimesh = false;
+                // bool hasTrimesh = false;
                 lock (childrenPrim)
                 {
                     foreach (BulletDotNETPrim chld in childrenPrim)
@@ -2154,8 +2154,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                         if (chld == null)
                             continue;
                         
-                        if (chld.NeedsMeshing())
-                            hasTrimesh = true;
+                        // if (chld.NeedsMeshing())
+                        //     hasTrimesh = true;
                     }
                 }
 
@@ -2517,7 +2517,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                             base.RequestPhysicsterseUpdate();
 
                         m_throttleUpdates = false;
-                        throttleCounter = 0;
+                        // throttleCounter = 0;
                         _zeroFlag = true;
                         //outofBounds = true;
                     }
@@ -2556,7 +2556,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                         if (!m_lastUpdateSent)
                         {
                             m_throttleUpdates = false;
-                            throttleCounter = 0;
+                            // throttleCounter = 0;
                             m_rotationalVelocity = pv;
 
                             if (_parent == null)

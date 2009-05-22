@@ -66,7 +66,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IntPtr Amotor = IntPtr.Zero;
 
         private PhysicsVector m_PIDTarget = new PhysicsVector(0, 0, 0);
-        private PhysicsVector m_taintPIDTarget = new PhysicsVector(0, 0, 0);
+        // private PhysicsVector m_taintPIDTarget = new PhysicsVector(0, 0, 0);
         private float m_PIDTau = 0f;
         private float PID_D = 35f;
         private float PID_G = 25f;
@@ -80,7 +80,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_groundHeight = 0f;
         private float m_waterHeight = 0f;
 
-        private float m_tensor = 5f;
+        // private float m_tensor = 5f;
         private int body_autodisable_frames = 20;
         private IMesh primMesh = null;
 
@@ -189,7 +189,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             PID_D = parent_scene.bodyPIDD;
             PID_G = parent_scene.bodyPIDG;
             m_density = parent_scene.geomDefaultDensity;
-            m_tensor = parent_scene.bodyMotorJointMaxforceTensor;
+            // m_tensor = parent_scene.bodyMotorJointMaxforceTensor;
             body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
 
 
@@ -2746,10 +2746,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             axisnum = (axisnum - (axis.X + axis.Y + axis.Z));
 
-            PhysicsVector totalSize = new PhysicsVector(_size.X, _size.Y, _size.Z);
+            // PhysicsVector totalSize = new PhysicsVector(_size.X, _size.Y, _size.Z);
 
-            
-            
             
             // Inverse Inertia Matrix, set the X, Y, and/r Z inertia to 0 then invert it again.
             d.Mass objMass;
@@ -2807,7 +2805,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (axisnum <= 0)
                 return;
-            int dAMotorEuler = 1;
+            // int dAMotorEuler = 1;
 
             Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
             d.JointAttach(Amotor, Body, IntPtr.Zero);

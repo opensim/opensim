@@ -84,7 +84,7 @@ namespace OpenSim.Services.Base
 
                 return null;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }

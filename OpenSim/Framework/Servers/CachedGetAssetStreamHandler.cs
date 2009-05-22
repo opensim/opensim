@@ -33,7 +33,7 @@ namespace OpenSim.Framework.Servers
 {
     public class CachedGetAssetStreamHandler : BaseGetAssetStreamHandler
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private readonly IAssetCache m_assetProvider;
 

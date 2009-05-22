@@ -45,7 +45,7 @@ namespace OpenSim.Framework.Servers
 {
     public class GetAssetStreamHandler : BaseGetAssetStreamHandler
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private readonly IAssetDataPlugin m_assetProvider;
 

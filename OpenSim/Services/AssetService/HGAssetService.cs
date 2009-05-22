@@ -49,7 +49,7 @@ namespace OpenSim.Services.AssetService
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("AssetServices", "");
+                // string name = moduleConfig.GetString("AssetServices", "");
 
                 IConfig assetConfig = source.Configs["AssetService"];
                 if (assetConfig == null)

@@ -44,9 +44,7 @@ namespace OpenSim.Server.Handlers.Asset
 {
     public class AssetServerGetHandler : BaseStreamHandler
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAssetService m_AssetService;
 

@@ -48,7 +48,8 @@ namespace OpenSim.Framework.Servers.HttpServer.Tests
         [Test]
         public void TestConstructor()
         {
-            BaseRequestHandlerImpl handler = new BaseRequestHandlerImpl( null, null );
+            // BaseRequestHandlerImpl handler = 
+            new BaseRequestHandlerImpl( null, null );
         }
 
         [Test]

@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Console
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly object m_syncRoot = new object();
+        // private readonly object m_syncRoot = new object();
 
         private int y = -1;
         private int cp = 0;
