@@ -1221,48 +1221,20 @@
 	;FullUpdateRate=14
 
     ;PacketMTU = 1400
-
-    ; The following is the configuration section for the new style grid servers
-    ; If you don't know what this is, don't enable it. It will eat your data,
-    ; format your hard drive and make all meat in your fridge spoil.
-    ; You have been warned.
-    ; Some of this is starting to work!
-[Modules]
-    ; Choose one 
-    AssetServices = "LocalAssetServicesConnector"
-    ;AssetServices = "RemoteAssetServicesConnector"
-    ;AssetServices = "HGAssetBroker"
-
-	; Leave this commented out, the cache is under investigation
-    ;AssetCache = "CoreAssetCache"
-
-    ; Choose one
-    ;UserServices = "LocalUserServicesConnector"
-    ;UserServices = "RemoteUserServicesConnector"
-
-
-[AssetService]
-    ; Parameters for local assets, formerly known as "standalone"
-    LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
-    StorageProvider = "OpenSim.Data.SQLite.dll"
-    ;StorageProvider = "OpenSim.Data.MySQL.dll"
-    ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim;"
-    DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
-    AssetLoaderArgs = "assets/AssetSets.xml"
-
-    ; Parameters for remote assets, formerly known as "grid"
-    ;AssetServerURI = "http://localhost:8003/"
-
-    ; Paremeters for the Hypergrid connector
     
-    ;; Parameters for the HG Broker
-    ; Use this one if you have a standalone grid
-    LocalGridAssetService = "OpenSim.Services.AssetService.dll:AssetService"
-    ; Use this one if this sim is connected to a grid-wide asset server
-    ;LocalGridAssetService = "OpenSim.Services.Connectors.dll:AssetServiceConnector"
-    HypergridAssetService = "OpenSim.Services.AssetService.dll:HGAssetService"
 
-[AssetCache]
-    ; Number of buckets for assets
-    ;CacheBuckets = 32768
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; The following is the configuration section for the new style services
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[Architecture]
+	; Choose exactly one and only one of the architectures below.
+	
+	Include-Standalone    = "config-include/Standalone.ini"
+	;Include-HGStandalone = "config-include/StandaloneHypergrid.ini"
+	;Include-Grid         = "config-include/Grid.ini"
+	;Include-Hypergrid    = "config-include/GridHypergrid.ini"
 
+	; Then edit 
+	; config-include/StandaloneCommon.ini (if you're in standlone) OR
+	; config-include/GridCommon.ini (if you're connected to a grid)
+	; to customize your data
