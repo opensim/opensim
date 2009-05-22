@@ -71,7 +71,7 @@ namespace OpenSim.Region.CoreModules.Agent.IPBan
                             }
                         }
                     }
-                    catch (System.Net.Sockets.SocketException sex)
+                    catch (System.Net.Sockets.SocketException)
                     {
                         m_log.WarnFormat("[IPBAN] IP address \"{0}\" cannot be resolved via DNS", end);
                     }
