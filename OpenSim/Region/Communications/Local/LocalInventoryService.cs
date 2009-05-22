@@ -48,42 +48,48 @@ namespace OpenSim.Region.Communications.Local
         {
             m_log.InfoFormat("[LOCAL INVENTORY SERVICE]: Requesting inventory for user {0}", userID);
 
-            List<InventoryFolderBase> skeletonFolders = GetInventorySkeleton(userID);
-            if (skeletonFolders == null)
-                return;
-
-            InventoryFolderImpl rootFolder = null;
-
             List<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
             List<InventoryItemBase> items = new List<InventoryItemBase>();
 
-            // Need to retrieve the root folder on the first pass
-            foreach (InventoryFolderBase folder in skeletonFolders)
-            {
-                if (folder.ParentID == UUID.Zero)
-                {
-                    rootFolder = new InventoryFolderImpl(folder);
-                    folders.Add(rootFolder);
-                    items.AddRange(RequestFolderItems(rootFolder.ID));
-                    break; // Only 1 root folder per user
-                }
-            }
+            List<InventoryFolderBase> skeletonFolders = GetInventorySkeleton(userID);
 
-            if (rootFolder != null)
+            if (skeletonFolders != null)
             {
-                foreach (InventoryFolderBase folder in skeletonFolders)
-                {
-                    if (folder.ID != rootFolder.ID)
-                    {
-                        folders.Add(new InventoryFolderImpl(folder));
-                        items.AddRange(RequestFolderItems(folder.ID));
-                    }
-                }
-            }
+               
+				InventoryFolderImpl rootFolder = null;
 
-            m_log.InfoFormat(
-                "[LOCAL INVENTORY SERVICE]: Received inventory response for user {0} containing {1} folders and {2} items",
-                userID, folders.Count, items.Count);
+				// Need to retrieve the root folder on the first pass
+				foreach (InventoryFolderBase folder in skeletonFolders)
+				{
+					if (folder.ParentID == UUID.Zero)
+					{
+						rootFolder = new InventoryFolderImpl(folder);
+						folders.Add(rootFolder);
+						items.AddRange(RequestFolderItems(rootFolder.ID));
+						break; // Only 1 root folder per user
+					}
+				}
+
+				if (rootFolder != null)
+				{
+					foreach (InventoryFolderBase folder in skeletonFolders)
+					{
+						if (folder.ID != rootFolder.ID)
+						{
+							folders.Add(new InventoryFolderImpl(folder));
+							items.AddRange(RequestFolderItems(folder.ID));
+						}
+					}
+				}
+
+				m_log.InfoFormat(
+					"[LOCAL INVENTORY SERVICE]: Received inventory response for user {0} containing {1} folders and {2} items",
+					userID, folders.Count, items.Count);
+            }
+            else
+            {
+				m_log.WarnFormat( "[LOCAL INVENTORY SERVICE]: User {0} inventory not available", userID);
+            }
 
             callback(folders, items);
         }
