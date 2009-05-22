@@ -1512,6 +1512,18 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             return false;
         }
+
+        public void RemoveXmlRPCHandler(string method)
+        {
+            lock (m_rpcHandlers)
+            {
+                if (m_rpcHandlers.ContainsKey(method))
+                {
+                    m_rpcHandlers.Remove(method);
+                }
+            }
+        }
+
         
         public bool RemoveLLSDHandler(string path, LLSDMethod handler)
         {

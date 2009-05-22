@@ -118,6 +118,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         bool RemoveLLSDHandler(string path, LLSDMethod handler);
         
         void RemoveStreamHandler(string httpMethod, string path);
+
+        void RemoveXmlRPCHandler(string method);
         
         string GetHTTP404(string host);
 
