@@ -1234,7 +1234,8 @@
 	;Include-Grid         = "config-include/Grid.ini"
 	;Include-Hypergrid    = "config-include/GridHypergrid.ini"
 
-	; Then edit 
-	; config-include/StandaloneCommon.ini (if you're in standlone) OR
-	; config-include/GridCommon.ini (if you're connected to a grid)
+	; Then choose
+	; config-include/StandaloneCommon.ini.example (if you're in standlone) OR
+	; config-include/GridCommon.ini.example (if you're connected to a grid)
+	; Copy to your own .ini there (without .example extension) and edit it
 	; to customize your data
