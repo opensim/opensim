@@ -517,6 +517,20 @@ namespace OpenSim.Framework
             return null;
         }
 
+        public static Uri GetURI(string protocol, string hostname, int port, string path)
+        {
+            return new UriBuilder(protocol, hostname, port, path).Uri;
+        }
+
+        /// <summary>
+        /// Gets a list of all local system IP addresses
+        /// </summary>
+        /// <returns></returns>
+        public static IPAddress[] GetLocalHosts()
+        {
+            return Dns.GetHostAddresses(Dns.GetHostName());
+        }
+
         public static IPAddress GetLocalHost()
         {
             string dnsAddress = "localhost";
