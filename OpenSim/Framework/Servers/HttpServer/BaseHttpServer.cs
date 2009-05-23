@@ -755,7 +755,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     if (m_defaultLlsdHandler != null)
                     {
                         // LibOMV path
-                        llsdResponse = m_defaultLlsdHandler(llsdRequest);
+                        llsdResponse = m_defaultLlsdHandler(llsdRequest, request.RemoteIPEndPoint);
                     }
                     else
                     {

@@ -144,7 +144,7 @@ namespace OpenSim.Client.Linden
         /// <param name="user"></param>
         /// <param name="response"></param>
         /// <returns>true if the region was successfully contacted, false otherwise</returns>
-        protected override bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response)
+        protected override bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response, IPEndPoint remoteClient)
         {
             IPEndPoint endPoint = regionInfo.ExternalEndPoint;
             response.SimAddress = endPoint.Address.ToString();

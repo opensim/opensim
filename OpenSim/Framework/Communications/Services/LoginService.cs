@@ -256,7 +256,7 @@ namespace OpenSim.Framework.Communications.Services
                         logResponse.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID));
                         logResponse.StartLocation = startLocationRequest;
 
-                        if (CustomiseResponse(logResponse, userProfile, startLocationRequest))
+                        if (CustomiseResponse(logResponse, userProfile, startLocationRequest, remoteClient))
                         {
                             userProfile.LastLogin = userProfile.CurrentAgent.LoginTime;
                             CommitAgent(ref userProfile);
@@ -351,7 +351,7 @@ namespace OpenSim.Framework.Communications.Services
         /// </summary>
         /// <param name="request">The LLSD request</param>
         /// <returns>The response to send</returns>
-        public OSD LLSDLoginMethod(OSD request)
+        public OSD LLSDLoginMethod(OSD request, IPEndPoint remoteClient)
         {
             // Temporary fix
             m_loginMutex.WaitOne();
@@ -486,7 +486,7 @@ namespace OpenSim.Framework.Communications.Services
 
                         try
                         {
-                            CustomiseResponse(logResponse, userProfile, startLocationRequest);
+                            CustomiseResponse(logResponse, userProfile, startLocationRequest, remoteClient);
                         }
                         catch (Exception ex)
                         {
@@ -891,7 +891,7 @@ namespace OpenSim.Framework.Communications.Services
         /// <param name="theUser">The user profile</param>
         /// <param name="startLocationRequest">The requested start location</param>
         /// <returns>true on success, false if the region was not successfully told to expect a user connection</returns>
-        public bool CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
+        public bool CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest, IPEndPoint client)
         {
             // add active gestures to login-response
             AddActiveGestures(response, theUser);
@@ -984,7 +984,7 @@ namespace OpenSim.Framework.Communications.Services
                 response.StartLocation = "url";
             }
 
-            if ((regionInfo != null) && (PrepareLoginToRegion(regionInfo, theUser, response)))
+            if ((regionInfo != null) && (PrepareLoginToRegion(regionInfo, theUser, response, client)))
             {
                 return true;
             }
@@ -1015,13 +1015,13 @@ namespace OpenSim.Framework.Communications.Services
             theUser.CurrentAgent.Position = new Vector3(128, 128, 0);
             response.StartLocation = "safe";
 
-            return PrepareLoginToRegion(regionInfo, theUser, response);
+            return PrepareLoginToRegion(regionInfo, theUser, response, client);
         }
 
         protected abstract RegionInfo RequestClosestRegion(string region);
         protected abstract RegionInfo GetRegionInfo(ulong homeRegionHandle);
         protected abstract RegionInfo GetRegionInfo(UUID homeRegionId);
-        protected abstract bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response);
+        protected abstract bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response, IPEndPoint client);
 
         /// <summary>
         /// Add active gestures of the user to the login response.

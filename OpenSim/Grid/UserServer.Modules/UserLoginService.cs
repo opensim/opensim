@@ -246,9 +246,9 @@ namespace OpenSim.Grid.UserServer.Modules
             }
         }
 
-        protected override bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response)
+        protected override bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response, IPEndPoint remoteClient)
         {
-            return PrepareLoginToRegion(RegionProfileData.FromRegionInfo(regionInfo), user, response);
+            return PrepareLoginToRegion(RegionProfileData.FromRegionInfo(regionInfo), user, response, remoteClient);
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace OpenSim.Grid.UserServer.Modules
         /// <param name="user"></param>
         /// <param name="response"></param>
         /// <returns>true if the region was successfully contacted, false otherwise</returns>
-        private bool PrepareLoginToRegion(RegionProfileData regionInfo, UserProfileData user, LoginResponse response)
+        private bool PrepareLoginToRegion(RegionProfileData regionInfo, UserProfileData user, LoginResponse response, IPEndPoint remoteClient)
         {
             try
             {
