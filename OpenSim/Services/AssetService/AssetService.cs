@@ -66,7 +66,7 @@ namespace OpenSim.Services.AssetService
 
         public AssetBase Get(string id)
         {
-            m_log.DebugFormat("[ASSET SERVICE]: Get asset {0}", id);
+            //m_log.DebugFormat("[ASSET SERVICE]: Get asset {0}", id);
             UUID assetID;
 
             if (!UUID.TryParse(id, out assetID))
@@ -99,7 +99,7 @@ namespace OpenSim.Services.AssetService
 
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
-            //m_log.DebugFormat("[AssetService]: Got request for {0}", id);
+            //m_log.DebugFormat("[AssetService]: Get asset async {0}", id);
             
             UUID assetID;
 
@@ -117,6 +117,7 @@ namespace OpenSim.Services.AssetService
 
         public string Store(AssetBase asset)
         {
+            //m_log.DebugFormat("[ASSET SERVICE]: Store asset {0} {1}", asset.Name, asset.ID);
             m_Database.CreateAsset(asset);
 
             return asset.ID;

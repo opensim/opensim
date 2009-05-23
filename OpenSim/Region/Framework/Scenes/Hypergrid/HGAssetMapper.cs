@@ -97,7 +97,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             return false;
         }
 
-        private AssetBase FetchAsset(string url, UUID assetID, bool isTexture)
+        public AssetBase FetchAsset(string url, UUID assetID)
         {
             AssetBase asset = m_scene.AssetService.Get(url + "/" + assetID.ToString());
 
@@ -109,7 +109,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             return null;
         }
 
-        private bool PostAsset(string url, AssetBase asset)
+        public bool PostAsset(string url, AssetBase asset)
         {
             if (asset != null)
             {
@@ -129,7 +129,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                     }
                     catch
                     {
-                        m_log.Warn("[HGScene]: This won't work until Melanie kills a few more dragons");
+                        m_log.Warn("[HGScene]: Oops.");
                     }
 
                     m_scene.AssetService.Store(asset1);
@@ -153,86 +153,6 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             to.Temporary   = from.Temporary;
             to.Type        = from.Type;
 
-        }
-
-        private void _guardedAdd(Dictionary<UUID, bool> lst, UUID obj, bool val)
-        {
-            if (!lst.ContainsKey(obj))
-                lst.Add(obj, val);
-        }
-
-        private void SniffTextureUUIDs(Dictionary<UUID, bool> uuids, SceneObjectGroup sog)
-        {
-            try
-            {
-                _guardedAdd(uuids, sog.RootPart.Shape.Textures.DefaultTexture.TextureID, true);
-            }
-            catch (Exception) { }
-
-            foreach (Primitive.TextureEntryFace tface in sog.RootPart.Shape.Textures.FaceTextures)
-            {
-                try
-                {
-                    _guardedAdd(uuids, tface.TextureID, true);
-                }
-                catch (Exception) { }
-            }
-
-            foreach (SceneObjectPart sop in sog.Children.Values)
-            {
-                try
-                {
-                    _guardedAdd(uuids, sop.Shape.Textures.DefaultTexture.TextureID, true);
-                }
-                catch (Exception) { }
-                foreach (Primitive.TextureEntryFace tface in sop.Shape.Textures.FaceTextures)
-                {
-                    try
-                    {
-                        _guardedAdd(uuids, tface.TextureID, true);
-                    }
-                    catch (Exception) { }
-                }
-            }
-        }
-
-        private void SniffTaskInventoryUUIDs(Dictionary<UUID, bool> uuids, SceneObjectGroup sog)
-        {
-            TaskInventoryDictionary tinv = sog.RootPart.TaskInventory;
-
-            lock (tinv)
-            {
-                foreach (TaskInventoryItem titem in tinv.Values)
-                {
-                    uuids.Add(titem.AssetID, (InventoryType)titem.Type == InventoryType.Texture);
-                }
-            }
-        }
-
-        private Dictionary<UUID, bool> SniffUUIDs(AssetBase asset)
-        {
-            Dictionary<UUID, bool> uuids = new Dictionary<UUID, bool>();
-            if ((asset != null) && ((AssetType)asset.Type == AssetType.Object))
-            {
-                string ass_str = Utils.BytesToString(asset.Data);
-                SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(ass_str);
-
-                SniffTextureUUIDs(uuids, sog);
-
-                // We need to sniff further...
-                SniffTaskInventoryUUIDs(uuids, sog);
-            }
-
-            return uuids;
-        }
-
-        private Dictionary<UUID, bool> SniffUUIDs(UUID assetID)
-        {
-            //Dictionary<UUID, bool> uuids = new Dictionary<UUID, bool>();
-
-            AssetBase asset = m_scene.AssetService.Get(assetID.ToString());
-
-            return SniffUUIDs(asset);
         }
 
         private void Dump(Dictionary<UUID, bool> lst)
@@ -259,16 +179,18 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                 if (userAssetURL != null)
                 {
                     m_log.Debug("[HGScene]: Fetching object " + assetID + " to asset server " + userAssetURL);
-                    AssetBase asset = FetchAsset(userAssetURL, assetID, false); 
+                    AssetBase asset = FetchAsset(userAssetURL, assetID); 
 
                     if (asset != null)
                     {
                         m_log.Debug("[HGScene]: Successfully fetched item from remote asset server " + userAssetURL);
+
                         // OK, now fetch the inside.
-                        Dictionary<UUID, bool> ids = SniffUUIDs(asset);
-                        Dump(ids);
-                        foreach (KeyValuePair<UUID, bool> kvp in ids)
-                            FetchAsset(userAssetURL, kvp.Key, kvp.Value);
+                        Dictionary<UUID, int> ids = new Dictionary<UUID, int>();
+                        HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, userAssetURL);
+                        uuidGatherer.GatherAssetUuids(asset.FullID, (AssetType)asset.Type, ids);
+                        foreach (UUID uuid in ids.Keys)
+                            FetchAsset(userAssetURL, uuid);
                     }
                     else
                         m_log.Warn("[HGScene]: Could not fetch asset from remote asset server " + userAssetURL);
@@ -315,21 +237,23 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                 if (userAssetURL != null)
                 {
                     m_log.Debug("[HGScene]: Posting object " + assetID + " to asset server " + userAssetURL);
-                    AssetBase ass1 = m_scene.AssetService.Get(assetID.ToString());
-                    if (ass1 != null)
+                    AssetBase asset = m_scene.AssetService.Get(assetID.ToString());
+                    if (asset != null)
                     {
-                        bool success = PostAsset(userAssetURL, ass1);
-
-                        // Now the inside
-                        Dictionary<UUID, bool> ids = SniffUUIDs(assetID);
-                        Dump(ids);
-                        foreach (KeyValuePair<UUID, bool> kvp in ids)
+                        Dictionary<UUID, int> ids = new Dictionary<UUID, int>();
+                        HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, string.Empty);
+                        uuidGatherer.GatherAssetUuids(asset.FullID, (AssetType)asset.Type, ids);
+                        foreach (UUID uuid in ids.Keys)
                         {
-                            ass1 = m_scene.AssetService.Get(kvp.Key.ToString());
-                            PostAsset(userAssetURL, ass1);
+                            asset = m_scene.AssetService.Get(uuid.ToString());
+                            if (asset != null)
+                                m_log.DebugFormat("[HGScene]: Posting {0} {1}", asset.Type.ToString(), asset.Name);
+                            else
+                                m_log.DebugFormat("[HGScene]: Could not find asset {0}", uuid);
+                            PostAsset(userAssetURL, asset);
                         }
 
-                        if (success)
+                        if (ids.Count > 0) // maybe it succeeded...
                             m_log.DebugFormat("[HGScene]: Successfully posted item {0} to remote asset server {1}", assetID, userAssetURL);
                         else
                             m_log.WarnFormat("[HGScene]: Could not post asset {0} to remote asset server {1}", assetID, userAssetURL);

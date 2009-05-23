@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
         public AssetBase Get(string id)
         {
-            m_log.DebugFormat("[HG ASSET CONNECTOR]: Get {0}", id);
+            //m_log.DebugFormat("[HG ASSET CONNECTOR]: Get {0}", id);
             AssetBase asset = null;
             
             if (m_Cache != null)

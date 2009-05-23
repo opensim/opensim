@@ -113,24 +113,28 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                                                    UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                                    bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
-            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            if (userInfo != null)
-            {
-                if (userInfo.RootFolder != null)
-                {
-                    InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+            //m_log.DebugFormat("[HGScene] RezObject itemID={0} fromTaskID={1}", itemID, fromTaskID);
 
-                    if (item == null)
-                    { // Fetch the item
-                        item = new InventoryItemBase();
-                        item.Owner = remoteClient.AgentId;
-                        item.ID = itemID;
-                        item = m_assMapper.Get(item, userInfo.RootFolder.ID, userInfo);
-                    }
-                    if (item != null)
+            if (fromTaskID.Equals(UUID.Zero))
+            {
+                CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                if (userInfo != null)
+                {
+                    if (userInfo.RootFolder != null)
                     {
-                        m_assMapper.Get(item.AssetID, remoteClient.AgentId);
-                        
+                        InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+                        if (item == null)
+                        { // Fetch the item
+                            item = new InventoryItemBase();
+                            item.Owner = remoteClient.AgentId;
+                            item.ID = itemID;
+                            item = m_assMapper.Get(item, userInfo.RootFolder.ID, userInfo);
+                        }
+                        if (item != null)
+                        {
+                            m_assMapper.Get(item.AssetID, remoteClient.AgentId);
+
+                        }
                     }
                 }
             }
