@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using log4net;
 using Nwc.XmlRpc;
@@ -70,7 +71,7 @@ namespace OpenSim.Grid.UserServer.Modules
             m_httpServer.AddXmlRPCHandler("update_avatar_appearance", XmlRPCUpdateAvatarAppearance);
         }
 
-        public XmlRpcResponse XmlRPCGetAvatarAppearance(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCGetAvatarAppearance(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -101,7 +102,7 @@ namespace OpenSim.Grid.UserServer.Modules
             return response;
         }
 
-        public XmlRpcResponse XmlRPCUpdateAvatarAppearance(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCUpdateAvatarAppearance(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];

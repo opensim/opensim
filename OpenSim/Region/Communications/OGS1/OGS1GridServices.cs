@@ -616,7 +616,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse PingCheckReply(XmlRpcRequest request)
+        public XmlRpcResponse PingCheckReply(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
 
@@ -838,7 +838,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse LandData(XmlRpcRequest request)
+        public XmlRpcResponse LandData(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             ulong regionHandle = Convert.ToUInt64(requestData["region_handle"]);

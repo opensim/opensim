@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using log4net;
 using Nwc.XmlRpc;
@@ -201,7 +202,7 @@ namespace OpenSim.Grid.UserServer.Modules
 
         #region XMLRPC User Methods
 
-        public XmlRpcResponse XmlRPCGetAvatarPickerAvatar(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCGetAvatarPickerAvatar(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             // XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -218,7 +219,7 @@ namespace OpenSim.Grid.UserServer.Modules
             return AvatarPickerListtoXmlRPCResponse(queryID, returnAvatar);
         }
 
-        public XmlRpcResponse XmlRPCAtRegion(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCAtRegion(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -253,7 +254,7 @@ namespace OpenSim.Grid.UserServer.Modules
             return response;
         }
 
-        public XmlRpcResponse XmlRPCGetUserMethodName(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCGetUserMethodName(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             // XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -290,7 +291,7 @@ namespace OpenSim.Grid.UserServer.Modules
             return ProfileToXmlRPCResponse(userProfile);
         }
 
-        public XmlRpcResponse XmlRPCGetUserMethodUUID(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCGetUserMethodUUID(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             // XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -323,7 +324,7 @@ namespace OpenSim.Grid.UserServer.Modules
             return ProfileToXmlRPCResponse(userProfile);
         }
 
-        public XmlRpcResponse XmlRPCGetAgentMethodUUID(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCGetAgentMethodUUID(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -372,7 +373,7 @@ namespace OpenSim.Grid.UserServer.Modules
             return response;
         }
 
-        public XmlRpcResponse XmlRpcResponseXmlRPCUpdateUserProfile(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcResponseXmlRPCUpdateUserProfile(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Debug("[UserManager]: Got request to update user profile");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -565,7 +566,7 @@ namespace OpenSim.Grid.UserServer.Modules
             return response;
         }
 
-        public XmlRpcResponse XmlRPCLogOffUserMethodUUID(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCLogOffUserMethodUUID(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];

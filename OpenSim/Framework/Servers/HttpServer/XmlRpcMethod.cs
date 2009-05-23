@@ -25,9 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Net;
 using Nwc.XmlRpc;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
-    public delegate XmlRpcResponse XmlRpcMethod(XmlRpcRequest request);
+    public delegate XmlRpcResponse XmlRpcMethod(XmlRpcRequest request, IPEndPoint client);
 }

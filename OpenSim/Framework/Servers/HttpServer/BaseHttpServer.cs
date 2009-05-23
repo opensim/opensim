@@ -612,7 +612,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                         try
                         {
-                            xmlRpcResponse = method(xmlRprcRequest);
+                            xmlRpcResponse = method(xmlRprcRequest, request.RemoteIPEndPoint);
                         }
                         catch(Exception e)
                         {

@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -97,7 +98,7 @@ namespace OpenSim.Framework.Communications.Services
         /// </summary>
         /// <param name="request">The XMLRPC request</param>
         /// <returns>The response to send</returns>
-        public virtual XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
+        public virtual XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             // Temporary fix
             m_loginMutex.WaitOne();
@@ -1125,7 +1126,7 @@ namespace OpenSim.Framework.Communications.Services
             return false;
         }
 
-        public XmlRpcResponse XmlRPCCheckAuthSession(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCCheckAuthSession(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];

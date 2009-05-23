@@ -181,7 +181,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
             return regionProfile;
         }
 
-        public XmlRpcResponse RegionStartup(XmlRpcRequest request)
+        public XmlRpcResponse RegionStartup(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable result = new Hashtable();
@@ -195,7 +195,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
             return response;
         }
 
-        public XmlRpcResponse RegionShutdown(XmlRpcRequest request)
+        public XmlRpcResponse RegionShutdown(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable result = new Hashtable();

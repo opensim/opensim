@@ -523,7 +523,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse LinkRegionRequest(XmlRpcRequest request)
+        public XmlRpcResponse LinkRegionRequest(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             //string host = (string)requestData["host"];
@@ -710,7 +710,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse ExpectHGUser(XmlRpcRequest request)
+        public XmlRpcResponse ExpectHGUser(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             ForeignUserProfileData userData = new ForeignUserProfileData();

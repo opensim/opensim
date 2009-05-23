@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -250,7 +251,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        public XmlRpcResponse processPresenceUpdateBulk(XmlRpcRequest req)
+        public XmlRpcResponse processPresenceUpdateBulk(XmlRpcRequest req, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)req.Params[0];
 
@@ -319,7 +320,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return response;
         }
 
-        public XmlRpcResponse processTerminateFriend(XmlRpcRequest req)
+        public XmlRpcResponse processTerminateFriend(XmlRpcRequest req, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)req.Params[0];
 

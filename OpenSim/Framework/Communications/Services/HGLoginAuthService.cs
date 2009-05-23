@@ -86,10 +86,10 @@ namespace OpenSim.Framework.Communications.Services
             m_serversInfo = sinfo;
         }
 
-        public override XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
+        public override XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[HGLOGIN]: HGLogin called " + request.MethodName);
-            XmlRpcResponse response = base.XmlRpcLoginMethod(request);
+            XmlRpcResponse response = base.XmlRpcLoginMethod(request, remoteClient);
             Hashtable responseData = (Hashtable)response.Value;
 
             responseData["grid_service"] = m_serversInfo.GridURL;
@@ -132,7 +132,7 @@ namespace OpenSim.Framework.Communications.Services
             return response;
         }
 
-        public XmlRpcResponse XmlRpcGenerateKeyMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcGenerateKeyMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             // Verify the key of who's calling
             UUID userID = UUID.Zero;
@@ -157,7 +157,7 @@ namespace OpenSim.Framework.Communications.Services
             return response;
         }
 
-        public XmlRpcResponse XmlRpcVerifyKeyMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcVerifyKeyMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             bool success = false;
 

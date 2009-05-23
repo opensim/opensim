@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -135,7 +136,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         }
         #endregion
 
-        public static XmlRpcResponse XmlRpcAdminMethod(XmlRpcRequest request)
+        public static XmlRpcResponse XmlRpcAdminMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[IRC-Bridge]: XML RPC Admin Entry");
 

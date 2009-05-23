@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using log4net;
@@ -138,7 +139,7 @@ namespace OpenSim.Framework.Communications.Services
             }
         }
 
-        public XmlRpcResponse XmlRpcGridInfoMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcGridInfoMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();

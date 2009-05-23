@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using log4net;
@@ -368,7 +369,7 @@ namespace OpenSim.Grid.UserServer.Modules
             return true;
         }
 
-        public XmlRpcResponse XmlRPCSetLoginParams(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCSetLoginParams(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];

@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -135,7 +136,7 @@ namespace OpenSim.Region.CoreModules.Framework.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse XmlRpcSimulatorDataRequestMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcSimulatorDataRequestMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable responseData = new Hashtable();

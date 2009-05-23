@@ -171,7 +171,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
         }
 
-        public XmlRpcResponse XmlRpcRestartMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcRestartMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -219,7 +219,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
-        public XmlRpcResponse XmlRpcAlertMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcAlertMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -266,7 +266,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
-        public XmlRpcResponse XmlRpcLoadHeightmapMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcLoadHeightmapMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -323,7 +323,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
-        public XmlRpcResponse XmlRpcShutdownMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcShutdownMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
 
             m_log.Info("[RADMIN]: Received Shutdown Administrator Request");
@@ -450,7 +450,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>name of the newly created region</description></item>
         /// </list>
         /// </remarks>
-        public XmlRpcResponse XmlRpcCreateRegionMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcCreateRegionMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: CreateRegion: new request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -686,7 +686,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>error message if success is false</description></item>
         /// </list>
         /// </remarks>
-        public XmlRpcResponse XmlRpcDeleteRegionMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcDeleteRegionMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: DeleteRegion: new request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -760,7 +760,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// </list>
         /// </remarks>
 
-        public XmlRpcResponse XmlRpcModifyRegionMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcModifyRegionMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: ModifyRegion: new request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -861,7 +861,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       </description></item>
         /// </list>
         /// </remarks>
-        public XmlRpcResponse XmlRpcCreateUserMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcCreateUserMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: CreateUser: new request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -967,7 +967,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>error message if success is false</description></item>
         /// </list>
         /// </remarks>
-        public XmlRpcResponse XmlRpcUserExistsMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcUserExistsMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: UserExists: new request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -1050,7 +1050,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// </list>
         /// </remarks>
 
-        public XmlRpcResponse XmlRpcUpdateUserAccountMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcUpdateUserAccountMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: UpdateUserAccount: new request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -1706,7 +1706,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>error message if success is false</description></item>
         /// </list>
         /// </remarks>
-        public XmlRpcResponse XmlRpcLoadOARMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcLoadOARMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: Received Load OAR Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -1805,7 +1805,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>error message if success is false</description></item>
         /// </list>
         /// </remarks>
-        public XmlRpcResponse XmlRpcSaveOARMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcSaveOARMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: Received Save OAR Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -1884,7 +1884,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             lock (SOLock) Monitor.Pulse(SOLock);
         }
 
-        public XmlRpcResponse XmlRpcLoadXMLMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcLoadXMLMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: Received Load XML Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -1969,7 +1969,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         }
 
 
-        public XmlRpcResponse XmlRpcSaveXMLMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcSaveXMLMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: Received Save XML Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -2051,7 +2051,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
-        public XmlRpcResponse XmlRpcRegionQueryMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcRegionQueryMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: Received Query XML Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -2107,7 +2107,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
-        public XmlRpcResponse XmlRpcConsoleCommandMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcConsoleCommandMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: Received Command XML Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
@@ -2145,7 +2145,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
-        public XmlRpcResponse XmlRpcAccessListClear(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcAccessListClear(XmlRpcRequest request, IPEndPoint remoteClient)
         {
 
             m_log.Info("[RADMIN]: Received Access List Clear Request");
@@ -2200,7 +2200,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
-        public XmlRpcResponse XmlRpcAccessListAdd(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcAccessListAdd(XmlRpcRequest request, IPEndPoint remoteClient)
         {
 
             m_log.Info("[RADMIN]: Received Access List Add Request");
@@ -2284,7 +2284,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
-        public XmlRpcResponse XmlRpcAccessListRemove(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcAccessListRemove(XmlRpcRequest request, IPEndPoint remoteClient)
         {
 
             m_log.Info("[RADMIN]: Received Access List Remove Request");
@@ -2367,7 +2367,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
-        public XmlRpcResponse XmlRpcAccessListList(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcAccessListList(XmlRpcRequest request, IPEndPoint remoteClient)
         {
 
             m_log.Info("[RADMIN]: Received Access List List Request");

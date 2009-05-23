@@ -103,7 +103,7 @@ namespace OpenSim.Framework.Communications.Tests
 
             XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            XmlRpcResponse response = loginService.XmlRpcLoginMethod(request);
+            XmlRpcResponse response = loginService.XmlRpcLoginMethod(request, new IPEndPoint(Util.GetLocalHost(), 80));
             Hashtable responseData = (Hashtable)response.Value;
 
             Assert.That(responseData["first_name"], Is.EqualTo(m_firstName));
@@ -140,7 +140,7 @@ namespace OpenSim.Framework.Communications.Tests
 
             XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request, new IPEndPoint(Util.GetLocalHost(), 80));
             Hashtable responseData = (Hashtable)response.Value;
 
             UserAgentData uagent = m_userProfileData.CurrentAgent;
@@ -194,7 +194,7 @@ namespace OpenSim.Framework.Communications.Tests
 
             XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request, new IPEndPoint(Util.GetLocalHost(), 80));
             Hashtable responseData = (Hashtable)response.Value;
 
             ArrayList friendslist = (ArrayList) responseData["buddy-list"];
@@ -231,7 +231,7 @@ namespace OpenSim.Framework.Communications.Tests
 
             XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request, new IPEndPoint(Util.GetLocalHost(), 80));
             Hashtable responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo(error_auth_message));
 
@@ -256,7 +256,7 @@ namespace OpenSim.Framework.Communications.Tests
 
             XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request, new IPEndPoint(Util.GetLocalHost(), 80));
             Hashtable responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo(error_auth_message));
 
@@ -281,7 +281,7 @@ namespace OpenSim.Framework.Communications.Tests
 
             XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request, new IPEndPoint(Util.GetLocalHost(), 80));
             Hashtable responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo(error_xml_message));
 
@@ -312,20 +312,20 @@ namespace OpenSim.Framework.Communications.Tests
 
             // First we log in.
             XmlRpcRequest request = new XmlRpcRequest("login_to_simulator", sendParams);
-            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request);
+            XmlRpcResponse response = m_loginService.XmlRpcLoginMethod(request, new IPEndPoint(Util.GetLocalHost(), 80));
             Hashtable responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo("Hello folks"));
 
             // Then we try again, this time expecting failure.
             request = new XmlRpcRequest("login_to_simulator", sendParams);
-            response = m_loginService.XmlRpcLoginMethod(request);
+            response = m_loginService.XmlRpcLoginMethod(request, new IPEndPoint(Util.GetLocalHost(), 80));
             responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo(error_already_logged));
 
             // Finally the third time we should be able to get right back in.
             request = new XmlRpcRequest("login_to_simulator", sendParams);
 
-            response = m_loginService.XmlRpcLoginMethod(request);
+            response = m_loginService.XmlRpcLoginMethod(request, new IPEndPoint(Util.GetLocalHost(), 80));
             responseData = (Hashtable)response.Value;
             Assert.That(responseData["message"], Is.EqualTo("Hello folks"));
             

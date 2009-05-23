@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Xml;
 using log4net;
@@ -246,7 +247,7 @@ namespace OpenSim.Grid.GridServer.Modules
         /// </summary>
         /// <param name="request">The XML RPC Request</param>
         /// <returns>Startup parameters</returns>
-        public XmlRpcResponse XmlRpcSimulatorLoginMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcSimulatorLoginMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             RegionProfileData sim;
             RegionProfileData existingSim;
@@ -575,7 +576,7 @@ namespace OpenSim.Grid.GridServer.Modules
         /// <returns></returns>
         /// <param name="request">The XMLRPC Request</param>
         /// <returns>Processing parameters</returns>
-        public XmlRpcResponse XmlRpcDeleteRegionMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcDeleteRegionMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -631,7 +632,7 @@ namespace OpenSim.Grid.GridServer.Modules
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse XmlRpcSimulatorDataRequestMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcSimulatorDataRequestMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable responseData = new Hashtable();
@@ -696,7 +697,7 @@ namespace OpenSim.Grid.GridServer.Modules
             return response;
         }
 
-        public XmlRpcResponse XmlRpcMapBlockMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcMapBlockMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             int xmin = 980, ymin = 980, xmax = 1020, ymax = 1020;
 
@@ -806,7 +807,7 @@ namespace OpenSim.Grid.GridServer.Modules
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse XmlRpcSearchForRegionMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcSearchForRegionMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
 

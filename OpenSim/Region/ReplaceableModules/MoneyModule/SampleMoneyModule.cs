@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -419,7 +420,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
         /// <summary>
         /// XMLRPC handler to send alert message and sound to client
         /// </summary>
-        public XmlRpcResponse UserAlert(XmlRpcRequest request)
+        public XmlRpcResponse UserAlert(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse ret = new XmlRpcResponse();
             Hashtable retparam = new Hashtable();
@@ -469,7 +470,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
 
         # region Standalone box enablers only
 
-        public XmlRpcResponse quote_func(XmlRpcRequest request)
+        public XmlRpcResponse quote_func(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             // Hashtable requestData = (Hashtable) request.Params[0];
             // UUID agentId = UUID.Zero;
@@ -493,7 +494,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
 
         }
 
-        public XmlRpcResponse buy_func(XmlRpcRequest request)
+        public XmlRpcResponse buy_func(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             // Hashtable requestData = (Hashtable) request.Params[0];
             // UUID agentId = UUID.Zero;
@@ -506,7 +507,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
             return returnval;
         }
 
-        public XmlRpcResponse preflightBuyLandPrep_func(XmlRpcRequest request)
+        public XmlRpcResponse preflightBuyLandPrep_func(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse ret = new XmlRpcResponse();
             Hashtable retparam = new Hashtable();
@@ -541,7 +542,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
             return ret;
         }
 
-        public XmlRpcResponse landBuy_func(XmlRpcRequest request)
+        public XmlRpcResponse landBuy_func(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse ret = new XmlRpcResponse();
             Hashtable retparam = new Hashtable();

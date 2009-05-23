@@ -175,7 +175,7 @@ namespace OpenSim.Client.Linden
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse ExpectUser(XmlRpcRequest request)
+        public XmlRpcResponse ExpectUser(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             AgentCircuitData agentData = new AgentCircuitData();
@@ -285,7 +285,7 @@ namespace OpenSim.Client.Linden
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse LogOffUser(XmlRpcRequest request)
+        public XmlRpcResponse LogOffUser(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Debug("[CONNECTION DEBUGGING]: LogOff User Called");
 

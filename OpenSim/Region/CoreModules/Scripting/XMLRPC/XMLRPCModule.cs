@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 using log4net;
@@ -404,7 +405,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
 
         #endregion
 
-        public XmlRpcResponse XmlRpcRemoteData(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcRemoteData(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
 

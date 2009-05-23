@@ -635,7 +635,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             }
         }
 
-        public XmlRpcResponse XmlRpcUpdateWelcomeMethod(XmlRpcRequest request)
+        public XmlRpcResponse XmlRpcUpdateWelcomeMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[Concierge]: processing UpdateWelcome request");
             XmlRpcResponse response = new XmlRpcResponse();

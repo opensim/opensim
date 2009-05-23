@@ -166,7 +166,7 @@ namespace OpenSim.Grid.UserServer.Modules
             }
 
         }
-        public XmlRpcResponse XmlRPCRegisterMessageServer(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCRegisterMessageServer(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -187,7 +187,7 @@ namespace OpenSim.Grid.UserServer.Modules
             }
             return response;
         }
-        public XmlRpcResponse XmlRPCDeRegisterMessageServer(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCDeRegisterMessageServer(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -203,7 +203,7 @@ namespace OpenSim.Grid.UserServer.Modules
             }
             return response;
         }
-        public XmlRpcResponse XmlRPCUserMovedtoRegion(XmlRpcRequest request)
+        public XmlRpcResponse XmlRPCUserMovedtoRegion(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -430,7 +430,7 @@ namespace OpenSim.Grid.UserServer.Modules
             }
         }
 
-        public XmlRpcResponse RegionStartup(XmlRpcRequest request)
+        public XmlRpcResponse RegionStartup(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable result = new Hashtable();
@@ -449,7 +449,7 @@ namespace OpenSim.Grid.UserServer.Modules
             return response;
         }
 
-        public XmlRpcResponse RegionShutdown(XmlRpcRequest request)
+        public XmlRpcResponse RegionShutdown(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable result = new Hashtable();
@@ -468,7 +468,7 @@ namespace OpenSim.Grid.UserServer.Modules
             return response;
         }
 
-        public XmlRpcResponse AgentLocation(XmlRpcRequest request)
+        public XmlRpcResponse AgentLocation(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable result = new Hashtable();
@@ -489,7 +489,7 @@ namespace OpenSim.Grid.UserServer.Modules
             return response;
         }
 
-        public XmlRpcResponse AgentLeaving(XmlRpcRequest request)
+        public XmlRpcResponse AgentLeaving(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable result = new Hashtable();

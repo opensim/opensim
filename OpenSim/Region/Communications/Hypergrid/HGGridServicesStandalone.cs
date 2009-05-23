@@ -177,7 +177,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public virtual XmlRpcResponse PingCheckReply(XmlRpcRequest request)
+        public virtual XmlRpcResponse PingCheckReply(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
 
@@ -198,7 +198,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse LogOffUser(XmlRpcRequest request)
+        public XmlRpcResponse LogOffUser(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Debug("[HGrid]: LogOff User Called");
 
@@ -221,7 +221,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse LandData(XmlRpcRequest request)
+        public XmlRpcResponse LandData(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             ulong regionHandle = Convert.ToUInt64(requestData["region_handle"]);

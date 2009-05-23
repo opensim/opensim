@@ -180,7 +180,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// <param name="request">XMLRPC parameters
         /// </param>
         /// <returns>Nothing much</returns>
-        protected virtual XmlRpcResponse processXMLRPCGridInstantMessage(XmlRpcRequest request)
+        protected virtual XmlRpcResponse processXMLRPCGridInstantMessage(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             bool successful = false;
             

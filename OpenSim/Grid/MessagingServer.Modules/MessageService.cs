@@ -322,7 +322,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
         /// </summary>
         /// <param name="request">UserServer Data</param>
         /// <returns></returns>
-        public XmlRpcResponse UserLoggedOn(XmlRpcRequest request)
+        public XmlRpcResponse UserLoggedOn(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
 
@@ -370,7 +370,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public XmlRpcResponse UserLoggedOff(XmlRpcRequest request)
+        public XmlRpcResponse UserLoggedOff(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[USERLOGOFF]: User logged off called");
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -383,7 +383,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
 
         #endregion
 
-        public XmlRpcResponse GetPresenceInfoBulk(XmlRpcRequest request)
+        public XmlRpcResponse GetPresenceInfoBulk(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable paramHash = (Hashtable)request.Params[0];
             Hashtable result = new Hashtable();
@@ -426,7 +426,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
             }
         }
 
-        public XmlRpcResponse AgentLocation(XmlRpcRequest request)
+        public XmlRpcResponse AgentLocation(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable result = new Hashtable();
@@ -441,7 +441,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
             return response;
         }
 
-        public XmlRpcResponse AgentLeaving(XmlRpcRequest request)
+        public XmlRpcResponse AgentLeaving(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable result = new Hashtable();
@@ -455,7 +455,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
             return response;
         }
 
-        public XmlRpcResponse ProcessRegionShutdown(XmlRpcRequest request)
+        public XmlRpcResponse ProcessRegionShutdown(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable result = new Hashtable();
