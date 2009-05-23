@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -65,8 +66,15 @@ namespace OpenSim.Framework
                     return subnet.Key;
             }
 
-            // None found. Assume outside network.
-            return null;
+            // Check to see if we can find a IPv4 address.
+            foreach (IPAddress host in Dns.GetHostAddresses(defaultHostname))
+            {
+                if (host.AddressFamily == AddressFamily.InterNetwork)
+                    return host;
+            }
+
+            // Unable to find anything.
+            throw new ArgumentException("[NetworkUtil] Unable to resolve defaultHostname to an IPv4 address for an IPv4 client");
         }
 
         static NetworkUtil()

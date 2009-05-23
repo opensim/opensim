@@ -31,7 +31,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Security.Authentication;
 using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse;
