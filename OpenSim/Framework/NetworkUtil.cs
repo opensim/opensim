@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Reflection;
+using log4net;
 
 namespace OpenSim.Framework
 {
@@ -16,6 +18,9 @@ namespace OpenSim.Framework
     /// </summary>
     public static class NetworkUtil
     {
+        // Logger
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         // IPv4Address, Subnet
         static readonly Dictionary<IPAddress,IPAddress> m_subnets = new Dictionary<IPAddress, IPAddress>();
 
@@ -25,7 +30,10 @@ namespace OpenSim.Framework
             foreach (IPAddress host in Dns.GetHostAddresses(Dns.GetHostName()))
             {
                 if (host.Equals(user) && host.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    m_log.Info("[NATROUTING] Localhost user detected, sending them '" + host + "' instead of '" + simulator + "'");
                     return host;
+                }
             }
 
             // Check for same LAN segment
@@ -50,7 +58,10 @@ namespace OpenSim.Framework
                 }
 
                 if (valid)
+                {
+                    m_log.Info("[NATROUTING] Local LAN user detected, sending them '" + subnet.Key + "' instead of '" + simulator + "'");
                     return subnet.Key;
+                }
             }
 
             // Otherwise, return outside address
@@ -65,7 +76,10 @@ namespace OpenSim.Framework
                 foreach (IPAddress host in Dns.GetHostAddresses(defaultHostname))
                 {
                     if (host.AddressFamily == AddressFamily.InterNetworkV6)
+                    {
+                        m_log.Info("[NATROUTING] Localhost user detected, sending them '" + host + "' instead of '" + defaultHostname + "'");
                         return host;
+                    }
                 }
             }
 
@@ -101,7 +115,10 @@ namespace OpenSim.Framework
                 }
 
                 if (valid)
+                {
+                    m_log.Info("[NATROUTING] Local LAN user detected, sending them '" + subnet.Key + "' instead of '" + defaultHostname + "'");
                     return subnet.Key;
+                }
             }
 
             // Check to see if we can find a IPv4 address.
@@ -123,7 +140,13 @@ namespace OpenSim.Framework
                 {
                     if (address.Address.AddressFamily == AddressFamily.InterNetwork)
                     {
-                        m_subnets.Add(address.Address, address.IPv4Mask);
+                        if (address.IPv4Mask != null)
+                        {
+                            m_subnets.Add(address.Address, address.IPv4Mask);
+                        } else
+                        {
+                            m_log.Warn("[NetworkUtil] Found IPv4 Address without Subnet Mask!?");
+                        }
                     }
                 }
             }
