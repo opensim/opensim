@@ -57,6 +57,9 @@ namespace OpenSim.Framework
                     }
                 }
 
+                if (subnet.Key.AddressFamily != AddressFamily.InterNetwork)
+                    valid = false;
+
                 if (valid)
                 {
                     m_log.Info("[NATROUTING] Local LAN user detected, sending them '" + subnet.Key + "' instead of '" + simulator + "'");
@@ -70,8 +73,9 @@ namespace OpenSim.Framework
 
         private static IPAddress GetExternalIPFor(IPAddress destination, string defaultHostname)
         {
+            bool ipv6 = false;
             // Adds IPv6 Support (Not that any of the major protocols supports it...)
-            if (destination.AddressFamily == AddressFamily.InterNetworkV6)
+            if (ipv6 && destination.AddressFamily == AddressFamily.InterNetworkV6)
             {
                 foreach (IPAddress host in Dns.GetHostAddresses(defaultHostname))
                 {
@@ -89,7 +93,7 @@ namespace OpenSim.Framework
             // Check if we're accessing localhost.
             foreach (IPAddress host in Dns.GetHostAddresses(Dns.GetHostName()))
             {
-                if (host.Equals(destination))
+                if (host.Equals(destination) && host.AddressFamily == AddressFamily.InterNetwork)
                     return destination;
             }
 
@@ -113,6 +117,9 @@ namespace OpenSim.Framework
                         break;
                     }
                 }
+
+                if (subnet.Key.AddressFamily != AddressFamily.InterNetwork)
+                    valid = false;
 
                 if (valid)
                 {
@@ -143,7 +150,8 @@ namespace OpenSim.Framework
                         if (address.IPv4Mask != null)
                         {
                             m_subnets.Add(address.Address, address.IPv4Mask);
-                        } else
+                        }
+                        else
                         {
                             m_log.Warn("[NetworkUtil] Found IPv4 Address without Subnet Mask!?");
                         }
