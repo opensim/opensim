@@ -34,6 +34,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Framework.Client;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
@@ -306,6 +307,14 @@ namespace OpenSim.Region.Framework.Scenes
                 IEventQueue eq = avatar.Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
                 {
+                    #region IP Translation for NAT
+                    IClientIPEndpoint ipepClient;
+                    if(avatar.ClientView.TryGet(out ipepClient))
+                    {
+                        endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+                    }
+                    #endregion
+
                     eq.EnableSimulator(reg.RegionHandle, endPoint, avatar.UUID);
                     eq.EstablishAgentCommunication(avatar.UUID, endPoint, capsPath);
                     m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1} in region {2}", 
@@ -812,6 +821,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                             if (eq != null)
                             {
+                                #region IP Translation for NAT
+                                IClientIPEndpoint ipepClient;
+                                if (avatar.ClientView.TryGet(out ipepClient))
+                                {
+                                    endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+                                }
+                                #endregion
+
                                 eq.EnableSimulator(reg.RegionHandle, endPoint, avatar.UUID);
 
                                 // ES makes the client send a UseCircuitCode message to the destination, 

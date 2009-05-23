@@ -14,10 +14,48 @@ namespace OpenSim.Framework
     /// This enables standard port forwarding techniques
     /// to work correctly with OpenSim.
     /// </summary>
-    static class NetworkUtil
+    public static class NetworkUtil
     {
         // IPv4Address, Subnet
         static readonly Dictionary<IPAddress,IPAddress> m_subnets = new Dictionary<IPAddress, IPAddress>();
+
+        public static IPAddress GetIPFor(IPAddress user, IPAddress simulator)
+        {
+            // Check if we're accessing localhost.
+            foreach (IPAddress host in Dns.GetHostAddresses(Dns.GetHostName()))
+            {
+                if (host.Equals(user) && host.AddressFamily == AddressFamily.InterNetwork)
+                    return host;
+            }
+
+            // Check for same LAN segment
+            foreach (KeyValuePair<IPAddress, IPAddress> subnet in m_subnets)
+            {
+                byte[] subnetBytes = subnet.Value.GetAddressBytes();
+                byte[] localBytes = subnet.Key.GetAddressBytes();
+                byte[] destBytes = user.GetAddressBytes();
+
+                if (subnetBytes.Length != destBytes.Length || subnetBytes.Length != localBytes.Length)
+                    return null;
+
+                bool valid = true;
+
+                for (int i = 0; i < subnetBytes.Length; i++)
+                {
+                    if ((localBytes[i] & subnetBytes[i]) != (destBytes[i] & subnetBytes[i]))
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                if (valid)
+                    return subnet.Key;
+            }
+
+            // Otherwise, return outside address
+            return simulator;
+        }
 
         private static IPAddress GetExternalIPFor(IPAddress destination, string defaultHostname)
         {

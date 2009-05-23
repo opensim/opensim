@@ -33,6 +33,7 @@ using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Client;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
@@ -211,6 +212,14 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
                             if (eq != null)
                             {
+                                #region IP Translation for NAT
+                                IClientIPEndpoint ipepClient;
+                                if (avatar.ClientView.TryGet(out ipepClient))
+                                {
+                                    endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+                                }
+                                #endregion
+
                                 eq.EnableSimulator(realHandle, endPoint, avatar.UUID);
 
                                 // ES makes the client send a UseCircuitCode message to the destination, 
