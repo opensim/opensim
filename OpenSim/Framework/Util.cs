@@ -546,7 +546,15 @@ namespace OpenSim.Framework
             }
 
             if (hosts.Length > 0)
+            {
+                foreach (IPAddress host in hosts)
+                {
+                    if(host.AddressFamily == AddressFamily.InterNetwork)
+                        return host;
+                }
+                // Well all else failed...
                 return hosts[0];
+            }
 
             return null;
         }

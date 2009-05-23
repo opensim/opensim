@@ -73,9 +73,8 @@ namespace OpenSim.Framework
 
         private static IPAddress GetExternalIPFor(IPAddress destination, string defaultHostname)
         {
-            bool ipv6 = false;
             // Adds IPv6 Support (Not that any of the major protocols supports it...)
-            if (ipv6 && destination.AddressFamily == AddressFamily.InterNetworkV6)
+            if (destination.AddressFamily == AddressFamily.InterNetworkV6)
             {
                 foreach (IPAddress host in Dns.GetHostAddresses(defaultHostname))
                 {
@@ -91,10 +90,14 @@ namespace OpenSim.Framework
                 return null;
 
             // Check if we're accessing localhost.
-            foreach (IPAddress host in Dns.GetHostAddresses(Dns.GetHostName()))
+            foreach (KeyValuePair<IPAddress, IPAddress> pair in m_subnets)
             {
+                IPAddress host = pair.Value;
                 if (host.Equals(destination) && host.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    m_log.Info("[NATROUTING] Localhost user detected, sending them '" + host + "' instead of '" + defaultHostname + "'");
                     return destination;
+                }
             }
 
             // Check for same LAN segment
