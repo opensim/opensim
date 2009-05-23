@@ -279,11 +279,17 @@ namespace OpenSim.Framework.Communications.Services
 
             if (m_serversInfo.HttpUsesSSL)
             {
-                seedcap = "https://" + m_serversInfo.HttpSSLCN + ":" + regionInfo.HttpPort + capsSeedPath;
+                // For NAT
+                string host = NetworkUtil.GetHostFor(remoteClient.Address, m_serversInfo.HttpSSLCN);
+
+                seedcap = "https://" + host + ":" + m_serversInfo.httpSSLPort + capsSeedPath;
             }
             else
             {
-                seedcap = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort + capsSeedPath;
+                // For NAT
+                string host = NetworkUtil.GetHostFor(remoteClient.Address, regionInfo.ExternalHostName);
+
+                seedcap = "http://" + host + ":" + m_serversInfo.HttpListenerPort + capsSeedPath;
             }
 
             response.SeedCapability = seedcap;

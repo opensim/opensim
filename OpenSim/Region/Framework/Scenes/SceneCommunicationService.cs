@@ -812,17 +812,32 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
-                            capsPath 
-                                = "http://" 
-                                    + reg.ExternalHostName 
-                                    + ":" 
-                                    + reg.HttpPort 
-                                    + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+                            #region IP Translation for NAT
+                            IClientIPEndpoint ipepClient;
+                            if (avatar.ClientView.TryGet(out ipepClient))
+                            {
+                                capsPath
+                                    = "http://"
+                                      + NetworkUtil.GetHostFor(ipepClient.EndPoint, reg.ExternalHostName)
+                                      + ":"
+                                      + reg.HttpPort
+                                      + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+                            }
+                            else
+                            {
+                                capsPath
+                                    = "http://"
+                                      + reg.ExternalHostName
+                                      + ":"
+                                      + reg.HttpPort
+                                      + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+                            }
+                            #endregion
 
                             if (eq != null)
                             {
                                 #region IP Translation for NAT
-                                IClientIPEndpoint ipepClient;
+                                // Uses ipepClient above
                                 if (avatar.ClientView.TryGet(out ipepClient))
                                 {
                                     endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);

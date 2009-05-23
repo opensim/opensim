@@ -163,11 +163,17 @@ namespace OpenSim.Client.Linden
 
             if (m_serversInfo.HttpUsesSSL)
             {
-                seedcap = "https://" + m_serversInfo.HttpSSLCN + ":" + m_serversInfo.httpSSLPort + capsSeedPath;
+                // For NAT
+                string host = NetworkUtil.GetHostFor(remoteClient.Address, m_serversInfo.HttpSSLCN);
+
+                seedcap = "https://" + host + ":" + m_serversInfo.httpSSLPort + capsSeedPath;
             }
             else
             {
-                seedcap = "http://" + regionInfo.ExternalHostName + ":" + m_serversInfo.HttpListenerPort + capsSeedPath;
+                // For NAT
+                string host = NetworkUtil.GetHostFor(remoteClient.Address, regionInfo.ExternalHostName);
+
+                seedcap = "http://" + host + ":" + m_serversInfo.HttpListenerPort + capsSeedPath;
             }
 
             response.SeedCapability = seedcap;
