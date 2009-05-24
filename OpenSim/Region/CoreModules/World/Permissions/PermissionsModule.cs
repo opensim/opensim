@@ -1530,6 +1530,38 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
+            long powers = 0;
+            if (parcel.landData.GroupID != UUID.Zero)
+                client.GetGroupPowers(parcel.landData.GroupID);
+
+            switch (type)
+            {
+            case (uint)ObjectReturnType.Owner:
+                // Don't let group members return owner's objects, ever
+                //
+                if (parcel.landData.IsGroupOwned)
+                {
+                    if ((powers & (long)GroupPowers.ReturnGroupOwned) != 0)
+                        return true;
+                }
+                else
+                {
+                    if (parcel.landData.OwnerID != client.AgentId)
+                        return false;
+                }
+                break;
+            case (uint)ObjectReturnType.Group:
+                if ((powers & (long)GroupPowers.ReturnGroupSet) != 0)
+                    return true;
+                break;
+            case (uint)ObjectReturnType.Other:
+                if ((powers & (long)GroupPowers.ReturnNonGroup) != 0)
+                    return true;
+                break;
+            case (uint)ObjectReturnType.List:
+                break;
+            }
+
             return GenericParcelPermission(client.AgentId, parcel);
         }
     }
