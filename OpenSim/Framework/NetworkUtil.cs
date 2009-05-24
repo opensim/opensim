@@ -31,7 +31,7 @@ namespace OpenSim.Framework
             {
                 if (host.Equals(user) && host.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    m_log.Info("[NATROUTING] Localhost user detected, sending them '" + host + "' instead of '" + simulator + "'");
+                    m_log.Info("[NetworkUtil] Localhost user detected, sending them '" + host + "' instead of '" + simulator + "'");
                     return host;
                 }
             }
@@ -62,7 +62,7 @@ namespace OpenSim.Framework
 
                 if (valid)
                 {
-                    m_log.Info("[NATROUTING] Local LAN user detected, sending them '" + subnet.Key + "' instead of '" + simulator + "'");
+                    m_log.Info("[NetworkUtil] Local LAN user detected, sending them '" + subnet.Key + "' instead of '" + simulator + "'");
                     return subnet.Key;
                 }
             }
@@ -80,7 +80,7 @@ namespace OpenSim.Framework
                 {
                     if (host.AddressFamily == AddressFamily.InterNetworkV6)
                     {
-                        m_log.Info("[NATROUTING] Localhost user detected, sending them '" + host + "' instead of '" + defaultHostname + "'");
+                        m_log.Info("[NetworkUtil] Localhost user detected, sending them '" + host + "' instead of '" + defaultHostname + "'");
                         return host;
                     }
                 }
@@ -126,7 +126,7 @@ namespace OpenSim.Framework
 
                 if (valid)
                 {
-                    m_log.Info("[NATROUTING] Local LAN user detected, sending them '" + subnet.Key + "' instead of '" + defaultHostname + "'");
+                    m_log.Info("[NetworkUtil] Local LAN user detected, sending them '" + subnet.Key + "' instead of '" + defaultHostname + "'");
                     return subnet.Key;
                 }
             }
@@ -153,10 +153,6 @@ namespace OpenSim.Framework
                         if (address.IPv4Mask != null)
                         {
                             m_subnets.Add(address.Address, address.IPv4Mask);
-                        }
-                        else
-                        {
-                            m_log.Warn("[NetworkUtil] Found IPv4 Address without Subnet Mask!?");
                         }
                     }
                 }

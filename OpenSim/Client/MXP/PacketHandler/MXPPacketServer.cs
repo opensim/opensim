@@ -450,11 +450,18 @@ namespace OpenSim.Client.MXP.PacketHandler
 
             joinResponseMessage.RequestMessageId = joinRequestMessage.MessageId;
             joinResponseMessage.FailureCode = MxpResponseCodes.SUCCESS;
-
+            
             joinResponseMessage.BubbleId = joinRequestMessage.BubbleId;
             joinResponseMessage.ParticipantId = userId.Guid;
             joinResponseMessage.AvatarId = userId.Guid;
-            joinResponseMessage.BubbleAssetCacheUrl = "http://"+m_scenes[new UUID(joinRequestMessage.BubbleId)].RegionInfo.ExternalHostName+":"+m_scenes[new UUID(joinRequestMessage.BubbleId)].RegionInfo.HttpPort+"/assets/";
+            joinResponseMessage.BubbleAssetCacheUrl = "http://" +
+                                                      NetworkUtil.GetHostFor(session.RemoteEndPoint.Address,
+                                                                             m_scenes[
+                                                                                 new UUID(joinRequestMessage.BubbleId)].
+                                                                                 RegionInfo.
+                                                                                 ExternalHostName) + ":" +
+                                                      m_scenes[new UUID(joinRequestMessage.BubbleId)].RegionInfo.
+                                                          HttpPort + "/assets/";
 
             joinResponseMessage.BubbleName = m_scenes[new UUID(joinRequestMessage.BubbleId)].RegionInfo.RegionName;
 
