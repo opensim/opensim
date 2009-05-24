@@ -795,9 +795,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             Dictionary<UUID,List<SceneObjectGroup>> returns =
                     new Dictionary<UUID,List<SceneObjectGroup>>();
 
-            if (!m_scene.Permissions.CanUseObjectReturn(this, type, remote_client))
-                return;
-
             lock (primsOverMe)
             {
                 if (type == (uint)ObjectReturnType.Owner)
@@ -859,7 +856,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
 
             foreach (List<SceneObjectGroup> ol in returns.Values)
-                m_scene.returnObjects(ol.ToArray(), remote_client.AgentId);
+            {
+                if (m_scene.Permissions.CanUseObjectReturn(this, type, remote_client, ol))
+                    m_scene.returnObjects(ol.ToArray(), remote_client.AgentId);
+            }
         }
 
         #endregion
