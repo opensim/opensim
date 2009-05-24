@@ -144,18 +144,25 @@ namespace OpenSim.Framework
 
         static NetworkUtil()
         {
-            foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
+            try
             {
-                foreach (UnicastIPAddressInformation address in ni.GetIPProperties().UnicastAddresses)
+                foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
                 {
-                    if (address.Address.AddressFamily == AddressFamily.InterNetwork)
+                    foreach (UnicastIPAddressInformation address in ni.GetIPProperties().UnicastAddresses)
                     {
-                        if (address.IPv4Mask != null)
+                        if (address.Address.AddressFamily == AddressFamily.InterNetwork)
                         {
-                            m_subnets.Add(address.Address, address.IPv4Mask);
+                            if (address.IPv4Mask != null)
+                            {
+                                m_subnets.Add(address.Address, address.IPv4Mask);
+                            }
                         }
                     }
                 }
+            }
+            catch (NotImplementedException)
+            {
+                // Mono Sucks.
             }
         }
 
