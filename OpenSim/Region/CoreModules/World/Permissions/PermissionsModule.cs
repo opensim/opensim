@@ -168,6 +168,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnDeleteUserInventory += CanDeleteUserInventory; //NOT YET IMPLEMENTED
             
             m_scene.Permissions.OnTeleport += CanTeleport; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnUseObjectReturn += CanUseObjectReturn; //NOT YET IMPLEMENTED
 
             m_scene.AddCommand(this, "bypass permissions",
                     "bypass permissions <true / false>",
@@ -1522,6 +1523,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             // You can reset the scripts in any object you can edit
             return GenericObjectPermission(agentID, prim, false);
+        }
+
+        private bool CanUseObjectReturn(ILandObject parcel, uint type, IClientAPI client, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return GenericParcelPermission(client.AgentId, parcel);
         }
     }
 }
