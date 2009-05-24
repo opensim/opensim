@@ -1551,8 +1551,28 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 }
                 break;
             case (uint)ObjectReturnType.Group:
-                if ((powers & (long)GroupPowers.ReturnGroupSet) != 0)
-                    return true;
+                if (parcel.landData.OwnerID != client.AgentId)
+                {
+                    // If permissionis granted through a group...
+                    //
+                    if ((powers & (long)GroupPowers.ReturnGroupSet) != 0)
+                    {
+                        foreach (SceneObjectGroup g in new List<SceneObjectGroup>(retlist))
+                        {
+                            // check for and remove group owned objects unless
+                            // the user also has permissions to return those
+                            //
+                            if (g.OwnerID == g.GroupID &&
+                                    ((powers & (long)GroupPowers.ReturnGroupOwned) == 0))
+                            {
+                                retlist.Remove(g);
+                            }
+                        }
+                        // And allow the operation
+                        //
+                        return true;
+                    }
+                }
                 break;
             case (uint)ObjectReturnType.Other:
                 if ((powers & (long)GroupPowers.ReturnNonGroup) != 0)
