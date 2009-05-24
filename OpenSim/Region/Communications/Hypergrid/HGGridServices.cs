@@ -46,6 +46,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 // using OpenSim.Region.Environment.Modules.Framework;
 
 namespace OpenSim.Region.Communications.Hypergrid
@@ -362,8 +363,10 @@ namespace OpenSim.Region.Communications.Hypergrid
                 info.RegionSettings.TerrainImageID = ass.FullID;
                 ass.Type = (int)AssetType.Texture;
                 ass.Temporary = false;
+                ass.Local = true;
                 ass.Data = imageData;
-                m_assetcache.AddAsset(ass);
+                
+                m_sceneman.CurrentOrFirstScene.AssetService.Store(ass);
 
             }
             catch // LEGIT: Catching problems caused by OpenJPEG p/invoke
