@@ -168,6 +168,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnDeleteUserInventory += CanDeleteUserInventory; //NOT YET IMPLEMENTED
             
             m_scene.Permissions.OnTeleport += CanTeleport; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnUseObjectReturn += CanUseObjectReturn; //NOT YET IMPLEMENTED
 
             m_scene.AddCommand(this, "bypass permissions",
                     "bypass permissions <true / false>",
@@ -1522,6 +1523,66 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             // You can reset the scripts in any object you can edit
             return GenericObjectPermission(agentID, prim, false);
+        }
+
+        private bool CanUseObjectReturn(ILandObject parcel, uint type, IClientAPI client, List<SceneObjectGroup> retlist, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            long powers = 0;
+            if (parcel.landData.GroupID != UUID.Zero)
+                client.GetGroupPowers(parcel.landData.GroupID);
+
+            switch (type)
+            {
+            case (uint)ObjectReturnType.Owner:
+                // Don't let group members return owner's objects, ever
+                //
+                if (parcel.landData.IsGroupOwned)
+                {
+                    if ((powers & (long)GroupPowers.ReturnGroupOwned) != 0)
+                        return true;
+                }
+                else
+                {
+                    if (parcel.landData.OwnerID != client.AgentId)
+                        return false;
+                }
+                break;
+            case (uint)ObjectReturnType.Group:
+                if (parcel.landData.OwnerID != client.AgentId)
+                {
+                    // If permissionis granted through a group...
+                    //
+                    if ((powers & (long)GroupPowers.ReturnGroupSet) != 0)
+                    {
+                        foreach (SceneObjectGroup g in new List<SceneObjectGroup>(retlist))
+                        {
+                            // check for and remove group owned objects unless
+                            // the user also has permissions to return those
+                            //
+                            if (g.OwnerID == g.GroupID &&
+                                    ((powers & (long)GroupPowers.ReturnGroupOwned) == 0))
+                            {
+                                retlist.Remove(g);
+                            }
+                        }
+                        // And allow the operation
+                        //
+                        return true;
+                    }
+                }
+                break;
+            case (uint)ObjectReturnType.Other:
+                if ((powers & (long)GroupPowers.ReturnNonGroup) != 0)
+                    return true;
+                break;
+            case (uint)ObjectReturnType.List:
+                break;
+            }
+
+            return GenericParcelPermission(client.AgentId, parcel);
         }
     }
 }
