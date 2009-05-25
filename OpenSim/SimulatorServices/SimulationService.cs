@@ -30,7 +30,7 @@ namespace OpenSim.SimulatorServices
             IConfig moduleConfig = config.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("AssetServices", "");
+                string name = moduleConfig.GetString("SimulationService", "");
                 if (name == Name)
                 {
                     m_Enabled = true;
