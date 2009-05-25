@@ -3212,6 +3212,7 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Client"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>

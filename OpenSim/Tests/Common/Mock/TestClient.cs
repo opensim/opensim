@@ -36,10 +36,11 @@ using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Framework.Client;
 
 namespace OpenSim.Tests.Common.Mock
 {
-    public class TestClient : IClientAPI
+    public class TestClient : IClientAPI, IClientCore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -1131,5 +1132,25 @@ namespace OpenSim.Tests.Common.Mock
         public void SendPickInfoReply(UUID pickID,UUID creatorID, bool topPick, UUID parcelID, string name, string desc, UUID snapshotID, string user, string originalName, string simName, Vector3 posGlobal, int sortOrder, bool enabled)
         {
         }
+
+        public bool TryGet<T>(out T iface)
+        {
+            iface = default(T);
+            return false;
+        }
+
+        public T Get<T>()
+        {
+            return default(T);
+        }
+
+        public void Disconnect(string reason)
+        {
+        }
+
+        public void Disconnect() 
+        {
+        }
+
     }
 }
