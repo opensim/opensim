@@ -1,4 +1,4 @@
-<Addin id="OpenSim.Region.CoreModules" version="0.2">
+<Addin id="OpenSim.Region.CoreModules" version="0.3">
     <Runtime>
         <Import assembly="OpenSim.Region.CoreModules.dll"/>
     </Runtime>
@@ -8,7 +8,7 @@
     </Dependencies>
 
     <Extension path = "/OpenSim/RegionModules">
-        <RegionModule id="CapabilitiesModule" type="OpenSim.Region.CoreModules.Agent.Capability.CapabilitiesModule" />
+        <RegionModule id="CapabilitiesModule" type="OpenSim.Region.CoreModules.Agent.Capabilities.CapabilitiesModule" />
         <RegionModule id="TerrainModule" type="OpenSim.Region.CoreModules.World.Terrain.TerrainModule" />
         <RegionModule id="WorldMapModule" type="OpenSim.Region.CoreModules.World.WorldMap.WorldMapModule" />
         <RegionModule id="HGWorldMapModule" type="OpenSim.Region.CoreModules.Hypergrid.HGWorldMapModule" />
