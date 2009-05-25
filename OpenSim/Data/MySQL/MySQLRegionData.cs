@@ -196,7 +196,6 @@ namespace OpenSim.Data.MySQL
                             "ColorR, ColorG, ColorB, ColorA, "+
                             "ParticleSystem, ClickAction, Material, "+
                             "CollisionSound, CollisionSoundVolume, "+
-                            "PassTouches, "+
                             "LinkNumber) values (" + "?UUID, "+
                             "?CreationDate, ?Name, ?Text, "+
                             "?Description, ?SitName, ?TouchName, "+
@@ -228,7 +227,7 @@ namespace OpenSim.Data.MySQL
                             "?SaleType, ?ColorR, ?ColorG, "+
                             "?ColorB, ?ColorA, ?ParticleSystem, "+
                             "?ClickAction, ?Material, ?CollisionSound, "+
-                            "?CollisionSoundVolume, ?PassTouches, ?LinkNumber)";
+                            "?CollisionSoundVolume, ?LinkNumber)";
 
                     FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -951,9 +950,6 @@ namespace OpenSim.Data.MySQL
 
             prim.CollisionSound = new UUID(row["CollisionSound"].ToString());
             prim.CollisionSoundVolume = Convert.ToSingle(row["CollisionSoundVolume"]);
-            
-            if (Convert.ToInt16(row["PassTouches"]) != 0)
-                prim.PassTouches = true;
             prim.LinkNum = Convert.ToInt32(row["LinkNumber"]);
 
             return prim;
@@ -1276,12 +1272,6 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("CollisionSound", prim.CollisionSound.ToString());
             cmd.Parameters.AddWithValue("CollisionSoundVolume", prim.CollisionSoundVolume);
-
-            if (prim.PassTouches)
-                cmd.Parameters.AddWithValue("PassTouches", 1);
-            else
-                cmd.Parameters.AddWithValue("PassTouches", 0);
-
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
         }
 
