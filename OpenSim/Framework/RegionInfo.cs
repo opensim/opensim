@@ -134,17 +134,25 @@ namespace OpenSim.Framework
 
                 // Reset for next check
                 ia = null;
-
-                foreach (IPAddress Adr in Dns.GetHostAddresses(m_externalHostName))
+                try
                 {
-                    if (ia == null)
-                        ia = Adr;
-
-                    if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                    foreach (IPAddress Adr in Dns.GetHostAddresses(m_externalHostName))
                     {
-                        ia = Adr;
-                        break;
+                        if (ia == null)
+                            ia = Adr;
+
+                        if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            ia = Adr;
+                            break;
+                        }
                     }
+                }
+                catch (SocketException e)
+                {
+                    throw new Exception(
+                        "Unable to resolve local hostname " + m_externalHostName + " innerException of type '" +
+                        e + "' attached to this exception", e);
                 }
 
                 return new IPEndPoint(ia, m_internalEndPoint.Port);
