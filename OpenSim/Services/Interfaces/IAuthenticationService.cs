@@ -9,6 +9,6 @@ namespace OpenSim.Services.Interfaces
 
         bool VerifyKey(UUID userID, string key);
         
-        bool VerifySession(UUID iserID, UUID sessionID);
+        bool VerifySession(UUID userID, UUID sessionID);
     }
 }
