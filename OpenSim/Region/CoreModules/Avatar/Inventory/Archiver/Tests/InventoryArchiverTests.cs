@@ -198,7 +198,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarV0_1ExistingUsers()
         {   
-            Assert.Ignore();
             TestHelper.InMethod();
             
             //log4net.Config.XmlConfigurator.Configure();
@@ -265,9 +264,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarV0_1TempProfiles()
         {   
-            Assert.Ignore();
             TestHelper.InMethod();
-            Console.WriteLine("### Started {0} ###", MethodBase.GetCurrentMethod());
             
             log4net.Config.XmlConfigurator.Configure();
             

@@ -84,26 +84,38 @@ namespace OpenSim.Framework
                 m_creatorId = value;
             }
         }
+        protected string m_creatorId;
 
-        protected string m_creatorId = UUID.Zero.ToString();
         /// <value>
-        /// The creator of this item expressed as a UUID.  Database plugins don't need to set this, it will be set by
+        /// The UUID for the creator.  This may be different from the canonical CreatorId.  This property is used
+        /// for communication with the client over the Second Life protocol, since that protocol can only understand
+        /// UUIDs.  As this is a basic framework class, this means that both the string creator id and the uuid
+        /// reference have to be settable separately
+        ///
+        /// Database plugins don't need to set this, it will be set by
         /// upstream code (or set by the get accessor if left unset).
+        ///
+        /// XXX: An alternative to having a separate uuid property would be to hash the CreatorId appropriately
+        /// every time there was communication with a UUID-only client.  This may be much more expensive.
         /// </value>
         public UUID CreatorIdAsUuid 
         {
             get
             {
-                UUID temp = UUID.Zero;
-                UUID.TryParse(CreatorId, out temp);
-                return temp;
+                if (UUID.Zero == m_creatorIdAsUuid)
+                {
+                    UUID.TryParse(CreatorId, out m_creatorIdAsUuid);
+                }
+
+                return m_creatorIdAsUuid;
             }
             
             set
             {
-                CreatorId = value.ToString();
+                m_creatorIdAsUuid = value;
             }
         }     
+        protected UUID m_creatorIdAsUuid = UUID.Zero;
 
         /// <value>
         /// The description of the inventory item (must be less than 64 characters)

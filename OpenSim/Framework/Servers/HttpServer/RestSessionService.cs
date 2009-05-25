@@ -236,10 +236,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <summary>
         /// The operation to perform once trust has been established.
         /// </summary>
-        /// <param name="httpMethod"></param>
-        /// <param name="path"></param>
-        /// <param name="method"></param>
-        /// <param name="tmethod"></param>
         private RestDeserialiseMethod<TRequest, TResponse> m_method;
 
         /// <summary>
