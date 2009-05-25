@@ -21,11 +21,22 @@ namespace OpenSim.Framework
         // Logger
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private static bool m_disabled = true;
+
+        public static bool Enabled
+        {
+            set { m_disabled = value; }
+            get { return m_disabled; }
+        }
+
         // IPv4Address, Subnet
         static readonly Dictionary<IPAddress,IPAddress> m_subnets = new Dictionary<IPAddress, IPAddress>();
 
         public static IPAddress GetIPFor(IPAddress user, IPAddress simulator)
         {
+            if(m_disabled)
+                return simulator;
+
             // Check if we're accessing localhost.
             foreach (IPAddress host in Dns.GetHostAddresses(Dns.GetHostName()))
             {
@@ -168,10 +179,13 @@ namespace OpenSim.Framework
 
         public static IPAddress GetIPFor(IPEndPoint user, string defaultHostname)
         {
-            // Try subnet matching
-            IPAddress rtn = GetExternalIPFor(user.Address, defaultHostname);
-            if (rtn != null)
-                return rtn;
+            if (!m_disabled)
+            {
+                // Try subnet matching
+                IPAddress rtn = GetExternalIPFor(user.Address, defaultHostname);
+                if (rtn != null)
+                    return rtn;
+            }
 
             // Otherwise use the old algorithm
             IPAddress ia;
@@ -195,10 +209,12 @@ namespace OpenSim.Framework
 
         public static string GetHostFor(IPAddress user, string defaultHostname)
         {
-            IPAddress rtn = GetExternalIPFor(user, defaultHostname);
-            if(rtn != null)
-                return rtn.ToString();
-
+            if (!m_disabled)
+            {
+                IPAddress rtn = GetExternalIPFor(user, defaultHostname);
+                if (rtn != null)
+                    return rtn.ToString();
+            }
             return defaultHostname;
         }
     }
