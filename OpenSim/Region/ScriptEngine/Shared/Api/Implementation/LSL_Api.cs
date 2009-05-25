@@ -3705,7 +3705,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPassTouches(int pass)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llPassTouches");
+            if (pass != 0) 
+                m_host.PassTouches = true;
+            else 
+                m_host.PassTouches = false;
         }
 
         public LSL_String llRequestAgentData(string id, int data)

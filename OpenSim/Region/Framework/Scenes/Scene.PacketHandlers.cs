@@ -251,10 +251,16 @@ namespace OpenSim.Region.Framework.Scenes
 
                             // If the touched prim handles touches, deliver it
                             // If not, deliver to root prim
-                            if ((part.ScriptEvents & scriptEvents.touch_start) != 0)
+                            if ((part.ScriptEvents & scriptEvents.touch_start) != 0) 
                                 EventManager.TriggerObjectGrab(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
-                            else
+                            // Deliver to the root prim if the touched prim doesn't handle touches
+                            // or if we're meant to pass on touches anyway. Don't send to root prim
+                            // if prim touched is the root prim as we just did it
+                            if (((part.ScriptEvents & scriptEvents.touch_start) == 0) ||
+                                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId))) 
+                            {
                                 EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
+                            }
 
                             return;
                         }
