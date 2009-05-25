@@ -117,9 +117,10 @@ namespace OpenSim.Tests.Common.Setup
             TestScene testScene = new TestScene(
                 regInfo, acm, cm, scs, sm, null, false, false, false, configSource, null);
 
-            IRegionModule capsModule = new CapabilitiesModule();            
-            capsModule.Initialise(testScene, new IniConfigSource());
-            testScene.AddModule(capsModule.Name, capsModule);
+            INonSharedRegionModule capsModule = new CapabilitiesModule();            
+            capsModule.Initialise(new IniConfigSource());
+            testScene.AddRegionModule(capsModule.Name, capsModule);
+            capsModule.AddRegion(testScene);
             
             IRegionModule godsModule = new GodsModule();
             godsModule.Initialise(testScene, new IniConfigSource());
