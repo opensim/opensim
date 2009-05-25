@@ -213,7 +213,6 @@ namespace OpenSim.Framework.Console
             MatchCollection matches = RE.Matches(text);
 
             string outText = text;
-            ConsoleColor color = ConsoleColor.White;
 
             if (matches.Count == 1)
             {
@@ -227,11 +226,12 @@ namespace OpenSim.Framework.Console
             }
 
             if (level == "error")
-                color = ConsoleColor.Red;
+                WriteColorText(ConsoleColor.Red, outText);
             else if (level == "warn")
-                color = ConsoleColor.Yellow;
-
-            WriteColorText(color, outText);
+                WriteColorText(ConsoleColor.Yellow, outText);
+            else
+                System.Console.Write(outText);
+        
             System.Console.WriteLine();
         }
 
