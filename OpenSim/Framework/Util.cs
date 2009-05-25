@@ -45,6 +45,7 @@ using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
@@ -1088,8 +1089,27 @@ namespace OpenSim.Framework
 
         }
 
-
-
+        /// <summary>
+        /// Produces an OSDMap from its string representation on a stream
+        /// </summary>
+        /// <param name="data">The stream</param>
+        /// <param name="length">The size of the data on the stream</param>
+        /// <returns>The OSDMap or an exception</returns>
+        public static OSDMap GetOSDMap(Stream stream, int length)
+        {
+            byte[] data = new byte[length];
+            stream.Read(data, 0, length);
+            string strdata = Encoding.UTF8.GetString(data);
+            OSDMap args = null;
+            OSD buffer;
+            buffer = OSDParser.DeserializeJson(strdata);
+            if (buffer.Type == OSDType.Map)
+            {
+                args = (OSDMap)buffer;
+                return args;
+            }
+            return null;
+        }
 
     }
 }
