@@ -17,8 +17,10 @@ namespace OpenSim.Framework.Servers.Tests
         [Test]
         public void TestGetVersionStringLength()
         {
-            Assert.AreEqual(VersionInfo.VERSIONINFO_VERSION_LENGTH, VersionInfo.GetVersionString("0.0.0").Length, "0.0.0 failed");
-            Assert.AreEqual(VersionInfo.VERSIONINFO_VERSION_LENGTH, VersionInfo.GetVersionString("9.99.99").Length, "9.99.99 failed");
+            foreach (VersionInfo.Flavour flavour in Enum.GetValues(typeof(VersionInfo.Flavour)))
+            {
+                Assert.AreEqual(VersionInfo.VERSIONINFO_VERSION_LENGTH, VersionInfo.GetVersionString("0.0.0", flavour).Length, "0.0.0/" + flavour + " failed");
+            }
         }
     }
 }

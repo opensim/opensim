@@ -29,24 +29,27 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-        private enum Flavour
+        private const string VERSION_NUMBER = "0.6.5";
+        private const Flavour VERSION_FLAVOUR = Flavour.Dev;
+
+        public enum Flavour
         {
             Unknown,
             Dev,
             RC1,
             RC2,
-            Release
+            Release,
+            Post_Fixes
         }
-        private const string m_versionNumber = "0.6.5";
 
         public static string Version
         {
-            get { return GetVersionString(m_versionNumber); }
+            get { return GetVersionString(VERSION_NUMBER, VERSION_FLAVOUR); }
         }
 
-        public static string GetVersionString(string versionNumber)
+        public static string GetVersionString(string versionNumber, Flavour flavour)
         {
-            string versionString = "OpenSimulator Server" + versionNumber;
+            string versionString = "OpenSim " + versionNumber + " (" + flavour + ")";
             return versionString.PadRight(VERSIONINFO_VERSION_LENGTH);
         }
 
