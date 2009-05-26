@@ -124,7 +124,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
                     return urlcode;
                 }
-                string url = "http://"+Util.GetLocalHost()+":"+m_HttpServer.Port.ToString()+"/lslhttp/"+urlcode.ToString()+"/";
+                string url = "http://"+System.Environment.MachineName+":"+m_HttpServer.Port.ToString()+"/lslhttp/"+urlcode.ToString()+"/";
 
                 UrlData urlData = new UrlData();
                 urlData.hostID = host.UUID;
