@@ -124,7 +124,16 @@ namespace OpenSim.Framework.Communications.Clients
             ArrayList SendParams = new ArrayList();
             SendParams.Add(requestData);
             XmlRpcRequest UserReq = new XmlRpcRequest("check_auth_session", SendParams);
-            XmlRpcResponse UserResp = UserReq.Send(authurl, 3000);
+            XmlRpcResponse UserResp = null;
+            try
+            {
+                UserResp = UserReq.Send(authurl, 3000);
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine("[Session Auth]: VerifySession XmlRpc: " + e.Message); 
+                return false;
+            }
 
             Hashtable responseData = (Hashtable)UserResp.Value;
             if (responseData.ContainsKey("auth_session") && responseData["auth_session"].ToString() == "TRUE")
