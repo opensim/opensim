@@ -32,7 +32,7 @@ namespace OpenSim
         /// <value>
         /// This is the OpenSim version string.  Change this if you are releasing a new OpenSim version.
         /// </value>        
-        public readonly static string Version = "OpenSimulator Server  0.6.5";  // stay with 27 chars (used in regioninfo)
+        private readonly static string m_version = "OpenSimulator Server  0.6.5";  // stay with 27 chars (used in regioninfo)
         public const int VERSIONINFO_VERSION_LENGTH = 27;
         
         /// <value>
@@ -50,5 +50,13 @@ namespace OpenSim
         ///   
         /// </value>
         public readonly static int MajorInterfaceVersion = 4;
+
+        /// <value>
+        /// This is the OpenSim version string.  Change this if you are releasing a new OpenSim version.
+        /// </value>        
+        public static string Version
+        {
+            get { return m_version; }
+        }
     }
 }
