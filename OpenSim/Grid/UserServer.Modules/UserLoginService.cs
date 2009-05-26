@@ -270,13 +270,20 @@ namespace OpenSim.Grid.UserServer.Modules
 
                 string capsPath = CapsUtil.GetRandomCapsObjectPath();
 
-                // For NAT
-                //string host = NetworkUtil.GetHostFor(remoteClient.Address, regionInfo.ServerIP);
-                string host = response.SimAddress;
-                // TODO: This doesnt support SSL. -Adam
-                string serverURI = "http://" + host + ":" + regionInfo.ServerPort;
+                // Adam's working code commented for now -- Diva 5/25/2009
+                //// For NAT
+                ////string host = NetworkUtil.GetHostFor(remoteClient.Address, regionInfo.ServerIP);
+                //string host = response.SimAddress;
+                //// TODO: This doesnt support SSL. -Adam
+                //string serverURI = "http://" + host + ":" + regionInfo.ServerPort;
 
-                response.SeedCapability = serverURI + CapsUtil.GetCapsSeedPath(capsPath);
+                //response.SeedCapability = serverURI + CapsUtil.GetCapsSeedPath(capsPath);
+
+                // Take off trailing / so that the caps path isn't //CAPS/someUUID
+                if (regionInfo.httpServerURI.EndsWith("/"))
+                    regionInfo.httpServerURI = regionInfo.httpServerURI.Substring(0, regionInfo.httpServerURI.Length - 1);
+                response.SeedCapability = regionInfo.httpServerURI + CapsUtil.GetCapsSeedPath(capsPath);
+
 
                 // Notify the target of an incoming user
                 m_log.InfoFormat(
