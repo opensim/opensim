@@ -652,7 +652,6 @@
       <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
-	    <Reference name="GlynnTucker.Cache.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">
@@ -1487,6 +1486,8 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
 
+      <Reference name="GlynnTucker.Cache.dll"/>
+      
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
