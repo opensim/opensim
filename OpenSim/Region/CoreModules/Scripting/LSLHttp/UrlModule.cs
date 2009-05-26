@@ -33,6 +33,7 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -96,6 +97,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
 
             scene.RegisterModuleInterface<IUrlModule>(this);
+
+            scene.EventManager.OnScriptReset += OnScriptReset;
         }
 
         public void RegionLoaded(Scene scene)
@@ -121,7 +124,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
                     return urlcode;
                 }
-                string url = "http://"+System.Environment.MachineName+":"+m_HttpServer.Port.ToString()+"/lslhttp/"+urlcode.ToString()+"/";
+                string url = "http://"+Util.GetLocalHost()+":"+m_HttpServer.Port.ToString()+"/lslhttp/"+urlcode.ToString()+"/";
 
                 UrlData urlData = new UrlData();
                 urlData.hostID = host.UUID;
@@ -238,8 +241,14 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
             Hashtable response = new Hashtable();
             response["int_response_code"] = 404;
+            response["str_response_string"] = "Test";
 
             return response;
+        }
+
+        private void OnScriptReset(uint localID, UUID itemID)
+        {
+            ScriptRemoved(itemID);
         }
     }
 }
