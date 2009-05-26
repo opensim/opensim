@@ -45,8 +45,21 @@ namespace OpenSim.Framework.Communications.Clients
 
         public bool DoCreateChildAgentCall(RegionInfo region, AgentCircuitData aCircuit, string authKey, out string reason)
         {
+            reason = String.Empty;
+
             // Eventually, we want to use a caps url instead of the agentID
-            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + aCircuit.AgentID + "/";
+            string uri = string.Empty;
+            try
+            {
+                uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + aCircuit.AgentID + "/";
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[REST COMMS]: Unable to resolve external endpoint on agent create. Reason: " + e.Message);
+                reason = e.Message;
+                return false;
+            }
+
             //Console.WriteLine("   >>> DoCreateChildAgentCall <<< " + uri);
 
             HttpWebRequest AgentCreateRequest = (HttpWebRequest)WebRequest.Create(uri);
@@ -55,8 +68,6 @@ namespace OpenSim.Framework.Communications.Clients
             AgentCreateRequest.Timeout = 10000;
             //AgentCreateRequest.KeepAlive = false;
             AgentCreateRequest.Headers.Add("Authorization", authKey);
-
-            reason = String.Empty;
 
             // Fill it in
             OSDMap args = null;
@@ -158,7 +169,16 @@ namespace OpenSim.Framework.Communications.Clients
         public bool DoChildAgentUpdateCall(RegionInfo region, IAgentData cAgentData)
         {
             // Eventually, we want to use a caps url instead of the agentID
-            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + cAgentData.AgentID + "/";
+            string uri = string.Empty;
+            try
+            {
+                uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + cAgentData.AgentID + "/";
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[REST COMMS]: Unable to resolve external endpoint on agent update. Reason: " + e.Message);
+                return false;
+            }
             //Console.WriteLine("   >>> DoChildAgentUpdateCall <<< " + uri);
 
             HttpWebRequest ChildUpdateRequest = (HttpWebRequest)WebRequest.Create(uri);
@@ -330,7 +350,16 @@ namespace OpenSim.Framework.Communications.Clients
 
         public bool DoCloseAgentCall(RegionInfo region, UUID id)
         {
-            string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + id + "/" + region.RegionHandle.ToString() + "/";
+            string uri = string.Empty;
+            try
+            {
+                uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/agent/" + id + "/" + region.RegionHandle.ToString() + "/";
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[REST COMMS]: Unable to resolve external endpoint on agent close. Reason: " + e.Message);
+                return false;
+            }
 
             //Console.WriteLine("   >>> DoCloseAgentCall <<< " + uri);
 
