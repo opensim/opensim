@@ -384,18 +384,16 @@ namespace OpenSim
 
             scene.SetModuleInterfaces();
 
+            // moved these here as the terrain texture has to be created after the modules are initialized
+            // and has to happen before the region is registered with the grid.
+            scene.CreateTerrainTexture(false);
+            
             // Prims have to be loaded after module configuration since some modules may be invoked during the load            
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);
-
-            scene.StartTimer();
             
             // TODO : Try setting resource for region xstats here on scene            
             scene.CommsManager.HttpServer.AddStreamHandler( new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
             
-            // moved these here as the terrain texture has to be created after the modules are initialized
-            // and has to happen before the region is registered with the grid.
-            scene.CreateTerrainTexture(false);
-
             try
             {
                 scene.RegisterRegionWithGrid();
@@ -434,6 +432,9 @@ namespace OpenSim
             scene.EventManager.OnShutdown += delegate() { ShutdownRegion(scene); };
 
             mscene = scene;
+
+            scene.StartTimer();
+
             return clientServer;
         }
 
