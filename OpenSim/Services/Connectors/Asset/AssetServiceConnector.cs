@@ -195,8 +195,16 @@ namespace OpenSim.Services.Connectors
 
             string uri = m_ServerURI + "/assets/";
 
-            string newID = SynchronousRestObjectRequester.
-                    MakeRequest<AssetBase, string>("POST", uri, asset);
+            string newID = string.Empty;
+            try
+            {
+                newID = SynchronousRestObjectRequester.
+                        MakeRequest<AssetBase, string>("POST", uri, asset);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[ASSET CONNECTOR]: Unable to send asset {0} to asset server. Reason: {1}", asset.ID, e.Message);
+            }
 
             if (newID != String.Empty)
             {
