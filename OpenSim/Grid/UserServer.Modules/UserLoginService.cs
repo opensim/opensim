@@ -271,7 +271,8 @@ namespace OpenSim.Grid.UserServer.Modules
                 string capsPath = CapsUtil.GetRandomCapsObjectPath();
 
                 // For NAT
-                string host = NetworkUtil.GetHostFor(remoteClient.Address, regionInfo.ServerIP);
+                //string host = NetworkUtil.GetHostFor(remoteClient.Address, regionInfo.ServerIP);
+                string host = response.SimAddress;
                 // TODO: This doesnt support SSL. -Adam
                 string serverURI = "http://" + host + ":" + regionInfo.ServerPort;
 
