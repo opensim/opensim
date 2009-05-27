@@ -502,7 +502,6 @@
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="Ode.NET.dll" />
       <Reference name="nunit.framework.dll" />
-      <Reference name="OpenSim.Tests.Common"/>
       <Reference name="log4net.dll"/>
 
       <Files>
