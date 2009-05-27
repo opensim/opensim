@@ -33,15 +33,19 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using NUnit.Framework;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Base;
 using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Tests.Common.Setup
 {
     public class GetAssetStreamHandlerTestHelpers
     {
+        private const string EXPECTED_CONTENT_TYPE = "application/x-metaverse-callingcard";
+
         public static void BaseFetchExistingAssetXmlTest(AssetBase asset, BaseGetAssetStreamHandler handler, OSHttpResponse response)
         {
             byte[] expected = BaseGetAssetStreamHandler.GetXml(asset);
@@ -49,12 +53,17 @@ namespace OpenSim.Tests.Common.Setup
             byte[] actual = handler.Handle("/assets/" + asset.ID , null, null, response);
 
             Assert.Greater(actual.Length, 10, "Too short xml on fetching xml without trailing slash.");
-            Assert.AreEqual(expected, actual, "Failed on fetching xml without trailing slash.");
+            Assert.AreEqual(expected, actual, "Failed on fetching xml without trailing slash.");            
             // Assert.AreEqual((int)HttpStatusCode.OK, response.StatusCode, "Wrong http response code on first fetch."); 
 
-            byte[] actual1 = handler.Handle("/assets/" + asset.ID + "/", null, null, response);
-            Assert.Greater(actual1.Length, 10, "Too short xml on fetching xml with trailing slash.");
-            Assert.AreEqual(expected, actual1, "Failed on fetching xml with trailing slash.");
+            actual = handler.Handle("/assets/" + asset.ID + "/", null, null, response);
+            Assert.Greater(actual.Length, 10, "Too short xml on fetching xml with trailing slash.");
+            Assert.AreEqual(expected, actual, "Failed on fetching xml with trailing slash.");
+            // Assert.AreEqual((int)HttpStatusCode.OK, response.StatusCode, "Wrong http response code on second fetch.");
+            
+            actual = handler.Handle("/assets/" + asset.ID + "/badData", null, null, response);
+            Assert.Greater(actual.Length, 10, "Too short xml on fetching xml with bad trailing data.");
+            Assert.AreEqual(expected, actual, "Failed on fetching xml with bad trailing trailing slash.");
             // Assert.AreEqual((int)HttpStatusCode.OK, response.StatusCode, "Wrong http response code on second fetch.");
         }
 
@@ -62,9 +71,27 @@ namespace OpenSim.Tests.Common.Setup
         {
             Assert.AreEqual(asset.Data, handler.Handle("/assets/" + asset.ID + "/data", null, null, response), "Failed on fetching data without trailing slash.");
             Assert.AreEqual((int)HttpStatusCode.OK, response.StatusCode, "Wrong http response code on first fetch.");
+            Assert.AreEqual(EXPECTED_CONTENT_TYPE, response.ContentType, "Wrong http content type on first fetch.");
 
             Assert.AreEqual(asset.Data, handler.Handle("/assets/" + asset.ID + "/data/", null, null, response), "Failed on fetching data with trailing slash.");
             Assert.AreEqual((int)HttpStatusCode.OK, response.StatusCode, "Wrong http response code on second fetch.");
+            Assert.AreEqual(EXPECTED_CONTENT_TYPE, response.ContentType, "Wrong http content type on second fetch.");
+        }
+
+        public static void BaseFetchExistingAssetMetaDataTest(AssetBase asset, BaseGetAssetStreamHandler handler, OSHttpResponse response)
+        {
+                                XmlSerializer xs =
+                            new XmlSerializer(typeof(AssetMetadata));
+
+            byte[] expected = ServerUtils.SerializeResult(xs, asset.Metadata);
+
+            Assert.AreEqual(expected, handler.Handle("/assets/" + asset.ID + "/metadata", null, null, response), "Failed on fetching data without trailing slash.");
+            Assert.AreEqual((int)HttpStatusCode.OK, response.StatusCode, "Wrong http response code on first fetch.");
+            Assert.AreEqual(EXPECTED_CONTENT_TYPE, response.ContentType, "Wrong http content type on first fetch.");
+
+            Assert.AreEqual(expected, handler.Handle("/assets/" + asset.ID + "/metadata/", null, null, response), "Failed on fetching data with trailing slash.");
+            Assert.AreEqual((int)HttpStatusCode.OK, response.StatusCode, "Wrong http response code on second fetch.");
+            Assert.AreEqual(EXPECTED_CONTENT_TYPE, response.ContentType, "Wrong http content type on second fetch.");
         }
 
         public static AssetBase CreateCommonTestResources(out OSHttpResponse response)
@@ -80,6 +107,8 @@ namespace OpenSim.Tests.Common.Setup
             AssetBase asset = new AssetBase( );
             asset.ID = Guid.NewGuid().ToString();
             asset.Data = expected;
+            asset.Type = 2;
+       
             return asset;
         }
 

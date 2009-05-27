@@ -109,6 +109,16 @@ namespace OpenSim.Framework.Servers.Tests
             GetAssetStreamHandlerTestHelpers.BaseFetchExistingAssetDataTest(asset, handler, response);
         }
 
+        //[Test]
+        //public void TestHandleFetchExistingAssetMetaData()
+        //{
+        //    CachedGetAssetStreamHandler handler;
+        //    OSHttpResponse response;
+        //    AssetBase asset = CreateTestEnvironment(out handler, out response);
+
+        //    GetAssetStreamHandlerTestHelpers.BaseFetchExistingAssetMetaDataTest(asset, handler, response);
+        //}
+
         private static AssetBase CreateTestEnvironment(out CachedGetAssetStreamHandler handler, out OSHttpResponse response)
         {
             AssetBase asset = GetAssetStreamHandlerTestHelpers.CreateCommonTestResources(out response);
