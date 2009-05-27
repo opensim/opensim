@@ -102,7 +102,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Fields
 
-        [XmlIgnore]
         public bool AllowedDrop = false;
 
         [XmlIgnore]
@@ -215,6 +214,9 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_touchName = String.Empty;
         private readonly UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
         private UUID _creatorID;
+
+
+        private bool m_passTouches = false;
 
         /// <summary>
         /// Only used internally to schedule client updates.
@@ -428,6 +430,17 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     PhysActor.SetMaterial((int)value);
                 }
+            }
+        }
+
+        public bool PassTouches
+        {
+            get { return m_passTouches; }
+            set
+            {
+                m_passTouches = value;
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;
             }
         }
 
