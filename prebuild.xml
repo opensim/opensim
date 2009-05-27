@@ -1422,39 +1422,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Server.Handlers.Tests" path="OpenSim/Server/Handlers/Tests" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="nunit.framework.dll" />
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>      
-      <Reference name="OpenSim.Server.Handlers"/>
-      <Reference name="OpenSim.Server.Base"/>
-      <Reference name="OpenSim.Services.Base" />
-      <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="OpenSim.Tests.Common"/>
-      <Reference name="Nini.dll" />
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
 
     <Project name="OpenSim.Services" path="OpenSim/Server" type="Exe">
       <Configuration name="Debug">
@@ -3724,6 +3691,41 @@
         <Match path="XEngine/Tests" pattern="*.cs" recurse="true" />
       </Files>
     </Project>
+
+    <Project name="OpenSim.Server.Handlers.Tests" path="OpenSim/Server/Handlers/Tests" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="nunit.framework.dll" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>      
+      <Reference name="OpenSim.Server.Handlers"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenSim.Services.Base" />
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Tests.Common"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
 
 <!-- /////////////////// DO NOT EDIT THE BELOW 6 LINES!!!! //////////// -->
 
