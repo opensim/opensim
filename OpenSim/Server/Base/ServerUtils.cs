@@ -32,6 +32,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Text;
 using log4net;
+using OpenSim.Framework;
 
 namespace OpenSim.Server.Base
 {
@@ -92,7 +93,7 @@ namespace OpenSim.Server.Base
 
             ms.Seek(0, SeekOrigin.Begin);
             byte[] ret = ms.GetBuffer();
-            Array.Resize<byte>(ref ret, (int)ms.Length);
+            Array.Resize(ref ret, (int)ms.Length);
 
             return ret;
         }
@@ -117,9 +118,6 @@ namespace OpenSim.Server.Base
 
             try
             {
-                //m_log.DebugFormat("[PLUGINS]: Loading plugins from {0}", System.IO.Directory.GetCurrentDirectory());
-                //m_log.DebugFormat("[PLUGINS]: Trying to load {0}", dllName);
-                
                 Assembly pluginAssembly = Assembly.LoadFrom(dllName);
 
                 foreach (Type pluginType in pluginAssembly.GetTypes())
