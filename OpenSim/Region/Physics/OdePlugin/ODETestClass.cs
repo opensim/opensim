@@ -33,10 +33,11 @@ using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using log4net;
 using System.Reflection;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
-    [TestFixture]
+    [IntegrationTest]
     public class ODETestClass
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
