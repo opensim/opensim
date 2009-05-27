@@ -1,9 +1,10 @@
 [Modules]
-    AssetCaching = "CoreAssetCache"
+    ;AssetCaching = "CoreAssetCache"
+    AssetCaching = "GlynnTuckerAssetCache"
 
 [AssetCache]
     ; Number of buckets for assets
-    CacheBuckets = 16384
+    ;CacheBuckets = 16384
 
 [AssetService]
     ;

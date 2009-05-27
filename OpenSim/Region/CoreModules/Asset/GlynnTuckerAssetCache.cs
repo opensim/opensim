@@ -60,7 +60,7 @@ namespace OpenSim.Region.CoreModules.Asset
             if (moduleConfig != null)
             {
                 string name = moduleConfig.GetString("AssetCaching", "GlynnTuckerAssetCache");
-                m_log.DebugFormat("[XXX] name = {0} (this module's name: {1}", name, Name);
+                m_log.DebugFormat("[ASSET CACHE] name = {0} (this module's name: {1}). Sync? ", name, Name, m_Cache.IsSynchronized);
 
                 if (name == Name)
                 {
