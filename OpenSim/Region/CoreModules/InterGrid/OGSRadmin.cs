@@ -7,6 +7,8 @@ using System.Text;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
+using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -100,6 +102,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             }
 
             string message = (string)requestData["message"];
+            string user = (string)requestData["user"];
             m_log.InfoFormat("[RADMIN]: Broadcasting: {0}", message);
 
             lock(m_scenes)
@@ -107,7 +110,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 {
                     IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
                     if (dialogModule != null)
-                        dialogModule.SendGeneralAlert(message);
+                        dialogModule.SendNotificationToUsersInEstate(UUID.Random(), user, message);
                 }
 
             responseData["accepted"] = true;
