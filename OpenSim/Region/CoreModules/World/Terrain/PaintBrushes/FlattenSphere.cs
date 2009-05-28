@@ -41,10 +41,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
 
             int x, y;
 
+            duration = 0.009; //MCP Should be read from ini file
+
+            // Disabled - just use the client value.
+            /*
             if (rz < 0) {
                 double sum = 0.0;
                 double step2 = 0.0;
-                duration = 0.009; //MCP Should be read from ini file
 
 
                 // compute delta map
@@ -63,6 +66,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                 }
                 rz =  sum / step2;
             }
+            */
 
 
             // blend in map
