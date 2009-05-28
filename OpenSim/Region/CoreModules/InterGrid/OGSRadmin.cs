@@ -110,7 +110,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 {
                     IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
                     if (dialogModule != null)
-                        dialogModule.SendNotificationToUsersInEstate(UUID.Random(), user, message);
+                        dialogModule.SendNotificationToUsersInRegion(UUID.Random(), user, message);
                 }
 
             responseData["accepted"] = true;
