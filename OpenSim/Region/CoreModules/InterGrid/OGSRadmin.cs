@@ -13,7 +13,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.InterGrid
 {
-    public class OGSRadmin : ISharedRegionModule 
+    public class OGSRadmin : IRegionModule 
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly List<Scene> m_scenes = new List<Scene>();
@@ -26,6 +26,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
         {
             get { return "OGS Supporting RAdmin"; }
         }
+
 
         public void Initialise(IConfigSource source)
         {
@@ -61,6 +62,21 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 m_com = m_scenes[0].CommsManager;
                 m_com.HttpServer.AddXmlRPCHandler("grid_message", GridWideMessage);
             }
+        }
+
+        #endregion
+
+        #region IRegionModule
+
+        public void Initialise(Scene scene, IConfigSource source)
+        {
+            lock (m_scenes)
+                m_scenes.Add(scene);
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         #endregion
