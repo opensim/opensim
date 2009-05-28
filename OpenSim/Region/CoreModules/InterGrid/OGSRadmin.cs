@@ -70,6 +70,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
         public void Initialise(Scene scene, IConfigSource source)
         {
+            m_settings = source;
+
             lock (m_scenes)
                 m_scenes.Add(scene);
         }
