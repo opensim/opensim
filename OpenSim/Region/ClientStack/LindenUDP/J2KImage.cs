@@ -134,8 +134,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
+            UUID assetID = UUID.Zero;
             if (asset != null)
-                AssetDataCallback(asset.FullID, asset);
+                assetID = asset.FullID;
+
+            AssetDataCallback(assetID, asset);
+
         }
 
         private int GetPacketForBytePosition(int bytePosition)
