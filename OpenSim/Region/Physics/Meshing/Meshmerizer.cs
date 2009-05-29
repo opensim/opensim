@@ -71,6 +71,7 @@ namespace OpenSim.Region.Physics.Meshing
         private const string baseDir = null; //"rawFiles";
 #endif
 
+        private bool cacheSculptMaps = false;
         private string decodedScultMapPath = "j2kDecodeCache";
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
@@ -186,7 +187,7 @@ namespace OpenSim.Region.Physics.Meshing
                 if (primShape.SculptData.Length == 0)
                     return null;
 
-                if (primShape.SculptTexture != null)
+                if (cacheSculptMaps && primShape.SculptTexture != null)
                 {
                     decodedSculptFileName = System.IO.Path.Combine(decodedScultMapPath, "smap_" + primShape.SculptTexture.ToString());
                     try
@@ -199,7 +200,7 @@ namespace OpenSim.Region.Physics.Meshing
                     catch (Exception e)
                     {
                         m_log.Error("[SCULPT]: unable to load cached sculpt map " + decodedSculptFileName + " " + e.Message);
-                        
+
                     }
                     if (idata != null)
                         m_log.Debug("[SCULPT]: loaded cached map asset for map ID: " + primShape.SculptTexture.ToString());
@@ -212,9 +213,11 @@ namespace OpenSim.Region.Physics.Meshing
                         ManagedImage managedImage;  // we never use this
                         OpenJPEG.DecodeToImage(primShape.SculptData, out managedImage, out idata);
 
-                        //if (File.Exists(System.IO.Path.GetDirectoryName(decodedScultMapPath)))
-                        try { idata.Save(decodedSculptFileName, ImageFormat.MemoryBmp); }
-                        catch (Exception e) { m_log.Error("[SCULPT]: unable to cache sculpt map " + decodedSculptFileName + " " + e.Message); }
+                        if (cacheSculptMaps)
+                        {
+                            try { idata.Save(decodedSculptFileName, ImageFormat.MemoryBmp); }
+                            catch (Exception e) { m_log.Error("[SCULPT]: unable to cache sculpt map " + decodedSculptFileName + " " + e.Message); }
+                        }
                     }
                     catch (DllNotFoundException)
                     {

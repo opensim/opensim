@@ -2967,10 +2967,10 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (part.Shape.SculptEntry && part.Shape.SculptTexture != UUID.Zero)
                             {
-                                // check if a previously decoded sculpt map has been cached
-                                if (File.Exists(System.IO.Path.Combine("j2kDecodeCache", "smap_" + part.Shape.SculptTexture.ToString())))
-                                    part.SculptTextureCallback(part.Shape.SculptTexture, null);
-                                else
+                                //// check if a previously decoded sculpt map has been cached
+                                //if (File.Exists(System.IO.Path.Combine("j2kDecodeCache", "smap_" + part.Shape.SculptTexture.ToString())))
+                                //    part.SculptTextureCallback(part.Shape.SculptTexture, null);
+                                //else
                                     m_scene.AssetService.Get(
                                         part.Shape.SculptTexture.ToString(), part, AssetReceived);
                             }
