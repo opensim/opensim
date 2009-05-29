@@ -119,18 +119,22 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             <OtherParts />
         </SceneObjectGroup>";
 
+        protected SerialiserModule m_serialiserModule;
+
+        [TestFixtureSetUp]
+        public void Init()
+        {
+            m_serialiserModule = new SerialiserModule();
+            SceneSetupHelpers.SetupSceneModules(SceneSetupHelpers.SetupScene(false), m_serialiserModule);            
+        }
+
         [Test]
         public void TestLoadXml2()
         {
             TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
-            SerialiserModule serialiserModule = new SerialiserModule();
-
-            Scene scene = SceneSetupHelpers.SetupScene(false);
-            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule);
-
-            SceneObjectGroup so = serialiserModule.DeserializeGroupFromXml2(xml2);
+            SceneObjectGroup so = m_serialiserModule.DeserializeGroupFromXml2(xml2);
             SceneObjectPart rootPart = so.RootPart;
 
             Assert.That(rootPart.UUID, Is.EqualTo(new UUID("9be68fdd-f740-4a0f-9675-dfbbb536b946")));
@@ -138,6 +142,13 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(rootPart.Name, Is.EqualTo("PrimFun"));
 
             // TODO: Check other properties
+        }
+
+        //[Test]
+        public void TestSaveXml2()
+        {
+            TestHelper.InMethod();
+            //log4net.Config.XmlConfigurator.Configure();            
         }
     }
 }
