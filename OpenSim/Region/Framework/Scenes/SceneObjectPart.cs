@@ -2268,7 +2268,7 @@ if (m_shape != null) {
         {
             if (m_shape.SculptEntry)
             {
-                if (texture != null)
+                //if (texture != null) // null could mean a cached sculpt map has been found
                 {
                     m_shape.SculptData = texture.Data;
                     if (PhysActor != null)

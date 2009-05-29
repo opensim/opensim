@@ -37,6 +37,7 @@ using System.Drawing.Imaging;
 using PrimMesher;
 using log4net;
 using System.Reflection;
+using System.IO;
 
 namespace OpenSim.Region.Physics.Meshing
 {
@@ -69,6 +70,8 @@ namespace OpenSim.Region.Physics.Meshing
 #else
         private const string baseDir = null; //"rawFiles";
 #endif
+
+        private string decodedScultMapPath = "j2kDecodeCache";
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 
@@ -176,33 +179,61 @@ namespace OpenSim.Region.Physics.Meshing
             List<Face> faces;
 
             Image idata = null;
+            string decodedSculptFileName = "";
 
             if (primShape.SculptEntry)
             {
                 if (primShape.SculptData.Length == 0)
                     return null;
 
-                try
+                if (primShape.SculptTexture != null)
                 {
-                    ManagedImage managedImage;  // we never use this
-                    OpenJPEG.DecodeToImage(primShape.SculptData, out managedImage, out idata);
-                    
+                    decodedSculptFileName = System.IO.Path.Combine(decodedScultMapPath, "smap_" + primShape.SculptTexture.ToString());
+                    try
+                    {
+                        if (File.Exists(decodedSculptFileName))
+                        {
+                            idata = Image.FromFile(decodedSculptFileName);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error("[SCULPT]: unable to load cached sculpt map " + decodedSculptFileName + " " + e.Message);
+                        
+                    }
+                    if (idata != null)
+                        m_log.Debug("[SCULPT]: loaded cached map asset for map ID: " + primShape.SculptTexture.ToString());
                 }
-                catch (DllNotFoundException)
+
+                if (idata == null)
                 {
-                    m_log.Error("[PHYSICS]: OpenJpeg is not installed correctly on this system. Physics Proxy generation failed.  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
-                    return null;
+                    try
+                    {
+                        ManagedImage managedImage;  // we never use this
+                        OpenJPEG.DecodeToImage(primShape.SculptData, out managedImage, out idata);
+
+                        //if (File.Exists(System.IO.Path.GetDirectoryName(decodedScultMapPath)))
+                        try { idata.Save(decodedSculptFileName, ImageFormat.MemoryBmp); }
+                        catch (Exception e) { m_log.Error("[SCULPT]: unable to cache sculpt map " + decodedSculptFileName + " " + e.Message); }
+                    }
+                    catch (DllNotFoundException)
+                    {
+                        m_log.Error("[PHYSICS]: OpenJpeg is not installed correctly on this system. Physics Proxy generation failed.  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
+                        return null;
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        m_log.Error("[PHYSICS]: OpenJpeg was unable to decode this.   Physics Proxy generation failed");
+                        return null;
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Error("[PHYSICS]: Unable to generate a Sculpty physics proxy.  Sculpty texture decode failed!");
+                        return null;
+                    }
                 }
-                catch (IndexOutOfRangeException)
-                {
-                    m_log.Error("[PHYSICS]: OpenJpeg was unable to decode this.   Physics Proxy generation failed");
-                    return null;
-                }
-                catch (Exception)
-                {
-                    m_log.Error("[PHYSICS]: Unable to generate a Sculpty physics proxy.  Sculpty texture decode failed!");
-                    return null;
-                }
+
+
 
                 PrimMesher.SculptMesh.SculptType sculptType;
                 switch ((OpenMetaverse.SculptType)primShape.SculptType)
