@@ -44,6 +44,8 @@ namespace OpenSim.Grid.InventoryServer
     /// </summary>
     public class GridInventoryService : InventoryServiceBase
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private bool m_doLookup = false;
 
         public bool DoLookup
@@ -51,8 +53,7 @@ namespace OpenSim.Grid.InventoryServer
             get { return m_doLookup; }
             set { m_doLookup = value; }
         }
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private static readonly int INVENTORY_DEFAULT_SESSION_TIME = 30; // secs
 
         private string m_userserver_url;
