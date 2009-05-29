@@ -177,7 +177,7 @@ namespace OpenSim.Services.Connectors
             }
             else
             {
-                handler(id, sender, asset);
+                handler.BeginInvoke(id, sender, asset, null, null);
             }
 
             return true;
