@@ -194,8 +194,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(gotObject2File, Is.True, "No object2 file in archive");
 
             // TODO: Test presence of more files and contents of files.
-            // Temporary
-            Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
         }
 
         /// <summary>

@@ -47,12 +47,14 @@ namespace OpenSim.Tests.Common
 
             return false;
         }
-
-        // A debugging method that can be used to print out which test method you are in
+        
+        /// <summary>
+        /// A debugging method that can be used to print out which test method you are in 
+        /// </summary>
         public static void InMethod()
         {
             StackTrace stackTrace = new StackTrace();
-            Console.WriteLine("In Test Method : {0}", stackTrace.GetFrame(1).GetMethod().Name);
+            Console.WriteLine("==> In Test Method : {0}", stackTrace.GetFrame(1).GetMethod().Name);
         }
     }
 }
