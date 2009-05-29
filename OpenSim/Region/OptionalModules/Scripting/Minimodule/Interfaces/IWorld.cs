@@ -26,6 +26,7 @@
  */
 
 using System;
+using OpenSim.Region.OptionalModules.Scripting.Minimodule.WorldX;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
@@ -50,6 +51,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         IAvatar[] Avatars { get; }
         IParcel[] Parcels { get; }
         IHeightmap Terrain { get; }
+        IWorldAudio Audio { get; }
+
 
         event OnChatDelegate OnChat;
         event OnNewUserDelegate OnNewUser;

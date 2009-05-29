@@ -26,13 +26,15 @@
  */
 
 using System.Collections.Generic;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.OptionalModules.Scripting.Minimodule.WorldX;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public class World : System.MarshalByRefObject, IWorld 
+    public class World : System.MarshalByRefObject, IWorld, IWorldAudio 
     {
         private readonly Scene m_internalScene;
         private readonly Heightmap m_heights;
@@ -92,6 +94,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         #region OnChat
         private event OnChatDelegate _OnChat;
         private bool _OnChatActive;
+
+        public IWorldAudio Audio
+        {
+            get { return this; }
+        }
 
         public event OnChatDelegate OnChat
         {
@@ -211,5 +218,29 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get { return m_heights; }
         }
+
+        #region Implementation of IWorldAudio
+
+        public void PlaySound(UUID audio, Vector3 position, double volume)
+        {
+            ISoundModule soundModule = m_internalScene.RequestModuleInterface<ISoundModule>();
+            if (soundModule != null)
+            {
+                soundModule.TriggerSound(audio, UUID.Zero, UUID.Zero, UUID.Zero, volume, position,
+                                         m_internalScene.RegionInfo.RegionHandle);
+            }
+        }
+
+        public void PlaySound(UUID audio, Vector3 position)
+        {
+            ISoundModule soundModule = m_internalScene.RequestModuleInterface<ISoundModule>();
+            if (soundModule != null)
+            {
+                soundModule.TriggerSound(audio, UUID.Zero, UUID.Zero, UUID.Zero, 1.0, position,
+                                         m_internalScene.RegionInfo.RegionHandle);
+            }
+        }
+
+        #endregion
     }
 }
