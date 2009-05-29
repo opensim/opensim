@@ -71,7 +71,7 @@ namespace OpenSim.Region.Physics.Meshing
         private const string baseDir = null; //"rawFiles";
 #endif
 
-        private bool cacheSculptMaps = false;
+        private bool cacheSculptMaps = true;
         private string decodedScultMapPath = "j2kDecodeCache";
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
@@ -184,8 +184,8 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (primShape.SculptEntry)
             {
-                if (primShape.SculptData.Length == 0)
-                    return null;
+                //if (primShape.SculptData.Length == 0)
+                //    return null;
 
                 if (cacheSculptMaps && primShape.SculptTexture != null)
                 {
@@ -196,6 +196,8 @@ namespace OpenSim.Region.Physics.Meshing
                         {
                             idata = Image.FromFile(decodedSculptFileName);
                         }
+                        else if (primShape.SculptData.Length == 0)
+                            return null;
                     }
                     catch (Exception e)
                     {

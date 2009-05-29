@@ -2967,10 +2967,13 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (part.Shape.SculptEntry && part.Shape.SculptTexture != UUID.Zero)
                             {
-                                //// check if a previously decoded sculpt map has been cached
-                                //if (File.Exists(System.IO.Path.Combine("j2kDecodeCache", "smap_" + part.Shape.SculptTexture.ToString())))
-                                //    part.SculptTextureCallback(part.Shape.SculptTexture, null);
-                                //else
+                                // check if a previously decoded sculpt map has been cached
+                                if (File.Exists(System.IO.Path.Combine("j2kDecodeCache", "smap_" + part.Shape.SculptTexture.ToString())))
+                                {
+                                    m_log.Debug("[SCULPT]: found cached sculpt map - calling AssetReceived");
+                                    part.SculptTextureCallback(part.Shape.SculptTexture, null);
+                                }
+                                else
                                     m_scene.AssetService.Get(
                                         part.Shape.SculptTexture.ToString(), part, AssetReceived);
                             }
@@ -2982,10 +2985,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
-            if (asset != null)
+            SceneObjectPart sop = (SceneObjectPart)sender;
+
+            if (sop != null)
             {
-                SceneObjectPart sop = (SceneObjectPart)sender;
-                if (sop != null)
+                if (asset != null)
                     sop.SculptTextureCallback(asset.FullID, asset);
             }
         }
