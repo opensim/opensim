@@ -1877,8 +1877,10 @@ if (m_shape != null) {
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (m_parentGroup == null)
                             return;
+                        
                         if (m_parentGroup.Scene == null)
                             return;
+                        
                         SceneObjectPart obj = m_parentGroup.Scene.GetSceneObjectPart(localId);
                         if (obj != null)
                         {
@@ -1923,12 +1925,15 @@ if (m_shape != null) {
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (m_parentGroup == null)
                             return;
+                        
                         if (m_parentGroup.Scene == null)
                             return;
+                        
                         m_parentGroup.Scene.EventManager.TriggerScriptCollidingStart(LocalId, StartCollidingMessage);
                     }
                 }
             }
+            
             if ((m_parentGroup.RootPart.ScriptEvents & scriptEvents.collision) != 0)
             {
                 if (m_lastColliders.Count > 0)
@@ -1943,8 +1948,10 @@ if (m_shape != null) {
 
                         if (m_parentGroup == null)
                             return;
+                        
                         if (m_parentGroup.Scene == null)
                             return;
+                        
                         SceneObjectPart obj = m_parentGroup.Scene.GetSceneObjectPart(localId);
                         if (obj != null)
                         {
@@ -1990,13 +1997,15 @@ if (m_shape != null) {
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (m_parentGroup == null)
                             return;
+                        
                         if (m_parentGroup.Scene == null)
                             return;
+                        
                         m_parentGroup.Scene.EventManager.TriggerScriptColliding(LocalId, CollidingMessage);
                     }
-
                 }
             }
+            
             if ((m_parentGroup.RootPart.ScriptEvents & scriptEvents.collision_end) != 0)
             {
                 if (endedColliders.Count > 0)
@@ -2048,28 +2057,30 @@ if (m_shape != null) {
                                         colliding.Add(detobj);
                                     }
                                 }
-
                             }
                         }
                     }
+                    
                     if (colliding.Count > 0)
                     {
                         EndCollidingMessage.Colliders = colliding;
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (m_parentGroup == null)
                             return;
+                        
                         if (m_parentGroup.Scene == null)
                             return;
+                        
                         m_parentGroup.Scene.EventManager.TriggerScriptCollidingEnd(LocalId, EndCollidingMessage);
                     }
-
                 }
             }
         }
 
         public void PhysicsOutOfBounds(PhysicsVector pos)
         {
-            m_log.Info("[PHYSICS]: Physical Object went out of bounds.");
+            m_log.Error("[PHYSICS]: Physical Object went out of bounds.");
+            
             RemFlag(PrimFlags.Physics);
             DoPhysicsPropertyUpdate(false, true);
             //m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
