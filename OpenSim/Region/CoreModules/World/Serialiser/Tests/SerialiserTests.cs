@@ -172,7 +172,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             SceneObjectGroup so = new SceneObjectGroup(rp);
 
             // Need to add the object to the scene so that the request to get script state succeeds
-            m_scene.AddSceneObject(UUID.Zero, so);
+            m_scene.AddSceneObject(so);
 
             string xml2 = m_serialiserModule.SaveGroupToXml2(so);
 

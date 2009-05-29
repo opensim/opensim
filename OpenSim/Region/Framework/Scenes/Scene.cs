@@ -1663,14 +1663,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool IncomingInterRegionPrimGroup(UUID primID, string objXMLData, int XMLMethod)
         {
-
             if (XMLMethod == 0)
             {
                 m_log.DebugFormat("[INTERREGION]: A new prim {0} arrived from a neighbor", primID);
                 SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);
 
-                return AddSceneObject(primID, sceneObject);
-
+                return AddSceneObject(sceneObject);
             }
             else if ((XMLMethod == 100) && m_allowScriptCrossings)
             {
@@ -1763,7 +1761,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-            if (!AddSceneObject(newObject.UUID, newObject))
+            if (!AddSceneObject(newObject))
             {
                 m_log.DebugFormat("[SCENE]: Problem adding scene object {0} in {1} ", sog.UUID, RegionInfo.RegionName);
                 return false;
@@ -1784,7 +1782,7 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
-        public bool AddSceneObject(UUID primID, SceneObjectGroup sceneObject)
+        public bool AddSceneObject(SceneObjectGroup sceneObject)
         {
             // If the user is banned, we won't let any of their objects
             // enter. Period.
@@ -1810,12 +1808,9 @@ namespace OpenSim.Region.Framework.Scenes
                     AddRestoredSceneObject(sceneObject, false, false);
 
                     // Handle attachment special case
-                    //
-                    //SceneObjectPart RootPrim = GetSceneObjectPart(primID);
                     SceneObjectPart RootPrim = sceneObject.RootPart;
 
                     // Fix up attachment Parent Local ID
-                    //
                     ScenePresence sp = GetScenePresence(sceneObject.OwnerID);
 
                     //uint parentLocalID = 0;

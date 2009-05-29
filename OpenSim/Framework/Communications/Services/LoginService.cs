@@ -91,8 +91,7 @@ namespace OpenSim.Framework.Communications.Services
         public virtual void LogOffUser(UserProfileData theUser, string message)
         {
         }
-
-
+        
         /// <summary>
         /// Called when we receive the client's initial XMLRPC login_to_simulator request message
         /// </summary>
