@@ -184,9 +184,6 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (primShape.SculptEntry)
             {
-                //if (primShape.SculptData.Length == 0)
-                //    return null;
-
                 if (cacheSculptMaps && primShape.SculptTexture != null)
                 {
                     decodedSculptFileName = System.IO.Path.Combine(decodedScultMapPath, "smap_" + primShape.SculptTexture.ToString());
@@ -196,8 +193,6 @@ namespace OpenSim.Region.Physics.Meshing
                         {
                             idata = Image.FromFile(decodedSculptFileName);
                         }
-                        else if (primShape.SculptData.Length == 0)
-                            return null;
                     }
                     catch (Exception e)
                     {
@@ -210,6 +205,9 @@ namespace OpenSim.Region.Physics.Meshing
 
                 if (idata == null)
                 {
+                    if (primShape.SculptData.Length == 0)
+                        return null;
+
                     try
                     {
                         ManagedImage managedImage;  // we never use this

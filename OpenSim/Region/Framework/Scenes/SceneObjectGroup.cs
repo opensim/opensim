@@ -2970,12 +2970,13 @@ namespace OpenSim.Region.Framework.Scenes
                                 // check if a previously decoded sculpt map has been cached
                                 if (File.Exists(System.IO.Path.Combine("j2kDecodeCache", "smap_" + part.Shape.SculptTexture.ToString())))
                                 {
-                                    m_log.Debug("[SCULPT]: found cached sculpt map - calling AssetReceived");
                                     part.SculptTextureCallback(part.Shape.SculptTexture, null);
                                 }
                                 else
+                                {
                                     m_scene.AssetService.Get(
                                         part.Shape.SculptTexture.ToString(), part, AssetReceived);
+                                }
                             }
                         }
                     }
