@@ -5,7 +5,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule.Object
 {
-    interface IObjectSound
+    public interface IObjectSound
     {
         void Play(UUID soundAsset, double volume);
     }
