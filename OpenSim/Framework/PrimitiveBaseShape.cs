@@ -26,6 +26,8 @@
  */
 
 using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Reflection;
 using System.Xml.Serialization;
 using log4net;
@@ -105,6 +107,7 @@ namespace OpenSim.Framework
         [XmlIgnore] private UUID _sculptTexture = UUID.Zero;
         [XmlIgnore] private byte _sculptType = (byte)0;
         [XmlIgnore] private byte[] _sculptData = new byte[0];
+        [XmlIgnore] private Image _sculptBitmap = null;
 
         // Flexi
         [XmlIgnore] private int _flexiSoftness = 0;
@@ -559,6 +562,15 @@ namespace OpenSim.Framework
             }
             set {
                 _sculptData = value;
+            }
+        }
+
+        public Image SculptBitmap {
+            get {
+                return _sculptBitmap;
+            }
+            set {
+                _sculptBitmap = value;
             }
         }
 
