@@ -595,8 +595,10 @@ namespace OpenSim.Region.Framework.Scenes
                         m_rotationOffset = PhysActor.Orientation;
                     }
                 }
+                
                 return m_rotationOffset;
             }
+            
             set
             {
                 StoreUndoState();

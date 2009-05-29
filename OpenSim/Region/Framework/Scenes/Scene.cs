@@ -1803,9 +1803,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim)
             {
-                if (sceneObject.RootPart.Shape.State != 0) // Attchment
+                if (sceneObject.RootPart.Shape.State != 0) // Attachment
                 {
-
                     sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
 
                     AddRestoredSceneObject(sceneObject, false, false);

@@ -29,9 +29,12 @@ using log4net.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Setup;
+using System.IO;
+using System.Xml;
 
 namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
 {
@@ -119,13 +122,15 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             <OtherParts />
         </SceneObjectGroup>";
 
+        protected Scene m_scene;
         protected SerialiserModule m_serialiserModule;
 
         [TestFixtureSetUp]
         public void Init()
         {
             m_serialiserModule = new SerialiserModule();
-            SceneSetupHelpers.SetupSceneModules(SceneSetupHelpers.SetupScene(false), m_serialiserModule);            
+            m_scene = SceneSetupHelpers.SetupScene(false);
+            SceneSetupHelpers.SetupSceneModules(m_scene, m_serialiserModule);            
         }
 
         [Test]
@@ -144,11 +149,73 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             // TODO: Check other properties
         }
 
-        //[Test]
+        [Test]
         public void TestSaveXml2()
         {
             TestHelper.InMethod();
-            //log4net.Config.XmlConfigurator.Configure();            
+            //log4net.Config.XmlConfigurator.Configure();
+
+            string rpName = "My Little Pony";
+            UUID rpUuid = UUID.Parse("00000000-0000-0000-0000-000000000064");
+            UUID rpCreatorId = UUID.Parse("00000000-0000-0000-0000-000000000015");
+            PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
+//            Vector3 groupPosition = new Vector3(10, 20, 30);
+//            Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
+//            Vector3 offsetPosition = new Vector3(5, 10, 15);
+
+            SceneObjectPart rp = new SceneObjectPart();
+            rp.UUID = rpUuid;
+            rp.Name = rpName;
+            rp.CreatorID = rpCreatorId;
+            rp.Shape = shape;
+
+            SceneObjectGroup so = new SceneObjectGroup(rp);
+
+            // Need to add the object to the scene so that the request to get script state succeeds
+            m_scene.AddSceneObject(UUID.Zero, so);
+
+            string xml2 = m_serialiserModule.SaveGroupToXml2(so);
+
+            XmlTextReader xtr = new XmlTextReader(new StringReader(xml2));
+            xtr.ReadStartElement("SceneObjectGroup");      
+            xtr.ReadStartElement("SceneObjectPart");
+           
+            UUID uuid = UUID.Zero;
+            string name = null;
+            UUID creatorId = UUID.Zero;
+
+            while (xtr.Read() && xtr.Name != "SceneObjectPart")
+            {
+                if (xtr.NodeType != XmlNodeType.Element)
+                    continue;
+                
+                switch (xtr.Name)
+                {                   
+                    case "UUID":
+                        xtr.ReadStartElement("UUID");
+                        uuid = UUID.Parse(xtr.ReadElementString("Guid"));
+                        xtr.ReadEndElement();
+                        break;
+                    case "Name":
+                        name = xtr.ReadElementContentAsString();
+                        break;
+                    case "CreatorID":
+                        xtr.ReadStartElement("CreatorID");
+                        creatorId = UUID.Parse(xtr.ReadElementString("Guid"));
+                        xtr.ReadEndElement();                  
+                        break;
+                }
+            }
+
+            xtr.ReadEndElement();
+            xtr.ReadStartElement("OtherParts");
+            xtr.ReadEndElement();
+            xtr.Close();
+
+            // TODO: More checks
+            Assert.That(uuid, Is.EqualTo(rpUuid));
+            Assert.That(name, Is.EqualTo(rpName));
+            Assert.That(creatorId, Is.EqualTo(rpCreatorId));
         }
     }
 }
