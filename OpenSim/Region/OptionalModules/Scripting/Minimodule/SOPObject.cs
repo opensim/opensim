@@ -38,7 +38,7 @@ using SculptType=OpenSim.Region.OptionalModules.Scripting.Minimodule.Object.Scul
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class SOPObject : MarshalByRefObject, IObject, IObjectPhysics, IObjectShape
+    class SOPObject : MarshalByRefObject, IObject, IObjectPhysics, IObjectShape, IObjectSound
     {
         private readonly Scene m_rootScene;
         private readonly uint m_localID;
@@ -636,6 +636,21 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             part.UpdateShape(shapeBlock);
         }
 
+
+        #endregion
+
+
+        #region Implementation of IObjectSound
+
+        public IObjectSound Sound
+        {
+            get { return this; }
+        }
+
+        public void Play(UUID asset, double volume)
+        {
+            GetSOP().SendSound(asset.ToString(), volume, true, 0);
+        }
 
         #endregion
     }

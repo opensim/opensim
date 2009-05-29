@@ -170,6 +170,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         IObjectPhysics Physics { get; }
 
+        IObjectSound Sound { get; }
 
         /// <summary>
         /// Causes the object to speak to its surroundings,
