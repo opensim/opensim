@@ -61,6 +61,8 @@ namespace OpenSim.Framework.Communications.Services
         protected uint m_defaultHomeX;
         protected uint m_defaultHomeY;
 
+        protected bool m_warn_already_logged = true;
+
         /// <summary>
         /// Used by the login service to make requests to the inventory service.
         /// </summary>
@@ -181,11 +183,20 @@ namespace OpenSim.Framework.Communications.Services
 
                         // Reject the login
 
-                        m_log.InfoFormat(
-                            "[LOGIN END]: XMLRPC Notifying user {0} {1} that they are already logged in",
-                            firstname, lastname);
+                        if (m_warn_already_logged)
+                        {
+                            m_log.InfoFormat(
+                                "[LOGIN END]: XMLRPC Notifying user {0} {1} that they are already logged in",
+                                firstname, lastname);
 
-                        return logResponse.CreateAlreadyLoggedInResponse();
+                            return logResponse.CreateAlreadyLoggedInResponse();
+                        }
+                        else
+                        {
+                            m_log.InfoFormat(
+                                "[LOGIN]: User {0} {1} is already logged in, not notifying user, kicking old presence and starting new login.",
+                                firstname, lastname);
+                        }
                     }
 
                     // Otherwise...

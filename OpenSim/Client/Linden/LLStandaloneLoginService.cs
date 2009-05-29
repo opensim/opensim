@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -51,6 +51,14 @@ namespace OpenSim.Client.Linden
 
         protected NetworkServersInfo m_serversInfo;
         protected bool m_authUsers = false;
+
+        // If true, warns the user that he is already logged, forcing another login.
+        // If false, skips message and logs in directly, kicking out current user.
+        public bool WarnAlreadyLogged
+        {
+            get { return m_warn_already_logged; }
+            set { m_warn_already_logged = value; }
+        }
 
         /// <summary>
         /// Used to make requests to the local regions.

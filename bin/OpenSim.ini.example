@@ -256,6 +256,10 @@
     accounts_authenticate = true
     welcome_message = "Welcome to OpenSimulator"
 
+    ; Shows or skips the "please wait 5 minutes" message when you crash or are already logged in.
+    ; If false, it will silently kick the user from the scene and login.
+    warn_user_already_logged_in = true
+
     ; Inventory database provider
     inventory_plugin = "OpenSim.Data.SQLite.dll"
     ; inventory_plugin = "OpenSim.Data.MySQL.dll"
