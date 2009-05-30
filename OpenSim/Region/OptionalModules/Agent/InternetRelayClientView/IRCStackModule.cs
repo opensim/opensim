@@ -1,4 +1,6 @@
 ﻿using System.Net;
+using System.Reflection;
+using log4net;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -8,6 +10,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
 {
     class IRCStackModule : IRegionModule 
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private IRCServer m_server;
         private Scene m_scene;
 
@@ -22,7 +26,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
 
         void m_server_OnNewIRCClient(IRCClientView user)
         {
-            m_scene.AddNewClient(user);
+            m_log.Info("[IRCd] Adding user...");
+            m_scene.ClientManager.Add(user.CircuitCode, user);
+            user.Start();
+            m_log.Info("[IRCd] Added user to Scene");
         }
 
         public void PostInitialise()

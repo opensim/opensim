@@ -21,8 +21,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public event OnNewIRCUserDelegate OnNewIRCClient;
 
-        private TcpListener m_listener;
-        private Scene m_baseScene;
+        private readonly TcpListener m_listener;
+        private readonly Scene m_baseScene;
         private bool m_running = true;
 
         public IRCServer(IPAddress listener, int port, Scene baseScene)

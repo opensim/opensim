@@ -200,6 +200,9 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             {
                 IRC_SendReplyTopic();
                 IRC_SendNamesReply();
+                IRC_SendChannelPrivmsg("System", "Welcome to Zork^H^H^H OpenSimulator.");
+                IRC_SendChannelPrivmsg("System", "You are in an open field west of a big white house");
+                IRC_SendChannelPrivmsg("System", "with a boarded front door.");
             }
         }
 
@@ -400,12 +403,16 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void Disconnect(string reason)
         {
+            IRC_SendChannelPrivmsg("System", "You have been eaten by a grue. (" + reason + ")");
+
             m_connected = false;
             m_client.Close();
         }
 
         public void Disconnect()
         {
+            IRC_SendChannelPrivmsg("System", "You have been eaten by a grue.");
+
             m_connected = false;
             m_client.Close();
         }
@@ -713,7 +720,33 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void Start()
         {
-            
+            Scene.AddNewClient(this);
+
+            // Mimicking LLClientView which gets always set appearance from client.
+            Scene scene = (Scene)Scene;
+            AvatarAppearance appearance;
+            scene.GetAvatarAppearance(this, out appearance);
+            List<byte> visualParams = new List<byte>();
+            foreach (byte visualParam in appearance.VisualParams)
+            {
+                visualParams.Add(visualParam);
+            }
+            OnSetAppearance(appearance.Texture.GetBytes(), visualParams);
+        }
+
+        public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
+        {
+            m_log.Info("[MXP ClientStack] Completing Handshake to Region");
+
+            if (OnRegionHandShakeReply != null)
+            {
+                OnRegionHandShakeReply(this);
+            }
+
+            if (OnCompleteMovementToRegion != null)
+            {
+                OnCompleteMovementToRegion();
+            }
         }
 
         public void Stop()
@@ -742,11 +775,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         }
 
         public void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs)
-        {
-            
-        }
-
-        public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
         {
             
         }
