@@ -2,20 +2,30 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
+using log4net;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 {
+    public delegate void OnNewIRCUserDelegate(IRCClientView user);
+
     /// <summary>
     /// Adam's completely hacked up not-probably-compliant RFC1459 server class.
     /// </summary>
     class IRCServer
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public event OnNewIRCUserDelegate OnNewIRCClient;
+
         private TcpListener m_listener;
+        private Scene m_baseScene;
         private bool m_running = true;
 
-        public IRCServer(IPAddress listener, int port)
+        public IRCServer(IPAddress listener, int port, Scene baseScene)
         {
             m_listener = new TcpListener(listener, port);
 
@@ -23,6 +33,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
             Thread thread = new Thread(ListenLoop);
             thread.Start();
+            m_baseScene = baseScene;
         }
 
         public void Stop()
@@ -41,7 +52,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         private void AcceptClient(TcpClient client)
         {
-            
+            IRCClientView cv = new IRCClientView(client, m_baseScene);
+
+            if (OnNewIRCClient != null)
+                OnNewIRCClient(cv);
         }
     }
 }
