@@ -71,6 +71,8 @@ namespace OpenSim.Grid.UserServer
         protected UserServerCommandModule m_consoleCommandModule;
         protected UserServerEventDispatchModule m_eventDispatcher;
 
+        protected AvatarCreationModule m_appearanceModule;
+
         public static void Main(string[] args)
         {
             XmlConfigurator.Configure();
@@ -180,6 +182,9 @@ namespace OpenSim.Grid.UserServer
 
         protected virtual void StartOtherComponents(IInterServiceInventoryServices inventoryService)
         {
+            m_appearanceModule = new AvatarCreationModule(m_userDataBaseService, Cfg, inventoryService);
+            m_appearanceModule.Initialise(this);
+
             StartupLoginService(inventoryService);
             //
             // Get the minimum defaultLevel to access to the grid
@@ -216,6 +221,8 @@ namespace OpenSim.Grid.UserServer
             m_userManager.PostInitialise();
             m_avatarAppearanceModule.PostInitialise();
             m_friendsModule.PostInitialise();
+
+            m_avatarAppearanceModule.PostInitialise();
         }
 
         protected virtual void RegisterHttpHandlers()
@@ -230,6 +237,8 @@ namespace OpenSim.Grid.UserServer
             m_avatarAppearanceModule.RegisterHandlers(m_httpServer);
             m_messagesService.RegisterHandlers(m_httpServer);
             m_gridInfoService.RegisterHandlers(m_httpServer);
+
+            m_avatarAppearanceModule.RegisterHandlers(m_httpServer);
         }
 
         public override void ShutdownSpecific()
