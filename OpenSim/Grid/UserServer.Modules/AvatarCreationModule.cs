@@ -48,7 +48,7 @@ namespace OpenSim.Grid.UserServer.Modules
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private UserDataBaseService m_userDataBaseService;
-      //  private BaseHttpServer m_httpServer;
+        //  private BaseHttpServer m_httpServer;
         private UserConfig m_config;
 
         private string m_inventoryServerUrl;
@@ -80,7 +80,7 @@ namespace OpenSim.Grid.UserServer.Modules
 
         public void RegisterHandlers(BaseHttpServer httpServer)
         {
-         }
+        }
 
         public void RunCommand(string module, string[] cmd)
         {
@@ -163,7 +163,7 @@ namespace OpenSim.Grid.UserServer.Modules
             m_log.InfoFormat("[AvatarAppearance] finished cloning avatar with result: {0}", success);
             return success;
         }
-       
+
         private void UpdateAvatarAppearance(UUID avatarID, int wearableType, UUID itemID, UUID assetID)
         {
             AvatarAppearance appearance = m_userDataBaseService.GetUserAppearance(avatarID);
@@ -284,7 +284,7 @@ namespace OpenSim.Grid.UserServer.Modules
 
                 if (modifyPerms)
                 {
-                    ModifyPermissions(clonedItem);
+                    ModifyPermissions(ref clonedItem);
                 }
 
                 SynchronousRestObjectRequester.MakeRequest<InventoryItemBase, bool>(
@@ -296,28 +296,35 @@ namespace OpenSim.Grid.UserServer.Modules
             return UUID.Zero;
         }
 
-        private void ModifyPermissions(InventoryItemBase item)
+        protected virtual void ModifyPermissions(ref InventoryItemBase item)
         {
-            if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
-                item.CurrentPermissions |= (uint)PermissionMask.Modify;
+            // Propagate Permissions
+            item.BasePermissions = item.BasePermissions & item.NextPermissions;
+            item.CurrentPermissions = item.BasePermissions;
+            item.EveryOnePermissions = item.EveryOnePermissions & item.NextPermissions;
+            item.GroupPermissions = item.GroupPermissions & item.NextPermissions;
 
-            if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                item.CurrentPermissions |= (uint)PermissionMask.Copy;
+            //set all items to +mod/+copy/- transfer
+            //if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
+            //    item.CurrentPermissions |= (uint)PermissionMask.Modify;
 
-            if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) != 0)
-                item.CurrentPermissions &= ~(uint)PermissionMask.Transfer;
+            //if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+            //    item.CurrentPermissions |= (uint)PermissionMask.Copy;
 
-            if ((item.NextPermissions & (uint)PermissionMask.Modify) == 0)
-                item.NextPermissions |= (uint)PermissionMask.Modify;
+            //if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) != 0)
+            //    item.CurrentPermissions &= ~(uint)PermissionMask.Transfer;
 
-            if ((item.NextPermissions & (uint)PermissionMask.Copy) == 0)
-                item.NextPermissions |= (uint)PermissionMask.Copy;
+            //if ((item.NextPermissions & (uint)PermissionMask.Modify) == 0)
+            //    item.NextPermissions |= (uint)PermissionMask.Modify;
 
-            if ((item.NextPermissions & (uint)PermissionMask.Transfer) != 0)
-                item.NextPermissions &= ~(uint)PermissionMask.Transfer;
+            //if ((item.NextPermissions & (uint)PermissionMask.Copy) == 0)
+            //    item.NextPermissions |= (uint)PermissionMask.Copy;
 
-            if ((item.EveryOnePermissions & (uint)PermissionMask.Transfer) != 0)
-                item.EveryOnePermissions &= ~(uint)PermissionMask.Transfer;
+            //if ((item.NextPermissions & (uint)PermissionMask.Transfer) != 0)
+            //    item.NextPermissions &= ~(uint)PermissionMask.Transfer;
+
+            //if ((item.EveryOnePermissions & (uint)PermissionMask.Transfer) != 0)
+            //    item.EveryOnePermissions &= ~(uint)PermissionMask.Transfer;
         }
 
         private AvatarAppearance CreateDefaultAppearance(UUID avatarId)
@@ -349,7 +356,7 @@ namespace OpenSim.Grid.UserServer.Modules
         }
         #endregion
 
-        
+
 
         private bool CloneFolder(List<InventoryFolderBase> avatarInventory, UUID avID, UUID parentFolder, AvatarAppearance appearance, InventoryFolderBase templateFolder, List<InventoryFolderBase> templateFolders)
         {
@@ -387,7 +394,7 @@ namespace OpenSim.Grid.UserServer.Modules
                     foreach (InventoryItemBase item in templateItems)
                     {
 
-                        UUID clonedItemId = CloneInventoryItem(avID, toFolder.ID, item, false);
+                        UUID clonedItemId = CloneInventoryItem(avID, toFolder.ID, item, true);
                         if (clonedItemId != UUID.Zero)
                         {
                             int appearanceType = ItemIsPartOfAppearance(item, appearance);
