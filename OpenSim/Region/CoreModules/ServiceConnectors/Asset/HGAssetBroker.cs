@@ -267,7 +267,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
 
             if (asset != null)
             {
-                handler(id, sender, asset);
+                handler.BeginInvoke(id, sender, asset, null, null);
                 return true;
             }
 
