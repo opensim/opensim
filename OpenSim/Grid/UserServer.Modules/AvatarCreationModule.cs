@@ -123,7 +123,7 @@ namespace OpenSim.Grid.UserServer.Modules
 
         public bool CloneAvatar(Guid avatarID, Guid templateID)
         {
-            m_log.InfoFormat("[AvatarAppearance] Starting to create avatar's appearance for user {0}", avatarID.ToString());
+            m_log.InfoFormat("[AvatarAppearance] Starting to clone avatar {0} inventory to avatar {1}", templateID.ToString(), avatarID.ToString());
             Guid bodyFolder = Guid.Empty;
             Guid clothesFolder = Guid.Empty;
             bool success = false;
@@ -296,25 +296,28 @@ namespace OpenSim.Grid.UserServer.Modules
             return UUID.Zero;
         }
 
-        private static void ModifyPermissions(InventoryItemBase clonedItem)
+        private void ModifyPermissions(InventoryItemBase item)
         {
-            if ((clonedItem.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
-                clonedItem.CurrentPermissions |= (uint)PermissionMask.Modify;
+            if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
+                item.CurrentPermissions |= (uint)PermissionMask.Modify;
 
-            if ((clonedItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                clonedItem.CurrentPermissions |= (uint)PermissionMask.Copy;
+            if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                item.CurrentPermissions |= (uint)PermissionMask.Copy;
 
-            if ((clonedItem.CurrentPermissions & (uint)PermissionMask.Transfer) != 0)
-                clonedItem.CurrentPermissions &= ~(uint)PermissionMask.Transfer;
+            if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) != 0)
+                item.CurrentPermissions &= ~(uint)PermissionMask.Transfer;
 
-            if ((clonedItem.NextPermissions & (uint)PermissionMask.Modify) == 0)
-                clonedItem.NextPermissions |= (uint)PermissionMask.Modify;
+            if ((item.NextPermissions & (uint)PermissionMask.Modify) == 0)
+                item.NextPermissions |= (uint)PermissionMask.Modify;
 
-            if ((clonedItem.NextPermissions & (uint)PermissionMask.Copy) == 0)
-                clonedItem.NextPermissions |= (uint)PermissionMask.Copy;
+            if ((item.NextPermissions & (uint)PermissionMask.Copy) == 0)
+                item.NextPermissions |= (uint)PermissionMask.Copy;
 
-            if ((clonedItem.NextPermissions & (uint)PermissionMask.Transfer) != 0)
-                clonedItem.NextPermissions &= ~(uint)PermissionMask.Transfer;
+            if ((item.NextPermissions & (uint)PermissionMask.Transfer) != 0)
+                item.NextPermissions &= ~(uint)PermissionMask.Transfer;
+
+            if ((item.EveryOnePermissions & (uint)PermissionMask.Transfer) != 0)
+                item.EveryOnePermissions &= ~(uint)PermissionMask.Transfer;
         }
 
         private AvatarAppearance CreateDefaultAppearance(UUID avatarId)
