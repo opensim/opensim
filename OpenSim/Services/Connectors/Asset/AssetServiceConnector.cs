@@ -53,7 +53,7 @@ namespace OpenSim.Services.Connectors
 
         public AssetServicesConnector(string serverURI)
         {
-            m_ServerURI = serverURI;
+            m_ServerURI = serverURI.TrimEnd('/');
         }
 
         public AssetServicesConnector(IConfigSource source)
