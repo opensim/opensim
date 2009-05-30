@@ -150,7 +150,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
                     case "KILL":
                     case "LINKS":
                     case "LUSERS":
-                    case "MODE":
                     case "OPER":
                     case "PART":
                     case "REHASH":
@@ -176,6 +175,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
                     case "JOIN":
                         IRC_SendReplyJoin();
+                        break;
+
+                    case "MODE":
+                        IRC_SendReplyModeChannel();
                         break;
 
                     case "USER":
@@ -214,6 +217,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
                         break;
 
                     case "WHO": // TODO
+                        IRC_SendNamesReply();
                         IRC_SendWhoReply();
                         break;
 
@@ -280,6 +284,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             IRC_SendNamesReply();
         }
 
+        private void IRC_SendReplyModeChannel()
+        {
+            SendServerCommand("324 " + m_nick + " " + IrcRegionName + " +n");
+            //SendCommand(":" + IrcRegionName + " MODE +n");
+        }
+
         private void IRC_ProcessUser(string message)
         {
             string[] userArgs = ExtractParameters(message);
@@ -323,7 +333,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
                     msg.Scene = m_scene;
                     msg.SenderObject = null;
                     msg.SenderUUID = this.AgentId;
-                    msg.Type = ChatTypeEnum.Broadcast;
+                    msg.Type = ChatTypeEnum.Say;
 
                     OnChatFromClient(this, msg);
                 }
@@ -340,7 +350,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
             foreach (EntityBase user in users)
             {
-                SendServerCommand("353 " + IrcRegionName + " :+" + user.Name.Replace(" ", ""));
+                SendServerCommand("353 " + m_nick + " = " + IrcRegionName + " :" + user.Name.Replace(" ", ""));
             }
             SendServerCommand("366 " + IrcRegionName + " :End of /NAMES list");
         }
@@ -351,11 +361,15 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
             foreach (EntityBase user in users)
             {
-                //:kubrick.freenode.net 352 toblerone3742 #freenode i=nalioth freenode/staff/ubuntu.member.nalioth irc.freenode.net nalioth G :0 http://www.ubuntu.com/donations
-                //:opensimircd          352 #OpenSim-Test AdamFrisbyIRC nohost.com irc.opensimulator AdamFrisbyIRC H+ :1 Adam FrisbyIRC
-                SendServerCommand("352 " + user.Name.Replace(" ", "") + " " + IrcRegionName + " nohost.com irc.opensimulator " + user.Name.Replace(" ", "") + " H+ " + ":1 " + user.Name);
+                /*SendServerCommand(String.Format("352 {0} {1} {2} {3} {4} {5} :0 {6}", IrcRegionName,
+                                                user.Name.Replace(" ", ""), "nohost.com", "opensimircd",
+                                                user.Name.Replace(" ", ""), 'H', user.Name));*/
+
+                SendServerCommand("352 " + m_nick + " " + IrcRegionName + " n=" + user.Name.Replace(" ", "") + " fakehost.com " + user.Name.Replace(" ", "") + " H " + ":0 " + user.Name);
+
+                //SendServerCommand("352 " + IrcRegionName + " " + user.Name.Replace(" ", "") + " nohost.com irc.opensimulator " + user.Name.Replace(" ", "") + " H " + ":0 " + user.Name);
             }
-            SendServerCommand("315 " + IrcRegionName + " :End of /WHO list");
+            SendServerCommand("315 " + m_nick + " " + IrcRegionName + " :End of /WHO list");
         }
 
         private void IRC_SendMOTD()
@@ -472,7 +486,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public Vector3 StartPos
         {
-            get { return Vector3.Zero; }
+            get { return new Vector3(128, 128, 50); }
             set { }
         }
 
@@ -872,7 +886,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source, byte audible)
         {
-            if (audible > 0)
+            if (audible > 0 && message.Length > 0)
                 IRC_SendChannelPrivmsg(fromName, message);
         }
 
