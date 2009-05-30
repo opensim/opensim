@@ -8,7 +8,7 @@ using OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server;
 
 namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
 {
-    class IRCStackModule : IRegionModule 
+    public class IRCStackModule : IRegionModule 
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -19,16 +19,25 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-            m_scene = scene;
-            m_server = new IRCServer(IPAddress.Parse("0.0.0.0"),6666, scene);
-            m_server.OnNewIRCClient += m_server_OnNewIRCClient;
+            if (source.Configs.Contains("IRCd") &&
+                source.Configs["IRCd"].GetBoolean("Enabled",false))
+            {
+                m_scene = scene;
+                m_server = new IRCServer(IPAddress.Parse("0.0.0.0"), 6666, scene);
+                m_server.OnNewIRCClient += m_server_OnNewIRCClient;
+            }
         }
 
         void m_server_OnNewIRCClient(IRCClientView user)
         {
+            user.OnIRCReady += user_OnIRCReady;
+        }
+
+        void user_OnIRCReady(IRCClientView cv)
+        {
             m_log.Info("[IRCd] Adding user...");
-            m_scene.ClientManager.Add(user.CircuitCode, user);
-            user.Start();
+            m_scene.ClientManager.Add(cv.CircuitCode, cv);
+            cv.Start();
             m_log.Info("[IRCd] Added user to Scene");
         }
 
