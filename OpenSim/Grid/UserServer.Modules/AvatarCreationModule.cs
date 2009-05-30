@@ -110,7 +110,7 @@ namespace OpenSim.Grid.UserServer.Modules
                     }
                     Guid avatar = newAvatar.ID.Guid;
                     Guid template = templateAvatar.ID.Guid;
-                    CloneAvatar(avatar, template);
+                    CloneAvatar(avatar, template, true, true);
 
                 }
                 catch (Exception e)
@@ -121,7 +121,7 @@ namespace OpenSim.Grid.UserServer.Modules
         }
         #region Avatar Appearance Creation
 
-        public bool CloneAvatar(Guid avatarID, Guid templateID)
+        public bool CloneAvatar(Guid avatarID, Guid templateID, bool modifyPermissions, bool removeTargetsClothes)
         {
             m_log.InfoFormat("[AvatarAppearance] Starting to clone avatar {0} inventory to avatar {1}", templateID.ToString(), avatarID.ToString());
             Guid bodyFolder = Guid.Empty;
@@ -143,6 +143,13 @@ namespace OpenSim.Grid.UserServer.Modules
                 UUID tempOwnID = new UUID(templateID);
                 AvatarAppearance appearance = m_userDataBaseService.GetUserAppearance(tempOwnID);
 
+                if (removeTargetsClothes)
+                {
+                    //remove clothes and attachments from target avatar so that the end result isn't a merge of its existing clothes 
+                    // and the clothes from the template avatar. 
+                    RemoveClothesAndAttachments(avID);
+                }
+
                 List<InventoryFolderBase> templateInventory = m_inventoryService.GetInventorySkeleton(tempOwnID);
                 if ((templateInventory != null) && (templateInventory.Count != 0))
                 {
@@ -150,7 +157,7 @@ namespace OpenSim.Grid.UserServer.Modules
                     {
                         if (templateInventory[i].ParentID == UUID.Zero)
                         {
-                            success = CloneFolder(avatarInventory, avID, UUID.Zero, appearance, templateInventory[i], templateInventory);
+                            success = CloneFolder(avatarInventory, avID, UUID.Zero, appearance, templateInventory[i], templateInventory, modifyPermissions);
                             break;
                         }
                     }
@@ -162,6 +169,121 @@ namespace OpenSim.Grid.UserServer.Modules
             }
             m_log.InfoFormat("[AvatarAppearance] finished cloning avatar with result: {0}", success);
             return success;
+        }
+
+        private bool CloneFolder(List<InventoryFolderBase> avatarInventory, UUID avID, UUID parentFolder, AvatarAppearance appearance, InventoryFolderBase templateFolder, List<InventoryFolderBase> templateFolders, bool modifyPermissions)
+        {
+            bool success = false;
+            UUID templateFolderId = templateFolder.ID;
+            if (templateFolderId != UUID.Zero)
+            {
+                InventoryFolderBase toFolder = FindFolder(templateFolder.Name, parentFolder.Guid, avatarInventory);
+                if (toFolder == null)
+                {
+                    //create new folder
+                    toFolder = new InventoryFolderBase();
+                    toFolder.ID = UUID.Random();
+                    toFolder.Name = templateFolder.Name;
+                    toFolder.Owner = avID;
+                    toFolder.Type = templateFolder.Type;
+                    toFolder.Version = 1;
+                    toFolder.ParentID = parentFolder;
+                    if (!SynchronousRestObjectRequester.MakeRequest<InventoryFolderBase, bool>(
+                "POST", m_inventoryServerUrl + "CreateFolder/", toFolder))
+                    {
+                        m_log.InfoFormat("[AvatarApperance] Couldn't make new folder {0} in users inventory", toFolder.Name);
+                        return false;
+                    }
+                    else
+                    {
+                        // m_log.InfoFormat("made new folder {0} in users inventory", toFolder.Name);
+                    }
+                }
+
+                List<InventoryItemBase> templateItems = SynchronousRestObjectRequester.MakeRequest<Guid, List<InventoryItemBase>>(
+               "POST", m_inventoryServerUrl + "GetItems/", templateFolderId.Guid);
+                if ((templateItems != null) && (templateItems.Count > 0))
+                {
+                    foreach (InventoryItemBase item in templateItems)
+                    {
+
+                        UUID clonedItemId = CloneInventoryItem(avID, toFolder.ID, item, modifyPermissions);
+                        if (clonedItemId != UUID.Zero)
+                        {
+                            int appearanceType = ItemIsPartOfAppearance(item, appearance);
+                            if (appearanceType >= 0)
+                            {
+                                UpdateAvatarAppearance(avID, appearanceType, clonedItemId, item.AssetID);
+                            }
+
+                            if (appearance != null)
+                            {
+                                int attachment = appearance.GetAttachpoint(item.ID);
+                                if (attachment > 0)
+                                {
+                                    UpdateAvatarAttachment(avID, attachment, clonedItemId, item.AssetID);
+                                }
+                            }
+                            success = true;
+                        }
+                    }
+                }
+
+                List<InventoryFolderBase> subFolders = FindSubFolders(templateFolder.ID.Guid, templateFolders);
+                foreach (InventoryFolderBase subFolder in subFolders)
+                {
+                    if (subFolder.Name.ToLower() != "trash")
+                    {
+                        success = CloneFolder(avatarInventory, avID, toFolder.ID, appearance, subFolder, templateFolders, modifyPermissions);
+                    }
+                }
+            }
+            else
+            {
+                m_log.Info("[AvatarAppearance] Failed to find the template folder");
+            }
+            return success;
+        }
+
+        private UUID CloneInventoryItem(UUID avatarID, UUID avatarFolder, InventoryItemBase item, bool modifyPerms)
+        {
+            if (avatarFolder != UUID.Zero)
+            {
+                InventoryItemBase clonedItem = new InventoryItemBase();
+                clonedItem.Owner = avatarID;
+                clonedItem.AssetID = item.AssetID;
+                clonedItem.AssetType = item.AssetType;
+                clonedItem.BasePermissions = item.BasePermissions;
+                clonedItem.CreationDate = item.CreationDate;
+                clonedItem.CreatorId = item.CreatorId;
+                clonedItem.CreatorIdAsUuid = item.CreatorIdAsUuid;
+                clonedItem.CurrentPermissions = item.CurrentPermissions;
+                clonedItem.Description = item.Description;
+                clonedItem.EveryOnePermissions = item.EveryOnePermissions;
+                clonedItem.Flags = item.Flags;
+                clonedItem.Folder = avatarFolder;
+                clonedItem.GroupID = item.GroupID;
+                clonedItem.GroupOwned = item.GroupOwned;
+                clonedItem.GroupPermissions = item.GroupPermissions;
+                clonedItem.ID = UUID.Random();
+                clonedItem.InvType = item.InvType;
+                clonedItem.Name = item.Name;
+                clonedItem.NextPermissions = item.NextPermissions;
+                clonedItem.SalePrice = item.SalePrice;
+                clonedItem.SaleType = item.SaleType;
+
+                if (modifyPerms)
+                {
+                    ModifyPermissions(ref clonedItem);
+                }
+
+                SynchronousRestObjectRequester.MakeRequest<InventoryItemBase, bool>(
+                    "POST", m_inventoryServerUrl + "AddNewItem/", clonedItem);
+
+                return clonedItem.ID;
+            }
+
+            return UUID.Zero;
         }
 
         private void UpdateAvatarAppearance(UUID avatarID, int wearableType, UUID itemID, UUID assetID)
@@ -189,6 +311,20 @@ namespace OpenSim.Grid.UserServer.Modules
 
             appearance.SetAttachment(attachmentPoint, itemID, assetID);
 
+            m_userDataBaseService.UpdateUserAppearance(avatarID, appearance);
+
+        }
+
+        private void RemoveClothesAndAttachments(UUID avatarID)
+        {
+            AvatarAppearance appearance = m_userDataBaseService.GetUserAppearance(avatarID);
+            if (appearance == null)
+            {
+                appearance = CreateDefaultAppearance(avatarID);
+            }
+
+            appearance.ClearWearables();
+            appearance.ClearAttachments();
             m_userDataBaseService.UpdateUserAppearance(avatarID, appearance);
 
         }
@@ -254,48 +390,6 @@ namespace OpenSim.Grid.UserServer.Modules
             return subFolders;
         }
 
-
-        private UUID CloneInventoryItem(UUID avatarID, UUID avatarFolder, InventoryItemBase item, bool modifyPerms)
-        {
-            if (avatarFolder != UUID.Zero)
-            {
-                InventoryItemBase clonedItem = new InventoryItemBase();
-                clonedItem.Owner = avatarID;
-                clonedItem.AssetID = item.AssetID;
-                clonedItem.AssetType = item.AssetType;
-                clonedItem.BasePermissions = item.BasePermissions;
-                clonedItem.CreationDate = item.CreationDate;
-                clonedItem.CreatorId = item.CreatorId;
-                clonedItem.CreatorIdAsUuid = item.CreatorIdAsUuid;
-                clonedItem.CurrentPermissions = item.CurrentPermissions;
-                clonedItem.Description = item.Description;
-                clonedItem.EveryOnePermissions = item.EveryOnePermissions;
-                clonedItem.Flags = item.Flags;
-                clonedItem.Folder = avatarFolder;
-                clonedItem.GroupID = item.GroupID;
-                clonedItem.GroupOwned = item.GroupOwned;
-                clonedItem.GroupPermissions = item.GroupPermissions;
-                clonedItem.ID = UUID.Random();
-                clonedItem.InvType = item.InvType;
-                clonedItem.Name = item.Name;
-                clonedItem.NextPermissions = item.NextPermissions;
-                clonedItem.SalePrice = item.SalePrice;
-                clonedItem.SaleType = item.SaleType;
-
-                if (modifyPerms)
-                {
-                    ModifyPermissions(ref clonedItem);
-                }
-
-                SynchronousRestObjectRequester.MakeRequest<InventoryItemBase, bool>(
-                    "POST", m_inventoryServerUrl + "AddNewItem/", clonedItem);
-
-                return clonedItem.ID;
-            }
-
-            return UUID.Zero;
-        }
-
         protected virtual void ModifyPermissions(ref InventoryItemBase item)
         {
             // Propagate Permissions
@@ -354,83 +448,6 @@ namespace OpenSim.Grid.UserServer.Modules
             }
             return visualParams;
         }
-        #endregion
-
-
-
-        private bool CloneFolder(List<InventoryFolderBase> avatarInventory, UUID avID, UUID parentFolder, AvatarAppearance appearance, InventoryFolderBase templateFolder, List<InventoryFolderBase> templateFolders)
-        {
-            bool success = false;
-            UUID templateFolderId = templateFolder.ID;
-            if (templateFolderId != UUID.Zero)
-            {
-                InventoryFolderBase toFolder = FindFolder(templateFolder.Name, parentFolder.Guid, avatarInventory);
-                if (toFolder == null)
-                {
-                    //create new folder
-                    toFolder = new InventoryFolderBase();
-                    toFolder.ID = UUID.Random();
-                    toFolder.Name = templateFolder.Name;
-                    toFolder.Owner = avID;
-                    toFolder.Type = templateFolder.Type;
-                    toFolder.Version = 1;
-                    toFolder.ParentID = parentFolder;
-                    if (!SynchronousRestObjectRequester.MakeRequest<InventoryFolderBase, bool>(
-                "POST", m_inventoryServerUrl + "CreateFolder/", toFolder))
-                    {
-                        m_log.InfoFormat("[AvatarApperance] Couldn't make new folder {0} in users inventory", toFolder.Name);
-                        return false;
-                    }
-                    else
-                    {
-                        // m_log.InfoFormat("made new folder {0} in users inventory", toFolder.Name);
-                    }
-                }
-
-                List<InventoryItemBase> templateItems = SynchronousRestObjectRequester.MakeRequest<Guid, List<InventoryItemBase>>(
-               "POST", m_inventoryServerUrl + "GetItems/", templateFolderId.Guid);
-                if ((templateItems != null) && (templateItems.Count > 0))
-                {
-                    foreach (InventoryItemBase item in templateItems)
-                    {
-
-                        UUID clonedItemId = CloneInventoryItem(avID, toFolder.ID, item, true);
-                        if (clonedItemId != UUID.Zero)
-                        {
-                            int appearanceType = ItemIsPartOfAppearance(item, appearance);
-                            if (appearanceType >= 0)
-                            {
-                                UpdateAvatarAppearance(avID, appearanceType, clonedItemId, item.AssetID);
-                            }
-
-                            if (appearance != null)
-                            {
-                                int attachment = appearance.GetAttachpoint(item.ID);
-                                if (attachment > 0)
-                                {
-                                    UpdateAvatarAttachment(avID, attachment, clonedItemId, item.AssetID);
-                                }
-                            }
-                            success = true;
-                        }
-                    }
-                }
-
-                List<InventoryFolderBase> subFolders = FindSubFolders(templateFolder.ID.Guid, templateFolders);
-                foreach (InventoryFolderBase subFolder in subFolders)
-                {
-                    if (subFolder.Name.ToLower() != "trash")
-                    {
-                        success = CloneFolder(avatarInventory, avID, toFolder.ID, appearance, subFolder, templateFolders);
-                    }
-                }
-            }
-            else
-            {
-                m_log.Info("[AvatarAppearance] Failed to find the template folder");
-            }
-            return success;
-        }
 
         private int ItemIsPartOfAppearance(InventoryItemBase item, AvatarAppearance appearance)
         {
@@ -477,6 +494,8 @@ namespace OpenSim.Grid.UserServer.Modules
             }
             return -1;
         }
+        #endregion
+
 
     }
     public enum PermissionMask

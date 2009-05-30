@@ -242,6 +242,15 @@ namespace OpenSim.Framework
             m_wearables[PANTS].ItemID = PANTS_ITEM;
         }
 
+        public virtual void ClearWearables()
+        {
+            for (int i = 0; i < 13; i++)
+            {
+                m_wearables[i].AssetID = UUID.Zero;
+                m_wearables[i].ItemID = UUID.Zero;
+            }
+        }
+
         public virtual void SetDefaultParams(byte[] vparams)
         {
             // TODO: Figure out better values then 'fat scientist 150' or 'alien 0'
@@ -581,6 +590,11 @@ namespace OpenSim.Framework
 
             if (attachpoint > 0)
                 m_attachments.Remove(attachpoint);
+        }
+
+        public void ClearAttachments()
+        {
+            m_attachments.Clear();
         }
 
         string GetAttachmentsString()
