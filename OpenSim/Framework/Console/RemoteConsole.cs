@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Console
             
             m_DataEvent.WaitOne();
 
-            lock(m_InputData)
+            lock (m_InputData)
             {
                 if (m_InputData.Count == 0)
                 {

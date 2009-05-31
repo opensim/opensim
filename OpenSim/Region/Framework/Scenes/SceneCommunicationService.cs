@@ -309,7 +309,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     #region IP Translation for NAT
                     IClientIPEndpoint ipepClient;
-                    if(avatar.ClientView.TryGet(out ipepClient))
+                    if (avatar.ClientView.TryGet(out ipepClient))
                     {
                         endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
                     }

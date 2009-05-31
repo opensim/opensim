@@ -550,7 +550,7 @@ namespace OpenSim.Framework
             {
                 foreach (IPAddress host in hosts)
                 {
-                    if(host.AddressFamily == AddressFamily.InterNetwork)
+                    if (host.AddressFamily == AddressFamily.InterNetwork)
                         return host;
                 }
                 // Well all else failed...
