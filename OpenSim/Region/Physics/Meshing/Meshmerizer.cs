@@ -199,8 +199,8 @@ namespace OpenSim.Region.Physics.Meshing
                         m_log.Error("[SCULPT]: unable to load cached sculpt map " + decodedSculptFileName + " " + e.Message);
 
                     }
-                    if (idata != null)
-                        m_log.Debug("[SCULPT]: loaded cached map asset for map ID: " + primShape.SculptTexture.ToString());
+                    //if (idata != null)
+                    //    m_log.Debug("[SCULPT]: loaded cached map asset for map ID: " + primShape.SculptTexture.ToString());
                 }
 
                 if (idata == null)
