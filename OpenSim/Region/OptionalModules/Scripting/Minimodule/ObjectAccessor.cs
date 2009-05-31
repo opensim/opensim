@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using IEnumerable=System.Collections.IEnumerable;
 
@@ -106,6 +107,25 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             {
                 return new SOPObject(m_scene, m_scene.Entities[index].LocalId);
             }
+        }
+
+        public IObject Create(Vector3 position)
+        {
+            return Create(position, Quaternion.Identity);
+        }
+
+        public IObject Create(Vector3 position, Quaternion rotation)
+        {
+
+            SceneObjectGroup sog = m_scene.AddNewPrim(m_scene.RegionInfo.MasterAvatarAssignedUUID,
+                                                      UUID.Zero,
+                                                      position,
+                                                      rotation,
+                                                      PrimitiveBaseShape.CreateBox());
+
+            IObject ret = new SOPObject(m_scene, sog.LocalId);
+
+            return ret;
         }
 
         public IEnumerator<IObject> GetEnumerator()

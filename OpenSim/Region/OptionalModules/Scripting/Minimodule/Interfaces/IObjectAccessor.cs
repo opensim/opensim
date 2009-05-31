@@ -35,5 +35,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         IObject this[int index] { get; }
         IObject this[uint index] { get; }
         IObject this[UUID index] { get; }
+        IObject Create(Vector3 position);
+        IObject Create(Vector3 position, Quaternion rotation);
     }
 }
