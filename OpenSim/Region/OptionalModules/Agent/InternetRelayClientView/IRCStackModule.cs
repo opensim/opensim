@@ -8,7 +8,7 @@ using OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server;
 
 namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
 {
-    public class IRCStackModule : IRegionModule 
+    public class IRCStackModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -19,7 +19,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-            if (source.Configs.Contains("IRCd") &&
+            if (null != source.Configs["IRCd"] &&
                 source.Configs["IRCd"].GetBoolean("Enabled",false))
             {
                 m_scene = scene;
@@ -48,7 +48,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
 
         public void Close()
         {
-            
+
         }
 
         public string Name
