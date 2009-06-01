@@ -9,7 +9,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
+ *     * Neither the name of the OpenSim Project nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
@@ -41,6 +41,114 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
     [TestFixture]
     public class SerialiserTests
     {
+        private string xml = @"
+        <SceneObjectGroup>
+            <RootPart>
+                <SceneObjectPart xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+                    <AllowedDrop>false</AllowedDrop>
+                    <CreatorID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></CreatorID>
+                    <FolderID><Guid>e6a5a05e-e8cc-4816-8701-04165e335790</Guid></FolderID>
+                    <InventorySerial>1</InventorySerial>
+                    <TaskInventory />
+                    <ObjectFlags>0</ObjectFlags>
+                    <UUID><Guid>e6a5a05e-e8cc-4816-8701-04165e335790</Guid></UUID>
+                    <LocalId>2698615125</LocalId>
+                    <Name>Primitive</Name>
+                    <Material>0</Material>
+                    <PassTouches>false</PassTouches>
+                    <RegionHandle>1099511628032000</RegionHandle>
+                    <ScriptAccessPin>0</ScriptAccessPin>
+                    <GroupPosition><X>147.23</X><Y>92.698</Y><Z>22.78084</Z></GroupPosition>
+                    <OffsetPosition><X>0</X><Y>0</Y><Z>0</Z></OffsetPosition>
+                    <RotationOffset><X>-4.371139E-08</X><Y>-1</Y><Z>-4.371139E-08</Z><W>0</W></RotationOffset>
+                    <Velocity><X>0</X><Y>0</Y><Z>0</Z></Velocity>
+                    <RotationalVelocity><X>0</X><Y>0</Y><Z>0</Z></RotationalVelocity>
+                    <AngularVelocity><X>0</X><Y>0</Y><Z>0</Z></AngularVelocity>
+                    <Acceleration><X>0</X><Y>0</Y><Z>0</Z></Acceleration>
+                    <Description />
+                    <Color />
+                    <Text />
+                    <SitName />
+                    <TouchName />
+                    <LinkNum>0</LinkNum>
+                    <ClickAction>0</ClickAction>
+                    <Shape>
+                        <ProfileCurve>1</ProfileCurve>
+                        <TextureEntry>AAAAAAAAERGZmQAAAAAABQCVlZUAAAAAQEAAAABAQAAAAAAAAAAAAAAAAAAAAA==</TextureEntry>
+                        <ExtraParams>AA==</ExtraParams>
+                        <PathBegin>0</PathBegin>
+                        <PathCurve>16</PathCurve>
+                        <PathEnd>0</PathEnd>
+                        <PathRadiusOffset>0</PathRadiusOffset>
+                        <PathRevolutions>0</PathRevolutions>
+                        <PathScaleX>100</PathScaleX>
+                        <PathScaleY>100</PathScaleY>
+                        <PathShearX>0</PathShearX>
+                        <PathShearY>0</PathShearY>
+                        <PathSkew>0</PathSkew>
+                        <PathTaperX>0</PathTaperX>
+                        <PathTaperY>0</PathTaperY>
+                        <PathTwist>0</PathTwist>
+                        <PathTwistBegin>0</PathTwistBegin>
+                        <PCode>9</PCode>
+                        <ProfileBegin>0</ProfileBegin>
+                        <ProfileEnd>0</ProfileEnd>
+                        <ProfileHollow>0</ProfileHollow>
+                        <Scale><X>10</X><Y>10</Y><Z>0.5</Z></Scale>
+                        <State>0</State>
+                        <ProfileShape>Square</ProfileShape>
+                        <HollowShape>Same</HollowShape>
+                        <SculptTexture><Guid>00000000-0000-0000-0000-000000000000</Guid></SculptTexture>
+                        <SculptType>0</SculptType><SculptData />
+                        <FlexiSoftness>0</FlexiSoftness>
+                        <FlexiTension>0</FlexiTension>
+                        <FlexiDrag>0</FlexiDrag>
+                        <FlexiGravity>0</FlexiGravity>
+                        <FlexiWind>0</FlexiWind>
+                        <FlexiForceX>0</FlexiForceX>
+                        <FlexiForceY>0</FlexiForceY>
+                        <FlexiForceZ>0</FlexiForceZ>
+                        <LightColorR>0</LightColorR>
+                        <LightColorG>0</LightColorG>
+                        <LightColorB>0</LightColorB>
+                        <LightColorA>1</LightColorA>
+                        <LightRadius>0</LightRadius>
+                        <LightCutoff>0</LightCutoff>
+                        <LightFalloff>0</LightFalloff>
+                        <LightIntensity>1</LightIntensity>
+                        <FlexiEntry>false</FlexiEntry>
+                        <LightEntry>false</LightEntry>
+                        <SculptEntry>false</SculptEntry>
+                    </Shape>
+                    <Scale><X>10</X><Y>10</Y><Z>0.5</Z></Scale>
+                    <UpdateFlag>0</UpdateFlag>
+                    <SitTargetOrientation><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientation>
+                    <SitTargetPosition><X>0</X><Y>0</Y><Z>0</Z></SitTargetPosition>
+                    <SitTargetPositionLL><X>0</X><Y>0</Y><Z>0</Z></SitTargetPositionLL>
+                    <SitTargetOrientationLL><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientationLL>
+                    <ParentID>0</ParentID>
+                    <CreationDate>1211330445</CreationDate>
+                    <Category>0</Category>
+                    <SalePrice>0</SalePrice>
+                    <ObjectSaleType>0</ObjectSaleType>
+                    <OwnershipCost>0</OwnershipCost>
+                    <GroupID><Guid>00000000-0000-0000-0000-000000000000</Guid></GroupID>
+                    <OwnerID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></OwnerID>
+                    <LastOwnerID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></LastOwnerID>
+                    <BaseMask>2147483647</BaseMask>
+                    <OwnerMask>2147483647</OwnerMask>
+                    <GroupMask>0</GroupMask>
+                    <EveryoneMask>0</EveryoneMask>
+                    <NextOwnerMask>2147483647</NextOwnerMask>
+                    <Flags>None</Flags>
+                    <CollisionSound><Guid>00000000-0000-0000-0000-000000000000</Guid></CollisionSound>
+                    <CollisionSoundVolume>0</CollisionSoundVolume>
+                </SceneObjectPart>
+            </RootPart>
+            <OtherParts />
+        </SceneObjectGroup>
+        ";
+
         private string xml2 = @"
         <SceneObjectGroup>
             <SceneObjectPart xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
@@ -133,8 +241,24 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             SceneSetupHelpers.SetupSceneModules(m_scene, m_serialiserModule);            
         }
 
+//        [Test]
+//        public void TestLoadXml()
+//        {
+//            TestHelper.InMethod();
+//            //log4net.Config.XmlConfigurator.Configure();
+//
+//            SceneObjectGroup so = m_serialiserModule.DeserializeGroupFromXml2(xml2);
+//            SceneObjectPart rootPart = so.RootPart;
+//
+//            Assert.That(rootPart.UUID, Is.EqualTo(new UUID("9be68fdd-f740-4a0f-9675-dfbbb536b946")));
+//            Assert.That(rootPart.CreatorID, Is.EqualTo(new UUID("b46ef588-411e-4a8b-a284-d7dcfe8e74ef")));
+//            Assert.That(rootPart.Name, Is.EqualTo("PrimFun"));
+//
+//            // TODO: Check other properties
+//        }        
+
         [Test]
-        public void TestLoadXml2()
+        public void TestDeserializeXml2()
         {
             TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
@@ -150,7 +274,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         }
 
         [Test]
-        public void TestSaveXml2()
+        public void TestSerializeXml2()
         {
             TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
@@ -174,7 +298,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             // Need to add the object to the scene so that the request to get script state succeeds
             m_scene.AddSceneObject(so);
 
-            string xml2 = m_serialiserModule.SaveGroupToXml2(so);
+            string xml2 = m_serialiserModule.SerializeGroupToXml2(so);
 
             XmlTextReader xtr = new XmlTextReader(new StringReader(xml2));
             xtr.ReadStartElement("SceneObjectGroup");      

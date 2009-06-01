@@ -128,7 +128,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
             return SceneXmlLoader.DeserializeGroupFromXml2(xmlString);
         }
 
-        public string SaveGroupToXml2(SceneObjectGroup grp)
+        public string SerializeGroupToXml2(SceneObjectGroup grp)
         {
             return SceneXmlLoader.SaveGroupToXml2(grp);
         }
