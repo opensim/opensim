@@ -25,5 +25,9 @@ test-xml: prebuild
 tags:
 	find OpenSim -name \*\.cs | xargs etags 
 
+cscope-tags:
+	find OpenSim -name \*\.cs -fprint cscope.files
+	cscope -b
+
 include $(wildcard Makefile.local)
 
