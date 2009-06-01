@@ -379,18 +379,32 @@ namespace OpenSim.Region.Communications.Local
 
         public List<RegionInfo> RequestNamedRegions (string name, int maxNumber)
         {
+            List<RegionInfo> lowercase_regions = new List<RegionInfo>();
             List<RegionInfo> regions = new List<RegionInfo>();
             foreach (RegionInfo info in m_regions.Values)
             {
+                // Prioritizes exact match
                 if (info.RegionName.StartsWith(name))
                 {
                     regions.Add(info);
                     if (regions.Count >= maxNumber) break;
                 }
+                // But still saves lower case matches
+                else if (info.RegionName.ToLower().StartsWith(name))
+                {
+                    if (lowercase_regions.Count < maxNumber)
+                    {
+                        lowercase_regions.Add(info);
+                    }
+                }
             }
 
+            // If no exact matches found, return lowercase matches (libOMV compatiblity)
+            if (regions.Count == 0 && lowercase_regions.Count != 0)
+            {
+                return lowercase_regions;
+            }
             return regions;
         }
-
     }
 }
