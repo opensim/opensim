@@ -311,8 +311,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[RADMIN] Terrain Loading: failed: {0}", e.Message);
-                m_log.DebugFormat("[RADMIN] Terrain Loading: failed: {0}", e.ToString());
+                m_log.ErrorFormat("[RADMIN]: Terrain Loading: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN]: Terrain Loading: failed: {0}", e.ToString());
 
                 responseData["success"] = false;
                 responseData["error"] = e.Message;
@@ -325,7 +325,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
         public XmlRpcResponse XmlRpcShutdownMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-
             m_log.Info("[RADMIN]: Received Shutdown Administrator Request");
 
             XmlRpcResponse response = new XmlRpcResponse();
@@ -759,7 +758,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>error message if success is false</description></item>
         /// </list>
         /// </remarks>
-
         public XmlRpcResponse XmlRpcModifyRegionMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: ModifyRegion: new request");

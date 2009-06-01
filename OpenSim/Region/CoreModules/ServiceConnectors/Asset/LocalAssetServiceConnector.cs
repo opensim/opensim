@@ -196,6 +196,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
             AssetBase asset = null;
+            
             if (m_Cache != null)
                 m_Cache.Get(id);
 
@@ -209,6 +210,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
             {
                 if ((a != null) && (m_Cache != null))
                     m_Cache.Cache(a);
+                
                 handler.BeginInvoke(assetID, s, a, null, null);
             });
         }
@@ -217,8 +219,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
         {
             if (m_Cache != null)
                 m_Cache.Cache(asset);
+            
             if (asset.Temporary || asset.Local)
                 return asset.ID;
+            
             return m_AssetService.Store(asset);
         }
 

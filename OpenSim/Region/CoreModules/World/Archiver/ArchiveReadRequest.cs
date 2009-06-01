@@ -310,6 +310,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 asset.Type = assetType;
                 asset.Data = data;
 
+                // We're relying on the asset service to do the sensible thing and not store the asset if it already
+                // exists.
                 m_scene.AssetService.Store(asset);
 
                 /**

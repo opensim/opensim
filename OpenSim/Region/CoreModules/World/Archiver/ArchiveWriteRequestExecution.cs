@@ -136,7 +136,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             m_archiveWriter.Close();
 
-            m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive for {0}", m_scene.RegionInfo.RegionName);
+            m_log.InfoFormat("[ARCHIVER]: Finished writing out OAR for {0}", m_scene.RegionInfo.RegionName);
 
             m_scene.EventManager.TriggerOarFileSaved(m_requestId, String.Empty);
         }
