@@ -1,4 +1,4 @@
-﻿/*
+﻿﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -69,7 +69,7 @@ namespace OpenSim.Grid.UserServer.Modules
             {
                 console.Commands.AddCommand("userserver", false, "clone avatar",
                     "clone avatar <TemplateAvatarFirstName> <TemplateAvatarLastName> <TargetAvatarFirstName> <TargetAvatarLastName>",
-                    "Clone the template avatar inventory into a target avatar", RunCommand);
+                    "Clone the template avatar's inventory into a target avatar", RunCommand);
             }
         }
 
@@ -145,7 +145,7 @@ namespace OpenSim.Grid.UserServer.Modules
 
                 if (removeTargetsClothes)
                 {
-                    //remove clothes and attachments from target avatar so that the end result isn't a merge of its existing clothes 
+                    //remove clothes and attachments from target avatar so that the end result isn't a merger of its existing clothes 
                     // and the clothes from the template avatar. 
                     RemoveClothesAndAttachments(avID);
                 }
@@ -204,6 +204,9 @@ namespace OpenSim.Grid.UserServer.Modules
                "POST", m_inventoryServerUrl + "GetItems/", templateFolderId.Guid);
                 if ((templateItems != null) && (templateItems.Count > 0))
                 {
+                    List<ClothesAttachment> wornClothes = new List<ClothesAttachment>();
+                    List<ClothesAttachment> attachedItems = new List<ClothesAttachment>();
+
                     foreach (InventoryItemBase item in templateItems)
                     {
 
@@ -213,7 +216,8 @@ namespace OpenSim.Grid.UserServer.Modules
                             int appearanceType = ItemIsPartOfAppearance(item, appearance);
                             if (appearanceType >= 0)
                             {
-                                UpdateAvatarAppearance(avID, appearanceType, clonedItemId, item.AssetID);
+                               // UpdateAvatarAppearance(avID, appearanceType, clonedItemId, item.AssetID);
+                                wornClothes.Add(new ClothesAttachment(appearanceType, clonedItemId, item.AssetID));
                             }
 
                             if (appearance != null)
@@ -221,10 +225,34 @@ namespace OpenSim.Grid.UserServer.Modules
                                 int attachment = appearance.GetAttachpoint(item.ID);
                                 if (attachment > 0)
                                 {
-                                    UpdateAvatarAttachment(avID, attachment, clonedItemId, item.AssetID);
+                                    //UpdateAvatarAttachment(avID, attachment, clonedItemId, item.AssetID);
+                                    attachedItems.Add(new ClothesAttachment(attachment, clonedItemId, item.AssetID));
                                 }
                             }
                             success = true;
+                        }
+                    }
+
+                    if ((wornClothes.Count > 0) || (attachedItems.Count > 0))
+                    {
+                        //Update the worn clothes and attachments
+                        AvatarAppearance targetAppearance = GetAppearance(avID);
+                        if (targetAppearance != null)
+                        {
+                            foreach (ClothesAttachment wornItem in wornClothes)
+                            {
+                                targetAppearance.Wearables[wornItem.Type].AssetID = wornItem.AssetID;
+                                targetAppearance.Wearables[wornItem.Type].ItemID = wornItem.ItemID;
+                            }
+
+                            foreach (ClothesAttachment wornItem in attachedItems)
+                            {
+                                targetAppearance.SetAttachment(wornItem.Type, wornItem.ItemID, wornItem.AssetID);
+                            }
+
+                            m_userDataBaseService.UpdateUserAppearance(avID, targetAppearance);
+                            wornClothes.Clear();
+                            attachedItems.Clear();
                         }
                     }
                 }
@@ -288,45 +316,42 @@ namespace OpenSim.Grid.UserServer.Modules
 
         private void UpdateAvatarAppearance(UUID avatarID, int wearableType, UUID itemID, UUID assetID)
         {
-            AvatarAppearance appearance = m_userDataBaseService.GetUserAppearance(avatarID);
-            if (appearance == null)
-            {
-                appearance = CreateDefaultAppearance(avatarID);
-            }
+            AvatarAppearance appearance = GetAppearance(avatarID);
 
             appearance.Wearables[wearableType].AssetID = assetID;
             appearance.Wearables[wearableType].ItemID = itemID;
 
             m_userDataBaseService.UpdateUserAppearance(avatarID, appearance);
-
         }
+
 
         private void UpdateAvatarAttachment(UUID avatarID, int attachmentPoint, UUID itemID, UUID assetID)
         {
-            AvatarAppearance appearance = m_userDataBaseService.GetUserAppearance(avatarID);
-            if (appearance == null)
-            {
-                appearance = CreateDefaultAppearance(avatarID);
-            }
+            AvatarAppearance appearance = GetAppearance(avatarID);
 
             appearance.SetAttachment(attachmentPoint, itemID, assetID);
 
             m_userDataBaseService.UpdateUserAppearance(avatarID, appearance);
-
         }
 
         private void RemoveClothesAndAttachments(UUID avatarID)
         {
-            AvatarAppearance appearance = m_userDataBaseService.GetUserAppearance(avatarID);
-            if (appearance == null)
-            {
-                appearance = CreateDefaultAppearance(avatarID);
-            }
+            AvatarAppearance appearance = GetAppearance(avatarID);
 
             appearance.ClearWearables();
             appearance.ClearAttachments();
             m_userDataBaseService.UpdateUserAppearance(avatarID, appearance);
 
+        }
+
+        private AvatarAppearance GetAppearance(UUID avatarID)
+        {
+            AvatarAppearance appearance = m_userDataBaseService.GetUserAppearance(avatarID);
+            if (appearance == null)
+            {
+                appearance = CreateDefaultAppearance(avatarID);
+            }
+            return appearance;
         }
 
         private UUID FindFolderID(string name, List<InventoryFolderBase> folders)
@@ -398,27 +423,6 @@ namespace OpenSim.Grid.UserServer.Modules
             item.EveryOnePermissions = item.EveryOnePermissions & item.NextPermissions;
             item.GroupPermissions = item.GroupPermissions & item.NextPermissions;
 
-            //set all items to +mod/+copy/- transfer
-            //if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
-            //    item.CurrentPermissions |= (uint)PermissionMask.Modify;
-
-            //if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-            //    item.CurrentPermissions |= (uint)PermissionMask.Copy;
-
-            //if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) != 0)
-            //    item.CurrentPermissions &= ~(uint)PermissionMask.Transfer;
-
-            //if ((item.NextPermissions & (uint)PermissionMask.Modify) == 0)
-            //    item.NextPermissions |= (uint)PermissionMask.Modify;
-
-            //if ((item.NextPermissions & (uint)PermissionMask.Copy) == 0)
-            //    item.NextPermissions |= (uint)PermissionMask.Copy;
-
-            //if ((item.NextPermissions & (uint)PermissionMask.Transfer) != 0)
-            //    item.NextPermissions &= ~(uint)PermissionMask.Transfer;
-
-            //if ((item.EveryOnePermissions & (uint)PermissionMask.Transfer) != 0)
-            //    item.EveryOnePermissions &= ~(uint)PermissionMask.Transfer;
         }
 
         private AvatarAppearance CreateDefaultAppearance(UUID avatarId)
@@ -496,33 +500,46 @@ namespace OpenSim.Grid.UserServer.Modules
         }
         #endregion
 
+        public enum PermissionMask
+        {
+            None = 0,
+            Transfer = 8192,
+            Modify = 16384,
+            Copy = 32768,
+            Move = 524288,
+            Damage = 1048576,
+            All = 2147483647,
+        }
 
-    }
-    public enum PermissionMask
-    {
-        None = 0,
-        Transfer = 8192,
-        Modify = 16384,
-        Copy = 32768,
-        Move = 524288,
-        Damage = 1048576,
-        All = 2147483647,
-    }
+        public enum WearableType
+        {
+            Shape = 0,
+            Skin = 1,
+            Hair = 2,
+            Eyes = 3,
+            Shirt = 4,
+            Pants = 5,
+            Shoes = 6,
+            Socks = 7,
+            Jacket = 8,
+            Gloves = 9,
+            Undershirt = 10,
+            Underpants = 11,
+            Skirt = 12,
+        }
 
-    public enum WearableType
-    {
-        Shape = 0,
-        Skin = 1,
-        Hair = 2,
-        Eyes = 3,
-        Shirt = 4,
-        Pants = 5,
-        Shoes = 6,
-        Socks = 7,
-        Jacket = 8,
-        Gloves = 9,
-        Undershirt = 10,
-        Underpants = 11,
-        Skirt = 12,
+        public class ClothesAttachment
+        {
+            public int Type;
+            public UUID ItemID;
+            public UUID AssetID;
+
+            public ClothesAttachment(int type, UUID itemID, UUID assetID)
+            {
+                Type = type;
+                ItemID = itemID;
+                AssetID = assetID;
+            }
+        }
     }
 }
