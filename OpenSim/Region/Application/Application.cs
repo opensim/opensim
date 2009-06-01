@@ -160,27 +160,30 @@ namespace OpenSim
 
             m_log.ErrorFormat("[APPLICATION]: {0}", msg);
 
-            // Log exception to disk
-            try
+            if (m_saveCrashDumps)
             {
-                if (!Directory.Exists(m_crashDir))
+                // Log exception to disk
+                try
                 {
-                    Directory.CreateDirectory(m_crashDir);
+                    if (!Directory.Exists(m_crashDir))
+                    {
+                        Directory.CreateDirectory(m_crashDir);
+                    }
+                    string log = Util.GetUniqueFilename(ex.GetType() + ".txt");
+                    StreamWriter m_crashLog =
+                        new StreamWriter(
+                            Path.Combine(m_crashDir, log)
+                            );
+
+                    m_crashLog.WriteLine(msg);
+                    m_crashLog.Close();
+
+                    File.Copy("OpenSim.ini", Path.Combine(m_crashDir, log + "_OpenSim.ini"), true);
                 }
-                string log = Util.GetUniqueFilename(ex.GetType() + ".txt");
-                StreamWriter m_crashLog =
-                    new StreamWriter(
-                        Path.Combine(m_crashDir, log)
-                        );
-
-                m_crashLog.WriteLine(msg);
-                m_crashLog.Close();
-
-                File.Copy("OpenSim.ini", Path.Combine(m_crashDir, log + "_OpenSim.ini"), true);
-            }
-            catch (Exception e2)
-            {
-                m_log.ErrorFormat("[CRASH LOGGER CRASHED]: {0}", e2);
+                catch (Exception e2)
+                {
+                    m_log.ErrorFormat("[CRASH LOGGER CRASHED]: {0}", e2);
+                }
             }
 
             _IsHandlingException = false;
