@@ -54,7 +54,6 @@ namespace OpenSim.Client.Linden
         protected bool m_enabled = false; // Module is only enabled if running in standalone mode
 
         protected bool authenticate;
-        protected bool m_warn_already_logged;
         protected string welcomeMessage;
 
         public bool RegionLoginsEnabled
@@ -79,11 +78,9 @@ namespace OpenSim.Client.Linden
         public void Initialise(IConfigSource source)
         {
             IConfig startupConfig = source.Configs["Startup"];
-            IConfig stdaloneConfig = source.Configs["StandAlone"];
             if (startupConfig != null)
             {
                 m_enabled = !startupConfig.GetBoolean("gridmode", false);
-                m_warn_already_logged = stdaloneConfig.GetBoolean("warn_user_already_logged_in", true);
             }
 
             if (m_enabled)
@@ -115,7 +112,6 @@ namespace OpenSim.Client.Linden
 
                     //TODO: fix the casting of the user service, maybe by registering the userManagerBase with scenes, or refactoring so we just need a IUserService reference
                     m_loginService = new LLStandaloneLoginService((UserManagerBase)m_firstScene.CommsManager.UserAdminService, welcomeMessage, m_firstScene.CommsManager.InterServiceInventoryService, m_firstScene.CommsManager.NetworkServersInfo, authenticate, rootFolder, this);
-                    m_loginService.WarnAlreadyLogged = m_warn_already_logged;
 
                     httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
 

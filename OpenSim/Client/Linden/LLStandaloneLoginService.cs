@@ -52,14 +52,6 @@ namespace OpenSim.Client.Linden
         protected NetworkServersInfo m_serversInfo;
         protected bool m_authUsers = false;
 
-        // If true, warns the user that he is already logged, forcing another login.
-        // If false, skips message and logs in directly, kicking out current user.
-        public bool WarnAlreadyLogged
-        {
-            get { return m_warn_already_logged; }
-            set { m_warn_already_logged = value; }
-        }
-
         /// <summary>
         /// Used to make requests to the local regions.
         /// </summary>
@@ -79,6 +71,8 @@ namespace OpenSim.Client.Linden
 
             m_inventoryService = interServiceInventoryService;
             m_regionsConnector = regionsConnector;
+            // Standard behavior: In StandAlone, silent logout of last hung session
+            m_warn_already_logged = false;
         }
 
         public override UserProfileData GetTheUser(string firstname, string lastname)

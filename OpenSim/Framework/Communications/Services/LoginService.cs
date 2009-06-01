@@ -181,10 +181,9 @@ namespace OpenSim.Framework.Communications.Services
                         // try to tell the region that their user is dead.
                         LogOffUser(userProfile, " XMLRPC You were logged off because you logged in from another location");
 
-                        // Reject the login
-
                         if (m_warn_already_logged)
                         {
+                            // This is behavior for for grid, reject login
                             m_log.InfoFormat(
                                 "[LOGIN END]: XMLRPC Notifying user {0} {1} that they are already logged in",
                                 firstname, lastname);
@@ -193,6 +192,7 @@ namespace OpenSim.Framework.Communications.Services
                         }
                         else
                         {
+                            // This is behavior for standalone (silent logout of last hung session)
                             m_log.InfoFormat(
                                 "[LOGIN]: User {0} {1} is already logged in, not notifying user, kicking old presence and starting new login.",
                                 firstname, lastname);

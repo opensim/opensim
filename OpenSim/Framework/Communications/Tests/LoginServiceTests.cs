@@ -304,7 +304,9 @@ namespace OpenSim.Framework.Communications.Tests
 
         }
 
-        [Test]
+        // [Test]
+        // Commenting out test now that LLStandAloneLoginService no longer replies with message in this case.
+        // Kept the code for future test with grid mode, which will keep this behavior.
         public void T023_TestAuthenticatedLoginAlreadyLoggedIn()
         {
             TestHelper.InMethod();
