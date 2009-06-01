@@ -31,6 +31,7 @@ using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Setup;
 using System.IO;
@@ -53,7 +54,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                     <ObjectFlags>0</ObjectFlags>
                     <UUID><Guid>e6a5a05e-e8cc-4816-8701-04165e335790</Guid></UUID>
                     <LocalId>2698615125</LocalId>
-                    <Name>Primitive</Name>
+                    <Name>PrimMyRide</Name>
                     <Material>0</Material>
                     <PassTouches>false</PassTouches>
                     <RegionHandle>1099511628032000</RegionHandle>
@@ -241,21 +242,21 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             SceneSetupHelpers.SetupSceneModules(m_scene, m_serialiserModule);            
         }
 
-//        [Test]
-//        public void TestLoadXml()
-//        {
-//            TestHelper.InMethod();
-//            //log4net.Config.XmlConfigurator.Configure();
-//
-//            SceneObjectGroup so = m_serialiserModule.DeserializeGroupFromXml2(xml2);
-//            SceneObjectPart rootPart = so.RootPart;
-//
-//            Assert.That(rootPart.UUID, Is.EqualTo(new UUID("9be68fdd-f740-4a0f-9675-dfbbb536b946")));
-//            Assert.That(rootPart.CreatorID, Is.EqualTo(new UUID("b46ef588-411e-4a8b-a284-d7dcfe8e74ef")));
-//            Assert.That(rootPart.Name, Is.EqualTo("PrimFun"));
-//
-//            // TODO: Check other properties
-//        }        
+        [Test]
+        public void TestSerializeXml()
+        {
+            TestHelper.InMethod();
+            //log4net.Config.XmlConfigurator.Configure();
+
+            SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(xml);
+            SceneObjectPart rootPart = so.RootPart;
+
+            Assert.That(rootPart.UUID, Is.EqualTo(new UUID("e6a5a05e-e8cc-4816-8701-04165e335790")));
+            Assert.That(rootPart.CreatorID, Is.EqualTo(new UUID("a6dacf01-4636-4bb9-8a97-30609438af9d")));
+            Assert.That(rootPart.Name, Is.EqualTo("PrimMyRide"));
+
+            // TODO: Check other properties
+        }        
 
         [Test]
         public void TestDeserializeXml2()
