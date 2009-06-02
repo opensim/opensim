@@ -1690,6 +1690,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectGroup g in affectedGroups)
             {
                 g.TriggerScriptChangedEvent(Changed.LINK);
+                g.HasGroupChanged = true; // Persist
                 g.ScheduleGroupForFullUpdate();
             }
         }
