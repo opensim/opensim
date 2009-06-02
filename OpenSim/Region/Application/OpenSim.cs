@@ -413,7 +413,14 @@ namespace OpenSim
 
         private void HandleClearAssets(string module, string[] args)
         {
-            m_assetCache.Clear();
+            if (AssetCache != null)
+            {
+                AssetCache.Clear();
+            }
+            else
+            {
+                m_log.Info("Asset cache is not configured.");
+            }
         }
 
         private void HandleForceUpdate(string module, string[] args)
@@ -787,7 +794,14 @@ namespace OpenSim
             switch (showParams[0])
             {
                 case "assets":
-                    m_assetCache.ShowState();
+                    if (AssetCache != null)
+                    {
+                        AssetCache.ShowState();
+                    }
+                    else
+                    {
+                        m_log.Info("Asset cache is not configured.");
+                    }
                     break;
 
                 case "users":
