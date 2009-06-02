@@ -101,7 +101,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
         }
 
-        private bool done = false;
         /// <summary>
         /// Called back by the asset cache when it has the asset
         /// </summary>
@@ -127,14 +126,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         
                     if (m_foundAssetUuids.Count + m_notFoundAssetUuids.Count == m_repliesRequired)
                     {
-                        if (done)
-                            throw new Exception("AArgh");
-                        
                         m_log.DebugFormat(
-                            "[ARCHIVER]: Successfully added {0} assets ({1} assets missing)", 
+                            "[ARCHIVER]: Successfully added {0} assets ({1} assets notified missing)", 
                             m_foundAssetUuids.Count, m_notFoundAssetUuids.Count);
-    
-                        done = true;
                         
                         // We want to stop using the asset cache thread asap 
                         // as we now need to do the work of producing the rest of the archive
@@ -146,7 +140,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[ARCHIVER]: AssetRequestCallback failed with {0}", e);
+                m_log.ErrorFormat("[ARCHIVER]: AssetRequestCallback failed with {0}", e);                
             }
         }
 

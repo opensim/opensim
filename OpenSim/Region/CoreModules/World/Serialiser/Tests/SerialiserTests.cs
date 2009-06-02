@@ -147,8 +147,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                 </SceneObjectPart>
             </RootPart>
             <OtherParts />
-        </SceneObjectGroup>
-        ";
+        </SceneObjectGroup>";
 
         private string xml2 = @"
         <SceneObjectGroup>
@@ -243,7 +242,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         }
 
         [Test]
-        public void TestSerializeXml()
+        public void TestDeserializeXml()
         {
             TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
@@ -256,6 +255,77 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(rootPart.Name, Is.EqualTo("PrimMyRide"));
 
             // TODO: Check other properties
+        }
+
+        [Test]
+        public void TestSerializeXml()
+        {
+            TestHelper.InMethod();
+            //log4net.Config.XmlConfigurator.Configure();
+
+            string rpName = "My Little Donkey";
+            UUID rpUuid = UUID.Parse("00000000-0000-0000-0000-000000000964");
+            UUID rpCreatorId = UUID.Parse("00000000-0000-0000-0000-000000000915");
+            PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
+//            Vector3 groupPosition = new Vector3(10, 20, 30);
+//            Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
+//            Vector3 offsetPosition = new Vector3(5, 10, 15);
+
+            SceneObjectPart rp = new SceneObjectPart();
+            rp.UUID = rpUuid;
+            rp.Name = rpName;
+            rp.CreatorID = rpCreatorId;
+            rp.Shape = shape;
+
+            SceneObjectGroup so = new SceneObjectGroup(rp);
+
+            // Need to add the object to the scene so that the request to get script state succeeds
+            m_scene.AddSceneObject(so);
+
+            string xml = SceneObjectSerializer.ToOriginalXmlFormat(so);
+
+            XmlTextReader xtr = new XmlTextReader(new StringReader(xml));
+            xtr.ReadStartElement("SceneObjectGroup");
+            xtr.ReadStartElement("RootPart");
+            xtr.ReadStartElement("SceneObjectPart");
+           
+            UUID uuid = UUID.Zero;
+            string name = null;
+            UUID creatorId = UUID.Zero;
+
+            while (xtr.Read() && xtr.Name != "SceneObjectPart")
+            {
+                if (xtr.NodeType != XmlNodeType.Element)
+                    continue;
+                
+                switch (xtr.Name)
+                {                   
+                    case "UUID":
+                        xtr.ReadStartElement("UUID");
+                        uuid = UUID.Parse(xtr.ReadElementString("Guid"));
+                        xtr.ReadEndElement();
+                        break;
+                    case "Name":
+                        name = xtr.ReadElementContentAsString();
+                        break;
+                    case "CreatorID":
+                        xtr.ReadStartElement("CreatorID");
+                        creatorId = UUID.Parse(xtr.ReadElementString("Guid"));
+                        xtr.ReadEndElement();                  
+                        break;
+                }
+            }
+
+            xtr.ReadEndElement();
+            xtr.ReadEndElement();
+            xtr.ReadStartElement("OtherParts");
+            xtr.ReadEndElement();
+            xtr.Close();
+
+            // TODO: More checks
+            Assert.That(uuid, Is.EqualTo(rpUuid));
+            Assert.That(name, Is.EqualTo(rpName));
+            Assert.That(creatorId, Is.EqualTo(rpCreatorId));           
         }        
 
         [Test]
