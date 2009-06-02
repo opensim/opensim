@@ -501,12 +501,13 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="Ode.NET.dll" />
-      <Reference name="nunit.framework.dll" />
+      <Reference name="Ode.NET.dll" />    
       <Reference name="log4net.dll"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+        </Match>
       </Files>
     </Project>
 
@@ -3689,6 +3690,38 @@
         <Match path="Shared/Tests" pattern="*.cs" recurse="true" />
         <Match path="Shared/CodeTools/Tests" pattern="*.cs" recurse="true" />
         <Match path="XEngine/Tests" pattern="*.cs" recurse="true" />
+      </Files>
+    </Project>
+
+    <!--
+           TODO: this is kind of lame, we basically build a duplicate
+           assembly but with tests added in, just because we can't resolve cross-bin-dir-refs.
+      -->
+    <Project name="OpenSim.Region.Physics.OdePlugin.Tests" path="OpenSim/Region/Physics/OdePlugin" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="Nini.dll" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="Ode.NET.dll" />
+      <Reference name="nunit.framework.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
 
