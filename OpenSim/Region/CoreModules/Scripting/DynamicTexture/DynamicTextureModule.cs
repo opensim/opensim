@@ -350,8 +350,11 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 part.UpdateTexture(tmptex);
                 
-                // scene.CommsManager.AssetCache.ExpireAsset(oldID);
-                scene.AssetService.Delete(oldID.ToString());
+                if (Face == ALL_SIDES)
+                {
+                    // scene.CommsManager.AssetCache.ExpireAsset(oldID);
+                    scene.AssetService.Delete(oldID.ToString());
+                }
             }
 
             private byte[] BlendTextures(byte[] frontImage, byte[] backImage, bool setNewAlpha, byte newAlpha)
