@@ -68,6 +68,8 @@ namespace OpenSim.Framework
         /// <seealso cref="MaxSize"/>
         public const long DefaultMaxSize = 134217728;
 
+        public long _MaxElementSize;
+
         /// <summary>
         /// How many operations between time checks.
         /// </summary>        
@@ -1471,7 +1473,12 @@ namespace OpenSim.Framework
         /// <seealso cref="ICnmCache{TKey,TValue}.IsSizeLimited"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.Size"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.MaxSize"/>        
-        public long MaxElementSize { get; private set; }
+        public long MaxElementSize
+        {
+            get { return _MaxElementSize; }
+
+            private set { _MaxElementSize = value; }
+        }
 
         /// <summary>
         /// Gets or sets maximal allowed total size for elements stored to <see cref="ICnmCache{TKey,TValue}"/>.
