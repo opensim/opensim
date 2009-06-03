@@ -108,7 +108,7 @@ namespace OpenSim.Server.Handlers.Simulation
                     httpResponse.StatusCode = (int)HttpStatusCode.Unauthorized;
                     return result;
                 }
-                if (!m_AuthenticationService.VerifyKey(agentID, authToken))
+                if (!m_AuthenticationService.VerifyUserKey(agentID, authToken))
                 {
                     m_log.InfoFormat("[AgentPostHandler]: Authentication failed for agent message {0}", path);
                     httpResponse.StatusCode = (int)HttpStatusCode.Forbidden;

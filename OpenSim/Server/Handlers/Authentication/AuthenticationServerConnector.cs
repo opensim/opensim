@@ -26,35 +26,36 @@
  */
 
 using System;
-using OpenMetaverse;
+using Nini.Config;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Services.Interfaces
+namespace OpenSim.Server.Handlers.Authentication
 {
-    public interface IAuthenticationService
+    public class AuthenticationServiceConnector : ServiceConnector
     {
-        // Create a new user session. If one exists, it is cleared
-        //
-        UUID AllocateUserSession(UUID userID);
+        private IAuthenticationService m_AuthenticationService;
 
-        // Get a user key from an authentication token. This must be
-        // done before the session allocated above is considered valid.
-        // Repeated calls to this method with the same auth token will
-        // create different keys and invalidate the previous ne.
-        //
-        string GetUserKey(UUID userID, string authToken);
+        public AuthenticationServiceConnector(IConfigSource config, IHttpServer server) :
+                base(config, server)
+        {
+            IConfig serverConfig = config.Configs["AuthenticationService"];
+            if (serverConfig == null)
+                throw new Exception("No section 'Server' in config file");
 
-        // Verify that a user key is valid
-        //
-        bool VerifyUserKey(UUID userID, string key);
+            string authenticationService = serverConfig.GetString("AuthenticationServiceModule",
+                    String.Empty);
 
-        // Verify that a user session ID is valid. A session ID is
-        // considered valid when a user has successfully authenticated
-        // at least one time inside that session.
-        //
-        bool VerifyUserSession(UUID userID, UUID session);
+            if (authenticationService == String.Empty)
+                throw new Exception("No AuthenticationService in config file");
 
-        // Remove a user session identifier and deauthenticate the user
-        //
-        void DestroyUserSession(UUID userID);
+            Object[] args = new Object[] { config };
+            m_AuthenticationService =
+                    ServerUtils.LoadPlugin<IAuthenticationService>(authenticationService, args);
+
+            //server.AddStreamHandler(new AuthenticationServerGetHandler(m_AuthenticationService));
+        }
     }
 }
