@@ -36,7 +36,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Precalculated prime numbers. 
         /// </summary>
-        private static readonly int[] Primes = new[]
+        private static readonly int[] Primes = new int[]
                                                    {
                                                        3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131, 163, 197, 239,
                                                        293, 353, 431, 521, 631, 761, 919, 1103, 1327, 1597, 1931, 2333,
