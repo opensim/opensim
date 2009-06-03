@@ -157,6 +157,7 @@ namespace OpenSim.Framework
         }
     }
 
+    [Serializable]
     public class AssetMetadata
     {
         private UUID m_fullid;
