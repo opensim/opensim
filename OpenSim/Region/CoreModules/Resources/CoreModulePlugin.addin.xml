@@ -19,7 +19,6 @@
         <RegionModule id="HGAssetBroker" type="OpenSim.Region.CoreModules.ServiceConnectors.Asset.HGAssetBroker" />
         <RegionModule id="CoreAssetCache" type="OpenSim.Region.CoreModules.Asset.CoreAssetCache" />
         <RegionModule id="CoreAssetCache" type="OpenSim.Region.CoreModules.Asset.GlynnTuckerAssetCache" />
-        <RegionModule id="CenomeMemoryAssetCache" type="OpenSim.Region.CoreModules.Asset.CenomeMemoryAssetCache"/>
         <RegionModule id="UrlModule" type="OpenSim.Region.CoreModules.Scripting.LSLHttp.UrlModule" />
         <RegionModule id="Chat" type="OpenSim.Region.CoreModules.Avatar.Chat.ChatModule" />
     </Extension>
