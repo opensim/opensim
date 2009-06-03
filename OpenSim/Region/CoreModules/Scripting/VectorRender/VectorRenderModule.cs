@@ -50,7 +50,8 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         private string m_name = "VectorRenderModule";
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
-        
+        private Graphics m_graph;
+
         public VectorRenderModule()
         {
         }
@@ -96,14 +97,13 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         public void GetDrawStringSize(string text, string fontName, int fontSize, 
                                       out double xSize, out double ySize)
         {
-            Bitmap bitmap = new Bitmap(1024, 1024, PixelFormat.Format32bppArgb);
-            Graphics graph = Graphics.FromImage(bitmap);
-
             Font myFont = new Font(fontName, fontSize);
             SizeF stringSize = new SizeF();
-            stringSize = graph.MeasureString(text, myFont);
-            xSize = stringSize.Width;
-            ySize = stringSize.Height;
+            lock (m_graph) {
+                stringSize = m_graph.MeasureString(text, myFont);
+                xSize = stringSize.Width;
+                ySize = stringSize.Height;
+            }
         }
 
 
@@ -116,6 +116,12 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             if (m_scene == null)
             {
                 m_scene = scene;
+            }
+
+            if (m_graph == null)
+            {
+                Bitmap bitmap = new Bitmap(1024, 1024, PixelFormat.Format32bppArgb);
+                m_graph = Graphics.FromImage(bitmap);
             }
         }
 
