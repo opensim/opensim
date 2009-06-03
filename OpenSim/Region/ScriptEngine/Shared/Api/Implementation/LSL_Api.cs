@@ -1016,21 +1016,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llGround(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            Vector3 pos = m_host.GetWorldPosition();
-            int x = (int)(pos.X + offset.x);
-            int y = (int)(pos.Y + offset.y);
+            Vector3 pos = m_host.GetWorldPosition() + new Vector3((float)offset.x,
+                                                                  (float)offset.y,
+                                                                  (float)offset.z);
+
+            //Get the slope normal.  This gives us the equation of the plane tangent to the slope.
+            LSL_Vector vsn = llGroundNormal(offset);
 
             // Clamp to valid position
-            if (x < 0) 
-                x = 0;
-            else if (x >= World.Heightmap.Width)
-                x = World.Heightmap.Width - 1;
-            if (y < 0) 
-                y = 0;
-            else if (y >= World.Heightmap.Height)
-                y = World.Heightmap.Height - 1;
-           
-            return World.Heightmap[x, y];
+            if (pos.X < 0)
+                pos.X = 0;
+            else if (pos.X >= World.Heightmap.Width)
+                pos.X = World.Heightmap.Width - 1;
+            if (pos.Y < 0)
+                pos.Y = 0;
+            else if (pos.Y >= World.Heightmap.Height)
+                pos.Y = World.Heightmap.Height - 1;
+
+            //Get the height for the integer coordinates from the Heightmap
+            float baseheight = (float)World.Heightmap[(int)pos.X, (int)pos.Y];
+
+            //Calculate the difference between the actual coordinates and the integer coordinates
+            float xdiff = pos.X - (float)((int)pos.X);
+            float ydiff = pos.Y - (float)((int)pos.Y);
+
+            //Use the equation of the tangent plane to adjust the height to account for slope
+
+            return (((vsn.x * xdiff) + (vsn.y * ydiff)) / (-1 * vsn.z)) + baseheight;
         }
 
         public LSL_Float llCloud(LSL_Vector offset)
@@ -5562,45 +5574,71 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGroundSlope(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
+            //Get the slope normal.  This gives us the equation of the plane tangent to the slope.
+            LSL_Vector vsn = llGroundNormal(offset);
 
-            Vector3 pos = m_host.AbsolutePosition + new Vector3((float)offset.x,
-                                                                (float)offset.y,
-                                                                (float)offset.z);
+            //Plug the x,y coordinates of the slope normal into the equation of the plane to get
+            //the height of that point on the plane.  The resulting vector gives the slope.
+            Vector3 vsl = new Vector3();
+            vsl.X = (float)vsn.x;
+            vsl.Y = (float)vsn.y;
+            vsl.Z = (float)(((vsn.x * vsn.x) + (vsn.y * vsn.y)) / (-1 * vsn.z));
+            vsl.Normalize();
+            //Normalization might be overkill here
 
-            Vector3 p0 = new Vector3(pos.X, pos.Y,
-                                     (float)llGround(
-                                         new LSL_Vector(offset.x, offset.y, offset.z)
-                                         ));
-            Vector3 p1 = new Vector3(pos.X + 1, pos.Y,
-                                     (float)llGround(
-                                         new LSL_Vector(offset.x + 1, offset.y, offset.z)
-                                         ));
-            Vector3 p2 = new Vector3(pos.X, pos.Y + 1,
-                                     (float)llGround(
-                                         new LSL_Vector(offset.x, offset.y + 1, offset.z)
-                                         ));
-
-            Vector3 v0 = new Vector3(p1.X - p0.X, p1.Y - p0.Y, p1.Z - p0.Z);
-            Vector3 v1 = new Vector3(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
-
-            v0.Normalize();
-            v1.Normalize();
-
-            Vector3 tv = new Vector3();
-            tv.X = (v0.Y * v1.Z) - (v0.Z * v1.Y);
-            tv.Y = (v0.Z * v1.X) - (v0.X * v1.Z);
-            tv.Z = (v0.X * v1.Y) - (v0.Y * v1.X);
-            if ((tv.X == 0) && (tv.Y == 0))
-                tv.Z = 0;
-
-            return new LSL_Vector(tv.X, tv.Y, tv.Z);
+            return new LSL_Vector(vsl.X, vsl.Y, vsl.Z);
         }
 
         public LSL_Vector llGroundNormal(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            LSL_Vector x = llGroundSlope(offset);
-            return new LSL_Vector(x.x, x.y, 1.0);
+            Vector3 pos = m_host.GetWorldPosition() + new Vector3((float)offset.x,
+                                                                (float)offset.y,
+                                                                (float)offset.z);
+            // Clamp to valid position
+            if (pos.X < 0)
+                pos.X = 0;
+            else if (pos.X >= World.Heightmap.Width)
+                pos.X = World.Heightmap.Width - 1;
+            if (pos.Y < 0)
+                pos.Y = 0;
+            else if (pos.Y >= World.Heightmap.Height)
+                pos.Y = World.Heightmap.Height - 1;
+
+            //Find two points in addition to the position to define a plane
+            Vector3 p0 = new Vector3(pos.X, pos.Y,
+                                     (float)World.Heightmap[(int)pos.X, (int)pos.Y]);
+            Vector3 p1 = new Vector3();
+            Vector3 p2 = new Vector3();
+            if ((pos.X + 1.0f) >= World.Heightmap.Width)
+                p1 = new Vector3(pos.X + 1.0f, pos.Y,
+                            (float)World.Heightmap[(int)pos.X, (int)pos.Y]);
+            else
+                p1 = new Vector3(pos.X + 1.0f, pos.Y,
+                            (float)World.Heightmap[(int)(pos.X + 1.0f), (int)pos.Y]);
+            if ((pos.Y + 1.0f) >= World.Heightmap.Height)
+                p2 = new Vector3(pos.X, pos.Y + 1.0f,
+                            (float)World.Heightmap[(int)pos.X, (int)pos.Y]);
+            else
+                p2 = new Vector3(pos.X, pos.Y + 1.0f,
+                            (float)World.Heightmap[(int)pos.X, (int)(pos.Y + 1.0f)]);
+
+            //Find normalized vectors from p0 to p1 and p0 to p2
+            Vector3 v0 = new Vector3(p1.X - p0.X, p1.Y - p0.Y, p1.Z - p0.Z);
+            Vector3 v1 = new Vector3(p2.X - p0.X, p2.Y - p0.Y, p2.Z - p0.Z);
+            v0.Normalize();
+            v1.Normalize();
+
+            //Find the cross product of the vectors (the slope normal).
+            Vector3 vsn = new Vector3();
+            vsn.X = (v0.Y * v1.Z) - (v0.Z * v1.Y);
+            vsn.Y = (v0.Z * v1.X) - (v0.X * v1.Z);
+            vsn.Z = (v0.X * v1.Y) - (v0.Y * v1.X);
+            vsn.Normalize();
+            //I believe the crossproduct of two normalized vectors is a normalized vector so
+            //this normalization may be overkill
+
+            return new LSL_Vector(vsn.X, vsn.Y, vsn.Z);
         }
 
         public LSL_Vector llGroundContour(LSL_Vector offset)
