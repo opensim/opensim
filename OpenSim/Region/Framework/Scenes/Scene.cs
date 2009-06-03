@@ -133,7 +133,14 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 if (m_AssetService == null)
+                {
                     m_AssetService = RequestModuleInterface<IAssetService>();
+
+                    if( m_AssetService == null )
+                    {
+                        throw new Exception("No IAssetService available.");
+                    }
+                }
 
                 return m_AssetService;
             }
