@@ -142,5 +142,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String osFormatString(string str, LSL_List strings);
         LSL_List osMatchString(string src, string pattern, int start);
 
+        // Information about data loaded into the region
+        string osLoadedCreationDate();
+        string osLoadedCreationTime();
+        string osLoadedCreationID();
+
     }
 }

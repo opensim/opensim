@@ -371,6 +371,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osMatchString(src, pattern, start);
         }
 
+        // Information about data loaded into the region
+        public string osLoadedCreationDate()
+        {
+            return m_OSSL_Functions.osLoadedCreationDate();
+        }
+
+        public string osLoadedCreationTime()
+        {
+            return m_OSSL_Functions.osLoadedCreationTime();
+        }
+
+        public string osLoadedCreationID()
+        {
+            return m_OSSL_Functions.osLoadedCreationID();
+        }
+
+
         public OSSLPrim Prim;
 
         [Serializable]

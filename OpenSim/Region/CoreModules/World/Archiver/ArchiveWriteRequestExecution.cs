@@ -154,7 +154,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             xtw.WriteStartElement("archive");
             xtw.WriteAttributeString("major_version", "0");
             xtw.WriteAttributeString("minor_version", "2");
+
+            xtw.WriteStartElement("creation_info");
+            DateTime now = DateTime.UtcNow;
+            xtw.WriteElementString("date", now.ToLongDateString());
+            xtw.WriteElementString("time", now.ToLongTimeString());
+            xtw.WriteElementString("id", UUID.Random().ToString());
             xtw.WriteEndElement();
+            xtw.WriteEndElement();
+
 
             xtw.Flush();
             xtw.Close();

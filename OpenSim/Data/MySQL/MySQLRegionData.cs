@@ -741,7 +741,8 @@ namespace OpenSim.Data.MySQL
                         "terrain_raise_limit, terrain_lower_limit, " +
                         "use_estate_sun, fixed_sun, sun_position, " +
                         "covenant, Sandbox, sunvectorx, sunvectory, " +
-                        "sunvectorz) values ( ?RegionUUID, ?BlockTerraform, " +
+                        "sunvectorz, loaded_creation_date, loaded_creation_time, " +
+                        "loaded_creation_id) values ( ?RegionUUID, ?BlockTerraform, " +
                         "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
                         "?AllowLandResell, ?AllowLandJoinDivide, " +
                         "?BlockShowInSearch, ?AgentLimit, ?ObjectBonus, " +
@@ -754,12 +755,14 @@ namespace OpenSim.Data.MySQL
                         "?WaterHeight, ?TerrainRaiseLimit, " +
                         "?TerrainLowerLimit, ?UseEstateSun, ?FixedSun, " +
                         "?SunPosition, ?Covenant, ?Sandbox, " +
-                        "?SunVectorX, ?SunVectorY, ?SunVectorZ)";
+                        "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
+                        "?LoadedCreationDate, ?LoadedCreationTime, ?LoadedCreationID)";
 
                 FillRegionSettingsCommand(cmd, rs);
 
                 ExecuteNonQuery(cmd);
                 cmd.Dispose();
+
             }
         }
 
@@ -1038,6 +1041,21 @@ namespace OpenSim.Data.MySQL
             newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
             newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
             newSettings.Covenant = new UUID((String) row["covenant"]);
+
+            if (row["loaded_creation_date"] is DBNull) 
+                newSettings.LoadedCreationDate = "";
+            else
+                newSettings.LoadedCreationDate = (String) row["loaded_creation_date"];
+
+            if (row["loaded_creation_time"] is DBNull)
+                newSettings.LoadedCreationTime = "";
+            else
+                newSettings.LoadedCreationTime = (String) row["loaded_creation_time"];
+            
+            if (row["loaded_creation_id"] is DBNull)
+                newSettings.LoadedCreationID = "";
+            else 
+                newSettings.LoadedCreationID = (String) row["loaded_creation_id"];
 
             return newSettings;
         }
@@ -1357,6 +1375,10 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("FixedSun", settings.FixedSun);
             cmd.Parameters.AddWithValue("SunPosition", settings.SunPosition);
             cmd.Parameters.AddWithValue("Covenant", settings.Covenant.ToString());
+            cmd.Parameters.AddWithValue("LoadedCreationDate", settings.LoadedCreationDate);
+            cmd.Parameters.AddWithValue("LoadedCreationTime", settings.LoadedCreationTime);
+            cmd.Parameters.AddWithValue("LoadedCreationID", settings.LoadedCreationID);
+
         }
 
         /// <summary>

@@ -1709,5 +1709,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return result;
         }
+
+        public string osLoadedCreationDate()
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osLoadedCreationDate");
+            m_host.AddScriptLPS(1);
+
+            return World.RegionInfo.RegionSettings.LoadedCreationDate;
+        }
+
+        public string osLoadedCreationTime()
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osLoadedCreationTime");
+            m_host.AddScriptLPS(1);
+
+            return World.RegionInfo.RegionSettings.LoadedCreationTime;
+        }
+
+        public string osLoadedCreationID()
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osLoadedCreationID");
+            m_host.AddScriptLPS(1);
+
+            return World.RegionInfo.RegionSettings.LoadedCreationID;
+        }
+
     }
 }

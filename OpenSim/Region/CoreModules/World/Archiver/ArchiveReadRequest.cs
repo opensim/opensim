@@ -32,6 +32,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -134,6 +135,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     else if (!m_merge && filePath.StartsWith(ArchiveConstants.SETTINGS_PATH))
                     {
                         LoadRegionSettings(filePath, data);
+                    } else if (filePath == ArchiveConstants.CONTROL_FILE_PATH) {
+                        LoadArchiveMetadata(filePath, data);
                     }
                 }
 
@@ -478,5 +481,60 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // return new BufferedStream(file, (int) response.ContentLength);
             return new BufferedStream(file, 1000000);
         }
+
+        /// <summary>
+        /// Load oar file metadata
+        /// </summary>
+        /// <param name="terrainPath"></param>
+        /// <param name="data"></param>
+        /// <returns>
+        /// true if terrain was resolved successfully, false otherwise.
+        /// </returns>
+        private bool LoadArchiveMetadata(string terrainPath, byte[] data)
+        {
+            //Create the XmlNamespaceManager.
+            NameTable nt = new NameTable();
+            XmlNamespaceManager nsmgr = new XmlNamespaceManager(nt);
+
+            // Create the XmlParserContext.
+            XmlParserContext context = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
+
+            XmlTextReader xtr = new XmlTextReader(m_asciiEncoding.GetString(data),
+                                                  XmlNodeType.Document, context);
+            
+
+            RegionSettings currentRegionSettings = m_scene.RegionInfo.RegionSettings;
+
+            // Loaded metadata will empty if no information exists in the archive
+            currentRegionSettings.LoadedCreationDate = "";
+            currentRegionSettings.LoadedCreationTime = "";
+            currentRegionSettings.LoadedCreationID = "";
+
+            while (xtr.Read()) 
+            {
+                if (xtr.NodeType == XmlNodeType.Element) 
+                {
+                    if (xtr.Name.ToString()=="date") 
+                    {
+                        currentRegionSettings.LoadedCreationDate = xtr.ReadElementContentAsString();
+                    } 
+                    else if (xtr.Name.ToString()=="time") 
+                    {
+                        currentRegionSettings.LoadedCreationTime = xtr.ReadElementContentAsString();
+                    }
+                    else if (xtr.Name.ToString()=="id") 
+                    {
+                        currentRegionSettings.LoadedCreationID = xtr.ReadElementContentAsString();
+                    }
+                }
+
+            }
+            currentRegionSettings.Save();
+
+            return true;
+        }
+
+
+
     }
 }

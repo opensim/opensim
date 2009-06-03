@@ -560,5 +560,29 @@ namespace OpenSim.Framework
             get { return m_Covenant; }
             set { m_Covenant = value; }
         }
+
+        private String m_LoadedCreationDate;
+        
+        public String LoadedCreationDate
+        {
+            get { return m_LoadedCreationDate; }
+            set { m_LoadedCreationDate = value; }
+        }
+
+        private String m_LoadedCreationTime;
+
+        public String LoadedCreationTime
+        {
+            get { return m_LoadedCreationTime; }
+            set { m_LoadedCreationTime = value; }
+        }
+
+        private String m_LoadedCreationID;
+        public String LoadedCreationID
+        {
+            get { return m_LoadedCreationID; }
+            set { m_LoadedCreationID = value; }
+        }
+
     }
 }
