@@ -80,7 +80,7 @@ namespace OpenSim.Region.CoreModules.Asset
     /// </code>
     /// Setting size and expiration time limitations:
     /// <code>
-    /// [AssetService]
+    /// [AssetCache]
     /// ; 256 MB (default: 134217728)
     /// MaxSize =  268435456
     /// ; How many assets it is possible to store cache (default: 4096)
