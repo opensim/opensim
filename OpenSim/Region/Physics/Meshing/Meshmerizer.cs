@@ -184,7 +184,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (primShape.SculptEntry)
             {
-                if (cacheSculptMaps && primShape.SculptTexture != null)
+                if (cacheSculptMaps && primShape.SculptTexture != UUID.Zero)
                 {
                     decodedSculptFileName = System.IO.Path.Combine(decodedScultMapPath, "smap_" + primShape.SculptTexture.ToString());
                     try
