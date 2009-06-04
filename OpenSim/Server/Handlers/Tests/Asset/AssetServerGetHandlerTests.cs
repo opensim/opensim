@@ -46,7 +46,7 @@ namespace OpenSim.Server.Handlers.Tests.Asset
         {
             TestHelper.InMethod();
 
-            AssetServerGetHandler handler = new  AssetServerGetHandler( null );
+            AssetServerGetHandler handler = new AssetServerGetHandler(null);
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace OpenSim.Server.Handlers.Tests.Asset
         {
             TestHelper.InMethod();
 
-            AssetServerGetHandler handler = new  AssetServerGetHandler(null);
+            AssetServerGetHandler handler = new AssetServerGetHandler(null);
             BaseRequestHandlerTestHelper.BaseTestGetParams(handler, ASSETS_PATH);
         }
 
@@ -63,16 +63,16 @@ namespace OpenSim.Server.Handlers.Tests.Asset
         {
             TestHelper.InMethod();
 
-            AssetServerGetHandler handler = new  AssetServerGetHandler(null);
+            AssetServerGetHandler handler = new AssetServerGetHandler(null);
             BaseRequestHandlerTestHelper.BaseTestSplitParams(handler, ASSETS_PATH);
         }
 
         // TODO: unused
-        // private static AssetBase CreateTestEnvironment(out  AssetServerGetHandler handler, out OSHttpResponse response)
+        // private static AssetBase CreateTestEnvironment(out AssetServerGetHandler handler, out OSHttpResponse response)
         // {
         //     AssetBase asset = GetAssetStreamHandlerTestHelpers.CreateCommonTestResources(out response);
         //     IAssetService assetDataPlugin = new TestAssetService();
-        //     handler = new  AssetServerGetHandler(assetDataPlugin);
+        //     handler = new AssetServerGetHandler(assetDataPlugin);
         //     assetDataPlugin.Store(asset);
         //     return asset;
         // }

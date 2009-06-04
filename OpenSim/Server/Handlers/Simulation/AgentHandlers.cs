@@ -46,14 +46,14 @@ namespace OpenSim.Server.Handlers.Simulation
 {
     public class AgentGetHandler : BaseStreamHandler
     {
-        private ISimulationService m_SimulationService;
-        private IAuthenticationService m_AuthenticationService;
+        // TODO: unused: private ISimulationService m_SimulationService;
+        // TODO: unused: private IAuthenticationService m_AuthenticationService;
 
         public AgentGetHandler(ISimulationService service, IAuthenticationService authentication) :
                 base("GET", "/agent")
         {
-            m_SimulationService = service;
-            m_AuthenticationService = authentication;
+            // TODO: unused: m_SimulationService = service;
+            // TODO: unused: m_AuthenticationService = authentication;
         }
 
         public override byte[] Handle(string path, Stream request,
@@ -70,14 +70,14 @@ namespace OpenSim.Server.Handlers.Simulation
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private ISimulationService m_SimulationService;
         private IAuthenticationService m_AuthenticationService;
-        private bool m_AllowForeignGuests;
+        // TODO: unused: private bool m_AllowForeignGuests;
 
         public AgentPostHandler(ISimulationService service, IAuthenticationService authentication, bool foreignGuests) :
             base("POST", "/agent")
         {
             m_SimulationService = service;
             m_AuthenticationService = authentication;
-            m_AllowForeignGuests = foreignGuests;
+            // TODO: unused: m_AllowForeignGuests = foreignGuests;
         }
 
         public override byte[] Handle(string path, Stream request,
@@ -160,20 +160,19 @@ namespace OpenSim.Server.Handlers.Simulation
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
             return Encoding.UTF8.GetBytes(OSDParser.SerializeJsonString(resp));
-
         }
     }
 
     public class AgentPutHandler : BaseStreamHandler
     {
-        private ISimulationService m_SimulationService;
-        private IAuthenticationService m_AuthenticationService;
+        // TODO: unused: private ISimulationService m_SimulationService;
+        // TODO: unused: private IAuthenticationService m_AuthenticationService;
 
         public AgentPutHandler(ISimulationService service, IAuthenticationService authentication) :
             base("PUT", "/agent")
         {
-            m_SimulationService = service;
-            m_AuthenticationService = authentication;
+            // TODO: unused: m_SimulationService = service;
+            // TODO: unused: m_AuthenticationService = authentication;
         }
 
         public override byte[] Handle(string path, Stream request,
@@ -187,14 +186,14 @@ namespace OpenSim.Server.Handlers.Simulation
 
     public class AgentDeleteHandler : BaseStreamHandler
     {
-        private ISimulationService m_SimulationService;
-        private IAuthenticationService m_AuthenticationService;
+        // TODO: unused: private ISimulationService m_SimulationService;
+        // TODO: unused: private IAuthenticationService m_AuthenticationService;
 
         public AgentDeleteHandler(ISimulationService service, IAuthenticationService authentication) :
             base("DELETE", "/agent")
         {
-            m_SimulationService = service;
-            m_AuthenticationService = authentication;
+            // TODO: unused: m_SimulationService = service;
+            // TODO: unused: m_AuthenticationService = authentication;
         }
 
         public override byte[] Handle(string path, Stream request,
@@ -205,5 +204,4 @@ namespace OpenSim.Server.Handlers.Simulation
             return new byte[] { };
         }
     }
-
 }

@@ -49,14 +49,14 @@ namespace OpenSim.Grid.UserServer.Modules
 
         private UserDataBaseService m_userDataBaseService;
         //  private BaseHttpServer m_httpServer;
-        private UserConfig m_config;
+        // TODO: unused: private UserConfig m_config;
 
         private string m_inventoryServerUrl;
         private IInterServiceInventoryServices m_inventoryService;
 
         public AvatarCreationModule(UserDataBaseService userDataBaseService, UserConfig config, IInterServiceInventoryServices inventoryService)
         {
-            m_config = config;
+            // TODO: unused: m_config = config;
             m_userDataBaseService = userDataBaseService;
             m_inventoryService = inventoryService;
             m_inventoryServerUrl = config.InventoryUrl.OriginalString;
@@ -124,8 +124,8 @@ namespace OpenSim.Grid.UserServer.Modules
         public bool CloneAvatar(Guid avatarID, Guid templateID, bool modifyPermissions, bool removeTargetsClothes)
         {
             m_log.InfoFormat("[AvatarAppearance] Starting to clone avatar {0} inventory to avatar {1}", templateID.ToString(), avatarID.ToString());
-            Guid bodyFolder = Guid.Empty;
-            Guid clothesFolder = Guid.Empty;
+            // TODO: unused: Guid bodyFolder = Guid.Empty;
+            // TODO: unused: Guid clothesFolder = Guid.Empty;
             bool success = false;
 
             UUID avID = new UUID(avatarID);

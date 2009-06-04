@@ -320,9 +320,9 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         private void IRC_ProcessUser(string message)
         {
             string[] userArgs = ExtractParameters(message);
-            string username = userArgs[0];
-            string hostname = userArgs[1];
-            string servername = userArgs[2];
+            // TODO: unused: string username = userArgs[0];
+            // TODO: unused: string hostname = userArgs[1];
+            // TODO: unused: string servername = userArgs[2];
             string realname = userArgs[3].Replace(":", "");
 
             m_username = realname;

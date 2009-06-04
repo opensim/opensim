@@ -44,8 +44,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
     /// </summary>
     class IRCServer
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
         public event OnNewIRCUserDelegate OnNewIRCClient;
 
         private readonly TcpListener m_listener;

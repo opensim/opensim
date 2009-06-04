@@ -39,10 +39,6 @@ namespace OpenSim.Services.AuthenticationService
 {
     public class AuthenticationService : ServiceBase, IAuthenticationService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
-
         public AuthenticationService(IConfigSource config) : base(config)
         {
         }
