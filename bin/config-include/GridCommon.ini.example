@@ -4,8 +4,17 @@
     ;AssetCaching = "CenomeMemoryAssetCache"
 
 [AssetCache]
+    ;; Optional configurations for CoreAssetCache
     ; Number of buckets for assets
     ;CacheBuckets = 32768
+
+    ;; Optional configurations for CenomeMemoryAssetCache
+    ; Cache size 128 MB (default: 134217728)
+    ; MaxSize = 134217728
+    ; Maximal asset count 
+    ; MaxCount = 4096
+    ; Asset's expiration time (minutes)
+    ; ExpirationTime = 30
 
 [AssetService]
 
@@ -17,10 +26,3 @@
     ;
     AssetServerURI = "http://myassetserver.com:8003"
 
-    ; Optional configurations for CenomeMemoryAssetCache
-    ; Cache size 128 MB (default: 134217728)
-    ; MaxSize = 134217728
-    ; Maximal asset count 
-    ; MaxCount = 4096
-    ; Asset's expiration time (minutes)
-    ; ExpirationTime = 30

@@ -4,9 +4,18 @@
     ;AssetCaching = "CenomeMemoryAssetCache"
 
 [AssetCache]
+    ;; Optional configurations for CoreAssetCache
     ; Number of buckets for assets
     ;CacheBuckets = 16384
 
+    ;; Optional configurations for CenomeMemoryAssetCache
+    ; Cache size 128 MB (default: 134217728)
+    ; MaxSize = 134217728
+    ; Maximal asset count 
+    ; MaxCount = 4096
+    ; Asset's expiration time (minutes)
+    ; ExpirationTime = 30
+    
 [AssetService]
     ;
     ;### Choose the DB
@@ -20,11 +29,3 @@
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
 
-
-    ; Optional configurations for CenomeMemoryAssetCache
-    ; Cache size 128 MB (default: 134217728)
-    ; MaxSize = 134217728
-    ; Maximal asset count 
-    ; MaxCount = 4096
-    ; Asset's expiration time (minutes)
-    ; ExpirationTime = 30
