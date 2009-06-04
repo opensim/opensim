@@ -314,25 +314,22 @@ namespace OpenSim.Grid.UserServer.Modules
             return UUID.Zero;
         }
 
-        private void UpdateAvatarAppearance(UUID avatarID, int wearableType, UUID itemID, UUID assetID)
-        {
-            AvatarAppearance appearance = GetAppearance(avatarID);
+        // TODO: unused
+        // private void UpdateAvatarAppearance(UUID avatarID, int wearableType, UUID itemID, UUID assetID)
+        // {
+        //     AvatarAppearance appearance = GetAppearance(avatarID);
+        //     appearance.Wearables[wearableType].AssetID = assetID;
+        //     appearance.Wearables[wearableType].ItemID = itemID;
+        //     m_userDataBaseService.UpdateUserAppearance(avatarID, appearance);
+        // }
 
-            appearance.Wearables[wearableType].AssetID = assetID;
-            appearance.Wearables[wearableType].ItemID = itemID;
-
-            m_userDataBaseService.UpdateUserAppearance(avatarID, appearance);
-        }
-
-
-        private void UpdateAvatarAttachment(UUID avatarID, int attachmentPoint, UUID itemID, UUID assetID)
-        {
-            AvatarAppearance appearance = GetAppearance(avatarID);
-
-            appearance.SetAttachment(attachmentPoint, itemID, assetID);
-
-            m_userDataBaseService.UpdateUserAppearance(avatarID, appearance);
-        }
+        // TODO: unused
+        // private void UpdateAvatarAttachment(UUID avatarID, int attachmentPoint, UUID itemID, UUID assetID)
+        // {
+        //     AvatarAppearance appearance = GetAppearance(avatarID);
+        //     appearance.SetAttachment(attachmentPoint, itemID, assetID);
+        //     m_userDataBaseService.UpdateUserAppearance(avatarID, appearance);
+        // }
 
         private void RemoveClothesAndAttachments(UUID avatarID)
         {
@@ -354,29 +351,31 @@ namespace OpenSim.Grid.UserServer.Modules
             return appearance;
         }
 
-        private UUID FindFolderID(string name, List<InventoryFolderBase> folders)
-        {
-            foreach (InventoryFolderBase folder in folders)
-            {
-                if (folder.Name == name)
-                {
-                    return folder.ID;
-                }
-            }
-            return UUID.Zero;
-        }
+        // TODO: unused
+        // private UUID FindFolderID(string name, List<InventoryFolderBase> folders)
+        // {
+        //     foreach (InventoryFolderBase folder in folders)
+        //     {
+        //         if (folder.Name == name)
+        //         {
+        //             return folder.ID;
+        //         }
+        //     }
+        //     return UUID.Zero;
+        // }
 
-        private InventoryFolderBase FindFolder(string name, List<InventoryFolderBase> folders)
-        {
-            foreach (InventoryFolderBase folder in folders)
-            {
-                if (folder.Name == name)
-                {
-                    return folder;
-                }
-            }
-            return null;
-        }
+        // TODO: unused
+        // private InventoryFolderBase FindFolder(string name, List<InventoryFolderBase> folders)
+        // {
+        //     foreach (InventoryFolderBase folder in folders)
+        //     {
+        //         if (folder.Name == name)
+        //         {
+        //             return folder;
+        //         }
+        //     }
+        //     return null;
+        // }
 
         private InventoryFolderBase FindFolder(string name, Guid parentFolderID, List<InventoryFolderBase> folders)
         {
@@ -390,17 +389,18 @@ namespace OpenSim.Grid.UserServer.Modules
             return null;
         }
 
-        private InventoryItemBase GetItem(string itemName, List<InventoryItemBase> items)
-        {
-            foreach (InventoryItemBase item in items)
-            {
-                if (item.Name.ToLower() == itemName.ToLower())
-                {
-                    return item;
-                }
-            }
-            return null;
-        }
+        // TODO: unused
+        // private InventoryItemBase GetItem(string itemName, List<InventoryItemBase> items)
+        // {
+        //     foreach (InventoryItemBase item in items)
+        //     {
+        //         if (item.Name.ToLower() == itemName.ToLower())
+        //         {
+        //             return item;
+        //         }
+        //     }
+        //     return null;
+        // }
 
         private List<InventoryFolderBase> FindSubFolders(Guid parentFolderID, List<InventoryFolderBase> folders)
         {

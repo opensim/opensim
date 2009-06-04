@@ -155,13 +155,14 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         }
 
-        private void Dump(Dictionary<UUID, bool> lst)
-        {
-            m_log.Debug("XXX -------- UUID DUMP ------- XXX");
-            foreach (KeyValuePair<UUID, bool> kvp in lst)
-                m_log.Debug(" >> " + kvp.Key + " (texture? " + kvp.Value + ")");
-            m_log.Debug("XXX -------- UUID DUMP ------- XXX");
-        }
+        // TODO: unused
+        // private void Dump(Dictionary<UUID, bool> lst)
+        // {
+        //     m_log.Debug("XXX -------- UUID DUMP ------- XXX");
+        //     foreach (KeyValuePair<UUID, bool> kvp in lst)
+        //         m_log.Debug(" >> " + kvp.Key + " (texture? " + kvp.Value + ")");
+        //     m_log.Debug("XXX -------- UUID DUMP ------- XXX");
+        // }
 
         #endregion
 

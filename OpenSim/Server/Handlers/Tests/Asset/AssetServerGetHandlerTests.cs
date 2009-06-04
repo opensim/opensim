@@ -67,15 +67,14 @@ namespace OpenSim.Server.Handlers.Tests.Asset
             BaseRequestHandlerTestHelper.BaseTestSplitParams(handler, ASSETS_PATH);
         }
 
-        private static AssetBase CreateTestEnvironment(out  AssetServerGetHandler handler, out OSHttpResponse response)
-        {
-            AssetBase asset = GetAssetStreamHandlerTestHelpers.CreateCommonTestResources(out response);
-
-            IAssetService assetDataPlugin = new TestAssetService();
-            handler = new  AssetServerGetHandler(assetDataPlugin);
-
-            assetDataPlugin.Store(asset);
-            return asset;
-        }
+        // TODO: unused
+        // private static AssetBase CreateTestEnvironment(out  AssetServerGetHandler handler, out OSHttpResponse response)
+        // {
+        //     AssetBase asset = GetAssetStreamHandlerTestHelpers.CreateCommonTestResources(out response);
+        //     IAssetService assetDataPlugin = new TestAssetService();
+        //     handler = new  AssetServerGetHandler(assetDataPlugin);
+        //     assetDataPlugin.Store(asset);
+        //     return asset;
+        // }
     }
 }
