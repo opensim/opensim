@@ -61,7 +61,7 @@ namespace OpenSim.Framework.Servers
             if (p.Length > 0)
             {
                 UUID assetID;
-
+                
                 if (!UUID.TryParse(p[0], out assetID))
                 {
                     m_log.InfoFormat(

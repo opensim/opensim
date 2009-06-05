@@ -28,18 +28,22 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using log4net;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
     public class AsynchronousRestObjectRequester
     {
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         /// <summary>
         /// Perform an asynchronous REST request.
         /// </summary>
-        /// <param name="verb"></param>
+        /// <param name="verb">GET or POST</param>
         /// <param name="requestUrl"></param>
         /// <param name="obj"></param>
         /// <param name="action"></param>
@@ -52,6 +56,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         public static void MakeRequest<TRequest, TResponse>(string verb,
                 string requestUrl, TRequest obj, Action<TResponse> action)
         {
+            //m_log.DebugFormat("[ASYNC REQUEST]: Starting {0} on {1}", verb, requestUrl);
+            
             Type type = typeof (TRequest);
 
             WebRequest request = WebRequest.Create(requestUrl);
@@ -118,6 +124,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 catch (System.InvalidOperationException)
                 {
                 }
+
+              //  m_log.DebugFormat("[ASYNC REQUEST]: Received {0}", deserial.ToString());
 
                 action(deserial);
             }, null);

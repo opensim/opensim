@@ -193,7 +193,6 @@ namespace OpenSim
                     CreatePIDFile(pidFile);
                 
                 userStatsURI = startupConfig.GetString("Stats_URI", String.Empty);
-
             }
 
             base.StartupSpecific();

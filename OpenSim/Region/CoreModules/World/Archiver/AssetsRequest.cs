@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using System.Timers;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -44,6 +45,37 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        enum RequestState
+        {
+            Initial,
+            Running,
+            Completed,
+            Aborted
+        };
+        
+        /// <value>
+        /// Timeout threshold if we still need assets or missing asset notifications but have stopped receiving them
+        /// from the asset service
+        /// </value>
+        protected const int TIMEOUT = 60 * 1000;
+
+        /// <value>
+        /// If a timeout does occur, limit the amount of UUID information put to the console.
+        /// </value>
+        protected const int MAX_UUID_DISPLAY_ON_TIMEOUT = 3;
+       
+        protected System.Timers.Timer m_requestCallbackTimer;
+
+        /// <value>
+        /// State of this request
+        /// </value>
+        private RequestState m_requestState = RequestState.Initial;
+        
+        /// <value>
+        /// Record whether the request has completed.
+        /// </value>
+        private bool m_requestCompleted;
+        
         /// <value>
         /// uuids to request
         /// </value>
@@ -85,19 +117,91 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_assetsRequestCallback = assetsRequestCallback;
             m_assetService = assetService;
             m_repliesRequired = uuids.Count;
+
+            m_requestCallbackTimer = new System.Timers.Timer(TIMEOUT);
+            m_requestCallbackTimer.AutoReset = false;
+            m_requestCallbackTimer.Elapsed += new ElapsedEventHandler(OnRequestCallbackTimeout);        
         }
 
         protected internal void Execute()
         {
+            m_requestState = RequestState.Running;
+            
             m_log.DebugFormat("[ARCHIVER]: AssetsRequest executed looking for {0} assets", m_repliesRequired);
             
             // We can stop here if there are no assets to fetch
             if (m_repliesRequired == 0)
+            {
+                m_requestState = RequestState.Completed;
                 PerformAssetsRequestCallback();
+                return;
+            }
             
             foreach (UUID uuid in m_uuids)
             {
                 m_assetService.Get(uuid.ToString(), this, AssetRequestCallback);
+            }
+
+            m_requestCallbackTimer.Enabled = true;
+        }
+
+        protected void OnRequestCallbackTimeout(object source, ElapsedEventArgs args)
+        {
+            try
+            {            
+                lock (this)
+                {
+                    // Take care of the possibilty that this thread started but was paused just outside the lock before
+                    // the final request came in (assuming that such a thing is possible)
+                    if (m_requestState == RequestState.Completed)
+                        return;
+                    
+                    m_requestState = RequestState.Aborted;
+                }
+
+                // Calculate which uuids were not found.  This is an expensive way of doing it, but this is a failure
+                // case anyway.                
+                List<UUID> uuids = new List<UUID>();
+                foreach (UUID uuid in m_uuids)
+                {
+                    uuids.Add(uuid);
+                }
+
+                foreach (UUID uuid in m_foundAssetUuids)
+                {
+                    uuids.Remove(uuid);
+                }
+    
+                foreach (UUID uuid in m_notFoundAssetUuids)
+                {
+                    uuids.Remove(uuid);
+                }
+    
+                m_log.ErrorFormat(
+                    "[ARCHIVER]: Asset service failed to return information about {0} requested assets", uuids.Count);
+    
+                int i = 0;
+                foreach (UUID uuid in uuids)
+                {
+                    m_log.ErrorFormat("[ARCHIVER]: No information about asset {0} received", uuid);
+    
+                    if (++i >= MAX_UUID_DISPLAY_ON_TIMEOUT)
+                        break;
+                }
+    
+                if (uuids.Count > MAX_UUID_DISPLAY_ON_TIMEOUT)
+                    m_log.ErrorFormat(
+                        "[ARCHIVER]: (... {0} more not shown)", uuids.Count - MAX_UUID_DISPLAY_ON_TIMEOUT);
+
+                m_log.Error("[ARCHIVER]: OAR save aborted.");        
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[ARCHIVER]: Timeout handler exception {0}", e);
+            }
+            finally
+            {
+                m_assetsArchiver.ForceClose();
             }
         }
 
@@ -114,6 +218,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     //m_log.DebugFormat("[ARCHIVER]: Received callback for asset {0}", id);
                     
+                    m_requestCallbackTimer.Stop();                     
+                    
+                    if (m_requestState == RequestState.Aborted)
+                    {
+                        m_log.WarnFormat(
+                            "[ARCHIVER]: Received information about asset {0} after archive save abortion.  Ignoring.", 
+                            id);
+                    }
+                                                           
                     if (asset != null)
                     {                
                         m_foundAssetUuids.Add(asset.FullID);
@@ -126,6 +239,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         
                     if (m_foundAssetUuids.Count + m_notFoundAssetUuids.Count == m_repliesRequired)
                     {
+                        m_requestState = RequestState.Completed;
+                        
                         m_log.DebugFormat(
                             "[ARCHIVER]: Successfully added {0} assets ({1} assets notified missing)", 
                             m_foundAssetUuids.Count, m_notFoundAssetUuids.Count);
@@ -135,6 +250,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         Thread newThread = new Thread(PerformAssetsRequestCallback);
                         newThread.Name = "OpenSimulator archiving thread post assets receipt";
                         newThread.Start();
+                    }
+                    else
+                    {
+                        m_requestCallbackTimer.Start();
                     }
                 }
             }
