@@ -80,8 +80,7 @@ namespace OpenSim.Tests.Common.Setup
 
         public static void BaseFetchExistingAssetMetaDataTest(AssetBase asset, BaseGetAssetStreamHandler handler, OSHttpResponse response)
         {
-                                XmlSerializer xs =
-                            new XmlSerializer(typeof(AssetMetadata));
+            XmlSerializer xs = new XmlSerializer(typeof(AssetMetadata));
 
             byte[] expected = ServerUtils.SerializeResult(xs, asset.Metadata);
 
@@ -112,9 +111,12 @@ namespace OpenSim.Tests.Common.Setup
             return asset;
         }
 
-        public static void BaseFetchMissingAsset(BaseGetAssetStreamHandler handler)
+        public static void BaseFetchMissingAsset(BaseGetAssetStreamHandler handler, OSHttpResponse response)
         {
-            Assert.AreEqual(BaseRequestHandlerTestHelper.EmptyByteArray, handler.Handle("/assets/" + Guid.NewGuid(), null, null, null), "Failed on bad guid.");
+            Assert.AreEqual(
+                BaseRequestHandlerTestHelper.EmptyByteArray, 
+                handler.Handle("/assets/" + Guid.NewGuid(), null, null, response), "Failed on bad guid.");
+            Assert.AreEqual((int)HttpStatusCode.NotFound, response.StatusCode, "Response code wrong in BaseFetchMissingAsset");
         }
     }
 }
