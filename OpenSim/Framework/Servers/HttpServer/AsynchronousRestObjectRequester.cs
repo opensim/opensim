@@ -38,7 +38,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 {
     public class AsynchronousRestObjectRequester
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
         /// Perform an asynchronous REST request.
@@ -56,7 +56,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public static void MakeRequest<TRequest, TResponse>(string verb,
                 string requestUrl, TRequest obj, Action<TResponse> action)
         {
-            //m_log.DebugFormat("[ASYNC REQUEST]: Starting {0} on {1}", verb, requestUrl);
+//            m_log.DebugFormat("[ASYNC REQUEST]: Starting {0} {1}", verb, requestUrl);
             
             Type type = typeof (TRequest);
 
@@ -114,21 +114,61 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             request.BeginGetResponse(delegate(IAsyncResult res2)
             {
-                response = request.EndGetResponse(res2);
+                try
+                {
+                    // If the server returns a 404, this appears to trigger a System.Net.WebException even though that isn't
+                    // documented in MSDN
+                    response = request.EndGetResponse(res2);
+              
+                    try
+                    {
+                        deserial = (TResponse)deserializer.Deserialize(response.GetResponseStream());
+                    }
+                    catch (System.InvalidOperationException)
+                    {
+                    }
+                }
+                catch (WebException e)
+                {
+                    if (e.Status == WebExceptionStatus.ProtocolError)
+                    {
+                        if (e.Response is HttpWebResponse)
+                        {
+                            HttpWebResponse httpResponse = (HttpWebResponse)e.Response;
+                        
+                            if (httpResponse.StatusCode != HttpStatusCode.NotFound)
+                            {
+                                // We don't appear to be handling any other status codes, so log these feailures to that
+                                // people don't spend unnecessary hours hunting phantom bugs.
+                                m_log.DebugFormat(
+                                    "[ASYNC REQUEST]: Request {0} {1} failed with unexpected status code {2}", 
+                                    verb, requestUrl, httpResponse.StatusCode);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        m_log.ErrorFormat("[ASYNC REQUEST]: Request {0} {1} failed with exception {2}", verb, requestUrl, e);
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[ASYNC REQUEST]: Request {0} {1} failed with exception {2}", verb, requestUrl, e);
+                }
+
+                //  m_log.DebugFormat("[ASYNC REQUEST]: Received {0}", deserial.ToString());
 
                 try
                 {
-                    deserial = (TResponse) deserializer.Deserialize(
-                            response.GetResponseStream());
+                    action(deserial);
                 }
-                catch (System.InvalidOperationException)
+                catch (Exception e)
                 {
+                    m_log.ErrorFormat(
+                        "[ASYNC REQUEST]: Request {0} {1} callback failed with exception {2}", verb, requestUrl, e);
                 }
-
-              //  m_log.DebugFormat("[ASYNC REQUEST]: Received {0}", deserial.ToString());
-
-                action(deserial);
-            }, null);
+                    
+            }, null);         
         }
     }
 }

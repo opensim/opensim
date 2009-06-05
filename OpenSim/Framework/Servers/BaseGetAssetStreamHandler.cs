@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Servers
                 
                 if (!UUID.TryParse(p[0], out assetID))
                 {
-                    m_log.InfoFormat(
+                    m_log.DebugFormat(
                         "[REST]: GET:/asset ignoring request with malformed UUID {0}", p[0]);
                     return result;
                 }
@@ -91,12 +91,14 @@ namespace OpenSim.Framework.Servers
                 }
                 else
                 {
+                    m_log.DebugFormat("[REST]: GET:/asset failed to find {0}", assetID);
+                    
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    
                     if (StatsManager.AssetStats != null)
                     {
                         StatsManager.AssetStats.AddNotFoundRequest();
                     }
-
-                    m_log.InfoFormat("[REST]: GET:/asset failed to find {0}", assetID);
                 }
             }
 
