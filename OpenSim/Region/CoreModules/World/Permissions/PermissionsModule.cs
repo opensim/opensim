@@ -87,6 +87,11 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         /// permissions are not being bypassed.  This overrides normal permissions.-
         /// </value>        
         private UserSet m_allowedScriptEditors = UserSet.All;
+        
+        private Dictionary<string, bool> GrantLSL = new Dictionary<string, bool>();
+        private Dictionary<string, bool> GrantCS = new Dictionary<string, bool>();
+        private Dictionary<string, bool> GrantVB = new Dictionary<string, bool>();
+        private Dictionary<string, bool> GrantJS = new Dictionary<string, bool>();
 
         #endregion
 
@@ -143,6 +148,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnRezObject += CanRezObject; //MAYBE FULLY IMPLEMENTED
             m_scene.Permissions.OnRunConsoleCommand += CanRunConsoleCommand;
             m_scene.Permissions.OnRunScript += CanRunScript; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnCompileScript += CanCompileScript;
             m_scene.Permissions.OnSellParcel += CanSellParcel;
             m_scene.Permissions.OnTakeObject += CanTakeObject;
             m_scene.Permissions.OnTakeCopyObject += CanTakeCopyObject;
@@ -184,6 +190,40 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     "debug permissions <true / false>",
                     "Enable permissions debugging",
                     HandleDebugPermissions);
+                    
+                    
+			string grant = myConfig.GetString("GrantLSL","");
+			if(grant.Length > 0) {
+	            foreach (string uuidl in grant.Split(',')) {
+	                string uuid = uuidl.Trim(" \t".ToCharArray());
+					GrantLSL.Add(uuid, true);
+				}	            
+            }
+
+			grant = myConfig.GetString("GrantCS","");
+			if(grant.Length > 0) {
+	            foreach (string uuidl in grant.Split(',')) {
+	                string uuid = uuidl.Trim(" \t".ToCharArray());
+					GrantCS.Add(uuid, true);
+				}
+            }
+
+			grant = myConfig.GetString("GrantVB","");
+			if(grant.Length > 0) {
+				foreach (string uuidl in grant.Split(',')) {
+	                string uuid = uuidl.Trim(" \t".ToCharArray());
+					GrantVB.Add(uuid, true);
+				}
+            }
+
+			grant = myConfig.GetString("GrantJS","");
+			if(grant.Length > 0) {
+				foreach (string uuidl in grant.Split(',')) {
+	                string uuid = uuidl.Trim(" \t".ToCharArray());
+					GrantJS.Add(uuid, true);
+				}
+            }
+			
         }
 
         public void HandleBypassPermissions(string module, string[] args)
@@ -1584,5 +1624,34 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             return GenericParcelPermission(client.AgentId, parcel);
         }
+        
+        private bool CanCompileScript(UUID ownerUUID, int scriptType, Scene scene) {
+     		//m_log.DebugFormat("check if {0} is allowed to compile {1}", ownerUUID, scriptType);
+        	switch(scriptType) {
+        		case 0:
+        			if(GrantLSL.Count == 0 || GrantLSL.ContainsKey(ownerUUID.ToString())) {
+        				return(true);
+					}
+					break;
+				case 1:
+        			if(GrantCS.Count == 0 || GrantCS.ContainsKey(ownerUUID.ToString())) {
+        				return(true);
+					}
+					break;
+				case 2:
+        			if(GrantVB.Count == 0 || GrantVB.ContainsKey(ownerUUID.ToString())) {
+        				return(true);
+					}
+					break;
+				case 3:
+        			if(GrantJS.Count == 0 || GrantJS.ContainsKey(ownerUUID.ToString())) {
+        				return(true);
+					}
+					break;
+			}
+			return(false);
+		}
+					
+        	
     }
 }

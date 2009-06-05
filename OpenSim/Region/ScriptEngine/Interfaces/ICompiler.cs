@@ -27,13 +27,14 @@
 
 using System;
 using System.Collections.Generic;
+using OpenMetaverse;
 using Nini.Config;
 
 namespace OpenSim.Region.ScriptEngine.Interfaces
 {
     public interface ICompiler
     {
-        string PerformScriptCompile(string source, string asset);
+        string PerformScriptCompile(string source, string asset, UUID ownerID);
         string[] GetWarnings();
         Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 LineMap();

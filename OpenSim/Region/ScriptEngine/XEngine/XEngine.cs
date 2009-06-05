@@ -579,7 +579,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 lock (m_AddingAssemblies) 
                 {
                     assembly = m_Compiler.PerformScriptCompile(script,
-                                                               assetID.ToString());
+                                                               assetID.ToString(), item.OwnerID);
                     if (!m_AddingAssemblies.ContainsKey(assembly)) {
                         m_AddingAssemblies[assembly] = 1;
                     } else {

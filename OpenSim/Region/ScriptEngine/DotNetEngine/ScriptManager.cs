@@ -153,7 +153,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // Compile (We assume LSL)
                 CompiledScriptFile =
                         LSLCompiler.PerformScriptCompile(Script,
-                        assetID.ToString());
+                        assetID.ToString(), taskInventoryItem.OwnerID);
 
                 if (presence != null && (!postOnRez))
                     presence.ControllingClient.SendAgentAlertMessage(
