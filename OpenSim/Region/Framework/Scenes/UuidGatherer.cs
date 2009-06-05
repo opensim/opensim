@@ -177,8 +177,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
-            if (asset != null)
-                AssetRequestCallback(asset.FullID, asset);
+            AssetRequestCallback(asset.FullID, asset);
         }
 
         /// <summary>
@@ -243,17 +242,21 @@ namespace OpenSim.Region.Framework.Scenes
         protected void GetWearableAssetUuids(UUID wearableAssetUuid, IDictionary<UUID, int> assetUuids)
         {
             AssetBase assetBase = GetAsset(wearableAssetUuid);
-            //m_log.Debug(new System.Text.ASCIIEncoding().GetString(bodypartAsset.Data));
-            AssetWearable wearableAsset = new AssetBodypart(wearableAssetUuid, assetBase.Data);
-            wearableAsset.Decode();
 
-            //m_log.DebugFormat(
-            //    "[ARCHIVER]: Wearable asset {0} references {1} assets", wearableAssetUuid, wearableAsset.Textures.Count);
-
-            foreach (UUID uuid in wearableAsset.Textures.Values)
-            {
-                //m_log.DebugFormat("[ARCHIVER]: Got bodypart uuid {0}", uuid);
-                assetUuids[uuid] = 1;
+            if (null != assetBase)
+            {            
+                //m_log.Debug(new System.Text.ASCIIEncoding().GetString(bodypartAsset.Data));
+                AssetWearable wearableAsset = new AssetBodypart(wearableAssetUuid, assetBase.Data);
+                wearableAsset.Decode();
+    
+                //m_log.DebugFormat(
+                //    "[ARCHIVER]: Wearable asset {0} references {1} assets", wearableAssetUuid, wearableAsset.Textures.Count);
+    
+                foreach (UUID uuid in wearableAsset.Textures.Values)
+                {
+                    //m_log.DebugFormat("[ARCHIVER]: Got bodypart uuid {0}", uuid);
+                    assetUuids[uuid] = 1;
+                }
             }
         }
 
