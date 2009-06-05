@@ -156,16 +156,18 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[ASSET GATHERER]: Failed to get part - {0}", e);
-                    m_log.DebugFormat("[ASSET GATHERER]: Texture entry length for prim was {0} (min is 46)", part.Shape.TextureEntry.Length);
+                    m_log.ErrorFormat("[UUID GATHERER]: Failed to get part - {0}", e);
+                    m_log.DebugFormat(
+                        "[UUID GATHERER]: Texture entry length for prim was {0} (min is 46)", 
+                        part.Shape.TextureEntry.Length);
                 }
             }
-        }         
+        }
         
         /// <summary>
         /// The callback made when we request the asset for an object from the asset service.
-        /// </summary>
-        protected void AssetRequestCallback(UUID assetID, AssetBase asset)
+        /// </summary>        
+        protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
             lock (this)
             {
@@ -173,11 +175,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_waitingForObjectAsset = false;
                 Monitor.Pulse(this);
             }
-        }
-
-        protected void AssetReceived(string id, Object sender, AssetBase asset)
-        {
-            AssetRequestCallback(asset.FullID, asset);
         }
 
         /// <summary>
