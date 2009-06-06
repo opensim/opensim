@@ -655,7 +655,6 @@ namespace PrimMesher
             this.numOuterVerts = angles.angles.Count;
 
             // flag to create as few triangles as possible for 3 or 4 side profile
-            //bool simpleFace = (sides < 5 && !(hasHollow || hasProfileCut));
             bool simpleFace = (sides < 5 && !hasHollow && !hasProfileCut);
 
             if (hasHollow)
@@ -715,7 +714,6 @@ namespace PrimMesher
 
             for (int i = 0; i < numAngles; i++)
             {
-                //int iNext = i == numAngles ? i + 1 : 0;
                 angle = angles.angles[i];
                 newVert.X = angle.X * xScale;
                 newVert.Y = angle.Y * yScale;
@@ -1730,7 +1728,6 @@ namespace PrimMesher
                 if (angle <= startAngle + .01f || angle >= endAngle - .01f)
                     isEndLayer = true;
 
-                //Profile newLayer = profile.Copy(isEndLayer && needEndFaces);
                 Profile newLayer = profile.Copy();
 
                 float xProfileScale = (1.0f - Math.Abs(this.skew)) * this.holeSizeX;
