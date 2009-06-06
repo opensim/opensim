@@ -60,6 +60,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private int m_MaxScriptQueue;
         private Scene m_Scene;
         private IConfig m_ScriptConfig = null;
+        private IConfigSource m_ConfigSource = null;
         private ICompiler m_Compiler;
         private int m_MinThreads;
         private int m_MaxThreads ;
@@ -148,6 +149,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return m_ScriptConfig; }
         }
 
+        public IConfigSource ConfigSource
+        {
+            get { return m_ConfigSource; }
+        }
+
         public event ScriptRemoved OnScriptRemoved;
         public event ObjectRemoved OnObjectRemoved;
 
@@ -160,6 +166,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return;
 
             m_ScriptConfig = configSource.Configs["XEngine"];
+            m_ConfigSource = configSource;
         }
 
         public void AddRegion(Scene scene)

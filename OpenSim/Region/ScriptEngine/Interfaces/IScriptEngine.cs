@@ -80,6 +80,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         void ApiResetScript(UUID itemID);
         void ResetScript(UUID itemID);
         IConfig Config { get; }
+        IConfigSource ConfigSource { get; }
         string ScriptEngineName { get; }
         IScriptApi GetApi(UUID itemID, string name);
     }

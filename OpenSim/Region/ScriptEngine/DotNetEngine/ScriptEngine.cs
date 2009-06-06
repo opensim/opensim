@@ -73,13 +73,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         // that has been running too long
         public static MaintenanceThread m_MaintenanceThread;
 
-        public IConfigSource ConfigSource;
+        private  IConfigSource m_ConfigSource;
         public IConfig ScriptConfigSource;
         private bool m_enabled = false;
 
         public IConfig Config
         {
             get { return ScriptConfigSource; }
+        }
+
+        public IConfigSource ConfigSource
+        {
+            get { return m_ConfigSource; }
         }
 
         // How many seconds between re-reading config-file.
@@ -119,7 +124,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void Initialise(IConfigSource config)
         {
-            ConfigSource = config;
+            m_ConfigSource = config;
         }
 
         public void AddRegion(Scene Sceneworld)

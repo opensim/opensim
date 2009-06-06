@@ -950,6 +950,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                     "Line ({0}): {1}", scriptLine - 1,
                                     e.InnerException.Message);
 
+                            System.Console.WriteLine(e.ToString()+"\n");
                             return message;
                         }
                     }
