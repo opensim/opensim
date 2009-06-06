@@ -1,20 +1,7 @@
 [Modules]
     ;AssetCaching = "CoreAssetCache"
-    AssetCaching = "GlynnTuckerAssetCache"
-    ;AssetCaching = "CenomeMemoryAssetCache"
-
-[AssetCache]
-    ;; Optional configurations for CoreAssetCache
-    ; Number of buckets for assets
-    ;CacheBuckets = 16384
-
-    ;; Optional configurations for CenomeMemoryAssetCache
-    ; Cache size 128 MB (default: 134217728)
-    ; MaxSize = 134217728
-    ; Maximal asset count 
-    ; MaxCount = 4096
-    ; Asset's expiration time (minutes)
-    ; ExpirationTime = 30
+    ;AssetCaching = "GlynnTuckerAssetCache"
+    AssetCaching = "CenomeMemoryAssetCache"
     
 [AssetService]
     ;

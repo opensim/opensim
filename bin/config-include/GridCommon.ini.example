@@ -1,20 +1,35 @@
 [Modules]
     ;AssetCaching = "CoreAssetCache"
-    AssetCaching = "GlynnTuckerAssetCache"
+    ;AssetCaching = "GlynnTuckerAssetCache"
     ;AssetCaching = "CenomeMemoryAssetCache"
+    AssetCaching = "FlotsamAssetCache"
 
 [AssetCache]
-    ;; Optional configurations for CoreAssetCache
-    ; Number of buckets for assets
-    ;CacheBuckets = 32768
+    ;; ---- Optional configurations for FlotsamAssetCache
+    ;
+    ; The cache directory can be shared by multiple instances,
+    ; so you may want to change this! Note that you can 
+    ; specify an absolute path (starting with '/'). 
+    ; See examples in comments.
+    ; Make sure the directory you specify can be created.
+    ;
+    CacheDirectory = ./assetcache
+    ;
+    ; Some other examples:
+    ; CacheDirectory = /var/opensim/assetcache ; (Windows and linux)
+    ; CacheDirectory = ~/assetcache ; (Windows and linux)
+    ; CacheDirectory = C:\opensim\assetcache ; (Windows only)
+    
+    ;
+    ; How long {in hours} to keep assets cached on disk, 
+    ; .5 == 30 minutes; 168 = 7 days
+    ; Specify 0 if you do not want your disk cache to expire
+    ;
+    FileCacheTimeout = 168 
+    
 
-    ;; Optional configurations for CenomeMemoryAssetCache
-    ; Cache size 128 MB (default: 134217728)
-    ; MaxSize = 134217728
-    ; Maximal asset count 
-    ; MaxCount = 4096
-    ; Asset's expiration time (minutes)
-    ; ExpirationTime = 30
+    ;; --------- endof FlotsamAssetCache --------
+
 
 [AssetService]
 
