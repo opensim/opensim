@@ -133,6 +133,32 @@ state another_state
         }
 
         [Test]
+        public void TestLoneIdent()
+        {
+			// A lone ident should be removed completely as it's an error in C#
+			// (MONO at least).
+            string input = @"default
+{
+    touch_start(integer num_detected)
+    {
+        integer x;
+        x;
+    }
+}
+";
+            string expected =
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0);" +
+				"\n            ;" +
+                "\n        }\n";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
         public void TestAssignments()
         {
             string input = @"default
@@ -1524,6 +1550,31 @@ default
     {
         integer x = 4;
         for (; 1<0; x += 2);
+    }
+}";
+
+            string expected =
+                "\n        public void default_event_state_entry()" +
+                "\n        {" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(4);" +
+                "\n            for (; new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0); x += new LSL_Types.LSLInteger(2))" +
+                "\n                ;" +
+                "\n        }\n";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
+        public void TestForLoopWithOnlyIdentInAssignment()
+        {
+            string input = @"default
+{
+    state_entry()
+    {
+        integer x = 4;
+        for (x; 1<0; x += 2);
     }
 }";
 

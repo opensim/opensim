@@ -90,7 +90,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             m_warnings.Clear();
             ResetCounters();
             Parser p = new LSLSyntax(new yyLSLSyntax(), new ErrorHandler(true));
-            // Obviously this needs to be in a try/except block.
+
             LSL2CSCodeTransformer codeTransformer;
             try
             {
@@ -446,8 +446,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 // Jump label prints its own colon, we don't need a semicolon.
                 printSemicolon = !(s.kids.Top is JumpLabel);
 
-                foreach (SYMBOL kid in s.kids)
-                    retstr += GenerateNode(kid);
+                // If we encounter a lone Ident, we skip it, since that's a C#
+                // (MONO) error.
+                if (!(s.kids.Top is IdentExpression && 1 == s.kids.Count))
+                    foreach (SYMBOL kid in s.kids)
+                        retstr += GenerateNode(kid);
             }
 
             if (printSemicolon)
@@ -710,6 +713,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             string retstr = String.Empty;
 
             int comma = fls.kids.Count - 1;  // tells us whether to print a comma
+
+            // It's possible that all we have is an empty Ident, for example:
+            //
+            //     for (x; x < 10; x++) { ... }
+            //
+            // Which is illegal in C# (MONO). We'll skip it.
+            if (fls.kids.Top is IdentExpression && 1 == fls.kids.Count)
+                return retstr;
 
             foreach (SYMBOL s in fls.kids)
             {
