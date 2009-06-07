@@ -1516,6 +1516,31 @@ default
         }
 
         [Test]
+        public void TestForLoopWithNoAssignment()
+        {
+            string input = @"default
+{
+    state_entry()
+    {
+        integer x = 4;
+        for (; 1<0; x += 2);
+    }
+}";
+
+            string expected =
+                "\n        public void default_event_state_entry()" +
+                "\n        {" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(4);" +
+                "\n            for (; new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0); x += new LSL_Types.LSLInteger(2))" +
+                "\n                ;" +
+                "\n        }\n";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
         public void TestAssignmentInIfWhileDoWhile()
         {
             string input = @"default

@@ -671,9 +671,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             retstr += GenerateIndented("for (", fl);
 
+            // It's possible that we don't have an assignment, in which case
+            // the child will be null and we only print the semicolon.
             // for ( x = 0 ; x < 10 ; x++ )
             //       ^^^^^^^
-            retstr += GenerateForLoopStatement((ForLoopStatement) fl.kids.Pop());
+            ForLoopStatement s = (ForLoopStatement) fl.kids.Pop();
+            if (null != s)
+            {
+                retstr += GenerateForLoopStatement(s);
+            }
             retstr += Generate("; ");
             // for ( x = 0 ; x < 10 ; x++ )
             //               ^^^^^^^^
