@@ -61,7 +61,12 @@ namespace OpenSim.Services.InventoryService
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module");
 
-            m_Database.Initialise(connString);
+            //m_Database.Initialise(connString);
+            List<IInventoryDataPlugin> plugins
+                = DataPluginFactory.LoadDataPlugins<IInventoryDataPlugin>(dllName, connString);
+
+            foreach (IInventoryDataPlugin plugin in plugins)
+                AddPlugin(plugin);
 
         }
 
@@ -86,7 +91,7 @@ namespace OpenSim.Services.InventoryService
         /// <param name="connect">
         /// The connection string for the storage backend.
         /// </param>
-        public void AddPlugin(string provider, string connect)
+        public void AddPlugins(string provider, string connect)
         {
             m_plugins.AddRange(DataPluginFactory.LoadDataPlugins<IInventoryDataPlugin>(provider, connect));
         }
