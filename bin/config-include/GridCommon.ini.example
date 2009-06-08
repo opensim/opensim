@@ -3,33 +3,40 @@
     ;AssetCaching = "GlynnTuckerAssetCache"
     ;AssetCaching = "CenomeMemoryAssetCache"
     AssetCaching = "FlotsamAssetCache"
-
+    
 [AssetCache]
-    ;; ---- Optional configurations for FlotsamAssetCache
+    ; cache directory can be shared by multiple instances
+    CacheDirectory = /directory/writable/by/OpenSim/instance
+
+    ; Log level
+    ; 0 - (Error) Errors only
+    ; 1 - (Info)  Hit Rate Stats + Level 0
+    ; 2 - (Debug) Cache Activity (Reads/Writes) + Level 1
     ;
-    ; The cache directory can be shared by multiple instances,
-    ; so you may want to change this! Note that you can 
-    ; specify an absolute path (starting with '/'). 
-    ; See examples in comments.
-    ; Make sure the directory you specify can be created.
-    ;
-    CacheDirectory = ./assetcache
-    ;
-    ; Some other examples:
-    ; CacheDirectory = /var/opensim/assetcache ; (Windows and linux)
-    ; CacheDirectory = ~/assetcache ; (Windows and linux)
-    ; CacheDirectory = C:\opensim\assetcache ; (Windows only)
-    
-    ;
-    ; How long {in hours} to keep assets cached on disk, 
-    ; .5 == 30 minutes; 168 = 7 days
+    LogLevel = 0
+
+    ; How often should hit rates be displayed (given in AssetRequests)
+    ; 0 to disable
+    HitRateDisplay = 100
+
+    ; Set to false for disk cache only.
+    MemoryCacheEnabled = true
+
+    ; How long {in hours} to keep assets cached in memory, .5 == 30 minutes
+    MemoryCacheTimeout = 2
+
+    ; How long {in hours} to keep assets cached on disk, .5 == 30 minutes
     ; Specify 0 if you do not want your disk cache to expire
-    ;
-    FileCacheTimeout = 168 
+    FileCacheTimeout = 0
+
+    ; How often {in hours} should the disk be checked for expired filed
+    ; Specify 0 to disable expiration checking
+    FileCleanupTimer = .166  ;roughly every 10 minutes
     
-
-    ;; --------- endof FlotsamAssetCache --------
-
+    ; If WAIT_ON_INPROGRESS_REQUESTS has been defined then this specifies how 
+    ; long (in miliseconds) to block a request thread while trying to complete 
+    ; an existing write to disk.
+    ; WaitOnInprogressTimeout = 3000
 
 [AssetService]
 
