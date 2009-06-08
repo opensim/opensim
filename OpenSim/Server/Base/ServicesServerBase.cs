@@ -79,6 +79,7 @@ namespace OpenSim.Server.Base
             argvConfig.AddSwitch("Startup", "console", "c");
             argvConfig.AddSwitch("Startup", "logfile", "l");
             argvConfig.AddSwitch("Startup", "inifile", "i");
+            argvConfig.AddSwitch("Startup", "prompt",  "p");
 
             // Automagically create the ini file name
             //
@@ -87,11 +88,16 @@ namespace OpenSim.Server.Base
 
             string iniFile = assemblyName.Name + ".ini";
 
-            // Check if a file name was given on the command line
-            //
             IConfig startupConfig = argvConfig.Configs["Startup"];
             if (startupConfig != null)
+            {
+                // Check if a file name was given on the command line
+                //
                 iniFile = startupConfig.GetString("inifile", iniFile);
+                //
+                // Check if a prompt was given on the command line
+                prompt = startupConfig.GetString("prompt", prompt);
+            }
 
             // Find out of the file name is a URI and remote load it
             // if it's possible. Load it as a local file otherwise.

@@ -49,16 +49,14 @@ namespace OpenSim.Server
 
         static int Main(string[] args)
         {
+            m_Server = new HttpServerBase("Server", args);
+
             IConfig serverConfig = m_Server.Config.Configs["Startup"];
             if (serverConfig == null)
             {
                 System.Console.WriteLine("Startup config section missing in .ini file");
                 throw new Exception("Configuration error");
             }
-
-            string prompt = serverConfig.GetString("Prompt", "Server");
-
-            m_Server = new HttpServerBase(prompt, args);
 
             string connList = serverConfig.GetString("ServiceConnectors", String.Empty);
             string[] conns = connList.Split(new char[] {',', ' '});
