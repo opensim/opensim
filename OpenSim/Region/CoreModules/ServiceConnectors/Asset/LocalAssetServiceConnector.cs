@@ -151,7 +151,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
                 asset = m_Cache.Get(id);
 
             if (asset == null)
-                return m_AssetService.Get(id);
+            {
+                asset = m_AssetService.Get(id);
+                if ((m_Cache != null) && (asset != null))
+                    m_Cache.Cache(asset);
+            }
             return asset;
         }
 
