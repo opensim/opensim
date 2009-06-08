@@ -1475,6 +1475,7 @@
       <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Services.Base" />
       <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="XMLRPC.dll" />
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
 
