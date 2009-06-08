@@ -41,12 +41,40 @@ namespace OpenSim.Services.Interfaces
     public interface IInventoryService
     {
         /// <summary>
+        /// Create the entire inventory for a given user
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        bool CreateUserInventory(UUID user);
+
+        /// <summary>
+        /// Gets the skeleton of the inventory -- folders only
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        List<InventoryFolderBase> GetInventorySkeleton(UUID userId);
+
+        /// <summary>
+        /// Synchronous inventory fetch.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        InventoryCollection GetUserInventory(UUID userID);
+
+        /// <summary>
         /// Request the inventory for a user.  This is an asynchronous operation that will call the callback when the
         /// inventory has been received
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="callback"></param>
         void GetUserInventory(UUID userID, InventoryReceiptCallback callback);
+
+        /// <summary>
+        /// Gets the items inside a folder
+        /// </summary>
+        /// <param name="folderID"></param>
+        /// <returns></returns>
+        List<InventoryItemBase> GetFolderItems(UUID folderID);
 
         /// <summary>
         /// Add a new folder to the user's inventory
@@ -114,5 +142,12 @@ namespace OpenSim.Services.Interfaces
         /// <param name="userID"></param>
         /// <returns>null if no root folder was found</returns>
         InventoryFolderBase RequestRootFolder(UUID userID);
+
+        /// <summary>
+        /// Get the active gestures of the agent.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        List<InventoryItemBase> GetActiveGestures(UUID userId);
     }
 }

@@ -159,6 +159,27 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
 
         #region IInventoryService
 
+        public bool CreateUserInventory(UUID userID)
+        {
+            if (IsLocalGridUser(userID))
+                return m_GridService.CreateUserInventory(userID);
+            else
+                return false;
+        }
+
+        public List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
+        {
+            return new List<InventoryFolderBase>();
+        }
+
+        public InventoryCollection GetUserInventory(UUID userID)
+        {
+            if (IsLocalGridUser(userID))
+                return m_GridService.GetUserInventory(userID);
+            else
+                return null;
+        }
+
         public void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
         {
             if (IsLocalGridUser(userID))
@@ -169,6 +190,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
                 string uri = "http://" + GetUserInventoryURI(userID) + "/" + userID.ToString();
                 m_HGService.GetUserInventory(uri, sessionID, callback);
             }
+        }
+
+        public List<InventoryItemBase> GetFolderItems(UUID folderID)
+        {
+            return new List<InventoryItemBase>();
         }
 
         public bool AddFolder(InventoryFolderBase folder)
@@ -314,6 +340,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
         public InventoryFolderBase RequestRootFolder(UUID userID)
         {
             return null;
+        }
+
+        public List<InventoryItemBase> GetActiveGestures(UUID userId)
+        {
+            return new List<InventoryItemBase>();
         }
 
         #endregion

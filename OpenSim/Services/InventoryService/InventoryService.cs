@@ -85,7 +85,6 @@ namespace OpenSim.Services.InventoryService
             return userFolders;
         }
 
-        // See IInventoryServices
         public virtual bool HasInventoryForUser(UUID userID)
         {
             return false;
@@ -107,7 +106,7 @@ namespace OpenSim.Services.InventoryService
         }
 
         // See IInventoryServices
-        public bool CreateNewUserInventory(UUID user)
+        public bool CreateUserInventory(UUID user)
         {
             InventoryFolderBase existingRootFolder = RequestRootFolder(user);
 
@@ -131,6 +130,68 @@ namespace OpenSim.Services.InventoryService
         }
 
         // See IInventoryServices
+
+        /// <summary>
+        /// Return a user's entire inventory synchronously
+        /// </summary>
+        /// <param name="rawUserID"></param>
+        /// <returns>The user's inventory.  If an inventory cannot be found then an empty collection is returned.</returns>
+        public InventoryCollection GetUserInventory(UUID userID)
+        {
+            m_log.InfoFormat("[LOCAL INVENTORY SERVICE]: Processing request for inventory of {0}", userID);
+
+            // Uncomment me to simulate a slow responding inventory server
+            //Thread.Sleep(16000);
+
+            InventoryCollection invCollection = new InventoryCollection();
+
+            List<InventoryFolderBase> allFolders = GetInventorySkeleton(userID);
+
+            if (null == allFolders)
+            {
+                m_log.WarnFormat("[LOCAL INVENTORY SERVICE]: No inventory found for user {0}", userID);
+
+                return invCollection;
+            }
+
+            List<InventoryItemBase> allItems = new List<InventoryItemBase>();
+
+            foreach (InventoryFolderBase folder in allFolders)
+            {
+                List<InventoryItemBase> items = GetFolderItems(folder.ID);
+
+                if (items != null)
+                {
+                    allItems.InsertRange(0, items);
+                }
+            }
+
+            invCollection.UserID = userID;
+            invCollection.Folders = allFolders;
+            invCollection.Items = allItems;
+
+            //            foreach (InventoryFolderBase folder in invCollection.Folders)
+            //            {
+            //                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back folder {0} {1}", folder.Name, folder.ID);
+            //            }
+            //
+            //            foreach (InventoryItemBase item in invCollection.Items)
+            //            {
+            //                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back item {0} {1}, folder {2}", item.Name, item.ID, item.Folder);
+            //            }
+
+            m_log.InfoFormat(
+                "[LOCAL INVENTORY SERVICE]: Sending back inventory response to user {0} containing {1} folders and {2} items",
+                invCollection.UserID, invCollection.Folders.Count, invCollection.Items.Count);
+
+            return invCollection;
+        }
+
+        /// <summary>
+        /// Asynchronous inventory fetch.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="callback"></param>
         public void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
         {
             m_log.InfoFormat("[LOCAL INVENTORY SERVICE]: Requesting inventory for user {0}", userID);
@@ -152,7 +213,7 @@ namespace OpenSim.Services.InventoryService
                     {
                         rootFolder = new InventoryFolderImpl(folder);
                         folders.Add(rootFolder);
-                        items.AddRange(RequestFolderItems(rootFolder.ID));
+                        items.AddRange(GetFolderItems(rootFolder.ID));
                         break; // Only 1 root folder per user
                     }
                 }
@@ -164,7 +225,7 @@ namespace OpenSim.Services.InventoryService
                         if (folder.ID != rootFolder.ID)
                         {
                             folders.Add(new InventoryFolderImpl(folder));
-                            items.AddRange(RequestFolderItems(folder.ID));
+                            items.AddRange(GetFolderItems(folder.ID));
                         }
                     }
                 }
@@ -208,7 +269,7 @@ namespace OpenSim.Services.InventoryService
             return inventoryList;
         }
 
-        public List<InventoryItemBase> RequestFolderItems(UUID folderID)
+        public List<InventoryItemBase> GetFolderItems(UUID folderID)
         {
             List<InventoryItemBase> itemsList = new List<InventoryItemBase>();
             
@@ -360,7 +421,7 @@ namespace OpenSim.Services.InventoryService
                 }
             }
 
-            List<InventoryItemBase> items = RequestFolderItems(folder.ID);
+            List<InventoryItemBase> items = GetFolderItems(folder.ID);
 
             foreach (InventoryItemBase item in items)
             {

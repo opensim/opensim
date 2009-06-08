@@ -122,6 +122,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
 
         #region IInventoryService
 
+        public bool CreateUserInventory(UUID user)
+        {
+            return false;
+        }
+
+        public List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
+        {
+            return new List<InventoryFolderBase>();
+        }
+
+        public InventoryCollection GetUserInventory(UUID userID)
+        {
+            return null;
+        }
+
         public void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
         {
             UUID sessionID = GetSessionID(userID);
@@ -138,6 +153,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
                     e.Source, e.Message);
             }
 
+        }
+
+        public List<InventoryItemBase> GetFolderItems(UUID folderID)
+        {
+            return new List<InventoryItemBase>();
         }
 
         public bool AddFolder(InventoryFolderBase folder)
@@ -229,6 +249,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
         public InventoryFolderBase RequestRootFolder(UUID userID)
         {
             return null;
+        }
+
+        public List<InventoryItemBase> GetActiveGestures(UUID userId)
+        {
+            return new List<InventoryItemBase>();
         }
 
         #endregion
