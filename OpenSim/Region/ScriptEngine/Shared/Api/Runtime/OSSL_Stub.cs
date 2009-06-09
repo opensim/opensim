@@ -135,17 +135,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         public string osSetDynamicTextureURLBlendFace(string dynamicID, string contentType, string url, string extraParams,
-                                           bool blend, int timer, int alpha, int face)
+                                           bool blend, int disp, int timer, int alpha, int face)
         {
             return m_OSSL_Functions.osSetDynamicTextureURLBlendFace(dynamicID, contentType, url, extraParams, 
-                                             blend, timer, alpha, face);
+                                             blend, disp, timer, alpha, face);
         }
 
         public string osSetDynamicTextureDataBlendFace(string dynamicID, string contentType, string data, string extraParams,
-                                             bool blend, int timer, int alpha, int face)
+                                             bool blend, int disp, int timer, int alpha, int face)
         {
             return m_OSSL_Functions.osSetDynamicTextureDataBlendFace(dynamicID, contentType, data, extraParams, 
-                                             blend, timer, alpha, face);
+                                             blend, disp, timer, alpha, face);
         }
 
         public LSL_Float osTerrainGetHeight(int x, int y)

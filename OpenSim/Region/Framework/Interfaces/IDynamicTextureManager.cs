@@ -30,8 +30,10 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+
     public interface IDynamicTextureManager
     {
+
         void RegisterRender(string handleType, IDynamicTextureRender render);
         void ReturnData(UUID id, byte[] data);
 
@@ -40,13 +42,13 @@ namespace OpenSim.Region.Framework.Interfaces
         UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams,
                                    int updateTimer, bool SetBlending, byte AlphaValue);
         UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams,
-                                   int updateTimer, bool SetBlending, byte AlphaValue, int face);
+                                   int updateTimer, bool SetBlending, int disp, byte AlphaValue, int face);
         UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
                                      int updateTimer);
         UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
                                     int updateTimer, bool SetBlending, byte AlphaValue);
         UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
-                                    int updateTimer, bool SetBlending, byte AlphaValue, int face);
+                                    int updateTimer, bool SetBlending, int disp, byte AlphaValue, int face);
         void GetDrawStringSize(string contentType, string text, string fontName, int fontSize,
                                out double xSize, out double ySize);
     }

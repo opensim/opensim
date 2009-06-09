@@ -428,7 +428,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         public string osSetDynamicTextureURLBlendFace(string dynamicID, string contentType, string url, string extraParams,
-                                             bool blend, int timer, int alpha, int face)
+                                             bool blend, int disp, int timer, int alpha, int face)
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureURLBlendFace");
 
@@ -438,7 +438,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 UUID createdTexture =
                     textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
-                                                        extraParams, timer, blend, (byte) alpha, face);
+                                                        extraParams, timer, blend, disp, (byte) alpha, face);
                 return createdTexture.ToString();
             }
             else
@@ -508,7 +508,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         public string osSetDynamicTextureDataBlendFace(string dynamicID, string contentType, string data, string extraParams,
-                                          bool blend, int timer, int alpha, int face)
+                                          bool blend, int disp, int timer, int alpha, int face)
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureDataBlendFace");
 
@@ -524,7 +524,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                     UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
-                                                            extraParams, timer, blend, (byte) alpha, face);
+                                                            extraParams, timer, blend, disp, (byte) alpha, face);
                     return createdTexture.ToString();
                 }
             }
