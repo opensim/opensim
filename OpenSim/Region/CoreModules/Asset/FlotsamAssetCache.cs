@@ -161,16 +161,16 @@ namespace Flotsam.RegionModules.AssetCache
 
                 if (name == Name)
                 {
+                    m_Enabled = true;
+                    m_log.InfoFormat("[ASSET CACHE]: {0} enabled", this.Name);
+
                     IConfig assetConfig = source.Configs["AssetCache"];
                     if (assetConfig == null)
                     {
-                        m_log.Error("[ASSET CACHE]: AssetCache missing from OpenSim.ini");
+                        m_log.Warn("[ASSET CACHE]: AssetCache missing from OpenSim.ini, using defaults.");
+                        m_log.InfoFormat("[ASSET CACHE]: Cache Directory", m_DefaultCacheDirectory);
                         return;
                     }
-
-                    m_Enabled = true;
-
-                    m_log.InfoFormat("[ASSET CACHE]: {0} enabled", this.Name);
 
                     m_CacheDirectory = assetConfig.GetString("CacheDirectory", m_DefaultCacheDirectory);
                     m_log.InfoFormat("[ASSET CACHE]: Cache Directory", m_DefaultCacheDirectory);
@@ -182,6 +182,7 @@ namespace Flotsam.RegionModules.AssetCache
                     m_WaitOnInprogressTimeout = assetConfig.GetInt("WaitOnInprogressTimeout", 3000);
 #endif
 
+                    m_LogLevel = assetConfig.GetInt("LogLevel", 1);
                     m_HitRateDisplay = (ulong)assetConfig.GetInt("HitRateDisplay", 1);
 
                     m_FileExpiration = TimeSpan.FromHours(assetConfig.GetDouble("FileCacheTimeout", m_DefaultFileExpiration));
@@ -230,7 +231,7 @@ namespace Flotsam.RegionModules.AssetCache
 
         private void UpdateMemoryCache(string key, AssetBase asset)
         {
-            if (m_MemoryCacheEnabled)
+            if( m_MemoryCacheEnabled )
             {
                 if (m_MemoryExpiration > TimeSpan.Zero)
                 {
@@ -404,7 +405,7 @@ namespace Flotsam.RegionModules.AssetCache
                     File.Delete(filename);
                 }
 
-                if (m_MemoryCacheEnabled)
+                if( m_MemoryCacheEnabled )
                     m_MemoryCache.Remove(id);
             }
             catch (Exception e)
@@ -423,7 +424,7 @@ namespace Flotsam.RegionModules.AssetCache
                 Directory.Delete(dir);
             }
 
-            if (m_MemoryCacheEnabled)
+            if( m_MemoryCacheEnabled )
                 m_MemoryCache.Clear();
         }
 
