@@ -106,6 +106,7 @@ what it is today.
 * SachaMagne
 * Salahzar Stenvaag
 * sempuki
+* Snoopy
 * Strawberry Fride
 * tglion
 * tlaukkan/Tommil (Tommi S. E. Laukkanen, Bubble Cloud)
