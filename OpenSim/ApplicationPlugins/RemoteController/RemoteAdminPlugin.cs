@@ -1115,8 +1115,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if (null == userProfile)
                         throw new Exception(String.Format("avatar {0} {1} does not exist", firstname, lastname));
 
-                    if (null != passwd)
+                    if (!String.IsNullOrEmpty(passwd))
                     {
+                        m_log.DebugFormat("[RADMIN]: UpdateUserAccount: updating password for avatar {0} {1}", firstname, lastname);
                         string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(passwd) + ":" + String.Empty);
                         userProfile.PasswordHash = md5PasswdHash;
                     }
