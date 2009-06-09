@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -65,7 +66,7 @@ namespace OpenSim.Framework
         /// <param name="cache">
         /// The cache.
         /// </param>
-        private CnmSynchronizedCache( ICnmCache<TKey, TValue> cache )
+        private CnmSynchronizedCache(ICnmCache<TKey, TValue> cache)
         {
             m_cache = cache;
             m_syncRoot = m_cache.SyncRoot;
@@ -83,11 +84,11 @@ namespace OpenSim.Framework
         /// <exception cref="ArgumentNullException">
         /// <paramref name="cache"/>is null.
         /// </exception>
-        public static ICnmCache<TKey, TValue> Synchronized( ICnmCache<TKey, TValue> cache )
+        public static ICnmCache<TKey, TValue> Synchronized(ICnmCache<TKey, TValue> cache)
         {
-            if( cache == null )
-                throw new ArgumentNullException( "cache" );
-            return cache.IsSynchronized ? cache : new CnmSynchronizedCache<TKey, TValue>( cache );
+            if (cache == null)
+                throw new ArgumentNullException("cache");
+            return cache.IsSynchronized ? cache : new CnmSynchronizedCache<TKey, TValue>(cache);
         }
 
         #region Nested type: SynchronizedEnumerator
@@ -116,11 +117,11 @@ namespace OpenSim.Framework
             /// <param name="syncRoot">
             /// The sync root.
             /// </param>
-            public SynchronizedEnumerator( IEnumerator<KeyValuePair<TKey, TValue>> enumerator, object syncRoot )
+            public SynchronizedEnumerator(IEnumerator<KeyValuePair<TKey, TValue>> enumerator, object syncRoot)
             {
                 m_syncRoot = syncRoot;
                 m_enumerator = enumerator;
-                Monitor.Enter( m_syncRoot );
+                Monitor.Enter(m_syncRoot);
             }
 
             /// <summary>
@@ -166,14 +167,14 @@ namespace OpenSim.Framework
             /// </summary>
             public void Dispose()
             {
-                if( m_syncRoot != null )
+                if (m_syncRoot != null)
                 {
-                    Monitor.Exit( m_syncRoot );
+                    Monitor.Exit(m_syncRoot);
                     m_syncRoot = null;
                 }
 
                 m_enumerator.Dispose();
-                GC.SuppressFinalize( this );
+                GC.SuppressFinalize(this);
             }
 
             /// <summary>
@@ -225,7 +226,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     return m_cache.Count;
                 }
@@ -271,7 +272,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     return m_cache.ExpirationTime;
                 }
@@ -279,7 +280,7 @@ namespace OpenSim.Framework
 
             set
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     m_cache.ExpirationTime = value;
                 }
@@ -307,7 +308,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     return m_cache.IsCountLimited;
                 }
@@ -336,7 +337,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     return m_cache.IsSizeLimited;
                 }
@@ -385,7 +386,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     return m_cache.IsTimeLimited;
                 }
@@ -409,7 +410,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     return m_cache.MaxCount;
                 }
@@ -417,7 +418,7 @@ namespace OpenSim.Framework
 
             set
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     m_cache.MaxCount = value;
                 }
@@ -444,7 +445,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     return m_cache.MaxElementSize;
                 }
@@ -474,7 +475,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     return m_cache.MaxSize;
                 }
@@ -482,7 +483,7 @@ namespace OpenSim.Framework
 
             set
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     m_cache.MaxSize = value;
                 }
@@ -516,7 +517,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                lock( m_syncRoot )
+                lock (m_syncRoot)
                 {
                     return m_cache.Size;
                 }
@@ -553,7 +554,7 @@ namespace OpenSim.Framework
         /// <seealso cref="ICnmCache{TKey,TValue}.PurgeExpired"/>
         public void Clear()
         {
-            lock( m_syncRoot )
+            lock (m_syncRoot)
             {
                 m_cache.Clear();
             }
@@ -568,9 +569,9 @@ namespace OpenSim.Framework
         /// <filterpriority>1</filterpriority>
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            lock( m_syncRoot )
+            lock (m_syncRoot)
             {
-                return new SynchronizedEnumerator( m_cache.GetEnumerator(), m_syncRoot );
+                return new SynchronizedEnumerator(m_cache.GetEnumerator(), m_syncRoot);
             }
         }
 
@@ -595,7 +596,7 @@ namespace OpenSim.Framework
         /// <seealso cref="ICnmCache{TKey,TValue}.Clear"/>
         public void PurgeExpired()
         {
-            lock( m_syncRoot )
+            lock (m_syncRoot)
             {
                 m_cache.PurgeExpired();
             }
@@ -615,11 +616,11 @@ namespace OpenSim.Framework
         /// <seealso cref="ICnmCache{TKey,TValue}.TryGetValue"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.Clear"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.PurgeExpired"/>
-        public void Remove( TKey key )
+        public void Remove(TKey key)
         {
-            lock( m_syncRoot )
+            lock (m_syncRoot)
             {
-                m_cache.Remove( key );
+                m_cache.Remove(key);
             }
         }
 
@@ -637,11 +638,11 @@ namespace OpenSim.Framework
         /// <seealso cref="ICnmCache{TKey,TValue}.TryGetValue"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.Clear"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.PurgeExpired"/>
-        public void RemoveRange( IEnumerable<TKey> keys )
+        public void RemoveRange(IEnumerable<TKey> keys)
         {
-            lock( m_syncRoot )
+            lock (m_syncRoot)
             {
-                m_cache.RemoveRange( keys );
+                m_cache.RemoveRange(keys);
             }
         }
 
@@ -690,11 +691,11 @@ namespace OpenSim.Framework
         /// <seealso cref="ICnmCache{TKey,TValue}.TryGetValue"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.Clear"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.PurgeExpired"/>
-        public bool Set( TKey key, TValue value, long size )
+        public bool Set(TKey key, TValue value, long size)
         {
-            lock( m_syncRoot )
+            lock (m_syncRoot)
             {
-                return m_cache.Set( key, value, size );
+                return m_cache.Set(key, value, size);
             }
         }
 
@@ -721,11 +722,11 @@ namespace OpenSim.Framework
         /// <seealso cref="ICnmCache{TKey,TValue}.RemoveRange"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.Clear"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.PurgeExpired"/>
-        public bool TryGetValue( TKey key, out TValue value )
+        public bool TryGetValue(TKey key, out TValue value)
         {
-            lock( m_syncRoot )
+            lock (m_syncRoot)
             {
-                return m_cache.TryGetValue( key, out value );
+                return m_cache.TryGetValue(key, out value);
             }
         }
 

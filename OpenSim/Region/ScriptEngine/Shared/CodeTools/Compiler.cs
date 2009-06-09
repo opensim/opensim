@@ -342,13 +342,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 throw new Exception(errtext);
             }
 
-			if(m_scriptEngine.World.Permissions.CanCompileScript(ownerUUID, (int)l) == false) {
-				// Not allowed to compile to this language!
-				string errtext = String.Empty;
-				errtext += ownerUUID + " is not in list of allowed users for this scripting language. Script will not be executed!";
-				throw new Exception(errtext);
-			}
-			
+            if (m_scriptEngine.World.Permissions.CanCompileScript(ownerUUID, (int)l) == false) {
+                // Not allowed to compile to this language!
+                string errtext = String.Empty;
+                errtext += ownerUUID + " is not in list of allowed users for this scripting language. Script will not be executed!";
+                throw new Exception(errtext);
+            }
+            
             string compileScript = Script;
 
             if (l == enumCompileType.lsl)

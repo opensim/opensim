@@ -58,28 +58,28 @@ namespace OpenSim.Framework
         /// <returns>
         /// Primer number that is equal or larger than <see cref="min"/>. If <see cref="min"/> is too large, return -1.
         /// </returns>
-        public static int GetPrime( int min )
+        public static int GetPrime(int min)
         {
-            if( min <= 2 )
+            if (min <= 2)
                 return 2;
 
-            if( Primes[ Primes.Length - 1 ] < min )
+            if (Primes[ Primes.Length - 1 ] < min)
             {
-                for( int i = min | 1 ; i < 0x7FFFFFFF ; i += 2 )
+                for (int i = min | 1 ; i < 0x7FFFFFFF ; i += 2)
                 {
-                    if( IsPrime( i ) )
+                    if (IsPrime(i))
                         return i;
                 }
 
                 return -1;
             }
 
-            for( int i = Primes.Length - 2 ; i >= 0 ; i-- )
+            for (int i = Primes.Length - 2 ; i >= 0 ; i--)
             {
-                if( min == Primes[ i ] )
+                if (min == Primes[ i ])
                     return min;
 
-                if( min > Primes[ i ] )
+                if (min > Primes[ i ])
                     return Primes[ i + 1 ];
             }
 
@@ -95,17 +95,17 @@ namespace OpenSim.Framework
         /// <returns>
         /// true, if <see cref="candinate"/> is prime number; otherwise false.
         /// </returns>
-        public static bool IsPrime( int candinate )
+        public static bool IsPrime(int candinate)
         {
-            if( (candinate & 1) == 0 )
+            if ((candinate & 1) == 0)
 
                 // Even number - only prime if 2
                 return candinate == 2;
 
-            int upperBound = (int) Math.Sqrt( candinate );
-            for( int i = 3 ; i < upperBound ; i += 2 )
+            int upperBound = (int) Math.Sqrt(candinate);
+            for (int i = 3 ; i < upperBound ; i += 2)
             {
-                if( candinate % i == 0 )
+                if (candinate % i == 0)
                     return false;
             }
 

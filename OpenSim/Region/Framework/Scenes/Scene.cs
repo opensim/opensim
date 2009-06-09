@@ -136,7 +136,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_AssetService = RequestModuleInterface<IAssetService>();
 
-                    if( m_AssetService == null )
+                    if (m_AssetService == null)
                     {
                         throw new Exception("No IAssetService available.");
                     }
@@ -1097,7 +1097,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     IMessageTransferModule tr = RequestModuleInterface<IMessageTransferModule>();
                     if (tr != null)
-                        tr.SendInstantMessage(msg, delegate(bool success) {} );
+                        tr.SendInstantMessage(msg, delegate(bool success) {});
                 }
                 m_returns.Clear();
             }
@@ -1465,7 +1465,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (SceneObjectPart part in group.Children.Values)
             {
-                if (part.IsJoint() && ((part.ObjectFlags&(uint)PrimFlags.Physics) != 0) )
+                if (part.IsJoint() && ((part.ObjectFlags&(uint)PrimFlags.Physics) != 0))
                 {
                     PhysicsScene.RequestJointDeletion(part.Name); // FIXME: what if the name changed?
                 }

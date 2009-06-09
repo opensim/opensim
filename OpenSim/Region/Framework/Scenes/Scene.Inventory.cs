@@ -1526,14 +1526,14 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
 
                 if (part.OwnerID != remoteClient.AgentId)
-		{
-		    // Group permissions
-		    if ( (part.GroupID == UUID.Zero) || (remoteClient.GetGroupPowers(part.GroupID) == 0) || ((part.GroupMask & (uint)PermissionMask.Modify) == 0) )
-			return;
-		} else {
-		    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-			return;
-		}
+                {
+                    // Group permissions
+                    if ((part.GroupID == UUID.Zero) || (remoteClient.GetGroupPowers(part.GroupID) == 0) || ((part.GroupMask & (uint)PermissionMask.Modify) == 0))
+                        return;
+                } else {
+                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                        return;
+                }
 
                 if (!Permissions.CanCreateObjectInventory(
                     itemBase.InvType, part.UUID, remoteClient.AgentId))
@@ -1602,18 +1602,18 @@ namespace OpenSim.Region.Framework.Scenes
                         destId);
                 return;
             }
-	    
+        
             // Must own the object, and have modify rights
             if (srcPart.OwnerID != destPart.OwnerID)
-	    {
-		// Group permissions
-		if ( (destPart.GroupID == UUID.Zero) || (destPart.GroupID != srcPart.GroupID) ||
-		((destPart.GroupMask & (uint)PermissionMask.Modify) == 0) )
-		    return;
-	    } else {
-		if ((destPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
-		    return;
-	    }
+            {
+                // Group permissions
+                if ((destPart.GroupID == UUID.Zero) || (destPart.GroupID != srcPart.GroupID) ||
+                    ((destPart.GroupMask & (uint)PermissionMask.Modify) == 0))
+                    return;
+            } else {
+                if ((destPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                    return;
+            }
 
             if (destPart.ScriptAccessPin != pin)
             {

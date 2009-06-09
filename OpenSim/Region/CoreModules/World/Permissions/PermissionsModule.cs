@@ -243,7 +243,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     
                     
             string grant = myConfig.GetString("GrantLSL","");
-            if(grant.Length > 0) {
+            if (grant.Length > 0) {
                 foreach (string uuidl in grant.Split(',')) {
                     string uuid = uuidl.Trim(" \t".ToCharArray());
                     GrantLSL.Add(uuid, true);
@@ -251,7 +251,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             grant = myConfig.GetString("GrantCS","");
-            if(grant.Length > 0) {
+            if (grant.Length > 0) {
                 foreach (string uuidl in grant.Split(',')) {
                     string uuid = uuidl.Trim(" \t".ToCharArray());
                     GrantCS.Add(uuid, true);
@@ -259,7 +259,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             grant = myConfig.GetString("GrantVB","");
-            if(grant.Length > 0) {
+            if (grant.Length > 0) {
                 foreach (string uuidl in grant.Split(',')) {
                     string uuid = uuidl.Trim(" \t".ToCharArray());
                     GrantVB.Add(uuid, true);
@@ -267,7 +267,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             grant = myConfig.GetString("GrantJS","");
-            if(grant.Length > 0) {
+            if (grant.Length > 0) {
                 foreach (string uuidl in grant.Split(',')) {
                     string uuid = uuidl.Trim(" \t".ToCharArray());
                     GrantJS.Add(uuid, true);
@@ -563,7 +563,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             // Group permissions
-            if ( ( task.GroupID != UUID.Zero) && IsGroupMember(task.GroupID, user, 0) )
+            if ((task.GroupID != UUID.Zero) && IsGroupMember(task.GroupID, user, 0))
                 return objectGroupMask;
         
             return objectEveryoneMask;
@@ -650,7 +650,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             // Group members should be able to edit group objects
-            if ( (group.GroupID != UUID.Zero) && ((m_scene.GetSceneObjectPart(objId).GroupMask & (uint)PermissionMask.Modify) != 0) && IsGroupMember(group.GroupID, currentUser, 0) )
+            if ((group.GroupID != UUID.Zero) && ((m_scene.GetSceneObjectPart(objId).GroupMask & (uint)PermissionMask.Modify) != 0) && IsGroupMember(group.GroupID, currentUser, 0))
             {
                 // Return immediately, so that the administrator can shares group objects
                 return true;
@@ -731,7 +731,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 permission = true;
             }
 
-            if( ( parcel.landData.GroupID != UUID.Zero) && IsGroupMember(parcel.landData.GroupID, user, groupPowers) )
+            if ((parcel.landData.GroupID != UUID.Zero) && IsGroupMember(parcel.landData.GroupID, user, groupPowers))
             {
                 permission = true;
             }
@@ -758,7 +758,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 permission = true;
             }
 
-            if( parcel.landData.IsGroupOwned && IsGroupMember(parcel.landData.GroupID, user, groupPowers) )
+            if (parcel.landData.IsGroupOwned && IsGroupMember(parcel.landData.GroupID, user, groupPowers))
             {
                 permission = true;
             }
@@ -982,7 +982,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     if (part.GroupID == UUID.Zero)
                         return false;
 
-                    if( !IsGroupMember(part.GroupID, user, 0) )
+                    if (!IsGroupMember(part.GroupID, user, 0))
                         return false;
             
                     if ((part.GroupMask & (uint)PermissionMask.Modify) == 0)
@@ -1002,7 +1002,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     if (ti.GroupID == UUID.Zero)
                         return false;
 
-                    if( !IsGroupMember(ti.GroupID, user, 0) )
+                    if (!IsGroupMember(ti.GroupID, user, 0))
                     return false;
                 }
 
@@ -1411,7 +1411,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     if (part.GroupID == UUID.Zero)
                     return false;
 
-                    if( !IsGroupMember(part.GroupID, user, 0) )
+                    if (!IsGroupMember(part.GroupID, user, 0))
                         return false;
             
                     if ((part.GroupMask & (uint)PermissionMask.Modify) == 0)
@@ -1431,7 +1431,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     if (ti.GroupID == UUID.Zero)
                         return false;
         
-                    if( !IsGroupMember(ti.GroupID, user, 0) )
+                    if (!IsGroupMember(ti.GroupID, user, 0))
                         return false;
                 }
 
@@ -1504,7 +1504,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     if (part.GroupID == UUID.Zero)
                         return false;
         
-                    if( !IsGroupMember(part.GroupID, user, 0) )
+                    if (!IsGroupMember(part.GroupID, user, 0))
                         return false;
                 }
 
@@ -1521,7 +1521,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     if (ti.GroupID == UUID.Zero)
                         return false;
         
-                    if( !IsGroupMember(ti.GroupID, user, 0) )
+                    if (!IsGroupMember(ti.GroupID, user, 0))
                         return false;
                 }
 
@@ -1744,24 +1744,24 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         
         private bool CanCompileScript(UUID ownerUUID, int scriptType, Scene scene) {
              //m_log.DebugFormat("check if {0} is allowed to compile {1}", ownerUUID, scriptType);
-            switch(scriptType) {
+            switch (scriptType) {
                 case 0:
-                    if(GrantLSL.Count == 0 || GrantLSL.ContainsKey(ownerUUID.ToString())) {
+                    if (GrantLSL.Count == 0 || GrantLSL.ContainsKey(ownerUUID.ToString())) {
                         return(true);
                     }
                     break;
                 case 1:
-                    if(GrantCS.Count == 0 || GrantCS.ContainsKey(ownerUUID.ToString())) {
+                    if (GrantCS.Count == 0 || GrantCS.ContainsKey(ownerUUID.ToString())) {
                         return(true);
                     }
                     break;
                 case 2:
-                    if(GrantVB.Count == 0 || GrantVB.ContainsKey(ownerUUID.ToString())) {
+                    if (GrantVB.Count == 0 || GrantVB.ContainsKey(ownerUUID.ToString())) {
                         return(true);
                     }
                     break;
                 case 3:
-                    if(GrantJS.Count == 0 || GrantJS.ContainsKey(ownerUUID.ToString())) {
+                    if (GrantJS.Count == 0 || GrantJS.ContainsKey(ownerUUID.ToString())) {
                         return(true);
                     }
                     break;

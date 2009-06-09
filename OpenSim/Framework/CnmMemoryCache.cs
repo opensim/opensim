@@ -81,7 +81,7 @@ namespace OpenSim.Framework
         /// 30 minutes.
         /// </para>
         /// </remarks>
-        public static readonly TimeSpan DefaultExpirationTime = TimeSpan.FromMinutes( 30.0 );
+        public static readonly TimeSpan DefaultExpirationTime = TimeSpan.FromMinutes(30.0);
 
         /// <summary>
         /// Minimal allowed expiration time.
@@ -91,7 +91,7 @@ namespace OpenSim.Framework
         /// 5 minutes.
         /// </para>
         /// </remarks>
-        public static readonly TimeSpan MinExpirationTime = TimeSpan.FromSeconds( 10.0 );
+        public static readonly TimeSpan MinExpirationTime = TimeSpan.FromSeconds(10.0);
 
         /// <summary>
         /// Comparer used to compare element keys.
@@ -171,7 +171,7 @@ namespace OpenSim.Framework
         /// Initializes a new instance of the <see cref="CnmMemoryCache{TKey,TValue}"/> class.         
         /// </summary>
         public CnmMemoryCache()
-            : this( DefaultMaxSize )
+            : this(DefaultMaxSize)
         {
         }
 
@@ -181,8 +181,8 @@ namespace OpenSim.Framework
         /// <param name="maximalSize">
         /// Maximal cache size.
         /// </param>
-        public CnmMemoryCache( long maximalSize )
-            : this( maximalSize, DefaultMaxCount )
+        public CnmMemoryCache(long maximalSize)
+            : this(maximalSize, DefaultMaxCount)
         {
         }
 
@@ -195,8 +195,8 @@ namespace OpenSim.Framework
         /// <param name="maximalCount">
         /// Maximal element count.
         /// </param>
-        public CnmMemoryCache( long maximalSize, int maximalCount )
-            : this( maximalSize, maximalCount, DefaultExpirationTime )
+        public CnmMemoryCache(long maximalSize, int maximalCount)
+            : this(maximalSize, maximalCount, DefaultExpirationTime)
         {
         }
 
@@ -212,8 +212,8 @@ namespace OpenSim.Framework
         /// <param name="expirationTime">
         /// Elements expiration time.
         /// </param>
-        public CnmMemoryCache( long maximalSize, int maximalCount, TimeSpan expirationTime )
-            : this( maximalSize, maximalCount, expirationTime, EqualityComparer<TKey>.Default )
+        public CnmMemoryCache(long maximalSize, int maximalCount, TimeSpan expirationTime)
+            : this(maximalSize, maximalCount, expirationTime, EqualityComparer<TKey>.Default)
         {
         }
 
@@ -235,21 +235,21 @@ namespace OpenSim.Framework
         /// <exception cref="ArgumentNullException">
         /// <see cref="comparer"/>is <see langword="null"/> reference.
         /// </exception>
-        public CnmMemoryCache( long maximalSize,
+        public CnmMemoryCache(long maximalSize,
             int maximalCount,
             TimeSpan expirationTime,
-            IEqualityComparer<TKey> comparer )
+            IEqualityComparer<TKey> comparer)
         {
-            if( comparer == null )
-                throw new ArgumentNullException( "comparer" );
+            if (comparer == null)
+                throw new ArgumentNullException("comparer");
 
-            if( expirationTime < MinExpirationTime )
+            if (expirationTime < MinExpirationTime)
                 expirationTime = MinExpirationTime;
-            if( maximalCount < 8 )
+            if (maximalCount < 8)
                 maximalCount = 8;
-            if( maximalSize < 8 )
+            if (maximalSize < 8)
                 maximalSize = 8;
-            if( maximalCount > maximalSize )
+            if (maximalCount > maximalSize)
                 maximalCount = (int) maximalSize;
 
             Comparer = comparer;
@@ -275,14 +275,14 @@ namespace OpenSim.Framework
         /// <param name="size">
         /// The element's size.
         /// </param>
-        protected virtual void AddToNewGeneration( int bucketIndex, TKey key, TValue value, long size )
+        protected virtual void AddToNewGeneration(int bucketIndex, TKey key, TValue value, long size)
         {
             // Add to newest generation    
-            if( !m_newGeneration.Set( bucketIndex, key, value, size ) )
+            if (!m_newGeneration.Set(bucketIndex, key, value, size))
             {
                 // Failed to add new generation
                 RecycleGenerations();
-                m_newGeneration.Set( bucketIndex, key, value, size );
+                m_newGeneration.Set(bucketIndex, key, value, size);
             }
 
             m_version++;
@@ -314,9 +314,9 @@ namespace OpenSim.Framework
         /// For example: key's hash is 72, bucket count is 5, element's bucket index is 72 % 5 = 2.        
         /// </para>
         /// </remarks>
-        protected virtual int GetBucketIndex( TKey key )
+        protected virtual int GetBucketIndex(TKey key)
         {
-            return (Comparer.GetHashCode( key ) & 0x7FFFFFFF) % m_generationBucketCount;
+            return (Comparer.GetHashCode(key) & 0x7FFFFFFF) % m_generationBucketCount;
         }
 
         /// <summary>
@@ -325,7 +325,7 @@ namespace OpenSim.Framework
         /// <param name="generation">
         /// The generation that is purged.
         /// </param>
-        protected virtual void PurgeGeneration( IGeneration generation )
+        protected virtual void PurgeGeneration(IGeneration generation)
         {
             generation.Clear();
             m_version++;
@@ -339,7 +339,7 @@ namespace OpenSim.Framework
             // Do this only one in every m_operationsBetweenTimeChecks 
             // Fetching time is using several millisecons - it is better not to do all time.
             m_operationsBetweenTimeChecks--;
-            if( m_operationsBetweenTimeChecks <= 0 )
+            if (m_operationsBetweenTimeChecks <= 0)
                 PurgeExpired();
         }
 
@@ -355,10 +355,10 @@ namespace OpenSim.Framework
             m_generationElementCount = MaxCount / 2;
 
             // Buckets need to be prime number to get better spread of hash values
-            m_generationBucketCount = PrimeNumberHelper.GetPrime( m_generationElementCount );
+            m_generationBucketCount = PrimeNumberHelper.GetPrime(m_generationElementCount);
 
-            m_newGeneration = new HashGeneration( this );
-            m_oldGeneration = new HashGeneration( this );
+            m_newGeneration = new HashGeneration(this);
+            m_oldGeneration = new HashGeneration(this);
             m_oldGeneration.MakeOld();
         }
 
@@ -399,7 +399,7 @@ namespace OpenSim.Framework
             /// <param name="cache">
             /// The cache.
             /// </param>
-            public Enumerator( CnmMemoryCache<TKey, TValue> cache )
+            public Enumerator(CnmMemoryCache<TKey, TValue> cache)
             {
                 m_generationEnumerators[ 0 ] = cache.m_newGeneration.GetEnumerator();
                 m_generationEnumerators[ 1 ] = cache.m_oldGeneration.GetEnumerator();
@@ -420,7 +420,7 @@ namespace OpenSim.Framework
             {
                 get
                 {
-                    if( m_currentEnumerator == -1 || m_currentEnumerator >= m_generationEnumerators.Length )
+                    if (m_currentEnumerator == -1 || m_currentEnumerator >= m_generationEnumerators.Length)
                         throw new InvalidOperationException();
 
                     return m_generationEnumerators[ m_currentEnumerator ].Current;
@@ -461,12 +461,12 @@ namespace OpenSim.Framework
             /// <filterpriority>2</filterpriority>
             public bool MoveNext()
             {
-                if( m_currentEnumerator == -1 )
+                if (m_currentEnumerator == -1)
                     m_currentEnumerator = 0;
 
-                while( m_currentEnumerator < m_generationEnumerators.Length )
+                while (m_currentEnumerator < m_generationEnumerators.Length)
                 {
-                    if( m_generationEnumerators[ m_currentEnumerator ].MoveNext() )
+                    if (m_generationEnumerators[ m_currentEnumerator ].MoveNext())
                         return true;
 
                     m_currentEnumerator++;
@@ -484,7 +484,7 @@ namespace OpenSim.Framework
             /// <filterpriority>2</filterpriority>
             public void Reset()
             {
-                foreach( IEnumerator<KeyValuePair<TKey, TValue>> enumerator in m_generationEnumerators )
+                foreach (IEnumerator<KeyValuePair<TKey, TValue>> enumerator in m_generationEnumerators)
                 {
                     enumerator.Reset();
                 }
@@ -582,7 +582,7 @@ namespace OpenSim.Framework
             /// <param name="cache">
             /// The cache.
             /// </param>
-            public HashGeneration( CnmMemoryCache<TKey, TValue> cache )
+            public HashGeneration(CnmMemoryCache<TKey, TValue> cache)
             {
                 m_cache = cache;
                 m_elements = new Element[m_cache.m_generationElementCount];
@@ -608,16 +608,16 @@ namespace OpenSim.Framework
             /// <returns>
             /// Element's index, if found from the generation; -1 otherwise (if element is not found the generation).
             /// </returns>
-            private int FindElementIndex( int bucketIndex, TKey key, bool moveToFront, out int previousIndex )
+            private int FindElementIndex(int bucketIndex, TKey key, bool moveToFront, out int previousIndex)
             {
                 previousIndex = -1;
                 int elementIndex = m_buckets[ bucketIndex ];
-                while( elementIndex >= 0 )
+                while (elementIndex >= 0)
                 {
-                    if( m_cache.Comparer.Equals( key, m_elements[ elementIndex ].Key ) )
+                    if (m_cache.Comparer.Equals(key, m_elements[ elementIndex ].Key))
                     {
                         // Found match
-                        if( moveToFront && previousIndex >= 0 )
+                        if (moveToFront && previousIndex >= 0)
                         {
                             // Move entry to front
                             m_elements[ previousIndex ].Next = m_elements[ elementIndex ].Next;
@@ -648,9 +648,9 @@ namespace OpenSim.Framework
             /// <param name="previousIndex">
             /// The element's previous index.
             /// </param>
-            private void RemoveElement( int bucketIndex, int entryIndex, int previousIndex )
+            private void RemoveElement(int bucketIndex, int entryIndex, int previousIndex)
             {
-                if( previousIndex >= 0 )
+                if (previousIndex >= 0)
                     m_elements[ previousIndex ].Next = m_elements[ entryIndex ].Next;
                 else
                     m_buckets[ bucketIndex ] = m_elements[ entryIndex ].Next;
@@ -755,7 +755,7 @@ namespace OpenSim.Framework
                 /// <param name="generation">
                 /// The generation.
                 /// </param>
-                public Enumerator( HashGeneration generation )
+                public Enumerator(HashGeneration generation)
                 {
                     m_generation = generation;
                     m_version = m_generation.m_cache.m_version;
@@ -776,7 +776,7 @@ namespace OpenSim.Framework
                 {
                     get
                     {
-                        if( m_currentIndex == 0 || m_currentIndex >= m_generation.Count )
+                        if (m_currentIndex == 0 || m_currentIndex >= m_generation.Count)
                             throw new InvalidOperationException();
 
                         return m_current;
@@ -816,19 +816,19 @@ namespace OpenSim.Framework
                 /// </exception>
                 public bool MoveNext()
                 {
-                    if( m_version != m_generation.m_cache.m_version )
+                    if (m_version != m_generation.m_cache.m_version)
                         throw new InvalidOperationException();
 
-                    while( m_currentIndex < m_generation.Count )
+                    while (m_currentIndex < m_generation.Count)
                     {
-                        if( m_generation.m_elements[ m_currentIndex ].IsFree )
+                        if (m_generation.m_elements[ m_currentIndex ].IsFree)
                         {
                             m_currentIndex++;
                             continue;
                         }
 
-                        m_current = new KeyValuePair<TKey, TValue>( m_generation.m_elements[ m_currentIndex ].Key,
-                            m_generation.m_elements[ m_currentIndex ].Value );
+                        m_current = new KeyValuePair<TKey, TValue>(m_generation.m_elements[ m_currentIndex ].Key,
+                            m_generation.m_elements[ m_currentIndex ].Value);
                         m_currentIndex++;
                         return true;
                     }
@@ -846,7 +846,7 @@ namespace OpenSim.Framework
                 /// <filterpriority>2</filterpriority>
                 public void Reset()
                 {
-                    if( m_version != m_generation.m_cache.m_version )
+                    if (m_version != m_generation.m_cache.m_version)
                         throw new InvalidOperationException();
 
                     m_currentIndex = 0;
@@ -907,12 +907,12 @@ namespace OpenSim.Framework
             /// <seealso cref="IGeneration.MakeOld"/>
             public void Clear()
             {
-                for( int i = m_buckets.Length - 1 ; i >= 0 ; i-- )
+                for (int i = m_buckets.Length - 1 ; i >= 0 ; i--)
                 {
                     m_buckets[ i ] = -1;
                 }
 
-                Array.Clear( m_elements, 0, m_elements.Length );
+                Array.Clear(m_elements, 0, m_elements.Length);
                 Size = 0;
                 m_firstFreeElement = -1;
                 m_freeCount = 0;
@@ -934,10 +934,10 @@ namespace OpenSim.Framework
             /// <see langword="true"/>if the <see cref="IGeneration"/> contains an element with the <see cref="key"/>; 
             /// otherwise <see langword="false"/>.
             /// </returns>
-            public bool Contains( int bucketIndex, TKey key )
+            public bool Contains(int bucketIndex, TKey key)
             {
                 int previousIndex;
-                if( FindElementIndex( bucketIndex, key, true, out previousIndex ) == -1 )
+                if (FindElementIndex(bucketIndex, key, true, out previousIndex) == -1)
                     return false;
 
                 AccessedSinceLastTimeCheck = true;
@@ -953,7 +953,7 @@ namespace OpenSim.Framework
             /// <filterpriority>1</filterpriority>
             public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
             {
-                return new Enumerator( this );
+                return new Enumerator(this);
             }
 
             /// <summary>
@@ -980,13 +980,13 @@ namespace OpenSim.Framework
             /// <returns>
             /// <see langword="true"/>, if remove was successful; otherwise <see langword="false"/>.
             /// </returns>
-            public bool Remove( int bucketIndex, TKey key )
+            public bool Remove(int bucketIndex, TKey key)
             {
                 int previousIndex;
-                int entryIndex = FindElementIndex( bucketIndex, key, false, out previousIndex );
-                if( entryIndex != -1 )
+                int entryIndex = FindElementIndex(bucketIndex, key, false, out previousIndex);
+                if (entryIndex != -1)
                 {
-                    RemoveElement( bucketIndex, entryIndex, previousIndex );
+                    RemoveElement(bucketIndex, entryIndex, previousIndex);
                     AccessedSinceLastTimeCheck = true;
                     return true;
                 }
@@ -1020,18 +1020,18 @@ namespace OpenSim.Framework
             /// size must fit generation's limits, before element is added to generation.
             /// </para>
             /// </remarks>
-            public bool Set( int bucketIndex, TKey key, TValue value, long size )
+            public bool Set(int bucketIndex, TKey key, TValue value, long size)
             {
-                Debug.Assert( m_newGeneration, "It is possible to insert new elements only to newest generation." );
-                Debug.Assert( size > 0, "New element size should be more than 0." );
+                Debug.Assert(m_newGeneration, "It is possible to insert new elements only to newest generation.");
+                Debug.Assert(size > 0, "New element size should be more than 0.");
 
                 int previousIndex;
-                int elementIndex = FindElementIndex( bucketIndex, key, true, out previousIndex );
-                if( elementIndex == -1 )
+                int elementIndex = FindElementIndex(bucketIndex, key, true, out previousIndex);
+                if (elementIndex == -1)
                 {
                     // New key
-                    if( Size + size > m_cache.m_generationMaxSize ||
-                        (m_nextUnusedElement == m_cache.m_generationElementCount && m_freeCount == 0) )
+                    if (Size + size > m_cache.m_generationMaxSize ||
+                        (m_nextUnusedElement == m_cache.m_generationElementCount && m_freeCount == 0))
                     {
                         // Generation is full
                         return false;
@@ -1041,7 +1041,7 @@ namespace OpenSim.Framework
                     Size += size;
 
                     // Get first free entry and update free entry list
-                    if( m_firstFreeElement != -1 )
+                    if (m_firstFreeElement != -1)
                     {
                         // There was entry that was removed
                         elementIndex = m_firstFreeElement;
@@ -1055,7 +1055,7 @@ namespace OpenSim.Framework
                         m_nextUnusedElement++;
                     }
 
-                    Debug.Assert( m_elements[ elementIndex ].IsFree, "Allocated element is not free." );
+                    Debug.Assert(m_elements[ elementIndex ].IsFree, "Allocated element is not free.");
 
                     // Move new entry to front
                     m_elements[ elementIndex ].Next = m_buckets[ bucketIndex ];
@@ -1067,12 +1067,12 @@ namespace OpenSim.Framework
                 else
                 {
                     // Existing key
-                    if( Size - m_elements[ elementIndex ].Size + size > m_cache.m_generationMaxSize )
+                    if (Size - m_elements[ elementIndex ].Size + size > m_cache.m_generationMaxSize)
                     {
                         // Generation is full
                         // Remove existing element, because generation is going to be recycled to 
                         // old generation and element is stored to new generation
-                        RemoveElement( bucketIndex, elementIndex, previousIndex );
+                        RemoveElement(bucketIndex, elementIndex, previousIndex);
                         return false;
                     }
 
@@ -1113,12 +1113,12 @@ namespace OpenSim.Framework
             /// are set to default value (default(TValue) and 0). 
             /// </para>
             /// </remarks>
-            public bool TryGetValue( int bucketIndex, TKey key, out TValue value, out long size )
+            public bool TryGetValue(int bucketIndex, TKey key, out TValue value, out long size)
             {
                 // Find entry index, 
                 int previousIndex;
-                int elementIndex = FindElementIndex( bucketIndex, key, m_newGeneration, out previousIndex );
-                if( elementIndex == -1 )
+                int elementIndex = FindElementIndex(bucketIndex, key, m_newGeneration, out previousIndex);
+                if (elementIndex == -1)
                 {
                     value = default(TValue);
                     size = 0;
@@ -1128,10 +1128,10 @@ namespace OpenSim.Framework
                 value = m_elements[ elementIndex ].Value;
                 size = m_elements[ elementIndex ].Size;
 
-                if( !m_newGeneration )
+                if (!m_newGeneration)
                 {
                     // Old generation - remove element, because it is moved to new generation
-                    RemoveElement( bucketIndex, elementIndex, previousIndex );
+                    RemoveElement(bucketIndex, elementIndex, previousIndex);
                 }
 
                 AccessedSinceLastTimeCheck = true;
@@ -1214,7 +1214,7 @@ namespace OpenSim.Framework
             /// <see langword="true"/>if the <see cref="IGeneration"/> contains an element with the <see cref="key"/>; 
             /// otherwise <see langword="false"/>.
             /// </returns>
-            bool Contains( int bucketIndex, TKey key );
+            bool Contains(int bucketIndex, TKey key);
 
             /// <summary>
             /// Make from generation old generation.
@@ -1237,7 +1237,7 @@ namespace OpenSim.Framework
             /// <returns>
             /// <see langword="true"/>, if remove was successful; otherwise <see langword="false"/>.
             /// </returns>
-            bool Remove( int bucketIndex, TKey key );
+            bool Remove(int bucketIndex, TKey key);
 
             /// <summary>
             /// Set or add element to generation.
@@ -1265,7 +1265,7 @@ namespace OpenSim.Framework
             /// size must fit generation's limits, before element is added to generation.
             /// </para>
             /// </remarks>
-            bool Set( int bucketIndex, TKey key, TValue value, long size );
+            bool Set(int bucketIndex, TKey key, TValue value, long size);
 
             /// <summary>
             /// Try to get element associated with key.
@@ -1291,7 +1291,7 @@ namespace OpenSim.Framework
             /// are set to default value (default(TValue) and 0). 
             /// </para>
             /// </remarks>
-            bool TryGetValue( int bucketIndex, TKey key, out TValue value, out long size );
+            bool TryGetValue(int bucketIndex, TKey key, out TValue value, out long size);
         }
 
         #endregion
@@ -1357,10 +1357,10 @@ namespace OpenSim.Framework
 
             set
             {
-                if( value < MinExpirationTime )
+                if (value < MinExpirationTime)
                     value = MinExpirationTime;
 
-                if( m_expirationTime == value )
+                if (m_expirationTime == value)
                     return;
 
                 m_newGeneration.ExpirationTime = (m_newGeneration.ExpirationTime - m_expirationTime) + value;
@@ -1478,9 +1478,9 @@ namespace OpenSim.Framework
 
             set
             {
-                if( value < 8 )
+                if (value < 8)
                     value = 8;
-                if( m_maxCount == value )
+                if (m_maxCount == value)
                     return;
 
                 m_maxCount = value;
@@ -1535,9 +1535,9 @@ namespace OpenSim.Framework
 
             set
             {
-                if( value < 8 )
+                if (value < 8)
                     value = 8;
-                if( m_maxSize == value )
+                if (m_maxSize == value)
                     return;
 
                 m_maxSize = value;
@@ -1618,7 +1618,7 @@ namespace OpenSim.Framework
         /// <filterpriority>1</filterpriority>
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            return new Enumerator( this );
+            return new Enumerator(this);
         }
 
         /// <summary>
@@ -1644,28 +1644,28 @@ namespace OpenSim.Framework
         {
             m_operationsBetweenTimeChecks = DefaultOperationsBetweenTimeChecks;
 
-            if( !IsTimeLimited )
+            if (!IsTimeLimited)
                 return;
 
             DateTime now = DateTime.Now;
-            if( m_newGeneration.AccessedSinceLastTimeCheck )
+            if (m_newGeneration.AccessedSinceLastTimeCheck)
             {
                 // New generation has been accessed since last check
                 // Update it's expiration time.
                 m_newGeneration.ExpirationTime = now + ExpirationTime;
                 m_newGeneration.AccessedSinceLastTimeCheck = false;
             }
-            else if( m_newGeneration.ExpirationTime < now )
+            else if (m_newGeneration.ExpirationTime < now)
             {
                 // New generation has been expired.
                 // --> also old generation must be expired.
-                PurgeGeneration( m_newGeneration );
-                PurgeGeneration( m_oldGeneration );
+                PurgeGeneration(m_newGeneration);
+                PurgeGeneration(m_oldGeneration);
                 return;
             }
 
-            if( m_oldGeneration.ExpirationTime < now )
-                PurgeGeneration( m_oldGeneration );
+            if (m_oldGeneration.ExpirationTime < now)
+                PurgeGeneration(m_oldGeneration);
         }
 
         /// <summary>
@@ -1682,15 +1682,15 @@ namespace OpenSim.Framework
         /// <seealso cref="ICnmCache{TKey,TValue}.TryGetValue"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.Clear"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.PurgeExpired"/>
-        public void Remove( TKey key )
+        public void Remove(TKey key)
         {
-            if( key == null )
-                throw new ArgumentNullException( "key" );
+            if (key == null)
+                throw new ArgumentNullException("key");
 
-            int bucketIndex = GetBucketIndex( key );
-            if( !m_newGeneration.Remove( bucketIndex, key ) )
+            int bucketIndex = GetBucketIndex(key);
+            if (!m_newGeneration.Remove(bucketIndex, key))
             {
-                if( !m_oldGeneration.Remove( bucketIndex, key ) )
+                if (!m_oldGeneration.Remove(bucketIndex, key))
                 {
                     CheckExpired();
                     return;
@@ -1715,19 +1715,19 @@ namespace OpenSim.Framework
         /// <seealso cref="ICnmCache{TKey,TValue}.TryGetValue"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.Clear"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.PurgeExpired"/>
-        public void RemoveRange( IEnumerable<TKey> keys )
+        public void RemoveRange(IEnumerable<TKey> keys)
         {
-            if( keys == null )
-                throw new ArgumentNullException( "keys" );
+            if (keys == null)
+                throw new ArgumentNullException("keys");
 
-            foreach( TKey key in keys )
+            foreach (TKey key in keys)
             {
-                if( key == null )
+                if (key == null)
                     continue;
 
-                int bucketIndex = GetBucketIndex( key );
-                if( !m_newGeneration.Remove( bucketIndex, key ) )
-                    m_oldGeneration.Remove( bucketIndex, key );
+                int bucketIndex = GetBucketIndex(key);
+                if (!m_newGeneration.Remove(bucketIndex, key))
+                    m_oldGeneration.Remove(bucketIndex, key);
             }
 
             CheckExpired();
@@ -1779,27 +1779,27 @@ namespace OpenSim.Framework
         /// <seealso cref="ICnmCache{TKey,TValue}.TryGetValue"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.Clear"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.PurgeExpired"/>
-        public bool Set( TKey key, TValue value, long size )
+        public bool Set(TKey key, TValue value, long size)
         {
-            if( key == null )
-                throw new ArgumentNullException( "key" );
+            if (key == null)
+                throw new ArgumentNullException("key");
 
-            if( size < 0 )
-                throw new ArgumentOutOfRangeException( "size", size, "Value's size can't be less than 0." );
+            if (size < 0)
+                throw new ArgumentOutOfRangeException("size", size, "Value's size can't be less than 0.");
 
-            if( size > MaxElementSize )
+            if (size > MaxElementSize)
             {
                 // Entry size is too big to fit cache - ignore it
-                Remove( key );
+                Remove(key);
                 return false;
             }
 
-            if( size == 0 )
+            if (size == 0)
                 size = 1;
 
-            int bucketIndex = GetBucketIndex( key );
-            m_oldGeneration.Remove( bucketIndex, key );
-            AddToNewGeneration( bucketIndex, key, value, size );
+            int bucketIndex = GetBucketIndex(key);
+            m_oldGeneration.Remove(bucketIndex, key);
+            AddToNewGeneration(bucketIndex, key, value, size);
             CheckExpired();
 
             return true;
@@ -1828,23 +1828,23 @@ namespace OpenSim.Framework
         /// <seealso cref="ICnmCache{TKey,TValue}.RemoveRange"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.Clear"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.PurgeExpired"/>
-        public bool TryGetValue( TKey key, out TValue value )
+        public bool TryGetValue(TKey key, out TValue value)
         {
-            if( key == null )
-                throw new ArgumentNullException( "key" );
+            if (key == null)
+                throw new ArgumentNullException("key");
 
-            int bucketIndex = GetBucketIndex( key );
+            int bucketIndex = GetBucketIndex(key);
             long size;
-            if( m_newGeneration.TryGetValue( bucketIndex, key, out value, out size ) )
+            if (m_newGeneration.TryGetValue(bucketIndex, key, out value, out size))
             {
                 CheckExpired();
                 return true;
             }
 
-            if( m_oldGeneration.TryGetValue( bucketIndex, key, out value, out size ) )
+            if (m_oldGeneration.TryGetValue(bucketIndex, key, out value, out size))
             {
                 // Move element to new generation
-                AddToNewGeneration( bucketIndex, key, value, size );
+                AddToNewGeneration(bucketIndex, key, value, size);
                 CheckExpired();
                 return true;
             }

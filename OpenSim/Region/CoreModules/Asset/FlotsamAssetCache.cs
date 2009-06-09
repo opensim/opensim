@@ -230,7 +230,7 @@ namespace Flotsam.RegionModules.AssetCache
 
         private void UpdateMemoryCache(string key, AssetBase asset)
         {
-            if( m_MemoryCacheEnabled )
+            if (m_MemoryCacheEnabled)
             {
                 if (m_MemoryExpiration > TimeSpan.Zero)
                 {
@@ -404,7 +404,7 @@ namespace Flotsam.RegionModules.AssetCache
                     File.Delete(filename);
                 }
 
-                if( m_MemoryCacheEnabled )
+                if (m_MemoryCacheEnabled)
                     m_MemoryCache.Remove(id);
             }
             catch (Exception e)
@@ -423,7 +423,7 @@ namespace Flotsam.RegionModules.AssetCache
                 Directory.Delete(dir);
             }
 
-            if( m_MemoryCacheEnabled )
+            if (m_MemoryCacheEnabled)
                 m_MemoryCache.Clear();
         }
 

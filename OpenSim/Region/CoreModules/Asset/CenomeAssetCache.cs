@@ -114,12 +114,12 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <summary>
         /// Asset's default expiration time in the cache.
         /// </summary>        
-        public static readonly TimeSpan DefaultExpirationTime = TimeSpan.FromMinutes( 30.0 );
+        public static readonly TimeSpan DefaultExpirationTime = TimeSpan.FromMinutes(30.0);
 
         /// <summary>
         /// Log manager instance.
         /// </summary>
-        private static readonly ILog Log = LogManager.GetLogger( MethodBase.GetCurrentMethod().DeclaringType );
+        private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Cache object.
@@ -159,7 +159,7 @@ namespace OpenSim.Region.CoreModules.Asset
         /// </summary>
         public void Initialize()
         {
-            Initialize( DefaultMaxSize, DefaultMaxCount, DefaultExpirationTime );
+            Initialize(DefaultMaxSize, DefaultMaxCount, DefaultExpirationTime);
         }
 
         /// <summary>
@@ -174,16 +174,16 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <param name="expirationTime">
         /// Asset's expiration time.
         /// </param>
-        public void Initialize( long maximalSize, int maximalCount, TimeSpan expirationTime )
+        public void Initialize(long maximalSize, int maximalCount, TimeSpan expirationTime)
         {
-            if( maximalSize <= 0 || maximalCount <= 0 )
+            if (maximalSize <= 0 || maximalCount <= 0)
             {
-                Log.Info( "[ASSET CACHE]: Cenome asset cache is not enabled." );
+                Log.Info("[ASSET CACHE]: Cenome asset cache is not enabled.");
                 m_enabled = false;
                 return;
             }
 
-            if( expirationTime <= TimeSpan.Zero )
+            if (expirationTime <= TimeSpan.Zero)
             {
                 // Disable expiration time
                 expirationTime = TimeSpan.MaxValue;
@@ -191,14 +191,14 @@ namespace OpenSim.Region.CoreModules.Asset
 
             // Create cache and add synchronization wrapper over it
             m_cache =
-                CnmSynchronizedCache<string, AssetBase>.Synchronized( new CnmMemoryCache<string, AssetBase>(
-                    maximalSize, maximalCount, expirationTime ) );
+                CnmSynchronizedCache<string, AssetBase>.Synchronized(new CnmMemoryCache<string, AssetBase>(
+                    maximalSize, maximalCount, expirationTime));
             m_enabled = true;
             Log.InfoFormat(
                 "[ASSET CACHE]: Cenome asset cache enabled (MaxSize = {0} bytes, MaxCount = {1}, ExpirationTime = {2})",
                 maximalSize,
                 maximalCount,
-                expirationTime );
+                expirationTime);
         }
 
         #region IImprovedAssetCache Members
@@ -209,10 +209,10 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <param name="asset">
         /// The asset that is being cached.
         /// </param>
-        public void Cache( AssetBase asset )
+        public void Cache(AssetBase asset)
         {
             long size = asset.Data != null ? asset.Data.Length : 1;
-            m_cache.Set( asset.ID, asset, size );
+            m_cache.Set(asset.ID, asset, size);
             m_cachedCount++;
         }
 
@@ -230,9 +230,9 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <param name="id">
         /// The expired asset's id.
         /// </param>
-        public void Expire( string id )
+        public void Expire(string id)
         {
-            m_cache.Remove( id );
+            m_cache.Remove(id);
         }
 
         /// <summary>
@@ -250,14 +250,14 @@ namespace OpenSim.Region.CoreModules.Asset
         /// Cache doesn't guarantee in any situation that asset is stored to it.
         /// </para>
         /// </remarks>
-        public AssetBase Get( string id )
+        public AssetBase Get(string id)
         {
             m_getCount++;
             AssetBase assetBase;
-            if( m_cache.TryGetValue( id, out assetBase ) )
+            if (m_cache.TryGetValue(id, out assetBase))
                 m_hitCount++;
 
-            if( m_getCount == m_debugEpoch )
+            if (m_getCount == m_debugEpoch)
             {
                 Log.InfoFormat(
                     "[ASSET CACHE]: Cached = {0}, Get = {1}, Hits = {2}%, Size = {3} bytes, Avg. A. Size = {4} bytes",
@@ -265,7 +265,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     m_getCount,
                     ((double) m_hitCount / m_getCount) * 100.0,
                     m_cache.Size,
-                    m_cache.Size / m_cache.Count );
+                    m_cache.Size / m_cache.Count);
                 m_getCount = 0;
                 m_hitCount = 0;
                 m_cachedCount = 0;
@@ -292,10 +292,10 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <param name="scene">
         /// Region's scene.
         /// </param>
-        public void AddRegion( Scene scene )
+        public void AddRegion(Scene scene)
         {
-            if( m_enabled )
-                scene.RegisterModuleInterface<IImprovedAssetCache>( this );
+            if (m_enabled)
+                scene.RegisterModuleInterface<IImprovedAssetCache>(this);
         }
 
         /// <summary>
@@ -314,19 +314,19 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <param name="source">
         /// Configuration source.
         /// </param>
-        public void Initialise( IConfigSource source )
+        public void Initialise(IConfigSource source)
         {
             m_cache = null;
             m_enabled = false;
 
             IConfig moduleConfig = source.Configs[ "Modules" ];
-            if( moduleConfig == null )
+            if (moduleConfig == null)
                 return;
 
-            string name = moduleConfig.GetString( "AssetCaching" );
-            Log.DebugFormat( "[XXX] name = {0} (this module's name: {1}", name, Name );
+            string name = moduleConfig.GetString("AssetCaching");
+            Log.DebugFormat("[XXX] name = {0} (this module's name: {1}", name, Name);
 
-            if( name != Name )
+            if (name != Name)
                 return;
 
             // This module is used 
@@ -335,19 +335,19 @@ namespace OpenSim.Region.CoreModules.Asset
             TimeSpan expirationTime = DefaultExpirationTime;
 
             IConfig assetConfig = source.Configs[ "AssetCache" ];
-            if( assetConfig != null )
+            if (assetConfig != null)
             {
                 // Get optional configurations
-                maxSize = assetConfig.GetLong( "MaxSize", DefaultMaxSize );
-                maxCount = assetConfig.GetInt( "MaxCount", DefaultMaxCount );
+                maxSize = assetConfig.GetLong("MaxSize", DefaultMaxSize);
+                maxCount = assetConfig.GetInt("MaxCount", DefaultMaxCount);
                 expirationTime =
-                    TimeSpan.FromMinutes( assetConfig.GetInt( "ExpirationTime", (int) DefaultExpirationTime.TotalMinutes ) );
+                    TimeSpan.FromMinutes(assetConfig.GetInt("ExpirationTime", (int) DefaultExpirationTime.TotalMinutes));
 
                 // Debugging purposes only
-                m_debugEpoch = assetConfig.GetInt( "DebugEpoch", 0 );
+                m_debugEpoch = assetConfig.GetInt("DebugEpoch", 0);
             }
 
-            Initialize( maxSize, maxCount, expirationTime );
+            Initialize(maxSize, maxCount, expirationTime);
         }
 
         /// <summary>
@@ -381,7 +381,7 @@ namespace OpenSim.Region.CoreModules.Asset
         /// The extra function stub is just that much cleaner.
         /// </para>
         /// </remarks>
-        public void RegionLoaded( Scene scene )
+        public void RegionLoaded(Scene scene)
         {
         }
 
@@ -391,7 +391,7 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <param name="scene">
         /// Region scene that is being removed.
         /// </param>
-        public void RemoveRegion( Scene scene )
+        public void RemoveRegion(Scene scene)
         {
         }
 

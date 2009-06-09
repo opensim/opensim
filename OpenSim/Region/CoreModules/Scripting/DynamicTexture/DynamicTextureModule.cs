@@ -332,7 +332,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 UUID oldID = UUID.Zero;
 
-                lock(part)
+                lock (part)
                 {
                     // mostly keep the values from before
                     Primitive.TextureEntry tmptex = part.Shape.Textures;
@@ -340,7 +340,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                     // remove the old asset from the cache
                     oldID = tmptex.DefaultTexture.TextureID;
                     
-                    if(Face == ALL_SIDES)
+                    if (Face == ALL_SIDES)
                     {
                         tmptex.DefaultTexture.TextureID = asset.FullID;
                     }

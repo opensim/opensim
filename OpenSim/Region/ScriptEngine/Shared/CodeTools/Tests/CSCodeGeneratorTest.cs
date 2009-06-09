@@ -135,8 +135,8 @@ state another_state
         [Test]
         public void TestLoneIdent()
         {
-			// A lone ident should be removed completely as it's an error in C#
-			// (MONO at least).
+            // A lone ident should be removed completely as it's an error in C#
+            // (MONO at least).
             string input = @"default
 {
     touch_start(integer num_detected)
@@ -150,7 +150,7 @@ state another_state
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0);" +
-				"\n            ;" +
+                "\n            ;" +
                 "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
