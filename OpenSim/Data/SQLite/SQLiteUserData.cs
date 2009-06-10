@@ -1016,7 +1016,7 @@ namespace OpenSim.Data.SQLite
 
             row["homeRegionX"] = user.HomeRegionX;
             row["homeRegionY"] = user.HomeRegionY;
-            row["homeRegionID"] = user.HomeRegionID;
+            row["homeRegionID"] = user.HomeRegionID.ToString();
             row["homeLocationX"] = user.HomeLocation.X;
             row["homeLocationY"] = user.HomeLocation.Y;
             row["homeLocationZ"] = user.HomeLocation.Z;
@@ -1026,16 +1026,16 @@ namespace OpenSim.Data.SQLite
 
             row["created"] = user.Created;
             row["lastLogin"] = user.LastLogin;
-            row["rootInventoryFolderID"] = user.RootInventoryFolderID;
+            row["rootInventoryFolderID"] = user.RootInventoryFolderID.ToString();
             row["userInventoryURI"] = user.UserInventoryURI;
             row["userAssetURI"] = user.UserAssetURI;
             row["profileCanDoMask"] = user.CanDoMask;
             row["profileWantDoMask"] = user.WantDoMask;
             row["profileAboutText"] = user.AboutText;
             row["profileFirstText"] = user.FirstLifeAboutText;
-            row["profileImage"] = user.Image;
-            row["profileFirstImage"] = user.FirstLifeImage;
-            row["webLoginKey"] = user.WebLoginKey;
+            row["profileImage"] = user.Image.ToString();
+            row["profileFirstImage"] = user.FirstLifeImage.ToString();
+            row["webLoginKey"] = user.WebLoginKey.ToString();
             row["userFlags"] = user.UserFlags;
             row["godLevel"] = user.GodLevel;
             row["customType"] = user.CustomType == null ? "" : user.CustomType;
@@ -1149,12 +1149,12 @@ namespace OpenSim.Data.SQLite
             row["agentIP"] = ua.AgentIP;
             row["agentPort"] = ua.AgentPort;
             row["agentOnline"] = ua.AgentOnline;
-            row["sessionID"] = ua.SessionID;
-            row["secureSessionID"] = ua.SecureSessionID;
-            row["regionID"] = ua.InitialRegion;
+            row["sessionID"] = ua.SessionID.ToString();
+            row["secureSessionID"] = ua.SecureSessionID.ToString();
+            row["regionID"] = ua.InitialRegion.ToString();
             row["loginTime"] = ua.LoginTime;
             row["logoutTime"] = ua.LogoutTime;
-            row["currentRegion"] = ua.Region;
+            row["currentRegion"] = ua.Region.ToString();
             row["currentHandle"] = ua.Handle.ToString();
             // vectors
             row["currentPosX"] = ua.Position.X;
