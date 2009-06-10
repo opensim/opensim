@@ -959,6 +959,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>avatar's first name</description></item>
         /// <item><term>user_lastname</term>
         ///       <description>avatar's last name</description></item>
+        /// <item><term>user_lastlogin</term>
+        ///       <description>avatar's last login time (secs since UNIX epoch)</description></item>
         /// <item><term>success</term>
         ///       <description>true or false</description></item>
         /// <item><term>error</term>
@@ -988,9 +990,16 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 responseData["user_lastname"] = lastname;
 
                 if (null == userInfo)
+                {
                     responseData["success"] = false;
+                    responseData["lastlogin"] = 0;
+                }
                 else
+                {
                     responseData["success"] = true;
+                    responseData["lastlogin"] = userInfo.UserProfile.LastLogin;                
+                }
+
 
                 response.Value = responseData;
             }
