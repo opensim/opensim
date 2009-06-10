@@ -133,7 +133,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         {
             // Region doesn't exist here. Trying to link remote region
 
-            m_log.Info("[HGrid]: Linking remote region " + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort );
+            m_log.Info("[HGrid]: Linking remote region " + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort);
             regionInfo.RegionID = LinkRegion(regionInfo); // UUID.Random();
             if (!regionInfo.RegionID.Equals(UUID.Zero))
             {

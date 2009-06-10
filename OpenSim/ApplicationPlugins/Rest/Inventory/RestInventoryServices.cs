@@ -740,7 +740,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 // Scan the set of folders in the entity collection for an
                 // entry that matches the context folder. It is assumed that
-                // the only reliable indicator of this is a zero UUID ( using
+                // the only reliable indicator of this is a zero UUID (using
                 // implicit context), or the parent's UUID matches that of the
                 // URI designated node (explicit context). We don't allow
                 // ambiguity in this case because this is POST and we are
@@ -1621,7 +1621,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 foreach (InventoryFolderBase parent in ic.rdata.folders)
                 {
-                    if ( parent.ID == result.ParentID )
+                    if (parent.ID == result.ParentID)
                     {
                         found = true;
                         break;
@@ -2002,7 +2002,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 foreach (InventoryFolderBase parent in ic.rdata.folders)
                 {
-                    if ( parent.ID == ic.Item.Folder )
+                    if (parent.ID == ic.Item.Folder)
                     {
                         found = true;
                         break;

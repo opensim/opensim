@@ -392,9 +392,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         // on anything other than a URI token boundary. Otherwise we
                         // may match on URL's that were not intended for this handler.
 
-                        return ( path.Length == key.Length ||
-                                 path.Substring(key.Length,1) == Rest.UrlPathSeparator);
-
+                        return (path.Length == key.Length ||
+                                path.Substring(key.Length, 1) == Rest.UrlPathSeparator);
                     }
                 }
 
@@ -416,9 +415,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         // on anything other than a URI token boundary. Otherwise we
                         // may match on URL's that were not intended for this handler.
 
-                        return ( path.Length == key.Length ||
-                                 path.Substring(key.Length,1) == Rest.UrlPathSeparator);
-
+                        return (path.Length == key.Length ||
+                                path.Substring(key.Length, 1) == Rest.UrlPathSeparator);
                     }
                 }
             }
@@ -465,8 +463,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             try
             {
-                handled = ( FindPathHandler(request, response) ||
-                    FindStreamHandler(request, response) );
+                handled = (FindPathHandler(request, response) ||
+                    FindStreamHandler(request, response));
             }
             catch (Exception e)
             {

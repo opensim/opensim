@@ -183,7 +183,7 @@ namespace OpenSim.Data.NHibernate
             ICriteria criteria = manager.GetSession().CreateCriteria(typeof(SceneObjectPart));
             criteria.Add(Expression.Eq("RegionID", region));
             criteria.Add(Expression.Eq("ParentUUID", uuid));
-            criteria.AddOrder( Order.Asc("ParentID") );
+            criteria.AddOrder(Order.Asc("ParentID"));
 
             foreach (SceneObjectPart p in criteria.List())
             {

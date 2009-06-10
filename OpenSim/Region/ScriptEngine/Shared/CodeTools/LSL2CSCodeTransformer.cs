@@ -95,7 +95,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 // It's possible that a child is null, for instance when the
                 // assignment part in a for-loop is left out, ie:
                 //
-                //     for ( ; i < 10; i++)
+                //     for (; i < 10; i++)
                 //     {
                 //         ...
                 //     }

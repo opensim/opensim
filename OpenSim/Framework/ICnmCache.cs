@@ -348,7 +348,7 @@ namespace OpenSim.Framework
         /// <seealso cref="TryGetValue"/>
         /// <seealso cref="Clear"/>
         /// <seealso cref="PurgeExpired"/>
-        void Remove( TKey key );
+        void Remove(TKey key);
 
         /// <summary>
         /// Removes elements that are associated with one of <paramref name="keys"/> from the <see cref="ICnmCache{TKey,TValue}"/>.
@@ -364,7 +364,7 @@ namespace OpenSim.Framework
         /// <seealso cref="TryGetValue"/>
         /// <seealso cref="Clear"/>
         /// <seealso cref="PurgeExpired"/>
-        void RemoveRange( IEnumerable<TKey> keys );
+        void RemoveRange(IEnumerable<TKey> keys);
 
         /// <summary>
         /// Add or replace an element with the provided <paramref name="key"/>, <paramref name="value"/> and <paramref name="size"/> to 
@@ -411,7 +411,7 @@ namespace OpenSim.Framework
         /// <seealso cref="TryGetValue"/>
         /// <seealso cref="Clear"/>
         /// <seealso cref="PurgeExpired"/>
-        bool Set( TKey key, TValue value, long size );
+        bool Set(TKey key, TValue value, long size);
 
         /// <summary>
         /// Gets the <paramref name="value"/> associated with the specified <paramref name="key"/>.
@@ -436,6 +436,6 @@ namespace OpenSim.Framework
         /// <seealso cref="RemoveRange"/>
         /// <seealso cref="Clear"/>
         /// <seealso cref="PurgeExpired"/>
-        bool TryGetValue( TKey key, out TValue value );
+        bool TryGetValue(TKey key, out TValue value);
     }
 }

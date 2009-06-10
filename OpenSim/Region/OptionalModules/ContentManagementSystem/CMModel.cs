@@ -115,7 +115,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         {
             m_log.Debug("[CONTENT MANAG] saving " + scene.RegionInfo.RegionName + " with log message: " + logMessage + " length of message: " + logMessage.Length);
             m_database.SaveRegion(scene.RegionInfo.RegionID, scene.RegionInfo.RegionName, logMessage);
-            m_log.Debug("[CONTENT MANAG] the region name we are dealing with heeeeeeeere: " + scene.RegionInfo.RegionName );
+            m_log.Debug("[CONTENT MANAG] the region name we are dealing with heeeeeeeere: " + scene.RegionInfo.RegionName);
         }
 
         public void DeleteAllMetaObjects()

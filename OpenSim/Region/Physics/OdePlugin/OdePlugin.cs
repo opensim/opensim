@@ -3261,7 +3261,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, heightmapWidth, heightmapHeight,
                                                  (int) heightmapWidthSamples, (int) heightmapHeightSamples, scale,
                                                  offset, thickness, wrap);
-                d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1 , hfmax + 1 );
+                d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1 , hfmax + 1);
                 LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
                 if (LandGeom != IntPtr.Zero)
                 {

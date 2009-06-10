@@ -1195,14 +1195,14 @@ namespace OpenSim.Data.SQLite
 
         private void setupAgentCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
-            da.InsertCommand = SQLiteUtil.createInsertCommand( "useragents", ds.Tables["useragents"]);
+            da.InsertCommand = SQLiteUtil.createInsertCommand("useragents", ds.Tables["useragents"]);
             da.InsertCommand.Connection = conn;
 
-            da.UpdateCommand = SQLiteUtil.createUpdateCommand( "useragents", "UUID=:UUID", ds.Tables["useragents"]);
+            da.UpdateCommand = SQLiteUtil.createUpdateCommand("useragents", "UUID=:UUID", ds.Tables["useragents"]);
             da.UpdateCommand.Connection = conn;
 
-            SqliteCommand delete = new SqliteCommand( "delete from useragents where UUID = :ProfileID");
-            delete.Parameters.Add( SQLiteUtil.createSqliteParameter( "ProfileID", typeof(String)));
+            SqliteCommand delete = new SqliteCommand("delete from useragents where UUID = :ProfileID");
+            delete.Parameters.Add(SQLiteUtil.createSqliteParameter("ProfileID", typeof(String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }

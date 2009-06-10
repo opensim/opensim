@@ -286,7 +286,7 @@ namespace OpenSim.Framework.Communications.Cache
                 // Take all ther received items and put them into the folder tree heirarchy
                 foreach (InventoryItemBase item in items) {
                     InventoryFolderImpl folder = resolvedFolders.ContainsKey(item.Folder) ? resolvedFolders[item.Folder] : null;
-                    ItemReceive(item, folder );
+                    ItemReceive(item, folder);
                 }
             }
             catch (Exception e)

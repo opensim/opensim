@@ -573,7 +573,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     display--;
 
                     string severity = "Error";
-                    if ( CompErr.IsWarning )
+                    if (CompErr.IsWarning)
                     {
                         severity = "Warning";
                     }

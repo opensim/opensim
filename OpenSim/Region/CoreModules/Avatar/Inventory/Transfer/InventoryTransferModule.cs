@@ -219,7 +219,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 else
                 {
                     if (m_TransferModule != null)
-                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {} );
+                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {});
                 }
             }
             else if (im.dialog == (byte) InstantMessageDialog.InventoryAccepted)
@@ -233,7 +233,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 else
                 {
                     if (m_TransferModule != null)
-                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {} );
+                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {});
                 }
             }
             else if (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
@@ -300,7 +300,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 else
                 {
                     if (m_TransferModule != null)
-                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {} );
+                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {});
                 }
             }
         }

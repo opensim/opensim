@@ -88,7 +88,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                m_log.WarnFormat( "[LOCAL INVENTORY SERVICE]: User {0} inventory not available", userID);
+                m_log.WarnFormat("[LOCAL INVENTORY SERVICE]: User {0} inventory not available", userID);
             }
 
             callback(folders, items);

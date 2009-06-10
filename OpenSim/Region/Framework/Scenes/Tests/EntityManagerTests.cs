@@ -68,13 +68,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             entman.Add(sog);
             
             found = (SceneObjectGroup)entman[obj1];
-            Assert.That(found.UUID ,Is.EqualTo(obj1) );
+            Assert.That(found.UUID ,Is.EqualTo(obj1));
             found = (SceneObjectGroup)entman[li1];
-            Assert.That(found.UUID ,Is.EqualTo(obj1) );
+            Assert.That(found.UUID ,Is.EqualTo(obj1));
             found = (SceneObjectGroup)entman[obj2];
-            Assert.That(found.UUID ,Is.EqualTo(obj2) );
+            Assert.That(found.UUID ,Is.EqualTo(obj2));
             found = (SceneObjectGroup)entman[li2];
-            Assert.That(found.UUID ,Is.EqualTo(obj2) );
+            Assert.That(found.UUID ,Is.EqualTo(obj2));
 
             entman.Remove(obj1);
             entman.Remove(li2);

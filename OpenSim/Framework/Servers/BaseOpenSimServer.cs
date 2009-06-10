@@ -490,13 +490,13 @@ namespace OpenSim.Framework.Servers
         public string StatReport(OSHttpRequest httpRequest)
         {
             // If we catch a request for "callback", wrap the response in the value for jsonp
-            if ( httpRequest.Query.ContainsKey("callback"))
+            if (httpRequest.Query.ContainsKey("callback"))
             {
-                return httpRequest.Query["callback"].ToString() + "(" + m_stats.XReport((DateTime.Now - m_startuptime).ToString() , m_version ) + ");";
+                return httpRequest.Query["callback"].ToString() + "(" + m_stats.XReport((DateTime.Now - m_startuptime).ToString() , m_version) + ");";
             } 
             else 
             {
-                return m_stats.XReport((DateTime.Now - m_startuptime).ToString() , m_version ); 
+                return m_stats.XReport((DateTime.Now - m_startuptime).ToString() , m_version); 
             }
         }
            

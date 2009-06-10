@@ -194,7 +194,7 @@ namespace OpenSim.GridLaunch.GUI.WinForm
             cblStartupComponents.Items.AddRange(arr);
 
             // Now correct all check states
-            for (int i = 0; i < cblStartupComponents.Items.Count; i++ )
+            for (int i = 0; i < cblStartupComponents.Items.Count; i++)
             {
                 string _name = cblStartupComponents.Items[i] as string;
                 bool _checked = Program.Settings.Components[_name];

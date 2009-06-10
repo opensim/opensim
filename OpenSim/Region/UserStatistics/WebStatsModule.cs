@@ -398,7 +398,7 @@ namespace OpenSim.Region.UserStatistics
 
         }
 
-        public string readLogLines( int amount)
+        public string readLogLines(int amount)
         {
             Encoding encoding = Encoding.ASCII;
             int sizeOfChar = encoding.GetByteCount("\n");

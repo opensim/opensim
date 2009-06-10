@@ -38,7 +38,7 @@ namespace OpenSim.Framework.Servers.Tests
         [Test]
         public void TestVersionLength()
         {
-            Assert.AreEqual(VersionInfo.VERSIONINFO_VERSION_LENGTH, VersionInfo.Version.Length," VersionInfo.Version string not " + VersionInfo.VERSIONINFO_VERSION_LENGTH + " chars." );
+            Assert.AreEqual(VersionInfo.VERSIONINFO_VERSION_LENGTH, VersionInfo.Version.Length," VersionInfo.Version string not " + VersionInfo.VERSIONINFO_VERSION_LENGTH + " chars.");
         }
 
         [Test]

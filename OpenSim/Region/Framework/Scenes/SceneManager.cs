@@ -645,7 +645,7 @@ namespace OpenSim.Region.Framework.Scenes
         public IJ2KDecoder j2kdecode;
         private System.Threading.Thread thisthread;
 
-        public void run( object o)
+        public void run(object o)
         {
             for (int i=0;i<arrassets.Length;i++)
             {

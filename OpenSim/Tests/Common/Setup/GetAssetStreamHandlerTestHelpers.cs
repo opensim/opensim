@@ -103,7 +103,7 @@ namespace OpenSim.Tests.Common.Setup
         public static AssetBase CreateTestAsset()
         {
             byte[] expected = new byte[] { 1,2,3 };
-            AssetBase asset = new AssetBase( );
+            AssetBase asset = new AssetBase();
             asset.ID = Guid.NewGuid().ToString();
             asset.Data = expected;
             asset.Type = 2;

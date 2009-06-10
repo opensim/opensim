@@ -429,8 +429,7 @@ namespace OpenSim.Region.Physics.Meshing
                 {
 #if SPAM
                 m_log.Debug("Meshmerizer: prim " + primName + " has a size of " + size.ToString() + " which is below threshold of " + 
-
-minSizeForComplexMesh.ToString() + " - creating simple bounding box" );
+                            minSizeForComplexMesh.ToString() + " - creating simple bounding box");
 #endif
                     mesh = CreateBoundingBoxMesh(mesh);
                     mesh.DumpRaw(baseDir, primName, "Z extruded");
@@ -443,6 +442,5 @@ minSizeForComplexMesh.ToString() + " - creating simple bounding box" );
 
             return mesh;
         }
-
     }
 }

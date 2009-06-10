@@ -404,7 +404,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         private bool IsAConnectionMatchFor(ChannelState cs)
         {
-            return ( 
+            return (
                 Server == cs.Server && 
                 IrcChannel == cs.IrcChannel &&
                 Port == cs.Port &&
@@ -419,7 +419,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         private bool IsAPerfectMatchFor(ChannelState cs)
         {
-            return ( IsAConnectionMatchFor(cs) &&
+            return (IsAConnectionMatchFor(cs) &&
                      RelayChannelOut == cs.RelayChannelOut &&
                      PrivateMessageFormat == cs.PrivateMessageFormat &&
                      NoticeMessageFormat == cs.NoticeMessageFormat &&
@@ -598,7 +598,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                 {
                     foreach (ChannelState cs in IRCBridgeModule.m_channels)
                     {
-                        if ( p_irc == cs.irc)
+                        if (p_irc == cs.irc)
                         {
 
                             // This non-IRC differentiator moved to here

@@ -103,7 +103,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public void AddAsset(AssetBase asset)
         {
-            CreateAsset( asset );
+            CreateAsset(asset);
         }
 
         public void ExpireAsset(UUID assetID)

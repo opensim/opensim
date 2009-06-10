@@ -586,7 +586,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         // Check for hostname , attempt to make a hglink
                         // and convert the regionName to the target region
-                        if ( regionName.Contains(".") && regionName.Contains(":"))
+                        if (regionName.Contains(".") && regionName.Contains(":"))
                         {
                             // Try to link the region
                             RegionInfo regInfo = HGHyperlink.TryLinkRegion(World,

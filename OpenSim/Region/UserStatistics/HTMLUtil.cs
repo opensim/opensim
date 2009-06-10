@@ -43,6 +43,7 @@ namespace OpenSim.Region.UserStatistics
             }
             o.Append(">\n\t");
         }
+
         public static void TR_C(ref StringBuilder o)
         {
             o.Append("</tr>\n");
@@ -52,6 +53,7 @@ namespace OpenSim.Region.UserStatistics
         {
             TD_O(ref o, pclass, 0, 0);
         }
+
         public static void TD_O(ref StringBuilder o, string pclass, int rowspan, int colspan)
         {
             o.Append("<td");
@@ -73,10 +75,12 @@ namespace OpenSim.Region.UserStatistics
             }
             o.Append(">");
         }
+
         public static void TD_C(ref StringBuilder o)
         {
             o.Append("</td>");
         }
+
         public static void TABLE_O(ref StringBuilder o, string pclass)
         {
             o.Append("<table");
@@ -86,6 +90,7 @@ namespace OpenSim.Region.UserStatistics
             }
             o.Append(">\n\t");
         }
+
         public static void TABLE_C(ref StringBuilder o)
         {
             o.Append("</table>\n");
@@ -208,24 +213,22 @@ namespace OpenSim.Region.UserStatistics
                 });
                 // ]]>
                 </script>");
-
         }
 
-        public static void HtmlHeaders_O ( ref StringBuilder o)
+        public static void HtmlHeaders_O(ref StringBuilder o)
         {
             o.Append("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
             o.Append("<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"nl\">");
             o.Append("<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\" />");
-
-
         }
-        public static void HtmlHeaders_C ( ref StringBuilder o)
+
+        public static void HtmlHeaders_C(ref StringBuilder o)
         {
             o.Append("</HEAD>");
             o.Append("<BODY>");
         }
 
-        public static void AddReportLinks( ref StringBuilder o, Dictionary<string, IStatsController> reports, string pClass)
+        public static void AddReportLinks(ref StringBuilder o, Dictionary<string, IStatsController> reports, string pClass)
         {
             int repcount = 0;
             foreach (string str in reports.Keys)
@@ -242,7 +245,8 @@ namespace OpenSim.Region.UserStatistics
                 }
             }
         }
-        public static void A( ref StringBuilder o, string linktext, string linkhref, string pClass)
+
+        public static void A(ref StringBuilder o, string linktext, string linkhref, string pClass)
         {
             o.Append("<A");
             if (pClass.Length > 0)
@@ -254,7 +258,6 @@ namespace OpenSim.Region.UserStatistics
             o.Append("\">");
             o.Append(linktext);
             o.Append("</A>");
-
         }
     }
 }

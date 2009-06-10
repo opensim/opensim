@@ -2593,7 +2593,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
                         && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
                         && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02)
-                        && (1.0 - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation)) < 0.01 ))
+                        && (1.0 - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation)) < 0.01))
                     {
                         _zeroFlag = true;
                         m_throttleUpdates = false;
@@ -2981,7 +2981,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             Matrix4 transposeMatrix = new Matrix4();
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
-                    Matrix4SetValue( ref transposeMatrix, i, j, pMat[j, i]);
+                    Matrix4SetValue(ref transposeMatrix, i, j, pMat[j, i]);
             return transposeMatrix;
         }
 

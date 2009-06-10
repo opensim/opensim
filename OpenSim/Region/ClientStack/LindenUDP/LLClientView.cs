@@ -9453,7 +9453,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // in the end, we dereference this, so we have to check if it's null
-            if (m_imageManager != null )
+            if (m_imageManager != null)
                 m_imageManager.ProcessImageQueue(10);
             PacketPool.Instance.ReturnPacket(Pack);
         }
@@ -10164,7 +10164,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             mirplk.AgentData.AgentID = AgentId;
             mirplk.RequestData.ItemType = mapitemtype;
             mirplk.Data = new MapItemReplyPacket.DataBlock[replies.Length];
-            for (int i = 0; i < replies.Length; i++ )
+            for (int i = 0; i < replies.Length; i++)
             {
                 MapItemReplyPacket.DataBlock mrdata = new MapItemReplyPacket.DataBlock();
                 mrdata.X = replies[i].x;

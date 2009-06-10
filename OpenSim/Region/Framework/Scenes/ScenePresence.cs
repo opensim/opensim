@@ -2032,7 +2032,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID[] animIDs;
             int[] sequenceNums;
             UUID[] objectIDs;
-            m_animations.GetArrays( out animIDs, out sequenceNums, out objectIDs);
+            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
             return animIDs;
         }
 

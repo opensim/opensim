@@ -170,7 +170,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 SceneObjectPart sop = GetSOP();
                 IObjectMaterial[] rets = new IObjectMaterial[getNumberOfSides(sop)];
 
-                for (int i = 0; i < rets.Length;i++ )
+                for (int i = 0; i < rets.Length; i++)
                 {
                     rets[i] = new SOPObjectMaterial(i, sop);
                 }

@@ -165,7 +165,7 @@ namespace OpenSim.Framework
                     DefaultStartupMsg = (string) configuration_result;
                     break;
                 case "default_grid_server":
-                    GridServerURL = new Uri( (string) configuration_result );
+                    GridServerURL = new Uri((string) configuration_result);
                     break;
                 case "grid_send_key":
                     GridSendKey = (string) configuration_result;

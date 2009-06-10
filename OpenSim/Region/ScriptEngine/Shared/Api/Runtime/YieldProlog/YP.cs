@@ -1407,7 +1407,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                     throw new PrologException(Atom.a("instantiation_error"),
                         "Arg 1 Char and arg 2 Code are both unbound variables");
 
-                return YP.unify(Char, Atom.a(new String(new char[] {(char)codeInt} )));
+                return YP.unify(Char, Atom.a(new String(new char[] {(char)codeInt})));
             }
             else
             {
@@ -2343,7 +2343,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             string results = "";
             for (Match m = Regex.Match(inData,inPattern); m.Success; m=m.NextMatch())
             {
-                //m_log.Debug( m );
+                //m_log.Debug(m);
                 results += presep+ m + postsep;
             }
             return results;

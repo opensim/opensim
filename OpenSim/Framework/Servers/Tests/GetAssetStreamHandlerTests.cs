@@ -50,7 +50,7 @@ namespace OpenSim.Framework.Servers.Tests
             TestHelper.InMethod();
 
             // GetAssetStreamHandler handler = 
-            new GetAssetStreamHandler( null );
+            new GetAssetStreamHandler(null);
         }
 
         [Test]

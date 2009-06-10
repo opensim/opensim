@@ -2856,7 +2856,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_TransferModule != null)
             {
-                m_TransferModule.SendInstantMessage(msg, delegate(bool success) {} );
+                m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
             ScriptSleep(2000);
       }
@@ -3668,7 +3668,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         bucket);
 
                 if (m_TransferModule != null)
-                    m_TransferModule.SendInstantMessage(msg, delegate(bool success) {} );
+                    m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
             else
             {
@@ -5968,7 +5968,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     bucket);
 
             if (m_TransferModule != null)
-                m_TransferModule.SendInstantMessage(msg, delegate(bool success) {} );
+                m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
         }
 
         public void llSetVehicleType(int type)
@@ -6008,7 +6008,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!m_host.ParentGroup.IsDeleted)
                 {
                     m_host.ParentGroup.RootPart.SetVehicleVectorParam(param, 
-                        new PhysicsVector((float)vec.x, (float)vec.y, (float)vec.z) );
+                        new PhysicsVector((float)vec.x, (float)vec.y, (float)vec.z));
                 }
             }
         }
@@ -7039,7 +7039,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (double)Math.Log(val);
         }
 
-        public LSL_List llGetAnimationList( string id )
+        public LSL_List llGetAnimationList(string id)
         {
             m_host.AddScriptLPS(1);
 

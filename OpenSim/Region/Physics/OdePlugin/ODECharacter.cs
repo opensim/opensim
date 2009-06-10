@@ -1116,7 +1116,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_log.Warn("[PHYSICS]: re-creating the following avatar ODE data, even though it already exists - "
                             + (Shell!=IntPtr.Zero ? "Shell ":"")
                             + (Body!=IntPtr.Zero ? "Body ":"")
-                            + (Amotor!=IntPtr.Zero ? "Amotor ":"") );
+                            + (Amotor!=IntPtr.Zero ? "Amotor ":""));
                     }
                     AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z, m_tensor);
                     
@@ -1182,7 +1182,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_log.Warn("[PHYSICS]: trying to change capsule size, but the following ODE data is missing - " 
                         + (Shell==IntPtr.Zero ? "Shell ":"")
                         + (Body==IntPtr.Zero ? "Body ":"")
-                        + (Amotor==IntPtr.Zero ? "Amotor ":"") );
+                        + (Amotor==IntPtr.Zero ? "Amotor ":""));
                 }
             }
 

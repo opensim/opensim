@@ -556,7 +556,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
             
-            response["str_response_string"] = String.Format( 
+            response["str_response_string"] = String.Format(
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<VCConfiguration>\r\n"+
                     "<DefaultRealm>{0}</DefaultRealm>\r\n" +

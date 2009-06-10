@@ -890,8 +890,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     
                     responseMap["sim_host"] = OSD.FromString(rezRespSim_host);
                     responseMap["sim_port"] = OSD.FromInteger(rrPort);
-                    responseMap["region_x"] = OSD.FromInteger(rrX );
-                    responseMap["region_y"] = OSD.FromInteger(rrY );
+                    responseMap["region_x"] = OSD.FromInteger(rrX);
+                    responseMap["region_y"] = OSD.FromInteger(rrY);
                     responseMap["region_id"] = OSD.FromUUID(rrRID);
                     responseMap["sim_access"] = OSD.FromString(rrAccess);
 

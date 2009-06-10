@@ -234,7 +234,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 SetDefaultsForType(pType);
                 Reset();
             }
-            else if (m_type != Vehicle.TYPE_NONE && pType != Vehicle.TYPE_NONE )
+            else if (m_type != Vehicle.TYPE_NONE && pType != Vehicle.TYPE_NONE)
             {
                 // Set properties
                 SetDefaultsForType(pType);
@@ -408,7 +408,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // m_bankingMix = 0.8f;
                     // m_bankingTimescale = 1;
                     // m_referenceFrame = Quaternion.Identity;
-                    m_flags &= ~( VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.LIMIT_ROLL_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT);
+                    m_flags &= ~(VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.LIMIT_ROLL_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT);
                     m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_UP_ONLY |
                                 VehicleFlag.LIMIT_MOTOR_UP);
                     break;

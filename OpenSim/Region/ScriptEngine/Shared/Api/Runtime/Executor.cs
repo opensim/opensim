@@ -206,7 +206,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                 // DO NOT THROW JUST THE INNER EXCEPTION!
                 // FriendlyErrors depends on getting the whole exception!
                 //
-                if ( !(tie.InnerException is EventAbortException) )
+                if (!(tie.InnerException is EventAbortException))
                 {
                     throw;
                 }

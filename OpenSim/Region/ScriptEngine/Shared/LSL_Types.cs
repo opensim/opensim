@@ -447,7 +447,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         // down-cast from Object to the correct type.
         // Note: no checks for item index being valid are performed
 
-            public LSL_Types.LSLFloat GetLSLFloatItem( int itemIndex )
+            public LSL_Types.LSLFloat GetLSLFloatItem(int itemIndex)
             {
                 if (m_data[itemIndex] is LSL_Types.LSLInteger)
                 {

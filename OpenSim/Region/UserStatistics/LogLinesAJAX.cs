@@ -76,7 +76,7 @@ namespace OpenSim.Region.UserStatistics
             string formatopen = "";
             string formatclose = "";
 
-            for (int i = 0; i < result.Length;i++ )
+            for (int i = 0; i < result.Length; i++)
             {
                 if (result[i].Length >= 30)
                 {

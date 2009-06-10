@@ -379,7 +379,7 @@ namespace pCampBot
                     {
                         client.Assets.RequestImage(prim.Textures.DefaultTexture.TextureID, ImageType.Normal);
                     }
-                    for (int i = 0; i < prim.Textures.FaceTextures.Length; i++ )
+                    for (int i = 0; i < prim.Textures.FaceTextures.Length; i++)
                     {
                         if (prim.Textures.FaceTextures[i] != null)
                         {

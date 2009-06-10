@@ -3325,7 +3325,7 @@ if (m_shape != null) {
             bool wasPhantom = ((ObjectFlags & (uint)PrimFlags.Phantom) != 0);
             bool wasVD = VolumeDetectActive;
 
-            if ((UsePhysics == wasUsingPhysics) && (wasTemporary == IsTemporary) && (wasPhantom == IsPhantom) && (IsVD==wasVD) )
+            if ((UsePhysics == wasUsingPhysics) && (wasTemporary == IsTemporary) && (wasPhantom == IsPhantom) && (IsVD==wasVD))
             {
                 return;
             }
@@ -3477,7 +3477,7 @@ if (m_shape != null) {
             }
             else
             {   // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
-                // (mumbles, well, at least if you have infinte CPU powers :-) )
+                // (mumbles, well, at least if you have infinte CPU powers :-))
                 if (this.PhysActor != null)
                 {
                     PhysActor.SetVolumeDetect(0);

@@ -459,7 +459,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
             lock (m_prims)
             {
-                foreach ( BulletDotNETPrim prim in m_prims)
+                foreach (BulletDotNETPrim prim in m_prims)
                 {
                     if (prim.Body != null)
                         m_world.removeRigidBody(prim.Body);

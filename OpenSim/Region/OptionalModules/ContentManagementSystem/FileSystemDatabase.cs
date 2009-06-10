@@ -123,7 +123,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         {
             String filename = m_repodir + Slash.DirectorySeparatorChar + regionid +
                 Slash.DirectorySeparatorChar + "heightmap.r32";
-            FileStream fs = new FileStream( filename, FileMode.Open);
+            FileStream fs = new FileStream(filename, FileMode.Open);
             StreamReader sr = new StreamReader(fs);
             String result = sr.ReadToEnd();
             sr.Close();
@@ -135,7 +135,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         {
             String filename = m_repodir + Slash.DirectorySeparatorChar + regionid +
                 Slash.DirectorySeparatorChar + "heightmap.r32";
-            FileStream fs = new FileStream( filename, FileMode.Open);
+            FileStream fs = new FileStream(filename, FileMode.Open);
             StreamReader sr = new StreamReader(fs);
             String result = sr.ReadToEnd();
             sr.Close();
@@ -232,7 +232,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                 try
                 {
                     logLocation = revisionDir + Slash.DirectorySeparatorChar + "log";
-                    fs = new FileStream( logLocation, FileMode.Open);
+                    fs = new FileStream(logLocation, FileMode.Open);
                     sr = new StreamReader(fs);
                     logMessage = sr.ReadToEnd();
                     sr.Close();

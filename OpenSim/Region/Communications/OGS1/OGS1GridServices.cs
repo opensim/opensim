@@ -435,7 +435,7 @@ namespace OpenSim.Region.Communications.OGS1
                     // string externalUri = (string) responseData["sim_uri"];
 
                     //IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
-                    regionInfo = RegionInfo.Create(regionID, regionName, regX, regY, externalHostName, httpPort, simPort, remotingPort, simURI );
+                    regionInfo = RegionInfo.Create(regionID, regionName, regX, regY, externalHostName, httpPort, simPort, remotingPort, simURI);
 
                     if (m_useRemoteRegionCache)
                     {

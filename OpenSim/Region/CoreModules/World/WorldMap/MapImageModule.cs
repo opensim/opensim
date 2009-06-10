@@ -511,7 +511,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     if (z_sort.ContainsKey(sortedlocalIds[s]))
                     {
                         DrawStruct rectDrawStruct = z_sort[sortedlocalIds[s]];
-                        for (int r = 0; r < rectDrawStruct.trns.Length; r++ )
+                        for (int r = 0; r < rectDrawStruct.trns.Length; r++)
                         {
                             g.FillPolygon(rectDrawStruct.brush,rectDrawStruct.trns[r].pts);
                         }

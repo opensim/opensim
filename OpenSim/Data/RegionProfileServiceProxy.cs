@@ -113,7 +113,7 @@ namespace OpenSim.Data
         public RegionProfileData RequestSimProfileData(string regionName, Uri gridserverUrl,
                                                               string gridserverSendkey, string gridserverRecvkey)
         {
-            return RequestSimData(gridserverUrl, gridserverSendkey, "region_name_search", regionName );
+            return RequestSimData(gridserverUrl, gridserverSendkey, "region_name_search", regionName);
         }
     }
 }

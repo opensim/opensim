@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Communications.Tests
             {
                 UserProfileData userProfile = new UserProfileData();
 
-//                userProfile.ID = new UUID( Util.GetHashGuid( uri.ToString(), AssetCache.AssetInfo.Secret ));
+//                userProfile.ID = new UUID(Util.GetHashGuid(uri.ToString(), AssetCache.AssetInfo.Secret));
 
                 return userProfile;
             }

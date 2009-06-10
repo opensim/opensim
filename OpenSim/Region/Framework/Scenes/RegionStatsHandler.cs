@@ -63,7 +63,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public RegionStatsHandler(OpenSim.Framework.RegionInfo region_info )
+        public RegionStatsHandler(OpenSim.Framework.RegionInfo region_info)
         {
             regionInfo = region_info;
             osRXStatsURI = Util.SHA1Hash(regionInfo.regionSecret);
@@ -95,7 +95,7 @@ namespace OpenSim.Region.Framework.Scenes
         private string Report()
         {            
             OSDMap args = new OSDMap(30);
-            //int time = Util.ToUnixTime( DateTime.Now );
+            //int time = Util.ToUnixTime(DateTime.Now);
             args["OSStatsURI"] = OSD.FromString("http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort + "/" + osXStatsURI + "/");
             args["TimeZoneName"] = OSD.FromString(localZone);
             args["TimeZoneOffs"] = OSD.FromReal(utcOffset.TotalHours);

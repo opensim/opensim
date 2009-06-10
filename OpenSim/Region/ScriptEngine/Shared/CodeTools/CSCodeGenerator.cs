@@ -676,20 +676,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             // It's possible that we don't have an assignment, in which case
             // the child will be null and we only print the semicolon.
-            // for ( x = 0 ; x < 10 ; x++ )
-            //       ^^^^^^^
+            // for (x = 0; x < 10; x++)
+            //      ^^^^^
             ForLoopStatement s = (ForLoopStatement) fl.kids.Pop();
             if (null != s)
             {
                 retstr += GenerateForLoopStatement(s);
             }
             retstr += Generate("; ");
-            // for ( x = 0 ; x < 10 ; x++ )
-            //               ^^^^^^^^
+            // for (x = 0; x < 10; x++)
+            //             ^^^^^^
             retstr += GenerateNode((SYMBOL) fl.kids.Pop());
             retstr += Generate("; ");
-            // for ( x = 0 ; x < 10 ; x++ )
-            //                        ^^^^^
+            // for (x = 0; x < 10; x++)
+            //                     ^^^
             retstr += GenerateForLoopStatement((ForLoopStatement) fl.kids.Pop());
             retstr += GenerateLine(")");
 

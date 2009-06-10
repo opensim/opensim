@@ -1060,11 +1060,11 @@ namespace OpenSim.Framework
 
         public static Guid GetHashGuid(string data, string salt)
         {
-            byte[] hash = ComputeMD5Hash( data + salt );
+            byte[] hash = ComputeMD5Hash(data + salt);
 
             //string s = BitConverter.ToString(hash);
 
-            Guid guid = new Guid( hash );
+            Guid guid = new Guid(hash);
 
             return guid;
         }

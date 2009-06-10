@@ -147,7 +147,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
             response["int_response_code"] = 200;
-            response["str_response_string"] = String.Format( 
+            response["str_response_string"] = String.Format(
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
                     "<section name=\"directory\" description=\"User Directory\">\r\n" +
@@ -184,7 +184,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
             response["int_response_code"] = 200;
-            response["str_response_string"] = String.Format( 
+            response["str_response_string"] = String.Format(
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
                     "<section name=\"directory\" description=\"User Directory\">\r\n" +
@@ -230,7 +230,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
             response["int_response_code"] = 200;
-            response["str_response_string"] = String.Format( 
+            response["str_response_string"] = String.Format(
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
                     "<section name=\"directory\" description=\"User Directory\">\r\n" +
@@ -263,7 +263,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
             response["int_response_code"] = 200;
-            response["str_response_string"] = String.Format( 
+            response["str_response_string"] = String.Format(
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
                     "<section name=\"directory\" description=\"User Directory\">\r\n" +
@@ -317,7 +317,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 //            response["content_type"] = "text/xml";
 //            response["keepalive"] = false;
 //            response["int_response_code"] = 200;
-//            response["str_response_string"] = String.Format( 
+//            response["str_response_string"] = String.Format(
 //                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
 //                "<document type=\"freeswitch/xml\">\r\n" +
 //                    "<section name=\"directory\" description=\"User Directory\">\r\n" +
