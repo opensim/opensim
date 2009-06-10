@@ -3554,6 +3554,7 @@
       <Reference name="OpenSim.Client.Linden"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Tests.Common"/>

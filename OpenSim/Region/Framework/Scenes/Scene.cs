@@ -146,6 +146,26 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        protected IInventoryService m_InventoryService = null;
+
+        public IInventoryService InventoryService
+        {
+            get
+            {
+                if (m_InventoryService == null)
+                {
+                    m_InventoryService = RequestModuleInterface<IInventoryService>();
+
+                    if (m_InventoryService == null)
+                    {
+                        throw new Exception("No IInventoryService available.");
+                    }
+                }
+
+                return m_InventoryService;
+            }
+        }
+
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;

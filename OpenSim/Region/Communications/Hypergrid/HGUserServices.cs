@@ -35,6 +35,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Clients;
 using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Communications.Local;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Communications.Hypergrid
 {
@@ -61,6 +62,12 @@ namespace OpenSim.Region.Communications.Hypergrid
             : base(commsManager)
         {
             m_localUserServices = local;
+        }
+
+        public override void SetInventoryService(IInventoryService invService)
+        {
+            base.SetInventoryService(invService);
+            m_localUserServices.SetInventoryService(invService);
         }
 
         public override UUID AddUser(

@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using OpenMetaverse;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -62,7 +63,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// The comms manager holds references to services (user, grid, inventory, etc.)
         /// </summary>
-        private readonly CommunicationsManager m_commsManager;
+        private readonly IInventoryService m_InventoryService;
 
         public UserProfileData UserProfile { get { return m_userProfile; } }
         private UserProfileData m_userProfile;
@@ -96,10 +97,10 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="commsManager"></param>
         /// <param name="userProfile"></param>
-        public CachedUserInfo(CommunicationsManager commsManager, UserProfileData userProfile)
+        public CachedUserInfo(IInventoryService invService, UserProfileData userProfile)
         {
-            m_commsManager = commsManager;
             m_userProfile = userProfile;
+            m_InventoryService = invService;
         }
 
         /// <summary>
@@ -213,15 +214,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// asynchronously otherwise.
         public void FetchInventory()
         {
-            if (m_commsManager.SecureInventoryService != null)
-            {
-                m_commsManager.SecureInventoryService.RequestInventoryForUser(
-                    UserProfile.ID, SessionID, InventoryReceive);
-            }
-            else
-            {
-                m_commsManager.InventoryService.RequestInventoryForUser(UserProfile.ID, InventoryReceive);
-            }           
+            m_InventoryService.GetUserInventory(UserProfile.ID, InventoryReceive);
         }
 
         /// <summary>
@@ -383,14 +376,8 @@ namespace OpenSim.Framework.Communications.Cache
                     createdBaseFolder.Type = createdFolder.Type;
                     createdBaseFolder.Version = createdFolder.Version;
 
-                    if (m_commsManager.SecureInventoryService != null)
-                    {
-                        m_commsManager.SecureInventoryService.AddFolder(createdBaseFolder, m_session_id);
-                    }
-                    else
-                    {
-                        m_commsManager.InventoryService.AddFolder(createdBaseFolder);
-                    }
+                    m_InventoryService.AddFolder(createdBaseFolder);
+
                     return true;
                 }
                 else
@@ -449,14 +436,7 @@ namespace OpenSim.Framework.Communications.Cache
                 baseFolder.Type = (short)type;
                 baseFolder.Version = RootFolder.Version;
 
-                if (m_commsManager.SecureInventoryService != null)
-                {
-                    m_commsManager.SecureInventoryService.UpdateFolder(baseFolder, m_session_id);
-                }
-                else
-                {
-                    m_commsManager.InventoryService.UpdateFolder(baseFolder);
-                }
+                m_InventoryService.UpdateFolder(baseFolder);
 
                 folder.Name = name;
                 folder.Type = (short)type;
@@ -498,14 +478,7 @@ namespace OpenSim.Framework.Communications.Cache
                 baseFolder.ID = folderID;
                 baseFolder.ParentID = parentID;
 
-                if (m_commsManager.SecureInventoryService != null)
-                {
-                    m_commsManager.SecureInventoryService.MoveFolder(baseFolder, m_session_id);
-                }
-                else
-                {
-                    m_commsManager.InventoryService.MoveFolder(baseFolder);
-                }
+                m_InventoryService.MoveFolder(baseFolder);
                 
                 InventoryFolderImpl folder = RootFolder.FindFolder(folderID);
                 InventoryFolderImpl parentFolder = RootFolder.FindFolder(parentID);
@@ -568,14 +541,7 @@ namespace OpenSim.Framework.Communications.Cache
                     purgedBaseFolder.Type = purgedFolder.Type;
                     purgedBaseFolder.Version = purgedFolder.Version;
 
-                    if (m_commsManager.SecureInventoryService != null)
-                    {
-                        m_commsManager.SecureInventoryService.PurgeFolder(purgedBaseFolder, m_session_id);
-                    }
-                    else
-                    {
-                        m_commsManager.InventoryService.PurgeFolder(purgedBaseFolder);
-                    }
+                    m_InventoryService.PurgeFolder(purgedBaseFolder);
 
                     purgedFolder.Purge();
 
@@ -615,14 +581,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 ItemReceive(item, null);
                 
-                if (m_commsManager.SecureInventoryService != null)
-                {
-                    m_commsManager.SecureInventoryService.AddItem(item, m_session_id);
-                }
-                else
-                {
-                    m_commsManager.InventoryService.AddItem(item);
-                }
+                m_InventoryService.AddItem(item);
             }
             else
             {
@@ -642,14 +601,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if (m_hasReceivedInventory)
             {
-                if (m_commsManager.SecureInventoryService != null)
-                {
-                    m_commsManager.SecureInventoryService.UpdateItem(item, m_session_id);
-                }
-                else
-                {
-                    m_commsManager.InventoryService.UpdateItem(item);
-                }
+                m_InventoryService.UpdateItem(item);
             }
             else
             {
@@ -688,14 +640,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 if (RootFolder.DeleteItem(item.ID))
                 {
-                    if (m_commsManager.SecureInventoryService != null)
-                    {
-                        return m_commsManager.SecureInventoryService.DeleteItem(item, m_session_id);
-                    }
-                    else
-                    {
-                        return m_commsManager.InventoryService.DeleteItem(item);
-                    }
+                    return m_InventoryService.DeleteItem(item);
                 }
             }
             else
@@ -789,14 +734,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 InventoryItemBase itemInfo = null;
 
-                if (m_commsManager.SecureInventoryService != null)
-                {
-                    itemInfo = m_commsManager.SecureInventoryService.QueryItem(item, m_session_id);
-                }
-                else
-                {
-                    itemInfo = m_commsManager.InventoryService.QueryItem(item);
-                }
+                itemInfo = m_InventoryService.QueryItem(item);
 
                 if (itemInfo != null)
                 {
@@ -833,14 +771,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 InventoryFolderBase folderInfo = null;
 
-                if (m_commsManager.SecureInventoryService != null)
-                {
-                    folderInfo = m_commsManager.SecureInventoryService.QueryFolder(folder, m_session_id);
-                }
-                else
-                {
-                    folderInfo = m_commsManager.InventoryService.QueryFolder(folder);
-                }
+                folderInfo = m_InventoryService.QueryFolder(folder);
 
                 if (folderInfo != null)
                 {

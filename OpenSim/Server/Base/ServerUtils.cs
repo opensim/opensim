@@ -128,13 +128,20 @@ namespace OpenSim.Server.Base
                                 pluginType.ToString() !=
                                 pluginType.Namespace + "." + className)
                             continue;
-
                         Type typeInterface =
                                 pluginType.GetInterface(interfaceName, true);
                         if (typeInterface != null)
                         {
-                            T plug = (T)Activator.CreateInstance(pluginType,
-                                    args);
+                            T plug = null;
+                            try
+                            {
+                                plug = (T)Activator.CreateInstance(pluginType,
+                                        args);
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.ErrorFormat("Error loading plugin from {0}, exception {1}", dllName, e.InnerException);
+                            }
 
                             return plug;
                         }

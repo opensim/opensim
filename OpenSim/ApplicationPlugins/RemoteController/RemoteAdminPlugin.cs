@@ -1290,15 +1290,15 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             UICallback sic  = new UICallback();
             UICallback dic  = new UICallback();
-            IInventoryServices iserv = m_app.CommunicationsManager.InventoryService;
+            IInventoryService iserv = m_app.SceneManager.CurrentOrFirstScene.InventoryService;
 
             try
             {
 
                 Dictionary<UUID,UUID> imap = new Dictionary<UUID,UUID>();
 
-                iserv.RequestInventoryForUser(dest, dic.callback);
-                iserv.RequestInventoryForUser(srca, sic.callback);
+                iserv.GetUserInventory(dest, dic.callback);
+                iserv.GetUserInventory(srca, sic.callback);
 
                 dic.GetInventory();
                 sic.GetInventory();
@@ -1436,8 +1436,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     bool select  = false;
 
                     UICallback uic;
-                    IInventoryServices iserv = m_app.CommunicationsManager.InventoryService;
-                    IAssetService      aserv = m_app.SceneManager.CurrentOrFirstScene.AssetService;
+                    IInventoryService iserv = m_app.SceneManager.CurrentOrFirstScene.InventoryService;
+                    IAssetService     aserv = m_app.SceneManager.CurrentOrFirstScene.AssetService;
 
                     doc.LoadXml(File.ReadAllText(dafn));
 
@@ -1511,7 +1511,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         {
                             uic = new UICallback();
                             // Request the inventory
-                            iserv.RequestInventoryForUser(ID, uic.callback);
+                            iserv.GetUserInventory(ID, uic.callback);
 
                             // While the inventory is being fetched, setup for appearance processing
                             if ((mava = m_app.CommunicationsManager.AvatarService.GetUserAppearance(ID)) == null)

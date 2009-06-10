@@ -109,6 +109,7 @@ namespace OpenSim.Services.InventoryService
 
         public void GetUserInventory(string id, UUID sessionID, InventoryReceiptCallback callback)
         {
+            m_log.Debug("[HGInventory]: GetUserInventory " + id);
             string url = string.Empty;
             string userID = string.Empty;
 
@@ -120,57 +121,120 @@ namespace OpenSim.Services.InventoryService
 
         }
 
-        public bool AddFolder(string userID, InventoryFolderBase folder, UUID sessionID)
+        public bool AddFolder(string id, InventoryFolderBase folder, UUID sessionID)
         {
-            // TODO
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.AddFolder(userID, folder, sessionID);
+            }
             return false;
         }
 
-        public bool UpdateFolder(string userID, InventoryFolderBase folder, UUID sessionID)
+        public bool UpdateFolder(string id, InventoryFolderBase folder, UUID sessionID)
         {
-            // TODO
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.UpdateFolder(userID, folder, sessionID);
+            }
             return false;
         }
 
-        public bool MoveFolder(string userID, InventoryFolderBase folder, UUID sessionID)
+        public bool MoveFolder(string id, InventoryFolderBase folder, UUID sessionID)
         {
-            // TODO
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.MoveFolder(userID, folder, sessionID);
+            }
             return false;
         }
 
-        public bool PurgeFolder(string userID, InventoryFolderBase folder, UUID sessionID)
+        public bool PurgeFolder(string id, InventoryFolderBase folder, UUID sessionID)
         {
-            // TODO
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.PurgeFolder(userID, folder, sessionID);
+            }
             return false;
         }
 
-        public bool AddItem(string userID, InventoryItemBase item, UUID sessionID)
+        public bool AddItem(string id, InventoryItemBase item, UUID sessionID)
         {
-            // TODO
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.AddItem(userID, item, sessionID);
+            }
             return false;
         }
 
-        public bool UpdateItem(string userID, InventoryItemBase item, UUID sessionID)
+        public bool UpdateItem(string id, InventoryItemBase item, UUID sessionID)
         {
-            // TODO
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.UpdateItem(userID, item, sessionID);
+            }
             return false;
         }
 
-        public bool DeleteItem(string userID, InventoryItemBase item, UUID sessionID)
+        public bool DeleteItem(string id, InventoryItemBase item, UUID sessionID)
         {
-            // TODO
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.UpdateItem(userID, item, sessionID);
+            }
             return false;
         }
 
-        public InventoryItemBase QueryItem(string userID, InventoryItemBase item, UUID sessionID)
+        public InventoryItemBase QueryItem(string id, InventoryItemBase item, UUID sessionID)
         {
-            // TODO
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.QueryItem(userID, item, sessionID);
+            }
             return null;
         }
 
-        public InventoryFolderBase QueryFolder(string userID, InventoryFolderBase folder, UUID sessionID)
+        public InventoryFolderBase QueryFolder(string id, InventoryFolderBase folder, UUID sessionID)
         {
-            // TODO
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.QueryFolder(userID, folder, sessionID);
+            }
             return null;
         }
 

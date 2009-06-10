@@ -97,9 +97,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             get { return main.CommunicationsManager; }
         }
 
-        internal static IInventoryServices InventoryServices
+        internal static IInventoryService InventoryServices
         {
-            get { return Comms.InventoryService; }
+            get { return main.SceneManager.CurrentOrFirstScene.InventoryService; }
         }
 
         internal static IUserService UserServices

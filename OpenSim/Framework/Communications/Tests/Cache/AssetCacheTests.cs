@@ -33,6 +33,7 @@ using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Framework.Communications.Tests
@@ -142,6 +143,11 @@ namespace OpenSim.Framework.Communications.Tests
             public bool VerifySession(UUID userID, UUID sessionID)
             {
                 return true;
+            }
+
+            public void SetInventoryService(IInventoryService inv)
+            {
+                throw new NotImplementedException();
             }
         }
     }

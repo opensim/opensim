@@ -27,6 +27,7 @@
 
 using log4net;
 using Nini.Config;
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -38,10 +39,10 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 
+
 namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
 {
-    public class LocalInventoryServicesConnector : 
-            ISharedRegionModule, IInventoryService
+    public class LocalInventoryServicesConnector : ISharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -50,6 +51,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
         private IInventoryService m_InventoryService;
 
         private bool m_Enabled = false;
+        private bool m_Initialized = false;
 
         public string Name
         {
@@ -64,15 +66,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
                 string name = moduleConfig.GetString("InventoryServices", "");
                 if (name == Name)
                 {
-                    IConfig assetConfig = source.Configs["InventoryService"];
-                    if (assetConfig == null)
+                    IConfig inventoryConfig = source.Configs["InventoryService"];
+                    if (inventoryConfig == null)
                     {
                         m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
                         return;
                     }
 
-                    string serviceDll = assetConfig.GetString("LocalServiceModule",
-                            String.Empty);
+                    string serviceDll = inventoryConfig.GetString("LocalServiceModule", String.Empty);
 
                     if (serviceDll == String.Empty)
                     {
@@ -81,14 +82,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
                     }
 
                     Object[] args = new Object[] { source };
-                    m_InventoryService =
-                            ServerUtils.LoadPlugin<IInventoryService>(serviceDll,
-                            args);
+                    m_log.DebugFormat("[INVENTORY CONNECTOR]: Service dll = {0}", serviceDll);
+
+                    m_InventoryService = ServerUtils.LoadPlugin<IInventoryService>(serviceDll, args);
 
                     if (m_InventoryService == null)
                     {
-                        m_log.Error("[INVENTORY CONNECTOR]: Can't load asset service");
-                        return;
+                        m_log.Error("[INVENTORY CONNECTOR]: Can't load inventory service");
+                        //return;
+                        throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
                     }
 
                     //List<IInventoryDataPlugin> plugins
@@ -121,7 +123,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             if (!m_Enabled)
                 return;
 
+            if (!m_Initialized)
+            {
+                // ugh!
+                scene.CommsManager.UserProfileCacheService.SetInventoryService(this);
+                scene.CommsManager.UserService.SetInventoryService(this);
+                m_Initialized = true;
+            }
+
             scene.RegisterModuleInterface<IInventoryService>(this);
+
         }
 
         public void RemoveRegion(Scene scene)

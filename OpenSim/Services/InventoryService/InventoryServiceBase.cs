@@ -44,18 +44,36 @@ namespace OpenSim.Services.InventoryService
 
         public InventoryServiceBase(IConfigSource config) : base(config)
         {
-            IConfig assetConfig = config.Configs["InventoryService"];
-            if (assetConfig == null)
+            string dllName = String.Empty;
+            string connString = String.Empty;
+
+            //
+            // Try reading the [DatabaseService] section first, if it exists
+            //
+            IConfig dbConfig = config.Configs["DatabaseService"];
+            if (dbConfig != null)
+            {
+                dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                connString = dbConfig.GetString("ConnectionString", String.Empty);
+            }
+            else
+                Console.WriteLine("------ dbConfig = null!");
+
+            //
+            // Try reading the more specific [InventoryService] section, if it exists
+            //
+            IConfig inventoryConfig = config.Configs["InventoryService"];
+            if (inventoryConfig != null)
+            {
+                dllName = inventoryConfig.GetString("StorageProvider", dllName);
+                connString = inventoryConfig.GetString("ConnectionString", connString);
+            }
+
+            //
+            // We tried, but this doesn't exist. We can't proceed.
+            //
+            if (dllName.Equals(String.Empty))
                 throw new Exception("No InventoryService configuration");
-
-            string dllName = assetConfig.GetString("StorageProvider",
-                    String.Empty);
-
-            if (dllName == String.Empty)
-                throw new Exception("No StorageProvider configured");
-
-            string connString = assetConfig.GetString("ConnectionString",
-                    String.Empty);
 
             m_Database = LoadPlugin<IInventoryDataPlugin>(dllName);
             if (m_Database == null)

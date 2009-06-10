@@ -37,6 +37,7 @@ using OpenMetaverse.StructuredData;
 using OpenSim.Data;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Statistics;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Framework.Communications
 {
@@ -54,6 +55,7 @@ namespace OpenSim.Framework.Communications
         private List<IUserDataPlugin> m_plugins = new List<IUserDataPlugin>();
 
         protected CommunicationsManager m_commsManager;
+        protected IInventoryService m_InventoryService;
 
         /// <summary>
         /// Constructor
@@ -62,6 +64,11 @@ namespace OpenSim.Framework.Communications
         public UserManagerBase(CommunicationsManager commsManager)
         {
             m_commsManager = commsManager;
+        }
+
+        public virtual void SetInventoryService(IInventoryService invService)
+        {
+            m_InventoryService = invService;
         }
 
         /// <summary>
@@ -676,7 +683,24 @@ namespace OpenSim.Framework.Communications
             }
             else
             {
-                m_commsManager.InterServiceInventoryService.CreateNewUserInventory(userProf.ID);
+                //
+                // WARNING: This is a horrible hack
+                // The purpose here is to avoid touching the user server at this point.
+                // There are dragons there that I can't deal with right now.
+                // diva 06/09/09
+                //
+                if (m_InventoryService != null)
+                {
+                    // local service (standalone)
+                    m_log.Debug("[USERSTORAGE]: using IInventoryService to create user's inventory");
+                    m_InventoryService.CreateUserInventory(userProf.ID);
+                }
+                else
+                {
+                    // used by the user server
+                    m_log.Debug("[USERSTORAGE]: using m_commsManager.InterServiceInventoryService to create user's inventory");
+                    m_commsManager.InterServiceInventoryService.CreateNewUserInventory(userProf.ID);
+                }
 
                 return userProf.ID;
             }

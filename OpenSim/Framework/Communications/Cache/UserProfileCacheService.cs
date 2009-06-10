@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using OpenMetaverse;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -66,6 +67,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         public readonly InventoryFolderImpl LibraryRoot;
 
+        private IInventoryService m_InventoryService;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -75,6 +78,11 @@ namespace OpenSim.Framework.Communications.Cache
         {
             m_commsManager = commsManager;
             LibraryRoot = libraryRootFolder;
+        }
+
+        public void SetInventoryService(IInventoryService invService)
+        {
+            m_InventoryService = invService;
         }
 
         /// <summary>
@@ -200,7 +208,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="userProfile"></param>
         protected CachedUserInfo AddToCaches(UserProfileData userProfile)
         {
-            CachedUserInfo createdUserInfo = new CachedUserInfo(m_commsManager, userProfile);
+            CachedUserInfo createdUserInfo = new CachedUserInfo(m_InventoryService, userProfile);
             
             lock (m_userProfilesById)
             {

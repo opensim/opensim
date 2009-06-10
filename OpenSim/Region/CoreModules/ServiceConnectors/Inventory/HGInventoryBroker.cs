@@ -84,13 +84,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
                     if (localDll == String.Empty)
                     {
                         m_log.Error("[HG INVENTORY CONNECTOR]: No LocalGridInventoryService named in section InventoryService");
-                        return;
+                        //return;
+                        throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
                     }
 
                     if (HGDll == String.Empty)
                     {
                         m_log.Error("[HG INVENTORY CONNECTOR]: No HypergridInventoryService named in section InventoryService");
-                        return;
+                        //return;
+                        throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
                     }
 
                     Object[] args = new Object[] { source };
@@ -116,7 +118,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
                     m_LocalGridInventoryURI = inventoryConfig.GetString("InventoryServerURI", string.Empty);
 
                     m_Enabled = true;
-                    m_log.Info("[HG INVENTORY CONNECTOR]: HG asset broker enabled");
+                    m_log.Info("[HG INVENTORY CONNECTOR]: HG inventory broker enabled");
                 }
             }
         }
@@ -139,6 +141,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
                 m_Scene = scene;
                 // HACK for now. Ugh!
                 m_UserProfileService = m_Scene.CommsManager.UserProfileCacheService;
+                // ugh!
+                m_UserProfileService.SetInventoryService(this);
+                scene.CommsManager.UserService.SetInventoryService(this);
+
+                m_Initialized = true;
             }
 
             scene.RegisterModuleInterface<IInventoryService>(this);
@@ -153,7 +160,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             if (!m_Enabled)
                 return;
 
-            m_log.InfoFormat("[INVENTORY CONNECTOR]: Enabled remote inventory for region {0}", scene.RegionInfo.RegionName);
+            m_log.InfoFormat("[INVENTORY CONNECTOR]: Enabled HG inventory for region {0}", scene.RegionInfo.RegionName);
 
         }
 
@@ -161,10 +168,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
 
         public bool CreateUserInventory(UUID userID)
         {
-            if (IsLocalGridUser(userID))
-                return m_GridService.CreateUserInventory(userID);
-            else
-                return false;
+            return m_GridService.CreateUserInventory(userID);
         }
 
         public List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
@@ -187,7 +191,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             else
             {
                 UUID sessionID = GetSessionID(userID);
-                string uri = "http://" + GetUserInventoryURI(userID) + "/" + userID.ToString();
+                string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
                 m_HGService.GetUserInventory(uri, sessionID, callback);
             }
         }
@@ -207,7 +211,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = "http://" + GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
                 return m_HGService.AddFolder(uri, folder, sessionID);
             }
         }
@@ -222,7 +226,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = "http://" + GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
                 return m_HGService.UpdateFolder(uri, folder, sessionID);
             }
         }
@@ -237,7 +241,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = "http://" + GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
                 return m_HGService.MoveFolder(uri, folder, sessionID);
             }
         }
@@ -252,7 +256,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = "http://" + GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
                 return m_HGService.PurgeFolder(uri, folder, sessionID);
             }
         }
@@ -267,7 +271,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
-                string uri = "http://" + GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
+                string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
                 return m_HGService.AddItem(uri, item, sessionID);
             }
         }
@@ -282,7 +286,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
-                string uri = "http://" + GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
+                string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
                 return m_HGService.UpdateItem(uri, item, sessionID);
             }
         }
@@ -297,7 +301,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
-                string uri = "http://" + GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
+                string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
                 return m_HGService.DeleteItem(uri, item, sessionID);
             }
         }
@@ -312,7 +316,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
-                string uri = "http://" + GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
+                string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
                 return m_HGService.QueryItem(uri, item, sessionID);
             }
         }
@@ -327,7 +331,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = "http://" + GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
                 return m_HGService.QueryFolder(uri, folder, sessionID);
             }
         }

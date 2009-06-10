@@ -1,0 +1,13 @@
+[AssetCache]
+    ;;
+    ;; Options for CenmoeAssetCache
+    ;;
+    
+    ; 256 MB (default: 134217728)
+    MaxSize =  268435456
+    
+    ; How many assets it is possible to store cache (default: 4096)
+    MaxCount = 16384
+    
+    ; Expiration time - 1 hour (default: 30 minutes)
+    ExpirationTime = 60

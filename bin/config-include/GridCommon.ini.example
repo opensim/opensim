@@ -1,43 +1,3 @@
-[Modules]
-    ;AssetCaching = "CoreAssetCache"
-    ;AssetCaching = "GlynnTuckerAssetCache"
-    ;AssetCaching = "CenomeMemoryAssetCache"
-    AssetCaching = "FlotsamAssetCache"
-    
-[AssetCache]
-    ; cache directory can be shared by multiple instances
-    CacheDirectory = /directory/writable/by/OpenSim/instance
-
-    ; Log level
-    ; 0 - (Error) Errors only
-    ; 1 - (Info)  Hit Rate Stats + Level 0
-    ; 2 - (Debug) Cache Activity (Reads/Writes) + Level 1
-    ;
-    LogLevel = 0
-
-    ; How often should hit rates be displayed (given in AssetRequests)
-    ; 0 to disable
-    HitRateDisplay = 100
-
-    ; Set to false for disk cache only.
-    MemoryCacheEnabled = true
-
-    ; How long {in hours} to keep assets cached in memory, .5 == 30 minutes
-    MemoryCacheTimeout = 2
-
-    ; How long {in hours} to keep assets cached on disk, .5 == 30 minutes
-    ; Specify 0 if you do not want your disk cache to expire
-    FileCacheTimeout = 0
-
-    ; How often {in hours} should the disk be checked for expired filed
-    ; Specify 0 to disable expiration checking
-    FileCleanupTimer = .166  ;roughly every 10 minutes
-    
-    ; If WAIT_ON_INPROGRESS_REQUESTS has been defined then this specifies how 
-    ; long (in miliseconds) to block a request thread while trying to complete 
-    ; an existing write to disk.
-    ; WaitOnInprogressTimeout = 3000
-
 [AssetService]
 
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
@@ -48,3 +8,21 @@
     ;
     AssetServerURI = "http://myassetserver.com:8003"
 
+[InventoryService]
+    ;
+    ; change this to your grid-wide asset server
+    ;
+    InventoryServerURI = "http://myassetserver.com:8004"
+
+
+[Modules]
+    ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
+    ;; Copy the config .example file into your own .ini file and change configs there
+        
+    AssetCaching = "FlotsamAssetCache"
+    Include-FlotsamCache = "config-include/FlotsamCache.ini"
+
+    ;AssetCaching = "CenomeMemoryAssetCache"
+    ;Include-CenomeCache = "config-include/CenomeCache.ini"
+    
+    ;AssetCaching = "GlynnTuckerAssetCache"

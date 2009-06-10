@@ -40,12 +40,10 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
 {
-    public class RemoteInventoryServicesConnector :
-            ISharedRegionModule, IInventoryService
+    public class RemoteInventoryServicesConnector : ISharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+                LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
         private bool m_Initialized = false;
@@ -55,6 +53,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
         public string Name
         {
             get { return "RemoteInventoryServicesConnector"; }
+        }
+
+        public RemoteInventoryServicesConnector()
+        {
         }
 
         public RemoteInventoryServicesConnector(IConfigSource source)
@@ -100,7 +102,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
                 return;
 
             if (!m_Initialized)
+            {
                 m_Scene = scene;
+                // ugh!
+                scene.CommsManager.UserProfileCacheService.SetInventoryService(this);
+                scene.CommsManager.UserService.SetInventoryService(this); 
+                m_Initialized = true;
+            }
 
             scene.RegisterModuleInterface<IInventoryService>(this);
         }

@@ -42,18 +42,34 @@ namespace OpenSim.Services.AssetService
 
         public AssetServiceBase(IConfigSource config) : base(config)
         {
+            string dllName = String.Empty;
+            string connString = String.Empty;
+
+            //
+            // Try reading the [DatabaseService] section first, if it exists
+            //
+            IConfig dbConfig = config.Configs["DatabaseService"];
+            if (dbConfig != null)
+            {
+                dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                connString = dbConfig.GetString("ConnectionString", String.Empty);
+            }
+
+            //
+            // Try reading the more specific [AssetService] section, if it exists
+            //
             IConfig assetConfig = config.Configs["AssetService"];
-            if (assetConfig == null)
-                throw new Exception("No AssetService configuration");
+            if (assetConfig != null)
+            {
+                dllName = assetConfig.GetString("StorageProvider", dllName);
+                connString = assetConfig.GetString("ConnectionString", connString);
+            }
 
-            string dllName = assetConfig.GetString("StorageProvider",
-                    String.Empty);
-
-            if (dllName == String.Empty)
+            //
+            // We tried, but this doesn't exist. We can't proceed.
+            //
+            if (dllName.Equals(String.Empty))
                 throw new Exception("No StorageProvider configured");
-
-            string connString = assetConfig.GetString("ConnectionString",
-                    String.Empty);
 
             m_Database = LoadPlugin<IAssetDataPlugin>(dllName);
             if (m_Database == null)

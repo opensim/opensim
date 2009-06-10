@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using OpenMetaverse;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Framework.Communications
 {
@@ -135,5 +136,10 @@ namespace OpenSim.Framework.Communications
         // This probably shouldn't be here, it belongs to IAuthentication
         // But since Scenes only have IUserService references, I'm placing it here for now.
         bool VerifySession(UUID userID, UUID sessionID);
+
+
+        // Temporary Hack until we move everything to the new service model
+        void SetInventoryService(IInventoryService invService);
+
     }
 }

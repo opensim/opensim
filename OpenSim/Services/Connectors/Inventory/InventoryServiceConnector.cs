@@ -67,7 +67,7 @@ namespace OpenSim.Services.Connectors
             IConfig inventoryConfig = source.Configs["InventoryService"];
             if (inventoryConfig == null)
             {
-                m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpanSim.ini");
+                m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
                 throw new Exception("Inventory connector init error");
             }
 
@@ -77,7 +77,7 @@ namespace OpenSim.Services.Connectors
             if (serviceURI == String.Empty)
             {
                 m_log.Error("[INVENTORY CONNECTOR]: No Server URI named in section InventoryService");
-                throw new Exception("Inventory connector init error");
+                throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
             }
             m_ServerURI = serviceURI.TrimEnd('/');
         }

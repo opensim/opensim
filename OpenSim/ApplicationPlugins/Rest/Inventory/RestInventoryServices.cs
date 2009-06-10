@@ -270,7 +270,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.DebugFormat("{0} Inventory Root retrieved for {1} {2}",
                                      MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
 
-                Rest.InventoryServices.RequestInventoryForUser(rdata.uuid, rdata.GetUserInventory);
+                Rest.InventoryServices.GetUserInventory(rdata.uuid, rdata.GetUserInventory);
 
                 Rest.Log.DebugFormat("{0} Inventory catalog requested for {1} {2}",
                                      MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
