@@ -20,7 +20,7 @@
     HitRateDisplay = 100
 
     ; Set to false for disk cache only.
-    MemoryCacheEnabled = true
+    MemoryCacheEnabled = false
 
     ; How long {in hours} to keep assets cached in memory, .5 == 30 minutes
     MemoryCacheTimeout = 2
