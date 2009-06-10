@@ -769,9 +769,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 ode.drelease(world);
                 base.TriggerPhysicsBasedRestart();
             }
-            catch (AccessViolationException)
+            catch (Exception e)
             {
-                m_log.Warn("[PHYSICS]: Unable to collide test an object");
+                m_log.WarnFormat("[PHYSICS]: Unable to collide test an object: {0}", e.Message);
                 return;
             }
 
