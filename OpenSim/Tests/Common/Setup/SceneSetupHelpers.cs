@@ -41,6 +41,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.Agent.Capabilities;
 using OpenSim.Region.CoreModules.Avatar.Gods;
 using OpenSim.Region.CoreModules.ServiceConnectors.Asset;
+using OpenSim.Region.CoreModules.ServiceConnectors.Inventory;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common.Mock;
 
@@ -138,7 +139,20 @@ namespace OpenSim.Tests.Common.Setup
             assetService.RegionLoaded(testScene);
             testScene.AddRegionModule(assetService.Name, assetService);
             assetService.PostInitialise();
-            
+
+            ISharedRegionModule inventoryService = new LocalInventoryServicesConnector();
+            config = new IniConfigSource();
+            config.AddConfig("Modules");
+            config.AddConfig("InventoryService");
+            config.Configs["Modules"].Set("InventoryServices", "LocalInventoryServicesConnector");
+            config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:AssetService");
+            config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
+            assetService.Initialise(config);
+            assetService.AddRegion(testScene);
+            assetService.RegionLoaded(testScene);
+            testScene.AddRegionModule(inventoryService.Name, inventoryService);
+            assetService.PostInitialise();
+ 
             testScene.SetModuleInterfaces();
 
             testScene.LandChannel = new TestLandChannel();
