@@ -1223,6 +1223,19 @@
     ;PacketMTU = 1400
     
 
+;;
+;; These are defatuls that are overwritten below in [Architecture].
+;; These defaults allow OpenSim to work out of the box with
+;; zero configuration
+;;
+[DatabaseService]
+    StorageProvider = "OpenSim.Data.SQLite.dll"
+
+[AssetService]
+    DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
+    AssetLoaderArgs = "assets/AssetSets.xml"
+
+
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; The following is the configuration section for the new style services
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
