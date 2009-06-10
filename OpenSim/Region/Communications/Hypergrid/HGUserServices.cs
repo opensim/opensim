@@ -67,7 +67,8 @@ namespace OpenSim.Region.Communications.Hypergrid
         public override void SetInventoryService(IInventoryService invService)
         {
             base.SetInventoryService(invService);
-            m_localUserServices.SetInventoryService(invService);
+            if (m_localUserServices != null)
+                m_localUserServices.SetInventoryService(invService);
         }
 
         public override UUID AddUser(
