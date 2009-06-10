@@ -145,7 +145,7 @@ namespace OpenSim.Tests.Common.Setup
             config.AddConfig("Modules");
             config.AddConfig("InventoryService");
             config.Configs["Modules"].Set("InventoryServices", "LocalInventoryServicesConnector");
-            config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:AssetService");
+            config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:InventoryService");
             config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
             assetService.Initialise(config);
             assetService.AddRegion(testScene);
