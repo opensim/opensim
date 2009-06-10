@@ -157,7 +157,7 @@ namespace Flotsam.RegionModules.AssetCache
 
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("AssetCaching", this.Name);
+                string name = moduleConfig.GetString("AssetCaching", "");
 
                 if (name == Name)
                 {
