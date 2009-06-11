@@ -85,7 +85,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             cm.UserAdminService.AddUser(userFirstName, userLastName, string.Empty, string.Empty, 1000, 1000, userId);
             CachedUserInfo userInfo = cm.UserProfileCacheService.GetUserDetails(userId);
             userInfo.FetchInventory();
-            while (!userInfo.HasReceivedInventory){ };
+            for (int i = 0 ; i < 50 ; i++)
+            {
+                if (userInfo.HasReceivedInventory == true)
+                    break;
+                Thread.Sleep(200);
+            }
+            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
 
             // Create asset
             SceneObjectGroup object1;
@@ -248,9 +254,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             archiverModule.DearchiveInventory(userFirstName, userLastName, "/", archiveReadStream);
 
             CachedUserInfo userInfo 
-                = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);            
+                = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
+            userInfo.FetchInventory();
+            for (int i = 0 ; i < 50 ; i++)
+            {
+                if (userInfo.HasReceivedInventory == true)
+                    break;
+                Thread.Sleep(200);
+            }
+            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
             InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
-            
+            Assert.That(foundItem, Is.Not.Null);
             Assert.That(foundItem.CreatorId, Is.EqualTo(item1.CreatorId));
             Assert.That(foundItem.CreatorIdAsUuid, Is.EqualTo(user2Uuid));
             Assert.That(foundItem.Owner, Is.EqualTo(userUuid));            
@@ -318,6 +332,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             CachedUserInfo userInfo 
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);            
+            userInfo.FetchInventory();
+            for (int i = 0 ; i < 50 ; i++)
+            {
+                if (userInfo.HasReceivedInventory == true)
+                    break;
+                Thread.Sleep(200);
+            }
+            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
             InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
             
             Assert.That(foundItem.CreatorId, Is.EqualTo(item1.CreatorId));
@@ -339,6 +361,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             CommunicationsManager commsManager = scene.CommsManager;
 
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+            userInfo.FetchInventory();
+            for (int i = 0 ; i < 50 ; i++)
+            {
+                if (userInfo.HasReceivedInventory == true)
+                    break;
+                Thread.Sleep(200);
+            }
+            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
             Dictionary <string, InventoryFolderImpl> foldersCreated = new Dictionary<string, InventoryFolderImpl>();
             List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
             

@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Threading;
 using System.Text;
 using System.Xml;
 using log4net;
@@ -116,6 +117,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 else
                 {
                     m_userInfo.FetchInventory();
+                    for (int i = 0 ; i < 50 ; i++)
+                    {
+                        if (m_userInfo.HasReceivedInventory == true)
+                            break;
+                        Thread.Sleep(200);
+                    }
                 }
             }
 
