@@ -78,7 +78,7 @@ namespace OpenSim.Framework.Communications.Services
 
             m_interServiceInventoryService = interServiceInventoryService;
             m_regionsConnector = regionsConnector;
-            m_inventoryService = interServiceInventoryService;
+            m_interInventoryService = interServiceInventoryService;
         }
 
         public void SetServersInfo(NetworkServersInfo sinfo)

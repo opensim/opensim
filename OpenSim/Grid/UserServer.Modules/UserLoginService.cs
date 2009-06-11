@@ -74,7 +74,7 @@ namespace OpenSim.Grid.UserServer.Modules
             m_config = config;
             m_defaultHomeX = m_config.DefaultX;
             m_defaultHomeY = m_config.DefaultY;
-            m_inventoryService = inventoryService;
+            m_interInventoryService = inventoryService;
             m_regionProfileService = regionProfileService;
         }
 

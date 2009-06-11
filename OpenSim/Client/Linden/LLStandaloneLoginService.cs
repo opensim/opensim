@@ -42,6 +42,7 @@ using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Client.Linden
 {
@@ -59,7 +60,7 @@ namespace OpenSim.Client.Linden
 
         public LLStandaloneLoginService(
             UserManagerBase userManager, string welcomeMess,
-            IInterServiceInventoryServices interServiceInventoryService,
+            IInventoryService interServiceInventoryService,
             NetworkServersInfo serversInfo,
             bool authenticate, LibraryRootFolder libraryRootFolder, ILoginServiceToRegionsConnector regionsConnector)
             : base(userManager, libraryRootFolder, welcomeMess)
@@ -69,7 +70,7 @@ namespace OpenSim.Client.Linden
             m_defaultHomeY = this.m_serversInfo.DefaultHomeLocY;
             m_authUsers = authenticate;
 
-            m_inventoryService = interServiceInventoryService;
+            m_InventoryService = interServiceInventoryService;
             m_regionsConnector = regionsConnector;
             // Standard behavior: In StandAlone, silent logout of last hung session
             m_warn_already_logged = false;

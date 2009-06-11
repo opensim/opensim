@@ -41,6 +41,7 @@ using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Framework.Communications.Services
 {
@@ -66,7 +67,9 @@ namespace OpenSim.Framework.Communications.Services
         /// <summary>
         /// Used by the login service to make requests to the inventory service.
         /// </summary>
-        protected IInterServiceInventoryServices m_inventoryService;
+        protected IInterServiceInventoryServices m_interInventoryService;
+        // Hack
+        protected IInventoryService m_InventoryService;
 
         /// <summary>
         /// Constructor
@@ -1047,7 +1050,10 @@ namespace OpenSim.Framework.Communications.Services
             List<InventoryItemBase> gestures = null;
             try
             {
-                gestures = m_inventoryService.GetActiveGestures(theUser.ID);
+                if (m_InventoryService != null)
+                    gestures = m_InventoryService.GetActiveGestures(theUser.ID);
+                else
+                    gestures = m_interInventoryService.GetActiveGestures(theUser.ID);
             }
             catch (Exception e)
             {
@@ -1076,7 +1082,15 @@ namespace OpenSim.Framework.Communications.Services
         /// <exception cref='System.Exception'>This will be thrown if there is a problem with the inventory service</exception>
         protected InventoryData GetInventorySkeleton(UUID userID)
         {
-            List<InventoryFolderBase> folders = m_inventoryService.GetInventorySkeleton(userID);
+            List<InventoryFolderBase> folders = null;
+            if (m_InventoryService != null)
+            {
+                folders = m_InventoryService.GetInventorySkeleton(userID);
+            }
+            else
+            {
+                folders = m_interInventoryService.GetInventorySkeleton(userID);
+            }
 
             // If we have user auth but no inventory folders for some reason, create a new set of folders.
             if (folders == null || folders.Count == 0)
@@ -1088,7 +1102,7 @@ namespace OpenSim.Framework.Communications.Services
                 // tools are creating the user profile directly in the database without creating the inventory.  At
                 // this time we'll accomodate them by lazily creating the user inventory now if it doesn't already
                 // exist.
-                if (!m_inventoryService.CreateNewUserInventory(userID))
+                if ((m_interInventoryService != null) && !m_interInventoryService.CreateNewUserInventory(userID))
                 {
                     throw new Exception(
                         String.Format(
@@ -1099,7 +1113,10 @@ namespace OpenSim.Framework.Communications.Services
 
                 m_log.InfoFormat("[LOGIN]: A new inventory skeleton was successfully created for user {0}", userID);
 
-                folders = m_inventoryService.GetInventorySkeleton(userID);
+                if (m_InventoryService != null)
+                    folders = m_InventoryService.GetInventorySkeleton(userID);
+                else
+                    folders = m_interInventoryService.GetInventorySkeleton(userID);
 
                 if (folders == null || folders.Count == 0)
                 {
