@@ -85,6 +85,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             cm.UserAdminService.AddUser(userFirstName, userLastName, string.Empty, string.Empty, 1000, 1000, userId);
             CachedUserInfo userInfo = cm.UserProfileCacheService.GetUserDetails(userId);
             userInfo.FetchInventory();
+            while (!userInfo.HasReceivedInventory){ };
 
             // Create asset
             SceneObjectGroup object1;
@@ -334,7 +335,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         public void TestReplicateArchivePathToUserInventory()
         {
             TestHelper.InMethod();
-            CommunicationsManager commsManager = new TestCommunicationsManager();            
+            Scene scene = SceneSetupHelpers.SetupScene(false);
+            CommunicationsManager commsManager = scene.CommsManager;
+
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
             Dictionary <string, InventoryFolderImpl> foldersCreated = new Dictionary<string, InventoryFolderImpl>();
             List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
