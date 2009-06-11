@@ -150,7 +150,7 @@ namespace OpenSim.Services.InventoryService
 
             foreach (InventoryFolderBase folder in allFolders)
             {
-                List<InventoryItemBase> items = GetFolderItems(folder.ID);
+                List<InventoryItemBase> items = GetFolderItems(userID, folder.ID);
 
                 if (items != null)
                 {
@@ -205,7 +205,7 @@ namespace OpenSim.Services.InventoryService
                     {
                         rootFolder = new InventoryFolderImpl(folder);
                         folders.Add(rootFolder);
-                        items.AddRange(GetFolderItems(rootFolder.ID));
+                        items.AddRange(GetFolderItems(userID, rootFolder.ID));
                         break; // Only 1 root folder per user
                     }
                 }
@@ -217,7 +217,7 @@ namespace OpenSim.Services.InventoryService
                         if (folder.ID != rootFolder.ID)
                         {
                             folders.Add(new InventoryFolderImpl(folder));
-                            items.AddRange(GetFolderItems(folder.ID));
+                            items.AddRange(GetFolderItems(userID, folder.ID));
                         }
                     }
                 }
@@ -255,7 +255,7 @@ namespace OpenSim.Services.InventoryService
             return inventoryList;
         }
 
-        public List<InventoryItemBase> GetFolderItems(UUID folderID)
+        public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             List<InventoryItemBase> itemsList = new List<InventoryItemBase>();
             
@@ -377,7 +377,7 @@ namespace OpenSim.Services.InventoryService
                 m_Database.deleteInventoryFolder(subFolder.ID);
             }
 
-            List<InventoryItemBase> items = GetFolderItems(folder.ID);
+            List<InventoryItemBase> items = GetFolderItems(folder.Owner, folder.ID);
 
             foreach (InventoryItemBase item in items)
             {

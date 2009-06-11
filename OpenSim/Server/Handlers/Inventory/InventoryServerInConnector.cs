@@ -159,7 +159,11 @@ namespace OpenSim.Server.Handlers.Inventory
         {
             List<InventoryItemBase> allItems = new List<InventoryItemBase>();
 
-            List<InventoryItemBase> items = m_InventoryService.GetFolderItems(new UUID(folderID));
+            // TODO: UUID.Zero is passed as the userID here, making the old assumption that the OpenSim
+            // inventory server only has a single inventory database and not per-user inventory databases.
+            // This could be changed but it requirs a bit of hackery to pass another parameter into this
+            // callback
+            List<InventoryItemBase> items = m_InventoryService.GetFolderItems(UUID.Zero, new UUID(folderID));
 
             if (items != null)
             {

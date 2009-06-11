@@ -106,7 +106,7 @@ namespace OpenSim.Services.Connectors
         {
         }
 
-        public List<InventoryItemBase> GetFolderItems(UUID folderID)
+        public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             return null;
         }

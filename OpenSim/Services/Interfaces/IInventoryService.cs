@@ -72,9 +72,10 @@ namespace OpenSim.Services.Interfaces
         /// <summary>
         /// Gets the items inside a folder
         /// </summary>
+        /// <param name="userID"></param>
         /// <param name="folderID"></param>
         /// <returns></returns>
-        List<InventoryItemBase> GetFolderItems(UUID folderID);
+        List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID);
 
         /// <summary>
         /// Add a new folder to the user's inventory

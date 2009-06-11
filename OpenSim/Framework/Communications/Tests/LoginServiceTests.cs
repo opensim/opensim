@@ -497,7 +497,7 @@ namespace OpenSim.Framework.Communications.Tests
         {
         }
 
-        public List<InventoryItemBase> GetFolderItems(UUID folderID)
+        public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             return null;
         }
