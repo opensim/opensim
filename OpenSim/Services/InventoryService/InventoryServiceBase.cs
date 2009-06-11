@@ -40,8 +40,6 @@ namespace OpenSim.Services.InventoryService
     {
         protected IInventoryDataPlugin m_Database = null;
 
-        protected List<IInventoryDataPlugin> m_plugins = new List<IInventoryDataPlugin>();
-
         public InventoryServiceBase(IConfigSource config) : base(config)
         {
             string dllName = String.Empty;
@@ -56,8 +54,6 @@ namespace OpenSim.Services.InventoryService
                 dllName = dbConfig.GetString("StorageProvider", String.Empty);
                 connString = dbConfig.GetString("ConnectionString", String.Empty);
             }
-            else
-                Console.WriteLine("------ dbConfig = null!");
 
             //
             // Try reading the more specific [InventoryService] section, if it exists
@@ -79,43 +75,8 @@ namespace OpenSim.Services.InventoryService
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module");
 
-            //m_Database.Initialise(connString);
-            List<IInventoryDataPlugin> plugins
-                = DataPluginFactory.LoadDataPlugins<IInventoryDataPlugin>(dllName, connString);
-
-            foreach (IInventoryDataPlugin plugin in plugins)
-                AddPlugin(plugin);
-
+            m_Database.Initialise(connString);
         }
-
-        #region Plugin methods
-
-        /// <summary>
-        /// Add a new inventory data plugin - plugins will be requested in the order they were added.
-        /// </summary>
-        /// <param name="plugin">The plugin that will provide data</param>
-        public void AddPlugin(IInventoryDataPlugin plugin)
-        {
-            m_plugins.Add(plugin);
-        }
-
-        /// <summary>
-        /// Adds a list of inventory data plugins, as described by `provider'
-        /// and `connect', to `m_plugins'.
-        /// </summary>
-        /// <param name="provider">
-        /// The filename of the inventory server plugin DLL.
-        /// </param>
-        /// <param name="connect">
-        /// The connection string for the storage backend.
-        /// </param>
-        public void AddPlugins(string provider, string connect)
-        {
-            m_plugins.AddRange(DataPluginFactory.LoadDataPlugins<IInventoryDataPlugin>(provider, connect));
-        }
-
-        #endregion
-
 
     }
 }

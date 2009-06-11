@@ -72,16 +72,10 @@ namespace OpenSim.Services.InventoryService
 
             userFolders.Add(rootFolder);
 
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                IList<InventoryFolderBase> folders = plugin.getFolderHierarchy(rootFolder.ID);
-                userFolders.AddRange(folders);
-            }
+            IList<InventoryFolderBase> folders = m_Database.getFolderHierarchy(rootFolder.ID);
+            userFolders.AddRange(folders);
 
-//            foreach (InventoryFolderBase folder in userFolders)
-//            {
-//                m_log.DebugFormat("[INVENTORY SERVICE]: Got folder {0} {1}", folder.name, folder.folderID);
-//            }
+//            m_log.DebugFormat("[INVENTORY SERVICE]: Got folder {0} {1}", folder.name, folder.folderID);
 
             return userFolders;
         }
@@ -94,15 +88,12 @@ namespace OpenSim.Services.InventoryService
         // See IInventoryServices
         public virtual InventoryFolderBase RequestRootFolder(UUID userID)
         {
-            // Retrieve the first root folder we get from the list of plugins.
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                InventoryFolderBase rootFolder = plugin.getUserRootFolder(userID);
-                if (rootFolder != null)
-                    return rootFolder;
-            }
+            // Retrieve the first root folder we get from the DB.
+            InventoryFolderBase rootFolder = m_Database.getUserRootFolder(userID);
+            if (rootFolder != null)
+                return rootFolder;
 
-            // Return nothing if no plugin was able to supply a root folder
+            // Return nothing if the plugin was unable to supply a root folder
             return null;
         }
 
@@ -246,10 +237,7 @@ namespace OpenSim.Services.InventoryService
         public List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             List<InventoryItemBase> activeGestures = new List<InventoryItemBase>();
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                activeGestures.AddRange(plugin.fetchActiveGestures(userId));
-            }
+            activeGestures.AddRange(m_Database.fetchActiveGestures(userId));
             
             return activeGestures;
         }
@@ -262,10 +250,7 @@ namespace OpenSim.Services.InventoryService
         {
             List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();
             
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                inventoryList.AddRange(plugin.getInventoryFolders(parentFolderID));
-            }
+            inventoryList.AddRange(m_Database.getInventoryFolders(parentFolderID));
             
             return inventoryList;
         }
@@ -274,10 +259,7 @@ namespace OpenSim.Services.InventoryService
         {
             List<InventoryItemBase> itemsList = new List<InventoryItemBase>();
             
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                itemsList.AddRange(plugin.getInventoryInFolder(folderID));
-            }
+            itemsList.AddRange(m_Database.getInventoryInFolder(folderID));
             
             return itemsList;
         }
@@ -290,10 +272,7 @@ namespace OpenSim.Services.InventoryService
             m_log.DebugFormat(
                 "[INVENTORY SERVICE]: Adding folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
 
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                plugin.addInventoryFolder(folder);
-            }
+            m_Database.addInventoryFolder(folder);
 
             // FIXME: Should return false on failure
             return true;
@@ -305,10 +284,7 @@ namespace OpenSim.Services.InventoryService
             m_log.DebugFormat(
                 "[INVENTORY SERVICE]: Updating folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
 
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                plugin.updateInventoryFolder(folder);
-            }
+            m_Database.updateInventoryFolder(folder);
 
             // FIXME: Should return false on failure
             return true;
@@ -320,10 +296,7 @@ namespace OpenSim.Services.InventoryService
             m_log.DebugFormat(
                 "[INVENTORY SERVICE]: Moving folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
 
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                plugin.moveInventoryFolder(folder);
-            }
+            m_Database.moveInventoryFolder(folder);
 
             // FIXME: Should return false on failure
             return true;
@@ -335,10 +308,7 @@ namespace OpenSim.Services.InventoryService
             m_log.DebugFormat(
                 "[INVENTORY SERVICE]: Adding item {0} {1} to folder {2}", item.Name, item.ID, item.Folder);
 
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                plugin.addInventoryItem(item);
-            }
+            m_Database.addInventoryItem(item);
 
             // FIXME: Should return false on failure
             return true;
@@ -350,10 +320,7 @@ namespace OpenSim.Services.InventoryService
             m_log.InfoFormat(
                 "[INVENTORY SERVICE]: Updating item {0} {1} in folder {2}", item.Name, item.ID, item.Folder);
 
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                plugin.updateInventoryItem(item);
-            }
+            m_Database.updateInventoryItem(item);
 
             // FIXME: Should return false on failure
             return true;
@@ -365,10 +332,7 @@ namespace OpenSim.Services.InventoryService
             m_log.InfoFormat(
                 "[INVENTORY SERVICE]: Deleting item {0} {1} from folder {2}", item.Name, item.ID, item.Folder);
 
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                plugin.deleteInventoryItem(item.ID);
-            }
+            m_Database.deleteInventoryItem(item.ID);
 
             // FIXME: Should return false on failure
             return true;
@@ -376,24 +340,18 @@ namespace OpenSim.Services.InventoryService
 
         public virtual InventoryItemBase QueryItem(InventoryItemBase item)
         {
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                InventoryItemBase result = plugin.queryInventoryItem(item.ID);
-                if (result != null)
-                    return result;
-            }
+            InventoryItemBase result = m_Database.queryInventoryItem(item.ID);
+            if (result != null)
+                return result;
 
             return null;
         }
 
         public virtual InventoryFolderBase QueryFolder(InventoryFolderBase item)
         {
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                InventoryFolderBase result = plugin.queryInventoryFolder(item.ID);
-                if (result != null)
-                    return result;
-            }
+            InventoryFolderBase result = m_Database.queryInventoryFolder(item.ID);
+            if (result != null)
+                return result;
 
             return null;
         }
@@ -416,10 +374,7 @@ namespace OpenSim.Services.InventoryService
             {
 //                m_log.DebugFormat("[INVENTORY SERVICE]: Deleting folder {0} {1}", subFolder.Name, subFolder.ID);
 
-                foreach (IInventoryDataPlugin plugin in m_plugins)
-                {
-                    plugin.deleteInventoryFolder(subFolder.ID);
-                }
+                m_Database.deleteInventoryFolder(subFolder.ID);
             }
 
             List<InventoryItemBase> items = GetFolderItems(folder.ID);
@@ -443,12 +398,9 @@ namespace OpenSim.Services.InventoryService
 
         public InventoryItemBase GetInventoryItem(UUID itemID)
         {
-            foreach (IInventoryDataPlugin plugin in m_plugins)
-            {
-                InventoryItemBase item = plugin.getInventoryItem(itemID);
-                if (item != null)
-                    return item;
-            }
+            InventoryItemBase item = m_Database.getInventoryItem(itemID);
+            if (item != null)
+                return item;
 
             return null;
         }
