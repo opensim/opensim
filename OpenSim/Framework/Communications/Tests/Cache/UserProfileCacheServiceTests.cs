@@ -27,10 +27,12 @@
 
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
+using System.Threading;
 using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
@@ -48,33 +50,33 @@ namespace OpenSim.Framework.Communications.Tests
 
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000002");
             string firstName = "Bill";
-            string lastName = "Bailey";            
+            string lastName = "Bailey";
             CachedUserInfo nonExistingUserInfo;
-            
+
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            
+
             // Check we can't retrieve info before it exists by uuid
             nonExistingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
             Assert.That(nonExistingUserInfo, Is.Null, "User info found by uuid before user creation");
-            
+
             // Check we can't retrieve info before it exists by name
             nonExistingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
-            Assert.That(nonExistingUserInfo, Is.Null, "User info found by name before user creation");            
+            Assert.That(nonExistingUserInfo, Is.Null, "User info found by name before user creation");
 
-            LocalUserServices lus = (LocalUserServices)commsManager.UserService;           
+            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
             lus.AddUser(firstName, lastName, "troll", "bill@bailey.com", 1000, 1000, userId);
-            
+
             CachedUserInfo existingUserInfo;
-            
+
             // Check we can retrieve info by uuid
             existingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
             Assert.That(existingUserInfo, Is.Not.Null, "User info not found by uuid");
-            
-            // Check we can retrieve info by name 
+
+            // Check we can retrieve info by name
             existingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
-            Assert.That(existingUserInfo, Is.Not.Null, "User info not found by name");                       
+            Assert.That(existingUserInfo, Is.Not.Null, "User info not found by name");
         }
-        
+
         /**
          * Disabled as not fully implemented
         [Test]
@@ -82,26 +84,26 @@ namespace OpenSim.Framework.Communications.Tests
         {
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000292");
             string firstName = "Inspector";
-            string originalLastName = "Morse";     
+            string originalLastName = "Morse";
             string newLastName = "Gadget";
-            
+
             UserProfileData newProfile = new UserProfileData();
             newProfile.ID = userId;
             newProfile.FirstName = firstName;
             newProfile.SurName = newLastName;
-            
+
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
             UserProfileCacheService userCacheService = commsManager.UserProfileCacheService;
             IUserDataPlugin userDataPlugin = commsManager.UserDataPlugin;
-            
+
             // Check that we can't update info before it exists
             Assert.That(userCacheService.UpdateProfile(newProfile), Is.False);
             Assert.That(userDataPlugin.GetUserByUUID(userId), Is.Null);
-            
+
             // Check that we can update a profile once it exists
-            LocalUserServices lus = (LocalUserServices)commsManager.UserService;           
+            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
             lus.AddUser(firstName, originalLastName, "pingu", "ted@excellentadventure.com", 1000, 1000, userId);
-            
+
             Assert.That(userCacheService.UpdateProfile(newProfile), Is.True);
             UserProfileData retrievedProfile = userCacheService.GetUserDetails(userId).UserProfile;
             Assert.That(retrievedProfile.SurName, Is.EqualTo(newLastName));
@@ -109,59 +111,77 @@ namespace OpenSim.Framework.Communications.Tests
         }
         */
 
-        //[Test]
+        [Test]
         public void TestFetchInventory()
         {
             TestHelper.InMethod();
 
-            TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
-
-            Assert.That(userInfo.HasReceivedInventory, Is.True);
+            Scene myScene = SceneSetupHelpers.SetupScene();
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
+            for (int i = 0 ; i < 50 ; i++)
+            {
+                if (userInfo.HasReceivedInventory == true)
+                    break;
+                Thread.Sleep(200);
+            }
+            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
         }
 
-        //[Test]
+        [Test]
         public void TestGetChildFolder()
         {
             TestHelper.InMethod();
 
-            TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+            Scene myScene = SceneSetupHelpers.SetupScene();
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
+            for (int i = 0 ; i < 50 ; i++)
+            {
+                if (userInfo.HasReceivedInventory == true)
+                    break;
+                Thread.Sleep(200);
+            }
+            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
 
             UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000011");
-
             Assert.That(userInfo.RootFolder.GetChildFolder(folderId), Is.Null);
             userInfo.CreateFolder("testFolder", folderId, (ushort)AssetType.Animation, userInfo.RootFolder.ID);
 
             Assert.That(userInfo.RootFolder.GetChildFolder(folderId), Is.Not.Null);
         }
 
-        //[Test]
+        [Test]
         public void TestCreateFolder()
         {
             TestHelper.InMethod();
 
-            TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
-
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+            Scene myScene = SceneSetupHelpers.SetupScene();
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
+            for (int i = 0 ; i < 50 ; i++)
+            {
+                if (userInfo.HasReceivedInventory == true)
+                    break;
+                Thread.Sleep(200);
+            }
+            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
 
             UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000010");
             Assert.That(userInfo.RootFolder.ContainsChildFolder(folderId), Is.False);
 
             // 1: Try a folder create that should fail because the parent id given does not exist
             UUID missingFolderId = UUID.Random();
+            InventoryFolderBase myFolder = new InventoryFolderBase();
+            myFolder.ID = folderId;
 
             Assert.That(
                 userInfo.CreateFolder("testFolder1", folderId, (ushort)AssetType.Animation, missingFolderId), Is.False);
-            Assert.That(inventoryDataPlugin.getInventoryFolder(folderId), Is.Null);
+            Assert.That(myScene.InventoryService.QueryFolder(myFolder), Is.Null);
             Assert.That(userInfo.RootFolder.ContainsChildFolder(missingFolderId), Is.False);
             Assert.That(userInfo.RootFolder.FindFolder(folderId), Is.Null);
 
             // 2: Try a folder create that should work
             Assert.That(
                 userInfo.CreateFolder("testFolder2", folderId, (ushort)AssetType.Animation, userInfo.RootFolder.ID), Is.True);
-            Assert.That(inventoryDataPlugin.getInventoryFolder(folderId), Is.Not.Null);
+            Assert.That(myScene.InventoryService.QueryFolder(myFolder), Is.Not.Null);
             Assert.That(userInfo.RootFolder.ContainsChildFolder(folderId), Is.True);
         }
 
@@ -170,13 +190,20 @@ namespace OpenSim.Framework.Communications.Tests
         {
             TestHelper.InMethod();
 
-            TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
-
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+            Scene myScene = SceneSetupHelpers.SetupScene();
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
+            for (int i = 0 ; i < 50 ; i++)
+            {
+                if (userInfo.HasReceivedInventory == true)
+                    break;
+                Thread.Sleep(200);
+            }
+            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
 
             UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             InventoryFolderImpl rootFolder = userInfo.RootFolder;
+            InventoryFolderBase myFolder = new InventoryFolderBase();
+            myFolder.ID = folder1Id;
 
             userInfo.CreateFolder("folder1", folder1Id, (ushort)AssetType.Animation, rootFolder.ID);
 
@@ -190,7 +217,7 @@ namespace OpenSim.Framework.Communications.Tests
                 Assert.That(newFolderName1, Is.EqualTo(folder1.Name));
                 Assert.That(folderType1, Is.EqualTo((ushort)folder1.Type));
 
-                InventoryFolderBase dataFolder1 = inventoryDataPlugin.getInventoryFolder(folder1Id);
+                InventoryFolderBase dataFolder1 = myScene.InventoryService.QueryFolder(myFolder);
                 Assert.That(newFolderName1, Is.EqualTo(dataFolder1.Name));
                 Assert.That(folderType1, Is.EqualTo((ushort)dataFolder1.Type));
             }
@@ -200,6 +227,9 @@ namespace OpenSim.Framework.Communications.Tests
                 UUID folder2Id = UUID.Parse("00000000-0000-0000-0000-000000000061");
                 userInfo.CreateFolder("folder2", folder2Id, (ushort)AssetType.Animation, rootFolder.ID);
                 InventoryFolderImpl folder2 = rootFolder.GetChildFolder(folder2Id);
+
+                InventoryFolderBase myFolder2 = new InventoryFolderBase();
+                myFolder2.ID = folder2Id;
 
                 string newFolderName2 = "newFolderName2";
                 ushort folderType2 = (ushort)AssetType.Bodypart;
@@ -213,7 +243,7 @@ namespace OpenSim.Framework.Communications.Tests
                 Assert.That(folder2.ContainsChildFolder(folder1Id), Is.True);
                 Assert.That(rootFolder.ContainsChildFolder(folder1Id), Is.False);
 
-                InventoryFolderBase dataFolder1 = inventoryDataPlugin.getInventoryFolder(folder1Id);
+                InventoryFolderBase dataFolder1 = myScene.InventoryService.QueryFolder(myFolder2);
                 Assert.That(newFolderName2, Is.EqualTo(dataFolder1.Name));
                 Assert.That(folderType2, Is.EqualTo((ushort)dataFolder1.Type));
                 Assert.That(folder2Id, Is.EqualTo(dataFolder1.ParentID));
@@ -221,15 +251,20 @@ namespace OpenSim.Framework.Communications.Tests
 
         }
 
-        //[Test]
+        [Test]
         public void TestMoveFolder()
         {
             TestHelper.InMethod();
 
-            TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
-
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+            Scene myScene = SceneSetupHelpers.SetupScene();
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
+            for (int i = 0 ; i < 50 ; i++)
+            {
+                if (userInfo.HasReceivedInventory == true)
+                    break;
+                Thread.Sleep(200);
+            }
+            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
 
             UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000020");
             UUID folder2Id = UUID.Parse("00000000-0000-0000-0000-000000000021");
@@ -248,34 +283,43 @@ namespace OpenSim.Framework.Communications.Tests
             userInfo.MoveFolder(folderToMoveId, folder2Id);
 
             // Check folder is now in folder2 and no trace remains in folder1
+            InventoryFolderBase myFolder = new InventoryFolderBase();
+            myFolder.ID = folderToMoveId;
             Assert.That(folder2.ContainsChildFolder(folderToMoveId), Is.True);
-            Assert.That(inventoryDataPlugin.getInventoryFolder(folderToMoveId).ParentID, Is.EqualTo(folder2Id));
+            Assert.That(myScene.InventoryService.QueryFolder(myFolder).ParentID, Is.EqualTo(folder2Id));
 
             Assert.That(folder1.ContainsChildFolder(folderToMoveId), Is.False);
         }
 
-        //[Test]
+        [Test]
         public void TestPurgeFolder()
         {
             TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
-            TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            IInventoryDataPlugin inventoryDataPlugin = commsManager.InventoryDataPlugin;
-
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+            Scene myScene = SceneSetupHelpers.SetupScene();
+            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
+            for (int i = 0 ; i < 50 ; i++)
+            {
+                if (userInfo.HasReceivedInventory == true)
+                    break;
+                Thread.Sleep(200);
+            }
+            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
 
             UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000070");
             InventoryFolderImpl rootFolder = userInfo.RootFolder;
+            InventoryFolderBase myFolder = new InventoryFolderBase();
+            myFolder.ID = folder1Id;
 
             userInfo.CreateFolder("folder1", folder1Id, (ushort)AssetType.Animation, rootFolder.ID);
-            Assert.That(inventoryDataPlugin.getInventoryFolder(folder1Id), Is.Not.Null);
+            Assert.That(myScene.InventoryService.QueryFolder(myFolder), Is.Not.Null);
 
             // Test purge
             userInfo.PurgeFolder(rootFolder.ID);
 
             Assert.That(rootFolder.RequestListOfFolders(), Is.Empty);
-            Assert.That(inventoryDataPlugin.getInventoryFolder(folder1Id), Is.Null);
+            Assert.That(myScene.InventoryService.QueryFolder(myFolder), Is.Null);
         }
     }
 }

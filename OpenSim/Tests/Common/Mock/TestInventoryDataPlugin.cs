@@ -122,7 +122,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public InventoryFolderBase queryInventoryFolder(UUID folderID)
         {
-            return null;
+            return getInventoryFolder(folderID);
         }
 
         public void addInventoryFolder(InventoryFolderBase folder)
