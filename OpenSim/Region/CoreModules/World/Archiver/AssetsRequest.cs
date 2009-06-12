@@ -220,6 +220,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         m_log.WarnFormat(
                             "[ARCHIVER]: Received information about asset {0} after archive save abortion.  Ignoring.", 
                             id);
+
+                        return;
                     }
                                                            
                     if (asset != null)
