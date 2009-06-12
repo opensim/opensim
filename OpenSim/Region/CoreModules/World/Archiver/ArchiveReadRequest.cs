@@ -514,11 +514,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     if (xtr.Name.ToString() == "date") 
                     {
-                        currentRegionSettings.LoadedCreationDate = xtr.ReadElementContentAsString();
+                        // Disable date & time for now until load problem in
+                        // http://opensimulator.org/mantis/view.php?id=3741 (note 0012120 by WWWench) is resolved
+                        //currentRegionSettings.LoadedCreationDate = xtr.ReadElementContentAsString();
                     } 
                     else if (xtr.Name.ToString() == "time") 
                     {
-                        currentRegionSettings.LoadedCreationTime = xtr.ReadElementContentAsString();
+                        //currentRegionSettings.LoadedCreationTime = xtr.ReadElementContentAsString();
                     }
                     else if (xtr.Name.ToString() == "id") 
                     {
