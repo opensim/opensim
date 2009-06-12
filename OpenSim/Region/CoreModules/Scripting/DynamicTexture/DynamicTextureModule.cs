@@ -352,7 +352,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                             texface.TextureID = asset.FullID;
                             tmptex.FaceTextures[Face] = texface;
                         }
-                        catch(Exception e)
+                        catch (Exception)
                         {
                             tmptex.DefaultTexture.TextureID = asset.FullID;
                         }

@@ -162,7 +162,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             xtw.WriteEndElement();
             xtw.WriteEndElement();
 
-
             xtw.Flush();
             xtw.Close();
 
