@@ -527,9 +527,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
 
             }
+            
             currentRegionSettings.Save();
-
-            return true;
         }
     }
 }
