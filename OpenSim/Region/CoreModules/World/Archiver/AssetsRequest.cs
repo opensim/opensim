@@ -72,11 +72,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private RequestState m_requestState = RequestState.Initial;
         
         /// <value>
-        /// Record whether the request has completed.
-        /// </value>
-        private bool m_requestCompleted;
-        
-        /// <value>
         /// uuids to request
         /// </value>
         protected ICollection<UUID> m_uuids;
