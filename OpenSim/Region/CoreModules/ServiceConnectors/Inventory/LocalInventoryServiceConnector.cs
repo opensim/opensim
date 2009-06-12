@@ -105,7 +105,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
                     //}
 
                     m_Enabled = true;
-                    m_log.Info("[INVENTORY CONNECTOR]: Local asset connector enabled");
+                    m_log.Info("[INVENTORY CONNECTOR]: Local inventory connector enabled");
                 }
             }
         }
@@ -120,6 +120,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
 
         public void AddRegion(Scene scene)
         {
+            m_log.DebugFormat("HEEEERE");
             if (!m_Enabled)
                 return;
 
@@ -131,8 +132,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
                 m_Initialized = true;
             }
 
+            m_log.DebugFormat(
+                "[INVENTORY CONNECTOR]: Registering IInventoryService to scene {0}", scene.RegionInfo.RegionName);
+            
             scene.RegisterModuleInterface<IInventoryService>(this);
-
         }
 
         public void RemoveRegion(Scene scene)
@@ -144,8 +147,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
             if (!m_Enabled)
                 return;
 
-            m_log.InfoFormat("[INVENTORY CONNECTOR]: Enabled local assets for region {0}", scene.RegionInfo.RegionName);
-
+            m_log.InfoFormat(
+                "[INVENTORY CONNECTOR]: Enabled local invnetory for region {0}", scene.RegionInfo.RegionName);
         }
 
         #region IInventoryService

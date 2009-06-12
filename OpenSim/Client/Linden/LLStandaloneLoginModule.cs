@@ -98,35 +98,6 @@ namespace OpenSim.Client.Linden
 
         public void AddRegion(Scene scene)
         {
-            if (m_firstScene == null)
-            {
-                m_firstScene = scene;
-
-                if (m_enabled)
-                {
-                    //TODO: fix casting.
-                    LibraryRootFolder rootFolder
-                        = m_firstScene.CommsManager.UserProfileCacheService.LibraryRoot as LibraryRootFolder;
-
-                    IHttpServer httpServer = m_firstScene.CommsManager.HttpServer;
-
-                    //TODO: fix the casting of the user service, maybe by registering the userManagerBase with scenes, or refactoring so we just need a IUserService reference
-                    m_loginService = new LLStandaloneLoginService((UserManagerBase)m_firstScene.CommsManager.UserAdminService, welcomeMessage, m_firstScene.InventoryService, m_firstScene.CommsManager.NetworkServersInfo, authenticate, rootFolder, this);
-
-                    httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
-
-                    // provides the web form login
-                    httpServer.AddHTTPHandler("login", m_loginService.ProcessHTMLLogin);
-
-                    // Provides the LLSD login
-                    httpServer.SetDefaultLLSDHandler(m_loginService.LLSDLoginMethod);
-                }
-            }
-
-            if (m_enabled)
-            {
-                AddScene(scene);
-            }
         }
 
         public void RemoveRegion(Scene scene)
@@ -149,7 +120,39 @@ namespace OpenSim.Client.Linden
 
         public void RegionLoaded(Scene scene)
         {
+            if (m_firstScene == null)
+            {
+                m_firstScene = scene;
 
+                if (m_enabled)
+                {
+                    //TODO: fix casting.
+                    LibraryRootFolder rootFolder
+                        = m_firstScene.CommsManager.UserProfileCacheService.LibraryRoot as LibraryRootFolder;
+
+                    IHttpServer httpServer = m_firstScene.CommsManager.HttpServer;
+
+                    //TODO: fix the casting of the user service, maybe by registering the userManagerBase with scenes, or refactoring so we just need a IUserService reference
+                    m_loginService 
+                        = new LLStandaloneLoginService(
+                            (UserManagerBase)m_firstScene.CommsManager.UserAdminService, welcomeMessage, 
+                            m_firstScene.InventoryService, m_firstScene.CommsManager.NetworkServersInfo, authenticate, 
+                            rootFolder, this);
+
+                    httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
+
+                    // provides the web form login
+                    httpServer.AddHTTPHandler("login", m_loginService.ProcessHTMLLogin);
+
+                    // Provides the LLSD login
+                    httpServer.SetDefaultLLSDHandler(m_loginService.LLSDLoginMethod);
+                }
+            }
+
+            if (m_enabled)
+            {
+                AddScene(scene);
+            }
         }
 
         public string Name
