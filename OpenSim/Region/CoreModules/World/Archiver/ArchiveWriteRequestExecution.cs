@@ -93,7 +93,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             // Write out control file
             m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p2ControlFile());
-
             m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
 
             // Write out region settings

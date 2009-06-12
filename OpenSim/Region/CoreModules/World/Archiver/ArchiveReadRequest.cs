@@ -135,8 +135,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     else if (!m_merge && filePath.StartsWith(ArchiveConstants.SETTINGS_PATH))
                     {
                         LoadRegionSettings(filePath, data);
-                    } else if (filePath == ArchiveConstants.CONTROL_FILE_PATH) {
-                        LoadArchiveMetadata(filePath, data);
+                    } 
+                    else if (filePath == ArchiveConstants.CONTROL_FILE_PATH)
+                    {
+                        LoadControlFile(filePath, data);
                     }
                 }
 
@@ -483,14 +485,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         }
 
         /// <summary>
-        /// Load oar file metadata
+        /// Load oar control file
         /// </summary>
-        /// <param name="terrainPath"></param>
+        /// <param name="path"></param>
         /// <param name="data"></param>
-        /// <returns>
-        /// true if terrain was resolved successfully, false otherwise.
-        /// </returns>
-        private bool LoadArchiveMetadata(string terrainPath, byte[] data)
+        private void LoadControlFile(string path, byte[] data)
         {
             //Create the XmlNamespaceManager.
             NameTable nt = new NameTable();
@@ -499,9 +498,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // Create the XmlParserContext.
             XmlParserContext context = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
 
-            XmlTextReader xtr = new XmlTextReader(m_asciiEncoding.GetString(data),
-                                                  XmlNodeType.Document, context);
-            
+            XmlTextReader xtr 
+                = new XmlTextReader(m_asciiEncoding.GetString(data), XmlNodeType.Document, context);            
 
             RegionSettings currentRegionSettings = m_scene.RegionInfo.RegionSettings;
 
@@ -514,15 +512,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 if (xtr.NodeType == XmlNodeType.Element) 
                 {
-                    if (xtr.Name.ToString()=="date") 
+                    if (xtr.Name.ToString() == "date") 
                     {
                         currentRegionSettings.LoadedCreationDate = xtr.ReadElementContentAsString();
                     } 
-                    else if (xtr.Name.ToString()=="time") 
+                    else if (xtr.Name.ToString() == "time") 
                     {
                         currentRegionSettings.LoadedCreationTime = xtr.ReadElementContentAsString();
                     }
-                    else if (xtr.Name.ToString()=="id") 
+                    else if (xtr.Name.ToString() == "id") 
                     {
                         currentRegionSettings.LoadedCreationID = xtr.ReadElementContentAsString();
                     }
@@ -533,8 +531,5 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             return true;
         }
-
-
-
     }
 }
