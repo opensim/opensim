@@ -39,33 +39,33 @@ namespace OpenSim.Framework.Tests
         [Test]
         public void TestContainsReferences()
         {
-            TestContainsReferences(AssetType.Bodypart, true);
-            TestContainsReferences(AssetType.Clothing, true);
-            
-            TestContainsReferences(AssetType.Animation, false);
-            TestContainsReferences(AssetType.CallingCard, false);
-            TestContainsReferences(AssetType.Folder     , false);
-            TestContainsReferences(AssetType.Gesture    , false);
-            TestContainsReferences(AssetType.ImageJPEG  , false);
-            TestContainsReferences(AssetType.ImageTGA   , false);
-            TestContainsReferences(AssetType.Landmark   , false);
-            TestContainsReferences(AssetType.LostAndFoundFolder, false);
-            TestContainsReferences(AssetType.LSLBytecode, false);
-            TestContainsReferences(AssetType.LSLText, false);
-            TestContainsReferences(AssetType.Notecard, false);
-            TestContainsReferences(AssetType.Object, false);
-            TestContainsReferences(AssetType.RootFolder, false);
-            TestContainsReferences(AssetType.Simstate, false);
-            TestContainsReferences(AssetType.SnapshotFolder, false);
-            TestContainsReferences(AssetType.Sound, false);
-            TestContainsReferences(AssetType.SoundWAV, false);
-            TestContainsReferences(AssetType.Texture, false);
-            TestContainsReferences(AssetType.TextureTGA, false);
-            TestContainsReferences(AssetType.TrashFolder, false);
-            TestContainsReferences(AssetType.Unknown, false);
+            CheckContainsReferences(AssetType.Bodypart, true);
+            CheckContainsReferences(AssetType.Clothing, true);
+
+            CheckContainsReferences(AssetType.Animation, false);
+            CheckContainsReferences(AssetType.CallingCard, false);
+            CheckContainsReferences(AssetType.Folder     , false);
+            CheckContainsReferences(AssetType.Gesture    , false);
+            CheckContainsReferences(AssetType.ImageJPEG  , false);
+            CheckContainsReferences(AssetType.ImageTGA   , false);
+            CheckContainsReferences(AssetType.Landmark   , false);
+            CheckContainsReferences(AssetType.LostAndFoundFolder, false);
+            CheckContainsReferences(AssetType.LSLBytecode, false);
+            CheckContainsReferences(AssetType.LSLText, false);
+            CheckContainsReferences(AssetType.Notecard, false);
+            CheckContainsReferences(AssetType.Object, false);
+            CheckContainsReferences(AssetType.RootFolder, false);
+            CheckContainsReferences(AssetType.Simstate, false);
+            CheckContainsReferences(AssetType.SnapshotFolder, false);
+            CheckContainsReferences(AssetType.Sound, false);
+            CheckContainsReferences(AssetType.SoundWAV, false);
+            CheckContainsReferences(AssetType.Texture, false);
+            CheckContainsReferences(AssetType.TextureTGA, false);
+            CheckContainsReferences(AssetType.TrashFolder, false);
+            CheckContainsReferences(AssetType.Unknown, false);
         }
 
-        private void TestContainsReferences(AssetType assetType, bool expected)
+        private void CheckContainsReferences(AssetType assetType, bool expected)
         {
             AssetBase asset = new AssetBase();
             asset.Type = (sbyte)assetType;

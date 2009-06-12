@@ -71,24 +71,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestllAngleBetween()
         {
-            m_testllAngleBetween(new Vector3(1, 0, 0), 0);
-            m_testllAngleBetween(new Vector3(1, 0, 0), 90);
-            m_testllAngleBetween(new Vector3(1, 0, 0), 180);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 0);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 90);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 180);
 
-            m_testllAngleBetween(new Vector3(0, 1, 0), 0);
-            m_testllAngleBetween(new Vector3(0, 1, 0), 90);
-            m_testllAngleBetween(new Vector3(0, 1, 0), 180);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 0);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 90);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 180);
 
-            m_testllAngleBetween(new Vector3(0, 0, 1), 0);
-            m_testllAngleBetween(new Vector3(0, 0, 1), 90);
-            m_testllAngleBetween(new Vector3(0, 0, 1), 180);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 0);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 90);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 180);
 
-            m_testllAngleBetween(new Vector3(1, 1, 1), 0);
-            m_testllAngleBetween(new Vector3(1, 1, 1), 90);
-            m_testllAngleBetween(new Vector3(1, 1, 1), 180);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 0);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 90);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 180);
         }
 
-        private void m_testllAngleBetween(Vector3 axis,float originalAngle)
+        private void CheckllAngleBetween(Vector3 axis,float originalAngle)
         {
             Quaternion rotation1 = Quaternion.CreateFromAxisAngle(axis, 0);
             Quaternion rotation2 = Quaternion.CreateFromAxisAngle(axis, ToRadians(originalAngle));
