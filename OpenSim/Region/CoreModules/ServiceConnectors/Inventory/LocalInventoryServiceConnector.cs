@@ -120,7 +120,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
 
         public void AddRegion(Scene scene)
         {
-            m_log.DebugFormat("HEEEERE");
             if (!m_Enabled)
                 return;
 
@@ -132,8 +131,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
                 m_Initialized = true;
             }
 
-            m_log.DebugFormat(
-                "[INVENTORY CONNECTOR]: Registering IInventoryService to scene {0}", scene.RegionInfo.RegionName);
+//            m_log.DebugFormat(
+//                "[INVENTORY CONNECTOR]: Registering IInventoryService to scene {0}", scene.RegionInfo.RegionName);
             
             scene.RegisterModuleInterface<IInventoryService>(this);
         }
