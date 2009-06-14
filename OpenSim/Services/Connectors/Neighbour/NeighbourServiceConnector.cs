@@ -49,7 +49,7 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IGridServices m_MapService = null;
+        protected IGridServices m_MapService = null;
 
         public NeighbourServicesConnector()
         {

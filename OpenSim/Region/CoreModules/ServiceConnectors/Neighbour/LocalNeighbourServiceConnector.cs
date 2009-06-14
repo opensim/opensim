@@ -86,7 +86,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Neighbour
 
         public void AddRegion(Scene scene)
         {
-            // Always add
             m_Scenes.Add(scene);
 
             if (!m_Enabled)

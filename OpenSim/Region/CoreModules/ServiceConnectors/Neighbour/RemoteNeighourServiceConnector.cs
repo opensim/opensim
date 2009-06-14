@@ -113,13 +113,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Neighbour
             if (!m_Enabled)
                 return;
 
+            m_MapService = scene.CommsManager.GridService;
+            m_LocalService.AddRegion(scene);
             scene.RegisterModuleInterface<INeighbourService>(this);
         }
 
         public void RemoveRegion(Scene scene)
         {
             if (m_Enabled && m_Scenes.Contains(scene))
-                m_Scenes.Remove(scene);
+                m_LocalService.RemoveRegion(scene);
         }
 
         public void RegionLoaded(Scene scene)
