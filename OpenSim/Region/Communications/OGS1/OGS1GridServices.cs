@@ -94,7 +94,9 @@ namespace OpenSim.Region.Communications.OGS1
           //  httpServer.AddXmlRPCHandler("expect_user", ExpectUser);
           //  httpServer.AddXmlRPCHandler("logoff_user", LogOffUser);
             httpServer.AddXmlRPCHandler("check", PingCheckReply);
-            httpServer.AddXmlRPCHandler("land_data", LandData);
+
+            // Retired into the new service connectors, 6/14/09
+            //httpServer.AddXmlRPCHandler("land_data", LandData);
 
         }
 

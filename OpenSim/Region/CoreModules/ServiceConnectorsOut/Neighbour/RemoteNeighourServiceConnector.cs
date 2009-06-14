@@ -120,7 +120,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
 
         public void RemoveRegion(Scene scene)
         {
-            if (m_Enabled && m_Scenes.Contains(scene))
+            if (m_Enabled)
                 m_LocalService.RemoveRegion(scene);
         }
 
