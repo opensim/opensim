@@ -32,6 +32,7 @@ using System.Net;
 using System.Text;
 
 using OpenSim.Server.Base;
+using OpenSim.Server.Handlers.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
@@ -88,7 +89,7 @@ namespace OpenSim.Server.Handlers.Simulation
             UUID agentID;
             string action;
             ulong regionHandle;
-            if (!Utils.GetParams(path, out agentID, out regionHandle, out action))
+            if (!RestHandlerUtils.GetParams(path, out agentID, out regionHandle, out action))
             {
                 m_log.InfoFormat("[AgentPostHandler]: Invalid parameters for agent message {0}", path);
                 httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -102,7 +103,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 // Authentication
                 string authority = string.Empty;
                 string authToken = string.Empty;
-                if (!Utils.GetAuthentication(httpRequest, out authority, out authToken))
+                if (!RestHandlerUtils.GetAuthentication(httpRequest, out authority, out authToken))
                 {
                     m_log.InfoFormat("[AgentPostHandler]: Authentication failed for agent message {0}", path);
                     httpResponse.StatusCode = (int)HttpStatusCode.Unauthorized;

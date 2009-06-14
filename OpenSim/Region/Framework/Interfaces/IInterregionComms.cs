@@ -100,11 +100,6 @@ namespace OpenSim.Region.Framework.Interfaces
 
         #endregion Objects
 
-        #region Regions
-
-        bool SendHelloNeighbour(ulong regionHandle, RegionInfo thisRegion);
-
-        #endregion Regions
     }
 
     // This may not be needed, but having it here for now.

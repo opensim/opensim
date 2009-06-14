@@ -23,6 +23,8 @@
         <RegionModule id="LocalInventoryServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectors.Inventory.LocalInventoryServicesConnector" />
         <RegionModule id="RemoteInventoryServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectors.Inventory.RemoteInventoryServicesConnector" />
         <RegionModule id="HGInventoryBroker" type="OpenSim.Region.CoreModules.ServiceConnectors.Inventory.HGInventoryBroker" />
+        <RegionModule id="LocalNeighbourServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectors.Neighbour.LocalNeighbourServicesConnector" />
+        <RegionModule id="RemoteNeighbourServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectors.Neighbour.RemoteNeighbourServicesConnector" />
         <RegionModule id="UrlModule" type="OpenSim.Region.CoreModules.Scripting.LSLHttp.UrlModule" />
         <RegionModule id="Chat" type="OpenSim.Region.CoreModules.Avatar.Chat.ChatModule" />
     </Extension>

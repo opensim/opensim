@@ -9,7 +9,8 @@
 
     <Extension path = "/OpenSim/RegionModules">
         <RegionModule id="RegionAssetService" type="OpenSim.SimulatorServices.RegionAssetService" />
-      <RegionModule id="RegionInventoryService" type="OpenSim.SimulatorServices.RegionInventoryService" />
+        <RegionModule id="RegionInventoryService" type="OpenSim.SimulatorServices.RegionInventoryService" />
+        <RegionModule id="NeighbourServiceInConnectorModule" type="OpenSim.SimulatorServices.NeighbourServiceInConnectorModule" />
     </Extension>
 
 </Addin>

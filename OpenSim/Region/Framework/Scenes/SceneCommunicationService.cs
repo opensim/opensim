@@ -39,6 +39,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Services.Interfaces;
 using OSD = OpenMetaverse.StructuredData.OSD;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -485,7 +486,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        public delegate void InformNeighbourThatRegionUpDelegate(RegionInfo region, ulong regionhandle);
+        public delegate void InformNeighbourThatRegionUpDelegate(INeighbourService nService, RegionInfo region, ulong regionhandle);
 
         private void InformNeighborsThatRegionisUpCompleted(IAsyncResult iar)
         {
@@ -498,7 +499,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="region"></param>
         /// <param name="regionhandle"></param>
-        private void InformNeighboursThatRegionIsUpAsync(RegionInfo region, ulong regionhandle)
+        private void InformNeighboursThatRegionIsUpAsync(INeighbourService neighbourService, RegionInfo region, ulong regionhandle)
         {
             m_log.Info("[INTERGRID]: Starting to inform neighbors that I'm here");
             //RegionUpData regiondata = new RegionUpData(region.RegionLocX, region.RegionLocY, region.ExternalHostName, region.InternalEndPoint.Port);
@@ -506,7 +507,12 @@ namespace OpenSim.Region.Framework.Scenes
             //bool regionAccepted =
             //    m_commsProvider.InterRegion.RegionUp(new SerializableRegionInfo(region), regionhandle);
 
-            bool regionAccepted = m_interregionCommsOut.SendHelloNeighbour(regionhandle, region);
+            //bool regionAccepted = m_interregionCommsOut.SendHelloNeighbour(regionhandle, region);
+            bool regionAccepted = false;
+            if (neighbourService != null)
+                regionAccepted = neighbourService.HelloNeighbour(regionhandle, region);
+            else
+                m_log.DebugFormat("[SCS]: No neighbour service provided for informing neigbhours of this region");
 
             if (regionAccepted)
             {
@@ -527,7 +533,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Called by scene when region is initialized (not always when it's listening for agents)
         /// This is an inter-region message that informs the surrounding neighbors that the sim is up.
         /// </summary>
-        public void InformNeighborsThatRegionisUp(RegionInfo region)
+        public void InformNeighborsThatRegionisUp(INeighbourService neighbourService, RegionInfo region)
         {
             //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
 
@@ -541,7 +547,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;
 
-                    d.BeginInvoke(region, neighbours[i].RegionHandle,
+                    d.BeginInvoke(neighbourService, region, neighbours[i].RegionHandle,
                                   InformNeighborsThatRegionisUpCompleted,
                                   d);
                 }

@@ -1198,7 +1198,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // These two 'commands' *must be* next to each other or sim rebooting fails.
             m_sceneGridService.RegisterRegion(m_interregionCommsOut, RegionInfo);
-            m_sceneGridService.InformNeighborsThatRegionisUp(RegionInfo);
+            m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
 
             Dictionary<string, string> dGridSettings = m_sceneGridService.GetGridSettings();
 

@@ -130,7 +130,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
         {
             m_aScene.CommsManager.HttpServer.AddHTTPHandler("/agent/",  AgentHandler);
             m_aScene.CommsManager.HttpServer.AddHTTPHandler("/object/", ObjectHandler);
-            m_aScene.CommsManager.HttpServer.AddHTTPHandler("/region/", RegionHandler);
         }
 
         #endregion /* IRegionModule */
@@ -288,32 +287,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
         public bool SendCreateObject(ulong regionHandle, UUID userID, UUID itemID)
         {
             // Not Implemented
-            return false;
-        }
-
-        /**
-         * Region-related communications 
-        */
-
-        public bool SendHelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
-        {
-            // Try local first
-            if (m_localBackend.SendHelloNeighbour(regionHandle, thisRegion))
-            {
-                //m_log.Debug("[REST COMMS]: LocalBackEnd SendHelloNeighbour succeeded");
-                return true;
-            }
-
-            // else do the remote thing
-            RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
-            if ((regInfo != null) && 
-                // Don't remote-call this instance; that's a startup hickup
-                !((regInfo.ExternalHostName == thisRegion.ExternalHostName) && (regInfo.HttpPort == thisRegion.HttpPort)))
-            {
-                return m_regionClient.DoHelloNeighbourCall(regInfo, thisRegion);
-            }
-            //else
-            //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
             return false;
         }
 
@@ -701,98 +674,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
             responsedata["int_response_code"] = 200;
             responsedata["str_response_string"] = result.ToString();
         }
-
-        /*
-         * Region-related incoming calls
-         * 
-         */
-
-        public Hashtable RegionHandler(Hashtable request)
-        {
-            //m_log.Debug("[CONNECTION DEBUGGING]: RegionHandler Called");
-
-            //m_log.Debug("---------------------------");
-            //m_log.Debug(" >> uri=" + request["uri"]);
-            //m_log.Debug(" >> content-type=" + request["content-type"]);
-            //m_log.Debug(" >> http-method=" + request["http-method"]);
-            //m_log.Debug("---------------------------\n");
-
-            Hashtable responsedata = new Hashtable();
-            responsedata["content_type"] = "text/html";
-
-            UUID regionID;
-            string action;
-            ulong regionHandle;
-            if (!GetParams((string)request["uri"], out regionID, out regionHandle, out action))
-            {
-                m_log.InfoFormat("[REST COMMS]: Invalid parameters for object message {0}", request["uri"]);
-                responsedata["int_response_code"] = 404;
-                responsedata["str_response_string"] = "false";
-
-                return responsedata;
-            }
-
-            // Next, let's parse the verb
-            string method = (string)request["http-method"];
-            if (method.Equals("POST"))
-            {
-                DoRegionPost(request, responsedata, regionID);
-                return responsedata;
-            }
-            //else if (method.Equals("PUT"))
-            //{
-            //    DoRegionPut(request, responsedata, regionID);
-            //    return responsedata;
-            //}
-            //else if (method.Equals("DELETE"))
-            //{
-            //    DoRegionDelete(request, responsedata, regiontID);
-            //    return responsedata;
-            //}
-            else
-            {
-                m_log.InfoFormat("[REST COMMS]: method {0} not supported in region message", method);
-                responsedata["int_response_code"] = 404;
-                responsedata["str_response_string"] = "false";
-
-                return responsedata;
-            }
-
-        }
-
-        protected virtual void DoRegionPost(Hashtable request, Hashtable responsedata, UUID id)
-        {
-            OSDMap args = RegionClient.GetOSDMap((string)request["body"]);
-            if (args == null)
-            {
-                responsedata["int_response_code"] = 400;
-                responsedata["str_response_string"] = "false";
-                return;
-            }
-
-            // retrieve the regionhandle
-            ulong regionhandle = 0;
-            if (args["destination_handle"] != null)
-                UInt64.TryParse(args["destination_handle"].AsString(), out regionhandle);
-
-            RegionInfo aRegion = new RegionInfo();
-            try
-            {
-                aRegion.UnpackRegionInfoData(args);
-            }
-            catch (Exception ex)
-            {
-                m_log.InfoFormat("[REST COMMS]: exception on unpacking HelloNeighbour message {0}", ex.Message);
-                return;
-            }
-
-            // This is the meaning of POST region
-            bool result = m_localBackend.SendHelloNeighbour(regionhandle, aRegion);
-
-            responsedata["int_response_code"] = 200;
-            responsedata["str_response_string"] = result.ToString();
-        }
-
 
         #endregion 
 
