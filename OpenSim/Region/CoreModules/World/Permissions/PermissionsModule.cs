@@ -184,6 +184,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnAbandonParcel += CanAbandonParcel;
             m_scene.Permissions.OnReclaimParcel += CanReclaimParcel;
             m_scene.Permissions.OnDeedParcel += CanDeedParcel;
+            m_scene.Permissions.OnDeedObject += CanDeedObject;
             m_scene.Permissions.OnIsGod += IsGod;
             m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
             m_scene.Permissions.OnDeleteObject += CanDeleteObject; //MAYBE FULLY IMPLEMENTED
@@ -818,6 +819,20 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandDeed);
         }
 
+        private bool CanDeedObject(UUID user, UUID group, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            ScenePresence sp = scene.GetScenePresence(user);
+            IClientAPI client = sp.ControllingClient;
+
+            if((client.GetGroupPowers(group) & (ulong)GroupPowers.DeedObject) == 0)
+                return false;
+
+            return true;
+        }
+
         private bool IsGod(UUID user, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
@@ -846,7 +861,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             if (part.GroupID != UUID.Zero)
             {
-                if ((part.OwnerID == UUID.Zero) && ((owner != part.LastOwnerID) || ((part.GroupMask & PERM_TRANS) == 0)))
+                if ((part.OwnerID == part.GroupID) && ((owner != part.LastOwnerID) || ((part.GroupMask & PERM_TRANS) == 0)))
                     return false;
 
                 if ((part.GroupMask & PERM_COPY) == 0)

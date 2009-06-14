@@ -2682,16 +2682,48 @@ namespace OpenSim.Region.Framework.Scenes
         void ObjectOwner(IClientAPI remoteClient, UUID ownerID, UUID groupID, List<uint> localIDs)
         {
             if (!Permissions.IsGod(remoteClient.AgentId))
-                return;
+            {
+                if (ownerID != UUID.Zero)
+                    return;
+                
+                if (!Permissions.CanDeedObject(remoteClient.AgentId, groupID))
+                    return;
+            }
+
+            List<SceneObjectGroup> groups = new List<SceneObjectGroup>();
 
             foreach (uint localID in localIDs)
             {
                 SceneObjectPart part = GetSceneObjectPart(localID);
-                if (part != null && part.ParentGroup != null)
+                if (!groups.Contains(part.ParentGroup))
+                    groups.Add(part.ParentGroup);
+            }
+
+            foreach (SceneObjectGroup sog in groups)
+            {
+                if (ownerID != null)
                 {
-                    part.ParentGroup.SetOwnerId(ownerID);
-                    part.Inventory.ChangeInventoryOwner(ownerID);
-                    part.ParentGroup.SetGroup(groupID, remoteClient);
+                    sog.SetOwnerId(ownerID);
+                    sog.SetGroup(groupID, remoteClient);
+
+                    foreach (SceneObjectPart child in sog.Children.Values)
+                        child.Inventory.ChangeInventoryOwner(ownerID);
+                }
+                else
+                {
+                    if (!Permissions.CanEditObject(sog.UUID, remoteClient.AgentId))
+                        continue;
+
+                    if (sog.GroupID != groupID)
+                        continue;
+
+                    foreach (SceneObjectPart child in sog.Children.Values)
+                    {
+                        child.LastOwnerID = child.OwnerID;
+                        child.Inventory.ChangeInventoryOwner(groupID);
+                    }
+
+                    sog.SetOwnerId(groupID);
                 }
             }
         }

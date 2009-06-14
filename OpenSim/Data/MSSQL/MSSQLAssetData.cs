@@ -39,7 +39,7 @@ namespace OpenSim.Data.MSSQL
     /// <summary>
     /// A MSSQL Interface for the Asset server
     /// </summary>
-    internal class MSSQLAssetData : AssetDataBase
+    public class MSSQLAssetData : AssetDataBase
     {
         private const string _migrationStore = "AssetStore";
 

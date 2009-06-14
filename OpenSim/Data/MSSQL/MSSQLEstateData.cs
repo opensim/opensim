@@ -124,16 +124,11 @@ namespace OpenSim.Data.MSSQL
                             }
                             else if (_FieldMap[name].GetValue(es) is UUID)
                             {
-//                                UUID uuid;
-//                                UUID.TryParse(reader[name].ToString(), out uuid);
-
                                 _FieldMap[name].SetValue(es, new UUID((Guid) reader[name])); // uuid);
                             }
                             else
                             {
                                 es.EstateID = Convert.ToUInt32(reader["EstateID"].ToString());
-                                //Problems converting a Int32 to a UInt32
-                                //_FieldMap[name].SetValue(es, reader["EstateID"]);
                             }
                         }
                     }
@@ -163,28 +158,7 @@ namespace OpenSim.Data.MSSQL
                         foreach (string name in names)
                         {
                             insertCommand.Parameters.Add(_Database.CreateParameter("@" + name, _FieldMap[name].GetValue(es)));
-//                            if (_FieldMap[name].GetValue(es) is bool)
-//                            {
-//                                SqlParameter tempBool = new SqlParameter("@" + name, SqlDbType.Bit);
-//
-//                                if ((bool) _FieldMap[name].GetValue(es))
-//                                    tempBool.Value = 1;
-//                                else
-//                                    tempBool.Value = 0;
-//
-//                                insertCommand.Parameters.Add(tempBool);
-//                            }
-//                            else
-//                            {
-//                                //cmd.Parameters.AddWithValue("@" + name, _FieldMap[name].GetValue(es));
-//                                SqlParameter tempPar = new SqlParameter("@" + name,
-//                                                                        _Database.DbtypeFromType(_FieldMap[name].FieldType));
-//                                tempPar.Value = _FieldMap[name].GetValue(es).ToString();
-//
-//                                insertCommand.Parameters.Add(tempPar);
-//                            }
                         }
-//                        insertCommand.Parameters.Add(_Database.CreateParameter("@ID", es.EstateID, true));
                         SqlParameter idParameter = new SqlParameter("@ID", SqlDbType.Int);
                         idParameter.Direction = ParameterDirection.Output;
                         insertCommand.Parameters.Add(idParameter);
@@ -211,7 +185,6 @@ namespace OpenSim.Data.MSSQL
                 }
 
                 // Munge and transfer the ban list
-                //
 
                 sql = string.Format("insert into estateban select {0}, bannedUUID, bannedIp, bannedIpHostMask, '' from regionban where regionban.regionUUID = @UUID", es.EstateID);
                 using (AutoClosingSqlCommand cmd = _Database.Query(sql))
@@ -253,7 +226,7 @@ namespace OpenSim.Data.MSSQL
 
             names.Remove("EstateID");
 
-            string sql = string.Format("UPDATE estate_settings SET ") ; // ({0}) values ( @{1}) WHERE EstateID = @EstateID", String.Join(",", names.ToArray()), String.Join(", @", names.ToArray()));
+            string sql = string.Format("UPDATE estate_settings SET ") ; 
             foreach (string name in names)
             {
                 sql += name + " = @" + name + ", ";
@@ -266,33 +239,9 @@ namespace OpenSim.Data.MSSQL
                 foreach (string name in names)
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("@" + name, _FieldMap[name].GetValue(es)));
-//                    if (_FieldMap[name].GetValue(es) is bool)
-//                    {
-//                        SqlParameter tempBool = new SqlParameter("@" + name, SqlDbType.Bit);
-//
-//                        if ((bool)_FieldMap[name].GetValue(es))
-//                            tempBool.Value = 1;
-//                        else
-//                            tempBool.Value = 0;
-//
-//                        cmd.Parameters.Add(tempBool);
-//                    }
-//                    else
-//                    {
-//                        //cmd.Parameters.AddWithValue("@" + name, _FieldMap[name].GetValue(es));
-//                        SqlParameter tempPar = new SqlParameter("@" + name,
-//                                                                _Database.DbtypeFromType(_FieldMap[name].FieldType));
-//                        tempPar.Value = _FieldMap[name].GetValue(es).ToString();
-//
-//                        cmd.Parameters.Add(tempPar);
-//                    }
                 }
 
                 cmd.Parameters.Add(_Database.CreateParameter("@EstateID", es.EstateID));
-//                SqlParameter idParameter = new SqlParameter("@EstateID", SqlDbType.Int);
-//                idParameter.Value = es.EstateID;
-//                cmd.Parameters.Add(idParameter);
-
                 cmd.ExecuteNonQuery();
             }
 
@@ -329,9 +278,6 @@ namespace OpenSim.Data.MSSQL
                     {
                         EstateBan eb = new EstateBan();
 
-//                        UUID uuid;
-//                        UUID.TryParse(reader["bannedUUID"].ToString(), out uuid);
-
                         eb.BannedUserID = new UUID((Guid)reader["bannedUUID"]); //uuid;
                         eb.BannedHostAddress = "0.0.0.0";
                         eb.BannedHostIPMask = "0.0.0.0";
@@ -355,11 +301,6 @@ namespace OpenSim.Data.MSSQL
                 {
                     while (reader.Read())
                     {
-                        // EstateBan eb = new EstateBan();
-
-//                        UUID uuid;
-//                        UUID.TryParse(reader["uuid"].ToString(), out uuid);
-
                         uuids.Add(new UUID((Guid)reader["uuid"])); //uuid);
                     }
                 }

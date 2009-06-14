@@ -317,7 +317,7 @@ IF EXISTS (SELECT UUID FROM prims WHERE UUID = @UUID)
             CameraAtOffsetY = @CameraAtOffsetY, CameraAtOffsetZ = @CameraAtOffsetZ, ForceMouselook = @ForceMouselook, 
             ScriptAccessPin = @ScriptAccessPin, AllowedDrop = @AllowedDrop, DieAtEdge = @DieAtEdge, SalePrice = @SalePrice, 
             SaleType = @SaleType, ColorR = @ColorR, ColorG = @ColorG, ColorB = @ColorB, ColorA = @ColorA, ParticleSystem = @ParticleSystem, 
-            ClickAction = @ClickAction, Material = @Material, CollisionSound = @CollisionSound, CollisionSoundVolume = @CollisionSoundVolume, 
+            ClickAction = @ClickAction, Material = @Material, CollisionSound = @CollisionSound, CollisionSoundVolume = @CollisionSoundVolume, PassTouches = @PassTouches,
             LinkNumber = @LinkNumber
         WHERE UUID = @UUID
     END
@@ -333,7 +333,7 @@ ELSE
             PayPrice, PayButton1, PayButton2, PayButton3, PayButton4, LoopedSound, LoopedSoundGain, TextureAnimation, OmegaX, 
             OmegaY, OmegaZ, CameraEyeOffsetX, CameraEyeOffsetY, CameraEyeOffsetZ, CameraAtOffsetX, CameraAtOffsetY, CameraAtOffsetZ, 
             ForceMouselook, ScriptAccessPin, AllowedDrop, DieAtEdge, SalePrice, SaleType, ColorR, ColorG, ColorB, ColorA, 
-            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, LinkNumber
+            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, PassTouches, LinkNumber
             ) VALUES (
             @UUID, @CreationDate, @Name, @Text, @Description, @SitName, @TouchName, @ObjectFlags, @OwnerMask, @NextOwnerMask, @GroupMask, 
             @EveryoneMask, @BaseMask, @PositionX, @PositionY, @PositionZ, @GroupPositionX, @GroupPositionY, @GroupPositionZ, @VelocityX, 
@@ -343,7 +343,7 @@ ELSE
             @PayPrice, @PayButton1, @PayButton2, @PayButton3, @PayButton4, @LoopedSound, @LoopedSoundGain, @TextureAnimation, @OmegaX, 
             @OmegaY, @OmegaZ, @CameraEyeOffsetX, @CameraEyeOffsetY, @CameraEyeOffsetZ, @CameraAtOffsetX, @CameraAtOffsetY, @CameraAtOffsetZ, 
             @ForceMouselook, @ScriptAccessPin, @AllowedDrop, @DieAtEdge, @SalePrice, @SaleType, @ColorR, @ColorG, @ColorB, @ColorA, 
-            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @LinkNumber
+            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @PassTouches, @LinkNumber
             )
     END";
 
@@ -723,7 +723,8 @@ VALUES
 ,[elevation_1_ne] = @elevation_1_ne ,[elevation_2_ne] = @elevation_2_ne ,[elevation_1_se] = @elevation_1_se ,[elevation_2_se] = @elevation_2_se 
 ,[elevation_1_sw] = @elevation_1_sw ,[elevation_2_sw] = @elevation_2_sw ,[water_height] = @water_height ,[terrain_raise_limit] = @terrain_raise_limit 
 ,[terrain_lower_limit] = @terrain_lower_limit ,[use_estate_sun] = @use_estate_sun ,[fixed_sun] = @fixed_sun ,[sun_position] = @sun_position 
-,[covenant] = @covenant , [sunvectorx] = @sunvectorx, [sunvectory] = @sunvectory, [sunvectorz] = @sunvectorz,  [Sandbox] = @Sandbox WHERE [regionUUID] = @regionUUID";
+,[covenant] = @covenant , [sunvectorx] = @sunvectorx, [sunvectory] = @sunvectory, [sunvectorz] = @sunvectorz,  [Sandbox] = @Sandbox, [loaded_creation_date] = @loaded_creation_date, [loaded_creation_time] = @loaded_creation_time, [loaded_creation_id] = @loaded_creation_id
+ WHERE [regionUUID] = @regionUUID";
 
                 using (AutoClosingSqlCommand cmd = _Database.Query(sql))
                 {
@@ -776,13 +777,14 @@ VALUES
                                 [block_show_in_search],[agent_limit],[object_bonus],[maturity],[disable_scripts],[disable_collisions],[disable_physics],
                                 [terrain_texture_1],[terrain_texture_2],[terrain_texture_3],[terrain_texture_4],[elevation_1_nw],[elevation_2_nw],[elevation_1_ne],
                                 [elevation_2_ne],[elevation_1_se],[elevation_2_se],[elevation_1_sw],[elevation_2_sw],[water_height],[terrain_raise_limit],
-                                [terrain_lower_limit],[use_estate_sun],[fixed_sun],[sun_position],[covenant],[sunvectorx], [sunvectory], [sunvectorz],[Sandbox]) 
+                                [terrain_lower_limit],[use_estate_sun],[fixed_sun],[sun_position],[covenant],[sunvectorx], [sunvectory], [sunvectorz],[Sandbox], [loaded_creation_date], [loaded_creation_time], [loaded_creation_id]
+ ) 
                             VALUES
                                 (@regionUUID,@block_terraform,@block_fly,@allow_damage,@restrict_pushing,@allow_land_resell,@allow_land_join_divide,
                                 @block_show_in_search,@agent_limit,@object_bonus,@maturity,@disable_scripts,@disable_collisions,@disable_physics,
                                 @terrain_texture_1,@terrain_texture_2,@terrain_texture_3,@terrain_texture_4,@elevation_1_nw,@elevation_2_nw,@elevation_1_ne,
                                 @elevation_2_ne,@elevation_1_se,@elevation_2_se,@elevation_1_sw,@elevation_2_sw,@water_height,@terrain_raise_limit,
-                                @terrain_lower_limit,@use_estate_sun,@fixed_sun,@sun_position,@covenant,@sunvectorx,@sunvectory, @sunvectorz, @Sandbox)";
+                                @terrain_lower_limit,@use_estate_sun,@fixed_sun,@sun_position,@covenant,@sunvectorx,@sunvectory, @sunvectorz, @Sandbox, @loaded_creation_date, @loaded_creation_time, @loaded_creation_id )";
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
@@ -843,6 +845,20 @@ VALUES
                                                  );
             newSettings.Covenant = new UUID((Guid)row["covenant"]);
 
+            if (row["loaded_creation_date"] is DBNull)
+                newSettings.LoadedCreationDate = "";
+            else
+                newSettings.LoadedCreationDate = (String)row["loaded_creation_date"];
+
+            if (row["loaded_creation_time"] is DBNull)
+                newSettings.LoadedCreationTime = "";
+            else
+                newSettings.LoadedCreationTime = (String)row["loaded_creation_time"];
+
+            if (row["loaded_creation_id"] is DBNull)
+                newSettings.LoadedCreationID = "";
+            else
+                newSettings.LoadedCreationID = (String)row["loaded_creation_id"];
             return newSettings;
         }
 
@@ -1064,7 +1080,8 @@ VALUES
 
             prim.CollisionSound = new UUID((Guid)primRow["CollisionSound"]);
             prim.CollisionSoundVolume = Convert.ToSingle(primRow["CollisionSoundVolume"]);
-
+            if (Convert.ToInt16(primRow["PassTouches"]) != 0)
+                prim.PassTouches = true;
             prim.LinkNum = Convert.ToInt32(primRow["LinkNumber"]);
 
             return prim;
@@ -1240,6 +1257,9 @@ VALUES
             parameters.Add(_Database.CreateParameter("sunvectory", settings.SunVector.Y));
             parameters.Add(_Database.CreateParameter("sunvectorz", settings.SunVector.Z));
             parameters.Add(_Database.CreateParameter("covenant", settings.Covenant));
+            parameters.Add(_Database.CreateParameter("LoadedCreationDate", settings.LoadedCreationDate));
+            parameters.Add(_Database.CreateParameter("LoadedCreationTime", settings.LoadedCreationTime));
+            parameters.Add(_Database.CreateParameter("LoadedCreationID", settings.LoadedCreationID));
 
             return parameters.ToArray();
         }
@@ -1442,6 +1462,10 @@ VALUES
 
             parameters.Add(_Database.CreateParameter("CollisionSound", prim.CollisionSound));
             parameters.Add(_Database.CreateParameter("CollisionSoundVolume", prim.CollisionSoundVolume));
+            if  (prim.PassTouches)
+                parameters.Add(_Database.CreateParameter("PassTouches", 1));
+            else
+                parameters.Add(_Database.CreateParameter("PassTouches", 0));
             parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
 
             return parameters.ToArray();

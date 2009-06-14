@@ -1125,6 +1125,10 @@ ELSE
                 retval.ID = new UUID((Guid)reader["UUID"]);
                 retval.FirstName = (string)reader["username"];
                 retval.SurName = (string)reader["lastname"];
+                if (reader.IsDBNull(reader.GetOrdinal("email")))
+                    retval.Email = "";
+                else
+                    retval.Email = (string)reader["email"];
 
                 retval.PasswordHash = (string)reader["passwordHash"];
                 retval.PasswordSalt = (string)reader["passwordSalt"];
