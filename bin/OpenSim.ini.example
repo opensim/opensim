@@ -1138,8 +1138,8 @@
     Enabled = false 
 
 [Hypergrid]
-	; Keep it false for now. Making it true requires the use of a special client in order to access inventory
-	safemode = false
+    ; Keep it false for now. Making it true requires the use of a special client in order to access inventory
+    safemode = false
 
 [FreeSwitchVoice]
     ; In order for this to work you need a functioning freeswitch pbx set
@@ -1175,32 +1175,31 @@
 
 [Groups]
     Enabled = false
-	
-	; This is the current groups stub in Region.CoreModules.Avatar.Groups
+
+    ; This is the current groups stub in Region.CoreModules.Avatar.Groups
     Module  = Default
 
-	
     ; The PHP code for the server is available from the Flotsam project for you to deploy 
-	; to your own server.  The Flotsam project is located at http://code.google.com/p/flotsam/
+    ; to your own server.  The Flotsam project is located at http://code.google.com/p/flotsam/
     ;
     ;Module  = XmlRpcGroups
 
     ;XmlRpcServiceURL       = http://yourxmlrpcserver.com/xmlrpc.php
-	;XmlRpcServiceReadKey = 1234
+    ;XmlRpcServiceReadKey = 1234
     ;XmlRpcServiceWriteKey = 1234
-	
+
     ;XmlRpcMessagingEnabled = true
     ;XmlRpcNoticesEnabled   = true
-	
-	; This makes the XmlRpcGroups modules very chatty on the console.
+
+    ; This makes the XmlRpcGroups modules very chatty on the console.
     ;XmlRpcDebugEnabled     = true
 
     ; Disables HTTP Keep-Alive for Groups Module HTTP Requests, work around for
     ; a problem discovered on some Windows based region servers.  Only disable
     ; if you see a large number (dozens) of the following Exceptions:
     ; System.Net.WebException: The request was aborted: The request was canceled.
-	;
-	; XmlRpcDisableKeepAlive = false
+    ;
+    ; XmlRpcDisableKeepAlive = false
 
 [PacketPool]
     ; Enables the experimental packet pool. Yes, we've been here before.
@@ -1214,11 +1213,11 @@
     ; Maximum number of times to resend packets marked reliable
     ;MaxReliableResends = 3
 
-	; Configures how ObjectUpdates are compressed.
-	;TerseUpdatesPerPacket=10
-	;FullUpdatesPerPacket=14
-	;TerseUpdateRate=10
-	;FullUpdateRate=14
+    ; Configures how ObjectUpdates are compressed.
+    ;TerseUpdatesPerPacket=10
+    ;FullUpdatesPerPacket=14
+    ;TerseUpdateRate=10
+    ;FullUpdateRate=14
 
     ;PacketMTU = 1400
     
@@ -1240,15 +1239,15 @@
     ;; The following is the configuration section for the new style services
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [Architecture]
-	; Choose exactly one and only one of the architectures below.
-	
-	Include-Standalone    = "config-include/Standalone.ini"
-	;Include-HGStandalone = "config-include/StandaloneHypergrid.ini"
-	;Include-Grid         = "config-include/Grid.ini"
-	;Include-HGGrid       = "config-include/GridHypergrid.ini"
+    ; Choose exactly one and only one of the architectures below.
 
-	; Then choose
-	; config-include/StandaloneCommon.ini.example (if you're in standlone) OR
-	; config-include/GridCommon.ini.example (if you're connected to a grid)
-	; Copy to your own .ini there (without .example extension) and edit it
-	; to customize your data
+    Include-Standalone    = "config-include/Standalone.ini"
+    ;Include-HGStandalone = "config-include/StandaloneHypergrid.ini"
+    ;Include-Grid         = "config-include/Grid.ini"
+    ;Include-HGGrid       = "config-include/GridHypergrid.ini"
+
+    ; Then choose
+    ; config-include/StandaloneCommon.ini.example (if you're in standlone) OR
+    ; config-include/GridCommon.ini.example (if you're connected to a grid)
+    ; Copy to your own .ini there (without .example extension) and edit it
+    ; to customize your data
