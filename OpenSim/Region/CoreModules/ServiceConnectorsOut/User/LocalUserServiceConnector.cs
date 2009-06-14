@@ -34,7 +34,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectors.User
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
 {
     public class LocalUserServicesConnector : ISharedRegionModule
     {

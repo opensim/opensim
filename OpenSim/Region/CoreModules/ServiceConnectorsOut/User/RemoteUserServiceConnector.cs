@@ -30,7 +30,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectors.User
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
 {
     public class RemoteUserServicesConnector : ISharedRegionModule
     {

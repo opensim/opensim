@@ -43,7 +43,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Region.Framework.Scenes.Serialization;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectors.Interregion
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 {
     public class RESTInterregionComms : IRegionModule, IInterregionCommsOut
     {

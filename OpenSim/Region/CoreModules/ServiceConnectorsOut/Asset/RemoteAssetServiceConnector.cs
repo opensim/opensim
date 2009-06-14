@@ -36,7 +36,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectors.Asset
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 {
     public class RemoteAssetServicesConnector :
             AssetServicesConnector, ISharedRegionModule, IAssetService

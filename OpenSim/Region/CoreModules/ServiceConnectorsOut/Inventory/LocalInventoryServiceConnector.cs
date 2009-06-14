@@ -40,7 +40,7 @@ using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 
 
-namespace OpenSim.Region.CoreModules.ServiceConnectors.Inventory
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
     public class LocalInventoryServicesConnector : ISharedRegionModule, IInventoryService
     {
