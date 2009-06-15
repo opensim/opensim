@@ -37,9 +37,9 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset
+namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory
 {
-    public class RegionAssetService : ISharedRegionModule
+    public class InventoryServiceInConnectorModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static bool m_Enabled = false;
@@ -52,21 +52,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset
         public void Initialise(IConfigSource config)
         {
             //// This module is only on for standalones in hypergrid mode
-            //enabled = ((!config.Configs["Startup"].GetBoolean("gridmode", true)) &&
-            //    config.Configs["Startup"].GetBoolean("hypergrid", true)) ||
-            //    ((config.Configs["MXP"] != null) && config.Configs["MXP"].GetBoolean("Enabled", true));
-            //m_log.DebugFormat("[RegionAssetService]: enabled? {0}", enabled);
+            //enabled = (!config.Configs["Startup"].GetBoolean("gridmode", true)) &&
+            //    config.Configs["Startup"].GetBoolean("hypergrid", true);
+            //m_log.DebugFormat("[RegionInventoryService]: enabled? {0}", enabled);
             m_Config = config;
             IConfig moduleConfig = config.Configs["Modules"];
             if (moduleConfig != null)
             {
-                m_Enabled = moduleConfig.GetBoolean("AssetServiceInConnector", false);
+                m_Enabled = moduleConfig.GetBoolean("InventoryServiceInConnector", false);
                 if (m_Enabled)
                 {
-                    m_log.Info("[ASSET IN CONNECTOR]: AssetServiceInConnector enabled");
+                    m_log.Info("[INVENTORY IN CONNECTOR]: Inventory Service In Connector enabled");
                 }
 
             }
+
         }
 
         public void PostInitialise()
@@ -79,7 +79,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset
 
         public string Name
         {
-            get { return "RegionAssetService"; }
+            get { return "RegionInventoryService"; }
         }
 
         public void AddRegion(Scene scene)
@@ -91,11 +91,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset
             {
                 m_Registered = true;
 
-                m_log.Info("[RegionAssetService]: Starting...");
+                m_log.Info("[RegionInventoryService]: Starting...");
 
                 Object[] args = new Object[] { m_Config, scene.CommsManager.HttpServer };
 
-                ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:AssetServiceConnector", args);
+                ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:InventoryServiceInConnector", args);
             }
         }
 

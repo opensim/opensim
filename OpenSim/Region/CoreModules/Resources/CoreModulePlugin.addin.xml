@@ -31,8 +31,8 @@
         <RegionModule id="LocalLandServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Land.LocalLandServicesConnector" />
         <RegionModule id="RemoteLandServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Land.RemoteLandServicesConnector" />
       <!-- Service connectors IN modules -->
-        <RegionModule id="RegionAssetService" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset.RegionAssetService" />
-        <RegionModule id="RegionInventoryService" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory.RegionInventoryService" />
+        <RegionModule id="AssetServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset.AssetServiceInConnectorModule" />
+        <RegionModule id="InventoryServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory.InventoryServiceInConnectorModule" />
         <RegionModule id="LandServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Land.LandServiceInConnectorModule" />
         <RegionModule id="NeighbourServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour.NeighbourServiceInConnectorModule" />    \  
 
