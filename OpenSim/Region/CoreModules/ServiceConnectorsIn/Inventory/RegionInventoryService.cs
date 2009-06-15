@@ -36,33 +36,33 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
-using OpenSim.Services.Interfaces;
 
-
-namespace OpenSim.SimulatorServices
+namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory
 {
-    public class LandServiceInConnectorModule : ISharedRegionModule, ILandService
+    public class RegionInventoryService : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static bool m_Enabled = false;
-        private static bool m_Registered = false;
-
+        
         private IConfigSource m_Config;
-        private List<Scene> m_Scenes = new List<Scene>();
+        bool m_Registered = false;
 
         #region IRegionModule interface
 
         public void Initialise(IConfigSource config)
         {
+            //// This module is only on for standalones in hypergrid mode
+            //enabled = (!config.Configs["Startup"].GetBoolean("gridmode", true)) &&
+            //    config.Configs["Startup"].GetBoolean("hypergrid", true);
+            //m_log.DebugFormat("[RegionInventoryService]: enabled? {0}", enabled);
             m_Config = config;
-
             IConfig moduleConfig = config.Configs["Modules"];
             if (moduleConfig != null)
             {
-                m_Enabled = moduleConfig.GetBoolean("LandServiceInConnector", false);
+                m_Enabled = moduleConfig.GetBoolean("InventoryServiceInConnector", false);
                 if (m_Enabled)
                 {
-                    m_log.Info("[LAND IN CONNECTOR]: LandServiceInConnector enabled");
+                    m_log.Info("[INVENTORY IN CONNECTOR]: Inventory Service In Connector enabled");
                 }
 
             }
@@ -71,10 +71,6 @@ namespace OpenSim.SimulatorServices
 
         public void PostInitialise()
         {
-            if (!m_Enabled)
-                return;
-
-            m_log.Info("[LAND IN CONNECTOR]: Starting...");
         }
 
         public void Close()
@@ -83,7 +79,7 @@ namespace OpenSim.SimulatorServices
 
         public string Name
         {
-            get { return "LandServiceInConnectorModule"; }
+            get { return "RegionInventoryService"; }
         }
 
         public void AddRegion(Scene scene)
@@ -94,18 +90,17 @@ namespace OpenSim.SimulatorServices
             if (!m_Registered)
             {
                 m_Registered = true;
-                Object[] args = new Object[] { m_Config, scene.CommsManager.HttpServer, this, scene };
-                ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:LandServiceInConnector", args);
+
+                m_log.Info("[RegionInventoryService]: Starting...");
+
+                Object[] args = new Object[] { m_Config, scene.CommsManager.HttpServer };
+
+                ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:InventoryServiceInConnector", args);
             }
-
-            m_Scenes.Add(scene);
-
         }
 
         public void RemoveRegion(Scene scene)
         {
-            if (m_Enabled && m_Scenes.Contains(scene))
-                m_Scenes.Remove(scene);
         }
 
         public void RegionLoaded(Scene scene)
@@ -114,24 +109,5 @@ namespace OpenSim.SimulatorServices
 
         #endregion
 
-        #region ILandService
-
-        public LandData GetLandData(ulong regionHandle, uint x, uint y)
-        {
-            m_log.DebugFormat("[LAND IN CONNECTOR]: GetLandData for {0}. Count = {2}",
-                regionHandle, m_Scenes.Count);
-            foreach (Scene s in m_Scenes)
-            {
-                if (s.RegionInfo.RegionHandle == regionHandle)
-                {
-                    m_log.Debug("[LAND IN CONNECTOR]: Found region to GetLandData from");
-                    return s.GetLandData(x, y);
-                }
-            }
-            m_log.DebugFormat("[LAND IN CONNECTOR]: region handle {0} not found", regionHandle);
-            return null;
-        }
-
-        #endregion ILandService
     }
 }

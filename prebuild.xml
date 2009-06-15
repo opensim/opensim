@@ -1547,6 +1547,7 @@
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Server.Base" />
+      <Reference name="OpenSim.Server.Handlers" />
       <Reference name="OpenSim.Services.Connectors" />
       <Reference name="OpenSim.Services.Base" />
       <Reference name="OpenSim.Services.Interfaces" />
@@ -1649,41 +1650,6 @@
       <Reference name="DotNetOpenMail.dll"/>
 
 	  
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-          <Exclude name="Tests" pattern="Tests" />
-        </Match>
-        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.SimulatorServices" path="OpenSim/SimulatorServices" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer" />
-      <Reference name="OpenSim.Region.Framework" />
-      <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="OpenSim.Server.Base"/>
-      <Reference name="OpenSim.Server.Handlers"/>
-      <Reference name="Mono.Addins.dll" />
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="Nini.dll" />
-      <Reference name="log4net.dll"/>
-
-
       <Files>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests" />
