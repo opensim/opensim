@@ -2724,6 +2724,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ani.Sender = new AvatarAnimationPacket.SenderBlock();
             ani.Sender.ID = sourceAgentId;
             ani.AnimationList = new AvatarAnimationPacket.AnimationListBlock[animations.Length];
+            ani.PhysicalAvatarEventList = new AvatarAnimationPacket.PhysicalAvatarEventListBlock[0];
 
             for (int i = 0; i < animations.Length; ++i)
             {
