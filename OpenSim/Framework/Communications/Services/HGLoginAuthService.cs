@@ -128,6 +128,8 @@ namespace OpenSim.Framework.Communications.Services
                 userProfile.WebLoginKey = token;
                 m_userManager.CommitAgent(ref userProfile);
             }
+            m_log.Warn("[HGLOGIN]: Auth token: " + token);
+
 
             return response;
         }

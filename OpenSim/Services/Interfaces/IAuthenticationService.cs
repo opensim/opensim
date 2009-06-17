@@ -30,31 +30,39 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.Interfaces
 {
+    // Generic Authentication service used for identifying
+    // and authenticating principals.
+    // Principals may be clients acting on users' behalf,
+    // or any other components that need 
+    // verifiable identification.
+    //
     public interface IAuthenticationService
     {
+        // Check the pricipal's password
+        //
+        bool Authenticate(UUID principalID, string password);
+
+        // Get a service key given that principal's 
+        // authentication token (master key). 
+        //
+        string GetKey(UUID principalID, string authToken);
+
+        // Verify that a principal key is valid
+        //
+        bool VerifyKey(UUID principalID, string key);
+
         // Create a new user session. If one exists, it is cleared
-        //
+        // 
         UUID AllocateUserSession(UUID userID);
-
-        // Get a user key from an authentication token. This must be
-        // done before the session allocated above is considered valid.
-        // Repeated calls to this method with the same auth token will
-        // create different keys and invalidate the previous ne.
-        //
-        string GetUserKey(UUID userID, string authToken);
-
-        // Verify that a user key is valid
-        //
-        bool VerifyUserKey(UUID userID, string key);
 
         // Verify that a user session ID is valid. A session ID is
         // considered valid when a user has successfully authenticated
         // at least one time inside that session.
         //
-        bool VerifyUserSession(UUID userID, UUID session);
+        bool VerifyUserSession(UUID principalID, UUID session);
 
         // Remove a user session identifier and deauthenticate the user
         //
-        void DestroyUserSession(UUID userID);
+        void DestroyUserSession(UUID principalID);
     }
 }

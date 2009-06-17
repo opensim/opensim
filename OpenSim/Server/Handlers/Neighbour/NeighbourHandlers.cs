@@ -110,7 +110,7 @@ namespace OpenSim.Server.Handlers.Neighbour
                     httpResponse.StatusCode = (int)HttpStatusCode.Unauthorized;
                     return result;
                 }
-                if (!m_AuthenticationService.VerifyUserKey(regionID, authToken))
+                if (!m_AuthenticationService.VerifyKey(regionID, authToken))
                 {
                     m_log.InfoFormat("[RegionPostHandler]: Authentication failed for neighbour message {0}", path);
                     httpResponse.StatusCode = (int)HttpStatusCode.Forbidden;

@@ -114,8 +114,6 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                             this);
 
                     httpServer.AddXmlRPCHandler("hg_login", m_loginService.XmlRpcLoginMethod);
-                    httpServer.AddXmlRPCHandler("hg_new_auth_key", m_loginService.XmlRpcGenerateKeyMethod);
-                    httpServer.AddXmlRPCHandler("hg_verify_auth_key", m_loginService.XmlRpcVerifyKeyMethod);
                     httpServer.AddXmlRPCHandler("check_auth_session", m_loginService.XmlRPCCheckAuthSession, false);
 
                 }
