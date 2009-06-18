@@ -27,7 +27,7 @@
 
 using System;
 
-namespace OpenSim.Framework.Communications.Capabilities
+namespace OpenSim.Framework.Capabilities
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class LLSDType : Attribute

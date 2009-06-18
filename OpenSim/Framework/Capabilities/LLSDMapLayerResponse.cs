@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace OpenSim.Framework.Communications.Capabilities
+namespace OpenSim.Framework.Capabilities
 {
     [LLSDType("MAP")]
     public class LLSDMapLayerResponse

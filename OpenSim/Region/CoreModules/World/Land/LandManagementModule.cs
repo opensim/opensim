@@ -33,13 +33,13 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Capabilities;
+using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
-using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
+using Caps=OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.CoreModules.World.Land
 {

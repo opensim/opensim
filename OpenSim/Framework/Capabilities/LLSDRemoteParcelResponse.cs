@@ -28,7 +28,7 @@
 
 using OpenMetaverse;
 
-namespace OpenSim.Framework.Communications.Capabilities
+namespace OpenSim.Framework.Capabilities
 {
     [LLSDType("MAP")]
     public class LLSDRemoteParcelResponse

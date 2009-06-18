@@ -39,10 +39,10 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Capabilities;
+using OpenSim.Framework.Capabilities;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
+using Caps=OpenSim.Framework.Capabilities.Caps;
 using OSDArray=OpenMetaverse.StructuredData.OSDArray;
 using OSDMap=OpenMetaverse.StructuredData.OSDMap;
 
@@ -353,7 +353,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             return responseMap;
         }
 
-        // Using OpenSim.Framework.Communications.Capabilities.Caps here one time..   
+        // Using OpenSim.Framework.Capabilities.Caps here one time..   
         // so the long name is probably better then a using statement
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {

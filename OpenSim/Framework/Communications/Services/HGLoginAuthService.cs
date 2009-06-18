@@ -33,7 +33,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Communications.Capabilities;
+using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Servers;
 
 using OpenMetaverse;

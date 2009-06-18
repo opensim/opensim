@@ -40,12 +40,12 @@ using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Capabilities;
+using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
+using Caps=OpenSim.Framework.Capabilities.Caps;
 using OSDArray=OpenMetaverse.StructuredData.OSDArray;
 using OSDMap=OpenMetaverse.StructuredData.OSDMap;
 

@@ -28,7 +28,7 @@
 
 using System.Collections;
 
-namespace OpenSim.Framework.Communications.Capabilities
+namespace OpenSim.Framework.Capabilities
 {
     [OSDMap]
     public class LLSDParcelVoiceInfoResponse

@@ -27,7 +27,7 @@
 
 using System.Collections;
 
-namespace OpenSim.Framework.Communications.Capabilities
+namespace OpenSim.Framework.Capabilities
 {
     [LLSDType("ARRAY")]
     public class OSDArray

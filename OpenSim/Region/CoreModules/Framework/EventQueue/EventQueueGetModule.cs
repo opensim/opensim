@@ -42,7 +42,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using BlockingLLSDQueue = OpenSim.Framework.BlockingQueue<OpenMetaverse.StructuredData.OSD>;
-using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
+using Caps=OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.CoreModules.Framework.EventQueue
 {
@@ -483,7 +483,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
                 if (AvatarID != UUID.Zero)
                 {
                     // Repair the CAP!
-                    //OpenSim.Framework.Communications.Capabilities.Caps caps = m_scene.GetCapsHandlerForUser(AvatarID);
+                    //OpenSim.Framework.Capabilities.Caps caps = m_scene.GetCapsHandlerForUser(AvatarID);
                     //string capsBase = "/CAPS/EQG/";
                     //caps.RegisterHandler("EventQueueGet",
                                 //new RestHTTPHandler("POST", capsBase + capUUID.ToString() + "/",

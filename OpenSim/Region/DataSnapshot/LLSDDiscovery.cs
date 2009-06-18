@@ -25,7 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-using OpenSim.Framework.Communications.Capabilities;
+using OpenSim.Framework.Capabilities;
 
 namespace OpenSim.Region.DataSnapshot
 {

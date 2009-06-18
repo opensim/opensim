@@ -37,7 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Communications.Capabilities;
+using OpenSim.Framework.Capabilities;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Services.Interfaces;
 using OSD = OpenMetaverse.StructuredData.OSD;

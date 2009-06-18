@@ -38,7 +38,7 @@ using OpenSim.Services.Interfaces;
 
 // using OpenSim.Region.Framework.Interfaces;
 
-namespace OpenSim.Framework.Communications.Capabilities
+namespace OpenSim.Framework.Capabilities
 {
     public delegate void UpLoadedAsset(
         string assetName, string description, UUID assetID, UUID inventoryItem, UUID parentFolder,

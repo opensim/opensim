@@ -31,7 +31,7 @@ using System.Text;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Framework.Communications.Capabilities
+namespace OpenSim.Framework.Capabilities
 {
     public class LLSDStreamhandler<TRequest, TResponse> : BaseStreamHandler
         where TRequest : new()

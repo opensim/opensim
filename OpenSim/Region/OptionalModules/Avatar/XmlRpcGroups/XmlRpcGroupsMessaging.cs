@@ -42,7 +42,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 
-using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
+using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
