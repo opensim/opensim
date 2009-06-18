@@ -587,7 +587,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             string requestBody = reader.ReadToEnd();
             reader.Close();
             requestStream.Close();
-
+            //m_log.Debug(requestBody);
+            requestBody = requestBody.Replace("<base64></base64>", "");
             string responseString = String.Empty;
             XmlRpcRequest xmlRprcRequest = null;
 
