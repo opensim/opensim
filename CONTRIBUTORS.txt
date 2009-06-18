@@ -90,6 +90,7 @@ what it is today.
 * M.Igarashi
 * maimedleech
 * Mic Bowman
+* Michelle Argus
 * Mike Pitman (IBM)
 * mikkopa/_someone - RealXtend
 * Mircea Kitsune

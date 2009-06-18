@@ -299,7 +299,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="agentId">UUID of script-owner</param>
         public void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action, UUID agentId)
         {
-            client_OnModifyTerrain(user, (float)pos.Z, (float)0.25, size, action, pos.Y, pos.X, pos.Y, pos.X, agentId);
+            float duration = 0.25f;
+            if (action == 0)
+                duration = 4.0f;
+            client_OnModifyTerrain(user, (float)pos.Z, duration, size, action, pos.Y, pos.X, pos.Y, pos.X, agentId);
         }
 
         /// <summary>

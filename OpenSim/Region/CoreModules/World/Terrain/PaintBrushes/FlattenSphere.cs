@@ -41,34 +41,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
 
             int x, y;
 
-            duration = 0.009; //MCP Should be read from ini file
-
-            // Disabled - just use the client value.
-            /*
-            if (rz < 0) {
-                double sum = 0.0;
-                double step2 = 0.0;
-
-
-                // compute delta map
-                for (x = 0; x < map.Width; x++)
-                {
-                    for (y = 0; y < map.Height; y++)
-                    {
-                        double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
-
-                        if (z > 0) // add in non-zero amount
-                        {
-                            sum += map[x, y] * z;
-                            step2 += z;
-                        }
-                    }
-                }
-                rz =  sum / step2;
-            }
-            */
-
-
             // blend in map
             for (x = 0; x < map.Width; x++)
             {
@@ -77,19 +49,28 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                     if (!mask[x,y])
                         continue;
 
-                    double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength) * duration;
-
-                    if (z > 0) // add in non-zero amount
+                    double z;
+                    if (duration < 4.0)
                     {
-                        if (z > 1.0)
-                            z = 1.0;
-
-                        map[x, y] = (map[x, y] * (1.0 - z)) + (rz * z);
+                        z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength) * duration * 0.25;
+                    }
+                    else {
+                        z = 1.0;
                     }
 
                     double delta = rz - map[x, y];
                     if (Math.Abs(delta) > 0.1)
-                        delta *= 0.25;
+                    {
+                        if (z > 1.0)
+                        {
+                            z = 1.0;
+                        }
+                        else if (z < 0.0)
+                        {
+                            z = 0.0;
+                        }
+                        delta *= z;
+                    }
 
                     if (delta != 0) // add in non-zero amount
                     {
