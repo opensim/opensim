@@ -188,7 +188,7 @@ namespace OpenSim.Data.SQLite
             row["invType"] = item.InvType;
             row["parentFolderID"] = item.Folder.ToString();
             row["avatarID"] = item.Owner.ToString();
-            row["creatorsID"] = item.CreatorId;
+            row["creatorsID"] = item.CreatorId.ToString();
             row["inventoryName"] = item.Name;
             row["inventoryDescription"] = item.Description;
 
@@ -202,7 +202,7 @@ namespace OpenSim.Data.SQLite
             row["salePrice"] = item.SalePrice;
             row["saleType"] = item.SaleType;
             row["creationDate"] = item.CreationDate;
-            row["groupID"] = item.GroupID;
+            row["groupID"] = item.GroupID.ToString();
             row["groupOwned"] = item.GroupOwned;
             row["flags"] = item.Flags;
         }
