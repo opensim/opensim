@@ -790,22 +790,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                                   landName, land.LocalID, landUUID);
             }
             System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
-            channelUri = String.Format("sip:confctl-{0}@{1}", "x" + Convert.ToBase64String(encoding.GetBytes(landUUID)), m_freeSwitchRealm);
             
-            //channelUri="sip:confctl-3001@9.20.151.43";
-            //channelUri="sip:opensimconf-3001@9.20.151.43";
+            // slvoice handles the sip address differently if it begins with confctl, hiding it from the user in the friends list. however it also disables
+            // the personal speech indicators as well unless some siren14-3d codec magic happens. we dont have siren143d so we'll settle for the personal speech indicator.
+            channelUri = String.Format("sip:conf-{0}@{1}", "x" + Convert.ToBase64String(encoding.GetBytes(landUUID)), m_freeSwitchRealm);
+            
 
             return channelUri;
         }
         
         private static bool CustomCertificateValidation(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
         {
-            //if (cert.Subject == "E=root@lindenlab.com, CN=*.vaak.lindenlab.com, O=\"Linden Lab, Inc.\", L=San Francisco, S=California, C=US")
-            //{
+            
             return true;
-            //}
-
-            //return false;
+            
         }
     }
     public class MonoCert : ICertificatePolicy

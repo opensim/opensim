@@ -70,6 +70,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                                         <action application=""conference"" data=""$1-${domain_name}@default""/>
                                 </condition>
                         </extension>
+                        
+                        <extension name=""opensim_conf"">
+                                <condition field=""destination_number"" expression=""^conf-(.*)$"">
+                                        <action application=""answer""/>
+                                        <action application=""conference"" data=""$1-${domain_name}@default""/>
+                                </condition>
+                        </extension>
                 
                         <extension name=""avatar"">
                                 <condition field=""destination_number"" expression=""^(x.*)$"">
