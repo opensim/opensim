@@ -93,7 +93,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event OnShutdownDelegate OnShutdown;
 
         public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);
-        public delegate void ObjectDeGrabDelegate(uint localID, uint originalID, IClientAPI remoteClient);
+        public delegate void ObjectDeGrabDelegate(uint localID, uint originalID, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);
         public delegate void ScriptResetDelegate(uint localID, UUID itemID);
 
         public delegate void OnPermissionErrorDelegate(UUID user, string reason);
@@ -582,12 +582,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerObjectDeGrab(uint localID, uint originalID, IClientAPI remoteClient)
+        public void TriggerObjectDeGrab(uint localID, uint originalID, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
         {
             handlerObjectDeGrab = OnObjectDeGrab;
             if (handlerObjectDeGrab != null)
             {
-                handlerObjectDeGrab(localID, originalID, remoteClient);
+                handlerObjectDeGrab(localID, originalID, remoteClient, surfaceArgs);
             }
         }
 

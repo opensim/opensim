@@ -156,7 +156,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     det));
         }
 
-        public void touch_end(uint localID, uint originalID, IClientAPI remoteClient)
+        public void touch_end(uint localID, uint originalID, IClientAPI remoteClient,
+                              SurfaceTouchEventArgs surfaceArgs)
         {
             // Add to queue for all scripts in ObjectID object
             DetectParams[] det = new DetectParams[1];
@@ -176,6 +177,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 SceneObjectPart originalPart = myScriptEngine.World.GetSceneObjectPart(originalID);
                 det[0].LinkNum = originalPart.LinkNum;
+            }
+
+            if (surfaceArgs != null)
+            {
+                det[0].SurfaceTouchArgs = surfaceArgs;
             }
 
             myScriptEngine.PostObjectEvent(localID, new EventParams(

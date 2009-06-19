@@ -252,7 +252,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event ObjectDuplicate OnObjectDuplicate = delegate { };
         public event ObjectDuplicateOnRay OnObjectDuplicateOnRay = delegate { };
         public event GrabObject OnGrabObject = delegate { };
-        public event ObjectSelect OnDeGrabObject = delegate { };
+        public event DeGrabObject OnDeGrabObject = delegate { };
         public event MoveObject OnGrabUpdate = delegate { };
         public event SpinStart OnSpinStart = delegate { };
         public event SpinObject OnSpinUpdate = delegate { };

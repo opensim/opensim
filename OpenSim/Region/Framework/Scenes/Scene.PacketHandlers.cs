@@ -269,9 +269,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient)
+        public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
             List<EntityBase> EntityList = GetEntities();
+
+            SurfaceTouchEventArgs surfaceArg = null;
+            if (surfaceArgs != null && surfaceArgs.Count > 0)
+                surfaceArg = surfaceArgs[0];
 
             foreach (EntityBase ent in EntityList)
             {
@@ -288,9 +292,9 @@ namespace OpenSim.Region.Framework.Scenes
                             // If the touched prim handles touches, deliver it
                             // If not, deliver to root prim
                             if ((part.ScriptEvents & scriptEvents.touch_end) != 0)
-                                EventManager.TriggerObjectDeGrab(part.LocalId, 0, remoteClient);
+                                EventManager.TriggerObjectDeGrab(part.LocalId, 0, remoteClient, surfaceArg);
                             else
-                                EventManager.TriggerObjectDeGrab(obj.RootPart.LocalId, part.LocalId, remoteClient);
+                                EventManager.TriggerObjectDeGrab(obj.RootPart.LocalId, part.LocalId, remoteClient, surfaceArg);
 
                             return;
                         }

@@ -197,7 +197,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private UpdatePrimTexture handlerUpdatePrimTexture;
         private GrabObject handlerGrabObject; //OnGrabObject;
         private MoveObject handlerGrabUpdate; //OnGrabUpdate;
-        private ObjectSelect handlerDeGrabObject; //OnDeGrabObject;
+        private DeGrabObject handlerDeGrabObject; //OnDeGrabObject;
         private SpinStart handlerSpinStart; //OnSpinStart;
         private SpinObject handlerSpinUpdate; //OnSpinUpdate;
         private SpinStop handlerSpinStop; //OnSpinStop;
@@ -1021,7 +1021,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event LinkObjects OnLinkObjects;
         public event DelinkObjects OnDelinkObjects;
         public event GrabObject OnGrabObject;
-        public event ObjectSelect OnDeGrabObject;
+        public event DeGrabObject OnDeGrabObject;
         public event SpinStart OnSpinStart;
         public event SpinStop OnSpinStop;
         public event ObjectDuplicate OnObjectDuplicate;
@@ -5991,7 +5991,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     handlerDeGrabObject = OnDeGrabObject;
                     if (handlerDeGrabObject != null)
                     {
-                        handlerDeGrabObject(deGrab.ObjectData.LocalID, this);
+                        List<SurfaceTouchEventArgs> touchArgs = new List<SurfaceTouchEventArgs>();
+                        if ((deGrab.SurfaceInfo != null) && (deGrab.SurfaceInfo.Length > 0))
+                        {
+                            foreach (ObjectDeGrabPacket.SurfaceInfoBlock surfaceInfo in deGrab.SurfaceInfo)
+                            {
+                                SurfaceTouchEventArgs arg = new SurfaceTouchEventArgs();
+                                arg.Binormal = surfaceInfo.Binormal;
+                                arg.FaceIndex = surfaceInfo.FaceIndex;
+                                arg.Normal = surfaceInfo.Normal;
+                                arg.Position = surfaceInfo.Position;
+                                arg.STCoord = surfaceInfo.STCoord;
+                                arg.UVCoord = surfaceInfo.UVCoord;
+                                touchArgs.Add(arg);
+                            }
+                        }
+                        handlerDeGrabObject(deGrab.ObjectData.LocalID, this, touchArgs);
                     }
                     break;
                 case PacketType.ObjectSpinStart:

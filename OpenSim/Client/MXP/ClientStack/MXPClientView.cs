@@ -605,7 +605,7 @@ namespace OpenSim.Client.MXP.ClientStack
         public event ObjectDuplicate OnObjectDuplicate;
         public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
         public event GrabObject OnGrabObject;
-        public event ObjectSelect OnDeGrabObject;
+        public event DeGrabObject OnDeGrabObject;
         public event MoveObject OnGrabUpdate;
         public event SpinStart OnSpinStart;
         public event SpinObject OnSpinUpdate;

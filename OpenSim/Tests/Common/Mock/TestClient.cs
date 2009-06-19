@@ -106,7 +106,7 @@ namespace OpenSim.Tests.Common.Mock
         public event GodKickUser OnGodKickUser;
         public event ObjectDuplicate OnObjectDuplicate;
         public event GrabObject OnGrabObject;
-        public event ObjectSelect OnDeGrabObject;
+        public event DeGrabObject OnDeGrabObject;
         public event MoveObject OnGrabUpdate;
         public event SpinStart OnSpinStart;
         public event SpinObject OnSpinUpdate;

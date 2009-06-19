@@ -155,6 +155,9 @@ namespace OpenSim.Framework
     public delegate void GrabObject(
         uint localID, Vector3 pos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs);
 
+    public delegate void DeGrabObject(
+        uint localID, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs);
+
     public delegate void MoveObject(
         UUID objectID, Vector3 offset, Vector3 grapPos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs
         );
@@ -609,7 +612,7 @@ namespace OpenSim.Framework
         event ObjectDuplicate OnObjectDuplicate;
         event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
         event GrabObject OnGrabObject;
-        event ObjectSelect OnDeGrabObject;
+        event DeGrabObject OnDeGrabObject;
         event MoveObject OnGrabUpdate;
         event SpinStart OnSpinStart;
         event SpinObject OnSpinUpdate;
