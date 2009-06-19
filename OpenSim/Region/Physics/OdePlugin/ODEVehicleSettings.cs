@@ -243,6 +243,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else if (m_type != Vehicle.TYPE_NONE && pType == Vehicle.TYPE_NONE)
             {
+                m_type = pType;
                 Destroy();
             }
         }
