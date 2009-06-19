@@ -386,7 +386,7 @@ namespace OpenSim.Region.UserStatistics
         }
 
 
-        public void OnClientClosed(UUID agentID)
+        public void OnClientClosed(UUID agentID, Scene scene)
         {
             lock (m_sessions)
             {

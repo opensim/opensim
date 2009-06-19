@@ -2246,7 +2246,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
 
                     }
-                    m_eventManager.TriggerClientClosed(agentID);
+                    m_eventManager.TriggerClientClosed(agentID, this);
                 }
                 catch (NullReferenceException)
                 {

@@ -162,7 +162,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event IncomingInstantMessage OnUnhandledInstantMessage;
 
-        public delegate void ClientClosed(UUID clientID);
+        public delegate void ClientClosed(UUID clientID, Scene scene);
 
         public event ClientClosed OnClientClosed;
 
@@ -733,12 +733,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerClientClosed(UUID ClientID)
+        public void TriggerClientClosed(UUID ClientID, Scene scene)
         {
             handlerClientClosed = OnClientClosed;
             if (handlerClientClosed != null)
             {
-                handlerClientClosed(ClientID);
+                handlerClientClosed(ClientID, scene);
             }
         }
 

@@ -368,7 +368,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             return false;
         }
 
-        public void ClientLoggedOut(UUID agentID)
+        public void ClientLoggedOut(UUID agentID, Scene scene)
         {
             if (m_AgentRegions.ContainsKey(agentID))
                 m_AgentRegions.Remove(agentID);

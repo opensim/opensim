@@ -287,7 +287,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// Event handler
         /// </summary>
         /// <param name="AgentId">AgentID that logged out</param>
-        private void ClientLoggedOut(UUID AgentId)
+        private void ClientLoggedOut(UUID AgentId, Scene scene)
         {
             List<ScenePresence> presences = m_scene.GetAvatars();
             int rootcount = 0;

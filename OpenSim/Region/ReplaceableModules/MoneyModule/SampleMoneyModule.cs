@@ -698,7 +698,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
         /// When the client closes the connection we remove their accounting info from memory to free up resources.
         /// </summary>
         /// <param name="AgentID"></param>
-        public void ClientClosed(UUID AgentID)
+        public void ClientClosed(UUID AgentID, Scene scene)
         {
             
         }
@@ -760,7 +760,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
         /// Event Handler for when the client logs out.
         /// </summary>
         /// <param name="AgentId"></param>
-        private void ClientLoggedOut(UUID AgentId)
+        private void ClientLoggedOut(UUID AgentId, Scene scene)
         {
             
         }
@@ -771,7 +771,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
         /// <param name="client"></param>
         public void ClientClosed(IClientAPI client)
         {
-            ClientClosed(client.AgentId);
+            ClientClosed(client.AgentId, null);
         }
 
         /// <summary>

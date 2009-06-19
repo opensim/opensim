@@ -198,7 +198,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
             remote_client.SendGroupNameReply(groupUUID, groupnamereply);
         }
 
-        private void OnClientClosed(UUID agentID)
+        private void OnClientClosed(UUID agentID, Scene scene)
         {
             lock (m_ClientMap)
             {
