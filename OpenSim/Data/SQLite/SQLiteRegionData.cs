@@ -1582,10 +1582,10 @@ namespace OpenSim.Data.SQLite
         /// <param name="taskItem"></param>
         private static void fillItemRow(DataRow row, TaskInventoryItem taskItem)
         {
-            row["itemID"] = taskItem.ItemID;
-            row["primID"] = taskItem.ParentPartID;
-            row["assetID"] = taskItem.AssetID;
-            row["parentFolderID"] = taskItem.ParentID;
+            row["itemID"] = taskItem.ItemID.ToString();
+            row["primID"] = taskItem.ParentPartID.ToString();
+            row["assetID"] = taskItem.AssetID.ToString();
+            row["parentFolderID"] = taskItem.ParentID.ToString();
 
             row["invType"] = taskItem.InvType;
             row["assetType"] = taskItem.Type;
@@ -1593,10 +1593,10 @@ namespace OpenSim.Data.SQLite
             row["name"] = taskItem.Name;
             row["description"] = taskItem.Description;
             row["creationDate"] = taskItem.CreationDate;
-            row["creatorID"] = taskItem.CreatorID;
-            row["ownerID"] = taskItem.OwnerID;
-            row["lastOwnerID"] = taskItem.LastOwnerID;
-            row["groupID"] = taskItem.GroupID;
+            row["creatorID"] = taskItem.CreatorID.ToString();
+            row["ownerID"] = taskItem.OwnerID.ToString();
+            row["lastOwnerID"] = taskItem.LastOwnerID.ToString();
+            row["groupID"] = taskItem.GroupID.ToString();
             row["nextPermissions"] = taskItem.NextPermissions;
             row["currentPermissions"] = taskItem.CurrentPermissions;
             row["basePermissions"] = taskItem.BasePermissions;
