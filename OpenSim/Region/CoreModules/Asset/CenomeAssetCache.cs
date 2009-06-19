@@ -211,9 +211,13 @@ namespace OpenSim.Region.CoreModules.Asset
         /// </param>
         public void Cache(AssetBase asset)
         {
-            long size = asset.Data != null ? asset.Data.Length : 1;
-            m_cache.Set(asset.ID, asset, size);
-            m_cachedCount++;
+            if (asset != null)
+            {
+                long size = asset.Data != null ? asset.Data.Length : 1;
+                m_cache.Set(asset.ID, asset, size);
+                m_cachedCount++;
+            }
+
         }
 
         /// <summary>
