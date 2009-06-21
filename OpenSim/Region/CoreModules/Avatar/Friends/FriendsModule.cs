@@ -200,6 +200,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         if (UUID.TryParse((string)respData["friendID_" + i], out uuid)) tpdAway.Add(uuid);
                     }
                 }
+                catch (WebException e)
+                {
+                    // Ignore connect failures, simulators come and go
+                    //
+                    if (!e.Message.Contains("ConnectFailure"))
+                    {
+                        m_log.Error("[OGS1 GRID SERVICES]: InformFriendsInOtherRegion XMLRPC failure: ", e);
+                    }
+                }
                 catch (Exception e)
                 {
                     m_log.Error("[OGS1 GRID SERVICES]: InformFriendsInOtherRegion XMLRPC failure: ", e);
