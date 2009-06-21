@@ -2724,6 +2724,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     sog.SetOwnerId(groupID);
+                    sog.ApplyNextOwnerPermissions();
                 }
             }
         }

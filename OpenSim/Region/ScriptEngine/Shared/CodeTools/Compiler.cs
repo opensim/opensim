@@ -259,6 +259,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         //    }
         //}
 
+        public string GetAssemblyName(UUID assetID)
+        {
+            return Path.Combine(ScriptEnginesPath, Path.Combine(
+                    m_scriptEngine.World.RegionInfo.RegionID.ToString(),
+                    FilePrefix + "_compiled_" + assetID + ".dll"));
+        }
+
         /// <summary>
         /// Converts script from LSL to CS and calls CompileFromCSText
         /// </summary>
