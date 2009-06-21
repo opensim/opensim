@@ -3295,7 +3295,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = new ObjectPropertiesFamilyPacket.ObjectDataBlock();
             objPropDB.RequestFlags = RequestFlags;
             objPropDB.ObjectID = ObjectUUID;
-            objPropDB.OwnerID = OwnerID;
+            if (OwnerID == GroupID)
+                objPropDB.OwnerID = UUID.Zero;
+            else
+                objPropDB.OwnerID = OwnerID;
             objPropDB.GroupID = GroupID;
             objPropDB.BaseMask = BaseMask;
             objPropDB.OwnerMask = OwnerMask;
@@ -3340,7 +3343,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //            proper.ObjectData[0].LastOwnerID = UUID.Zero;
 
             proper.ObjectData[0].ObjectID = ObjectUUID;
-            proper.ObjectData[0].OwnerID = OwnerUUID;
+            if (OwnerUUID == GroupUUID)
+                proper.ObjectData[0].OwnerID = UUID.Zero;
+            else
+                proper.ObjectData[0].OwnerID = OwnerUUID;
             proper.ObjectData[0].TouchName = LLUtil.StringToPacketBytes(TouchTitle);
             proper.ObjectData[0].TextureID = TextureID;
             proper.ObjectData[0].SitName = LLUtil.StringToPacketBytes(SitTitle);
