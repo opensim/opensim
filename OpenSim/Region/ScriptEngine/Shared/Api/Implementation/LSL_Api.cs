@@ -8699,7 +8699,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             try
             {
-                return Uri.EscapeUriString(url);
+                return Uri.EscapeDataString(url);
             }
             catch (Exception ex)
             {
