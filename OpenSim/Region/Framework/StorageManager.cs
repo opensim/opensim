@@ -36,7 +36,7 @@ namespace OpenSim.Region.Framework
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IRegionDataStore m_dataStore;
+        protected IRegionDataStore m_dataStore;
 
         public IRegionDataStore DataStore
         {
