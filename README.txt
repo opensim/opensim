@@ -1,6 +1,6 @@
 Welcome to OpenSim! 
 
-Version 0.6
+Version 0.6.x
 
 == OVERVIEW ==
 
@@ -25,9 +25,9 @@ See configuring OpenSim
 == Installation on Linux ==
 
 Prereqs:
- * Mono >= 1.2.6 (>= 2.0.1 preferable)
- * Nant >= 0.85
- * sqlite3
+ * Mono >= 2.0.1 (>= 2.4.2 is better)
+ * Nant >= 0.86beta
+ * sqlite3 or mysql 5.x (you'll need a backend database)
 
 From the distribution type:
  * ./runprebuild.sh
