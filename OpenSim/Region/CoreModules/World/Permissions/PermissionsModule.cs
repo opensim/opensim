@@ -827,7 +827,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             ScenePresence sp = scene.GetScenePresence(user);
             IClientAPI client = sp.ControllingClient;
 
-            if((client.GetGroupPowers(group) & (ulong)GroupPowers.DeedObject) == 0)
+            if ((client.GetGroupPowers(group) & (ulong)GroupPowers.DeedObject) == 0)
                 return false;
 
             return true;

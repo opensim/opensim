@@ -784,7 +784,7 @@ VALUES
                                 @block_show_in_search,@agent_limit,@object_bonus,@maturity,@disable_scripts,@disable_collisions,@disable_physics,
                                 @terrain_texture_1,@terrain_texture_2,@terrain_texture_3,@terrain_texture_4,@elevation_1_nw,@elevation_2_nw,@elevation_1_ne,
                                 @elevation_2_ne,@elevation_1_se,@elevation_2_se,@elevation_1_sw,@elevation_2_sw,@water_height,@terrain_raise_limit,
-                                @terrain_lower_limit,@use_estate_sun,@fixed_sun,@sun_position,@covenant,@sunvectorx,@sunvectory, @sunvectorz, @Sandbox, @loaded_creation_date, @loaded_creation_time, @loaded_creation_id )";
+                                @terrain_lower_limit,@use_estate_sun,@fixed_sun,@sun_position,@covenant,@sunvectorx,@sunvectory, @sunvectorz, @Sandbox, @loaded_creation_date, @loaded_creation_time, @loaded_creation_id)";
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {

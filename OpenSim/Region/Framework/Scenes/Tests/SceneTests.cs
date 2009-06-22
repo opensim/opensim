@@ -113,7 +113,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 }
             }
 
-            public FakeStorageManager() : base( new FakeRegionDataStore() )
+            public FakeStorageManager() : base(new FakeRegionDataStore())
             {
             }
 
@@ -132,7 +132,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             RegionInfo regionInfo = new RegionInfo(0,0,null,null);
             FakeStorageManager storageManager = new FakeStorageManager();
 
-            Scene scene = new Scene(regionInfo, null, null, null, storageManager, null, false, false, false, null, null );
+            Scene scene = new Scene(regionInfo, null, null, null, storageManager, null, false, false, false, null, null);
         }
     }
 }
