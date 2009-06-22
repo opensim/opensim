@@ -366,7 +366,7 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Servers.Base"/>
+      <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -3610,7 +3610,6 @@
       <Reference name="OpenSim.Services.Interfaces"/>
       
       <!-- Unit tests -->
-      <!-- <Reference name="OpenSim.Tests.Common"/> -->
       <Reference name="OpenSim.Tests.Common"/>
       <Reference name="Nini.dll"/>
       <Reference name="nunit.framework.dll"/>
