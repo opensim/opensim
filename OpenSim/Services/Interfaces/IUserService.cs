@@ -35,7 +35,7 @@ namespace OpenSim.Services.Interfaces
         public string FirstName;
         public string LastName;
         public UUID UserID;
-        public UUID scopeID;
+        public UUID ScopeID;
 
         // For informational purposes only!
         //
@@ -59,7 +59,7 @@ namespace OpenSim.Services.Interfaces
         public string AccountType;
     };
 
-    public interface IUserService
+    public interface IUserDataService
     {
         UserData GetUserData(UUID scopeID, UUID userID);
         UserData GetUserData(UUID scopeID, string FirstName, string LastName);
@@ -71,7 +71,6 @@ namespace OpenSim.Services.Interfaces
         
         // Returns the list of avatars that matches both the search
         // criterion and the scope ID passed
-        // ONLY THE NAME, SCOPE ID and UUID will be filled in!
         //
         List<UserData> GetAvatarPickerData(UUID scopeID, string query);
     }

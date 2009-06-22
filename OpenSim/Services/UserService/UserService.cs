@@ -35,7 +35,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.UserService
 {
-    public class UserService : UserServiceBase, IUserService
+    public class UserService : UserServiceBase, IUserDataService
     {
         public UserService(IConfigSource config) : base(config)
         {

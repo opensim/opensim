@@ -26,14 +26,22 @@
  */
 
 using Nini.Config;
+using log4net;
+using System.Reflection;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.Connectors;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
 {
-    public class RemoteUserServicesConnector : ISharedRegionModule
+    public class RemoteUserServicesConnector : UserServicesConnector,
+            ISharedRegionModule, IUserDataService
     {
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
         private bool m_Enabled = false;
 
         public string Name
@@ -41,7 +49,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
             get { return "RemoteUserServicesConnector"; }
         }
 
-        public void Initialise(IConfigSource source)
+        public override void Initialise(IConfigSource source)
         {
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
@@ -49,7 +57,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
                 string name = moduleConfig.GetString("UserServices", "");
                 if (name == Name)
                 {
+                    IConfig userConfig = source.Configs["UserService"];
+                    if (userConfig == null)
+                    {
+                        m_log.Error("[USER CONNECTOR]: UserService missing from OpanSim.ini");
+                        return;
+                    }
+
                     m_Enabled = true;
+
+                    base.Initialise(source);
+
+                    m_log.Info("[USER CONNECTOR]: Remote users enabled");
                 }
             }
         }
@@ -70,6 +89,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
         {
             if (!m_Enabled)
                 return;
+
+            scene.RegisterModuleInterface<IUserDataService>(this);
         }
 
         public void RemoveRegion(Scene scene)
