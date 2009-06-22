@@ -25,9 +25,54 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
+using OpenMetaverse;
+
 namespace OpenSim.Services.Interfaces
 {
+    public class UserData
+    {
+        public string FirstName;
+        public string LastName;
+        public UUID UserID;
+        public UUID scopeID;
+
+        // For informational purposes only!
+        //
+        public string HomeRegionName;
+
+        public UUID HomeRegionID;
+        public float HomePositionX;
+        public float HomePositionY;
+        public float HomePositionZ;
+        public float HomeLookAtX;
+        public float HomeLookAtY;
+        public float HomeLookAtZ;
+
+        // There are here because they
+        // concern the account rather than
+        // the profile. They just happen to
+        // be used in the Linden profile as well
+        //
+        public int GodLevel;
+        public int UserFlags;
+        public string AccountType;
+    };
+
     public interface IUserService
     {
+        UserData GetUserData(UUID scopeID, UUID userID);
+        UserData GetUserData(UUID scopeID, string FirstName, string LastName);
+
+        // This will set only the home region portion of the data!
+        // Can't be used to set god level, flags, type or change the name!
+        //
+        bool SetUserData(UserData data);
+        
+        // Returns the list of avatars that matches both the search
+        // criterion and the scope ID passed
+        // ONLY THE NAME, SCOPE ID and UUID will be filled in!
+        //
+        List<UserData> GetAvatarPickerData(UUID scopeID, string query);
     }
 }

@@ -46,23 +46,25 @@ namespace OpenSim.Services.AssetService
             string connString = String.Empty;
 
             //
-            // Try reading the [DatabaseService] section first, if it exists
-            //
-            IConfig dbConfig = config.Configs["DatabaseService"];
-            if (dbConfig != null)
-            {
-                dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                connString = dbConfig.GetString("ConnectionString", String.Empty);
-            }
-
-            //
-            // Try reading the more specific [AssetService] section, if it exists
+            // Try reading the [AssetService] section first, if it exists
             //
             IConfig assetConfig = config.Configs["AssetService"];
             if (assetConfig != null)
             {
                 dllName = assetConfig.GetString("StorageProvider", dllName);
                 connString = assetConfig.GetString("ConnectionString", connString);
+            }
+
+            //
+            // Try reading the [DatabaseService] section, if it exists
+            //
+            IConfig dbConfig = config.Configs["DatabaseService"];
+            if (dbConfig != null)
+            {
+                if (dllName != String.Empty)
+                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                if (connString != String.Empty)
+                    connString = dbConfig.GetString("ConnectionString", String.Empty);
             }
 
             //

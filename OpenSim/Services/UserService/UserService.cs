@@ -30,6 +30,8 @@ using System.Reflection;
 using Nini.Config;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
+using System.Collections.Generic;
+using OpenMetaverse;
 
 namespace OpenSim.Services.UserService
 {
@@ -37,6 +39,28 @@ namespace OpenSim.Services.UserService
     {
         public UserService(IConfigSource config) : base(config)
         {
+        }
+
+        public UserData GetUserData(UUID scopeID, string firstName,
+                string lastName)
+        {
+            return null;
+        }
+
+        public UserData GetUserData(UUID scopeID, UUID userID)
+        {
+            return null;
+        }
+
+        public bool SetUserData(UserData data)
+        {
+            return false;
+        }
+
+        public List<UserData> GetAvatarPickerData(UUID scopeID,
+                string query)
+        {
+            return null;
         }
     }
 }

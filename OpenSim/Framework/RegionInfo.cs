@@ -71,6 +71,7 @@ namespace OpenSim.Framework
         protected uint m_remotingPort;
         public UUID RegionID = UUID.Zero;
         public string RemotingAddress;
+        public UUID ScopeID = UUID.Zero;
 
         public SimpleRegionInfo()
         {
@@ -470,6 +471,9 @@ namespace OpenSim.Framework
             
             configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max objects this sim will hold", m_objectCapacity.ToString(), true);
+            
+            configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+                                                "Scope ID for this region", ScopeID.ToString(), true);
         }
 
         public void loadConfigurationOptions()
@@ -530,6 +534,9 @@ namespace OpenSim.Framework
             
             configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max objects this sim will hold", "0", true);
+
+            configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+                                                "Scope ID for this region", UUID.Zero.ToString(), true);
         }
 
         public bool shouldMasterAvatarDetailsBeAsked(string configuration_key)
@@ -606,6 +613,9 @@ namespace OpenSim.Framework
                     break;
                 case "object_capacity":
                     m_objectCapacity = (int)configuration_result;
+                    break;
+                case "scope_id":
+                    ScopeID = (UUID)configuration_result;
                     break;
             }
 
