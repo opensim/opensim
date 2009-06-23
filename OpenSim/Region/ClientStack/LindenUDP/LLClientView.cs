@@ -8700,7 +8700,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     Utils.StringToBytes(m.Title);
                                 groupMembersReply.MemberData[i].IsOwner =
                                     m.IsOwner;
-                                i++;
                             }
                             OutPacket(groupMembersReply, ThrottleOutPacketType.Task);
                             if (members.Count == 0)
