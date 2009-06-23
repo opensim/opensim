@@ -1245,11 +1245,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             handshake.RegionInfo2.RegionID = regionInfo.RegionID;
 
-            handshake.RegionInfo3.ColoName = Utils.EmptyBytes;
-            handshake.RegionInfo3.CPUClassID = 0;
-            handshake.RegionInfo3.CPURatio = 0;
-            handshake.RegionInfo3.ProductName = Utils.StringToBytes("OpenSim");
-            handshake.RegionInfo3.ProductSKU = Utils.EmptyBytes;
+//            handshake.RegionInfo3.ColoName = Utils.EmptyBytes;
+//            handshake.RegionInfo3.CPUClassID = 0;
+//            handshake.RegionInfo3.CPURatio = 0;
+//            handshake.RegionInfo3.ProductName = Utils.StringToBytes("OpenSim");
+//            handshake.RegionInfo3.ProductSKU = Utils.EmptyBytes;
 
             OutPacket(handshake, ThrottleOutPacketType.Task);
         }
