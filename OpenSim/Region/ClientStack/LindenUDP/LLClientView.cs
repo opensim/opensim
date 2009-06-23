@@ -8658,44 +8658,50 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         List<GroupMembersData> members =
                             m_GroupsModule.GroupMembersRequest(this, groupMembersRequestPacket.GroupData.GroupID);
 
-                        GroupMembersReplyPacket groupMembersReply = (GroupMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupMembersReply);
-
-                        groupMembersReply.AgentData =
-                            new GroupMembersReplyPacket.AgentDataBlock();
-                        groupMembersReply.GroupData =
-                            new GroupMembersReplyPacket.GroupDataBlock();
-                        groupMembersReply.MemberData =
-                            new GroupMembersReplyPacket.MemberDataBlock[
-                                members.Count];
-
-                        groupMembersReply.AgentData.AgentID = AgentId;
-                        groupMembersReply.GroupData.GroupID =
-                            groupMembersRequestPacket.GroupData.GroupID;
-                        groupMembersReply.GroupData.RequestID =
-                            groupMembersRequestPacket.GroupData.RequestID;
-                        groupMembersReply.GroupData.MemberCount = members.Count;
-
-                        int i = 0;
-                        foreach (GroupMembersData m in members)
+                        while (true)
                         {
-                            groupMembersReply.MemberData[i] =
-                                new GroupMembersReplyPacket.MemberDataBlock();
-                            groupMembersReply.MemberData[i].AgentID =
-                                m.AgentID;
-                            groupMembersReply.MemberData[i].Contribution =
-                                m.Contribution;
-                            groupMembersReply.MemberData[i].OnlineStatus =
-                                Utils.StringToBytes(m.OnlineStatus);
-                            groupMembersReply.MemberData[i].AgentPowers =
-                                m.AgentPowers;
-                            groupMembersReply.MemberData[i].Title =
-                                Utils.StringToBytes(m.Title);
-                            groupMembersReply.MemberData[i].IsOwner =
-                                m.IsOwner;
-                            i++;
-                        }
+                            GroupMembersReplyPacket groupMembersReply = (GroupMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupMembersReply);
 
-                        OutPacket(groupMembersReply, ThrottleOutPacketType.Task);
+                            groupMembersReply.AgentData =
+                                new GroupMembersReplyPacket.AgentDataBlock();
+                            groupMembersReply.GroupData =
+                                new GroupMembersReplyPacket.GroupDataBlock();
+                            groupMembersReply.MemberData =
+                                new GroupMembersReplyPacket.MemberDataBlock[
+                                    members.Count];
+
+                            groupMembersReply.AgentData.AgentID = AgentId;
+                            groupMembersReply.GroupData.GroupID =
+                                groupMembersRequestPacket.GroupData.GroupID;
+                            groupMembersReply.GroupData.RequestID =
+                                groupMembersRequestPacket.GroupData.RequestID;
+                            groupMembersReply.GroupData.MemberCount = members.Count;
+
+                            for (int i = 0 ; i < 60 && members.Count > 0 ; i++)
+                            {
+                                GroupMembersData m = members[0];
+                                members.RemoveAt(0);
+
+                                groupMembersReply.MemberData[i] =
+                                    new GroupMembersReplyPacket.MemberDataBlock();
+                                groupMembersReply.MemberData[i].AgentID =
+                                    m.AgentID;
+                                groupMembersReply.MemberData[i].Contribution =
+                                    m.Contribution;
+                                groupMembersReply.MemberData[i].OnlineStatus =
+                                    Utils.StringToBytes(m.OnlineStatus);
+                                groupMembersReply.MemberData[i].AgentPowers =
+                                    m.AgentPowers;
+                                groupMembersReply.MemberData[i].Title =
+                                    Utils.StringToBytes(m.Title);
+                                groupMembersReply.MemberData[i].IsOwner =
+                                    m.IsOwner;
+                                i++;
+                            }
+                            OutPacket(groupMembersReply, ThrottleOutPacketType.Task);
+                            if (members.Count == 0)
+                                break;
+                        }
                     }
                     break;
 
