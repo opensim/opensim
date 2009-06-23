@@ -57,6 +57,12 @@ namespace OpenSim.Services.Interfaces
         public int GodLevel;
         public int UserFlags;
         public string AccountType;
+
+        // This is only used internally. It needs to be set
+        // to the secret of the sending region when updating
+        // user data.
+        //
+        public UUID RegionSecret;
     };
 
     public interface IUserDataService
