@@ -8658,6 +8658,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         List<GroupMembersData> members =
                             m_GroupsModule.GroupMembersRequest(this, groupMembersRequestPacket.GroupData.GroupID);
 
+                        int memberCount = members.Count;
+
                         while (true)
                         {
                             int blockCount = members.Count;
@@ -8679,7 +8681,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 groupMembersRequestPacket.GroupData.GroupID;
                             groupMembersReply.GroupData.RequestID =
                                 groupMembersRequestPacket.GroupData.RequestID;
-                            groupMembersReply.GroupData.MemberCount = members.Count;
+                            groupMembersReply.GroupData.MemberCount = memberCount;
 
                             for (int i = 0 ; i < blockCount ; i++)
                             {
@@ -8790,40 +8792,50 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (m_GroupsModule != null)
                     {
-                        GroupRoleMembersReplyPacket groupRoleMembersReply = (GroupRoleMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupRoleMembersReply);
-                        groupRoleMembersReply.AgentData =
-                            new GroupRoleMembersReplyPacket.AgentDataBlock();
-                        groupRoleMembersReply.AgentData.AgentID =
-                            AgentId;
-                        groupRoleMembersReply.AgentData.GroupID =
-                            groupRoleMembersRequest.GroupData.GroupID;
-                        groupRoleMembersReply.AgentData.RequestID =
-                            groupRoleMembersRequest.GroupData.RequestID;
-
                         List<GroupRoleMembersData> mappings =
-                            m_GroupsModule.GroupRoleMembersRequest(this,
-                                                                   groupRoleMembersRequest.GroupData.GroupID);
+                                m_GroupsModule.GroupRoleMembersRequest(this,
+                                groupRoleMembersRequest.GroupData.GroupID);
 
-                        groupRoleMembersReply.AgentData.TotalPairs =
-                            (uint)mappings.Count;
+                        int mappingsCount = mappings.Count;
 
-                        groupRoleMembersReply.MemberData =
-                            new GroupRoleMembersReplyPacket.MemberDataBlock[mappings.Count];
-
-                        int i = 0;
-                        foreach (GroupRoleMembersData d in mappings)
+                        while (mappings.Count > 0)
                         {
-                            groupRoleMembersReply.MemberData[i] =
-                                new GroupRoleMembersReplyPacket.MemberDataBlock();
+                            int pairs = mappings.Count;
+                            if (pairs > 32)
+                                pairs = 32;
 
-                            groupRoleMembersReply.MemberData[i].RoleID =
-                                d.RoleID;
-                            groupRoleMembersReply.MemberData[i].MemberID =
-                                d.MemberID;
-                            i++;
+                            GroupRoleMembersReplyPacket groupRoleMembersReply = (GroupRoleMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupRoleMembersReply);
+                            groupRoleMembersReply.AgentData =
+                                    new GroupRoleMembersReplyPacket.AgentDataBlock();
+                            groupRoleMembersReply.AgentData.AgentID =
+                                    AgentId;
+                            groupRoleMembersReply.AgentData.GroupID =
+                                    groupRoleMembersRequest.GroupData.GroupID;
+                            groupRoleMembersReply.AgentData.RequestID =
+                                    groupRoleMembersRequest.GroupData.RequestID;
+
+                            groupRoleMembersReply.AgentData.TotalPairs =
+                                    (uint)mappingsCount;
+
+                            groupRoleMembersReply.MemberData =
+                                    new GroupRoleMembersReplyPacket.MemberDataBlock[pairs];
+
+                            for (int i = 0 ; i < pairs ; i++)
+                            {
+                                GroupRoleMembersData d = mappings[0];
+                                mappings.RemoveAt(0);
+
+                                groupRoleMembersReply.MemberData[i] =
+                                    new GroupRoleMembersReplyPacket.MemberDataBlock();
+
+                                groupRoleMembersReply.MemberData[i].RoleID =
+                                        d.RoleID;
+                                groupRoleMembersReply.MemberData[i].MemberID =
+                                        d.MemberID;
+                            }
+
+                            OutPacket(groupRoleMembersReply, ThrottleOutPacketType.Task);
                         }
-
-                        OutPacket(groupRoleMembersReply, ThrottleOutPacketType.Task);
                     }
                     break;
 
