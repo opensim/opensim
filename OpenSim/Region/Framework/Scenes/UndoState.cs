@@ -54,7 +54,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    Position = part.GroupPosition;
+                    Position = part.OffsetPosition;
                     Rotation = part.RotationOffset;
                     Scale = part.Shape.Scale;
 
@@ -75,7 +75,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    if (Position == part.GroupPosition && Rotation == part.RotationOffset && Scale == part.Shape.Scale)
+                    if (Position == part.OffsetPosition && Rotation == part.RotationOffset && Scale == part.Shape.Scale)
                         return true;
                     else
                         return false;
