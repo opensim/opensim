@@ -1309,8 +1309,16 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
                     permission = true;
 
-                if ((task.GetEffectivePermissions() & (PERM_COPY | PERM_TRANS)) != (PERM_COPY | PERM_TRANS))
-                    permission = false;
+                if (task.OwnerID != userID)
+                {
+                    if ((task.GetEffectivePermissions() & (PERM_COPY | PERM_TRANS)) != (PERM_COPY | PERM_TRANS))
+                        permission = false;
+                }
+                else
+                {
+                    if ((task.GetEffectivePermissions() & PERM_COPY) != PERM_COPY)
+                        permission = false;
+                }
             }
             else
             {
