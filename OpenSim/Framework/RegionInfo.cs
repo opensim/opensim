@@ -262,9 +262,16 @@ namespace OpenSim.Framework
                     return;
                 }
 
-                IConfigSource source = new IniConfigSource(filename);
+                IniConfigSource source = new IniConfigSource(filename);
+
+                bool saveFile = false;
+                if (source.Configs[configName] == null)
+                    saveFile = true;
 
                 ReadNiniConfig(source, configName);
+
+                if (configName != String.Empty && saveFile)
+                    source.Save(filename);
 
                 return;
             }
@@ -406,7 +413,8 @@ namespace OpenSim.Framework
 
             if (source.Configs.Count == 0)
             {
-                name = MainConsole.Instance.CmdPrompt("New region name", String.Empty);
+                if (name == String.Empty)
+                    name = MainConsole.Instance.CmdPrompt("New region name", name);
                 if (name == String.Empty)
                     throw new Exception("Cannot interactively create region with no name");
 
