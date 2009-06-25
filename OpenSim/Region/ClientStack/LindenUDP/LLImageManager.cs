@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
@@ -96,46 +97,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     J2KImage imgrequest = m_imagestore[newRequest.RequestedAssetID];
 
+                    // This is the inbound request sequence number. We can ignore
+                    // "old" ones.
+
                     if (newRequest.requestSequence > imgrequest.m_lastSequence)
                     {
+
                         imgrequest.m_lastSequence = newRequest.requestSequence;
 
-                        //First of all, is this being killed?
-                        //if (newRequest.Priority == 0.0f && newRequest.DiscardLevel == -1)
-                        //{
-                            //Do nothing (leaving the if for future use)
-                        //}
-                        //else
-                        //{
+                        //Check the priority
 
+                        double priority = imgrequest.m_requestedPriority;
+                        if (priority != newRequest.Priority)
+                        {
+                            //Remove the old priority
+                            m_priorities.Remove(imgrequest.m_designatedPriorityKey);
+                            //Assign a new unique priority
+                            imgrequest.m_requestedPriority = newRequest.Priority;
+                            imgrequest.m_designatedPriorityKey = AssignPriority(newRequest.RequestedAssetID, newRequest.Priority);
+                        }
 
-                            //Check the priority
-                            double priority = imgrequest.m_requestedPriority;
-                            if (priority != newRequest.Priority)
-                            {
-                                //Remove the old priority
-                                m_priorities.Remove(imgrequest.m_designatedPriorityKey);
-                                //Assign a new unique priority
-                                imgrequest.m_requestedPriority = newRequest.Priority;
-                                imgrequest.m_designatedPriorityKey = AssignPriority(newRequest.RequestedAssetID, newRequest.Priority);
-                            }
+                        //Update the requested discard level
+                        imgrequest.m_requestedDiscardLevel = newRequest.DiscardLevel;
 
-                            //Update the requested discard level
-                            imgrequest.m_requestedDiscardLevel = newRequest.DiscardLevel;
+                        //Update the requested packet number
+                        imgrequest.m_requestedPacketNumber = newRequest.PacketNumber;
 
-                            //Update the requested packet number
-                            imgrequest.m_requestedPacketNumber = newRequest.PacketNumber;
+                        //Check if this will create an outstanding texture request
+                        bool activated = imgrequest.m_completedSendAtCurrentDiscardLevel;
+                        //Run an update
 
-                             //Check if this will create an outstanding texture request
-                             bool activated = imgrequest.m_completedSendAtCurrentDiscardLevel;
-                             //Run an update
-                             imgrequest.RunUpdate();
-                             if (activated && !imgrequest.m_completedSendAtCurrentDiscardLevel && imgrequest.m_decoded)
-                             {
-                                 m_outstandingtextures++;
-                             }
+                        imgrequest.RunUpdate();
 
-                        //}
+                        if (activated && !imgrequest.m_completedSendAtCurrentDiscardLevel && imgrequest.m_decoded)
+                        {
+                            Interlocked.Increment(ref m_outstandingtextures);
+                        }
                     }
                 }
                 else
@@ -198,10 +195,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         }
 
-        public void ProcessImageQueue(int count)
+        public bool ProcessImageQueue(int count, int maxpack)
         {
+
             // this can happen during Close()
-            if (m_client == null) return;
+            if (m_client == null)
+                return false;
             
             //Count is the number of textures we want to process in one go.
             //As part of this class re-write, that number will probably rise
@@ -214,7 +213,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              if (m_lastloopprocessed == 0)
              {
                   if (m_client.PacketHandler == null || m_client.PacketHandler.PacketQueue == null || m_client.PacketHandler.PacketQueue.TextureThrottle == null)
-                      return;
+                      return false;
                  //This is decent for a semi fast machine, but we'll calculate it more accurately based on time below
                   threshold = m_client.PacketHandler.PacketQueue.TextureThrottle.Current / 6300;
                   m_lastloopprocessed = DateTime.Now.Ticks;
@@ -239,10 +238,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              }
 
              if (m_client.PacketHandler == null)
-                 return;
+                 return false;
 
              if (m_client.PacketHandler.PacketQueue == null)
-                 return;
+                 return false;
 
             //First of all make sure our packet queue isn't above our threshold 
 
@@ -252,24 +251,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              {
                 bool justreset = false;
             
-
-
                 for (int x = m_priorities.Count - 1; x > -1; x--)
                 {
                     
                     J2KImage imagereq = m_imagestore[m_priorities.Values[x]];
                     if (imagereq.m_decoded == true && !imagereq.m_completedSendAtCurrentDiscardLevel)
                     {
-
                         numCollected++;
                         //SendPackets will send up to ten packets per cycle
-                        if (imagereq.SendPackets(m_client))
+                        if (imagereq.SendPackets(m_client, maxpack))
                         {
                             //Send complete
                             if (!imagereq.m_completedSendAtCurrentDiscardLevel)
                             {
                                 imagereq.m_completedSendAtCurrentDiscardLevel = true;
-                                m_outstandingtextures--;
+                                Interlocked.Decrement(ref m_outstandingtextures);
                                 //Re-assign priority to bottom
                                 //Remove the old priority
                                 m_priorities.Remove(imagereq.m_designatedPriorityKey);
@@ -310,13 +306,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         justreset = true; //prevents us from getting stuck in a loop
                     }
-
-
                 }
             }
 
-
-
+            return m_outstandingtextures != 0;
         }
 
         //Faux destructor

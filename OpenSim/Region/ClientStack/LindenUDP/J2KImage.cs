@@ -260,7 +260,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return false;
             }
         }
-        public bool SendPackets(LLClientView client)
+        public bool SendPackets(LLClientView client, int maxpack)
         {
 
             if (!m_completedSendAtCurrentDiscardLevel)
@@ -284,7 +284,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     int count = 0;
-                    while (SendMore && count < 5 && m_packetNumber <= m_stopPacket)
+                    while (SendMore && count < maxpack && m_packetNumber <= m_stopPacket)
                     {
                         count++;
                         SendMore = SendPacket(client);
@@ -390,6 +390,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 m_completedSendAtCurrentDiscardLevel = false;
                             }
                         }
+                    }
+                    else
+                    {
+                        m_packetNumber = m_stopPacket;
                     }
                 }
             }
