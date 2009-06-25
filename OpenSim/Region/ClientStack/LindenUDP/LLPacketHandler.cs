@@ -90,10 +90,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // the hashing. Expiration is less common and can be allowed the
         // time for a linear scan.
         //
-        private Dictionary<uint, int> m_DupeTracker =
-            new Dictionary<uint, int>();
-        private uint m_DupeTrackerWindow = 30;
-        private int m_DupeTrackerLastCheck = Environment.TickCount;
+        private List<uint> m_alreadySeenList = new List<uint>();
+        private Dictionary<uint, int>m_alreadySeenTracker = new Dictionary<uint, int>();
+        private int m_alreadySeenWindow = 30000;
+        private int m_lastAlreadySeenCheck = Environment.TickCount & Int32.MaxValue;
+
+        // private Dictionary<uint, int> m_DupeTracker =
+        //     new Dictionary<uint, int>();
+        // private uint m_DupeTrackerWindow = 30;
+        // private int m_DupeTrackerLastCheck = Environment.TickCount;
 
         // Values for the SimStatsReporter
         //
@@ -449,27 +454,40 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // We can't keep an unlimited record of dupes. This will prune the
         // dictionary by age.
         //
-        private void PruneDupeTracker()
+        // NOTE: this needs to be called from within lock
+        // (m_alreadySeenTracker) context!
+        private void ExpireSeenPackets()
         {
-            lock (m_DupeTracker)
+            if (m_alreadySeenList.Count < 1024)
+                return;
+            
+            int ticks = 0;
+            int tc = Environment.TickCount & Int32.MaxValue;
+            if (tc >= m_lastAlreadySeenCheck) 
+                ticks = tc - m_lastAlreadySeenCheck;
+            else
+                ticks = Int32.MaxValue - m_lastAlreadySeenCheck + tc;
+            
+            if (ticks < 2000) return;
+            m_lastAlreadySeenCheck = tc;
+
+            // we calculate the drop dead tick count here instead of
+            // in the loop: any packet with a timestamp before
+            // dropDeadTC can be expired
+            int dropDeadTC = tc - m_alreadySeenWindow;
+            int i = 0;
+            while (i < m_alreadySeenList.Count && m_alreadySeenTracker[m_alreadySeenList[i]] < dropDeadTC)
             {
-                if (m_DupeTracker.Count < 1024)
-                    return;
-
-                if (Environment.TickCount - m_DupeTrackerLastCheck < 2000)
-                    return;
-
-                m_DupeTrackerLastCheck = Environment.TickCount;
-
-                Dictionary<uint, int> packs =
-                    new Dictionary<uint, int>(m_DupeTracker);
-
-                foreach (uint pack in packs.Keys)
-                {
-                    if (Util.UnixTimeSinceEpoch() - m_DupeTracker[pack] >
-                        m_DupeTrackerWindow)
-                        m_DupeTracker.Remove(pack);
-                }
+                m_alreadySeenTracker.Remove(m_alreadySeenList[i]);
+                i++;
+            }
+            // if we dropped packet from m_alreadySeenTracker we need
+            // to drop them from m_alreadySeenList as well, let's do
+            // that in one go: the list is ordered after all.
+            if (i > 0)
+            {
+                m_alreadySeenList.RemoveRange(0, i);
+                // m_log.DebugFormat("[CLIENT]: expired {0} packets, {1}:{2} left", i, m_alreadySeenList.Count, m_alreadySeenTracker.Count);
             }
         }
 
@@ -545,18 +563,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet.Type != PacketType.AgentUpdate)
                 m_PacketsReceived++;
 
-            PruneDupeTracker();
-
             // Check for duplicate packets..    packets that the client is
             // resending because it didn't receive our ack
             //
-            lock (m_DupeTracker)
+            lock (m_alreadySeenTracker)
             {
-                if (m_DupeTracker.ContainsKey(packet.Header.Sequence))
+                ExpireSeenPackets();
+            
+                if (m_alreadySeenTracker.ContainsKey(packet.Header.Sequence))
                     return;
 
-                m_DupeTracker.Add(packet.Header.Sequence,
-                                  Util.UnixTimeSinceEpoch());
+                m_alreadySeenTracker.Add(packet.Header.Sequence, Environment.TickCount & Int32.MaxValue);
+                m_alreadySeenList.Add(packet.Header.Sequence);
             }
 
             m_Client.ProcessInPacket(packet);
