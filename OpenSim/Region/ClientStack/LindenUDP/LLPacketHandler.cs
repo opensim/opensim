@@ -679,37 +679,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SetClientInfo(ClientInfo info)
         {
-            m_PendingAcks = info.pendingAcks;
-            m_NeedAck = new Dictionary<uint, LLQueItem>();
+            // m_PendingAcks = info.pendingAcks;
+            // m_NeedAck = new Dictionary<uint, LLQueItem>();
 
-            Packet packet = null;
-            int packetEnd = 0;
-            byte[] zero = new byte[3000];
+            // Packet packet = null;
+            // int packetEnd = 0;
+            // byte[] zero = new byte[3000];
 
-            foreach (uint key in info.needAck.Keys)
-            {
-                byte[] buff = info.needAck[key];
-                packetEnd = buff.Length - 1;
+            // foreach (uint key in info.needAck.Keys)
+            // {
+            //     byte[] buff = info.needAck[key];
+            //     packetEnd = buff.Length - 1;
 
-                try
-                {
-                    packet = PacketPool.Instance.GetPacket(buff, ref packetEnd, zero);
-                }
-                catch (Exception)
-                {
-                }
+            //     try
+            //     {
+            //         packet = PacketPool.Instance.GetPacket(buff, ref packetEnd, zero);
+            //     }
+            //     catch (Exception)
+            //     {
+            //     }
 
-                LLQueItem item = new LLQueItem();
-                item.Packet = packet;
-                item.Incoming = false;
-                item.throttleType = 0;
-                item.TickCount = Environment.TickCount;
-                item.Identifier = 0;
-                item.Resends = 0;
-                item.Length = packet.Length;
-                item.Sequence = packet.Header.Sequence;
-                m_NeedAck.Add(key, item);
-            }
+            //     LLQueItem item = new LLQueItem();
+            //     item.Packet = packet;
+            //     item.Incoming = false;
+            //     item.throttleType = 0;
+            //     item.TickCount = Environment.TickCount;
+            //     item.Identifier = 0;
+            //     item.Resends = 0;
+            //     item.Length = packet.Length;
+            //     item.Sequence = packet.Header.Sequence;
+            //     m_NeedAck.Add(key, item);
+            // }
 
             m_Sequence = info.sequence;
 
