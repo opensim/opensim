@@ -61,7 +61,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         // A list of the packets we haven't acked yet
         //
-        private Dictionary<uint, uint> m_PendingAcks = new Dictionary<uint, uint>();
+        private List<uint> m_PendingAcks = new List<uint>();
+        private Dictionary<uint, uint> m_PendingAcksMap = new Dictionary<uint, uint>();
 
         private Dictionary<uint, LLQueItem> m_NeedAck =
                 new Dictionary<uint, LLQueItem>();
@@ -236,16 +237,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.Header.AckList = new uint[count];
                 packet.Header.AppendedAcks = true;
 
-                int i = 0;
-
-                foreach (uint ack in new List<uint>(m_PendingAcks.Keys))
+                for(int i = 0; i < count; i++)
                 {
-                    packet.Header.AckList[i] = ack;
-                    i++;
-                    m_PendingAcks.Remove(ack);
-                    if (i >= count) // That is how much space there is
-                        break;
+                    packet.Header.AckList[i] = m_PendingAcks[i];
+                    m_PendingAcksMap.Remove(m_PendingAcks[i]);
                 }
+                m_PendingAcks.RemoveRange(0, count);
             }
         }
 
@@ -376,15 +373,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (acks.Packets == null ||
                     acks.Packets.Length != m_PendingAcks.Count)
                     acks.Packets = new PacketAckPacket.PacketsBlock[m_PendingAcks.Count];
-                int i = 0;
-                foreach (uint ack in new List<uint>(m_PendingAcks.Keys))
+
+                for (int i = 0; i < m_PendingAcks.Count; i++)
                 {
                     acks.Packets[i] = new PacketAckPacket.PacketsBlock();
-                    acks.Packets[i].ID = ack;
+                    acks.Packets[i].ID = m_PendingAcks[i];
 
-                    m_PendingAcks.Remove(ack);
-                    i++;
+                    m_PendingAcksMap.Remove(m_PendingAcks[i]);
                 }
+                m_PendingAcksMap.Clear();
 
                 acks.Header.Reliable = false;
                 OutPacket(acks, ThrottleOutPacketType.Unknown);
@@ -400,9 +397,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (m_PendingAcks.Count < 250)
                 {
-                    if (!m_PendingAcks.ContainsKey(packet.Header.Sequence))
-                        m_PendingAcks.Add(packet.Header.Sequence,
-                                          packet.Header.Sequence);
+                    if (!m_PendingAcksMap.ContainsKey(packet.Header.Sequence))
+                        m_PendingAcks.Add(packet.Header.Sequence);
+                        m_PendingAcksMap.Add(packet.Header.Sequence,
+                                             packet.Header.Sequence);
                     return;
                 }
             }
@@ -416,9 +414,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //
                 if (m_PendingAcks.Count < 250)
                 {
-                    if (!m_PendingAcks.ContainsKey(packet.Header.Sequence))
-                        m_PendingAcks.Add(packet.Header.Sequence,
-                                          packet.Header.Sequence);
+                    if (!m_PendingAcksMap.ContainsKey(packet.Header.Sequence))
+                        m_PendingAcks.Add(packet.Header.Sequence);
+                        m_PendingAcksMap.Add(packet.Header.Sequence,
+                                             packet.Header.Sequence);
                     return;
                 }
             }
@@ -593,6 +592,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SendPacketStats();
             m_NeedAck.Clear();
             m_PendingAcks.Clear();
+            m_PendingAcksMap.Clear();
             m_Sequence += 1000000;
         }
 
