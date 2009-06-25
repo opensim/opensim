@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using OpenMetaverse;
 using Ode.NET;
@@ -785,7 +786,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// This is the avatar's movement control + PID Controller
         /// </summary>
         /// <param name="timeStep"></param>
-        public void Move(float timeStep)
+        public void Move(float timeStep, List<OdeCharacter> defects)
         {
             //  no lock; for now it's only called from within Simulate()
 
@@ -803,11 +804,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             d.Vector3 localpos = d.BodyGetPosition(Body);
             PhysicsVector localPos = new PhysicsVector(localpos.X, localpos.Y, localpos.Z);
+            
             if (!PhysicsVector.isFinite(localPos))
             {
 
                 m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
-                _parent_scene.RemoveCharacter(this);
+                defects.Add(this);
+                // _parent_scene.RemoveCharacter(this);
+
                 // destroy avatar capsule and related ODE data
                 if (Amotor != IntPtr.Zero)
                 {
@@ -815,6 +819,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.JointDestroy(Amotor);
                     Amotor = IntPtr.Zero;
                 }
+
                 //kill the Geometry
                 _parent_scene.waitForSpaceUnlock(_parent_scene.space);
 
@@ -958,7 +963,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_log.Warn("[PHYSICS]: Got a NaN force vector in Move()");
                 m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
-                _parent_scene.RemoveCharacter(this);
+                defects.Add(this);
+                // _parent_scene.RemoveCharacter(this);
                 // destroy avatar capsule and related ODE data
                 if (Amotor != IntPtr.Zero)
                 {

@@ -1434,42 +1434,45 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             _perloopContact.Clear();
 
-            foreach (OdeCharacter chr in _characters)
+            lock (_characters)
             {
-                // Reset the collision values to false
-                // since we don't know if we're colliding yet
-
-                // For some reason this can happen. Don't ask...
-                //
-                if (chr == null)
-                    continue;
-
-                if (chr.Shell == IntPtr.Zero || chr.Body == IntPtr.Zero)
-                    continue;
-
-                chr.IsColliding = false;
-                chr.CollidingGround = false;
-                chr.CollidingObj = false;
-
-                // test the avatar's geometry for collision with the space
-                // This will return near and the space that they are the closest to
-                // And we'll run this again against the avatar and the space segment
-                // This will return with a bunch of possible objects in the space segment
-                // and we'll run it again on all of them.
-                try
+                foreach (OdeCharacter chr in _characters)
                 {
-                    d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
-                }
-                catch (AccessViolationException)
-                {
-                    m_log.Warn("[PHYSICS]: Unable to space collide");
-                }
-                //float terrainheight = GetTerrainHeightAtXY(chr.Position.X, chr.Position.Y);
-                //if (chr.Position.Z + (chr.Velocity.Z * timeStep) < terrainheight + 10)
-                //{
+                    // Reset the collision values to false
+                    // since we don't know if we're colliding yet
+                    
+                    // For some reason this can happen. Don't ask...
+                    //
+                    if (chr == null)
+                        continue;
+                    
+                    if (chr.Shell == IntPtr.Zero || chr.Body == IntPtr.Zero)
+                        continue;
+                    
+                    chr.IsColliding = false;
+                    chr.CollidingGround = false;
+                    chr.CollidingObj = false;
+                    
+                    // test the avatar's geometry for collision with the space
+                    // This will return near and the space that they are the closest to
+                    // And we'll run this again against the avatar and the space segment
+                    // This will return with a bunch of possible objects in the space segment
+                    // and we'll run it again on all of them.
+                    try
+                    {
+                        d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
+                    }
+                    catch (AccessViolationException)
+                    {
+                        m_log.Warn("[PHYSICS]: Unable to space collide");
+                    }
+                    //float terrainheight = GetTerrainHeightAtXY(chr.Position.X, chr.Position.Y);
+                    //if (chr.Position.Z + (chr.Velocity.Z * timeStep) < terrainheight + 10)
+                    //{
                     //chr.Position.Z = terrainheight + 10.0f;
                     //forcedZ = true;
-                //}
+                    //}
+                }
             }
 
             lock (_activeprims)
@@ -2799,10 +2802,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 // Move characters
                                 lock (_characters)
                                 {
+                                    List<OdeCharacter> defects = new List<OdeCharacter>();
                                     foreach (OdeCharacter actor in _characters)
                                     {
                                         if (actor != null)
-                                            actor.Move(timeStep);
+                                            actor.Move(timeStep, defects);
+                                    }
+                                    if (0 != defects.Count)
+                                    {
+                                        foreach (OdeCharacter defect in defects)
+                                        {
+                                            RemoveCharacter(defect);
+                                        }
                                     }
                                 }
 
