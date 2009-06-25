@@ -902,7 +902,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_MaxScriptQueue = maxScriptQueue;
 
             STPStartInfo startInfo = new STPStartInfo();
-            startInfo.IdleTimeout = idleTimeout;
+            startInfo.IdleTimeout = idleTimeout*1000; // convert to seconds as stated in .ini
             startInfo.MaxWorkerThreads = maxThreads;
             startInfo.MinWorkerThreads = minThreads;
             startInfo.ThreadPriority = threadPriority;
