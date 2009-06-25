@@ -3241,7 +3241,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_forcesList.Count > 0)
                 {
-                    //we are only interested in the last force added to the list
+                    //we are only interested in the last velocity added to the list [Although they are called forces, they are actually velocities]
                     NewForce force = m_forcesList[m_forcesList.Count - 1];
 
                     m_updateflag = true;
