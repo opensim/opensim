@@ -6819,13 +6819,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
                 case PacketType.UpdateInventoryItem:
-                    UpdateInventoryItemPacket update = (UpdateInventoryItemPacket)Pack;
+                    UpdateInventoryItemPacket inventoryItemUpdate = (UpdateInventoryItemPacket)Pack;
                     
                     #region Packet Session and User Check
                     if (m_checkPackets)
                     {
-                        if (update.AgentData.SessionID != SessionId ||
-                            update.AgentData.AgentID != AgentId)
+                        if (inventoryItemUpdate.AgentData.SessionID != SessionId ||
+                            inventoryItemUpdate.AgentData.AgentID != AgentId)
                             break;
                     }
                     #endregion
@@ -6833,58 +6833,58 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (OnUpdateInventoryItem != null)
                     {
                         handlerUpdateInventoryItem = null;
-                        for (int i = 0; i < update.InventoryData.Length; i++)
+                        for (int i = 0; i < inventoryItemUpdate.InventoryData.Length; i++)
                         {
                             handlerUpdateInventoryItem = OnUpdateInventoryItem;
 
                             if (handlerUpdateInventoryItem != null)
                             {
                                 InventoryItemBase itemUpd = new InventoryItemBase();
-                                itemUpd.ID = update.InventoryData[i].ItemID;
-                                itemUpd.Name = Util.FieldToString(update.InventoryData[i].Name);
-                                itemUpd.Description = Util.FieldToString(update.InventoryData[i].Description);
-                                itemUpd.GroupID = update.InventoryData[i].GroupID;
-                                itemUpd.GroupOwned = update.InventoryData[i].GroupOwned;
-                                itemUpd.GroupPermissions = update.InventoryData[i].GroupMask;
-                                itemUpd.NextPermissions = update.InventoryData[i].NextOwnerMask;
-                                itemUpd.EveryOnePermissions = update.InventoryData[i].EveryoneMask;
-                                itemUpd.CreationDate = update.InventoryData[i].CreationDate;
-                                itemUpd.Folder = update.InventoryData[i].FolderID;
-                                itemUpd.InvType = update.InventoryData[i].InvType;
-                                itemUpd.SalePrice = update.InventoryData[i].SalePrice;
-                                itemUpd.SaleType = update.InventoryData[i].SaleType;
-                                itemUpd.Flags = update.InventoryData[i].Flags;
+                                itemUpd.ID = inventoryItemUpdate.InventoryData[i].ItemID;
+                                itemUpd.Name = Util.FieldToString(inventoryItemUpdate.InventoryData[i].Name);
+                                itemUpd.Description = Util.FieldToString(inventoryItemUpdate.InventoryData[i].Description);
+                                itemUpd.GroupID = inventoryItemUpdate.InventoryData[i].GroupID;
+                                itemUpd.GroupOwned = inventoryItemUpdate.InventoryData[i].GroupOwned;
+                                itemUpd.GroupPermissions = inventoryItemUpdate.InventoryData[i].GroupMask;
+                                itemUpd.NextPermissions = inventoryItemUpdate.InventoryData[i].NextOwnerMask;
+                                itemUpd.EveryOnePermissions = inventoryItemUpdate.InventoryData[i].EveryoneMask;
+                                itemUpd.CreationDate = inventoryItemUpdate.InventoryData[i].CreationDate;
+                                itemUpd.Folder = inventoryItemUpdate.InventoryData[i].FolderID;
+                                itemUpd.InvType = inventoryItemUpdate.InventoryData[i].InvType;
+                                itemUpd.SalePrice = inventoryItemUpdate.InventoryData[i].SalePrice;
+                                itemUpd.SaleType = inventoryItemUpdate.InventoryData[i].SaleType;
+                                itemUpd.Flags = inventoryItemUpdate.InventoryData[i].Flags;
                                 /*
-                                    OnUpdateInventoryItem(this, update.InventoryData[i].TransactionID,
-                                                          update.InventoryData[i].ItemID,
-                                                          Util.FieldToString(update.InventoryData[i].Name),
-                                                          Util.FieldToString(update.InventoryData[i].Description),
-                                                          update.InventoryData[i].NextOwnerMask);
+                                    OnUpdateInventoryItem(this, inventoryItemUpdate.InventoryData[i].TransactionID,
+                                                          inventoryItemUpdate.InventoryData[i].ItemID,
+                                                          Util.FieldToString(inventoryItemUpdate.InventoryData[i].Name),
+                                                          Util.FieldToString(inventoryItemUpdate.InventoryData[i].Description),
+                                                          inventoryItemUpdate.InventoryData[i].NextOwnerMask);
                                     */
-                                OnUpdateInventoryItem(this, update.InventoryData[i].TransactionID,
-                                                      update.InventoryData[i].ItemID,
+                                OnUpdateInventoryItem(this, inventoryItemUpdate.InventoryData[i].TransactionID,
+                                                      inventoryItemUpdate.InventoryData[i].ItemID,
                                                       itemUpd);
                             }
                         }
                     }
                     //m_log.Debug(Pack.ToString());
-                    /*for (int i = 0; i < update.InventoryData.Length; i++)
+                    /*for (int i = 0; i < inventoryItemUpdate.InventoryData.Length; i++)
                         {
-                            if (update.InventoryData[i].TransactionID != UUID.Zero)
+                            if (inventoryItemUpdate.InventoryData[i].TransactionID != UUID.Zero)
                             {
-                                AssetBase asset = m_assetCache.GetAsset(update.InventoryData[i].TransactionID.Combine(this.SecureSessionId));
+                                AssetBase asset = m_assetCache.GetAsset(inventoryItemUpdate.InventoryData[i].TransactionID.Combine(this.SecureSessionId));
                                 if (asset != null)
                                 {
                                     // m_log.Debug("updating inventory item, found asset" + asset.FullID.ToString() + " already in cache");
-                                    m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
+                                    m_inventoryCache.UpdateInventoryItemAsset(this, inventoryItemUpdate.InventoryData[i].ItemID, asset);
                                 }
                                 else
                                 {
-                                    asset = this.UploadAssets.AddUploadToAssetCache(update.InventoryData[i].TransactionID);
+                                    asset = this.UploadAssets.AddUploadToAssetCache(inventoryItemUpdate.InventoryData[i].TransactionID);
                                     if (asset != null)
                                     {
                                         //m_log.Debug("updating inventory item, adding asset" + asset.FullID.ToString() + " to cache");
-                                        m_inventoryCache.UpdateInventoryItemAsset(this, update.InventoryData[i].ItemID, asset);
+                                        m_inventoryCache.UpdateInventoryItemAsset(this, inventoryItemUpdate.InventoryData[i].ItemID, asset);
                                     }
                                     else
                                     {
@@ -6894,7 +6894,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             else
                             {
-                                m_inventoryCache.UpdateInventoryItemDetails(this, update.InventoryData[i].ItemID, update.InventoryData[i]); ;
+                                m_inventoryCache.UpdateInventoryItemDetails(this, inventoryItemUpdate.InventoryData[i].ItemID, inventoryItemUpdate.InventoryData[i]); ;
                             }
                         }*/
                     break;
