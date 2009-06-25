@@ -163,6 +163,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }   
             
             m_log.DebugFormat("[CLIENT]: client_throttle_multiplier = {0}", userSettings.ClientThrottleMultipler);
+            m_log.DebugFormat("[CLIENT]: client_socket_rcvbuf_size  = {0}", (m_clientSocketReceiveBuffer != 0 ? 
+                                                                             m_clientSocketReceiveBuffer.ToString() : "OS default"));
                 
             proxyPortOffset = proxyPortOffsetParm;
             listenPort = (uint) (port + proxyPortOffsetParm);
