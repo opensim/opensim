@@ -741,16 +741,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void DropResend(Object id)
         {
-            foreach (LLQueItem data in new List<LLQueItem>(m_NeedAck.Values))
+            LLQueItem d = null;
+
+            foreach (LLQueItem data in m_NeedAck.Values)
             {
                 if (data.Identifier != null && data.Identifier == id)
                 {
-                    m_NeedAck.Remove(data.Packet.Header.Sequence);
-                    m_PacketQueue.Cancel(data.Sequence);
-                    PacketPool.Instance.ReturnPacket(data.Packet);
-                    return;
+                    d = data;
+                    break;
                 }
             }
+
+            if (null == d) return;
+
+            m_NeedAck.Remove(d.Packet.Header.Sequence);
+            m_PacketQueue.Cancel(d.Sequence);
+            PacketPool.Instance.ReturnPacket(d.Packet);
         }
 
         private void TriggerOnPacketDrop(Packet packet, Object id)
