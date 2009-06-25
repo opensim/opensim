@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Nini.Config;
 
@@ -60,21 +61,37 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
             }
 
             string[] configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
+            string[] iniFiles = Directory.GetFiles(regionConfigPath, "*.ini");
 
-            if (configFiles.Length == 0)
+            if (configFiles.Length == 0 && iniFiles.Length == 0)
             {
                 new RegionInfo("DEFAULT REGION CONFIG", Path.Combine(regionConfigPath, "default.xml"), false, m_configSource);
                 configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
             }
 
-            RegionInfo[] regionInfos = new RegionInfo[configFiles.Length];
-            for (int i = 0; i < configFiles.Length; i++)
+            List<RegionInfo> regionInfos = new List<RegionInfo>();
+
+            int i = 0;
+            foreach (string file in iniFiles)
             {
-                RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), configFiles[i], false, m_configSource);
-                regionInfos[i] = regionInfo;
+                IConfigSource source = new IniConfigSource(file);
+
+                foreach (IConfig config in source.Configs)
+                {
+                    RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), file, false, m_configSource, config.Name);
+                    regionInfos.Add(regionInfo);
+                    i++;
+                }
             }
 
-            return regionInfos;
+            foreach (string file in configFiles)
+            {
+                RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), file, false, m_configSource);
+                regionInfos.Add(regionInfo);
+                i++;
+            }
+
+            return regionInfos.ToArray();
         }
     }
 }
