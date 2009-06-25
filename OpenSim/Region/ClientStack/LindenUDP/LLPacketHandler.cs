@@ -500,8 +500,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 PacketAckPacket ackPacket = (PacketAckPacket)packet;
 
-                foreach (PacketAckPacket.PacketsBlock block in
-                         ackPacket.Packets)
+                foreach (PacketAckPacket.PacketsBlock block in ackPacket.Packets)
                 {
                     ProcessAck(block.ID);
                 }
