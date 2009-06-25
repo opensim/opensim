@@ -276,46 +276,44 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             lock (m_NeedAck)
             {
                 if (m_DropSafeTimeout > now ||
-                        intervalMs > 500) // We were frozen!
+                    intervalMs > 500) // We were frozen!
                 {
-                    foreach (LLQueItem data in new List<LLQueItem>
-                            (m_NeedAck.Values))
+                    foreach (LLQueItem data in m_NeedAck.Values)
                     {
                         if (m_DropSafeTimeout > now)
                         {
-                            m_NeedAck[data.Packet.Header.Sequence].
-                                    TickCount = now;
+                            m_NeedAck[data.Packet.Header.Sequence].TickCount = now;
                         }
                         else
                         {
-                            m_NeedAck[data.Packet.Header.Sequence].
-                                    TickCount += intervalMs;
+                            m_NeedAck[data.Packet.Header.Sequence].TickCount += intervalMs;
                         }
                     }
                 }
-            }
-            m_LastResend = now;
 
-            // Unless we have received at least one ack, don't bother resending
-            // anything. There may not be a client there, don't clog up the
-            // pipes.
-            //
-            lock (m_NeedAck)
-            {
+                m_LastResend = now;
+                
+                // Unless we have received at least one ack, don't bother resending
+                // anything. There may not be a client there, don't clog up the
+                // pipes.
+
+
                 // Nothing to do
                 //
                 if (m_NeedAck.Count == 0)
                     return;
 
                 int resent = 0;
+                long dueDate = now - m_ResendTimeout;
 
-                foreach (LLQueItem data in new List<LLQueItem>(m_NeedAck.Values))
+                List<LLQueItem> dropped = new List<LLQueItem>();
+                foreach (LLQueItem data in m_NeedAck.Values)
                 {
                     Packet packet = data.Packet;
 
                     // Packets this old get resent
                     //
-                    if ((now - data.TickCount) > m_ResendTimeout && data.Sequence != 0 && !m_PacketQueue.Contains(data.Sequence))
+                    if (data.TickCount < dueDate && data.Sequence != 0 && !m_PacketQueue.Contains(data.Sequence))
                     {
                         if (resent < 20) // Was 20 (= Max 117kbit/sec resends)
                         {
@@ -325,30 +323,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             // that it should reset its sequence to that packet number.
                             packet.Header.Resent = true;
 
-                            if ((m_NeedAck[packet.Header.Sequence].Resends >=
-                                m_MaxReliableResends) && (!m_ReliableIsImportant))
+                            if ((m_NeedAck[packet.Header.Sequence].Resends >= m_MaxReliableResends) && 
+                                (!m_ReliableIsImportant))
                             {
-                                m_NeedAck.Remove(packet.Header.Sequence);
-                                TriggerOnPacketDrop(packet, data.Identifier);
-                                m_PacketQueue.Cancel(packet.Header.Sequence);
-                                PacketPool.Instance.ReturnPacket(packet);
+                                dropped.Add(data);
                                 continue;
                             }
 
-                            m_NeedAck[packet.Header.Sequence].TickCount =
-                                    Environment.TickCount;
-
-                            QueuePacket(packet, ThrottleOutPacketType.Resend,
-                                    data.Identifier);
-
+                            m_NeedAck[packet.Header.Sequence].TickCount = Environment.TickCount;
+                            QueuePacket(packet, ThrottleOutPacketType.Resend, data.Identifier);
                             resent++;
                         }
                         else
                         {
-                            m_NeedAck[packet.Header.Sequence].TickCount +=
-                                    intervalMs;
+                            m_NeedAck[packet.Header.Sequence].TickCount += intervalMs;
                         }
                     }
+                }
+
+                foreach(LLQueItem data in dropped)
+                {
+                    m_NeedAck.Remove(data.Packet.Header.Sequence);
+                    TriggerOnPacketDrop(data.Packet, data.Identifier);
+                    m_PacketQueue.Cancel(data.Packet.Header.Sequence);
+                    PacketPool.Instance.ReturnPacket(data.Packet);
                 }
             }
         }
