@@ -427,7 +427,7 @@ namespace OpenSim.Framework
             m_regionLocY = Convert.ToUInt32(locationElements[1]);
 
 
-            // Datastore
+            // Datastore (is this implemented? Omitted from example!)
             //
             DataStore = config.GetString("Datastore", String.Empty);
 
