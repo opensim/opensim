@@ -638,22 +638,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public ClientInfo GetClientInfo()
         {
             ClientInfo info = new ClientInfo();
-            info.pendingAcks = m_PendingAcks;
-            info.needAck = new Dictionary<uint, byte[]>();
 
-            lock (m_NeedAck)
-            {
-                foreach (uint key in m_NeedAck.Keys)
-                    info.needAck.Add(key, m_NeedAck[key].Packet.ToBytes());
-            }
+            // nobody seems to even look at the following data. since
+            // it's a rather expensive operation (lock, serializing
+            // packets, copying it into dictionary, etc) i've
+            // commented out the expensive (but unwanted?) bits below
+            // (dr scofield, 2009-06-24)
 
-            LLQueItem[] queitems = m_PacketQueue.GetQueueArray();
+            // info.pendingAcks = m_PendingAcks;
+            // info.needAck = new Dictionary<uint, byte[]>();
 
-            for (int i = 0; i < queitems.Length; i++)
-            {
-                if (queitems[i].Incoming == false)
-                    info.out_packets.Add(queitems[i].Packet.ToBytes());
-            }
+            // lock (m_NeedAck)
+            // {
+            //     foreach (uint key in m_NeedAck.Keys)
+            //         info.needAck.Add(key, m_NeedAck[key].Packet.ToBytes());
+            // }
+
+            // LLQueItem[] queitems = m_PacketQueue.GetQueueArray();
+
+            // for (int i = 0; i < queitems.Length; i++)
+            // {
+            //     if (queitems[i].Incoming == false)
+            //         info.out_packets.Add(queitems[i].Packet.ToBytes());
+            // }
 
             info.sequence = m_Sequence;
 
