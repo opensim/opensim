@@ -354,6 +354,23 @@
     ; Pre r7113, this setting was not exposed but was effectively 8.  You may want to try this if you encounter
     ; unexpected difficulties
     client_throttle_multiplier = 2;
+    
+    ; the client socket receive buffer size determines how many
+    ; incoming requests we can process; the default on .NET is 8192
+    ; which is about 2 4k-sized UDP datagrams. On mono this is
+    ; whatever the underlying operating system has as default; for
+    ; example, ubuntu 8.04 or SLES11 have about 111k, which is about
+    ; 27 4k-sized UDP datagrams (on linux platforms you can [as root]
+    ; do "sysctl net.core.rmem_default" to find out what your system
+    ; uses a default socket receive buffer size.
+    ;
+    ; client_socket_rcvbuf_size allows you to specify the receive
+    ; buffer size LLUDPServer should use. NOTE: this will be limited
+    ; by the system's settings for the maximum client receive buffer
+    ; size (on linux systems you can set that with "sysctl -w
+    ; net.core.rmem_max=X")
+    ;
+    ; client_socket_rcvbuf_size = 8388608
 
 
 [Chat]

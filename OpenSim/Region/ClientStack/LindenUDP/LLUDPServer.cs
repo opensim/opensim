@@ -76,6 +76,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected IPAddress listenIP = IPAddress.Parse("0.0.0.0");
         protected IScene m_localScene;
         protected IAssetCache m_assetCache;
+        protected int m_clientSocketReceiveBuffer = 0;
 
         /// <value>
         /// Manages authentication for agent circuits
@@ -157,6 +158,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (config.Contains("client_throttle_multiplier"))
                     userSettings.ClientThrottleMultipler = config.GetFloat("client_throttle_multiplier"); 
+                if (config.Contains("client_socket_rcvbuf_size"))
+                    m_clientSocketReceiveBuffer = config.GetInt("client_socket_rcvbuf_size");
             }   
             
             m_log.DebugFormat("[CLIENT]: client_throttle_multiplier = {0}", userSettings.ClientThrottleMultipler);
@@ -188,47 +191,54 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Packet packet = null;
             int numBytes = 1;
             EndPoint epSender = new IPEndPoint(IPAddress.Any, 0);
-
-            if (EndReceive(out numBytes, result, ref epSender))
-            {
-                // Make sure we are getting zeroes when running off the
-                // end of grab / degrab packets from old clients
-                Array.Clear(RecvBuffer, numBytes, RecvBuffer.Length - numBytes);
-
-                int packetEnd = numBytes - 1;
-                if (proxyPortOffset != 0) packetEnd -= 6;
-
-                try
-                {
-                    packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
-                }
-                catch (MalformedDataException e)
-                {
-                    m_log.DebugFormat("[CLIENT]: Dropped Malformed Packet due to MalformedDataException: {0}", e.StackTrace);
-                }
-                catch (IndexOutOfRangeException e)
-                {
-                    m_log.DebugFormat("[CLIENT]: Dropped Malformed Packet due to IndexOutOfRangeException: {0}", e.StackTrace);
-                }
-                catch (Exception e)
-                {
-                    m_log.Debug("[CLIENT]: " + e);
-                }
-            }    
-            
             EndPoint epProxy = null;
 
-            if (proxyPortOffset != 0)
+            try
             {
-                // If we've received a use circuit packet, then we need to decode an endpoint proxy, if one exists,
-                // before allowing the RecvBuffer to be overwritten by the next packet. 
-                if (packet != null && packet.Type == PacketType.UseCircuitCode)
+                if (EndReceive(out numBytes, result, ref epSender))
                 {
-                    epProxy = epSender;
+                    // Make sure we are getting zeroes when running off the
+                    // end of grab / degrab packets from old clients
+                    Array.Clear(RecvBuffer, numBytes, RecvBuffer.Length - numBytes);
+                    
+                    int packetEnd = numBytes - 1;
+                    if (proxyPortOffset != 0) packetEnd -= 6;
+                    
+                    try
+                    {
+                        packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
+                    }
+                    catch (MalformedDataException e)
+                    {
+                        m_log.DebugFormat("[CLIENT]: Dropped Malformed Packet due to MalformedDataException: {0}", e.StackTrace);
+                    }
+                    catch (IndexOutOfRangeException e)
+                    {
+                        m_log.DebugFormat("[CLIENT]: Dropped Malformed Packet due to IndexOutOfRangeException: {0}", e.StackTrace);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Debug("[CLIENT]: " + e);
+                    }
+                }    
+            
+            
+                if (proxyPortOffset != 0)
+                {
+                    // If we've received a use circuit packet, then we need to decode an endpoint proxy, if one exists,
+                    // before allowing the RecvBuffer to be overwritten by the next packet. 
+                    if (packet != null && packet.Type == PacketType.UseCircuitCode)
+                    {
+                        epProxy = epSender;
+                    }
+                    
+                    // Now decode the message from the proxy server
+                    epSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
                 }
-
-                // Now decode the message from the proxy server
-                epSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
+            }
+            catch (Exception ex)
+            {
+                m_log.ErrorFormat("[CLIENT]: Exception thrown during EndReceive(): {0}", ex);
             }
 
             BeginRobustReceive(); 
@@ -323,6 +333,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         "[UDPSERVER]: UDP Object disposed.   No need to worry about this if you're restarting the simulator.");
 
                     done = true;
+                }
+                catch (Exception ex)
+                {
+                    m_log.ErrorFormat("[CLIENT]: Exception thrown during BeginReceive(): {0}", ex);
                 }
             }
         }       
@@ -472,6 +486,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             ServerIncoming = new IPEndPoint(listenIP, (int)newPort);
             m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            if (0 != m_clientSocketReceiveBuffer)
+                m_socket.ReceiveBufferSize = m_clientSocketReceiveBuffer;
             m_socket.Bind(ServerIncoming);
             // Add flags to the UDP socket to prevent "Socket forcibly closed by host"
             // uint IOC_IN = 0x80000000;
