@@ -396,9 +396,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (m_PendingAcks.Count < 250)
                 {
                     if (!m_PendingAcksMap.ContainsKey(packet.Header.Sequence))
+                    {
                         m_PendingAcks.Add(packet.Header.Sequence);
                         m_PendingAcksMap.Add(packet.Header.Sequence,
                                              packet.Header.Sequence);
+                    }
                     return;
                 }
             }
@@ -413,9 +415,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (m_PendingAcks.Count < 250)
                 {
                     if (!m_PendingAcksMap.ContainsKey(packet.Header.Sequence))
+                    {
                         m_PendingAcks.Add(packet.Header.Sequence);
                         m_PendingAcksMap.Add(packet.Header.Sequence,
                                              packet.Header.Sequence);
+                    }
                     return;
                 }
             }
@@ -587,9 +591,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_UnackedBytes = (-1 * m_UnackedBytes);
             SendPacketStats();
-            m_NeedAck.Clear();
-            m_PendingAcks.Clear();
-            m_PendingAcksMap.Clear();
+            lock (m_NeedAck) 
+            {
+                m_NeedAck.Clear();
+                m_PendingAcks.Clear();
+                m_PendingAcksMap.Clear();
+            }
             m_Sequence += 1000000;
         }
 
