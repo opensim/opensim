@@ -3241,30 +3241,26 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_forcesList.Count > 0)
                 {
-                    for (int i = 0; i < m_forcesList.Count; i++)
-                    {
-                        NewForce force = m_forcesList[i];
+                    //we are only interested in the last force added to the list
+                    NewForce force = m_forcesList[m_forcesList.Count - 1];
 
-                        m_updateflag = true;
-                        try
-                        {
-                            movementvector.X = force.X;
-                            movementvector.Y = force.Y;
-                            movementvector.Z = force.Z;
-                            Velocity = movementvector;
-                        }
-                        catch (NullReferenceException)
-                        {
-                            // Under extreme load, this returns a NullReference Exception that we can ignore.
-                            // Ignoring this causes no movement to be sent to the physics engine...
-                            // which when the scene is moving at 1 frame every 10 seconds, it doesn't really matter!
-                        }
-                        m_newForce = true;
-                    }
-                    for (int i = 0; i < m_forcesList.Count; i++)
+                    m_updateflag = true;
+                    try
                     {
-                        m_forcesList.RemoveAt(0);
+                        movementvector.X = force.X;
+                        movementvector.Y = force.Y;
+                        movementvector.Z = force.Z;
+                        Velocity = movementvector;
                     }
+                    catch (NullReferenceException)
+                    {
+                        // Under extreme load, this returns a NullReference Exception that we can ignore.
+                        // Ignoring this causes no movement to be sent to the physics engine...
+                        // which when the scene is moving at 1 frame every 10 seconds, it doesn't really matter!
+                    }
+                    m_newForce = true;
+
+                    m_forcesList.Clear();
                 }
             }
         }
