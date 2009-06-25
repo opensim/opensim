@@ -377,9 +377,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     acks.Packets[i] = new PacketAckPacket.PacketsBlock();
                     acks.Packets[i].ID = m_PendingAcks[i];
 
-                    m_PendingAcksMap.Remove(m_PendingAcks[i]);
                 }
                 m_PendingAcks.Clear();
+                m_PendingAcksMap.Clear();
 
                 acks.Header.Reliable = false;
                 OutPacket(acks, ThrottleOutPacketType.Unknown);
