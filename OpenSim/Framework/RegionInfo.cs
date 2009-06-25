@@ -29,9 +29,11 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Xml;
+using System.IO;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {
@@ -250,6 +252,16 @@ namespace OpenSim.Framework
 
             if (filename.ToLower().EndsWith(".ini"))
             {
+                if (!File.Exists(filename)) // New region config request
+                {
+                    IniConfigSource newFile = new IniConfigSource();
+                    ReadNiniConfig(newFile, String.Empty);
+
+                    newFile.Save(filename);
+
+                    return;
+                }
+
                 IConfigSource source = new IniConfigSource(filename);
 
                 ReadNiniConfig(source, configName);
@@ -390,11 +402,28 @@ namespace OpenSim.Framework
 
         private void ReadNiniConfig(IConfigSource source, string name)
         {
+            bool creatingNew = false;
+
+            if (source.Configs.Count == 0)
+            {
+                name = MainConsole.Instance.CmdPrompt("New region name", String.Empty);
+                if (name == String.Empty)
+                    throw new Exception("Cannot interactively create region with no name");
+
+                IConfig newRegion = source.AddConfig(name);
+
+                creatingNew = true;
+            }
+
             if (name == String.Empty)
                 name = source.Configs[0].Name;
 
             if (source.Configs[name] == null)
-                throw new Exception("Config name does not exist");
+            {
+                IConfig newRegion = source.AddConfig(name);
+
+                creatingNew = true;
+            }
 
             IConfig config = source.Configs[name];
 
@@ -403,7 +432,12 @@ namespace OpenSim.Framework
             string regionUUID = config.GetString("RegionUUID", string.Empty);
 
             if (regionUUID == String.Empty)
-                throw new Exception("A region UUID is required");
+            {
+                UUID newID = UUID.Random();
+
+                regionUUID = MainConsole.Instance.CmdPrompt("Region UUID", newID.ToString());
+                config.Set("RegionUUID", regionUUID);
+            }
 
             RegionID = new UUID(regionUUID);
             originRegionID = RegionID; // What IS this?!
@@ -419,7 +453,10 @@ namespace OpenSim.Framework
             string location = config.GetString("Location", String.Empty);
 
             if (location == String.Empty)
-                throw new Exception("Location is required");
+            {
+                location = MainConsole.Instance.CmdPrompt("Region Location", "1000,1000");
+                config.Set("Location", location);
+            }
 
             string[] locationElements = location.Split(new char[] {','});
 
@@ -434,16 +471,57 @@ namespace OpenSim.Framework
 
             // Internal IP
             //
-            IPAddress address = IPAddress.Parse(config.GetString("InternalAddress", "127.0.0.1"));
-            int port = config.GetInt("InternalPort", 9000);
+            IPAddress address;
+            
+            if (config.Contains("InternalAddress"))
+            {
+                address = IPAddress.Parse(config.GetString("InternalAddress", String.Empty));
+            }
+            else
+            {
+                address = IPAddress.Parse(MainConsole.Instance.CmdPrompt("Internal IP address", "127.0.0.1"));
+                config.Set("InternalAddress", address.ToString());
+            }
+
+            int port;
+
+            if (config.Contains("InternalPort"))
+            {
+                port = config.GetInt("InternalPort", 9000);
+            }
+            else
+            {
+                port = Convert.ToInt32(MainConsole.Instance.CmdPrompt("Internal port", "9000"));
+                config.Set("InternalPort", port);
+            }
 
             m_internalEndPoint = new IPEndPoint(address, port);
 
-            m_allow_alternate_ports = config.GetBoolean("AllowAlternatePorts", true);
+            if (config.Contains("AllowAlternatePorts"))
+            {
+                m_allow_alternate_ports = config.GetBoolean("AllowAlternatePorts", true);
+            }
+            else
+            {
+                m_allow_alternate_ports = Convert.ToBoolean(MainConsole.Instance.CmdPrompt("Allow alternate ports", "False"));
+
+                config.Set("AllowAlternatePorts", m_allow_alternate_ports.ToString());
+            }
 
             // External IP
             //
-            string externalName = config.GetString("ExternalHostName", "SYSTEMIP");
+            string externalName;
+
+            if (config.Contains("ExternalHostName"))
+            {
+                externalName = config.GetString("ExternalHostName", "SYSTEMIP");
+            }
+            else
+            {
+                externalName = MainConsole.Instance.CmdPrompt("External host name", "SYSTEMIP");
+                config.Set("ExternalHostName", externalName);
+            }
+
             if (externalName == "SYSTEMIP")
                 m_externalHostName = Util.GetLocalHost().ToString();
             else
@@ -452,12 +530,38 @@ namespace OpenSim.Framework
 
             // Master avatar cruft
             //
-            string masterAvatarUUID = config.GetString("MasterAvatarUUID", UUID.Zero.ToString());
+            string masterAvatarUUID;
+            if (!creatingNew)
+            {
+                masterAvatarUUID = config.GetString("MasterAvatarUUID", UUID.Zero.ToString());
+                MasterAvatarFirstName = config.GetString("MasterAvatarFirstName", String.Empty);
+                MasterAvatarLastName = config.GetString("MasterAvatarLastName", String.Empty);
+                MasterAvatarSandboxPassword = config.GetString("MasterAvatarSandboxPassword", String.Empty);
+            }
+            else
+            {
+                masterAvatarUUID = MainConsole.Instance.CmdPrompt("Master Avatar UUID", UUID.Zero.ToString());
+                if (masterAvatarUUID != UUID.Zero.ToString())
+                {
+                    config.Set("MasterAvatarUUID", masterAvatarUUID);
+                }
+                else
+                {
+                    MasterAvatarFirstName = MainConsole.Instance.CmdPrompt("Master Avatar first name (enter for no master avatar)", String.Empty);
+                    if (MasterAvatarFirstName != String.Empty)
+                    {
+                        MasterAvatarLastName = MainConsole.Instance.CmdPrompt("Master Avatar last name", String.Empty);
+                        MasterAvatarSandboxPassword = MainConsole.Instance.CmdPrompt("Master Avatar sandbox password", String.Empty);
+                        
+                        config.Set("MasterAvatarFirstName", MasterAvatarFirstName);
+                        config.Set("MasterAvatarLastName", MasterAvatarLastName);
+                        config.Set("MasterAvatarSandboxPassword", MasterAvatarSandboxPassword);
+                    }
+                }
+            }
+
             MasterAvatarAssignedUUID = new UUID(masterAvatarUUID);
 
-            MasterAvatarFirstName = config.GetString("MasterAvatarFirstName", String.Empty);
-            MasterAvatarLastName = config.GetString("MasterAvatarLastName", String.Empty);
-            MasterAvatarSandboxPassword = config.GetString("MasterAvatarSandboxPassword", String.Empty);
 
             
             // Prim stuff
