@@ -465,8 +465,34 @@ namespace OpenSim
 
             if (!String.IsNullOrEmpty(scene.RegionInfo.RegionFile))
             {
-                File.Delete(scene.RegionInfo.RegionFile);
-                m_log.InfoFormat("[OPENSIM]: deleting region file \"{0}\"", scene.RegionInfo.RegionFile);
+                if (scene.RegionInfo.RegionFile.ToLower().EndsWith(".xml"))
+                {
+                    File.Delete(scene.RegionInfo.RegionFile);
+                    m_log.InfoFormat("[OPENSIM]: deleting region file \"{0}\"", scene.RegionInfo.RegionFile);
+                }
+                if (scene.RegionInfo.RegionFile.ToLower().EndsWith(".ini"))
+                {
+                    try
+                    {
+                        IniConfigSource source = new IniConfigSource(scene.RegionInfo.RegionFile);
+                        if (source.Configs[scene.RegionInfo.RegionName] != null)
+                        {
+                            source.Configs.Remove(scene.RegionInfo.RegionName);
+
+                            if (source.Configs.Count == 0)
+                            {
+                                File.Delete(scene.RegionInfo.RegionFile);
+                            }
+                            else
+                            {
+                                source.Save(scene.RegionInfo.RegionFile);
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
             }
         }
 

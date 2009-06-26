@@ -259,6 +259,8 @@ namespace OpenSim.Framework
 
                     newFile.Save(filename);
 
+                    RegionFile = filename;
+
                     return;
                 }
 
@@ -273,6 +275,8 @@ namespace OpenSim.Framework
                 if (configName != String.Empty && saveFile)
                     source.Save(filename);
 
+                RegionFile = filename;
+
                 return;
             }
 
@@ -284,6 +288,8 @@ namespace OpenSim.Framework
                 IConfigSource xmlsource = new XmlConfigSource(filename);
 
                 ReadNiniConfig(xmlsource, configName);
+
+                RegionFile = filename;
 
                 return;
             }
