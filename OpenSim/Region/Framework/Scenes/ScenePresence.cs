@@ -74,6 +74,9 @@ namespace OpenSim.Region.Framework.Scenes
         public static byte[] DefaultTexture;
 
         public UUID currentParcelUUID = UUID.Zero;
+
+        private ISceneViewer m_sceneViewer;
+
         private AnimationSet m_animations = new AnimationSet();
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
@@ -221,11 +224,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// Position at which a significant movement was made
         /// </summary>
         private Vector3 posLastSignificantMove;
-
-        private UpdateQueue m_partsUpdateQueue = new UpdateQueue();
-        private Queue<SceneObjectGroup> m_pendingObjects;
-
-        private Dictionary<UUID, ScenePartUpdate> m_updateTimes = new Dictionary<UUID, ScenePartUpdate>();
 
         // For teleports and crossings callbacks
         string m_callbackURI;
@@ -396,8 +394,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int MaxPrimsPerFrame
         {
-            get { return m_maxPrimsPerFrame; }
-            set { m_maxPrimsPerFrame = value; }
+            get { return m_sceneViewer.MaxPrimsPerFrame; }
+            set { m_sceneViewer.MaxPrimsPerFrame = value; }
         }
 
         /// <summary>
@@ -527,6 +525,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public ISceneViewer SceneViewer
+        {
+            get { return m_sceneViewer; }
+        }
+
         public void AdjustKnownSeeds()
         {
             Dictionary<ulong, string> seeds = Scene.CapsModule.GetChildrenSeeds(UUID);
@@ -601,7 +604,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo)
         {
-
+            CreateSceneViewer();
             m_regionHandle = reginfo.RegionHandle;
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
@@ -643,13 +646,20 @@ namespace OpenSim.Region.Framework.Scenes
                              AvatarWearable[] wearables)
             : this(client, world, reginfo)
         {
+            CreateSceneViewer();
             m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
             : this(client, world, reginfo)
         {
+            CreateSceneViewer();
             m_appearance = appearance;
+        }
+
+        private void CreateSceneViewer()
+        {
+            m_sceneViewer = new SceneViewer(this);
         }
 
         public void RegisterToEvents()
@@ -704,13 +714,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="part"></param>
         public void QueuePartForUpdate(SceneObjectPart part)
         {
-            //if (InterestList.Contains(part.ParentGroup))
-            //{
-            lock (m_partsUpdateQueue)
-            {
-                m_partsUpdateQueue.Enqueue(part);
-            }
-            // }
+            m_sceneViewer.QueuePartForUpdate(part);
         }
 
         public uint GenerateClientFlags(UUID ObjectID)
@@ -725,122 +729,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendPrimUpdates()
         {
-            // if (m_scene.QuadTree.GetNodeID(this.AbsolutePosition.X, this.AbsolutePosition.Y) != m_currentQuadNode)
-            //{
-            //  this.UpdateQuadTreeNode();
-            //this.RefreshQuadObject();
-            //}
             m_perfMonMS = Environment.TickCount;
 
-            if (m_pendingObjects == null)
-            {
-                if (!m_isChildAgent || m_scene.m_seeIntoRegionFromNeighbor)
-                {
-                    m_pendingObjects = new Queue<SceneObjectGroup>();
-
-                    List<EntityBase> ents = new List<EntityBase>(m_scene.Entities);
-                    if (!m_isChildAgent) // Proximity sort makes no sense for
-                    {                    // Child agents
-                        ents.Sort(delegate(EntityBase a, EntityBase b)
-                        {
-                            return Vector3.Distance(AbsolutePosition, a.AbsolutePosition).CompareTo(Vector3.Distance(AbsolutePosition, b.AbsolutePosition));
-                        });
-                    }
-
-                    foreach (EntityBase e in ents)
-                    {
-                        if (e is SceneObjectGroup)
-                            m_pendingObjects.Enqueue((SceneObjectGroup)e);
-                    }
-                }
-            }
-
-            while (m_pendingObjects != null && m_pendingObjects.Count > 0 && m_partsUpdateQueue.Count < m_maxPrimsPerFrame)
-            {
-                SceneObjectGroup g = m_pendingObjects.Dequeue();
-
-                // This is where we should check for draw distance
-                // do culling and stuff. Problem with that is that until
-                // we recheck in movement, that won't work right.
-                // So it's not implemented now.
-                //
-
-                // Don't even queue if we have sent this one
-                //
-                if (!m_updateTimes.ContainsKey(g.UUID))
-                    g.ScheduleFullUpdateToAvatar(this);
-            }
-
-            while (m_partsUpdateQueue.Count > 0)
-            {
-                SceneObjectPart part = m_partsUpdateQueue.Dequeue();
-                
-                if (part.ParentGroup == null || part.ParentGroup.IsDeleted)
-                    continue;
-                
-                if (m_updateTimes.ContainsKey(part.UUID))
-                {
-                    ScenePartUpdate update = m_updateTimes[part.UUID];
-
-                    // We deal with the possibility that two updates occur at
-                    // the same unix time at the update point itself.
-
-                    if ((update.LastFullUpdateTime < part.TimeStampFull) ||
-                            part.IsAttachment)
-                    {
-//                            m_log.DebugFormat(
-//                                "[SCENE PRESENCE]: Fully   updating prim {0}, {1} - part timestamp {2}",
-//                                part.Name, part.UUID, part.TimeStampFull);
-
-                        part.SendFullUpdate(ControllingClient,
-                                GenerateClientFlags(part.UUID));
-
-                        // We'll update to the part's timestamp rather than
-                        // the current time to avoid the race condition
-                        // whereby the next tick occurs while we are doing
-                        // this update. If this happened, then subsequent
-                        // updates which occurred on the same tick or the
-                        // next tick of the last update would be ignored.
-
-                        update.LastFullUpdateTime = part.TimeStampFull;
-
-                    }
-                    else if (update.LastTerseUpdateTime <= part.TimeStampTerse)
-                    {
-//                            m_log.DebugFormat(
-//                                "[SCENE PRESENCE]: Tersely updating prim {0}, {1} - part timestamp {2}",
-//                                part.Name, part.UUID, part.TimeStampTerse);
-
-                        part.SendTerseUpdateToClient(ControllingClient);
-
-                        update.LastTerseUpdateTime = part.TimeStampTerse;
-                    }
-                }
-                else
-                {
-                    //never been sent to client before so do full update
-                    ScenePartUpdate update = new ScenePartUpdate();
-                    update.FullID = part.UUID;
-                    update.LastFullUpdateTime = part.TimeStampFull;
-                    m_updateTimes.Add(part.UUID, update);
-
-                    // Attachment handling
-                    //
-                    if (part.ParentGroup.RootPart.Shape.PCode == 9 && part.ParentGroup.RootPart.Shape.State != 0)
-                    {
-                        if (part != part.ParentGroup.RootPart)
-                            continue;
-
-                        part.ParentGroup.SendFullUpdateToClient(ControllingClient);
-                        continue;
-                    }
-
-                    part.SendFullUpdate(ControllingClient,
-                            GenerateClientFlags(part.UUID));
-                }
-            }
-
-            ControllingClient.FlushPrimUpdates();
+            m_sceneViewer.SendPrimUpdates();
 
             m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
         }
@@ -935,7 +826,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             // On the next prim update, all objects will be sent
             //
-            m_pendingObjects = null;
+            m_sceneViewer.Reset();
 
             m_isChildAgent = false;
 
@@ -3062,7 +2953,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
             if (m_scene.m_seeIntoRegionFromNeighbor)
-                m_pendingObjects = null;
+                m_sceneViewer.Reset();
 
             //cAgentData.AVHeight;
             //cAgentData.regionHandle;
@@ -3269,7 +3160,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
             DefaultTexture = textu.GetBytes();
-            
         }
 
         public class NewForce
@@ -3277,20 +3167,6 @@ namespace OpenSim.Region.Framework.Scenes
             public float X;
             public float Y;
             public float Z;
-        }
-
-        public class ScenePartUpdate
-        {
-            public UUID FullID;
-            public uint LastFullUpdateTime;
-            public uint LastTerseUpdateTime;
-
-            public ScenePartUpdate()
-            {
-                FullID = UUID.Zero;
-                LastFullUpdateTime = 0;
-                LastTerseUpdateTime = 0;
-            }
         }
 
         public override void SetText(string text, Vector3 color, double alpha)
@@ -3394,14 +3270,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_knownChildRegions.Clear();
             }
-            lock (m_updateTimes)
-            {
-                m_updateTimes.Clear();
-            }
-            lock (m_partsUpdateQueue)
-            {
-                m_partsUpdateQueue.Clear();
-            }
+            m_sceneViewer.Close();
 
             RemoveFromPhysicalScene();
             GC.Collect();
@@ -3413,7 +3282,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
                 DefaultTexture = textu.GetBytes();
-            } 
+            }
+            CreateSceneViewer();
         }
 
         public void AddAttachment(SceneObjectGroup gobj)

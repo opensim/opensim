@@ -1145,13 +1145,13 @@ if (m_shape != null) {
             List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
-                avatars[i].QueuePartForUpdate(this);
+                avatars[i].SceneViewer.QueuePartForUpdate(this);
             }
         }
 
         public void AddFullUpdateToAvatar(ScenePresence presence)
         {
-            presence.QueuePartForUpdate(this);
+            presence.SceneViewer.QueuePartForUpdate(this);
         }
 
         public void AddNewParticleSystem(Primitive.ParticleSystem pSystem)
@@ -1170,13 +1170,13 @@ if (m_shape != null) {
             List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
-                avatars[i].QueuePartForUpdate(this);
+                avatars[i].SceneViewer.QueuePartForUpdate(this);
             }
         }
 
         public void AddTerseUpdateToAvatar(ScenePresence presence)
         {
-            presence.QueuePartForUpdate(this);
+            presence.SceneViewer.QueuePartForUpdate(this);
         }
 
         public void AddTextureAnimation(Primitive.TextureAnimation pTexAnim)
