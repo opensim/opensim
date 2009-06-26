@@ -556,25 +556,28 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     }
                     else
                     {
-                        // no client supplied UUID: look it up...
-                        CachedUserInfo userInfo 
-                            = m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(
-                                masterFirst, masterLast);
-                            
-                        if (null == userInfo)
+                        if (masterFirst != String.Empty && masterLast != String.Empty) // User requests a master avatar
                         {
-                            m_log.InfoFormat("master avatar does not exist, creating it");
-                            // ...or create new user
-                            userID = m_app.CommunicationsManager.UserAdminService.AddUser(
-                                masterFirst, masterLast, masterPassword, "", region.RegionLocX, region.RegionLocY);
+                            // no client supplied UUID: look it up...
+                            CachedUserInfo userInfo 
+                                = m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(
+                                    masterFirst, masterLast);
+                                
+                            if (null == userInfo)
+                            {
+                                m_log.InfoFormat("master avatar does not exist, creating it");
+                                // ...or create new user
+                                userID = m_app.CommunicationsManager.UserAdminService.AddUser(
+                                    masterFirst, masterLast, masterPassword, "", region.RegionLocX, region.RegionLocY);
 
-                            if (userID == UUID.Zero)
-                                throw new Exception(String.Format("failed to create new user {0} {1}",
-                                                                  masterFirst, masterLast));
-                        }
-                        else
-                        {
-                            userID = userInfo.UserProfile.ID;
+                                if (userID == UUID.Zero)
+                                    throw new Exception(String.Format("failed to create new user {0} {1}",
+                                                                      masterFirst, masterLast));
+                            }
+                            else
+                            {
+                                userID = userInfo.UserProfile.ID;
+                            }
                         }
                     }
 

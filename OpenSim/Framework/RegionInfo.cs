@@ -594,6 +594,57 @@ namespace OpenSim.Framework
             ScopeID = new UUID(config.GetString("ScopeID", UUID.Zero.ToString()));
         }
 
+        private void WriteNiniConfig(IConfigSource source)
+        {
+            IConfig config = source.Configs[RegionName];
+
+            if (config != null)
+                source.Configs.Remove(RegionName);
+
+            config = source.AddConfig(RegionName);
+
+            config.Set("RegionUUID", RegionID.ToString());
+
+            string location = String.Format("{0},{1}", m_regionLocX, m_regionLocY);
+            config.Set("Location", location);
+
+            if (DataStore != String.Empty)
+                config.Set("Datastore", DataStore);
+
+            config.Set("InternalAddress", m_internalEndPoint.Address.ToString());
+            config.Set("InternalPort", m_internalEndPoint.Port);
+
+            config.Set("AllowAlternatePorts", m_allow_alternate_ports.ToString());
+
+            config.Set("ExternalHostName", m_externalHostName);
+
+            if (MasterAvatarAssignedUUID != UUID.Zero)
+            {
+                config.Set("MasterAvatarUUID", MasterAvatarAssignedUUID.ToString());
+            }
+            else if (MasterAvatarFirstName != String.Empty && MasterAvatarLastName != String.Empty)
+            {
+                config.Set("MasterAvatarFirstName", MasterAvatarFirstName);
+                config.Set("MasterAvatarLastName", MasterAvatarLastName);
+            }
+            if (MasterAvatarSandboxPassword != String.Empty)
+            {
+                config.Set("MasterAvatarSandboxPassword", MasterAvatarSandboxPassword);
+            }
+
+            if (m_nonphysPrimMax != 0)
+                config.Set("NonphysicalPrimMax", m_nonphysPrimMax);
+            if (m_physPrimMax != 0)
+                config.Set("PhysicalPrimMax", m_physPrimMax);
+            config.Set("ClampPrimSize", m_clampPrimSize.ToString());
+
+            if (m_objectCapacity != 0)
+                config.Set("MaxPrims", m_objectCapacity);
+
+            if (ScopeID != UUID.Zero)
+                config.Set("ScopeID", ScopeID.ToString());
+        }
+
         public bool ignoreIncomingConfiguration(string configuration_key, object configuration_result)
         {
             return true;
@@ -601,6 +652,23 @@ namespace OpenSim.Framework
 
         public void SaveRegionToFile(string description, string filename)
         {
+            if (filename.ToLower().EndsWith(".ini"))
+            {
+                IniConfigSource source = new IniConfigSource();
+                try
+                {
+                    source = new IniConfigSource(filename); // Load if it exists
+                }
+                catch (Exception)
+                {
+                }
+
+                WriteNiniConfig(source);
+
+                source.Save(filename);
+
+                return;
+            }
             configMember = new ConfigurationMember(filename, description, loadConfigurationOptionsFromMe,
                                                    ignoreIncomingConfiguration, false);
             configMember.performConfigurationRetrieve();
