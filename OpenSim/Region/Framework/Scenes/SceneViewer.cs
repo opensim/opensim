@@ -189,10 +189,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Reset()
         {
-            lock (m_pendingObjects)
+            if (m_pendingObjects != null)
             {
-                m_pendingObjects.Clear();
-                m_pendingObjects = null;
+                lock (m_pendingObjects)
+                {
+
+                    m_pendingObjects.Clear();
+                    m_pendingObjects = null;
+                }
             }
         }
 
