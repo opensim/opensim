@@ -126,7 +126,7 @@ namespace OpenSim.Services.AuthenticationService
             //m_log.Info("[LOGIN]: userprofile:" + profile.passwordHash + " SubCT:" + password);
 
             passwordSuccess = (profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                               || profile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
+                               || profile.PasswordHash.Equals(password, StringComparison.InvariantCulture));
 
             return passwordSuccess;
         }

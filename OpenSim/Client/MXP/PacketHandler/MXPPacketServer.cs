@@ -540,8 +540,8 @@ namespace OpenSim.Client.MXP.PacketHandler
                 password = password.Remove(0, 3); //remove $1$
                 string s = Util.Md5Hash(password + ":" + userProfile.PasswordSalt);
                 return (userProfile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                                   || userProfile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
-            }
+                                   || userProfile.PasswordHash.Equals(password, StringComparison.InvariantCulture));
+                }
             else
             {
                 return true;

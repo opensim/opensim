@@ -119,7 +119,7 @@ namespace OpenSim.Client.Linden
                 string s = Util.Md5Hash(password + ":" + profile.PasswordSalt);
 
                 bool loginresult = (profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                            || profile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
+                            || profile.PasswordHash.Equals(password, StringComparison.InvariantCulture));
                 return loginresult;
             }
         }
