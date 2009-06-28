@@ -89,7 +89,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_updateflag;
         private byte m_movementflag;
-        private readonly List<NewForce> m_forcesList = new List<NewForce>();
+        //private readonly List<NewForce> m_forcesList = new List<NewForce>();
+        private NewForce m_nextVelocity = new NewForce();
         private short m_updateCount;
         private uint m_requestedSitTargetID;
         private UUID m_requestedSitTargetUUID = UUID.Zero;
@@ -138,7 +139,7 @@ namespace OpenSim.Region.Framework.Scenes
         public string JID = string.Empty;
 
         // Agent moves with a PID controller causing a force to be exerted.
-        private bool m_newForce;
+        private bool m_newMovement;
         private bool m_newCoarseLocations = true;
         private float m_health = 100f;
 
@@ -2217,7 +2218,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_perfMonMS = Environment.TickCount;
 
             m_rotation = rotation;
-            NewForce newVelocity = new NewForce();
             Vector3 direc = vec * rotation;
             direc.Normalize();
 
@@ -2252,10 +2252,12 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            newVelocity.X = direc.X;
-            newVelocity.Y = direc.Y;
-            newVelocity.Z = direc.Z;
-            m_forcesList.Add(newVelocity);
+            lock (m_nextVelocity)
+            {
+                m_nextVelocity.X = direc.X;
+                m_nextVelocity.Y = direc.Y;
+                m_nextVelocity.Z = direc.Z;
+            }
 
             m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
         }
@@ -2276,10 +2278,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_isChildAgent == false)
             {
-                if (m_newForce) // user movement 'forces' (ie commands to move)
+                if (m_newMovement) // user movement 'forces' (ie commands to move)
                 {
                     SendTerseUpdateToAllClients();
                     m_updateCount = 0;
+                    m_newMovement = false;
                 }
                 else if (m_movementflag != 0) // scripted movement (?)
                 {
@@ -3127,20 +3130,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public override void UpdateMovement()
         {
-            m_newForce = false;
-            lock (m_forcesList)
+           // m_newMovement = false;
+            if ((m_nextVelocity.X != movementvector.X) || (m_nextVelocity.Y != movementvector.Y) || (m_nextVelocity.Z != movementvector.Z))
             {
-                if (m_forcesList.Count > 0)
+                lock (m_nextVelocity)
                 {
-                    //we are only interested in the last velocity added to the list [Although they are called forces, they are actually velocities]
-                    NewForce force = m_forcesList[m_forcesList.Count - 1];
-
                     m_updateflag = true;
                     try
                     {
-                        movementvector.X = force.X;
-                        movementvector.Y = force.Y;
-                        movementvector.Z = force.Z;
+                        movementvector.X = m_nextVelocity.X;
+                        movementvector.Y = m_nextVelocity.Y;
+                        movementvector.Z = m_nextVelocity.Z;
                         Velocity = movementvector;
                     }
                     catch (NullReferenceException)
@@ -3149,9 +3149,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // Ignoring this causes no movement to be sent to the physics engine...
                         // which when the scene is moving at 1 frame every 10 seconds, it doesn't really matter!
                     }
-                    m_newForce = true;
-
-                    m_forcesList.Clear();
+                    m_newMovement = true;
                 }
             }
         }
