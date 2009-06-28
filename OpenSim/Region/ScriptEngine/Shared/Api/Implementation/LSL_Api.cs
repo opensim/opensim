@@ -6049,6 +6049,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.SitTargetPosition = new Vector3((float)offset.x, (float)offset.y, (float)offset.z);
             m_host.SitTargetOrientation = Rot2Quaternion(rot);
+            m_host.ParentGroup.HasGroupChanged = true;
         }
 
         public LSL_String llAvatarOnSitTarget()
