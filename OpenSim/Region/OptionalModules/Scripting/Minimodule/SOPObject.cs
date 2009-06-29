@@ -301,7 +301,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             get { return this; }
         }
 
-        #region Public Functions
+		public IObjectInventory Inventory 
+		{
+			get { return new SOPObjectInventory(m_rootScene, GetSOP().TaskInventory); }
+		}
+		
+		#region Public Functions
 
         public void Say(string msg)
         {

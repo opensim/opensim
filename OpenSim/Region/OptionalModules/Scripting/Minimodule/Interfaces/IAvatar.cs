@@ -50,6 +50,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 		//// <value>
 		/// Array of worn attachments, empty but not null, if no attachments are worn
 		/// </value>
-    	IAvatarAttachment[] Attachments { get; }
+
+		IAvatarAttachment[] Attachments { get; }
+
+		/// <summary>
+		/// Request to open an url clientside
+		/// </summary>
+		void LoadUrl(IObject sender, string message, string url);
     }
 }

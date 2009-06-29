@@ -32,6 +32,7 @@ using System.Collections.Generic;
 
 using OpenMetaverse;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 
 using log4net;
 
@@ -89,6 +90,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 				
 				return attachments.ToArray();
 			}
+		}
+
+		public void LoadUrl(IObject sender, string message, string url)
+		{
+			IDialogModule dm = m_rootScene.RequestModuleInterface<IDialogModule>();
+			if(dm != null)
+				dm.SendUrlToUser(GetSP().UUID, sender.Name, sender.GlobalID, GetSP().UUID, false, message, url);
 		}
 		#endregion
     }
