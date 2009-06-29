@@ -83,7 +83,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         internal LLPacketThrottle TextureThrottle;
         internal LLPacketThrottle TotalThrottle;
         
-        private List<uint> contents = new List<uint>();
+        private Dictionary<uint,int> contents = new Dictionary<uint, int>();
 
         /// <summary>
         /// The number of packets in the OutgoingPacketQueue
@@ -189,7 +189,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             if (item.Sequence != 0)
-                lock (contents) contents.Add(item.Sequence);
+                lock (contents)
+	            {
+	                if (contents.ContainsKey(item.Sequence))
+	                    contents[item.Sequence] += 1;
+	                else
+	                    contents.Add(item.Sequence, 1);
+	            }
 
             lock (this)
             {
@@ -243,22 +249,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return item;
                 lock (contents)
                 {
-                    if (contents.Contains(item.Sequence))
-                        if (contents.Remove(item.Sequence))
-                            return item;
+                    if (contents.ContainsKey(item.Sequence))
+                    {
+                        if (contents[item.Sequence] == 1)
+                            contents.Remove(item.Sequence);
+                        else
+                            contents[item.Sequence] -= 1;
+                        return item;
+                    }
                 }
             }
         }
 
         public void Cancel(uint sequence)
         {
-            lock (contents) while (contents.Remove(sequence))
-                ;
+            lock (contents) contents.Remove(sequence);
         }
 
         public bool Contains(uint sequence)
         {
-            lock (contents) return contents.Contains(sequence);
+            lock (contents) return contents.ContainsKey(sequence);
         }
 
         public void Flush()
