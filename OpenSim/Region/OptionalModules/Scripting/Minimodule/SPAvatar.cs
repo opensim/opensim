@@ -26,8 +26,14 @@
  */
 
 using System;
+using System.Reflection;
+using System.Collections;
+using System.Collections.Generic;
+
 using OpenMetaverse;
 using OpenSim.Region.Framework.Scenes;
+
+using log4net;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
@@ -35,6 +41,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         private readonly Scene m_rootScene;
         private readonly UUID m_ID;
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public SPAvatar(Scene scene, UUID ID)
         {
@@ -63,5 +70,26 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             get { return GetSP().AbsolutePosition; }
             set { GetSP().TeleportWithMomentum(value); }
         }
+		
+		#region IAvatar implementation
+		public IAvatarAttachment[] Attachments
+		{
+			get {
+				List<IAvatarAttachment> attachments = new List<IAvatarAttachment>();
+				
+				Hashtable internalAttachments = GetSP().Appearance.GetAttachments();
+				if(internalAttachments != null)
+				{
+					foreach(DictionaryEntry element in internalAttachments)
+					{
+						Hashtable attachInfo = (Hashtable)element.Value;
+						attachments.Add(new SPAvatarAttachment(m_rootScene, this, (int)element.Key, new UUID((string)attachInfo["item"]), new UUID((string)attachInfo["asset"])));
+					}
+				}
+				
+				return attachments.ToArray();
+			}
+		}
+		#endregion
     }
 }
