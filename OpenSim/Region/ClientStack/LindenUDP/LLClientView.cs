@@ -809,33 +809,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected void DebugPacket(string direction, Packet packet)
         {
-            if (m_debugPacketLevel > 0)
+            string info;
+
+            if (m_debugPacketLevel < 255 && packet.Type == PacketType.AgentUpdate)
+                return;
+            if (m_debugPacketLevel < 254 && packet.Type == PacketType.ViewerEffect)
+                return;
+            if (m_debugPacketLevel < 253 && (
+                                     packet.Type == PacketType.CompletePingCheck ||
+                                     packet.Type == PacketType.StartPingCheck
+                                 ))
+                return;
+            if (m_debugPacketLevel < 252 && packet.Type == PacketType.PacketAck)
+                return;
+
+            if (m_debugPacketLevel > 1)
             {
-                string info;
-
-                if (m_debugPacketLevel < 255 && packet.Type == PacketType.AgentUpdate)
-                    return;
-                if (m_debugPacketLevel < 254 && packet.Type == PacketType.ViewerEffect)
-                    return;
-                if (m_debugPacketLevel < 253 && (
-                                         packet.Type == PacketType.CompletePingCheck ||
-                                         packet.Type == PacketType.StartPingCheck
-                                     ))
-                    return;
-                if (m_debugPacketLevel < 252 && packet.Type == PacketType.PacketAck)
-                    return;
-
-                if (m_debugPacketLevel > 1)
-                {
-                    info = packet.ToString();
-                }
-                else
-                {
-                    info = packet.Type.ToString();
-                }
-
-                Console.WriteLine(m_circuitCode + ":" + direction + ": " + info);
+                info = packet.ToString();
             }
+            else
+            {
+                info = packet.Type.ToString();
+            }
+
+            Console.WriteLine(m_circuitCode + ":" + direction + ": " + info);
         }
 
         /// <summary>
@@ -853,12 +850,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (nextPacket.Incoming)
                 {
-                    DebugPacket("IN", nextPacket.Packet);
+                    if (m_debugPacketLevel > 0)
+                       DebugPacket("IN", nextPacket.Packet);
                     m_PacketHandler.ProcessInPacket(nextPacket);
                 }
                 else
                 {
-                    DebugPacket("OUT", nextPacket.Packet);
+                    if (m_debugPacketLevel > 0)
+                       DebugPacket("OUT", nextPacket.Packet);
                     m_PacketHandler.ProcessOutPacket(nextPacket);
                 }
             }
