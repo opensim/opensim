@@ -237,7 +237,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.Header.AckList = new uint[count];
                 packet.Header.AppendedAcks = true;
 
-                for(int i = 0; i < count; i++)
+                for (int i = 0; i < count; i++)
                 {
                     packet.Header.AckList[i] = m_PendingAcks[i];
                     m_PendingAcksMap.Remove(m_PendingAcks[i]);
@@ -341,7 +341,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
 
-                foreach(LLQueItem data in dropped)
+                foreach (LLQueItem data in dropped)
                 {
                     m_NeedAck.Remove(data.Packet.Header.Sequence);
                     TriggerOnPacketDrop(data.Packet, data.Identifier);
