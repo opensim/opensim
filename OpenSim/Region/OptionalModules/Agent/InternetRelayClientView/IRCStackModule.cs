@@ -49,8 +49,9 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
             if (null != source.Configs["IRCd"] &&
                 source.Configs["IRCd"].GetBoolean("Enabled",false))
             {
+                int portNo = source.Configs["IRCd"].GetInt("Port",6666);
                 m_scene = scene;
-                m_server = new IRCServer(IPAddress.Parse("0.0.0.0"), 6666, scene);
+                m_server = new IRCServer(IPAddress.Parse("0.0.0.0"), portNo, scene);
                 m_server.OnNewIRCClient += m_server_OnNewIRCClient;
             }
         }
