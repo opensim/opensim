@@ -128,10 +128,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
         private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
+            m_log.InfoFormat("OnInstantMessage {0}", im.dialog);
             Scene scene = FindClientScene(client.AgentId);
 
             if (scene == null) // Something seriously wrong here.
                 return;
+
+
 
             if (im.dialog == (byte) InstantMessageDialog.InventoryOffered)
             {
@@ -177,6 +180,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 {
                     // First byte of the array is probably the item type
                     // Next 16 bytes are the UUID
+                    m_log.Info("OnInstantMessage - giving item");
 
                     UUID itemID = new UUID(im.binaryBucket, 1);
 
@@ -382,6 +386,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         {
             // Check if this is ours to handle
             //
+            m_log.Info("OnFridInstantMessage");
             if (msg.dialog != (byte) InstantMessageDialog.InventoryOffered)
                 return;
 

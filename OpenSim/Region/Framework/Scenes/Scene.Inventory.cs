@@ -448,6 +448,8 @@ namespace OpenSim.Region.Framework.Scenes
             // Retrieve the item from the sender
             CachedUserInfo senderUserInfo = CommsManager.UserProfileCacheService.GetUserDetails(senderId);
 
+            Console.WriteLine("Scene.Inventory.cs: GiveInventoryItem");
+
             if (senderUserInfo == null)
             {
                 m_log.ErrorFormat(
@@ -1064,6 +1066,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private InventoryItemBase CreateAgentInventoryItemFromTask(UUID destAgent, SceneObjectPart part, UUID itemId)
         {
+            Console.WriteLine("CreateAgentInventoryItemFromTask");
             TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
 
             if (null == taskItem)
@@ -1133,6 +1136,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="itemID"></param>
         public InventoryItemBase MoveTaskInventoryItem(IClientAPI remoteClient, UUID folderId, SceneObjectPart part, UUID itemId)
         {
+            m_log.Info("Adding task inventory");
             InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(remoteClient.AgentId, part, itemId);
 
             if (agentItem == null)

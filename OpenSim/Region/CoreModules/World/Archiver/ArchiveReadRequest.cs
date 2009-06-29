@@ -504,24 +504,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             RegionSettings currentRegionSettings = m_scene.RegionInfo.RegionSettings;
 
             // Loaded metadata will empty if no information exists in the archive
-            currentRegionSettings.LoadedCreationDate = "";
-            currentRegionSettings.LoadedCreationTime = "";
+            currentRegionSettings.LoadedCreationDateTime = 0;
             currentRegionSettings.LoadedCreationID = "";
 
             while (xtr.Read()) 
             {
                 if (xtr.NodeType == XmlNodeType.Element) 
                 {
-                    if (xtr.Name.ToString() == "date") 
+                    if (xtr.Name.ToString() == "datetime") 
                     {
-                        // Disable date & time for now until load problem in
-                        // http://opensimulator.org/mantis/view.php?id=3741 (note 0012120 by WWWench) is resolved
-                        //currentRegionSettings.LoadedCreationDate = xtr.ReadElementContentAsString();
+                        int value;
+                        if (Int32.TryParse(xtr.ReadElementContentAsString(), out value))
+                            currentRegionSettings.LoadedCreationDateTime = value;
                     } 
-                    else if (xtr.Name.ToString() == "time") 
-                    {
-                        //currentRegionSettings.LoadedCreationTime = xtr.ReadElementContentAsString();
-                    }
                     else if (xtr.Name.ToString() == "id") 
                     {
                         currentRegionSettings.LoadedCreationID = xtr.ReadElementContentAsString();

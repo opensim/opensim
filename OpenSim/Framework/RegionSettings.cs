@@ -561,20 +561,31 @@ namespace OpenSim.Framework
             set { m_Covenant = value; }
         }
 
-        private String m_LoadedCreationDate;
+        private int m_LoadedCreationDateTime;
+        public int LoadedCreationDateTime
+        {
+            get { return m_LoadedCreationDateTime; }
+            set { m_LoadedCreationDateTime = value; }
+        }
         
         public String LoadedCreationDate
         {
-            get { return m_LoadedCreationDate; }
-            set { m_LoadedCreationDate = value; }
+            get 
+            { 
+                TimeSpan ts = new TimeSpan(0, 0, LoadedCreationDateTime);
+                DateTime stamp = new DateTime(1970, 1, 1) + ts;
+                return stamp.ToLongDateString(); 
+            }
         }
-
-        private String m_LoadedCreationTime;
 
         public String LoadedCreationTime
         {
-            get { return m_LoadedCreationTime; }
-            set { m_LoadedCreationTime = value; }
+            get 
+            { 
+                TimeSpan ts = new TimeSpan(0, 0, LoadedCreationDateTime);
+                DateTime stamp = new DateTime(1970, 1, 1) + ts;
+                return stamp.ToLongTimeString(); 
+            }
         }
 
         private String m_LoadedCreationID;

@@ -152,12 +152,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             xtw.WriteStartDocument();
             xtw.WriteStartElement("archive");
             xtw.WriteAttributeString("major_version", "0");
-            xtw.WriteAttributeString("minor_version", "2");
+            xtw.WriteAttributeString("minor_version", "3");
 
             xtw.WriteStartElement("creation_info");
             DateTime now = DateTime.UtcNow;
-            xtw.WriteElementString("date", now.ToLongDateString());
-            xtw.WriteElementString("time", now.ToLongTimeString());
+            TimeSpan t = now - new DateTime(1970, 1, 1);
+            xtw.WriteElementString("datetime", ((int)t.TotalSeconds).ToString());
             xtw.WriteElementString("id", UUID.Random().ToString());
             xtw.WriteEndElement();
             xtw.WriteEndElement();

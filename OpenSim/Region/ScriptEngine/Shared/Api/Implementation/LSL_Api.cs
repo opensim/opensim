@@ -3657,6 +3657,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 byte[] objBytes = objId.GetBytes();
                 Array.Copy(objBytes, 0, bucket, 1, 16);
 
+                Console.WriteLine("Giving inventory");
                 GridInstantMessage msg = new GridInstantMessage(World,
                         m_host.UUID, m_host.Name+", an object owned by "+
                         resolveName(m_host.OwnerID)+",", destId,
