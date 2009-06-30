@@ -98,16 +98,70 @@ namespace OpenSim.Services.AuthenticationService
             m_Database.Initialise(connString);
         } 
 
+        public UUID AuthenticateKey(UUID principalID, string key)
+        {
+            bool writeAgentData = false;
+
+            UserAgentData agent = m_Database.GetAgentByUUID(principalID);
+            if (agent == null)
+            {
+                agent = new UserAgentData();
+                agent.ProfileID = principalID;
+                agent.SessionID = UUID.Random();
+                agent.SecureSessionID = UUID.Random();
+                agent.AgentIP = "127.0.0.1";
+                agent.AgentPort = 0;
+                agent.AgentOnline = false;
+
+                writeAgentData = true;
+            }
+
+            if (!m_PerformAuthentication)
+            {
+                if (writeAgentData)
+                    m_Database.AddNewUserAgent(agent);
+                return agent.SessionID;
+            }
+
+            if (!VerifyKey(principalID, key))
+                return UUID.Zero;
+
+            if (writeAgentData)
+                m_Database.AddNewUserAgent(agent);
+
+            return agent.SessionID;
+        }
+
         /// <summary>
         /// This implementation only authenticates users.
         /// </summary>
         /// <param name="principalID"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public bool Authenticate(UUID principalID, string password)
+        public UUID AuthenticatePassword(UUID principalID, string password)
         {
+            bool writeAgentData = false;
+
+            UserAgentData agent = m_Database.GetAgentByUUID(principalID);
+            if (agent == null)
+            {
+                agent = new UserAgentData();
+                agent.ProfileID = principalID;
+                agent.SessionID = UUID.Random();
+                agent.SecureSessionID = UUID.Random();
+                agent.AgentIP = "127.0.0.1";
+                agent.AgentPort = 0;
+                agent.AgentOnline = false;
+
+                writeAgentData = true;
+            }
+
             if (!m_PerformAuthentication)
-                return true;
+            {
+                if (writeAgentData)
+                    m_Database.AddNewUserAgent(agent);
+                return agent.SessionID;
+            }
 
             UserProfileData profile = m_Database.GetUserByUUID(principalID);
             bool passwordSuccess = false;
@@ -128,7 +182,13 @@ namespace OpenSim.Services.AuthenticationService
             passwordSuccess = (profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
                                || profile.PasswordHash.Equals(password, StringComparison.InvariantCulture));
 
-            return passwordSuccess;
+            if (!passwordSuccess)
+                return UUID.Zero;
+
+            if (writeAgentData)
+                m_Database.AddNewUserAgent(agent);
+
+            return agent.SessionID;
         }
 
         /// <summary>
@@ -203,10 +263,17 @@ namespace OpenSim.Services.AuthenticationService
             }
         }
 
-        public UUID AllocateUserSession(UUID userID)
+        public UUID CreateUserSession(UUID userID, UUID oldSessionID)
         {
-            // Not implemented yet
-            return UUID.Zero;
+            UserAgentData agent = m_Database.GetAgentByUUID(userID);
+
+            if (agent == null)
+                return UUID.Zero;
+
+            agent.SessionID = UUID.Random();
+
+            m_Database.AddNewUserAgent(agent);
+            return agent.SessionID;
         }
 
         public bool VerifyUserSession(UUID userID, UUID sessionID)
@@ -225,9 +292,19 @@ namespace OpenSim.Services.AuthenticationService
             return false;
         }
 
-        public void DestroyUserSession(UUID userID)
+        public bool DestroyUserSession(UUID userID, UUID sessionID)
         {
-            // Not implemented yet
+            if (!VerifyUserSession(userID, sessionID))
+                return false;
+
+            UserAgentData agent = m_Database.GetAgentByUUID(userID);
+            if (agent == null)
+                return false;
+
+            agent.SessionID = UUID.Zero;
+            m_Database.AddNewUserAgent(agent);
+
+            return true;
         }
     }
 }

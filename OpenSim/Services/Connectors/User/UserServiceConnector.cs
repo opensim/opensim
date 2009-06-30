@@ -133,15 +133,71 @@ namespace OpenSim.Services.Connectors
             return data;
         }
 
-        public bool SetUserData(UserData data)
+        public bool SetHomePosition(UserData data, UUID regionID, UUID regionSecret)
         {
             string uri = m_ServerURI + "/user/";
             bool result = false;
 
+            UserDataMessage msg = new UserDataMessage();
+
+            msg.Data = data;
+            msg.RegionID = regionID;
+            msg.RegionSecret = regionSecret;
+
             try
             {
                 result = SynchronousRestObjectRequester.
-                        MakeRequest<UserData, bool>("POST", uri, data);
+                        MakeRequest<UserDataMessage, bool>("POST", uri, msg);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[USER CONNECTOR]: Unable to send request to user server. Reason: {1}", e.Message);
+                return false;
+            }
+
+            return result;
+        }
+
+        public bool SetUserData(UserData data, UUID principalID, UUID sessionID)
+        {
+            string uri = m_ServerURI + "/user/";
+            bool result = false;
+
+            UserDataMessage msg = new UserDataMessage();
+
+            msg.Data = data;
+            msg.PrincipalID = principalID;
+            msg.SessionID = sessionID;
+
+            try
+            {
+                result = SynchronousRestObjectRequester.
+                        MakeRequest<UserDataMessage, bool>("POST", uri, msg);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[USER CONNECTOR]: Unable to send request to user server. Reason: {1}", e.Message);
+                return false;
+            }
+
+            return result;
+        }
+
+        public bool CreateUserData(UserData data, UUID principalID, UUID sessionID)
+        {
+            string uri = m_ServerURI + "/newuser/";
+            bool result = false;
+
+            UserDataMessage msg = new UserDataMessage();
+
+            msg.Data = data;
+            msg.PrincipalID = principalID;
+            msg.SessionID = sessionID;
+
+            try
+            {
+                result = SynchronousRestObjectRequester.
+                        MakeRequest<UserDataMessage, bool>("POST", uri, msg);
             }
             catch (Exception e)
             {

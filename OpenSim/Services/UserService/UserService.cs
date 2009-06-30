@@ -52,7 +52,17 @@ namespace OpenSim.Services.UserService
             return null;
         }
 
-        public bool SetUserData(UserData data)
+        public bool SetHomePosition(UserData data, UUID regionID, UUID regionSecret)
+        {
+            return false;
+        }
+
+        public bool SetUserData(UserData data, UUID principalID, UUID sessionID)
+        {
+            return false;
+        }
+
+        public bool CreateUserData(UserData data, UUID principalID, UUID sessionID)
         {
             return false;
         }

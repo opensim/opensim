@@ -32,6 +32,24 @@ namespace OpenSim.Services.Interfaces
 {
     public class UserData
     {
+        public UserData()
+        {
+        }
+
+        public UserData(UUID userID, UUID homeRegionID, float homePositionX,
+                float homePositionY, float homePositionZ, float homeLookAtX,
+                float homeLookAtY, float homeLookAtZ)
+        {
+            UserID = userID;
+            HomeRegionID = homeRegionID;
+            HomePositionX = homePositionX;
+            HomePositionY = homePositionY;
+            HomePositionZ = homePositionZ;
+            HomeLookAtX = homeLookAtX;
+            HomeLookAtY = homeLookAtY;
+            HomeLookAtZ = homeLookAtZ;
+        }
+
         public string FirstName;
         public string LastName;
         public UUID UserID;
@@ -49,7 +67,7 @@ namespace OpenSim.Services.Interfaces
         public float HomeLookAtY;
         public float HomeLookAtZ;
 
-        // There are here because they
+        // These are here because they
         // concern the account rather than
         // the profile. They just happen to
         // be used in the Linden profile as well
@@ -58,11 +76,21 @@ namespace OpenSim.Services.Interfaces
         public int UserFlags;
         public string AccountType;
 
-        // This is only used internally. It needs to be set
-        // to the secret of the sending region when updating
-        // user data.
+    };
+
+    public class UserDataMessage
+    {
+        public UserData Data;
+
+        // Set to the region's ID and secret when updating home location
         //
+        public UUID RegionID;
         public UUID RegionSecret;
+
+        // Set to the auth info of the user requesting creation/update
+        //
+        public UUID PrincipalID;
+        public UUID SessionID;
     };
 
     public interface IUserDataService
@@ -73,11 +101,18 @@ namespace OpenSim.Services.Interfaces
         // This will set only the home region portion of the data!
         // Can't be used to set god level, flags, type or change the name!
         //
-        bool SetUserData(UserData data);
+        bool SetHomePosition(UserData data, UUID RegionID, UUID RegionSecret);
+
+        // Update all updatable fields
+        //
+        bool SetUserData(UserData data, UUID PrincipalID, UUID SessionID);
         
         // Returns the list of avatars that matches both the search
         // criterion and the scope ID passed
         //
         List<UserData> GetAvatarPickerData(UUID scopeID, string query);
+
+        // Creates a user data record
+        bool CreateUserData(UserData data, UUID PrincipalID, UUID SessionID);
     }
 }

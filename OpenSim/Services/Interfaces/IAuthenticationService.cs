@@ -38,9 +38,9 @@ namespace OpenSim.Services.Interfaces
     //
     public interface IAuthenticationService
     {
-        // Check the pricipal's password
+        //////////////////////////////////////////////////
+        // Web login key portion
         //
-        bool Authenticate(UUID principalID, string password);
 
         // Get a service key given that principal's 
         // authentication token (master key). 
@@ -51,18 +51,44 @@ namespace OpenSim.Services.Interfaces
         //
         bool VerifyKey(UUID principalID, string key);
 
-        // Create a new user session. If one exists, it is cleared
-        // 
-        UUID AllocateUserSession(UUID userID);
+        //////////////////////////////////////////////////
+        // Password auth portion
+        //
+
+        // Here's how thos works, and why.
+        //
+        // The authentication methods will return the existing session,
+        // or UUID.Zero if authentication failed. If there is no session,
+        // they will create one.
+        // The CreateUserSession method will unconditionally create a session
+        // and invalidate the prior session.
+        // Grid login uses this method to make sure that the session is
+        // fresh and new. Other software, like management applications,
+        // can obtain this existing session if they have a key or password
+        // for that account, this allows external apps to obtain credentials
+        // and use authenticating interface methods.
+        //
+        
+        // Check the pricipal's password
+        //
+        UUID AuthenticatePassword(UUID principalID, string password);
+
+        // Check the principal's key
+        //
+        UUID AuthenticateKey(UUID principalID, string password);
+
+        // Create a new session, invalidating the old ones
+        //
+        UUID CreateUserSession(UUID principalID, UUID oldSessionID);
 
         // Verify that a user session ID is valid. A session ID is
         // considered valid when a user has successfully authenticated
         // at least one time inside that session.
         //
-        bool VerifyUserSession(UUID principalID, UUID session);
+        bool VerifyUserSession(UUID principalID, UUID sessionID);
 
-        // Remove a user session identifier and deauthenticate the user
+        // Deauthenticate user
         //
-        void DestroyUserSession(UUID principalID);
+        bool DestroyUserSession(UUID principalID, UUID sessionID);
     }
 }
