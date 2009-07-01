@@ -34,28 +34,28 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
     public interface IAvatarAttachment
     {
-		//// <value>
-		/// Describes where on the avatar the attachment is located
-		/// </value>
-		int Location { get ; }
-		
-		//// <value>
-		/// Accessor to the rez'ed asset, representing the attachment
-		/// </value>
-		IObject Asset { get; }
+        //// <value>
+        /// Describes where on the avatar the attachment is located
+        /// </value>
+        int Location { get ; }
+        
+        //// <value>
+        /// Accessor to the rez'ed asset, representing the attachment
+        /// </value>
+        IObject Asset { get; }
     }
 
-	public interface IAvatar : IEntity
+    public interface IAvatar : IEntity
     {
-		//// <value>
-		/// Array of worn attachments, empty but not null, if no attachments are worn
-		/// </value>
+        //// <value>
+        /// Array of worn attachments, empty but not null, if no attachments are worn
+        /// </value>
 
-		IAvatarAttachment[] Attachments { get; }
+        IAvatarAttachment[] Attachments { get; }
 
-		/// <summary>
-		/// Request to open an url clientside
-		/// </summary>
-		void LoadUrl(IObject sender, string message, string url);
+        /// <summary>
+        /// Request to open an url clientside
+        /// </summary>
+        void LoadUrl(IObject sender, string message, string url);
     }
 }

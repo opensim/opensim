@@ -71,33 +71,33 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             get { return GetSP().AbsolutePosition; }
             set { GetSP().TeleportWithMomentum(value); }
         }
-		
-		#region IAvatar implementation
-		public IAvatarAttachment[] Attachments
-		{
-			get {
-				List<IAvatarAttachment> attachments = new List<IAvatarAttachment>();
-				
-				Hashtable internalAttachments = GetSP().Appearance.GetAttachments();
-				if(internalAttachments != null)
-				{
-					foreach(DictionaryEntry element in internalAttachments)
-					{
-						Hashtable attachInfo = (Hashtable)element.Value;
-						attachments.Add(new SPAvatarAttachment(m_rootScene, this, (int)element.Key, new UUID((string)attachInfo["item"]), new UUID((string)attachInfo["asset"])));
-					}
-				}
-				
-				return attachments.ToArray();
-			}
-		}
+        
+        #region IAvatar implementation
+        public IAvatarAttachment[] Attachments
+        {
+            get {
+                List<IAvatarAttachment> attachments = new List<IAvatarAttachment>();
+                
+                Hashtable internalAttachments = GetSP().Appearance.GetAttachments();
+                if (internalAttachments != null)
+                {
+                    foreach (DictionaryEntry element in internalAttachments)
+                    {
+                        Hashtable attachInfo = (Hashtable)element.Value;
+                        attachments.Add(new SPAvatarAttachment(m_rootScene, this, (int)element.Key, new UUID((string)attachInfo["item"]), new UUID((string)attachInfo["asset"])));
+                    }
+                }
+                
+                return attachments.ToArray();
+            }
+        }
 
-		public void LoadUrl(IObject sender, string message, string url)
-		{
-			IDialogModule dm = m_rootScene.RequestModuleInterface<IDialogModule>();
-			if(dm != null)
-				dm.SendUrlToUser(GetSP().UUID, sender.Name, sender.GlobalID, GetSP().UUID, false, message, url);
-		}
-		#endregion
+        public void LoadUrl(IObject sender, string message, string url)
+        {
+            IDialogModule dm = m_rootScene.RequestModuleInterface<IDialogModule>();
+            if (dm != null)
+                dm.SendUrlToUser(GetSP().UUID, sender.Name, sender.GlobalID, GetSP().UUID, false, message, url);
+        }
+        #endregion
     }
 }

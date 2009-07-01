@@ -190,12 +190,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (item.Sequence != 0)
                 lock (contents)
-	            {
-	                if (contents.ContainsKey(item.Sequence))
-	                    contents[item.Sequence] += 1;
-	                else
-	                    contents.Add(item.Sequence, 1);
-	            }
+                {
+                    if (contents.ContainsKey(item.Sequence))
+                        contents[item.Sequence] += 1;
+                    else
+                        contents.Add(item.Sequence, 1);
+                }
 
             lock (this)
             {

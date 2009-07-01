@@ -179,10 +179,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// <param name="msg">The message to send to the user</param>
         void Say(string msg);
 
-		//// <value>
-		/// Grants access to the objects inventory
-		/// </value>
-		IObjectInventory Inventory { get; }
+        //// <value>
+        /// Grants access to the objects inventory
+        /// </value>
+        IObjectInventory Inventory { get; }
     }
 
     public enum PhysicsMaterial
