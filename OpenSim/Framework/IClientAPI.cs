@@ -1108,9 +1108,16 @@ namespace OpenSim.Framework
         void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message);
 
         void SendLogoutPacket();
-        ClientInfo GetClientInfo();
+        EndPoint GetClientEP();
 
+        // WARNING WARNING WARNING
+        //
+        // The two following methods are EXCLUSIVELY for the load balancer.
+        // they cause a MASSIVE performance hit!
+        //
+        ClientInfo GetClientInfo();
         void SetClientInfo(ClientInfo info);
+
         void SetClientOption(string option, string value);
         string GetClientOption(string option);
         void Terminate();

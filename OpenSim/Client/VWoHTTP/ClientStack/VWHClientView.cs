@@ -942,6 +942,11 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             throw new System.NotImplementedException();
         }
 
+        public EndPoint GetClientEP()
+        {
+            return null;
+        }
+
         public ClientInfo GetClientInfo()
         {
             throw new System.NotImplementedException();

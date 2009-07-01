@@ -643,28 +643,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             ClientInfo info = new ClientInfo();
 
-            // nobody seems to even look at the following data. since
-            // it's a rather expensive operation (lock, serializing
-            // packets, copying it into dictionary, etc) i've
-            // commented out the expensive (but unwanted?) bits below
-            // (dr scofield, 2009-06-24)
+            info.pendingAcks = m_PendingAcksMap;
+            info.needAck = new Dictionary<uint, byte[]>();
 
-            // info.pendingAcks = m_PendingAcks;
-            // info.needAck = new Dictionary<uint, byte[]>();
+            lock (m_NeedAck)
+            {
+                foreach (uint key in m_NeedAck.Keys)
+                    info.needAck.Add(key, m_NeedAck[key].Packet.ToBytes());
+            }
 
-            // lock (m_NeedAck)
-            // {
-            //     foreach (uint key in m_NeedAck.Keys)
-            //         info.needAck.Add(key, m_NeedAck[key].Packet.ToBytes());
-            // }
+            LLQueItem[] queitems = m_PacketQueue.GetQueueArray();
 
-            // LLQueItem[] queitems = m_PacketQueue.GetQueueArray();
-
-            // for (int i = 0; i < queitems.Length; i++)
-            // {
-            //     if (queitems[i].Incoming == false)
-            //         info.out_packets.Add(queitems[i].Packet.ToBytes());
-            // }
+            for (int i = 0; i < queitems.Length; i++)
+            {
+                if (queitems[i].Incoming == false)
+                    info.out_packets.Add(queitems[i].Packet.ToBytes());
+            }
 
             info.sequence = m_Sequence;
 
@@ -683,37 +677,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SetClientInfo(ClientInfo info)
         {
-            // m_PendingAcks = info.pendingAcks;
-            // m_NeedAck = new Dictionary<uint, LLQueItem>();
+            m_PendingAcksMap = info.pendingAcks;
+            m_PendingAcks = new List<uint>(m_PendingAcksMap.Keys);
+            m_NeedAck = new Dictionary<uint, LLQueItem>();
 
-            // Packet packet = null;
-            // int packetEnd = 0;
-            // byte[] zero = new byte[3000];
+            Packet packet = null;
+            int packetEnd = 0;
+            byte[] zero = new byte[3000];
 
-            // foreach (uint key in info.needAck.Keys)
-            // {
-            //     byte[] buff = info.needAck[key];
-            //     packetEnd = buff.Length - 1;
+            foreach (uint key in info.needAck.Keys)
+            {
+                byte[] buff = info.needAck[key];
+                packetEnd = buff.Length - 1;
 
-            //     try
-            //     {
-            //         packet = PacketPool.Instance.GetPacket(buff, ref packetEnd, zero);
-            //     }
-            //     catch (Exception)
-            //     {
-            //     }
+                try
+                {
+                    packet = PacketPool.Instance.GetPacket(buff, ref packetEnd, zero);
+                }
+                catch (Exception)
+                {
+                }
 
-            //     LLQueItem item = new LLQueItem();
-            //     item.Packet = packet;
-            //     item.Incoming = false;
-            //     item.throttleType = 0;
-            //     item.TickCount = Environment.TickCount;
-            //     item.Identifier = 0;
-            //     item.Resends = 0;
-            //     item.Length = packet.Length;
-            //     item.Sequence = packet.Header.Sequence;
-            //     m_NeedAck.Add(key, item);
-            // }
+                LLQueItem item = new LLQueItem();
+                item.Packet = packet;
+                item.Incoming = false;
+                item.throttleType = 0;
+                item.TickCount = Environment.TickCount;
+                item.Identifier = 0;
+                item.Resends = 0;
+                item.Length = packet.Length;
+                item.Sequence = packet.Header.Sequence;
+                m_NeedAck.Add(key, item);
+            }
 
             m_Sequence = info.sequence;
 

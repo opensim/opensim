@@ -9919,6 +9919,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return info;
         }
 
+        public EndPoint GetClientEP()
+        {
+            return m_userEndPoint;
+        }
+
         public void SetClientInfo(ClientInfo info)
         {
             m_PacketHandler.SetClientInfo(info);

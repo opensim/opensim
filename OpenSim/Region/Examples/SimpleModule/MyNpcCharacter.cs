@@ -843,6 +843,11 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public EndPoint GetClientEP()
+        {
+            return null;
+        }
+
         public ClientInfo GetClientInfo()
         {
             return null;

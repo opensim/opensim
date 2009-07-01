@@ -1396,6 +1396,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             Disconnect();
         }
 
+        public EndPoint GetClientEP()
+        {
+            return null;
+        }
+
         public ClientInfo GetClientInfo()
         {
             return new ClientInfo();

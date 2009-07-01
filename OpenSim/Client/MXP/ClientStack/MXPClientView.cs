@@ -1417,6 +1417,11 @@ namespace OpenSim.Client.MXP.ClientStack
             Session.Send(lrm);
         }
 
+        public EndPoint GetClientEP()
+        {
+            return null;
+        }
+
         public ClientInfo GetClientInfo()
         {
             return null;
