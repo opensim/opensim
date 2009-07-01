@@ -316,6 +316,12 @@ namespace OpenSim.Framework
             _pathEnd = Primitive.PackEndCut(pathRange.Y);
         }
 
+        public void SetPathRange(float begin, float end)
+        {
+            _pathBegin = Primitive.PackBeginCut(begin);
+            _pathEnd = Primitive.PackEndCut(end);
+        }
+
         public void SetSculptData(byte sculptType, UUID SculptTextureUUID)
         {
             _sculptType = sculptType;
@@ -326,6 +332,12 @@ namespace OpenSim.Framework
         {
             _profileBegin = Primitive.PackBeginCut(profileRange.X);
             _profileEnd = Primitive.PackEndCut(profileRange.Y);
+        }
+
+        public void SetProfileRange(float begin, float end)
+        {
+            _profileBegin = Primitive.PackBeginCut(begin);
+            _profileEnd = Primitive.PackEndCut(end);
         }
 
         public byte[] ExtraParams
