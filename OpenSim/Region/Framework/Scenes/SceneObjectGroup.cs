@@ -640,6 +640,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_rootPart.AttachedAvatar = agentID;
 
+                //Anakin Lohner bug #3839 
+                foreach (SceneObjectPart p in m_parts.Values)
+                {
+                    p.AttachedAvatar = agentID;
+                }
+
                 if (m_rootPart.PhysActor != null)
                 {
                     m_scene.PhysicsScene.RemovePrim(m_rootPart.PhysActor);
@@ -702,6 +708,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             AbsolutePosition = detachedpos;
             m_rootPart.AttachedAvatar = UUID.Zero;
+            //Anakin Lohner bug #3839 
+            foreach (SceneObjectPart p in m_parts.Values)
+            {
+                p.AttachedAvatar = UUID.Zero;
+            }
+
             m_rootPart.SetParentLocalId(0);
             SetAttachmentPoint((byte)0);
             m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive, m_scene.m_physicalPrim);
@@ -725,6 +737,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_rootPart.AttachedAvatar = UUID.Zero;
+            //Anakin Lohner bug #3839 
+            foreach (SceneObjectPart p in m_parts.Values)
+            {
+                p.AttachedAvatar = UUID.Zero;
+            }
+
             m_rootPart.SetParentLocalId(0);
             //m_rootPart.SetAttachmentPoint((byte)0);
             m_rootPart.IsAttachment = false;
