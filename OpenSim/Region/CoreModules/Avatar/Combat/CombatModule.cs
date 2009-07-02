@@ -9,7 +9,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
+ *     * Neither the name of the OpenSim Project nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
 {
@@ -67,6 +68,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             }
 
             scene.EventManager.OnAvatarKilled += KillAvatar;
+            scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
         }
 
         public void PostInitialise()
@@ -139,6 +141,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             }
             DeadAvatar.Health = 100;
             DeadAvatar.Scene.TeleportClientHome(DeadAvatar.UUID, DeadAvatar.ControllingClient);
+        }
+
+        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
+        {
+            ILandObject obj = avatar.Scene.LandChannel.GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+            if ((obj.landData.Flags & (uint)Parcel.ParcelFlags.AllowDamage) != 0)
+            {
+                avatar.Invulnerable = false;
+            }
+            else
+            {
+                avatar.Invulnerable = true;
+            }
         }
     }
 }
