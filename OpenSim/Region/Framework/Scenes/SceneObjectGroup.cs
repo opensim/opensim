@@ -463,7 +463,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Hooks this object up to the backup event so that it is persisted to the database when the update thread executes.
         /// </summary>
-        public void AttachToBackup()
+        public virtual void AttachToBackup()
         {
             if (InSceneBackup)
             {
@@ -1063,7 +1063,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Processes backup.
         /// </summary>
         /// <param name="datastore"></param>
-        public void ProcessBackup(IRegionDataStore datastore, bool forcedBackup)
+        public virtual void ProcessBackup(IRegionDataStore datastore, bool forcedBackup)
         {
             if (!m_isBackedUp)
                 return;
@@ -2063,7 +2063,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Stop this object from being persisted over server restarts.
         /// </summary>
         /// <param name="objectGroup"></param>
-        public void DetachFromBackup()
+        public virtual void DetachFromBackup()
         {
             if (m_isBackedUp)
                 m_scene.EventManager.OnBackup -= ProcessBackup;
