@@ -209,6 +209,8 @@ namespace OpenSim.Framework
         public string DataStore = String.Empty;
         public string RegionFile = String.Empty;
         public bool isSandbox = false;
+        public bool Persistent = true;
+
         private EstateSettings m_estateSettings;
         private RegionSettings m_regionSettings;
         // private IConfigSource m_configSource = null;
@@ -232,6 +234,7 @@ namespace OpenSim.Framework
         private int m_physPrimMax = 0;
         private bool m_clampPrimSize = false;
         private int m_objectCapacity = 0;
+
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 

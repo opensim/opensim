@@ -615,6 +615,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         m_log.DebugFormat("[RADMIN] CreateRegion: persisting region {0} to {1}",
                                           region.RegionID, regionXmlPath);
                         region.SaveRegionToFile("dynamic region", regionXmlPath);
+                    } 
+                    else
+                    {
+                        region.Persistent = false;
                     }
 
                     // Create the region and perform any initial initialization
@@ -785,7 +789,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     // Modify access 
                     scene.RegionInfo.EstateSettings.PublicAccess = 
                         getBoolean(requestData,"public", scene.RegionInfo.EstateSettings.PublicAccess);
-                    scene.RegionInfo.EstateSettings.Save();
+                    if (scene.RegionInfo.Persistent)
+                        scene.RegionInfo.EstateSettings.Save();
 
                     if (requestData.ContainsKey("enable_voice"))
                     {
@@ -2197,6 +2202,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 Scene s = m_app.SceneManager.CurrentScene;
                 s.RegionInfo.EstateSettings.EstateAccess = new UUID[]{};
+                if (s.RegionInfo.Persistent)
+                    s.RegionInfo.EstateSettings.Save();
 
             }
             catch (Exception e)
@@ -2278,6 +2285,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         }
                     }
                     s.RegionInfo.EstateSettings.EstateAccess = acl.ToArray();
+                    if (s.RegionInfo.Persistent)
+                        s.RegionInfo.EstateSettings.Save();
                 }
 
                 responseData["added"] = addk;
@@ -2361,6 +2370,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         }
                     }
                     s.RegionInfo.EstateSettings.EstateAccess = acl.ToArray();
+                    if (s.RegionInfo.Persistent)
+                        s.RegionInfo.EstateSettings.Save();
                 }
 
                 responseData["removed"] = remk;
