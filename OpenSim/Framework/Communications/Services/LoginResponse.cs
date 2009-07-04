@@ -78,6 +78,7 @@ namespace OpenSim.Framework.Communications.Services
         private uint simHttpPort;
         private string simAddress;
         private string agentAccess;
+        private string agentAccessMax;
         private Int32 circuitCode;
         private uint regionX;
         private uint regionY;
