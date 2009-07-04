@@ -144,6 +144,7 @@ namespace OpenSim.Framework.Communications.Services
             firstname = "Test";
             lastname = "User";
             agentAccess = "M";
+            agentAccessMax = "A";
             startLocation = "last";
             allowFirstLife = "Y";
 
@@ -342,6 +343,7 @@ namespace OpenSim.Framework.Communications.Services
                 responseData["first_name"] = Firstname;
                 responseData["last_name"] = Lastname;
                 responseData["agent_access"] = agentAccess;
+                responseData["agent_access_max"] = agentAccessMax;
 
                 globalTexturesHash = new Hashtable();
                 globalTexturesHash["sun_texture_id"] = SunTexture;
@@ -416,6 +418,7 @@ namespace OpenSim.Framework.Communications.Services
                 map["first_name"] = OSD.FromString(Firstname);
                 map["last_name"] = OSD.FromString(Lastname);
                 map["agent_access"] = OSD.FromString(agentAccess);
+                map["agent_access_max"] = OSD.FromString(agentAccessMax);
 
                 map["sim_port"] = OSD.FromInteger(SimPort);
                 map["sim_ip"] = OSD.FromString(SimAddress);
@@ -664,6 +667,12 @@ namespace OpenSim.Framework.Communications.Services
         {
             get { return agentAccess; }
             set { agentAccess = value; }
+        }
+
+        public string AgentAccessMax
+        {
+            get { return agentAccessMax; }
+            set { agentAccessMax = value; }
         }
 
         public string StartLocation
