@@ -594,7 +594,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
                                                              timeStamp, offline, parentEstateID, position, ttl, transactionID, 
                                                              fromGroup, binaryBucket);
             Enqueue(item, toAgent);
-            m_log.InfoFormat("########### eq ChatterboxInvitation #############\n{0}", item);
+            //m_log.InfoFormat("########### eq ChatterboxInvitation #############\n{0}", item);
 
         }
 
@@ -604,7 +604,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             OSD item = EventQueueHelper.ChatterBoxSessionAgentListUpdates(sessionID, fromAgent, canVoiceChat,
                                                                           isModerator, textMute);
             Enqueue(item, toAgent);
-            m_log.InfoFormat("########### eq ChatterBoxSessionAgentListUpdates #############\n{0}", item);
+            //m_log.InfoFormat("########### eq ChatterBoxSessionAgentListUpdates #############\n{0}", item);
         }
 
         public void ParcelProperties(ParcelPropertiesPacket parcelPropertiesPacket, UUID avatarID)
