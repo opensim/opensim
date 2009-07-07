@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using System.Xml;
 using System.Threading;
 using System.Reflection;
@@ -83,10 +84,8 @@ namespace OpenSim.Server.Base
 
             // Automagically create the ini file name
             //
-            string fullName = Assembly.GetEntryAssembly().FullName;
-            AssemblyName assemblyName = new AssemblyName(fullName);
-
-            string iniFile = assemblyName.Name + ".ini";
+            string fileName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location);
+            string iniFile = fileName + ".ini";
 
             IConfig startupConfig = argvConfig.Configs["Startup"];
             if (startupConfig != null)
@@ -204,7 +203,8 @@ namespace OpenSim.Server.Base
             {
                 if (startupConfig != null)
                     fileAppender.File = startupConfig.GetString("logfile",
-                            assemblyName.Name + ".log");
+                            fileName + ".log");
+                            // assemblyName.Name + ".log");
             }
 
             // Register the quit command
