@@ -3,10 +3,10 @@
 ; * Multiple connectors should be seaprated by commas.
 ; *
 ; * These are the IN connectors the server uses, the in connectors
-; * read tis config file and load the needed OUT and database connectors
+; * read this config file and load the needed OUT and database connectors
 ; *
 [Startup]
-ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector"
+ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance
@@ -25,3 +25,14 @@ DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
 AssetLoaderArgs = "assets/AssetSets.xml"
 StorageProvider = "OpenSim.Data.MySQL.dll"
 ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=grid;"
+
+; * This configuration loads the inventory server modules. It duplicates
+; * the function of the legacy inventory server
+; *
+[InventoryService]
+LocalServiceModule = "OpenSim.Services.InventoryService.dll:InventoryService"
+UserServerURI = "http://127.0.0.1:8002"
+SessionAuthentication = "false"
+StorageProvider = "OpenSim.Data.MySQL.dll"
+ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=grid;"
+
