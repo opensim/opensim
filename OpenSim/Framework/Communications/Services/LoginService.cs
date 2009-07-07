@@ -197,7 +197,7 @@ namespace OpenSim.Framework.Communications.Services
                         {
                             // This is behavior for standalone (silent logout of last hung session)
                             m_log.InfoFormat(
-                                "[LOGIN]: User {0} {1} is already logged in, not notifying user, kicking old presence and starting new login.",
+                                "[LOGIN]: XMLRPC User {0} {1} is already logged in, not notifying user, kicking old presence and starting new login.",
                                 firstname, lastname);
                         }
                     }
@@ -422,14 +422,23 @@ namespace OpenSim.Framework.Communications.Services
                         // try to tell the region that their user is dead.
                         LogOffUser(userProfile, " LLSD You were logged off because you logged in from another location");
 
-                        // Reject the login
+                        if (m_warn_already_logged)
+                        {
+                            // This is behavior for for grid, reject login
+                            m_log.InfoFormat(
+                                "[LOGIN END]:  LLSD Notifying user {0} {1} that they are already logged in",
+                                userProfile.FirstName, userProfile.SurName);
 
-                        m_log.InfoFormat(
-                            "[LOGIN END]:  LLSD Notifying user {0} {1} that they are already logged in",
-                            userProfile.FirstName, userProfile.SurName);
-
-                        userProfile.CurrentAgent = null;
-                        return logResponse.CreateAlreadyLoggedInResponseLLSD();
+                            userProfile.CurrentAgent = null;
+                            return logResponse.CreateAlreadyLoggedInResponseLLSD();
+                        }
+                        else
+                        {
+                            // This is behavior for standalone (silent logout of last hung session)
+                            m_log.InfoFormat(
+                                "[LOGIN]: LLSD User {0} {1} is already logged in, not notifying user, kicking old presence and starting new login.",
+                                userProfile.FirstName, userProfile.SurName);
+                        }
                     }
 
                     // Otherwise...
