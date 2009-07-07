@@ -136,6 +136,8 @@ namespace OpenSim.Server.Base
                 startupConfig = m_Config.Configs["Startup"];
             }
 
+            prompt = startupConfig.GetString("Prompt", prompt);
+
             // Allow derived classes to load config before the console is
             // opened.
             //

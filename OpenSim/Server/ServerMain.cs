@@ -48,7 +48,7 @@ namespace OpenSim.Server
 
         static int Main(string[] args)
         {
-            m_Server = new HttpServerBase("Server", args);
+            m_Server = new HttpServerBase("B.U.S.T.", args);
 
             IConfig serverConfig = m_Server.Config.Configs["Startup"];
             if (serverConfig == null)
