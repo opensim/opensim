@@ -68,10 +68,16 @@ namespace OpenSim.Server.Handlers.Asset
             {
                 result = m_AssetService.GetData(p[0]);
                 if (result == null)
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    httpResponse.ContentType = "text/plain";
                     result = new byte[0];
-
-                httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                httpResponse.ContentType = "application/octet-stream";
+                }
+                else
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                    httpResponse.ContentType = "application/octet-stream";
+                }
             }
             else if (p.Length > 1 && p[1] == "metadata")
             {
@@ -87,6 +93,12 @@ namespace OpenSim.Server.Handlers.Asset
                     httpResponse.ContentType =
                             ServerUtils.SLAssetTypeToContentType(metadata.Type);
                 }
+                else
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    httpResponse.ContentType = "text/plain";
+                    result = new byte[0];
+                }
             }
             else
             {
@@ -100,6 +112,12 @@ namespace OpenSim.Server.Handlers.Asset
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;
                     httpResponse.ContentType =
                             ServerUtils.SLAssetTypeToContentType(asset.Type);
+                }
+                else
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    httpResponse.ContentType = "text/plain";
+                    result = new byte[0];
                 }
             }
             return result;
