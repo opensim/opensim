@@ -32,7 +32,6 @@ using System;
 using System.Collections.Generic;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
-using OpenSim.Server.Handlers.Asset;
 
 namespace OpenSim.Server
 {
