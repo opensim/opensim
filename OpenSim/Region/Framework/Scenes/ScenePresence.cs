@@ -1020,6 +1020,17 @@ namespace OpenSim.Region.Framework.Scenes
                 look = new Vector3(0.99f, 0.042f, 0);
             }
 
+            // Prevent teleporting to an underground location
+            // (may crash client otherwise)
+            //
+            Vector3 pos = AbsolutePosition;
+            float ground = m_scene.GetGroundHeight(pos.X, pos.Y);
+            if (pos.Z < ground + 1.5f)
+            {
+                pos.Z = ground + 1.5f;
+                AbsolutePosition = pos;
+            }
+
             if (m_isChildAgent)
             {
                 m_isChildAgent = false;
