@@ -1857,7 +1857,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             float ground = World.GetGroundHeight((float)targetPos.x, (float)targetPos.y);
-            if (targetPos.z < ground)
+            bool disable_underground_movement = m_ScriptEngine.Config.GetBoolean("DisableUndergroundMovement", true);
+
+            if ((targetPos.z < ground) && disable_underground_movement)
                 targetPos.z = ground;
             
             if (part.ParentGroup == null)
