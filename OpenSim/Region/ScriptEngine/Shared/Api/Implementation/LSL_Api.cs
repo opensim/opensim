@@ -1855,8 +1855,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 targetPos = currentPos + m_ScriptDistanceFactor * 10.0f * llVecNorm(targetPos - currentPos);
             }
-            
 
+            float ground = World.GetGroundHeight((float)targetPos.x, (float)targetPos.y);
+            if (targetPos.z < ground)
+                targetPos.z = ground;
+            
             if (part.ParentGroup == null)
             {
                 part.UpdateOffSet(new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z));
