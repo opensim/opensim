@@ -107,6 +107,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     Dictionary<string, XmlRpcMethod> availableMethods = new Dictionary<string, XmlRpcMethod>();
                     availableMethods["admin_create_region"] = XmlRpcCreateRegionMethod;
                     availableMethods["admin_delete_region"] = XmlRpcDeleteRegionMethod;
+                    availableMethods["admin_close_region"] = XmlRpcCloseRegionMethod;
                     availableMethods["admin_modify_region"] = XmlRpcModifyRegionMethod;
                     availableMethods["admin_region_query"] = XmlRpcRegionQueryMethod;
                     availableMethods["admin_shutdown"] = XmlRpcShutdownMethod;
@@ -507,6 +508,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     RegionInfo region = new RegionInfo();
 
                     region.RegionID = regionID;
+                    region.originRegionID = regionID;
                     region.RegionName = (string) requestData["region_name"];
                     region.RegionLocX = Convert.ToUInt32(requestData["region_x"]);
                     region.RegionLocY = Convert.ToUInt32(requestData["region_y"]);
@@ -732,6 +734,98 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 }
 
                 m_log.Info("[RADMIN]: DeleteRegion: request complete");
+                return response;
+            }
+        }
+                    
+        /// <summary>
+        /// Close a region.
+        /// <summary>
+        /// <param name="request">incoming XML RPC request</param>
+        /// <remarks>
+        /// XmlRpcCloseRegionMethod takes the following XMLRPC
+        /// parameters
+        /// <list type="table">
+        /// <listheader><term>parameter name</term><description>description</description></listheader>
+        /// <item><term>password</term>
+        ///       <description>admin password as set in OpenSim.ini</description></item>
+        /// <item><term>region_name</term>
+        ///       <description>desired region name</description></item>
+        /// <item><term>region_id</term>
+        ///       <description>(optional) desired region UUID</description></item>
+        /// </list>
+        ///
+        /// XmlRpcShutdownRegionMethod returns
+        /// <list type="table">
+        /// <listheader><term>name</term><description>description</description></listheader>
+        /// <item><term>success</term>
+        ///       <description>true or false</description></item>
+        /// <item><term>region_name</term>
+        ///       <description>the region name if success is true</description></item>
+        /// <item><term>error</term>
+        ///       <description>error message if success is false</description></item>
+        /// </list>
+        /// </remarks>
+        public XmlRpcResponse XmlRpcCloseRegionMethod(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            m_log.Info("[RADMIN]: CloseRegion: new request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+            Scene scene = null;
+
+            lock (rslock)
+            {
+                try
+                {
+                    Hashtable requestData = (Hashtable) request.Params[0];
+                    checkStringParameters(request, new string[] {"password"});
+                    
+                    if (requestData.ContainsKey("region_id") &&
+                        !String.IsNullOrEmpty((string) requestData["region_id"]))
+                    {
+                        // Region specified by UUID
+                        UUID regionID = (UUID) (string) requestData["region_id"];
+                        if (!m_app.SceneManager.TryGetScene(regionID, out scene))
+                            throw new Exception(String.Format("region \"{0}\" does not exist", regionID));
+
+                        m_app.CloseRegion(scene);
+
+                        responseData["success"] = true;
+                        responseData["region_id"] = regionID;
+
+                        response.Value = responseData;
+                    }
+                    else if (requestData.ContainsKey("region_name") &&
+                        !String.IsNullOrEmpty((string) requestData["region_name"]))
+                    {
+                        // Region specified by name
+
+                        string regionName = (string) requestData["region_name"];
+                        if (!m_app.SceneManager.TryGetScene(regionName, out scene))
+                            throw new Exception(String.Format("region \"{0}\" does not exist", regionName));
+
+                        m_app.CloseRegion(scene);
+
+                        responseData["success"] = true;
+                        responseData["region_name"] = regionName;
+
+                        response.Value = responseData;
+                    }
+                    else
+                        throw new Exception("no region specified");
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[RADMIN] CloseRegion: failed {0}", e.Message);
+                    m_log.DebugFormat("[RADMIN] CloseRegion: failed {0}", e.ToString());
+
+                    responseData["success"] = false;
+                    responseData["error"] = e.Message;
+
+                    response.Value = responseData;
+                }
+
+                m_log.Info("[RADMIN]: CloseRegion: request complete");
                 return response;
             }
         }

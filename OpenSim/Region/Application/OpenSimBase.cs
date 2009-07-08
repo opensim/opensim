@@ -504,6 +504,37 @@ namespace OpenSim
         }
 
         /// <summary>
+        /// Remove a region from the simulator without deleting it permanently.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <returns></returns>   
+        public void CloseRegion(Scene scene)
+        {
+            // only need to check this if we are not at the
+            // root level
+            if ((m_sceneManager.CurrentScene != null) &&
+                (m_sceneManager.CurrentScene.RegionInfo.RegionID == scene.RegionInfo.RegionID))
+            {
+                m_sceneManager.TrySetCurrentScene("..");
+            }
+
+            m_sceneManager.CloseScene(scene);
+
+        }
+        
+        /// <summary>
+        /// Remove a region from the simulator without deleting it permanently.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>   
+        public void CloseRegion(string name)
+        {
+            Scene target;
+            if (m_sceneManager.TryGetScene(name, out target))
+                CloseRegion(target);
+        }
+        
+        /// <summary>
         /// Create a scene and its initial base structures.
         /// </summary>
         /// <param name="regionInfo"></param>
