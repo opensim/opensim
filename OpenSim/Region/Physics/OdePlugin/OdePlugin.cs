@@ -199,6 +199,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float avPIDP = 1400f;
         private float avCapRadius = 0.37f;
         private float avStandupTensor = 2000000f;
+        private bool avCapsuleTilted = true; // true = old compatibility mode with leaning capsule; false = new corrected mode
+        public bool IsAvCapsuleTilted { get { return avCapsuleTilted; } set { avCapsuleTilted = value; } }
         private float avDensity = 80f;
         private float avHeightFudgeFactor = 0.52f;
         private float avMovementDivisorWalk = 1.3f;
@@ -426,6 +428,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     avMovementDivisorWalk = physicsconfig.GetFloat("av_movement_divisor_walk", 1.3f);
                     avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", 0.8f);
                     avCapRadius = physicsconfig.GetFloat("av_capsule_radius", 0.37f);
+                    avCapsuleTilted = physicsconfig.GetBoolean("av_capsule_tilted", true);
 
                     geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 3);
                     geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);

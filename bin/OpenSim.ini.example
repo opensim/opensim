@@ -473,6 +473,10 @@
     av_capsule_standup_tensor_win = 550000
     av_capsule_standup_tensor_linux = 550000
 
+    ; specifies if the capsule should be tilted (=true; old compatibility mode)
+    ; or straight up-and-down (=false; better and more consistent physics behavior)
+    av_capsule_tilted = true
+
     ; used to calculate mass of avatar.
     ; float AVvolume = (float) (Math.PI*Math.Pow(CAPSULE_RADIUS, 2)*CAPSULE_LENGTH);
     ; av_density * AVvolume;

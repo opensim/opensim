@@ -519,7 +519,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.BodySetMass(Body, ref ShellMass);
             d.Matrix3 m_caprot;
             // 90 Stand up on the cap of the capped cyllinder
-            d.RFromAxisAndAngle(out m_caprot, 1, 0, 1, (float)(Math.PI / 2));
+            if (_parent_scene.IsAvCapsuleTilted)
+            {
+                d.RFromAxisAndAngle(out m_caprot, 1, 0, 1, (float)(Math.PI / 2));
+            }
+            else
+            {
+                d.RFromAxisAndAngle(out m_caprot, 0, 0, 1, (float)(Math.PI / 2));
+            }
 
 
             d.GeomSetRotation(Shell, ref m_caprot);
@@ -542,12 +549,24 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.JointSetAMotorAngle(Amotor, 2, 0);
 
             // These lowstops and high stops are effectively (no wiggle room)
-            d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
+            if (_parent_scene.IsAvCapsuleTilted)
+            {
+                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
+            }
+            else
+            {
+                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0);
+            }
 
             // Fudge factor is 1f by default, we're setting it to 0.  We don't want it to Fudge or the
             // capped cyllinder will fall over
