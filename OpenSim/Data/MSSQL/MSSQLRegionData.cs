@@ -1249,8 +1249,8 @@ VALUES
             parameters.Add(_Database.CreateParameter("sunvectory", settings.SunVector.Y));
             parameters.Add(_Database.CreateParameter("sunvectorz", settings.SunVector.Z));
             parameters.Add(_Database.CreateParameter("covenant", settings.Covenant));
-            parameters.Add(_Database.CreateParameter("LoadedCreationDateTime", settings.LoadedCreationDateTime));
-            parameters.Add(_Database.CreateParameter("LoadedCreationID", settings.LoadedCreationID));
+            parameters.Add(_Database.CreateParameter("Loaded_Creation_DateTime", settings.LoadedCreationDateTime));
+            parameters.Add(_Database.CreateParameter("Loaded_Creation_ID", settings.LoadedCreationID));
 
             return parameters.ToArray();
         }
