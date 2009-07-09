@@ -1859,15 +1859,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             float ground = World.GetGroundHeight((float)targetPos.x, (float)targetPos.y);
             bool disable_underground_movement = m_ScriptEngine.Config.GetBoolean("DisableUndergroundMovement", true);
 
-            if ((targetPos.z < ground) && disable_underground_movement)
-                targetPos.z = ground;
             
             if (part.ParentGroup == null)
             {
+	            if ((targetPos.z < ground) && disable_underground_movement)
+    	            targetPos.z = ground;
                 part.UpdateOffSet(new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z));
             }
             else if (part.ParentGroup.RootPart == part)
             {
+	            if ((targetPos.z < ground) && disable_underground_movement)
+    	            targetPos.z = ground;
                 SceneObjectGroup parent = part.ParentGroup;
                 parent.UpdateGroupPosition(new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z));
             }
