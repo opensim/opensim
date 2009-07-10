@@ -34,6 +34,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -105,6 +106,7 @@ namespace OpenSim.Tests.Common.Setup
         {
             Console.WriteLine("Setting up test scene {0}", name);
             
+            MainServer.Instance = new BaseHttpServer(980);
             RegionInfo regInfo = new RegionInfo(x, y, new IPEndPoint(IPAddress.Loopback, 9000), "127.0.0.1");
             regInfo.RegionName = name;
             regInfo.RegionID = id;
