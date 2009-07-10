@@ -29,7 +29,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System.Reflection;
 
+using log4net;
 using OpenMetaverse;
 using Nwc.XmlRpc;
 
@@ -37,9 +39,14 @@ namespace OpenSim.Framework.Communications.Clients
 {
     public class GridClient
     {
-
-        public bool RegisterRegion(string gridServerURL, string sendKey, string receiveKey, RegionInfo regionInfo, out bool forcefulBanLines)
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        public bool RegisterRegion(
+            string gridServerURL, string sendKey, string receiveKey, RegionInfo regionInfo, out bool forcefulBanLines)
         {
+            m_log.InfoFormat(
+                "[GRID CLIENT]: Registering region {0} with grid at {1}", regionInfo.RegionName, gridServerURL);
+            
             forcefulBanLines = true;
 
             Hashtable GridParams = new Hashtable();
@@ -165,7 +172,9 @@ namespace OpenSim.Framework.Communications.Clients
             return true;
         }
 
-        public bool RequestNeighborInfo(string gridServerURL, string sendKey, string receiveKey, UUID regionUUID, out RegionInfo regionInfo, out string errorMsg)
+        public bool RequestNeighborInfo(
+            string gridServerURL, string sendKey, string receiveKey, UUID regionUUID,
+            out RegionInfo regionInfo, out string errorMsg)
         {
             // didn't find it so far, we have to go the long way
             regionInfo = null;
@@ -201,7 +210,9 @@ namespace OpenSim.Framework.Communications.Clients
             return true; 
         }
 
-        public bool RequestNeighborInfo(string gridServerURL, string sendKey, string receiveKey, ulong regionHandle, out RegionInfo regionInfo, out string errorMsg)
+        public bool RequestNeighborInfo(
+            string gridServerURL, string sendKey, string receiveKey, ulong regionHandle, 
+            out RegionInfo regionInfo, out string errorMsg)
         {
             // didn't find it so far, we have to go the long way
             regionInfo = null;
@@ -257,7 +268,9 @@ namespace OpenSim.Framework.Communications.Clients
             return true;
         }
 
-        public bool RequestClosestRegion(string gridServerURL, string sendKey, string receiveKey, string regionName, out RegionInfo regionInfo, out string errorMsg)
+        public bool RequestClosestRegion(
+             string gridServerURL, string sendKey, string receiveKey, string regionName, 
+             out RegionInfo regionInfo, out string errorMsg)
         {
             regionInfo = null;
             errorMsg = string.Empty;
@@ -299,7 +312,8 @@ namespace OpenSim.Framework.Communications.Clients
         /// <param name="maxX">Maximum X value</param>
         /// <param name="maxY">Maximum Y value</param>
         /// <returns>Hashtable of hashtables containing map data elements</returns>
-        public bool MapBlockQuery(string gridServerURL, int minX, int minY, int maxX, int maxY, out Hashtable respData, out string errorMsg)
+        public bool MapBlockQuery(
+            string gridServerURL, int minX, int minY, int maxX, int maxY, out Hashtable respData, out string errorMsg)
         {
             respData = new Hashtable();
             errorMsg = string.Empty;

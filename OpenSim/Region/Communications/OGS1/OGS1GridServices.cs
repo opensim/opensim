@@ -103,11 +103,11 @@ namespace OpenSim.Region.Communications.OGS1
                 throw e;
             }
 
-            m_regionsOnInstance.Add(regionInfo);
-
             m_log.InfoFormat(
-                "[OGS1 GRID SERVICES]: Attempting to register region {0} with grid at {1}",
+                "[OGS1 GRID SERVICES]: Registering region {0} with grid at {1}",
                 regionInfo.RegionName, serversInfo.GridURL);
+            
+            m_regionsOnInstance.Add(regionInfo);
 
             Hashtable GridParams = new Hashtable();
             // Login / Authentication
