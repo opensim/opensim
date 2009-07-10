@@ -566,7 +566,6 @@
     ;force_simple_prim_meshing = true
 
 
-
 [RemoteAdmin]
     enabled = false
     access_password = unknown
@@ -689,9 +688,11 @@
     ;for <bot>:<message> - from <user> :
     ;msgformat = "PRIVMSG {0} : {3} - from {1}"
 
+
 ;[CMS]
     ;enabled = true
     ;channel = 345
+
 
 ; Uncomment the following to control the progression of daytime
 ; in the Sim.  The defaults are what is shown below
@@ -729,6 +730,7 @@
     ; Adjusts wind strength. 0.0 = no wind, 1.0 = normal wind.  Default is 1.0
     strength = 1.0
 
+
 [Cloud]
     ; Enable this to generate classic particle clouds above the sim.
     ; default is disabled - turn it on here
@@ -740,6 +742,7 @@
     ; update interval for the cloud cover data returned by llCloud().  
     ; default is 1000
     cloud_update_rate = 1000
+
 
 [Trees]
     ; Enable this to allow the tree module to manage your sim trees, including growing, reproducing and dying
@@ -1158,9 +1161,11 @@
     ; default is false
     Enabled = false 
 
+
 [Hypergrid]
     ; Keep it false for now. Making it true requires the use of a special client in order to access inventory
     safemode = false
+
 
 [FreeSwitchVoice]
     ; In order for this to work you need a functioning freeswitch pbx set
@@ -1222,10 +1227,12 @@
     ;
     ; XmlRpcDisableKeepAlive = false
 
+
 [PacketPool]
     ; Enables the experimental packet pool. Yes, we've been here before.
     ;RecyclePackets = true;
     ;RecycleDataBlocks = true;
+
 
 [LLClient]
     ; Resend packets markes as reliable until they are received
@@ -1263,12 +1270,13 @@
     ;TextureDataLimit = 5
 
 ;;
-;; These are defatuls that are overwritten below in [Architecture].
+;; These are defaults that are overwritten below in [Architecture].
 ;; These defaults allow OpenSim to work out of the box with
 ;; zero configuration
 ;;
 [DatabaseService]
     StorageProvider = "OpenSim.Data.SQLite.dll"
+
 
 [AssetService]
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
