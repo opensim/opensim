@@ -345,6 +345,12 @@ namespace OpenSim.Region.Framework.Scenes
             // argh! floats into two bytes!..   bad bad bad bad
             // After fighting with it for a while..  -1, to 1 seems to give the best results
             rotations = readKeys(data, ref i, rotationkeys, -1f, 1f);
+            for (int iter = 0; iter < rotations.Length; iter++)
+            {
+                rotations[iter].W = 1f -
+                    (rotations[iter].key_element.X + rotations[iter].key_element.Y +
+                     rotations[iter].key_element.Z);
+            }
 
 
             if (!BitConverter.IsLittleEndian)
@@ -480,6 +486,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// Either a Vector3 position or a Vector3 Euler rotation
         /// </summary>
         public Vector3 key_element;
+
+        public float W;
 
         public void WriteBytesToStream(BinaryWriter iostream, float InPoint, float OutPoint, float min, float max)
         {
