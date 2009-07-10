@@ -72,7 +72,8 @@ namespace OpenSim.Framework.Communications.Services
             }
             catch (FileNotFoundException)
             {
-                _log.Warn("[GridInfoService] no OpenSim.ini file found --- GridInfoServices WILL NOT BE AVAILABLE to your users");
+                _log.Warn(
+                    "[GRID INFO SERVICE]: No OpenSim.ini file found --- GridInfoServices WILL NOT BE AVAILABLE to your users");
             }
         }
 
@@ -123,19 +124,21 @@ namespace OpenSim.Framework.Communications.Services
             }
             catch (Exception)
             {
-                _log.Debug("[GridInfoService] cannot get grid info from config source, using minimal defaults");
+                _log.Debug("[GRID INFO SERVICE]: Cannot get grid info from config source, using minimal defaults");
             }
-            _log.InfoFormat("[GridInfoService] Grid info service initialized with {0} keys", _info.Count);
+            
+            _log.DebugFormat("[GRID INFO SERVICE]: Grid info service initialized with {0} keys", _info.Count);
 
         }
 
         private void IssueWarning()
         {
-            _log.Warn("[GridInfoService] found no [GridInfo] section in your OpenSim.ini");
-            _log.Warn("[GridInfoService] trying to guess sensible defaults, you might want to provide better ones:");
+            _log.Warn("[GRID INFO SERVICE]: found no [GridInfo] section in your OpenSim.ini");
+            _log.Warn("[GRID INFO SERVICE]: trying to guess sensible defaults, you might want to provide better ones:");
+            
             foreach (string k in _info.Keys)
             {
-                _log.WarnFormat("[GridInfoService] {0}: {1}", k, _info[k]);
+                _log.WarnFormat("[GRID INFO SERVICE]: {0}: {1}", k, _info[k]);
             }
         }
 
@@ -144,7 +147,7 @@ namespace OpenSim.Framework.Communications.Services
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            _log.Info("[GridInfo]: Request for grid info");
+            _log.Info("[GRID INFO SERVICE]: Request for grid info");
 
             foreach (string k in _info.Keys)
             {
