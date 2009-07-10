@@ -49,6 +49,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
         private bool m_Enabled = false;
         private LocalLandServicesConnector m_LocalService;
 
+        public Type ReplacableInterface 
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return "RemoteLandServicesConnector"; }

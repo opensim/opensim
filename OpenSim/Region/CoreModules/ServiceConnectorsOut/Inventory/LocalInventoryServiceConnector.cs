@@ -53,6 +53,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private bool m_Enabled = false;
         private bool m_Initialized = false;
 
+        public Type ReplacableInterface 
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return "LocalInventoryServicesConnector"; }

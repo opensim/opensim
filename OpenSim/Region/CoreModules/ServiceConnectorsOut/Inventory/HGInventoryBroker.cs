@@ -56,6 +56,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private ISessionAuthInventoryService m_HGService;
 
         private string m_LocalGridInventoryURI = string.Empty;
+        public Type ReplacableInterface 
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return "HGInventoryBroker"; }

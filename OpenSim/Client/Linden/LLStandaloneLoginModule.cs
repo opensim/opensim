@@ -155,6 +155,11 @@ namespace OpenSim.Client.Linden
             }
         }
 
+        public Type ReplacableInterface 
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return "LLStandaloneLoginModule"; }

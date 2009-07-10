@@ -46,6 +46,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
 
         private bool m_Enabled = false;
 
+        public Type ReplacableInterface 
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return "LocalUserServicesConnector"; }

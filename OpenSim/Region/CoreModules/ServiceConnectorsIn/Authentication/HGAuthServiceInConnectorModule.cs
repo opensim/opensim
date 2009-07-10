@@ -81,6 +81,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Authentication
         {
         }
 
+        public Type ReplacableInterface 
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return "HGAuthServiceInConnectorModule"; }

@@ -81,6 +81,11 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
             get { return "Capabilities Module"; } 
         }
 
+        public Type ReplacableInterface
+        {
+            get { return null; }
+        }
+
         public void AddCapsHandler(UUID agentId)
         {
             if (m_scene.RegionInfo.EstateSettings.IsBanned(agentId))

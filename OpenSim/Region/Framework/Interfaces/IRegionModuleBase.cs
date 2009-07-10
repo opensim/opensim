@@ -40,6 +40,20 @@ namespace OpenSim.Region.Framework.Interfaces
         string Name { get; }
 
         /// <summary>
+        /// If this returns non-null, it is the type of an interface that
+        /// this module intends to register.
+        /// This will cause the loader to defer loading of this module
+        /// until all other modules have been loaded. If no other module
+        /// has registered the interface by then, this module will be
+        /// activated, else it will remain inactive, letting the other module
+        /// take over. This should return non-null ONLY in modules that are
+        /// intended to be easily replacable, e.g. stub implementations
+        /// that the developer expects to be replaced by third party provided
+        /// modules.
+        /// </summary>
+        Type ReplacableInterface { get; }
+
+        /// <summary>
         /// This is called to initialize the region module. For shared modules, this is called
         /// exactly once, after creating the single (shared) instance. For non-shared modules,
         /// this is called once on each instance, after the instace for the region has been created.

@@ -77,6 +77,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory
         {
         }
 
+        public Type ReplacableInterface 
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return "RegionInventoryService"; }

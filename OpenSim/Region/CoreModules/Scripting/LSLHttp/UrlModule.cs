@@ -74,6 +74,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         private IHttpServer m_HttpServer = null;
 
+        public Type ReplacableInterface 
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return "UrlModule"; }

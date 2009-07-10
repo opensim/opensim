@@ -52,6 +52,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         private bool m_Enabled = false;
 
+        public Type ReplacableInterface 
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return "HGAssetBroker"; }

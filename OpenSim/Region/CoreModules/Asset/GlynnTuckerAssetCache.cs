@@ -51,6 +51,11 @@ namespace OpenSim.Region.CoreModules.Asset
         // Instrumentation
         private uint m_DebugRate = 0;
 
+        public Type ReplacableInterface 
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return "GlynnTuckerAssetCache"; }

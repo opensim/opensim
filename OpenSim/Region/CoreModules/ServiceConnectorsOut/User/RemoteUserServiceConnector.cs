@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using Nini.Config;
 using log4net;
 using System.Reflection;
@@ -43,6 +44,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
+
+        public Type ReplacableInterface 
+        {
+            get { return null; }
+        }
 
         public string Name
         {
