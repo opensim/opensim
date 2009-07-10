@@ -51,7 +51,7 @@ using OpenSim.Region.Physics.Manager;
 namespace OpenSim
 {
     /// <summary>
-    /// Common OpenSim simulator code
+    /// Common OpenSimulator simulator code
     /// </summary>
     public class OpenSimBase : RegionApplicationBase
     {
@@ -76,7 +76,7 @@ namespace OpenSim
         protected const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
 
         /// <summary>
-        /// The file used to load and save an opensim archive if no filename has been specified
+        /// The file used to load and save an opensimulator archive if no filename has been specified
         /// </summary>
         protected const string DEFAULT_OAR_BACKUP_FILENAME = "region.oar";
 
@@ -97,7 +97,7 @@ namespace OpenSim
         protected List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
 
         /// <value>
-        /// The config information passed into the OpenSim region server.
+        /// The config information passed into the OpenSimulator region server.
         /// </value>        
         public OpenSimConfigSource ConfigSource
         {
@@ -751,7 +751,7 @@ namespace OpenSim
 
             public string Path
             {   
-                // This is for the OpenSim instance and is the osSecret hashed
+                // This is for the OpenSimulator instance and is the osSecret hashed
                 get { return "/" + osXStatsURI + "/"; }
             }
         }
@@ -792,7 +792,7 @@ namespace OpenSim
 
             public string Path
             {   
-                // This is for the OpenSim instance and is the user provided URI 
+                // This is for the OpenSimulator instance and is the user provided URI 
                 get { return "/" + osUXStatsURI + "/"; }
             }
         }

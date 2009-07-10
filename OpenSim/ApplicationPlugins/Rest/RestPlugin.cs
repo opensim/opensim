@@ -240,8 +240,8 @@ namespace OpenSim.ApplicationPlugins.Rest
                 // the key lookup in Configs failed, which signals to
                 // us that noone is interested in our services...they
                 // don't know what they are missing out on...
-                // NOTE: Under the present OpenSim implementation it is
-                // not possible for the openSim pointer to be null. However
+                // NOTE: Under the present OpenSimulator implementation it is
+                // not possible for the openSimulator pointer to be null. However
                 // were the implementation to be changed, this could
                 // result in a silent initialization failure. Harmless
                 // except for lack of function and lack of any

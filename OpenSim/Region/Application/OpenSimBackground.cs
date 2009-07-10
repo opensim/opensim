@@ -33,7 +33,7 @@ using Nini.Config;
 namespace OpenSim
 {
     /// <summary>
-    /// Consoleless OpenSim region server
+    /// Consoleless OpenSimulator region server
     /// </summary>
     public class OpenSimBackground : OpenSim
     {

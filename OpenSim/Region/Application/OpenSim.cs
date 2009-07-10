@@ -1130,7 +1130,7 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// Load a whole region from an opensim archive.
+        /// Load a whole region from an opensimulator archive.
         /// </summary>
         /// <param name="cmdparams"></param>
         protected void LoadOar(string module, string[] cmdparams)
