@@ -158,7 +158,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (m_InventoryService == null)
                     {
-                        throw new Exception("No IInventoryService available.");
+                        throw new Exception("No IInventoryService available. This could happen if the config_include folder doesn't exist or if the OpenSim.ini [Architecture] section isn't set.  Please also check that you have the correct version of your inventory service dll.  Sometimes old versions of this dll will still exist.  Do a clean checkout and re-create the opensim.ini from the opensim.ini.example.");
                     }
                 }
 
