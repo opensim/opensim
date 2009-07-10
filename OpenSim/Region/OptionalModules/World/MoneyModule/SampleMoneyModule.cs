@@ -33,6 +33,7 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
+using Mono.Addins;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -40,7 +41,10 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.ReplaceableModules.MoneyModule
+[assembly: Addin("SampleMoneyModule", "0.1")]
+[assembly: AddinDependency("OpenSim", "0.5")]
+
+namespace OpenSim.Region.OptionalModules.World.MoneyModule
 {
     /// <summary>
     /// This is only the functionality required to make the functionality associated with money work
@@ -52,7 +56,9 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
     /// This commonly looks like -helperuri http://127.0.0.1:9000/
     ///
     /// </summary>
-    public class SampleMoneyModule : IMoneyModule, IRegionModule
+
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class SampleMoneyModule : IMoneyModule, ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -110,7 +116,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="config"></param>
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
             m_gConfig = config;
 
@@ -118,8 +124,14 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
             IConfig economyConfig = m_gConfig.Configs["Economy"];
 
 
-            ReadConfigAndPopulate(scene, startupConfig, "Startup");
-            ReadConfigAndPopulate(scene, economyConfig, "Economy");
+            ReadConfigAndPopulate(startupConfig, "Startup");
+            ReadConfigAndPopulate(economyConfig, "Economy");
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            // Send ObjectCapacity to Scene..  Which sends it to the SimStatsReporter.
+            scene.SetObjectCapacity(ObjectCapacity);
 
             if (m_enabled)
             {
@@ -167,6 +179,15 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
             }
         }
 
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+
         // Please do not refactor these to be just one method
         // Existing implementations need the distinction
         //
@@ -202,14 +223,14 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
         {
         }
 
+        public Type ReplacableInterface
+        {
+            get { return typeof(IMoneyModule); }
+        }
+
         public string Name
         {
             get { return "BetaGridLikeMoneyModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
         }
 
         #endregion
@@ -220,7 +241,7 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
         /// <param name="scene"></param>
         /// <param name="startupConfig"></param>
         /// <param name="config"></param>
-        private void ReadConfigAndPopulate(Scene scene, IConfig startupConfig, string config)
+        private void ReadConfigAndPopulate(IConfig startupConfig, string config)
         {
             if (config == "Startup" && startupConfig != null)
             {
@@ -249,8 +270,6 @@ namespace OpenSim.Region.ReplaceableModules.MoneyModule
                 m_sellEnabled = startupConfig.GetBoolean("SellEnabled", false);
             }
 
-            // Send ObjectCapacity to Scene..  Which sends it to the SimStatsReporter.
-            scene.SetObjectCapacity(ObjectCapacity);
         }
 
         public EconomyData GetEconomyData()
