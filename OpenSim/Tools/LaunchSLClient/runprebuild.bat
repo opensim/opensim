@@ -1,4 +1,4 @@
 ..\..\..\bin\Prebuild.exe /target nant
-..\..\..\bin\Prebuild.exe /target vs2005
+..\..\..\bin\Prebuild.exe /target vs2008
+echo C:\WINDOWS\Microsoft.NET\Framework\v3.5\msbuild LaunchSLClient.sln > compile.bat
 
-echo C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\msbuild LaunchSLClient.sln > compile.bat
