@@ -68,7 +68,7 @@ namespace OpenSim.Services.Connectors
             if (inventoryConfig == null)
             {
                 m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
-                throw new Exception("Inventory connector init error");
+                throw new Exception("InventoryService missing from OpenSim.ini");
             }
 
             string serviceURI = inventoryConfig.GetString("InventoryServerURI",

@@ -8,11 +8,12 @@
     ;
     AssetServerURI = "http://myassetserver.com:8003"
 
+
 [InventoryService]
     ;
-    ; change this to your grid-wide asset server
+    ; change this to your grid-wide inventory server
     ;
-    InventoryServerURI = "http://myassetserver.com:8004"
+    InventoryServerURI = "http://myinventoryserver.com:8004"
 
 
 [Modules]

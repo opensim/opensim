@@ -311,37 +311,55 @@ namespace OpenSim.Framework.Communications.Services
         {
             Hashtable requestData = (Hashtable)request.Params[0];
 
-            bool GoodLogin = false;
-
             userProfile = GetTheUser(firstname, lastname);
             if (userProfile == null)
             {
-                m_log.Info("[LOGIN END]: XMLRPC Could not find a profile for " + firstname + " " + lastname);
+                m_log.Debug("[LOGIN END]: XMLRPC Could not find a profile for " + firstname + " " + lastname);
+                return false;
             }
             else
             {
                 if (requestData.Contains("passwd"))
                 {
                     string passwd = (string)requestData["passwd"];
-                    GoodLogin = AuthenticateUser(userProfile, passwd);
+                    bool authenticated = AuthenticateUser(userProfile, passwd);
+
+                    if (!authenticated)
+                        m_log.DebugFormat("[LOGIN END]: XMLRPC User {0} {1} failed password authentication",
+                            firstname, lastname);
+
+                    return authenticated;
                 }
-                if (!GoodLogin && (requestData.Contains("web_login_key")))
+                
+                if (requestData.Contains("web_login_key"))
                 {
                     try
                     {
                         UUID webloginkey = new UUID((string)requestData["web_login_key"]);
-                        GoodLogin = AuthenticateUser(userProfile, webloginkey);
+                        bool authenticated = AuthenticateUser(userProfile, webloginkey);
+
+                        if (!authenticated)
+                            m_log.DebugFormat("[LOGIN END]: XMLRPC User {0} {1} failed web login key authentication",
+                                firstname, lastname);
+
+                        return authenticated;
                     }
                     catch (Exception e)
                     {
-                        m_log.InfoFormat(
-                            "[LOGIN END]: XMLRPC  Bad web_login_key: {0} for user {1} {2}, exception {3}",
+                        m_log.DebugFormat(
+                            "[LOGIN END]: XMLRPC Bad web_login_key: {0} for user {1} {2}, exception {3}",
                             requestData["web_login_key"], firstname, lastname, e);
+
+                        return false;
                     }
                 }
+
+                m_log.DebugFormat(
+                    "[LOGIN END]: XMLRPC login request for {0} {1} contained neither a password nor a web login key",
+                    firstname, lastname);
             }
 
-            return GoodLogin;
+            return false;
         }
 
         protected virtual bool TryAuthenticateLLSDLogin(string firstname, string lastname, string passwd, out UserProfileData userProfile)
