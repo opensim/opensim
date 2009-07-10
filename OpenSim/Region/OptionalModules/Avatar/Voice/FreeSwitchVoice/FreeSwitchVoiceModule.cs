@@ -170,31 +170,31 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     // - signout: viv_signout.php
                     if (UseProxy)
                     {
-                        scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/", m_freeSwitchAPIPrefix),
+                        MainServer.Instance.AddHTTPHandler(String.Format("{0}/", m_freeSwitchAPIPrefix),
                                 ForwardProxyRequest);
                     }
                     else
                     {
-                        scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix),
+                        MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix),
                                                              FreeSwitchSLVoiceGetPreloginHTTPHandler);
                                                              
                         // RestStreamHandler h = new
                         // RestStreamHandler("GET", 
                         // String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix), FreeSwitchSLVoiceGetPreloginHTTPHandler);
-                        //  scene.CommsManager.HttpServer.AddStreamHandler(h);
+                        //  MainServer.Instance.AddStreamHandler(h);
 
 
 
-                        scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/viv_signin.php", m_freeSwitchAPIPrefix),
+                        MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_signin.php", m_freeSwitchAPIPrefix),
                                          FreeSwitchSLVoiceSigninHTTPHandler);
 
                         // set up http request handlers to provide
                         // on-demand FreeSwitch configuration to
                         // FreeSwitch's mod_curl_xml
-                        scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/freeswitch-config", m_freeSwitchAPIPrefix),
+                        MainServer.Instance.AddHTTPHandler(String.Format("{0}/freeswitch-config", m_freeSwitchAPIPrefix),
                                                              FreeSwitchConfigHTTPHandler);
 
-                        scene.CommsManager.HttpServer.AddHTTPHandler(String.Format("{0}/viv_buddy.php", m_freeSwitchAPIPrefix),
+                        MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_buddy.php", m_freeSwitchAPIPrefix),
                                          FreeSwitchSLVoiceBuddyHTTPHandler);
                     }
                     

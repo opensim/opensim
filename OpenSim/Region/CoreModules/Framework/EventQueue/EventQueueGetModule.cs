@@ -226,7 +226,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
                 foreach (UUID ky in removeitems)
                 {
                     m_AvatarQueueUUIDMapping.Remove(ky);
-                    m_scene.CommsManager.HttpServer.RemoveHTTPHandler("","/CAPS/EQG/" + ky.ToString() + "/");
+                    MainServer.Instance.RemoveHTTPHandler("","/CAPS/EQG/" + ky.ToString() + "/");
                 }
 
             }
@@ -315,7 +315,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
                                                        }));
             
             // This will persist this beyond the expiry of the caps handlers
-            m_scene.CommsManager.HttpServer.AddHTTPHandler(
+            MainServer.Instance.AddHTTPHandler(
                 capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePath2);
 
             Random rnd = new Random(Environment.TickCount);

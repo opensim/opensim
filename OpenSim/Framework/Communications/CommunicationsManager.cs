@@ -29,12 +29,11 @@ using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Framework.Communications
 {
     /// <summary>
-    /// This class manages references to OpenSim non-region services (asset, inventory, user, etc.)
+    /// This class manages references to OpenSim non-region services (inventory, user, etc.)
     /// </summary>
     /// 
     /// TODO: Service retrieval needs to be managed via plugin and interfaces requests, as happens for region
@@ -99,28 +98,15 @@ namespace OpenSim.Framework.Communications
         }        
         protected IUserAdminService m_userAdminService;        
 
-        /// <value>
-        /// OpenSimulator's built in HTTP server
-        /// </value>
-        public IHttpServer HttpServer
-        {
-            get { return m_httpServer; }
-        }
-        protected IHttpServer m_httpServer;
-
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="serversInfo"></param>
-        /// <param name="httpServer"></param>
-        /// <param name="assetCache"></param>
-        /// <param name="dumpAssetsToFile"></param>
-        public CommunicationsManager(NetworkServersInfo serversInfo, IHttpServer httpServer, IAssetCache assetCache,
-                                     bool dumpAssetsToFile, LibraryRootFolder libraryRootFolder)
+        public CommunicationsManager(NetworkServersInfo serversInfo,
+                                     LibraryRootFolder libraryRootFolder)
         {
             m_networkServersInfo = serversInfo;
             m_userProfileCacheService = new UserProfileCacheService(this, libraryRootFolder);
-            m_httpServer = httpServer;
         }
 
         #region Inventory

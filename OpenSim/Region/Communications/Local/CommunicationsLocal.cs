@@ -31,7 +31,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Osp;
-using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -40,11 +39,8 @@ namespace OpenSim.Region.Communications.Local
         public CommunicationsLocal(
             ConfigSettings configSettings,                                   
             NetworkServersInfo serversInfo,
-            BaseHttpServer httpServer,
-            IAssetCache assetCache,
-            LibraryRootFolder libraryRootFolder, 
-            bool dumpAssetsToFile)
-            : base(serversInfo, httpServer, assetCache, dumpAssetsToFile, libraryRootFolder)
+            LibraryRootFolder libraryRootFolder)
+            : base(serversInfo, libraryRootFolder)
         {
             LocalInventoryService inventoryService = new LocalInventoryService();
             List<IInventoryDataPlugin> plugins 

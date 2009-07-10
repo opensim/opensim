@@ -93,7 +93,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Simulation
 
                 m_log.Info("[SIM SERVICE]: Starting...");
 
-                Object[] args = new Object[] { m_Config, scene.CommsManager.HttpServer, scene };
+                Object[] args = new Object[] { m_Config, MainServer.Instance, scene };
 
                 ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:SimulationServiceInConnector", args);
             }

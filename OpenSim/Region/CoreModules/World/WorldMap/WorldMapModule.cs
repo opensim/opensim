@@ -144,8 +144,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             regionimage = regionimage.Replace("-", "");
             m_log.Info("[WORLD MAP]: JPEG Map location: http://" + m_scene.RegionInfo.ExternalEndPoint.Address.ToString() + ":" + m_scene.RegionInfo.HttpPort.ToString() + "/index.php?method=" + regionimage);
 
-            m_scene.CommsManager.HttpServer.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
-            m_scene.CommsManager.HttpServer.AddLLSDHandler(
+            MainServer.Instance.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
+            MainServer.Instance.AddLLSDHandler(
                 "/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(), HandleRemoteMapItemRequest);
 
             m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
@@ -166,9 +166,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
-            m_scene.CommsManager.HttpServer.RemoveLLSDHandler("/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(),
+            MainServer.Instance.RemoveLLSDHandler("/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(),
                                                               HandleRemoteMapItemRequest);
-            m_scene.CommsManager.HttpServer.RemoveHTTPHandler("", regionimage);
+            MainServer.Instance.RemoveHTTPHandler("", regionimage);
         }
 
         public void OnRegisterCaps(UUID agentID, Caps caps)

@@ -124,7 +124,7 @@ namespace OpenSim.Region.CoreModules.Framework.Services
 //            IAssetDataPlugin m_assetProvider 
 //                = ((AssetServerBase)m_scene.CommsManager.AssetCache.AssetServer).AssetProviderPlugin;
 
-            IHttpServer httpServer = m_scene.CommsManager.HttpServer;
+            IHttpServer httpServer = MainServer.Instance;
             httpServer.AddXmlRPCHandler("simulator_data_request", XmlRpcSimulatorDataRequestMethod);
             //m_httpServer.AddXmlRPCHandler("map_block", XmlRpcMapBlockMethod);
             //m_httpServer.AddXmlRPCHandler("search_for_region_by_name", XmlRpcSearchForRegionMethod);

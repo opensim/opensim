@@ -89,7 +89,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             if (m_settings.Configs["Startup"].GetBoolean("gridmode", false))
             {
                 m_com = m_scenes[0].CommsManager;
-                m_com.HttpServer.AddXmlRPCHandler("grid_message", GridWideMessage);
+                MainServer.Instance.AddXmlRPCHandler("grid_message", GridWideMessage);
             }
         }
 

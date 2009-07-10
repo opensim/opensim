@@ -94,7 +94,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
             if (!m_Registered)
             {
                 m_Registered = true;
-                Object[] args = new Object[] { m_Config, scene.CommsManager.HttpServer, this, scene };
+                Object[] args = new Object[] { m_Config, MainServer.Instance, this, scene };
                 ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:LandServiceInConnector", args);
             }
 

@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Xml;
 using log4net;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -53,7 +54,7 @@ namespace OpenSim.Region.DataSnapshot
             m_externalData = externalData;
 
             //Register HTTP handler
-            if (m_scene.CommsManager.HttpServer.AddHTTPHandler("collector", OnGetSnapshot))
+            if (MainServer.Instance.AddHTTPHandler("collector", OnGetSnapshot))
             {
                 m_log.Info("[DATASNAPSHOT]: Set up snapshot service");
             }

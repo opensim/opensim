@@ -128,8 +128,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 
         protected virtual void AddHTTPHandlers()
         {
-            m_aScene.CommsManager.HttpServer.AddHTTPHandler("/agent/",  AgentHandler);
-            m_aScene.CommsManager.HttpServer.AddHTTPHandler("/object/", ObjectHandler);
+            MainServer.Instance.AddHTTPHandler("/agent/",  AgentHandler);
+            MainServer.Instance.AddHTTPHandler("/object/", ObjectHandler);
         }
 
         #endregion /* IRegionModule */

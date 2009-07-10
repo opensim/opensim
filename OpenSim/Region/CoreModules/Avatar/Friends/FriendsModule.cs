@@ -117,8 +117,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             {
                 if (m_scenes.Count == 0)
                 {
-                    scene.CommsManager.HttpServer.AddXmlRPCHandler("presence_update_bulk", processPresenceUpdateBulk);
-                    scene.CommsManager.HttpServer.AddXmlRPCHandler("terminate_friend", processTerminateFriend);
+                    MainServer.Instance.AddXmlRPCHandler("presence_update_bulk", processPresenceUpdateBulk);
+                    MainServer.Instance.AddXmlRPCHandler("terminate_friend", processTerminateFriend);
                     m_friendLists.DefaultTTL = new TimeSpan(1, 0, 0);  // store entries for one hour max
                     m_initialScene = scene;
                 }

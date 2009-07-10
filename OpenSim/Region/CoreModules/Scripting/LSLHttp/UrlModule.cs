@@ -93,7 +93,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             {
                 // There can only be one
                 //
-                m_HttpServer = scene.CommsManager.HttpServer;
+                m_HttpServer = MainServer.Instance;
             }
 
             scene.RegisterModuleInterface<IUrlModule>(this);

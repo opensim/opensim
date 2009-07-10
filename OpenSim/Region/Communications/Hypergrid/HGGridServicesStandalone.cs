@@ -77,12 +77,12 @@ namespace OpenSim.Region.Communications.Hypergrid
 
 
         public HGGridServicesStandalone(NetworkServersInfo servers_info, BaseHttpServer httpServe, IAssetCache asscache, SceneManager sman)
-            : base(servers_info, httpServe, asscache, sman)
+            : base(servers_info, sman)
         {
             //Respond to Grid Services requests
-            httpServer.AddXmlRPCHandler("logoff_user", LogOffUser);
-            httpServer.AddXmlRPCHandler("check", PingCheckReply);
-            httpServer.AddXmlRPCHandler("land_data", LandData);
+            MainServer.Instance.AddXmlRPCHandler("logoff_user", LogOffUser);
+            MainServer.Instance.AddXmlRPCHandler("check", PingCheckReply);
+            MainServer.Instance.AddXmlRPCHandler("land_data", LandData);
 
         }
 

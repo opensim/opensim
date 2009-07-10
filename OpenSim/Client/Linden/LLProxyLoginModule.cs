@@ -143,8 +143,8 @@ namespace OpenSim.Client.Linden
         protected void AddHttpHandlers()
         {
             //we will add our handlers to the first scene we received, as all scenes share a http server. But will this ever change?
-            m_firstScene.CommsManager.HttpServer.AddXmlRPCHandler("expect_user", ExpectUser);
-            m_firstScene.CommsManager.HttpServer.AddXmlRPCHandler("logoff_user", LogOffUser);
+            MainServer.Instance.AddXmlRPCHandler("expect_user", ExpectUser);
+            MainServer.Instance.AddXmlRPCHandler("logoff_user", LogOffUser);
         }
 
         protected void AddScene(Scene scene)

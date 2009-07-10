@@ -127,8 +127,8 @@ namespace OpenSim.Region.UserStatistics
                     //// 
 
 
-                    scene.CommsManager.HttpServer.AddHTTPHandler("/SStats/", HandleStatsRequest);
-                    scene.CommsManager.HttpServer.AddHTTPHandler("/CAPS/VS/", HandleUnknownCAPSRequest);
+                    MainServer.Instance.AddHTTPHandler("/SStats/", HandleStatsRequest);
+                    MainServer.Instance.AddHTTPHandler("/CAPS/VS/", HandleUnknownCAPSRequest);
                 }
                 
                 m_scene.Add(scene);
@@ -236,7 +236,7 @@ namespace OpenSim.Region.UserStatistics
             }
             else
             {
-                strOut = m_scene[0].CommsManager.HttpServer.GetHTTP404("");
+                strOut = MainServer.Instance.GetHTTP404("");
             }
             
 

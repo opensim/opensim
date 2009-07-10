@@ -35,11 +35,11 @@ namespace OpenSim.Region.Communications.OGS1
     public class CommunicationsOGS1 : CommunicationsManager
     {
         public CommunicationsOGS1(
-            NetworkServersInfo serversInfo, BaseHttpServer httpServer, 
-            IAssetCache assetCache, LibraryRootFolder libraryRootFolder)
-            : base(serversInfo, httpServer, assetCache, false, libraryRootFolder)
+            NetworkServersInfo serversInfo,
+            LibraryRootFolder libraryRootFolder)
+            : base(serversInfo, libraryRootFolder)
         {
-            OGS1GridServices gridInterComms = new OGS1GridServices(serversInfo, httpServer);
+            OGS1GridServices gridInterComms = new OGS1GridServices(serversInfo);
             m_gridService = gridInterComms;
 
             if (serversInfo.secureInventoryServer)

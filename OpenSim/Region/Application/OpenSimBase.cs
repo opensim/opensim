@@ -391,7 +391,7 @@ namespace OpenSim
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);
             
             // TODO : Try setting resource for region xstats here on scene            
-            scene.CommsManager.HttpServer.AddStreamHandler(new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
+            MainServer.Instance.AddStreamHandler(new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
             
             try
             {

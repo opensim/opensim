@@ -90,7 +90,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                 {
                     m_log.InfoFormat("[IRC-Bridge] Connecting region {0}", scene.RegionInfo.RegionName);
                     if (!String.IsNullOrEmpty(m_password))
-                        scene.CommsManager.HttpServer.AddXmlRPCHandler("irc_admin", XmlRpcAdminMethod, false);
+                        MainServer.Instance.AddXmlRPCHandler("irc_admin", XmlRpcAdminMethod, false);
                     m_region = new RegionState(scene, m_config);
                     lock (m_regions) m_regions.Add(m_region);
                     m_region.Open();
@@ -121,7 +121,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                 return;
 
             if (!String.IsNullOrEmpty(m_password))
-                scene.CommsManager.HttpServer.RemoveXmlRPCHandler("irc_admin");
+                MainServer.Instance.RemoveXmlRPCHandler("irc_admin");
 
             m_region.Close();
 

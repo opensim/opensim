@@ -65,11 +65,11 @@ namespace OpenSim.Region.Communications.Hypergrid
             set { m_remoteBackend.RegionLoginsEnabled = value; }
         }      
 
-        public HGGridServicesGridMode(NetworkServersInfo servers_info, BaseHttpServer httpServe, 
-            IAssetCache asscache, SceneManager sman, UserProfileCacheService userv)
-            : base(servers_info, httpServe, asscache, sman)
+        public HGGridServicesGridMode(NetworkServersInfo servers_info,
+            SceneManager sman, UserProfileCacheService userv)
+            : base(servers_info, sman)
         {
-            m_remoteBackend = new OGS1GridServices(servers_info, httpServe);
+            m_remoteBackend = new OGS1GridServices(servers_info);
             m_userProfileCache = userv;
         }
 

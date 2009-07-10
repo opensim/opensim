@@ -63,7 +63,6 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         public BaseHttpServer httpListener;
         public NetworkServersInfo serversInfo;
-        public BaseHttpServer httpServer;
 
         protected List<RegionInfo> m_regionsOnInstance = new List<RegionInfo>();
 
@@ -76,7 +75,6 @@ namespace OpenSim.Region.Communications.Hypergrid
         // This is key-ed on agent ID
         protected Dictionary<UUID, RegionInfo> m_knownRegions = new Dictionary<UUID, RegionInfo>();
 
-        protected IAssetCache m_assetcache;
         protected UserProfileCacheService m_userProfileCache;
         protected SceneManager m_sceneman;
 
@@ -112,18 +110,15 @@ namespace OpenSim.Region.Communications.Hypergrid
         /// Contructor.  Adds "expect_hg_user" and "check" xmlrpc method handlers
         /// </summary>
         /// <param name="servers_info"></param>
-        /// <param name="httpServe"></param>
-        public HGGridServices(NetworkServersInfo servers_info, BaseHttpServer httpServe, IAssetCache asscache, SceneManager sman)
+        public HGGridServices(NetworkServersInfo servers_info, SceneManager sman)
         {
             serversInfo = servers_info;
-            httpServer = httpServe;
-            m_assetcache = asscache;
             m_sceneman = sman;
 
             random = new Random();
 
-            httpServer.AddXmlRPCHandler("link_region", LinkRegionRequest);
-            httpServer.AddXmlRPCHandler("expect_hg_user", ExpectHGUser);
+            MainServer.Instance.AddXmlRPCHandler("link_region", LinkRegionRequest);
+            MainServer.Instance.AddXmlRPCHandler("expect_hg_user", ExpectHGUser);
 
             HGNetworkServersInfo.Init(servers_info.AssetURL, servers_info.InventoryURL, servers_info.UserURL);
         }

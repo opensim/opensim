@@ -144,7 +144,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         {
             if (!m_enabled) return;
 
-            scene.CommsManager.HttpServer.AddXmlRPCHandler("concierge_update_welcome", XmlRpcUpdateWelcomeMethod, false);
+            MainServer.Instance.AddXmlRPCHandler("concierge_update_welcome", XmlRpcUpdateWelcomeMethod, false);
 
             lock (m_syncy)
             {
@@ -176,7 +176,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         {
             if (!m_enabled) return;
 
-            scene.CommsManager.HttpServer.RemoveXmlRPCHandler("concierge_update_welcome");
+            MainServer.Instance.RemoveXmlRPCHandler("concierge_update_welcome");
 
             lock (m_syncy)
             {

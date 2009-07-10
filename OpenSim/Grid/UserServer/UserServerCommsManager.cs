@@ -32,7 +32,7 @@ namespace OpenSim.Grid.UserServer
     public class UserServerCommsManager : CommunicationsManager
     {        
         public UserServerCommsManager(IInterServiceInventoryServices interServiceInventoryService)
-            : base(null, null, null, false, null)
+            : base(null, null)
         {
             m_interServiceInventoryService = interServiceInventoryService;
         }

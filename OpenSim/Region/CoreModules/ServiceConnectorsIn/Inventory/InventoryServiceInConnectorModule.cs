@@ -93,7 +93,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory
 
                 m_log.Info("[RegionInventoryService]: Starting...");
 
-                Object[] args = new Object[] { m_Config, scene.CommsManager.HttpServer };
+                Object[] args = new Object[] { m_Config, MainServer.Instance };
 
                 ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:InventoryServiceInConnector", args);
             }

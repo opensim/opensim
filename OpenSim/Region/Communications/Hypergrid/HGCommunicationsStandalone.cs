@@ -48,7 +48,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             HGGridServices gridService, 
             LibraryRootFolder libraryRootFolder, 
             bool dumpAssetsToFile)
-            : base(serversInfo, httpServer, assetCache, dumpAssetsToFile, libraryRootFolder)
+            : base(serversInfo, libraryRootFolder)
         {           
             LocalUserServices localUserService =
                 new LocalUserServices(

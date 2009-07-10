@@ -50,12 +50,12 @@ namespace OpenSim.Region.Communications.Hypergrid
         }
 
         public HGCommunicationsGridMode(
-            NetworkServersInfo serversInfo, BaseHttpServer httpServer,
-            IAssetCache assetCache, SceneManager sman, LibraryRootFolder libraryRootFolder)
-            : base(serversInfo, httpServer, assetCache, false, libraryRootFolder)
+            NetworkServersInfo serversInfo,
+            SceneManager sman, LibraryRootFolder libraryRootFolder)
+            : base(serversInfo, libraryRootFolder)
         {
             // From constructor at CommunicationsOGS1
-            HGGridServices gridInterComms = new HGGridServicesGridMode(serversInfo, httpServer, assetCache, sman, m_userProfileCacheService);
+            HGGridServices gridInterComms = new HGGridServicesGridMode(serversInfo, sman, m_userProfileCacheService);
             m_gridService = gridInterComms;
             m_osw = gridInterComms;
 

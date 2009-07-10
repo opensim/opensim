@@ -93,7 +93,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset
 
                 m_log.Info("[RegionAssetService]: Starting...");
 
-                Object[] args = new Object[] { m_Config, scene.CommsManager.HttpServer };
+                Object[] args = new Object[] { m_Config, MainServer.Instance };
 
                 ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:AssetServiceConnector", args);
             }

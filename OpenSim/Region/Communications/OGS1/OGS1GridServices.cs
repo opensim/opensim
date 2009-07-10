@@ -59,7 +59,6 @@ namespace OpenSim.Region.Communications.OGS1
 
         public BaseHttpServer httpListener;
         public NetworkServersInfo serversInfo;
-        public BaseHttpServer httpServer;
         
         public string gdebugRegionName
         {
@@ -85,19 +84,12 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="servers_info"></param>
         /// <param name="httpServe"></param>
-        public OGS1GridServices(NetworkServersInfo servers_info, BaseHttpServer httpServe)
+        public OGS1GridServices(NetworkServersInfo servers_info)
         {
             serversInfo = servers_info;
-            httpServer = httpServe;
 
             //Respond to Grid Services requests
-          //  httpServer.AddXmlRPCHandler("expect_user", ExpectUser);
-          //  httpServer.AddXmlRPCHandler("logoff_user", LogOffUser);
-            httpServer.AddXmlRPCHandler("check", PingCheckReply);
-
-            // Retired into the new service connectors, 6/14/09
-            //httpServer.AddXmlRPCHandler("land_data", LandData);
-
+            MainServer.Instance.AddXmlRPCHandler("check", PingCheckReply);
         }
 
         // see IGridServices

@@ -130,7 +130,7 @@ namespace OpenSim.Client.Linden
                     LibraryRootFolder rootFolder
                         = m_firstScene.CommsManager.UserProfileCacheService.LibraryRoot as LibraryRootFolder;
 
-                    IHttpServer httpServer = m_firstScene.CommsManager.HttpServer;
+                    IHttpServer httpServer = MainServer.Instance;
 
                     //TODO: fix the casting of the user service, maybe by registering the userManagerBase with scenes, or refactoring so we just need a IUserService reference
                     m_loginService 

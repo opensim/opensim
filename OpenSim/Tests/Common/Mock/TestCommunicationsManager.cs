@@ -55,7 +55,7 @@ namespace OpenSim.Tests.Common.Mock
         }
 
         public TestCommunicationsManager(NetworkServersInfo serversInfo)
-            : base(serversInfo, new BaseHttpServer(666), null, false, null)
+            : base(serversInfo, null)
         {                        
             LocalInventoryService lis = new LocalInventoryService();
             m_inventoryDataPlugin = new TestInventoryDataPlugin();

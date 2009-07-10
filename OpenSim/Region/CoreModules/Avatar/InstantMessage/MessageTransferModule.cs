@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             {
                 if (m_Scenes.Count == 0)
                 {
-                    scene.CommsManager.HttpServer.AddXmlRPCHandler(
+                    MainServer.Instance.AddXmlRPCHandler(
                         "grid_instant_message", processXMLRPCGridInstantMessage);
                 }
 
