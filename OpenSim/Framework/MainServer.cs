@@ -25,68 +25,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Threading;
-using System.Reflection;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers.HttpServer;
-using log4net;
-using Nini.Config;
 
-namespace OpenSim.Server.Base
+namespace OpenSim.Framework
 {
-    public class HttpServerBase : ServicesServerBase
+    public class MainServer
     {
-        // Logger
-        //
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType); 
+        private static BaseHttpServer instance;
 
-        // The http server instance
-        //
-        protected BaseHttpServer m_HttpServer = null;
-
-        public IHttpServer HttpServer
+        public static BaseHttpServer Instance
         {
-            get { return m_HttpServer; }
-        }
-
-        // Handle all the automagical stuff
-        //
-        public HttpServerBase(string prompt, string[] args) : base(prompt, args)
-        {
-        }
-
-        protected override void ReadConfig()
-        {
-            IConfig networkConfig = m_Config.Configs["Network"];
-
-            if (networkConfig == null)
-            {
-                System.Console.WriteLine("Section 'Network' not found, server can't start");
-                Thread.CurrentThread.Abort();
-            }
-            uint port = (uint)networkConfig.GetInt("port", 0);
-
-            if (port == 0)
-            {
-                System.Console.WriteLine("Port number not specified or 0, server can't start");
-                Thread.CurrentThread.Abort();
-            }
-
-            m_HttpServer = new BaseHttpServer(port);
-
-            MainServer.Instance = m_HttpServer;
-
-            if (MainConsole.Instance is RemoteConsole)
-            {
-                ((RemoteConsole)MainConsole.Instance).SetServer(m_HttpServer);
-            }
-        }
-
-        protected override void Initialise()
-        {
-            m_HttpServer.Start();
+            get { return instance; }
+            set { instance = value; }
         }
     }
 }
